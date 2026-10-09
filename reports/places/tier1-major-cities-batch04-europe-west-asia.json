@@ -233,12 +233,6 @@
           "text": "모스크바",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Moskva",
-          "language": "ru-Latn",
-          "usage": "alternate",
-          "variantType": "romanization"
         }
       ],
       "latitude": 55.75204,
@@ -254,7 +248,10 @@
           "nameKo": "모스크바",
           "fromYear": 1801,
           "kind": "historicalLocalName",
-          "sourceUrl": "https://www.prlib.ru/history/619089"
+          "sourceUrl": "https://www.prlib.ru/history/619089",
+          "nameEn": "Moscow",
+          "nameNative": "Москва",
+          "nativeLanguage": "ru"
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
@@ -273,7 +270,10 @@
             "sourceUrl": "https://www.prlib.ru/history/619089"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Moscow",
+      "defaultDisplayNameNative": "Москва",
+      "defaultNativeLanguage": "ru"
     },
     {
       "geonameId": 745044,
