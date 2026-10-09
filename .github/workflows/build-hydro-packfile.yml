@@ -23,16 +23,25 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /tools/build-hydro-packfile.py
+            /assets/data/hydro/v0.13.2/
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/Pando
+          ref: 8de07030cccff5e7ec3c68e6beb6bb288c95afb2
+          path: historical-hydro
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
             /assets/data/hydro/v0.13.0/
             /assets/data/hydro/v0.13.1/
-            /assets/data/hydro/v0.13.2/
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Build container without re-encoding source fragments
         run: |
-          python tools/build-hydro-packfile.py
-          python tools/build-hydro-packfile.py --check
+          python tools/build-hydro-packfile.py --source historical-hydro/assets/data/hydro/v0.13.1
+          python tools/build-hydro-packfile.py --source historical-hydro/assets/data/hydro/v0.13.1 --check
       - name: Commit only the two output files to the existing GIS branch
         run: |
           git config user.name 'github-actions[bot]'
