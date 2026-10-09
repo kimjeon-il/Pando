@@ -12,7 +12,7 @@
   "historicalDisplayStatus": "timeline-staged-not-runtime",
   "historicNameScope": "Main local and English forms and attested historically meaningful Korean forms used from 1801 onward.",
   "qualityNotes": [
-    "East/West Berlin are historical sector names, not whole-city renames.",
+    "Berlin, Rome and Madrid: verified unchanged preferred Korean, English and native forms from 1801 to present; the initial 1801 survey boundary is not a foundation or legal naming date.",
     "Rome and Moscow changed political status without renaming.",
     "Madrid's older Magerit was outside the 19th-century historic-name cutoff.",
     "Istanbul has overlapping Ottoman/Greek/Western names. The 1930 label preference is an editorial convention, not a legal city rename.",
@@ -32,6 +32,11 @@
           "text": "베를린",
           "language": "ko",
           "usage": "standard"
+        },
+        {
+          "text": "Berlin",
+          "language": "en",
+          "usage": "standard"
         }
       ],
       "latitude": 52.52437,
@@ -47,7 +52,10 @@
           "nameKo": "베를린",
           "fromYear": 1801,
           "kind": "historicalLocalName",
-          "sourceUrl": "https://www.berlin.de/politische-bildung/politikportal/politik-in-berlin/hauptverwaltung-und-bezirksverwaltung/entstehung-und-entwicklung-der-bezirke/"
+          "sourceUrl": "https://www.berlin.de/politische-bildung/politikportal/politik-in-berlin/hauptverwaltung-und-bezirksverwaltung/entstehung-und-entwicklung-der-bezirke/",
+          "nameEn": "Berlin",
+          "nameNative": "Berlin",
+          "nativeLanguage": "de"
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
@@ -87,7 +95,10 @@
             "sourceUrl": "https://www.berlin.de/en/history/8481782-8619314-berlin-after-1945.en.html"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Berlin",
+      "defaultDisplayNameNative": "Berlin",
+      "defaultNativeLanguage": "de"
     },
     {
       "geonameId": 3169070,
@@ -121,7 +132,10 @@
           "nameKo": "로마",
           "fromYear": 1801,
           "kind": "historicalLocalName",
-          "sourceUrl": "https://vive.cultura.gov.it/en/vittoriano/history/victor-emmanuel-ii-and-risorgimento-process"
+          "sourceUrl": "https://vive.cultura.gov.it/en/vittoriano/history/victor-emmanuel-ii-and-risorgimento-process",
+          "nameEn": "Rome",
+          "nameNative": "Roma",
+          "nativeLanguage": "it"
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
@@ -146,7 +160,10 @@
             "sourceUrl": "https://vive.cultura.gov.it/en/vittoriano/history/victor-emmanuel-ii-and-risorgimento-process"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Rome",
+      "defaultDisplayNameNative": "Roma",
+      "defaultNativeLanguage": "it"
     },
     {
       "geonameId": 3117735,
@@ -159,6 +176,11 @@
         {
           "text": "마드리드",
           "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "Madrid",
+          "language": "en",
           "usage": "standard"
         }
       ],
@@ -175,7 +197,10 @@
           "nameKo": "마드리드",
           "fromYear": 1801,
           "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/3117735/madrid.html"
+          "sourceUrl": "https://www.esmadrid.com/en/history-madrid",
+          "nameEn": "Madrid",
+          "nameNative": "Madrid",
+          "nativeLanguage": "es"
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
@@ -183,10 +208,13 @@
         "notes": [
           {
             "detail": "Magerit는 근대 도시 개칭명 아님",
-            "sourceUrl": "https://www.geonames.org/3117735/madrid.html"
+            "sourceUrl": "https://www.esmadrid.com/en/history-madrid"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Madrid",
+      "defaultDisplayNameNative": "Madrid",
+      "defaultNativeLanguage": "es"
     },
     {
       "geonameId": 524901,
