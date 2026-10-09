@@ -103,7 +103,7 @@ test('cross-branch consumers and public URL prevent deletion',()=>{
   const r=assess(s,evidence);
   assert.equal(r.passed,true);assert.equal(r.deleteReadyFiles,0);
   assert.equal(r.groups[0].state,'retain-web-branch-consumer');
-  assert.equal(r.groups[1].state,'retain-public-asset-url');
+  assert.equal(r.groups[1].state,'published-legacy-url-no-retention-guarantee');
   assert.equal(r.groups[2].state,'archive-review-blocked');
   assert.equal(r.candidateFiles,341);
 });
