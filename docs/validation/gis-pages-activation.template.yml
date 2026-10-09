@@ -1,6 +1,6 @@
 # INACTIVE RELEASE TEMPLATE: docs/validation/gis-pages-activation.template.yml
 # Not in .github/workflows; activating requires an explicitly approved release.
-# Use only after the exact current main tree meets the 1GB limit, 2124 URLs
+# Use only after the exact current main tree meets the 1GB limit and all current native/runtime URLs
 # and app/web regressions have passed, and Pages source is GitHub Actions.
 name: Pando approved GitHub Pages release
 
@@ -67,13 +67,14 @@ jobs:
             --name web-gis-stage10-cutover-cleanup-main-promotion-dryrun \
             --dir "$RUNNER_TEMP/pando-evidence"
           cd "$RUNNER_TEMP/pando-evidence"
-          jq -e --arg s "$APPROVED_SHA" '.mainSha == $s && .archivePaths == 2124' \
+          LOCK_COUNT="$(jq -r '.totalFiles' stage10-stage8-lock.json)"
+          jq -e --arg s "$APPROVED_SHA" --argjson n "$LOCK_COUNT" '.mainSha == $s && .archivePaths == $n' \
             stage10-pages-plan.json
           jq -e --arg s "$APPROVED_SHA" \
-            '.readyToStage == true && .sourceHead == $s && .retainedHistoricalURLs == 2124' \
+            --argjson n "$LOCK_COUNT" '.readyToStage == true && .sourceHead == $s && .retainedHistoricalURLs == $n' \
             stage10-pages-main-stage-gate.json
-          jq -e '.totalFiles == 2124 && .totalBytes == 564189000' stage10-stage8-lock.json
-          jq -e '.budget.includedBytes <= 1000000000 && .archive.files == 2124' \
+          jq -e '.totalFiles == (.files | length) and .totalBytes == ([.files[].bytes] | add) and (([.files[].path | startswith("assets/data/terrain/v0.12.0/")] | any) | not)' stage10-stage8-lock.json
+          jq -e --argjson n "$LOCK_COUNT" '.budget.includedBytes <= 1000000000 && .archive.files == $n' \
             stage10-main-publication.json
       - name: Stage every file with exact Git Blob byte verification
         env:
