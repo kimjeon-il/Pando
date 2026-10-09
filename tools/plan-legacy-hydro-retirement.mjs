@@ -80,10 +80,16 @@ export function classify(path,line,version){
   if(/^(docs\/|reports\/)/.test(path)||path.endsWith('.md'))return {...found,kind:'documentation'};
   if(/^\.github\/workflows\//.test(path)&&/^\s*!\/assets\/data\/hydro\/v0\.12\.[2-6]\//.test(line))
     return {...found,kind:'sparse-checkout-exclusion'};
-  if(/^tests\/unit\/[^/]+\.test\.mjs$/.test(path))
+  if(/^tests\/unit\/[^/]+\.test\.mjs$/.test(path)){
+    if(/(?:readFileSync|readFile|openSync|fetch\s*\().*hydro\/v0\.12\.[2-6]\//.test(line))
+      return {...found,kind:'unexpected-consumer'};
     return {...found,kind:'synthetic-unit-test-reference'};
-  if(/^tests\/fixtures\//.test(path))
+  }
+  if(/^tests\/fixtures\//.test(path)){
+    if(/hydro\/v0\.12\.[2-6]\//.test(line))
+      return {...found,kind:'unexpected-consumer'};
     return {...found,kind:'saved-project-or-regression-fixture'};
+  }
   if(['tools/plan-legacy-hydro-retirement.mjs',
     'tests/unit/legacy-hydro-retirement.test.mjs'].includes(path))
     return {...found,kind:'audit-self'};
