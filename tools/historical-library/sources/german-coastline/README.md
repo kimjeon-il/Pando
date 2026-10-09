@@ -45,3 +45,31 @@ coastline sections**. This inventory neither fixes nor conceals that gap.
 
 Focused validation:
 `node --test tests/unit/historical-german-coastline-events.test.mjs`
+
+## Helgoland 1914: working geometry blocker
+
+The existing German Empire 1914 **working polygon** contains the present-day
+Helgoland and Düne OSM island rings. They establish that both island components
+exist, but **not** their historical shapes. This is explicitly marked in the
+working GeoJSON's `properties.heligoland1914GeometryStatus` and independently
+recorded in [Helgoland temporal QA](../../working/german-empire-1914-helgoland-temporal-qa.json).
+
+- The 1908–1916 southern harbor works were still underway in July 1914.
+- The 1938–1941 Nordostland and Düne additions are **later** than the German
+  Empire; proposed but unbuilt Hummerschere outlines must not be digitized.
+- The public-domain UK Admiralty No. 126 chart (published 22 Sep 1914) is a
+  1:15,000 control source. A Wikimaps Warper project reports six GCPs; neither
+  georeferencing residuals nor the chart's original survey/revision date have
+  been checked. The 2009 *Die Küste* figure compares 1890, 1903, 1916, 1928,
+  1940 and 1970 main-island configurations; this is a comparison aid, **not**
+  a georeferenced period coastline.
+
+**Next geometric step:** independently rectify the 1914 chart, digitize the
+period coastline for the main island and Düne **separately**, and check the
+screen-space difference at the production web baseline (flat zoom 64, 2560 CSS
+pixels). Resolve the harbor-versus-dry-land and island topology before replacing
+one of the modern working components. No guessed buffer or area-preserving
+shrink operation is allowed.
+
+Validate the provisional geometry evidence contract with
+`node --test tests/unit/historical-german-coastline-helgoland.test.mjs`.
