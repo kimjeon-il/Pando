@@ -46,6 +46,32 @@ coastline sections**. This inventory neither fixes nor conceals that gap.
 Focused validation:
 `node --test tests/unit/historical-german-coastline-events.test.mjs`
 
+## October 2026 Schleswig-Holstein WMS period-map overlays
+
+The official LVermGeo SH chronological Prussian Landesaufnahme WMS returned
+eight dated-*group* (not exact sheet-year) historical raster overlays from a
+GitHub Actions source-probe run `37921081699`, for the Eider mouth, Husum,
+Hauke-Haien-Koog and Beltringharder Koog (1878–1880 versus 1902–1930 layers).
+The request metadata, original raster SHA-256 values and temporary artifact
+filenames are in [`sh-wms-period-overlay-probe.json`](sh-wms-period-overlay-probe.json).
+Reproduce with [the source-only script](../../../../tools/probe_german_empire_1914_coast_period_rasters.py).
+The map attribution is **© GeoBasis-DE/LVermGeo SH/CC BY 4.0**.
+
+Small, manually selected *visual-example point* offsets against the website's
+temporary modern coast total about 6.4 CSS px at Hauke-Haien-Koog,
+5.3 CSS px at Beltringharder Koog and 4.4 CSS px at the Eider mouth, at the
+project's 2560 CSS px / flat zoom 64 settings.
+**These are neither the verified 1914 displacement nor full coast maxima.**
+The 1902–1930 layer is a mixed period, exact sheet years/georeferencing have
+not been individually checked, the shoreline-versus-dike symbol needs independent
+interpretation, and the hand-selected sample set is not a continuous historical
+coastline.
+
+See [short overview](1914-sh-period-map-overlay-review.md) and
+[point-level reproducibility/provenance](sh-pre1914-era-screen-point-samples.json).
+No geometry or timeline has been changed by this source work. Period-map vector
+digitization and actual screen Hausdorff validation remain outstanding.
+
 ## Helgoland 1914: working geometry blocker
 
 The existing German Empire 1914 **working polygon** contains the present-day
