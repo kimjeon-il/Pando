@@ -26,6 +26,7 @@ jobs:
           filter: blob:none
           sparse-checkout-cone-mode: false
           sparse-checkout: |
+            /package.json
             /tools/decode-hydro-connectivity.mjs
             /tools/research-hydro-names.mjs
             /tools/promote-hydro-names.mjs
