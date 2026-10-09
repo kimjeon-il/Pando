@@ -4,19 +4,20 @@
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0)",
   "checkedOn": "2026-10-08",
-  "selection": "Eight indisputable major European capital-city points, all GeoNames P/PPLC; never the administrative ADM area.",
+  "selection": "Eight current European capital-city GeoNames P/PPLC records plus one separate historical predecessor Pest GeoNames P/PPLX record, with city-label validity ending at Budapest's 1873-11-17 unification.",
   "coordinateConvention": "Dataset-wide WGS84 (EPSG:4326), decimal-degree settlement representative points rather than city/region polygons.",
   "countryCodeSemantics": "sourceCountryCode is present-day GeoNames metadata only, not a historical ownership assignment.",
   "koreanMapLabelPolicyFile": "reports/places/korean-map-label-policy.json",
   "historicalDisplayPolicyFile": "reports/places/historical-display-policy.json",
   "historicalDisplayStatus": "timeline-staged-not-runtime",
-  "historicNameScope": "Names relevant to 1801 onward; coexisting national-language exonyms are not official city renamings.",
+  "historicNameScope": "Historical capital city name records from 1801 onward, plus Pest as a verified formerly independent city only before its 1873-11-17 merger. Native/exonym co-usage and urban temporal eligibility are recorded separately.",
   "qualityNotes": [
-    "Budapest is a unified city from 1873-11-17; Buda, Pest and Óbuda were separate earlier settlements and are not names[] aliases. Suppress Budapest city label before formation.",
+    "Budapest is the unified city only from 1873-11-17. The separate historical Pest place (GeoNames 3046446, modern PPLX, coordinates 47.5/19.0833333) is shown in the city layer before 1873-11-17 and suppressed from that date by staged temporalEligibility.activeIntervals; Budapest GeoNames 3054643 is suppressed before that date by its existing temporalEligibility.cityEstablishedFromDate. Buda and Óbuda remain linked predecessor settlements, not aliases of Budapest.",
     "Prag/Warschau are German exonyms, not date-switch legal renamings; Brussels names are coequal French/Dutch forms.",
     "Athens became Greek capital in 1834 but retained its city identity/name. Αθήναι is a historical Greek written form, not an automatically dated official rename.",
     "Amsterdam is a city point, not its municipality or metro; Brussels city point is distinct from the 19-municipality capital region.",
-    "Short displayed text is <=28 Unicode codepoints. Map renderer and production manifest are unchanged."
+    "Short displayed text is <=28 Unicode codepoints. Map renderer and production manifest are unchanged.",
+    "GeoNames PPLX Pest is a scoped exception to the modern capital PPLC selection: independent historic municipality until 1873, then part of modern Budapest. As of this staged report, runtime label resolver does not consume activeIntervals; the historical display rule is pending runtime integration."
   ],
   "records": [
     {
@@ -155,6 +156,97 @@
       "historicalDisplayCoverage": "reviewed-since-1801"
     },
     {
+      "geonameId": 3046446,
+      "names": [
+        {
+          "text": "Pest",
+          "language": "hu",
+          "usage": "historical",
+          "variantType": "historicalIndependentCityName"
+        },
+        {
+          "text": "Pest",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "historicalIndependentCityName"
+        },
+        {
+          "text": "페슈트",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "historicalIndependentCityKoreanName"
+        }
+      ],
+      "latitude": 47.5,
+      "longitude": 19.0833333,
+      "featureClass": "P",
+      "featureCode": "PPLX",
+      "sourceUrl": "https://www.geonames.org/3046446/pest.html",
+      "sourceCountryCode": "HU",
+      "defaultDisplayNameKo": "페슈트",
+      "defaultDisplayNameEn": "Pest",
+      "defaultDisplayNameNative": "Pest",
+      "defaultNativeLanguage": "hu",
+      "shortDescriptionKo": "1873년 부다페스트에 통합된 옛 도시",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "페슈트",
+          "nameEn": "Pest",
+          "nameNative": "Pest",
+          "nativeLanguage": "hu",
+          "kind": "historicalIndependentCity",
+          "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
+          "note": "1873년 통합 전 독립 도시",
+          "researchNote": "1801년은 역사 지명 검수 시작 연도이지 페슈트의 설립 연도가 아니다. 페슈트는 도나우 동쪽에 있던 독립 도시로 1873-11-17 부다·오부다와 통합됐다. 현대 GeoNames는 Pest를 PPLX(도시 내 지역)로 분류하지만 역사적으로는 독립 도시이므로 별도 ID 3046446을 보존한다. 영어 Pest와 헝가리어 Pest는 동일 철자이다."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801-until-1873-merger-for-independent-city",
+      "temporalEligibility": {
+        "lifecycleReviewStatus": "verified",
+        "reviewedCoverage": {
+          "fromYear": 1801,
+          "untilYear": 2026
+        },
+        "activeIntervals": [
+          {
+            "untilDateExclusive": "1873-11-17",
+            "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
+            "researchNote": "역사적 독립 도시로서의 페슈트 표시는 1873-11-16까지. 1873-11-17부터는 별도 도시 표시를 종료하고 통합된 부다페스트(GeoNames 3054643)를 표시한다. 1801년 이전은 조사 범위 밖이며, 통합 후 Pest라는 지역명 자체가 소멸했다는 뜻은 아니다."
+          }
+        ],
+        "afterIndependentCityMerger": "suppress-city-label",
+        "note": "1873-11-17부터 독립 도시 라벨 제외",
+        "researchNote": "PPLX는 현재 GeoNames의 지역 분류다. 옛 독립 도시로 표시할 때만 city-label eligibility를 부여한다. 현대 Pest의 지역 지명 검색·보존은 독립 도시 표시 제외와 별개. activeIntervals는 현재 조사 데이터에만 존재하며 실제 렌더러는 아직 이를 적용하지 않는다."
+      },
+      "historicalGeography": {
+        "events": [
+          {
+            "date": "1873-11-17",
+            "type": "mergedIntoBudapest",
+            "detail": "부다·오부다와 통합해 부다페스트 성립",
+            "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest"
+          }
+        ],
+        "linkedPlaces": [
+          {
+            "geonameId": 3054643,
+            "nameHu": "Budapest",
+            "nameKo": "부다페스트",
+            "relation": "successorUnifiedCityFrom1873-11-17",
+            "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest"
+          }
+        ],
+        "notes": [
+          {
+            "detail": "1873년 이전에만 독립 도시 표시",
+            "researchDetail": "별도 Pest 역사 도시 객체로 관리한다. 현대 부다페스트와 좌표가 다르며 이름만 바꾼 같은 좌표 객체로 합치지 않는다. 1873년 이후 Pest의 지역명 지속 사용은 독립 도시 라벨과 별개.",
+            "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest"
+          }
+        ]
+      }
+    },
+    {
       "geonameId": 3054643,
       "names": [
         {
@@ -212,9 +304,10 @@
           {
             "nameHu": "Pest",
             "nameKo": "페슈트",
-            "relation": "pre1873SeparateSettlement",
-            "note": "통합 전 도나우 동안의 도시",
-            "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest"
+            "relation": "pre1873IndependentCity",
+            "note": "1873년 통합 이전의 독립 도시. 1873-11-17 이후 독립 도시 표시 종료",
+            "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
+            "geonameId": 3046446
           },
           {
             "nameHu": "Óbuda",
