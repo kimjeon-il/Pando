@@ -9,6 +9,7 @@ on:
       - '.github/workflows/active-hydro-optimization-gate.yml'
       - 'assets/data/hydro/v0.13.0/**'
       - 'assets/data/hydro/v0.13.1/**'
+      - 'assets/data/hydro/v0.13.2/**'
       - 'assets/js/modules/app-environment.js'
       - 'scripts/generate-build-metadata.mjs'
   workflow_dispatch:
@@ -31,8 +32,6 @@ jobs:
             /tests/unit/current-hydro-layout.test.mjs
             /assets/js/modules/app-environment.js
             /scripts/generate-build-metadata.mjs
-            /assets/data/hydro/v0.13.0/
-            /assets/data/hydro/v0.13.1/
             /assets/data/hydro/v0.13.2/
       - uses: actions/checkout@v4
         with:
@@ -57,9 +56,9 @@ jobs:
         run: |
           node --check tools/check-current-hydro-layout.mjs
           node --test tests/unit/current-hydro-layout.test.mjs
-      - name: Verify all active binaries, reused paths and native pin
+      - name: Verify current exact two-file package and native pin (pre-retirement)
         run: |
-          node tools/check-current-hydro-layout.mjs --root . \
+          node tools/check-current-hydro-layout.mjs --root . --allow-retired true \
             --app-manifest pinned-app/assets/world/manifest.json \
             --app-manifest-gis pinned-app-gis/assets/world/manifest.json \
             --out reports/active-hydro-optimization.json
