@@ -1,0 +1,100 @@
+{
+  "schema": "hydro-bounded-lake-findings-v2",
+  "batch": "r13",
+  "frozen_at_utc": "2026-10-09T16:06:43.294847+00:00",
+  "target_count": 2,
+  "new_actual_inventory_targets": 2,
+  "full_feature_correspondence_review_completed_count": 2,
+  "source_limited_unresolved_count": 0,
+  "compound_named_waterbody_required_by_evidence": null,
+  "records": [
+    {
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true,
+      "aw_id": "lakes_base:1159107033",
+      "source_id": "1159107033",
+      "candidate_name": "Lake Maurepas",
+      "directly_supported_name_forms": [
+        "Lake Maurepas"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized polygon corresponds to the mapped Lake Maurepas waterbody at regional scale; this is bounded cartographic identification.",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "cartographic_identity_source_keys": [
+        "cpra_fy2024_plan"
+      ],
+      "correspondence_observations": [
+        "The complete 26-position single ring occupies the mapped rounded waterbody immediately west of Lake Pontchartrain, with a broad southern curve, western side and narrower north/northeast outline consistent at regional scale.",
+        "The long eastern side remains within the western lake footprint and does not extend into the separately mapped Lake Pontchartrain. The southern and northwestern limits were considered as well as the label position.",
+        "Fine western indentation, small channels and exact shoreline vertices cannot be resolved on these regional maps; their absence from cartography is not treated as precise shoreline agreement."
+      ],
+      "coastal_context": "The 2011 CELCP plan describes Lakes Maurepas, Pontchartrain and Borgne together as a shallow receiving basin affected by freshwater inflow and marine-water pathways. This supports a coastal/brackish basin context rather than an assumption of permanent uniform freshwater conditions.",
+      "name_scope_limits": [
+        "Only one official cartographic publication supports the identity. The separate CELCP publication supports basin context.",
+        "The unused access failures do not prevent this bounded identity assessment because the acquired CPRA map includes the whole generalized footprint.",
+        "Review completion means the complete outline was considered, not that every vertex matches a surveyed shoreline or that a scalar name is ready for application."
+      ],
+      "compound_named_waterbody_required_by_evidence": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No unresolved gap remains for the bounded generalized identity question. Formal registry, detailed channels and exact shoreline verification remain outside scope."
+    },
+    {
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true,
+      "aw_id": "lakes_base:1159110475",
+      "source_id": "1159110475",
+      "candidate_name": "Lake Salvador",
+      "directly_supported_name_forms": [
+        "Lake Salvador"
+      ],
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "The map associates Lake Salvador with the main southern body and visibly covers the entire northern lobe and connecting water. The completed bounded assessment does not establish a uniform whole-feature name or exhaustive compound identity.",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "cartographic_identity_source_keys": [
+        "cpra_fy2024_plan"
+      ],
+      "correspondence_observations": [
+        "The complete 41-position ring includes a broad southern body and a distinct northern lobe joined by a narrow middle section; neither the northern lobe nor southwest projection was omitted from review.",
+        "The readable Lake Salvador label on printed page18 is associated with the broad southern part. That label alone does not establish one uniform name over the whole inventory ring.",
+        "The acquired map silhouettes broadly correspond to the southern body, narrow middle and northern lobe, but the compressed cartography and project overlays do not resolve the northern lobe name, connecting-water name scope or a precise boundary between named waters.",
+        "The southwest projection and narrow coastal connections likewise require sufficiently detailed named cartography before a whole-feature identity or exhaustive constituent list can be completed."
+      ],
+      "coastal_context": "For the Barataria basin, the same plan describes coastal marsh habitats ranging from fresh to saline conditions. This is regional context, not a salinity measurement or a water-class determination for every part of the Salvador-area polygon.",
+      "name_scope_limits": [
+        "The entire polygon is visible on the acquired CPRA map and was inspected. This completes the bounded assessment, with an unresolved whole-feature name-scope hold.",
+        "Failed auxiliary requests are separate unused access outcomes; they do not prevent inspection of the complete footprint on the acquired map.",
+        "The north-lobe and connection names are not resolved by the inspected cartography. This is a naming-scope uncertainty, not a claim that the northern lobe lacks a real-world name. No guessed constituent name or precise partition is supplied."
+      ],
+      "compound_named_waterbody_required_by_evidence": null,
+      "compound_scope_status": "Unresolved; the evidence does not establish whether a compound named-waterbody finding is required.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Resolve naming scope for the northern lobe, connecting water and southwest projection with sufficiently detailed official named cartography before any whole-feature naming or geometry change."
+    }
+  ],
+  "publication_scope": "Official bibliographic references and own factual observations only; no raw publications, map derivatives or omitted-source fingerprints.",
+  "recorded_review_scope": "Full original and baseline outlines considered against acquired regional coastal maps. Both bounded correspondence assessments are complete; the Salvador-area target remains on a whole-feature name-scope hold.",
+  "included_evidence_limit": "The included files retain bibliographic references, own factual observations and selected public-domain geometry. Original publications and inspection materials are not included. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false,
+  "whole_feature_name_scope_hold_count": 1
+}

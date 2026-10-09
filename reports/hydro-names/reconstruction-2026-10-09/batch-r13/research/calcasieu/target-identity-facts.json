@@ -1,0 +1,35 @@
+{
+  "schema": "hydro-public-target-identity-facts-v2",
+  "batch": "r13",
+  "selection_scope": "One new actual inventory ID joined with its complete source and baseline polygon. No historical verdict was restored.",
+  "targets": [
+    {
+      "aw_id": "lakes_base:1159110463",
+      "source_id": "1159110463",
+      "logical_fid": 4114,
+      "baseline_fids": [
+        15489
+      ],
+      "inventory_geometry_count": 1,
+      "source_geometry_type": "Polygon",
+      "source_ring_count": 1,
+      "source_positions_including_closure": 34,
+      "source_interior_ring_count": 0,
+      "source_name_fields": {
+        "name": "lake-297",
+        "name_en": "",
+        "name_ko": "",
+        "name_original": ""
+      },
+      "complete_ordered_source_baseline_match_at_six_decimals": true,
+      "geometry_modified": false
+    }
+  ],
+  "geometry_note": "Counts describe the complete included generalized geometry, not an official surveyed lake outline.",
+  "included_geometry_files": [
+    "selected-lake-geometries.geojson",
+    "selected-baseline-rendered-geometries.geojson"
+  ],
+  "included_geometry_file_path_base": "Package root",
+  "automatic_application": false
+}

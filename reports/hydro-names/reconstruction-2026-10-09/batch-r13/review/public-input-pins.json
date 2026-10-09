@@ -1,0 +1,83 @@
+{
+  "schema": "hydro-public-review-input-pins-v4",
+  "batch": "r13",
+  "scope": "included_public_files_only",
+  "files": [
+    {
+      "path": "selected-lake-geometries.geojson",
+      "bytes": 5341,
+      "sha256": "5564c881b1c951f7914e74c37b2db90e00c454043e2bb553859a9059a9ce8294"
+    },
+    {
+      "path": "selected-baseline-rendered-geometries.geojson",
+      "bytes": 3537,
+      "sha256": "22f626598f3990b7bf3046175bc713d8ca6e4b1444aa0cd3ed179d423e8c9d03"
+    },
+    {
+      "path": "geometry-reference.json",
+      "bytes": 18754,
+      "sha256": "50eaf7b37129ef13f557d3831013e162c7b7f5c3dfb3c47647bec063f86b3869"
+    },
+    {
+      "path": "geometry-component-manifest.json",
+      "bytes": 1613,
+      "sha256": "80268d2524b5985f3fbb0919d274bf852ef80f09ef80283c06aca6e8ae659730"
+    },
+    {
+      "path": "research/calcasieu/README.md",
+      "bytes": 1323,
+      "sha256": "c0dc09fad70ab0798e9d35a1f1f1631d8d195751780a117c812a2c3fbdd2d5d7"
+    },
+    {
+      "path": "research/calcasieu/findings.json",
+      "bytes": 4430,
+      "sha256": "48924daca9cc632cbd3ae2f906521e59a0a768d046d4d244eee83b03d730095f"
+    },
+    {
+      "path": "research/calcasieu/source-evidence.json",
+      "bytes": 3115,
+      "sha256": "af7286076765d5e3af7c96aceff2841136d07f82a601b756ef65e3bef7956522"
+    },
+    {
+      "path": "research/calcasieu/target-identity-facts.json",
+      "bytes": 1172,
+      "sha256": "12bef3d9a8780c9b3bf751e95194a5792e0e363fb84c2973cc7e63bf4ca0039d"
+    },
+    {
+      "path": "research/calcasieu/research-manifest.json",
+      "bytes": 906,
+      "sha256": "16e88f2cce1552372d84dc57277c04dedc5060c9d9d839fab82e175f1e5d97e1"
+    },
+    {
+      "path": "research/maurepas-salvador/README.md",
+      "bytes": 1350,
+      "sha256": "dbb67f5d238a495ec2a2435ac1e655013a48d9da58279657d95b36cf1d8bc5cd"
+    },
+    {
+      "path": "research/maurepas-salvador/findings.json",
+      "bytes": 7300,
+      "sha256": "5a626cc93f58f51322a2869ba79de102a3893cff51be17cfd5dbd2f5fef7706f"
+    },
+    {
+      "path": "research/maurepas-salvador/source-evidence.json",
+      "bytes": 5716,
+      "sha256": "e9015a280859628cb8e04461873829f1391fb675173f4ffdd2495bfe6ebc8547"
+    },
+    {
+      "path": "research/maurepas-salvador/target-identity-facts.json",
+      "bytes": 2624,
+      "sha256": "19b450dc66d4cbe39f567795df45ae308c6497c628100fec74a6009777d8e401"
+    },
+    {
+      "path": "research/maurepas-salvador/map-scope-review.json",
+      "bytes": 3834,
+      "sha256": "d922c4eb7ea3ae482b35771ea564c35d7fcfc51516971016e131d06108e0da0a"
+    },
+    {
+      "path": "research/maurepas-salvador/research-manifest.json",
+      "bytes": 1062,
+      "sha256": "1b2ee17a2e04e88c8d02e5f70598a18bbd9e13eab1efb2d2007d1b44af46e7bf"
+    }
+  ],
+  "automatic_application": false
+}

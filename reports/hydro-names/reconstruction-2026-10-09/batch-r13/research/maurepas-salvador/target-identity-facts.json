@@ -1,0 +1,84 @@
+{
+  "schema": "hydro-public-target-identity-facts-v2",
+  "batch": "r13",
+  "selection_scope": "Two new actual inventory IDs joined with their complete source and baseline polygons; no historical name verdict restored.",
+  "targets": [
+    {
+      "aw_id": "lakes_base:1159107033",
+      "source_id": "1159107033",
+      "logical_fid": 3858,
+      "baseline_fids": [
+        15233
+      ],
+      "inventory_geometry_count": 1,
+      "inventory_bbox": [
+        -90.592911,
+        30.176264,
+        -90.401133,
+        30.354059
+      ],
+      "inventory_rendered_area_km2": 235.32,
+      "source_bbox": [
+        -90.59291102591155,
+        30.176263542720875,
+        -90.40113279708527,
+        30.35405947550842
+      ],
+      "source_geometry_type": "Polygon",
+      "source_ring_count": 1,
+      "source_positions_including_closure": 26,
+      "source_interior_ring_count": 0,
+      "source_name_fields": {
+        "name": "lake-41",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "complete_ordered_source_baseline_match_at_six_decimals": true,
+      "maximum_coordinate_rounding_error_degrees": 4.923410585888632e-07,
+      "geometry_modified": false
+    },
+    {
+      "aw_id": "lakes_base:1159110475",
+      "source_id": "1159110475",
+      "logical_fid": 4115,
+      "baseline_fids": [
+        15490
+      ],
+      "inventory_geometry_count": 1,
+      "inventory_bbox": [
+        -90.34697,
+        29.663187,
+        -90.147244,
+        29.87454
+      ],
+      "inventory_rendered_area_km2": 217.555,
+      "source_bbox": [
+        -90.34696979769303,
+        29.663186869130385,
+        -90.1472437374342,
+        29.874540312410915
+      ],
+      "source_geometry_type": "Polygon",
+      "source_ring_count": 1,
+      "source_positions_including_closure": 41,
+      "source_interior_ring_count": 0,
+      "source_name_fields": {
+        "name": "lake-298",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "complete_ordered_source_baseline_match_at_six_decimals": true,
+      "maximum_coordinate_rounding_error_degrees": 4.854154056488369e-07,
+      "geometry_modified": false
+    }
+  ],
+  "geometry_note": "Counts, bounding boxes and inventory areas describe generalized geometry rather than surveyed or official lake dimensions. Complete ordered source and baseline positions agree at six-decimal precision.",
+  "included_geometry_files": [
+    "selected-lake-geometries.geojson",
+    "selected-baseline-rendered-geometries.geojson"
+  ],
+  "included_geometry_file_path_base": "Package root",
+  "automatic_application": false
+}
