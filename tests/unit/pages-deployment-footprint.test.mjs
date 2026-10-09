@@ -14,6 +14,8 @@ function sample(){
   put('assets/css/app.css',40);put('assets/fonts/regular.woff2',1000);
   put('assets/data/hydro/v0.13.0/index.bin.gz',100);
   put('assets/data/hydro/v0.13.1/manifest.json',150);
+  put('assets/data/hydro/v0.13.2/manifest.json',150);
+  put('assets/data/hydro/v0.13.2/hydro.bin',400);
   put('assets/data/terrain/v0.12.6/manifest.json',100);
   put('assets/data/terrain/v0.12.6/0/0-0.webp',150);
   put('assets/data/territorial-entities/generated/v2/index.json',200);
