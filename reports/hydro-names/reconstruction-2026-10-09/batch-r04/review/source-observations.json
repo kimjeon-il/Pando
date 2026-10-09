@@ -1,0 +1,120 @@
+{
+  "schema": "hydro-independent-source-observations-v1",
+  "reviewed_at_utc": "2026-10-09T12:38:36Z",
+  "scope_aw_ids": [
+    "hydro-system:70152112",
+    "lakes_base:1159123163",
+    "lakes_base:1159123567"
+  ],
+  "new_external_requests": 0,
+  "source_body_republication_permitted": false,
+  "observations": [
+    {
+      "source_key": "ATTA-ONTARIO-PARK-PLAN",
+      "checked_assets": [
+        "ATTA-HTML-TEXT",
+        "ATTA-PDF-TEXT",
+        "ATTA-MAP-FAIL"
+      ],
+      "inspection": "Read retained tool-extracted text at Boundary, Zoning and Water sections; map-return failures reviewed.",
+      "finding": "Attawapiskat and Otoskwin are distinct named waterways with lake passages. Regional-context visual coverage was unavailable.",
+      "limitation": "Text-capture hashes are not original HTML/PDF hashes; no inspected full-route map."
+    },
+    {
+      "source_key": "PIPESTONE-ONTARIO-PARK-PLAN",
+      "checked_assets": [
+        "PIPESTONE-PDF",
+        "PIPESTONE-TEXT",
+        "PIPESTONE-ZONES"
+      ],
+      "inspection": "Original PDF rehashed; local text sections 6.0 and 8.1.2 checked; complete July 2002 zoning map on PDF page 32 viewed.",
+      "finding": "Separate Morris/Williams drainage descriptions and the southern Otoskwin–Bow–Badesdawa corridor preclude treating the park title as one river name.",
+      "limitation": "The map itself is illustrative; it does not cover the full selected route to its sea endpoint."
+    },
+    {
+      "source_key": "UA-HYDRO-3031",
+      "checked_assets": [
+        "KAMI-CHART",
+        "KAMI-OVERLAY",
+        "KAMI-REGISTRATION"
+      ],
+      "inspection": "Entire original 3509×2590 chart viewed at fit and original resolution, including title, legend, graticule, insets and 2021 imprint; full 92-position local overlay compared.",
+      "finding": "Principal lower reservoir, northwest–southeast body and Vorskla-mouth sector are consistent with the selected polygon. Chart labels distinguish upstream Kremenchutske and downstream Dniprovske reservoirs.",
+      "limitation": "Selected polygon omits the upper narrow reach and island holes; approximate image registration is not surveyed shoreline validation."
+    },
+    {
+      "source_key": "UA-HYDRO-2021-NOTICE",
+      "checked_assets": [
+        "KAMI-NOTICE"
+      ],
+      "inspection": "Original HTML independently text-parsed; chart numbers 3531 and 3031 and the scope sentence checked.",
+      "finding": "Chart set covers the corridor between Kremenchuk and Middle Dnipro HPPs plus the Vorskla mouth.",
+      "limitation": "Same-producer provenance companion, not independent map corroboration."
+    },
+    {
+      "source_key": "UA-UHE-2019",
+      "checked_assets": [
+        "KAMI-UHE"
+      ],
+      "inspection": "Original HTML independently text-parsed; dated heading and opening paragraph checked.",
+      "finding": "The operator links creation of Kamianske Reservoir to Middle Dnipro HPP.",
+      "limitation": "Text links names and infrastructure, not exact waterbody bounds."
+    },
+    {
+      "source_key": "UA-DAVR-2017-PROPOSAL",
+      "checked_assets": [
+        "KAMI-PROPOSAL"
+      ],
+      "inspection": "Original HTML independently text-parsed; 19 January council appeal, 27 January publication and closing request checked.",
+      "finding": "The appeal proposes the reservoir-name change and separately describes prior city/plant changes.",
+      "limitation": "No legal naming effective date is established; linked general encyclopedia material supplies no independent spatial authority."
+    },
+    {
+      "source_key": "UA-RADA-2024-EN",
+      "checked_assets": [
+        "KAMI-RADA"
+      ],
+      "inspection": "Original HTML independently text-parsed; English stocking paragraph checked.",
+      "finding": "Direct English Kamianske Reservoir usage corroborates chart spelling.",
+      "limitation": "News usage is not formal registration or extent evidence."
+    },
+    {
+      "source_key": "EMB-ANA-194-2024",
+      "checked_assets": [
+        "EMB-ANA"
+      ],
+      "inspection": "Retained original HTML and locally extracted Article 1 and Article 3 text checked.",
+      "finding": "ANA directly names the reservoir Theodomiro Carneiro Santiago (Emborcação), distinct from other Paranaíba-system reservoirs.",
+      "limitation": "Operational regulation is evidence of reservoir usage, not an inspected geographic footprint or naming act."
+    },
+    {
+      "source_key": "EMB-CEMIG-PLANT",
+      "checked_assets": [
+        "EMB-CEMIG"
+      ],
+      "inspection": "Retained original HTML title and plant section checked.",
+      "finding": "Operator title corroborates the paired name for the hydroelectric plant.",
+      "limitation": "Embedded map container was not rendered; no original map or photograph is used for extent."
+    },
+    {
+      "source_key": "EMB-NE-ATTRIBUTES",
+      "checked_assets": [
+        "EMB-NE-HEADER",
+        "EMB-NE-ROW",
+        "EMB-NE-RECEIPT"
+      ],
+      "inspection": "Retained original DBF header and complete selected row independently parsed and exact ne_id joined.",
+      "finding": "Numeric field N(10,0) gives 1159123567; blank name, dam lead and uncorroborated alternate are preserved.",
+      "limitation": "Only retained subsets can be rehashed; record index and whole-stream SHA-256 retain acquisition-receipt scope."
+    }
+  ],
+  "visual_geometry_assets": [
+    "ATTA-FRAGMENTS",
+    "ATTA-OVERVIEW",
+    "KAMI-OVERVIEW",
+    "EMB-OVERVIEW"
+  ],
+  "rights_scope": "Own factual observations and hashes only. Original third-party PDFs, HTML, charts, image derivatives and complete river coordinates are absent.",
+  "access_scope": "Existing publication-specific failures remain bounded stops. No retries, alternate routes or new requests occurred in this review. Failed-map snippets are not acquired-map evidence.",
+  "durable_replay_limit": "Public scripts validate included lake coordinates and recorded facts. Optional local bytes permit rehashing and geometry replay; they do not repeat source acquisition or human visual examination."
+}

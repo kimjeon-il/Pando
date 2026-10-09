@@ -1,0 +1,148 @@
+{
+  "schema": "hydro-name-source-evidence-v1",
+  "batch": "r04",
+  "target_aw_id": "hydro-system:70152112",
+  "checked_at_utc": "2026-10-09T12:31:38.932291+00:00",
+  "sources": [
+    {
+      "evidence_id": "ATTA-ONTARIO-PARK-PLAN",
+      "title": "Otoskwin–Attawapiskat River Provincial Park Management Plan",
+      "agency": "Ontario Ministry of Natural Resources / Ontario Parks",
+      "publication_date": "2002-10-16",
+      "publication_date_scope": "Original management-plan approval; the HTML version also includes amendments dated 2004, 2005 and 2019.",
+      "original_url": "https://files.ontario.ca/environment-and-energy/parks-and-protected-areas/mnr_bpp0204.pdf",
+      "official_html_url": "https://www.ontario.ca/page/otoskwin-attawapiskat-river-provincial-park-management-plan",
+      "publication_identity": "A provincial protected-area management plan, distinct from a geographic-name registry or gazetteer.",
+      "acquisition": {
+        "method": "Web tool PDF-text open and selected HTML text returned by search",
+        "tool_return_observed_at_utc": "2026-10-09T12:26:24Z",
+        "timestamp_scope": "Tool-return observation; exact origin response time unavailable.",
+        "original_pdf_bytes_acquired": false,
+        "original_pdf_byte_sha256": null,
+        "selected_html_text_capture": {
+          "bytes": 25627,
+          "sha256": "d69b02ff0dfeea8c6b59d8ab39bae6bebdbd4d9e2dea0e74bc6a8b9f49f5bd7f",
+          "hash_scope": "UTF-8 serialization of the first result segment already returned by the web tool; selected text, not original HTML bytes.",
+          "included_in_public_package": false
+        },
+        "pdf_open_capture": {
+          "bytes": 25412,
+          "sha256": "f4987cb164c4276ec3b1f977029ae8f879d917e25b5bbb0f3ea9569a335d9128",
+          "hash_scope": "UTF-8 serialization of a combined web response containing selected PDF text and two unrelated open failures; not the PDF byte stream.",
+          "included_in_public_package": false
+        }
+      },
+      "own_factual_extraction": "The plan uses Attawapiskat River and Otoskwin River as separate names. Its protected corridor also contains lakes. It identifies Attawapiskat Lake beside Neskantaga, refers to the Attawapiskat River near Canada Lake, and discusses a possible eastward park extension to James Bay.",
+      "locators": [
+        "HTML section 6.0 Boundary",
+        "HTML section 7.0 Zoning, NE1",
+        "HTML section 8.1.2 Water",
+        "PDF page 11 (zero-based), Regional Context; attempted visual acquisition did not yield an inspectable map"
+      ],
+      "map_review": {
+        "regional_context_map_visually_reviewed": false,
+        "regional_context_map_result": "Cache miss",
+        "second_requested_pdf_page_zero_based": 17,
+        "second_page_result": "The tool returned an empty image reference without image data available for inspection; no map-based finding is claimed.",
+        "attempt_capture": {
+          "bytes": 486,
+          "sha256": "e8f24045fc62210f506057c7a403174c6485bd7fef2a9e1d9e3bc50432e36449",
+          "hash_scope": "UTF8 serialization of the web screenshot-tool return, consisting of an error and an empty image reference; not acquired map image bytes.",
+          "included_in_public_package": false
+        }
+      },
+      "extent_limit": "Official usage and a protected corridor are supported. The plan does not establish that all selected headwaters, lake passages and the unprotected downstream continuation carry one name. No whole-route visual identity is established by this source.",
+      "formal_registry_status_established": false,
+      "raw_source_republished": false
+    },
+    {
+      "evidence_id": "PIPESTONE-ONTARIO-PARK-PLAN",
+      "title": "Pipestone River Provincial Park Management Plan",
+      "agency": "Ontario Ministry of Natural Resources / Ontario Parks",
+      "publication_date": "2002",
+      "publication_date_scope": "Plan publication/approval year; downloaded PDF metadata indicates compilation in March 2010. The viewed zoning map is dated July 2002.",
+      "original_url": "https://files.ontario.ca/environment-and-energy/parks-and-protected-areas/mnr_bpp0205.pdf",
+      "publication_identity": "Independent provincial protected-area plan. Its July 2002 Pipestone zoning map is distinct from the Otoskwin–Attawapiskat plan. The shared June 2001 regional-context map is not used as independent evidence.",
+      "acquisition": {
+        "method": "Direct original PDF GET",
+        "requested_at_utc": "2026-10-09T12:27:41.814598+00:00",
+        "observed_at_utc": "2026-10-09T12:27:47.589045+00:00",
+        "http_status": 200,
+        "original_pdf": {
+          "bytes": 3182852,
+          "sha256": "efcb677e31fa4d6dfb8854460d8da84d6c097b14ee48c4645ff9c89f4e924f74",
+          "hash_scope": "Complete original PDF response bytes.",
+          "included_in_public_package": false
+        },
+        "local_text_extraction": {
+          "bytes": 104310,
+          "sha256": "110e8c02b55e0d83d19e5db3e5d5aa4668e15f8a24578ca65d95c67e5a310900",
+          "hash_scope": "Local pdftotext -layout output derived from the acquired PDF.",
+          "included_in_public_package": false
+        },
+        "viewed_map_render": {
+          "bytes": 920607,
+          "sha256": "0ff206d9680ee960359c96a5aed97b5b6dbdade94e0a6dda0c95105e66e3dee1",
+          "hash_scope": "Local PNG render of PDF page32 (1-based), July2002 zoning map; not original publisher image bytes.",
+          "included_in_public_package": false
+        }
+      },
+      "own_factual_extraction": "Section 8.1.2 distinguishes Otoskwin, Morris and Pipestone waterways. Section 6 separates the Morris and Williams drainage routes. The July 2002 zoning map labels Otoskwin, Bow and Badesdawa lakes and shows their corridor separately from the northern Pipestone corridor.",
+      "locators": [
+        "PDF page13 (printed page6), section6.0 Boundary",
+        "PDF page17 (printed page10), section8.1.2 Water",
+        "PDF page32 (1-based), Pipestone River Provincial Park Natural Environment Zones, July2002"
+      ],
+      "map_review": {
+        "visually_reviewed": true,
+        "full_page_viewed": true,
+        "map_title": "Pipestone River Provincial Park Natural Environment Zones",
+        "map_date": "2002-07",
+        "map_scale_information": "Scale bar in kilometres; no precise georeferenced reach overlay performed."
+      },
+      "extent_limit": "The viewed map supplies upper-corridor context. It does not map the complete selected main-river path to James Bay, locate every selected source reach, or equate the park name with the name of all its waterways.",
+      "formal_registry_status_established": false,
+      "raw_source_republished": false
+    }
+  ],
+  "unsuccessful_acquisitions": [
+    {
+      "url": "https://www.ontario.ca/files/2022-03/mto-orm-map17-2022-03-16.pdf",
+      "title": "Official Road Map of Ontario, Web Map17",
+      "agency": "Ontario Ministry of Transportation",
+      "observed_at_utc": "2026-10-09T12:26:24Z",
+      "result": "Web open returned Internal Error; HTTP status unavailable.",
+      "used_as_evidence": false,
+      "subsequent_acquisition_attempted": false
+    },
+    {
+      "url": "https://data.ontario.ca/en/dataset/major-river-systems-in-the-far-north/resource/31ba111b-2f36-4f4b-9d18-d4bd2229f253",
+      "title": "Major river systems in the Far North, catalog resource",
+      "agency": "Ontario Data Catalogue",
+      "observed_at_utc": "2026-10-09T12:26:24Z",
+      "result": "Web open returned Internal Error; HTTP status unavailable.",
+      "used_as_evidence": false,
+      "subsequent_acquisition_attempted": false
+    },
+    {
+      "url": "https://www.ontario.ca/page/aquatic-ecosystem-assessments-rivers",
+      "title": "Aquatic ecosystem assessments for rivers",
+      "agency": "Ontario",
+      "observed_at_utc": "2026-10-09T12:27:51.321541+00:00",
+      "result": "HTTP403 Forbidden; no original source bytes acquired.",
+      "used_as_evidence": false,
+      "subsequent_acquisition_attempted": false,
+      "receipt_sha256": "df3fa3481c5138f4ce4514cbfa3c88ac1e1e4266f072842ed62acddfb7bbb5c9",
+      "receipt_hash_scope": "Locally generated acquisition receipt containing the failed HTTP request result; not publisher source bytes."
+    }
+  ],
+  "limits": [
+    "Search-only hits for unsuccessful sources are not treated as acquired map evidence.",
+    "No complete publisher-byte hash is claimed for tool-extracted text.",
+    "No direct Korean-language naming source was acquired.",
+    "No formal name-registration record or exact named-reach boundary was verified.",
+    "Only own factual extraction, source identifiers and hashes are included publicly; original PDFs, text captures and map renders are omitted."
+  ],
+  "automatic_application": false,
+  "source_acquisition_complete_for_bounded_verdict": true
+}

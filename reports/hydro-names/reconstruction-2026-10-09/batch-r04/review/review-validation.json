@@ -1,0 +1,151 @@
+{
+  "schema": "hydro-independent-review-validation-v1",
+  "status": "passed",
+  "verified_at_utc": "2026-10-09T12:42:19Z",
+  "runs": [
+    {
+      "status": "passed",
+      "mode": "durable_only",
+      "scope_aw_ids": [
+        "hydro-system:70152112",
+        "lakes_base:1159123163",
+        "lakes_base:1159123567"
+      ],
+      "frozen_package_inputs_checked": 23,
+      "lake_coordinate_checks": [
+        {
+          "source_id": "1159123163",
+          "position_count": 92,
+          "adjacent_duplicate_positions": 1,
+          "every_ordered_position_checked": true
+        },
+        {
+          "source_id": "1159123567",
+          "position_count": 208,
+          "adjacent_duplicate_positions": 0,
+          "every_ordered_position_checked": true
+        }
+      ],
+      "river_coordinate_checks": [],
+      "omitted_full_river_coordinates_rechecked": false,
+      "independent_binary_decoder_replayed": false,
+      "production_decoder_replayed": false,
+      "selected_inventory_originals_rechecked": false,
+      "local_evidence_assets_rehashed_by_kind": {},
+      "dbf_subset_check": null,
+      "full_original_dbf_rehashed": false,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "network_requests": 0,
+      "automatic_application": false,
+      "scalar_product_name_approvals": 0,
+      "durable_only_limitation": "Included lake coordinates and published facts are rechecked. Omitted river coordinates, source bodies and map images require optional local inputs; rehashing an image does not perform a new visual review."
+    },
+    {
+      "status": "passed",
+      "mode": "complete_local_inputs",
+      "scope_aw_ids": [
+        "hydro-system:70152112",
+        "lakes_base:1159123163",
+        "lakes_base:1159123567"
+      ],
+      "frozen_package_inputs_checked": 23,
+      "lake_coordinate_checks": [
+        {
+          "source_id": "1159123163",
+          "position_count": 92,
+          "adjacent_duplicate_positions": 1,
+          "every_ordered_position_checked": true
+        },
+        {
+          "source_id": "1159123567",
+          "position_count": 208,
+          "adjacent_duplicate_positions": 0,
+          "every_ordered_position_checked": true
+        }
+      ],
+      "river_coordinate_checks": [
+        {
+          "fid": 9228,
+          "part_count": 40,
+          "position_count": 249,
+          "ordered_geometry_and_metadata_checked": true
+        },
+        {
+          "fid": 9229,
+          "part_count": 37,
+          "position_count": 223,
+          "ordered_geometry_and_metadata_checked": true
+        },
+        {
+          "fid": 9230,
+          "part_count": 111,
+          "position_count": 807,
+          "ordered_geometry_and_metadata_checked": true
+        }
+      ],
+      "omitted_full_river_coordinates_rechecked": true,
+      "independent_binary_decoder_replayed": true,
+      "production_decoder_replayed": true,
+      "selected_inventory_originals_rechecked": true,
+      "local_evidence_assets_rehashed_by_kind": {
+        "tool_text_capture": 2,
+        "failure_capture": 4,
+        "failure_receipt": 3,
+        "original_source_body": 8,
+        "local_text_extraction": 1,
+        "viewed_map_derivative": 2,
+        "viewed_geometry_plot": 4,
+        "local_analysis_method": 1,
+        "original_source_subset": 2,
+        "acquisition_receipt": 1
+      },
+      "dbf_subset_check": {
+        "retained_header_and_record_reparsed": true,
+        "full_original_dbf_rehashed": false,
+        "ne_id": "1159123567",
+        "original_record_index_from_acquisition_receipt": 1076
+      },
+      "full_original_dbf_rehashed": false,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "network_requests": 0,
+      "automatic_application": false,
+      "scalar_product_name_approvals": 0,
+      "durable_only_limitation": "Included lake coordinates and published facts are rechecked. Omitted river coordinates, source bodies and map images require optional local inputs; rehashing an image does not perform a new visual review."
+    },
+    {
+      "status": "passed",
+      "scope_aw_ids": [
+        "hydro-system:70152112",
+        "lakes_base:1159123163",
+        "lakes_base:1159123567"
+      ],
+      "durable_only_truthful_reporting": true,
+      "corrupt_fixtures_rejected": 16,
+      "fixtures": [
+        "automatic_application",
+        "korean_invented",
+        "whole_river_naming",
+        "lake_scalar_clearance",
+        "complete_physical_reservoir",
+        "unviewed_map_promoted",
+        "new_target_claimed_recovered",
+        "frozen_source_byte_changed",
+        "lake_ring_reversed",
+        "lake_interior_coordinate_changed",
+        "missing_fragment",
+        "dropped_river_part",
+        "river_part_order_reversed",
+        "river_interior_coordinate_changed",
+        "reach_id_order_changed",
+        "river_role_changed"
+      ],
+      "local_geometry_fixtures_run": true,
+      "network_requests": 0,
+      "original_inputs_modified": false
+    }
+  ],
+  "original_pipestone_pdf_text_extraction_reproduced": true,
+  "source_originals_republished": false
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "hydro-mixed-publication-rights-v1",
+  "batch": "r04",
+  "included": "Own factual extraction, brief name quotations, source links/capture receipts, ID and part/count/hash facts, validation scripts, and exactly two selected public-domain Natural Earth lake geometries.",
+  "lake_geometry_files": [
+    "selected-lake-geometries.geojson",
+    "selected-baseline-lake-geometries.geojson"
+  ],
+  "lake_source_ids": [
+    "1159123163",
+    "1159123567"
+  ],
+  "lake_geometry_license": "Natural Earth public domain; official terms and original cached source receipts are documented in geometry-publication-rights.json.",
+  "complete_river_coordinates_published": false,
+  "river_stand_alone_redistribution_cleared": false,
+  "raw_third_party_sources_published": false,
+  "raw_pdf_html_map_crop_count": 0,
+  "rights_scope": "HydroRIVERS rights are distinct from Natural Earth. No whole river geometry, original official chart, operator/agency HTML, raw article, screenshot or source map crop is included.",
+  "new_lake_attribute_subset_scope": "Natural Earth attribute facts supply an exact identifier selection lead, not primary reservoir name or full-feature spatial validation.",
+  "automatic_application": false
+}

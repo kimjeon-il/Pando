@@ -1,0 +1,204 @@
+{
+  "schema": "hydro-name-source-evidence-v1",
+  "batch": "r04",
+  "target_aw_id": "lakes_base:1159123567",
+  "checked_at_utc": "2026-10-09T12:34:20.844177+00:00",
+  "sources": [
+    {
+      "evidence_id": "EMB-ANA-194-2024",
+      "title": "Resolução ANA Nº 194, de 10 de maio de 2024",
+      "agency": "Agência Nacional de Águas e Saneamento Básico (ANA)",
+      "publication_date": "2024-05-10",
+      "original_url": "https://www.gov.br/ana/pt-br/legislacao/resolucoes/resolucoes-regulatorias/2024/194",
+      "acquisition": {
+        "method": "Direct original HTML GET",
+        "http_status": 200,
+        "request_started_at_utc": "2026-10-09T12:29:40.050476+00:00",
+        "original_html": {
+          "bytes": 220211,
+          "sha256": "9208d03ed757c362ba6152e6dc00ec1af53481a18dba59f0ebeb45f992cd0d0d",
+          "hash_scope": "Complete original HTML response bytes.",
+          "included_in_public_package": false
+        },
+        "local_text_extraction": {
+          "bytes": 32351,
+          "sha256": "d759164161ce2395c1198ce03959a5d206cf958dca644a5f5aefe437bd10176a",
+          "hash_scope": "Local HTMLParser text extraction from acquired original HTML; not original response bytes.",
+          "included_in_public_package": false
+        }
+      },
+      "locators": [
+        "Heading and introductory paragraph",
+        "Article 1 and its sole paragraph",
+        "Article 3"
+      ],
+      "short_quote": "reservatório de Theodomiro Carneiro Santiago (Emborcação)",
+      "own_factual_extraction": "The resolution explicitly names the reservoir and distinguishes it from Itumbiara, Cachoeira Dourada and São Simão within the Rio Paranaíba system. This supports reservoir-level Portuguese usage, beyond merely a dam or power-station title.",
+      "extent_limit": "No inspected footprint, shoreline, arm boundaries or coordinate-to-name join is supplied by this HTML text.",
+      "formal_naming_instrument_verified": false,
+      "raw_source_republished": false
+    },
+    {
+      "evidence_id": "EMB-CEMIG-PLANT",
+      "title": "UHE Theodomiro Carneiro Santiago (Emborcação)",
+      "agency": "Cemig, plant operator",
+      "publication_date": "2026-01-15",
+      "publication_date_scope": "Page structured metadata datePublished; not the date the feature was named.",
+      "page_modified_date": "2026-06-22",
+      "original_url": "https://www.cemig.com.br/usinas/uhe-theodomiro-carneiro-santiago-emborcacao/",
+      "acquisition": {
+        "method": "Direct original HTML GET",
+        "http_status": 200,
+        "request_started_at_utc": "2026-10-09T12:29:46.299586+00:00",
+        "original_html": {
+          "bytes": 96727,
+          "sha256": "0b0518e4aae1b081a7d4688e30b346e0bce59a682d9380ccecf0bc4c3583c1b1",
+          "hash_scope": "Complete original HTML response bytes.",
+          "included_in_public_package": false
+        },
+        "local_text_extraction": {
+          "bytes": 3192,
+          "sha256": "af834c616167a109e2deb451378d472c06a2eb639fc1ffbccb298ef005971286",
+          "hash_scope": "Local HTMLParser text extraction from acquired original HTML; not original response bytes.",
+          "included_in_public_package": false
+        }
+      },
+      "locators": [
+        "Page title and main heading",
+        "Plant data section"
+      ],
+      "own_factual_extraction": "The operator pairs the two names in the plant heading. Its plant data give first operation in 1982, four generating units and reservoir volume of 17,724.72 hm³. A plant heading alone is not treated as proof of the complete reservoir footprint.",
+      "extent_limit": "The HTML contains a location-map container, but its map was not rendered or inspected. No map or photograph is used as extent evidence.",
+      "raw_source_republished": false
+    },
+    {
+      "evidence_id": "EMB-NE-ATTRIBUTES",
+      "title": "Natural Earth 5.0.0 base lake DBF record 1076",
+      "agency": "Natural Earth",
+      "original_url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/b70b7b8766c3c83d5f5145cb6f1c93921d383d3f/10m_physical/ne_10m_lakes.dbf",
+      "release_commit": "b70b7b8766c3c83d5f5145cb6f1c93921d383d3f",
+      "acquisition": {
+        "http_status": 200,
+        "request_started_at_utc": "2026-10-09T12:28:03.657311+00:00",
+        "method": "Full bounded attribute-table byte stream; only header and lead-name record retained. No global geometry downloaded.",
+        "source_bytes_streamed": 9993116,
+        "full_source_sha256": "0edaa87f76c2221c986f0796ce0b54b1c418e9032afba46f8e302edc41193495",
+        "hash_scope": "Entire original streamed DBF response bytes, not a saved full DBF file.",
+        "retained_header": {
+          "bytes": 1345,
+          "sha256": "d8cae97bbe5c7c64d9585ab9601fc940d7e674b3305c291021fdbc2798a3ec5c",
+          "hash_scope": "Original DBF header bytes.",
+          "included_in_public_package": false
+        },
+        "retained_record": {
+          "bytes": 7374,
+          "sha256": "ca033e5ebc6c90d87945699fe9c4eb79599f783aa4269bd1bc79257a8866c010",
+          "hash_scope": "Original DBF record 1076 bytes.",
+          "included_in_public_package": false
+        }
+      },
+      "own_factual_extraction": "Numeric ne_id 1159123567 joins the selected inventory source record exactly. The name field is blank, dam_name is Emborcação Dam, and name_alt is Theodomiro Sampaio. The dam field supplies a discovery lead only; the alternate spelling is not corroborated by the acquired primary naming sources.",
+      "name_authority_scope": "Dataset discovery, not official reservoir-name authority.",
+      "raw_source_republished": false
+    }
+  ],
+  "unsuccessful_source_requests": [
+    {
+      "title": "Cemig 2022 PACUERA Emborcação bulletin",
+      "url": "https://portal.cemig.com.br/wp-content/uploads/2022/10/BOLETIM-INFO-2022.pdf",
+      "observed_at_utc": "2026-10-09T12:29:35.945591+00:00",
+      "timestamp_scope": "Request start time; response time not separately recorded.",
+      "http_status": 502,
+      "exact_error": "<HTTPError 502: 'Bad Gateway'>",
+      "source_bytes_acquired": false,
+      "map_visually_reviewed": false,
+      "used_for_name_or_extent_verdict": false,
+      "same_publication_retrieved_after_failure": false,
+      "failure_capture": {
+        "bytes": 488,
+        "sha256": "0d323dc6bd683f100bb17ba0857d5dd7b668be00340232b5d5edabd13a6fbb63",
+        "hash_scope": "Local structured direct-request failure receipt; not publication content.",
+        "included_in_public_package": false
+      }
+    },
+    {
+      "title": "Cemig 2023 PACUERA Theodomiro Carneiro Santiago bulletin",
+      "url": "https://portal.cemig.com.br/wp-content/uploads/2022/10/Boletim-Info-2023.pdf",
+      "observed_at_utc": "2026-10-09T12:30:22.603828+00:00",
+      "timestamp_scope": "Request start time; response time not separately recorded.",
+      "http_status": 502,
+      "exact_error": "<HTTPError 502: 'Bad Gateway'>",
+      "source_bytes_acquired": false,
+      "map_visually_reviewed": false,
+      "used_for_name_or_extent_verdict": false,
+      "same_publication_retrieved_after_failure": false,
+      "failure_capture": {
+        "bytes": 511,
+        "sha256": "85d50e47a42a587e445c950a307969c5cc1838d5324e1279a7dde21242ae8edf",
+        "hash_scope": "Local structured direct-request failure receipt; not publication content.",
+        "included_in_public_package": false
+      }
+    },
+    {
+      "title": "Cemig Emborcação emergency action plan revF",
+      "url": "https://www.cemig.com.br/wp-content/uploads/2022/11/PAE_UHE_Emborcacao_revF-1.pdf",
+      "observed_at_utc": "2026-10-09T12:30:39Z",
+      "timestamp_scope": "Tool-return observation, not exact origin response timestamp.",
+      "http_status": 404,
+      "exact_error": "(404) Not Found",
+      "source_bytes_acquired": false,
+      "map_visually_reviewed": false,
+      "used_for_name_or_extent_verdict": false,
+      "same_publication_retrieved_after_failure": false,
+      "failure_capture": {
+        "bytes": 330,
+        "sha256": "991a00c2c6d1a10714abd74fa0abc290a5d879a12561f1e1779e92d227c14f74",
+        "hash_scope": "UTF-8 JSON serialization of the failed web-open result; not publication content.",
+        "included_in_public_package": false
+      }
+    },
+    {
+      "title": "Cemig illustrated avifauna guide",
+      "url": "https://portal.cemig.com.br/wp-content/uploads/2020/12/guia_mobile_ilustrado_avifauna_cemig.pdf",
+      "observed_at_utc": "2026-10-09T12:30:53Z",
+      "timestamp_scope": "Tool-return observation, not exact origin response timestamp.",
+      "http_status": 502,
+      "exact_error": "(502) Bad Gateway",
+      "source_bytes_acquired": false,
+      "map_visually_reviewed": false,
+      "used_for_name_or_extent_verdict": false,
+      "same_publication_retrieved_after_failure": false,
+      "failure_capture": {
+        "bytes": 360,
+        "sha256": "65e911eb47d571ce9e2b91f15ea34650dba713799c782e132c47becf30b24e5a",
+        "hash_scope": "UTF-8 JSON serialization of the failed web-open result; not publication content.",
+        "included_in_public_package": false
+      }
+    },
+    {
+      "title": "IGAM/SIMGE reservoir bulletin 2023-07-06",
+      "url": "https://comites.igam.mg.gov.br/documents/d/simge/reservatorio_20230706?download=true",
+      "observed_at_utc": "2026-10-09T12:31:53Z",
+      "timestamp_scope": "Tool-return observation, not exact origin response timestamp.",
+      "http_status": 403,
+      "exact_error": "(403) Forbidden",
+      "source_bytes_acquired": false,
+      "map_visually_reviewed": false,
+      "used_for_name_or_extent_verdict": false,
+      "same_publication_retrieved_after_failure": false,
+      "failure_capture": {
+        "bytes": 336,
+        "sha256": "e19116d8c2d8216fa4e4a201171f8475db9612a54415ad2fdb2bdcd6ec94347e",
+        "hash_scope": "UTF-8 JSON serialization of the failed web-open result; not publication content.",
+        "included_in_public_package": false
+      }
+    }
+  ],
+  "publication_limits": {
+    "public_content": "Own factual extraction, short name quotation, public source identifiers, URLs, hashes and acquisition facts only.",
+    "official_map_images_republished": false,
+    "copyrighted_originals_republished": false,
+    "natural_earth_public_domain_scope": "Applies only to the Natural Earth attribute extract and selected geometry, not to ANA/Cemig/IGAM publications."
+  },
+  "automatic_application": false
+}

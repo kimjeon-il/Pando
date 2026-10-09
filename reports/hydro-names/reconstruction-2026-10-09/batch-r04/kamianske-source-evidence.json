@@ -1,0 +1,182 @@
+{
+  "schema": "hydro-reservoir-source-evidence-v1",
+  "aw_id": "lakes_base:1159123163",
+  "created_at_utc": "2026-10-09T12:32:36.007814+00:00",
+  "sources": [
+    {
+      "id": "UA-HYDRO-3031",
+      "title": "Кам’янське водосховище / KAMIANSKE RESERVOIR, №3031",
+      "agency": "State Hydrographic Service of Ukraine, branch Ukrmorcartographia",
+      "publication_date": "2021",
+      "date_precision": "year printed in chart imprint",
+      "acquisition": {
+        "url": "https://hydro.gov.ua/wp-content/uploads/2021/02/3031_Kamianske.jpg",
+        "retrieved_at_utc": "2026-10-09T12:28:19.291046+00:00",
+        "status": 200,
+        "final_url": "https://hydro.gov.ua/wp-content/uploads/2021/02/3031_Kamianske.jpg",
+        "source_bytes_acquired": true,
+        "sha256": "9e26c8d5f028660f9fd6e399d2f09f70c76d0ccbd8bdcf9530d6c644df956bdb",
+        "bytes": 1753532,
+        "method": "HTTPS GET of the original public URL; hash covers the complete response body bytes",
+        "retrieval_time_scope": "Recorded immediately before the request; response completion was later"
+      },
+      "original_url": "https://hydro.gov.ua/wp-content/uploads/2021/02/3031_Kamianske.jpg",
+      "format": "JPEG reproduction of the primary navigation overview chart",
+      "image_dimensions_pixels": [
+        3509,
+        2590
+      ],
+      "scale_denominator": 100000,
+      "map_locators": {
+        "main_map_graticule_bbox_longitude_latitude": [
+          33.166666666666664,
+          48.5,
+          34.583333333333336,
+          49.166666666666664
+        ],
+        "title": "Top right; bilingual title and chart number",
+        "upstream_reservoir": "Main map upper-left, Kremenchutske Reservoir beyond the upstream dam; upper reach also enlarged in inset A",
+        "downstream_reservoir": "Main map lower-right, Dniprovske Reservoir beyond the Kamianske/Romankove dam end",
+        "tributary_context": "Vorskla mouth in upper-middle/right portion of main reservoir; Psel enters the upper narrow reach; Oril is separately labelled farther east",
+        "imprint": "Bottom margin; State Hydrographic Service of Ukraine, Kyiv, branch Ukrmorcartographia, 2021",
+        "map_comparison_scope": "Entire main map inspected and complete 92-position source ring compared against it with an approximate graticule registration. Insets were inspected visually only; no exact coordinate extraction from the chart."
+      },
+      "factual_extraction": [
+        "The title names the waterbody in Ukrainian and English, not merely the city or power plant.",
+        "The chart shows the named reservoir corridor between the Kremenchuk and Kamianske ends, adjoining cascade reservoirs, and tributary-mouth context.",
+        "The full supplied polygon follows the principal northwest-to-southeast impounded reach and Vorskla-mouth sector; its upper cap excludes the charted narrow continuation to Kremenchuk HPP.",
+        "Numerous charted islands, side channels, shore irregularities and some tributary-mouth extent are generalized or absent in the source polygon."
+      ],
+      "coverage_limit": "Supports feature-scale waterbody identity and surrounding context. Does not establish legal naming status, modern shoreline accuracy, exact containment of every polygon point, or a complete hydrologic reservoir boundary.",
+      "redistribution": "Raw chart and every raster derivative excluded; no open redistribution permission asserted."
+    },
+    {
+      "id": "UA-HYDRO-2021-NOTICE",
+      "title": "Нова картографічна продукція",
+      "agency": "State Hydrographic Service of Ukraine",
+      "publication_date": "2021-02-08",
+      "date_precision": "HTML article:published_time = 2021-02-08T09:09:28+00:00",
+      "acquisition": {
+        "url": "https://hydro.gov.ua/?p=3235",
+        "retrieved_at_utc": "2026-10-09T12:27:07.073783+00:00",
+        "status": 200,
+        "final_url": "https://hydro.gov.ua/?p=3235",
+        "source_bytes_acquired": true,
+        "sha256": "5913cb5f2e127acdf0ae64f1d2d72549d2ef60bb78006f1a47d002f7b563e8bd",
+        "bytes": 42447,
+        "method": "HTTPS GET of the original public URL; hash covers the complete response body bytes",
+        "retrieval_time_scope": "Recorded immediately before the request; response completion was later"
+      },
+      "original_url": "https://hydro.gov.ua/?p=3235",
+      "locator": "Article body, paragraphs describing navigation-chart set 3531 and overview chart 3031; linked original overview image",
+      "factual_extraction": [
+        "The chart producer identifies set 3531 as covering Kamianske Reservoir from Kremenchuk HPP to Middle Dnipro HPP and the Vorskla river mouth.",
+        "It announces overview chart 3031 at 1:100,000 and links the acquired original image."
+      ],
+      "independence_note": "Provenance companion to chart 3031, not counted as a second independent map.",
+      "coverage_limit": "Chart-set scope includes the Vorskla mouth, so its publication title alone must not be treated as a polygon boundary definition.",
+      "redistribution": "Raw HTML excluded; only bibliographic facts and own extraction included."
+    },
+    {
+      "id": "UA-UHE-2019",
+      "title": "Середньодніпровська ГЕС збільшує свої виробничі потужності",
+      "agency": "Ukrhydroenergo press service",
+      "publication_date": "2019-12-19",
+      "date_precision": "day shown in article",
+      "acquisition": {
+        "url": "https://uhe.gov.ua/media_tsentr/novyny/serednodniprovska-ges-zbilshue-svoi-virobnichi-potuzhnosti",
+        "retrieved_at_utc": "2026-10-09T12:27:19.074488+00:00",
+        "status": 200,
+        "final_url": "https://uhe.gov.ua/media_tsentr/novyny/serednodniprovska-ges-zbilshue-svoi-virobnichi-potuzhnosti",
+        "source_bytes_acquired": true,
+        "sha256": "c1b1a5cc6f6fde3d00cb299078254beff3c010cff915d2591c0c77e7b829fec1",
+        "bytes": 88546,
+        "method": "HTTPS GET of the original public URL; hash covers the complete response body bytes",
+        "retrieval_time_scope": "Recorded immediately before the request; response completion was later"
+      },
+      "original_url": "https://uhe.gov.ua/media_tsentr/novyny/serednodniprovska-ges-zbilshue-svoi-virobnichi-potuzhnosti",
+      "locator": "Heading date and first paragraph",
+      "factual_extraction": [
+        "The operator describes Middle Dnipro HPP as the fourth step in the Dnipro cascade and states that its construction formed the Kamianske reservoir.",
+        "This provides independent operator usage of the current Ukrainian name and the dam–reservoir relationship."
+      ],
+      "coverage_limit": "Textual identity link, not a reservoir outline, naming decision or present operating-condition audit.",
+      "redistribution": "Raw HTML excluded; no reliance on inferred permission to distribute images."
+    },
+    {
+      "id": "UA-DAVR-2017-PROPOSAL",
+      "title": "Звернення громадської ради при Держводагентстві № 6",
+      "agency": "Public Council at the State Agency of Water Resources of Ukraine, published by DAVR",
+      "publication_date": "2017-01-27",
+      "document_date": "2017-01-19",
+      "date_precision": "publication day and dated council appeal",
+      "acquisition": {
+        "url": "https://davr.gov.ua/zvernennya-gromadskoyi-rady-pry-derzhvodagentstvi-no-6",
+        "retrieved_at_utc": "2026-10-09T12:27:14.396313+00:00",
+        "status": 200,
+        "final_url": "https://davr.gov.ua/zvernennya-gromadskoyi-rady-pry-derzhvodagentstvi-no-6",
+        "source_bytes_acquired": true,
+        "sha256": "ea1229d7b29d0d1e5d63741b912a723c6b00cca82922797c56717b98e772ea19",
+        "bytes": 70728,
+        "method": "HTTPS GET of the original public URL; hash covers the complete response body bytes",
+        "retrieval_time_scope": "Recorded immediately before the request; response completion was later"
+      },
+      "original_url": "https://davr.gov.ua/zvernennya-gromadskoyi-rady-pry-derzhvodagentstvi-no-6",
+      "locator": "Dated council appeal, first substantive paragraph and closing request",
+      "factual_extraction": [
+        "The council proposes changing the reservoir name from Дніпродзержинське водосховище to Кам'янське водосховище.",
+        "The same appeal separately discusses the already changed city and power-station names, showing that those changes are not themselves evidence of a completed reservoir rename."
+      ],
+      "coverage_limit": "Primary evidence of a proposal and historical/current-form correspondence, not an enacted naming decision or an effective date. Geographic background on this page contains Wikipedia links and is not used as an independent spatial authority.",
+      "redistribution": "Raw HTML excluded; only factual extraction and brief name forms included."
+    },
+    {
+      "id": "UA-RADA-2024-EN",
+      "title": "Spring campaign for stocking water bodies has started in Ukraine, – the Committee on Agrarian and Land Policy",
+      "agency": "Verkhovna Rada of Ukraine, official English webportal",
+      "publication_date": "2024-04-02",
+      "date_precision": "Published on 02 April 2024 at 11:30 shown in original",
+      "acquisition": {
+        "url": "https://www.rada.gov.ua/en/news/News/248050.html",
+        "retrieved_at_utc": "2026-10-09T12:27:25.152081+00:00",
+        "status": 200,
+        "final_url": "https://www.rada.gov.ua/en/news/News/248050.html",
+        "source_bytes_acquired": true,
+        "sha256": "1af295cfebb76f20576a559e8c35cc75e17b6f946790234d55407a6555a0d210",
+        "bytes": 117038,
+        "method": "HTTPS GET of the original public URL; hash covers the complete response body bytes",
+        "retrieval_time_scope": "Recorded immediately before the request; response completion was later"
+      },
+      "original_url": "https://www.rada.gov.ua/en/news/News/248050.html",
+      "locator": "News article heading/date and paragraph beginning with support from Poltava Regional Water Authority",
+      "factual_extraction": [
+        "The official English article uses Kamianske Reservoir for the fish-stocking waterbody in Kremenchuk district.",
+        "This confirms an English spelling also printed in chart 3031."
+      ],
+      "coverage_limit": "Supplementary English-usage evidence, not a full-reservoir outline, a formal gazetteer entry or a legal naming act.",
+      "redistribution": "Raw HTML excluded."
+    }
+  ],
+  "independent_original_groups": [
+    "State Hydrographic Service chart 3031 and its release notice",
+    "Ukrhydroenergo reservoir/plant article",
+    "DAVR Public Council historical renaming proposal",
+    "Parliament English news usage"
+  ],
+  "not_used_sources": [
+    {
+      "original_url": "https://www.uhe.gov.ua/media_tsentr/novyny/mizhvidomcha-komisiya-viznachila-rezhimi-roboti-vodoskhovisch-na-cherven",
+      "result": "Web extraction returned Internal Error; no HTTP status or original response-body hash available",
+      "evidence_used": false,
+      "same_publication_retried": false
+    },
+    {
+      "original_url": "https://davr.gov.ua/fls18/1-RBMP_Dnipro_February_2025_ENG.pdf",
+      "result": "Web extraction returned Internal Error; no HTTP status or original response-body hash available",
+      "evidence_used": false,
+      "same_publication_retried": false
+    }
+  ],
+  "copyright_scope": "Only own factual extraction, public citations, brief source name/title strings and hashes are included. Original Ukrainian HTML, chart image and analysis derivatives remain outside this package.",
+  "geometry_reference": "geometry-reference.json"
+}

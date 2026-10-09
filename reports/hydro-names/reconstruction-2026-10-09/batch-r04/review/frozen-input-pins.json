@@ -1,0 +1,331 @@
+{
+  "schema": "hydro-independent-mixed-review-pins-v1",
+  "reviewed_at_utc": "2026-10-09T12:38:36Z",
+  "scope_aw_ids": [
+    "hydro-system:70152112",
+    "lakes_base:1159123163",
+    "lakes_base:1159123567"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "package_inputs": [
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1934,
+      "sha256": "8d4a8eecff8bca364fb1af801d23b4a9b2fae4c4ce4b5b3c00c5d28a5b1cbac5"
+    },
+    {
+      "file": "attawapiskat-findings.json",
+      "bytes": 7248,
+      "sha256": "009275b7e9465ea81d2818c0d44529488b4c67a58b78daffabaf9bfb71a207f4"
+    },
+    {
+      "file": "attawapiskat-source-evidence.json",
+      "bytes": 8878,
+      "sha256": "4beeaf54719680c36f367c2c273383c396c683940405012a9cecaa973c3bf332"
+    },
+    {
+      "file": "kamianske-findings.json",
+      "bytes": 8579,
+      "sha256": "ad91a88974489f1a8277a3320a42cd1ba695a680a0ed591f4e1dc8ee35e4bea0"
+    },
+    {
+      "file": "kamianske-source-evidence.json",
+      "bytes": 11746,
+      "sha256": "1bdf751824b3f3d744d954b1b692b8fea52fd78db45883230ddb4be15df97909"
+    },
+    {
+      "file": "new-lake-selection.json",
+      "bytes": 4783,
+      "sha256": "56b4c0942a8d0bd84de4a557da63eeb2d0828e4f94663e13765ef5aba862455b"
+    },
+    {
+      "file": "new-lake-source-evidence.json",
+      "bytes": 10453,
+      "sha256": "5f3acd016706a7f95d59f8d4e460831b88bb62d1a7e82ed08cdac95c59fc27ee"
+    },
+    {
+      "file": "new-lake-findings.json",
+      "bytes": 6071,
+      "sha256": "51d3e2994842fd20ccbf2ffe77f414eab3f6f13dac4926d51b71ae77e914c72a"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 3668,
+      "sha256": "baa1ede8989d5c0357f08282e47505e1f22068ef2f11eb5c6576563f1263137f"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 19655,
+      "sha256": "6bf1436a39640c8366b8ec10d7c4e3cc5f9515ccc99cf29e7e4877c811d9caff"
+    },
+    {
+      "file": "geometry-support.py",
+      "bytes": 2581,
+      "sha256": "fb250b6d49b20387121831e95e8e5801b1e7bb40fbb06e694004282ce74b1e10"
+    },
+    {
+      "file": "selected-lake-geometries.geojson",
+      "bytes": 12926,
+      "sha256": "b036584d04224b1b5156e6ac408dee52fa8f433567f057696f913423e961ba9d"
+    },
+    {
+      "file": "selected-baseline-lake-geometries.geojson",
+      "bytes": 7791,
+      "sha256": "e4572affcee9172306d126a86cd6981e53f4417b152fcc83024ff122a297648b"
+    },
+    {
+      "file": "selected-river-metadata.json",
+      "bytes": 11393,
+      "sha256": "9cd131f1d93b2947eb16746cc8f8538d3e00359e4c13d35c894bc40e10c5b8dd"
+    },
+    {
+      "file": "source-reach-manifest.json",
+      "bytes": 9922,
+      "sha256": "47c6086cc14b58bfe64d77e328582d3da18378734f691adba6e93fd7c7bf25c7"
+    },
+    {
+      "file": "selected-inventory-records.json",
+      "bytes": 4906,
+      "sha256": "745166991804088c6fbf42ea3e06a156f78e7e8d0f59381e1185eddf58615474"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 1111,
+      "sha256": "7c5c1e49d5978091f69080bca67ce067cb186c57edc8bf3397e9541cf9312cf8"
+    },
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 5581,
+      "sha256": "fdf5dd62071115f7f0618e804b9ee5eb3eb4af624245c65af09a813bf6a3e5b0"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 3494,
+      "sha256": "fbd97f444b81d8b7092a38c9f6d3a106f9e11e04c4bcc3ec8e22badd5f3f80f3"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 6120,
+      "sha256": "930d88652adec0bc5f0296aab2046a44cdf886fc06ad7b87f7d5bb5621800eb6"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 19746,
+      "sha256": "602ce6308c167c84b2ff39abbf4eb8805506e65bdb577d0f95088c25ca071f9a"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 3987,
+      "sha256": "06fb66abc7b167e462b892be1993c166b44d1902e37ba0193655e76211852ccf"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 2596,
+      "sha256": "c4254a3d351e2275535a920c5b9de82564e0d490ef79e041dd131cb81dfa2584"
+    }
+  ],
+  "local_evidence_assets": [
+    {
+      "id": "ATTA-HTML-TEXT",
+      "kind": "tool_text_capture",
+      "bytes": 25627,
+      "sha256": "d69b02ff0dfeea8c6b59d8ab39bae6bebdbd4d9e2dea0e74bc6a8b9f49f5bd7f",
+      "published_raw": false
+    },
+    {
+      "id": "ATTA-PDF-TEXT",
+      "kind": "tool_text_capture",
+      "bytes": 25412,
+      "sha256": "f4987cb164c4276ec3b1f977029ae8f879d917e25b5bbb0f3ea9569a335d9128",
+      "published_raw": false
+    },
+    {
+      "id": "ATTA-MAP-FAIL",
+      "kind": "failure_capture",
+      "bytes": 486,
+      "sha256": "e8f24045fc62210f506057c7a403174c6485bd7fef2a9e1d9e3bc50432e36449",
+      "published_raw": false
+    },
+    {
+      "id": "ATTA-403",
+      "kind": "failure_receipt",
+      "bytes": 612,
+      "sha256": "df3fa3481c5138f4ce4514cbfa3c88ac1e1e4266f072842ed62acddfb7bbb5c9",
+      "published_raw": false
+    },
+    {
+      "id": "PIPESTONE-PDF",
+      "kind": "original_source_body",
+      "bytes": 3182852,
+      "sha256": "efcb677e31fa4d6dfb8854460d8da84d6c097b14ee48c4645ff9c89f4e924f74",
+      "published_raw": false
+    },
+    {
+      "id": "PIPESTONE-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 104310,
+      "sha256": "110e8c02b55e0d83d19e5db3e5d5aa4668e15f8a24578ca65d95c67e5a310900",
+      "published_raw": false
+    },
+    {
+      "id": "PIPESTONE-ZONES",
+      "kind": "viewed_map_derivative",
+      "bytes": 920607,
+      "sha256": "0ff206d9680ee960359c96a5aed97b5b6dbdade94e0a6dda0c95105e66e3dee1",
+      "published_raw": false
+    },
+    {
+      "id": "ATTA-FRAGMENTS",
+      "kind": "viewed_geometry_plot",
+      "bytes": 220457,
+      "sha256": "d9ac28c212d0d5ae53a917023c080606359c8aa2310291a4f4abfe93915f1c23",
+      "published_raw": false
+    },
+    {
+      "id": "ATTA-OVERVIEW",
+      "kind": "viewed_geometry_plot",
+      "bytes": 82070,
+      "sha256": "637d8ba7db1cbb0911dda4cc805a2b27999de81178c320ebf98dbd6646c99c8d",
+      "published_raw": false
+    },
+    {
+      "id": "KAMI-CHART",
+      "kind": "original_source_body",
+      "bytes": 1753532,
+      "sha256": "9e26c8d5f028660f9fd6e399d2f09f70c76d0ccbd8bdcf9530d6c644df956bdb",
+      "published_raw": false
+    },
+    {
+      "id": "KAMI-NOTICE",
+      "kind": "original_source_body",
+      "bytes": 42447,
+      "sha256": "5913cb5f2e127acdf0ae64f1d2d72549d2ef60bb78006f1a47d002f7b563e8bd",
+      "published_raw": false
+    },
+    {
+      "id": "KAMI-UHE",
+      "kind": "original_source_body",
+      "bytes": 88546,
+      "sha256": "c1b1a5cc6f6fde3d00cb299078254beff3c010cff915d2591c0c77e7b829fec1",
+      "published_raw": false
+    },
+    {
+      "id": "KAMI-PROPOSAL",
+      "kind": "original_source_body",
+      "bytes": 70728,
+      "sha256": "ea1229d7b29d0d1e5d63741b912a723c6b00cca82922797c56717b98e772ea19",
+      "published_raw": false
+    },
+    {
+      "id": "KAMI-RADA",
+      "kind": "original_source_body",
+      "bytes": 117038,
+      "sha256": "1af295cfebb76f20576a559e8c35cc75e17b6f946790234d55407a6555a0d210",
+      "published_raw": false
+    },
+    {
+      "id": "KAMI-OVERLAY",
+      "kind": "viewed_map_derivative",
+      "bytes": 10410125,
+      "sha256": "bf4c6a12ef5f8eb4a723aa6e48959a1e78e00ab0ff82f8fe6ec755dc8e24cb0a",
+      "published_raw": false
+    },
+    {
+      "id": "KAMI-REGISTRATION",
+      "kind": "local_analysis_method",
+      "bytes": 918,
+      "sha256": "dadc25bdfa8d51b13929592d64a0c1c0306ab0a8d152e71cba714d38eef285c7",
+      "published_raw": false
+    },
+    {
+      "id": "KAMI-OVERVIEW",
+      "kind": "viewed_geometry_plot",
+      "bytes": 86176,
+      "sha256": "0f2e13fe0df1d1c0025dcff8e84638a9e60eb35769b61431c5259314adda1b87",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-ANA",
+      "kind": "original_source_body",
+      "bytes": 220211,
+      "sha256": "9208d03ed757c362ba6152e6dc00ec1af53481a18dba59f0ebeb45f992cd0d0d",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-CEMIG",
+      "kind": "original_source_body",
+      "bytes": 96727,
+      "sha256": "0b0518e4aae1b081a7d4688e30b346e0bce59a682d9380ccecf0bc4c3583c1b1",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-NE-HEADER",
+      "kind": "original_source_subset",
+      "bytes": 1345,
+      "sha256": "d8cae97bbe5c7c64d9585ab9601fc940d7e674b3305c291021fdbc2798a3ec5c",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-NE-ROW",
+      "kind": "original_source_subset",
+      "bytes": 7374,
+      "sha256": "ca033e5ebc6c90d87945699fe9c4eb79599f783aa4269bd1bc79257a8866c010",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-NE-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 5979,
+      "sha256": "b4404de493ab1cc3bcbcb27b0a6895e0bdf2e65d42d5f6e8678f35dbb4b34922",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-OVERVIEW",
+      "kind": "viewed_geometry_plot",
+      "bytes": 107926,
+      "sha256": "c9470c48e2226cce6107b6120b6c957afe2233482f48d3c35fb63c2ce898566e",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-502-2022",
+      "kind": "failure_receipt",
+      "bytes": 488,
+      "sha256": "0d323dc6bd683f100bb17ba0857d5dd7b668be00340232b5d5edabd13a6fbb63",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-502-2023",
+      "kind": "failure_receipt",
+      "bytes": 511,
+      "sha256": "85d50e47a42a587e445c950a307969c5cc1838d5324e1279a7dde21242ae8edf",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-PAE-FAIL",
+      "kind": "failure_capture",
+      "bytes": 330,
+      "sha256": "991a00c2c6d1a10714abd74fa0abc290a5d879a12561f1e1779e92d227c14f74",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-AVIFAUNA-FAIL",
+      "kind": "failure_capture",
+      "bytes": 360,
+      "sha256": "65e911eb47d571ce9e2b91f15ea34650dba713799c782e132c47becf30b24e5a",
+      "published_raw": false
+    },
+    {
+      "id": "EMB-IGAM-403",
+      "kind": "failure_capture",
+      "bytes": 336,
+      "sha256": "e19116d8c2d8216fa4e4a201171f8475db9612a54415ad2fdb2bdcd6ec94347e",
+      "published_raw": false
+    }
+  ],
+  "unpublished_full_geometry": {
+    "bytes": 39995,
+    "sha256": "688d93a67e5a36810b47e66e79df5710fc61b929f2d4d801d728bfddaeca055b"
+  },
+  "pin_scope": "Public inputs are frozen by byte hashes. Optional local source pins distinguish original bodies, text captures, retained subsets, failure records and analysis views. No original PDF hash is inferred from extracted text. The full Natural Earth DBF acquisition hash is recorded upstream but its full bytes were not retained or rehashed in this review.",
+  "automatic_application": false
+}

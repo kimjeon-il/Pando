@@ -1,0 +1,168 @@
+{
+  "schema": "hydro-reservoir-name-findings-v1",
+  "created_at_utc": "2026-10-09T12:32:36.007814+00:00",
+  "aw_id": "lakes_base:1159123163",
+  "source_id": "1159123163",
+  "baseline_fid": 16244,
+  "baseline_logical_fid": 4869,
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "current_live_deployment_checked": false,
+  "verdict": {
+    "status": "reservoir_identity_supported_with_geometry_extent_limit",
+    "identity_confidence": "high at the generalized feature scale",
+    "supported_identity": "Kamianske Reservoir",
+    "summary": "The complete supplied Natural Earth feature and decoded baseline represent the generalized principal body of Kamianske Reservoir. Official chart 3031 and an independent operator original support the reservoir identity, with both neighboring cascade reservoirs distinguished. The supplied shape does not cover every charted part of the entire hydrologic reservoir and is not an accurate shoreline.",
+    "not_a_complete_reservoir_boundary": true,
+    "exact_shoreline_verified": false,
+    "legal_registry_status_verified": false,
+    "legal_name_effective_date": null
+  },
+  "name_evidence": {
+    "ukrainian_current_form": {
+      "value": "Кам’янське водосховище",
+      "source_ids": [
+        "UA-HYDRO-3031",
+        "UA-HYDRO-2021-NOTICE",
+        "UA-UHE-2019"
+      ],
+      "scope": "Official cartographic and operator usage in the dated originals; retrieved 2026-10-09, not a claim that every present database has been audited"
+    },
+    "ukrainian_historical_form": {
+      "value": "Дніпродзержинське водосховище",
+      "source_ids": [
+        "UA-DAVR-2017-PROPOSAL"
+      ],
+      "scope": "Old name explicitly named in the 2017 council proposal; enacted renaming decision not acquired"
+    },
+    "english": {
+      "value": "Kamianske Reservoir",
+      "source_ids": [
+        "UA-HYDRO-3031",
+        "UA-RADA-2024-EN"
+      ],
+      "observed_forms": [
+        "KAMIANSKE RESERVOIR",
+        "Kamianske Reservoir"
+      ],
+      "scope": "Direct English source evidence; capitalization normalized only in the assessment"
+    },
+    "historical_english_spelling": {
+      "value": null,
+      "lead_not_verified": "Dniprodzerzhynsk",
+      "scope": "No historical English spelling is asserted from a Ukrainian form or transliteration alone"
+    },
+    "korean": null,
+    "korean_scope": "No direct Korean-language naming evidence acquired; no invented translation or transliteration."
+  },
+  "complete_geometry_audit": {
+    "source_feature_sha256": "de1ab5f02ab0a1b8a511ac53e7e088061f15169860ddfb42d1ea9dcf9d5a30ec",
+    "source_geometry_sha256": "b8b3622f268186041e28156509a03915b5c3e741e6084b1cd1802aa85270cb62",
+    "baseline_feature_sha256": "628e44ca252bc19195775d45572490c728672015e6eff3a4d32d204eaaf15b31",
+    "baseline_geometry_sha256": "a63ca09c289ee9c573f756f46c8e71093cb80af7f36cfb7d92c2d4eea6c89b47",
+    "canonicalization": "UTF-8 JSON, sorted object keys, separators comma/colon, ensure_ascii=False; no newline",
+    "source_geometry_type": "Polygon",
+    "baseline_geometry_type": "Polygon",
+    "source_ring_vertex_counts": [
+      92
+    ],
+    "baseline_ring_vertex_counts": [
+      92
+    ],
+    "all_rings_closed": true,
+    "same_ring_and_vertex_counts": true,
+    "all_vertices_equal_after_six_decimal_rounding": true,
+    "max_absolute_coordinate_delta_degrees": 4.977855212473514e-07,
+    "consecutive_duplicate_vertex_count": 1,
+    "source_bbox": [
+      33.5364674697972,
+      48.52486267921924,
+      34.57027428428361,
+      49.008208575969434
+    ],
+    "baseline_bbox": [
+      33.536467,
+      48.524863,
+      34.570274,
+      49.008209
+    ],
+    "source_original_feature_json_bytes": 3961,
+    "source_original_feature_json_sha256": "5b0dd63ae5d6b5d0375a75631643fee18c3649ce16109726f8cf16e6e4624dc8",
+    "source_record_locator": "lakes_base.geojson features[1051] in the pinned repository commit",
+    "source_id_join": "Exact source decimal ID 1159123163 and full source feature; corresponding baseline FID 16244/logical FID 4869",
+    "source_to_baseline_scope": "Every ordered coordinate in the complete source Polygon and every decoded baseline ring compared, not only bounds or centroid",
+    "source_collection": "selected-lake-geometries.geojson",
+    "baseline_collection": "selected-baseline-lake-geometries.geojson"
+  },
+  "map_comparison": {
+    "source_id": "UA-HYDRO-3031",
+    "method": "Full-source-ring visual comparison on the primary chart, aided by approximate main-neatline graticule registration; all 92 source positions drawn for local inspection. No shoreline digitization or repair.",
+    "source_extent": "33.536467–34.570274°E,48.524863–49.008209°N",
+    "main_map_coverage": "33°10′–34°35′E,48°30′–49°10′N, with enlarged upper-reach and port insets",
+    "supported_shape_features": [
+      "Long northwest-to-southeast reservoir body ending at the Kamianske/Romankove dam sector",
+      "Branching embayment in the Vorskla mouth sector",
+      "Broad lower body by Verkhnodniprovsk and Kamianske"
+    ],
+    "extent_discrepancies": [
+      "The source upper cap near 33.54°E/49.00°N omits the charted narrow upper reservoir continuation toward Kremenchuk and its dam.",
+      "One generalized outer ring has no island holes, while the chart depicts many islands and channels.",
+      "Coarse straight shoreline segments include land and omit local water/tributary-arm details; exact containment and hydrologic completeness are not claimed.",
+      "The comparison is approximate and does not establish chart datum equivalence, precise dam-boundary alignment, or today’s waterline."
+    ],
+    "neighbor_disambiguation": [
+      {
+        "name_as_charted": "Kremenchutske Reservoir",
+        "relationship": "Upstream of the Kremenchuk dam, separately labelled on the chart; not the source polygon’s principal waterbody"
+      },
+      {
+        "name_as_charted": "Dniprovske Reservoir",
+        "relationship": "Downstream of the Kamianske end, separately labelled; not the source polygon’s principal waterbody"
+      }
+    ],
+    "tributary_scope": "Vorskla is directly identified by the chart and chart-set scope. Psel and Oril are separately labelled context; their entire channels or basins do not inherit the reservoir name. No automatic labels are proposed for every embayment.",
+    "composite_scope": "Single Polygon feature and one complete decoded fragment. The main-waterbody identity is coherent rather than a deliberate multi-reservoir aggregate; generalized margins do not prove exact exclusion of every neighboring water or land patch."
+  },
+  "application": {
+    "assessment_only": true,
+    "automatic_application": false,
+    "scalar_product_name_applied": false,
+    "source_placeholders_preserved": true,
+    "geometry_repair_performed": false,
+    "korean_name_applied": false
+  },
+  "rights": {
+    "lake_geometry": "Natural Earth public-domain source geometry; see geometry-publication-rights.json",
+    "third_party_originals": "No original Ukrainian map/HTML or derivative imagery included in publishable files",
+    "public_contents": "Own findings and source metadata, brief name/title strings, geometry facts and hashes"
+  },
+  "bounded_limits": [
+    "No official enacted reservoir naming decision was acquired; proposal dates are not effective dates.",
+    "No legal registry or contemporary deployment equality asserted.",
+    "No exhaustive coastal, tributary-arm, island or hydrologic-boundary verification.",
+    "No inference that a source feature’s complete stored ring is the complete physical reservoir."
+  ],
+  "sources": "kamianske-source-evidence.json",
+  "frozen_evidence_pins": {
+    "geometry-reference.json": {
+      "sha256": "6bf1436a39640c8366b8ec10d7c4e3cc5f9515ccc99cf29e7e4877c811d9caff",
+      "bytes": 19655
+    },
+    "selected-lake-geometries.geojson": {
+      "sha256": "b036584d04224b1b5156e6ac408dee52fa8f433567f057696f913423e961ba9d",
+      "bytes": 12926
+    },
+    "selected-baseline-lake-geometries.geojson": {
+      "sha256": "e4572affcee9172306d126a86cd6981e53f4417b152fcc83024ff122a297648b",
+      "bytes": 7791
+    },
+    "geometry-component-manifest.json": {
+      "sha256": "8d4a8eecff8bca364fb1af801d23b4a9b2fae4c4ce4b5b3c00c5d28a5b1cbac5",
+      "bytes": 1934
+    },
+    "kamianske-source-evidence.json": {
+      "sha256": "1bdf751824b3f3d744d954b1b692b8fea52fd78db45883230ddb4be15df97909",
+      "bytes": 11746
+    }
+  },
+  "frozen_at_utc": "2026-10-09T12:34:16.642027+00:00"
+}

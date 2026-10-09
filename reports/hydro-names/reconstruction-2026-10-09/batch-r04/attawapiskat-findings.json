@@ -1,0 +1,176 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r04",
+  "created_at_utc": "2026-10-09T12:31:38.937343+00:00",
+  "target": {
+    "aw_id": "hydro-system:70152112",
+    "system_id": "70152112",
+    "logical_fid": 2966,
+    "geometry_fids": [
+      9228,
+      9229,
+      9230
+    ],
+    "source_reach_count": 188,
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "historical_bbox": [
+      -91.758333,
+      51.502083,
+      -82.301178,
+      53.135417
+    ],
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Attawapiskat representative river-system candidate",
+    "status": "candidate_hold",
+    "identity_confidence": "Official English river-name usage is supported; the complete selected group has not been matched to adequate full-route authoritative mapping.",
+    "name_en": "Attawapiskat River",
+    "name_original": "Attawapiskat River",
+    "name_original_language": "en",
+    "name_original_scope": "English source usage only; no claim about an Indigenous original form.",
+    "name_ko": null,
+    "scope": "Retain the historical lead as a representative-system candidate. Do not assign this river name to all selected upstream and downstream line parts.",
+    "formal_naming_authority_verified": false,
+    "official_english_usage_supported": true,
+    "exact_named_reach_extent_verified": false,
+    "korean_note": "No direct Korean naming source; Korean remains null."
+  },
+  "source_supported_names": [
+    {
+      "name": "Attawapiskat River",
+      "language": "en",
+      "role": "Official provincial protected-area usage; candidate representative name for this inventory group",
+      "evidence_ids": [
+        "ATTA-ONTARIO-PARK-PLAN"
+      ]
+    },
+    {
+      "name": "Otoskwin River",
+      "language": "en",
+      "role": "Separately named waterway in the park sources; not an alias of the entire selected group",
+      "evidence_ids": [
+        "ATTA-ONTARIO-PARK-PLAN",
+        "PIPESTONE-ONTARIO-PARK-PLAN"
+      ]
+    }
+  ],
+  "component_scope": {
+    "separately_named_context": [
+      "Otoskwin River",
+      "Morris River",
+      "Pipestone River",
+      "Williams River",
+      "Attawapiskat Lake",
+      "Otoskwin Lake",
+      "Bow Lake",
+      "Badesdawa Lake"
+    ],
+    "application_limit": "These are contextual river and lake names, not established aliases, a complete component list, or exact assignments to the188 selected source reaches. The park named Pipestone includes more than the Pipestone River."
+  },
+  "geometry_integrity": {
+    "reference_file": "geometry-reference.json",
+    "ordered_source_reach_reference": "source-reach-manifest.json",
+    "complete_baseline_fragment_count": 3,
+    "complete_line_part_count": 188,
+    "complete_coordinate_count": 1279,
+    "source_ids_sha256": "cc04d95740e9a8c2438573e36bebc0b81e05d89e5a9b1568ef211ea3a19246ed",
+    "canonical_ordered_group_geometry_sha256": "641e71204ac91937eba2bb42374475886647f0f810bd86aa03b73efe2fac7e62",
+    "hash_serialization": "SHA256 of the ordered list of three geometry objects in fid order9228,9229,9230, using UTF8 JSON with sorted keys and compact separators.",
+    "geometry_hashes_independently_recomputed": true,
+    "all_fragments_and_parts_visually_reviewed": true,
+    "review_method": "Complete whole-group overview and three separate full-fragment panels; each panel plotted every coordinate and line part without filtering or simplification.",
+    "fragments": [
+      {
+        "fid": 9228,
+        "role": "mainstem",
+        "line_part_count": 40,
+        "coordinate_count": 249,
+        "bounds": [
+          -91.758333,
+          51.502083,
+          -89.727083,
+          51.79375
+        ],
+        "canonical_geometry_sha256": "a156f1499c991c5d60be3f463e30dd3800a90d830bb510fc8f25fc9d82e52eb8",
+        "all_parts_displayed_and_viewed": true,
+        "exact_named_extent_verified": false
+      },
+      {
+        "fid": 9229,
+        "role": "mainstem",
+        "line_part_count": 37,
+        "coordinate_count": 223,
+        "bounds": [
+          -89.727083,
+          51.764583,
+          -88.39375,
+          52.14375
+        ],
+        "canonical_geometry_sha256": "55cb0895766e8b88ef3bde635bb54dcc5bcfbcd40c77f92bb3e2ac6c4b826426",
+        "all_parts_displayed_and_viewed": true,
+        "exact_named_extent_verified": false
+      },
+      {
+        "fid": 9230,
+        "role": "mainstem",
+        "line_part_count": 111,
+        "coordinate_count": 807,
+        "bounds": [
+          -88.527083,
+          52.052083,
+          -82.301178,
+          53.135417
+        ],
+        "canonical_geometry_sha256": "425863b46da1f594921eb1e28443eadddd112095a5f33d95daf2c74785028a69",
+        "all_parts_displayed_and_viewed": true,
+        "exact_named_extent_verified": false
+      }
+    ],
+    "adjacent_fragment_endpoint_equalities": [
+      true,
+      true
+    ],
+    "baseline_source_terminal": [
+      -82.33541666666756,
+      52.94374999999925
+    ],
+    "baseline_render_terminal": [
+      -82.301178,
+      52.967597
+    ],
+    "terminal_scope": "The retained baseline identifies a sea terminal with different source and render endpoints. Regional outlet compatibility is distinct from an exact mouth/coastline match; neither endpoint was changed.",
+    "original_hydrorivers_coordinate_equality_verified": false,
+    "complete_river_coordinates_in_public_package": false
+  },
+  "geographic_assessment": {
+    "full_local_group_observed": "A west-to-east upstream path continues through a central corridor, turns north near the eastern-central part, then runs generally east to its retained sea terminal. All188 line parts were reviewed.",
+    "map_context": "The inspected Pipestone zoning map supplies only upper-corridor context, while the other plan supplies named-waterway usage and lake context.",
+    "full_authoritative_route_coverage_established": false,
+    "centroid_only_identification_used": false,
+    "single_mouth_only_identification_used": false,
+    "exact_source_reach_name_assignment_performed": false,
+    "geometry_repairs_performed": false
+  },
+  "remaining_gaps": [
+    "An acquired and inspected authoritative map has not established the complete selected path from the westernmost headwater through lake passages to the downstream outlet.",
+    "The source-specific naming limits of upstream waterways, lake connectors and the downstream river are not joined to the exact188 source IDs.",
+    "Formal registry status, a direct Korean name and current live deployment equality remain unverified."
+  ],
+  "application": {
+    "automatic_application": false,
+    "whole_group_scalar_application": false,
+    "whole_group_alias_application": false,
+    "representative_name_automatically_applies_to_tributaries": false,
+    "name_ko_application": false,
+    "product_changes_performed": false,
+    "geometry_changes_performed": false
+  },
+  "evidence_file": "attawapiskat-source-evidence.json",
+  "evidence_ids": [
+    "ATTA-ONTARIO-PARK-PLAN",
+    "PIPESTONE-ONTARIO-PARK-PLAN"
+  ],
+  "bounded_research_complete": true,
+  "next_step": "Resolve the full-route cartographic and named-extent gaps before any product naming decision; do not infer name identity from the MAIN_RIV group alone."
+}
