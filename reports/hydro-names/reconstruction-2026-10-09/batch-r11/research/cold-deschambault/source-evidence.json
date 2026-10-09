@@ -1,0 +1,148 @@
+{
+  "schema": "hydro-bounded-source-evidence-v1",
+  "batch": "r11",
+  "created_at_utc": "2026-10-09T15:11:20.123461+00:00",
+  "scope": "Two actual inventory lakes. Original publications and inspection images are retained separately; only own facts, short quotations, locators and hashes are included here.",
+  "sources": [
+    {
+      "source_key": "wsa_deschambault_map",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "title": "Map of Saskatchewan Showing Completed Watershed Plans",
+      "publication_date": "2014-11-25",
+      "kind": "official_thematic_map",
+      "independence_group": "saskatchewan_wsa_map",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "final_url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "retrieved_at_utc": "2026-10-09T13:17:20.296694+00:00",
+      "http_status": 200,
+      "body_sha256": "64744b11dbae7381445b12ad0507487a5a38a82c6fe9de446b98814281d92197",
+      "body_byte_count": 5017913,
+      "hash_scope": "Exact acquired original HTTP response body bytes; not a search snippet, tool-generated extraction or rendered crop.",
+      "original_map_visually_inspected": true,
+      "inspection_mode": "Locally rendered original full overview, target panel and isolated whole waterbody path inspected as pixels against the complete source polygon; no quantitative georeferenced overlay claim.",
+      "locator": {
+        "page": 1,
+        "page_size_points": [
+          1584,
+          2448
+        ],
+        "target_panel_points": [
+          890,
+          1195,
+          1015,
+          1340
+        ],
+        "label": "Deschambault Lake",
+        "label_rect_points": [
+          907.7495727539062,
+          1249.9852294921875,
+          928.6206665039062,
+          1257.299072265625
+        ],
+        "whole_named_water_outline_rect_points": [
+          911.7411499023438,
+          1235.548095703125,
+          978.4597778320312,
+          1321.22998046875
+        ],
+        "scale": "1:1,750,000 at 22 × 34 inches",
+        "projection_printed": "NAD 1983 CSRS UTM Zone 13N",
+        "publication_date_note": "Printed production date November 25, 2014; URL directory2025/05 does not update the map date."
+      },
+      "retrieved_this_batch": false,
+      "reuse_hash_checked_at_utc": "2026-10-09T15:11:20.123461+00:00",
+      "short_quote": "Deschambault Lake"
+    },
+    {
+      "source_key": "eccc_deschambault_usage",
+      "publisher": "Environment and Climate Change Canada",
+      "title": "Hydrometric Station Name Index: D",
+      "publication_date": null,
+      "kind": "official_name_usage",
+      "independence_group": "eccc_hydrometric_program",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName",
+      "final_url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName",
+      "retrieved_at_utc": "2026-10-09T13:18:59.882154+00:00",
+      "http_status": 200,
+      "body_sha256": "799d07c905e838f481f30816dd808ce219edcc19ef43380682b3d19f324b6dc5",
+      "body_byte_count": 63599,
+      "hash_scope": "Exact acquired original HTTP response body bytes; not a search snippet, tool-generated extraction or rendered crop.",
+      "original_map_visually_inspected": false,
+      "inspection_mode": "Original HTML body parsed as text; no map-image claim.",
+      "locator": {
+        "html_locator": "station-name table row, station05KF003",
+        "exact_name": "DESCHAMBAULT LAKE ON THE HANSON LAKE ROAD",
+        "scope": "Official hydrometric station-name usage; no lake-boundary or formal naming-record claim."
+      },
+      "retrieved_this_batch": false,
+      "reuse_hash_checked_at_utc": "2026-10-09T15:11:20.123461+00:00",
+      "short_quote": "DESCHAMBAULT LAKE ON THE HANSON LAKE ROAD"
+    },
+    {
+      "source_key": "alberta_cold_subregional2019_text",
+      "publisher": "Alberta Environment and Parks, Air, Biodiversity and Policy Integration Branch",
+      "title": "Cold Lake Sub-regional Plan map",
+      "publication_date": "2019-07-24",
+      "kind": "official_map_text_only",
+      "independence_group": "alberta_subregional_landuse_planning",
+      "url": "https://www.alberta.ca/system/files/custom_downloaded_images/cold-lake-sub-regional-planning-map.pdf",
+      "observed_tool_return_utc": "2026-10-09T15:06:50Z",
+      "body_sha256": null,
+      "body_byte_count": null,
+      "original_body_acquired": false,
+      "tool_text_capture_sha256": "91b0e97088df2afed1521cf080f0a589c03d479d012a60f0d3c4d52fc87979ae",
+      "tool_text_capture_byte_count": 2157,
+      "hash_scope": "Exact locally retained web-tool extraction only; no original HTTP/PDF response body acquired.",
+      "short_quote": "Cold Lake",
+      "locator": {
+        "page": 1,
+        "text_locator": "Two Cold/Lake text occurrences, plus production imprint dated July24,2019; label placement unavailable as pixels.",
+        "scope": "Official textual name occurrence only. It cannot establish which occurrence labels the town versus lake, complete lake outline, or exact target correspondence."
+      },
+      "original_map_visually_inspected": false,
+      "screenshot_pixels_acquired": false,
+      "subsequent_original_body_request_http_status": 403,
+      "external_requests_after_403": false
+    }
+  ],
+  "unused_acquisition_outcomes": [
+    {
+      "url": "https://www.albertaparks.ca/media/6493109/cold-lake-brochure.pdf",
+      "publication": "Alberta Parks: Welcome to Cold Lake Provincial Park, campground guide with Cold Lake overview map",
+      "http_status": 403,
+      "exact_error": "<HTTPError 403: 'Forbidden'>",
+      "retrieval_started_utc": "2026-10-09T15:05:08.693303+00:00",
+      "retrieval_finished_utc": "2026-10-09T15:05:14.798091+00:00",
+      "original_body_acquired": false,
+      "body_sha256": null,
+      "used_as_map_evidence": false,
+      "same_underlying_publication_stopped": true
+    },
+    {
+      "url": "https://www.alberta.ca/index.php/cold-lake-beaver-river-water-management-plan",
+      "publication": "Alberta Cold Lake-Beaver River water management plan overview webpage",
+      "http_status": 403,
+      "exact_error": "<HTTPError 403: 'Forbidden'>",
+      "retrieval_started_utc": "2026-10-09T15:06:00.255420+00:00",
+      "retrieval_finished_utc": "2026-10-09T15:06:05.134478+00:00",
+      "original_body_acquired": false,
+      "body_sha256": null,
+      "used_as_map_evidence": false,
+      "same_underlying_publication_stopped": true
+    },
+    {
+      "url": "https://www.alberta.ca/system/files/custom_downloaded_images/cold-lake-sub-regional-planning-map.pdf",
+      "publication": "Alberta Cold Lake Sub-regional Plan map, completed July 24 2019",
+      "http_status": 403,
+      "exact_error": "<HTTPError 403: 'Forbidden'>",
+      "retrieval_started_utc": "2026-10-09T15:07:32.685795+00:00",
+      "retrieval_finished_utc": "2026-10-09T15:07:39.496639+00:00",
+      "original_body_acquired": false,
+      "body_sha256": null,
+      "used_as_map_evidence": false,
+      "same_underlying_publication_stopped": true
+    }
+  ],
+  "independence_note": "WSA mapping and ECCC station naming are separate official programs; both originals were reused and hash-checked. Cold text is a single independent planning-map extraction with no visual shape evidence.",
+  "automatic_application": false
+}

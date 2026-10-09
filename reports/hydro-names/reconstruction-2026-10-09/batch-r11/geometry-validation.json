@@ -1,0 +1,244 @@
+{
+  "schema": "selected-lake-geometry-validation-v2",
+  "batch": "r11",
+  "status": "passed",
+  "validation_runs": [
+    {
+      "status": "passed",
+      "scope_aw_ids": [
+        "lakes_base:1159112291",
+        "lakes_base:1159112821",
+        "lakes_base:1159109155"
+      ],
+      "source_coordinate_counts_including_closure": [
+        51,
+        43,
+        124
+      ],
+      "all_complete_source_and_baseline_coordinates_rechecked": true,
+      "part_ring_vertex_order_and_hashes_rechecked": true,
+      "source_feature_original_JSON_tokens_rechecked": true,
+      "actual_metadata_and_name_states_rechecked": true,
+      "prior30_duplicate_count": 0,
+      "current_three_initial_inventory_membership_and_eligible_status_rechecked": true,
+      "current_three_queue_delta_rechecked": true,
+      "prior30_geometry_or_naming_revalidation_performed": false,
+      "original_source_cache_and_metadata_rechecked": false,
+      "production_decoder_replayed": false,
+      "original_selected_inventory_rows_rechecked": false,
+      "original_previous_index_rechecked": false,
+      "frozen_component_hashes_rechecked": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limit": "Complete selected features and independent pins are checked; omitted full upstream inputs and production decoder replay require the optional verified local cache."
+    },
+    {
+      "status": "passed",
+      "scope_aw_ids": [
+        "lakes_base:1159112291",
+        "lakes_base:1159112821",
+        "lakes_base:1159109155"
+      ],
+      "source_coordinate_counts_including_closure": [
+        51,
+        43,
+        124
+      ],
+      "all_complete_source_and_baseline_coordinates_rechecked": true,
+      "part_ring_vertex_order_and_hashes_rechecked": true,
+      "source_feature_original_JSON_tokens_rechecked": true,
+      "actual_metadata_and_name_states_rechecked": true,
+      "prior30_duplicate_count": 0,
+      "current_three_initial_inventory_membership_and_eligible_status_rechecked": true,
+      "current_three_queue_delta_rechecked": true,
+      "prior30_geometry_or_naming_revalidation_performed": false,
+      "original_source_cache_and_metadata_rechecked": true,
+      "production_decoder_replayed": true,
+      "original_selected_inventory_rows_rechecked": true,
+      "original_previous_index_rechecked": true,
+      "frozen_component_hashes_rechecked": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limit": "Complete selected features and independent pins are checked; omitted full upstream inputs and production decoder replay require the optional verified local cache."
+    }
+  ],
+  "corrupt_fixtures": [
+    {
+      "case": "source_vertex_changed",
+      "rejected": true,
+      "expected_semantic_check": "source feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "source_ring_closure_broken",
+      "rejected": true,
+      "expected_semantic_check": "source feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_feature_id_changed",
+      "rejected": true,
+      "expected_semantic_check": "source feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_feature_order_reversed",
+      "rejected": true,
+      "expected_semantic_check": "selected source order",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_source_id_changed",
+      "rejected": true,
+      "expected_semantic_check": "selected baseline source IDs and order",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_fragment_count_changed",
+      "rejected": true,
+      "expected_semantic_check": "baseline feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_fragment_omitted",
+      "rejected": true,
+      "expected_semantic_check": "complete selected baseline count",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_fragment_duplicated",
+      "rejected": true,
+      "expected_semantic_check": "complete selected baseline count",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "inventory_category_changed",
+      "rejected": true,
+      "expected_semantic_check": "selected inventory pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "current_batch_delta_changed",
+      "rejected": true,
+      "expected_semantic_check": "prior30 duplicate pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_vertex_order_reversed",
+      "rejected": true,
+      "expected_semantic_check": "source feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "source_JSON_tokens_rewritten",
+      "rejected": true,
+      "expected_semantic_check": "source JSON token pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "baseline_logical_fid_changed",
+      "rejected": true,
+      "expected_semantic_check": "baseline feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "baseline_name_changed",
+      "rejected": true,
+      "expected_semantic_check": "baseline feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "baseline_core_metadata_name_changed",
+      "rejected": true,
+      "expected_semantic_check": "exact core metadata pin",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_detail_metadata_name_inserted",
+      "rejected": true,
+      "expected_semantic_check": "exact detail metadata pin",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "actual_name_state_misreported",
+      "rejected": true,
+      "expected_semantic_check": "actual name state",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "ordered_ring_hash_changed",
+      "rejected": true,
+      "expected_semantic_check": "geometry structure and ordered ring hashes",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_original_index_changed",
+      "rejected": true,
+      "expected_semantic_check": "source index pin",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "inventory_logical_fid_changed",
+      "rejected": true,
+      "expected_semantic_check": "selected inventory pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "prior30_duplicate_list_changed",
+      "rejected": true,
+      "expected_semantic_check": "prior30 duplicate pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "pack_offset_changed",
+      "rejected": true,
+      "expected_semantic_check": "pack pins",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "false_current_deployment_claim",
+      "rejected": true,
+      "expected_semantic_check": "current deployment limit",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_asset_URL_changed",
+      "rejected": true,
+      "expected_semantic_check": "source asset provenance pins",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "altered_production_worker_rejected_before_execution",
+      "rejected": true,
+      "decoded_output_written": false
+    }
+  ],
+  "corrupt_fixture_count": 25,
+  "durable_corrupt_fixture_count": 24,
+  "original_inputs_unchanged": true,
+  "no_external_requests": true
+}

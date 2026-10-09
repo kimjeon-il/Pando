@@ -1,0 +1,124 @@
+{
+  "schema": "hydro-bounded-source-evidence-v1",
+  "batch": "r11",
+  "created_at_utc": "2026-10-09T15:08:48.216804+00:00",
+  "sources": [
+    {
+      "source_key": "manitoba_dauphin_iwmp",
+      "publisher": "Intermountain Conservation District and Turtle River Watershed Conservation District, with the Province of Manitoba; hosted by Province of Manitoba",
+      "title": "Dauphin Lake Integrated Watershed Management Plan",
+      "publication_date": null,
+      "kind": "official_watershed_plan_and_maps",
+      "independence_group": "manitoba_watershed_planning",
+      "url": "https://www.gov.mb.ca/sd/water/watershed/iwmp/dauphin/documentation/dauphin_lake_iwmp.pdf",
+      "final_url": "https://www.gov.mb.ca/sd/water/watershed/iwmp/dauphin/documentation/dauphin_lake_iwmp.pdf",
+      "retrieved_at_utc": "2026-10-09T15:04:35.833911+00:00",
+      "retrieval_time_scope": "Request initiation time recorded locally; response completed afterward.",
+      "http_status": 200,
+      "body_sha256": "35b56a3e9d1ccf221f258581c0f9e8c9d43c63a69ab1304baeb13c60b2fbf400",
+      "body_byte_count": 3614638,
+      "hash_scope": "Exact acquired original HTTP response-body bytes, not snippets, a tool extraction or rendered images.",
+      "local_text_extraction_sha256": "d03cbfab0d0b918b3d65e65e1deb11f1b443efc04668e9515b40edf754a4e8c3",
+      "text_extraction_hash_scope": "Locally extracted UTF-8 text, separate from the original response-body hash.",
+      "original_map_visually_inspected": true,
+      "inspection_mode": "Complete map panels on PDF pages 7 and 54 rendered locally and viewed as pixels, plus original text read.",
+      "locator": {
+        "pdf_pages_1_based": [
+          7,
+          54
+        ],
+        "printed_pages": [
+          4,
+          51
+        ],
+        "figures": [
+          1,
+          14
+        ],
+        "page_size_points": [
+          612,
+          792
+        ],
+        "map_panel_rectangles_points": {
+          "pdf_page_7": [
+            35,
+            153,
+            583,
+            699
+          ],
+          "pdf_page_54": [
+            61,
+            18,
+            457,
+            383
+          ]
+        },
+        "label": "Dauphin Lake",
+        "page_7_narrative_scope": "Lake dimensions and single Mossy River outlet to Lake Winnipegosis",
+        "pdf_metadata_creation_date": "D:20160107122448-06'00'",
+        "pdf_metadata_modification_date": "D:20171218104924-06'00'",
+        "date_limitation": "The PDF metadata are not claimed as a verified publication date."
+      }
+    },
+    {
+      "source_key": "eccc_dauphin_reference_index",
+      "publisher": "Environment and Climate Change Canada",
+      "title": "Station Reference Index: Dauphin Lake and Mossy River vicinity",
+      "publication_date": null,
+      "kind": "official_hydrometric_name_usage",
+      "independence_group": "eccc_hydrometric_program",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=4449",
+      "final_url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=4449",
+      "retrieved_at_utc": "2026-10-09T15:05:50.136490+00:00",
+      "retrieval_time_scope": "Request initiation time recorded locally; response completed afterward.",
+      "http_status": 200,
+      "body_sha256": "d6bc8c3765b580802af24a96921900fdd6f51266c4ed7b683bbb4ea9f179f04c",
+      "body_byte_count": 58636,
+      "hash_scope": "Exact acquired original HTTP response-body bytes, not snippets, a tool extraction or rendered images.",
+      "local_text_extraction_sha256": "bc006ee58c98a0c13980af51bbee32f88924c35c1982567522424c8bfb71512f",
+      "text_extraction_hash_scope": "Locally extracted UTF-8 text, separate from the original response-body hash.",
+      "original_map_visually_inspected": false,
+      "inspection_mode": "Acquired original HTML table parsed and both Dauphin Lake station rows read. No map claim.",
+      "page_modified_date": "2026-09-11",
+      "locator": {
+        "html_table_rows": [
+          "05LJ816",
+          "05LJ009"
+        ],
+        "exact_station_names": [
+          "DAUPHIN LAKE AT OCHRE BEACH",
+          "DAUPHIN LAKE AT OUTLET"
+        ],
+        "latitude_longitude_as_published": {
+          "05LJ816": [
+            "51°07'37\" N",
+            "99°47'22\" W"
+          ],
+          "05LJ009": [
+            "51°26'23\" N",
+            "99°57'01\" W"
+          ]
+        },
+        "date_locator": "dl#wb-dtmd time[property=\"dateModified\"]",
+        "scope": "Hydrometric station name usage and approximate location only; no formal waterbody naming record."
+      }
+    }
+  ],
+  "independence_note": "The two figures are complementary panels of one provincial watershed plan. ECCC is a distinct federal hydrometric program; its station table adds independent name/location usage, not another whole-lake map.",
+  "unused_acquisition_outcomes": [
+    {
+      "url": "https://www.gov.mb.ca/mit/map/pdf/map4.pdf",
+      "intended_publication": "Manitoba Official Highway Map - Western Manitoba sheet map4",
+      "retrieved_at_utc": "2026-10-09T15:04:58.401727+00:00",
+      "http_status": 200,
+      "final_url": "https://www.gov.mb.ca/mti/",
+      "content_type": "text/html",
+      "body_sha256": "4ed4c09597457e616bb7b27c1c4280a6790b22c6a2cf3eb656dde5c0c27bce84",
+      "body_byte_count": 23708,
+      "used_as_identity_evidence": false,
+      "outcome": "Returned generic ministry HTML instead of the requested map. No original highway map acquired. No repeat or alternate-route request made."
+    }
+  ],
+  "raw_originals_published": false,
+  "automatic_application": false
+}

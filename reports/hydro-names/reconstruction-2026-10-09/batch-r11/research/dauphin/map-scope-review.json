@@ -1,0 +1,65 @@
+{
+  "schema": "hydro-names-map-scope-review-v1",
+  "aw_id": "lakes_base:1159112291",
+  "reviewed_at_utc": "2026-10-09T15:08:48.216804+00:00",
+  "whole_source_geometry_reviewed": true,
+  "whole_baseline_geometry_checked": true,
+  "geometry_type": "Polygon",
+  "ring_count": 1,
+  "coordinate_positions_including_closure": 51,
+  "source_bbox": [
+    -99.96781974680096,
+    51.10967407956244,
+    -99.54952832214686,
+    51.45820120608633
+  ],
+  "baseline_bbox": [
+    -99.96782,
+    51.109674,
+    -99.549528,
+    51.458201
+  ],
+  "source_geometry_sha256": "ecc67c459a70c6318f77e7a0468330a86462c2d07536e528978de4cfd90e07ef",
+  "baseline_geometry_sha256": "09b4e9413acb08dbe21467eac43f3be57fd4ddbe74a737f28242a092b9d9f2df",
+  "geometry_hash_scope": "Complete geometry JSON with sorted keys and compact separators.",
+  "method": "All 51 positions of the closed source ring were rendered in longitude/latitude with latitude-adjusted aspect. The complete shape was visually compared with Figures 1 and 14. Source and decoded baseline ring order and six-decimal coordinate rounding were independently checked. No georeferenced raster overlap or shoreline survey was performed.",
+  "region_checks": [
+    {
+      "region": "Northern basin",
+      "observation": "The northern narrow rounded lobe and the west-bank indentation below it occur in both the source outline and plan maps."
+    },
+    {
+      "region": "Central and southern body",
+      "observation": "The lake widens toward the southeast and terminates in a broad rounded southern shore in both the source and provincial map panels."
+    },
+    {
+      "region": "Surrounding waters",
+      "observation": "Lake Winnipegosis is drawn separately to the north, reached through Mossy River; the target remains confined to the southern lake."
+    },
+    {
+      "region": "Shoreline marshes",
+      "observation": "Figure 14 distinguishes adjacent marsh-management areas. Their exact boundary against the generalized source outline is not resolved."
+    }
+  ],
+  "station_checks": [
+    {
+      "station_id": "05LJ009",
+      "longitude": -99.95027777777779,
+      "latitude": 51.439722222222215,
+      "observation": "The outlet station falls near the northern end of the generalized polygon."
+    },
+    {
+      "station_id": "05LJ816",
+      "longitude": -99.78944444444444,
+      "latitude": 51.12694444444445,
+      "observation": "The Ochre Beach station is near the southwestern shore, just outside the generalized ring; station placement is not a shoreline-boundary test."
+    }
+  ],
+  "name_extent_assessment": "Whole-outline evidence supports Dauphin Lake at generalized map scale. No inspected evidence requires treating the target as a compound of separate named lakes.",
+  "precision_limits": [
+    "The source is a generalized Natural Earth 1:10 million polygon; mapped marsh margins and detailed shoreline differences are unresolved.",
+    "The plan is a historical planning document; PDF creation and modification dates are file metadata, not verified publication or present shoreline dates.",
+    "ECCC station coordinates and names confirm regional usage at two sites, not whole-lake boundaries.",
+    "No formal naming instrument, current registry status, exact shoreline fit, Korean name or legally defined name extent was established."
+  ]
+}

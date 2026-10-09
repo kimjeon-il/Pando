@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "shard": 0,
+    "offset": 26736,
+    "length": 174465,
+    "stage": 0,
+    "sha256": "7a2efc67054d38ac0e70408474e33c91a119e5f06c4fe2c2813d4875267526f4",
+    "selected_fids": [
+      15393
+    ]
+  },
+  {
+    "id": 107,
+    "shard": 0,
+    "offset": 3144203,
+    "length": 4478,
+    "stage": 2,
+    "sha256": "30cc904d634636747a0fcbad8365ee993983782b3d6f7315e4dea3511c4b6e16",
+    "selected_fids": [
+      15649
+    ]
+  },
+  {
+    "id": 113,
+    "shard": 0,
+    "offset": 3166303,
+    "length": 8924,
+    "stage": 2,
+    "sha256": "c4e3bb7e10dc2719a528c565e3942b36eb4d4ba7b565708a4efbc1b3fee23cb3",
+    "selected_fids": [
+      15611
+    ]
+  }
+]
