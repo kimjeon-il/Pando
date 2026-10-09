@@ -35,10 +35,25 @@ function fixture(){
   current.shards=current.shards.map(x=>({...x,url:'../v0.13.0/'+x.url}));
   writeFileSync(join(root,oldDir,'manifest.json'),JSON.stringify(previous)+'\n');
   writeFileSync(join(root,newDir,'manifest.json'),JSON.stringify(current)+'\n');
+  const v132=structuredClone(current);v132.version='0.13.2';
+  const segments=[v132.index,v132.metadata.core,v132.metadata.detail,...v132.shards];
+  const baseSegments=[current.index,current.metadata.core,current.metadata.detail,...current.shards];
+  const chunks=baseSegments.map(x=>readFileSync(join(root,'assets/data/hydro/v0.13.1',x.url)));
+  const combined=Buffer.concat(chunks);
+  let cursor=0;
+  for(let i=0;i<segments.length;i++){
+    segments[i].url='hydro.bin';
+    segments[i].offset=cursor;
+    cursor+=chunks[i].length;
+  }
+  v132.container={url:'hydro.bin',bytes:combined.length,sha256:hash(combined),
+    format:'byte-concatenated-subresources-v1'};
+  create('assets/data/hydro/v0.13.2/hydro.bin',combined);
+  create('assets/data/hydro/v0.13.2/manifest.json',Buffer.from(JSON.stringify(v132)+'\n'));
   create('assets/js/modules/app-environment.js',
-    Buffer.from("HYDRO_DATA_VERSION = '0.13.1'"));
+    Buffer.from("HYDRO_DATA_VERSION = '0.13.2'"));
   create('scripts/generate-build-metadata.mjs',
-    Buffer.from("assets/data/hydro/v0.13.1/manifest.json"));
+    Buffer.from("assets/data/hydro/v0.13.2/manifest.json"));
   const manifest=readFileSync(join(root,newDir,'manifest.json'));
   const appFile=join(root,'app-manifest.json');
   const pin={schema:'pandoeditor-world-dataset',version:2,hydro:{
@@ -80,7 +95,7 @@ test('shared GIS geometry cannot silently change or be duplicated',()=>withFixtu
 test('read-only actual file audit checks bytes, gzip benchmark and native pin',()=>withFixture(f=>{
   const a=auditLayout(f.root,{appManifest:f.appFile});
   assert.equal(a.passed,true);
-  assert.equal(a.binaryFilesChecked,7);
+  assert.equal(a.binaryFilesChecked,8);
   assert.equal(a.currentReleaseFiles,2);
   assert.equal(a.previousReleaseFiles,7);
   assert.equal(a.reusedRoles.length,5);
