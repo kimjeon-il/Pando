@@ -1,0 +1,12 @@
+{
+  "schema": "hydro-river-publication-rights-v2",
+  "batch": "r21",
+  "included": "Own factual findings, short labels, publisher URLs, bounded selected identifier/name-state/count/bounds metadata and included-file hashes.",
+  "full_river_coordinates_published": false,
+  "selected_lake_geometry_count": 0,
+  "raw_third_party_sources_published": false,
+  "raw_pdf_html_map_crop_count": 0,
+  "private_source_derivative_registration_receipt_cache_fingerprints_included": false,
+  "rights_scope": "No permission to redistribute complete HydroRIVERS-derived river paths is inferred. No full path, per-part endpoint path, private path hash, original report, map raster or derivative overlay is included.",
+  "automatic_application": false
+}

@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""Validate included bounded river summaries only; no omitted-input replay."""
+import argparse,hashlib,json,math,pathlib,sys
+sys.dont_write_bytecode=True
+PINS = {'files': {'selected-river-metadata.json': 'e136bcd3fe943a7b97fbfcc3587a570b2fa01f7cf4dc3642e979746a72acbac1', 'selected-inventory-records.json': 'da0a4693908c2c962f61aea05ffc53d90b2892d5e37e03f4cf99e499a64601cf', 'geometry-duplicate-check.json': 'bbaa6a06d8b17f2030445785d02087dc7cea1117077e11a0064945437dfc49a8', 'geometry-publication-rights.json': '4ac2544731bfb9357fcf18900ac0df4dbf37552866bfc31cff4778b11c433f47'}, 'expected_reference': {'schema': 'hydro-river-geometry-summary-public-v1', 'batch': 'r21', 'created_at_utc': '2026-10-09T19:46:50.312653Z', 'scope_system_ids': ['50701991', '50760625', '50781500'], 'scope_aw_ids': ['hydro-system:50701991', 'hydro-system:50760625', 'hydro-system:50781500'], 'baseline': {'repository': 'kimjeon-il/Pando', 'git_commit': 'fd6744f5e72a0c1a107452dbde6d416ab57237db', 'hydro_version': '0.13.1', 'current_live_deployment_checked': False, 'current_live_deployment_equality_claimed': False}, 'validation_scope': 'included-summary-evidence-only', 'identity_domains': 'MAIN_RIV systemId, awId, logical_fid and individual geometry fid are distinct. FIDs apply only to the pinned baseline.', 'groups': [{'aw_id': 'hydro-system:50701991', 'system_id': '50701991', 'logical_fid': 2041, 'geometry_fids': [6998, 6999], 'role_sequence': ['mainstem', 'mainstem'], 'part_count': 66, 'bounds': [151.722917, -30.272917, 153.356915, -29.352083], 'fragment_count': 2, 'position_count': 515, 'source_reach_count': 66, 'fragment_part_counts': [40, 26], 'fragment_position_counts': [329, 186], 'minimum_stage': 2}, {'aw_id': 'hydro-system:50760625', 'system_id': '50760625', 'logical_fid': 2115, 'geometry_fids': [7076], 'role_sequence': ['mainstem'], 'part_count': 75, 'bounds': [149.74375, -32.89368, 151.799237, -32.185417], 'fragment_count': 1, 'position_count': 587, 'source_reach_count': 75, 'fragment_part_counts': [75], 'fragment_position_counts': [587], 'minimum_stage': 3}, {'aw_id': 'hydro-system:50781500', 'system_id': '50781500', 'logical_fid': 2134, 'geometry_fids': [7097], 'role_sequence': ['mainstem'], 'part_count': 62, 'bounds': [149.583333, -35.966667, 150.727061, -34.764583], 'fragment_count': 1, 'position_count': 428, 'source_reach_count': 62, 'fragment_part_counts': [62], 'fragment_position_counts': [428], 'minimum_stage': 3}], 'public_coordinate_policy': 'Full rendered coordinates, per-part paths and omitted-input fingerprints are not published.', 'original_hydrorivers_geometry': {'source_coordinate_equality_verified': False, 'reach_boundary_coordinate_mapping_verified': False}, 'name_scope': {'name_verdict_established': False, 'representative_name_automatically_applies_to_tributaries': False, 'automatic_application': False, 'historical_names_used_as_identity_evidence': False}, 'historical_private_verification': {'all_selected_fragments_decoded': True, 'ordered_baseline_positions_and_metadata_checked': True, 'original_selected_inventory_join_checked': True, 'public_validator_reproduces_these_omitted_input_checks': False}, 'limits': ['The public validator checks only included summaries, metadata and file hashes. It cannot reproduce omitted geometry, original inventory or production-decoder checks.', 'Private verification decoded the complete selected baseline groups without geometry repair, simplification, reordering or reversal.', 'Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part mapping remain unverified.', 'A group includes only the represented baseline fragments, not an independently verified complete catchment network.', 'Placeholder names and geometry summaries do not establish geographic names. A mainstem name does not automatically cover tributaries.', 'No current deployment check or maximal topology audit was performed.']}}
+
+def receipt(p):
+ b=p.read_bytes();return {'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+def main():
+ if not __debug__:raise RuntimeError('Python -O is unsupported because it disables required assertions.')
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--directory',type=pathlib.Path,default=pathlib.Path(__file__).resolve().parent);p.add_argument('--check-component-manifest',action='store_true');a=p.parse_args();root=a.directory.resolve()
+ assert not list(root.glob('*.geojson')) and not list(root.glob('*.bin')) and not (root/'worker.js').exists(),'prohibited public geometry file'
+ ref=json.loads((root/'geometry-reference.json').read_text())
+ assert {k:v for k,v in ref.items() if k!='artifacts'}==PINS['expected_reference'],'reference summary pin'
+ assert set(ref['artifacts'])==set(PINS['files']),'included file set'
+ for name,digest in PINS['files'].items():
+  assert pathlib.Path(name).name==name,'bounded included filename'
+  actual=receipt(root/name);assert actual['sha256']==digest,'included file pin: '+name
+  assert actual==ref['artifacts'][name],'included file receipt: '+name
+ meta=json.loads((root/'selected-river-metadata.json').read_text());inv=json.loads((root/'selected-inventory-records.json').read_text());dup=json.loads((root/'geometry-duplicate-check.json').read_text());rights=json.loads((root/'geometry-publication-rights.json').read_text())
+ awids=ref['scope_aw_ids'];ids=ref['scope_system_ids'];groups=ref['groups'];fragments=meta['fragments']
+ assert meta['scope_aw_ids']==inv['scope_aw_ids']==rights['scope_aw_ids']==awids
+ assert meta['scope_system_ids']==inv['scope_system_ids']==ids
+ assert len(fragments)==4 and len(set(f['fid'] for f in fragments))==4,'complete included fragment summaries'
+ assert [f['fid'] for f in fragments]==[fid for g in groups for fid in g['geometry_fids']],'included fragment order'
+ for group,row in zip(groups,inv['records']):
+  fs=[f for f in fragments if f['aw_id']==group['aw_id']]
+  assert [f['fragment_index'] for f in fs]==list(range(group['fragment_count'])),'included fragment indices'
+  assert all(f['fragment_count']==group['fragment_count'] and f['logical_fid']==group['logical_fid'] and f['system_id']==group['system_id'] for f in fs),'included identifiers'
+  assert [f['role'] for f in fs]==group['role_sequence'],'included role sequence'
+  assert [f['part_count'] for f in fs]==group['fragment_part_counts'] and sum(group['fragment_part_counts'])==group['part_count'],'included part counts'
+  assert [f['position_count'] for f in fs]==group['fragment_position_counts'] and sum(group['fragment_position_counts'])==group['position_count'],'included position counts'
+  assert sum(f['source_reach_count'] for f in fs)==group['source_reach_count'],'included reach counts'
+  bounds=[min(f['bounds'][0] for f in fs),min(f['bounds'][1] for f in fs),max(f['bounds'][2] for f in fs),max(f['bounds'][3] for f in fs)]
+  assert bounds==group['bounds']==row['bbox'],'included group bounds'
+  assert row['aw_id']==group['aw_id'] and row['logical_fid']==group['logical_fid'] and row['geometry_fids']==group['geometry_fids'] and row['geometry_count']==group['fragment_count'],'included inventory join'
+  assert row['category']=='river' and row['classification']=='no_meaningful_name_in_deployed_data' and row['has_korean_display'] is False,'included inventory eligibility'
+  assert min(f['stage'] for f in fs)==group['minimum_stage']==row['minimum_stage'],'included stages'
+  for f in fs:
+   assert len(f['position_counts_by_part'])==f['part_count']==f['source_reach_count'] and sum(f['position_counts_by_part'])==f['position_count'] and all(type(n) is int and n>=2 for n in f['position_counts_by_part']),'included ordered part position counts'
+   assert f['baseline_detail_name_fields_exact']=={} and f['baseline_core_name_fields_exact']==f['baseline_name_fields_exact']=={'name':'미명명 수계 '+f['system_id'],'mainstemNameKo':'미명명 수계 '+f['system_id']},'included exact name state'
+   assert f['research_name_ko'] is None and f['automatic_application'] is False,'included name limits'
+   assert len(f['bounds'])==4 and all(math.isfinite(v) for v in f['bounds']),'included finite bounds'
+ prior=dup['previous_aw_ids_in_index_order'];delta=dup['current_batch_delta'];assert len(prior)==len(set(prior))==dup['previous_target_count']==60 and not set(prior)&set(awids),'prior60 exclusion'
+ assert dup['selected_aw_ids']==awids and dup['intersection_aw_ids']==[] and delta['reconstructed_target_count_after']==63 and delta['remaining_fresh_reconstruction_queue_after']==4002,'included queue delta'
+ assert delta['remaining_queue_types_after']=={'river_group':3430,'lake':572} and len(dup['preserved_pending_access_ids'])==2 and len(dup['preserved_scope_hold_ids'])==17,'included preserved status counts'
+ if a.check_component_manifest:
+  frozen=json.loads((root/'geometry-component-manifest.json').read_text());expected=set(ref['artifacts'])|{'geometry-README.md','geometry-reference.json','validate-geometry-reference.py','test-geometry-reference.py','geometry-validation.json'}
+  assert frozen['schema']=='frozen-selected-river-summary-component-public-v1' and frozen['batch']=='r21' and frozen['scope_aw_ids']==awids and frozen['validation_scope']=='included-summary-evidence-only','component scope'
+  assert frozen['complete_coordinates_in_public_package'] is frozen['per_part_paths_in_public_package'] is frozen['omitted_input_fingerprints_in_public_package'] is False and frozen['new_external_requests']==0,'component exclusion scope'
+  assert set(frozen['files'])==expected,'component file set'
+  for name,digest in frozen['files'].items():assert pathlib.Path(name).name==name and receipt(root/name)['sha256']==digest,'component frozen hash'
+ print(json.dumps({'status':'passed','validation_scope':'included-summary-evidence-only','scope_aw_ids':awids,'fragment_counts':[g['fragment_count'] for g in groups],'part_counts':[g['part_count'] for g in groups],'position_counts':[g['position_count'] for g in groups],'included_identity_role_name_state_counts_and_bounds_rechecked':True,'included_selected_inventory_summary_join_rechecked':True,'included_current_three_queue_delta_rechecked':True,'prior60_duplicate_count':0,'preserved_pending_access_count':2,'preserved_scope_hold_count':17,'prior_target_geometry_or_naming_revalidation_performed':False,'production_decoder_replayed':False,'full_coordinate_order_checks_reproduced':False,'original_hydrorivers_source_equality_verified':False,'original_inventory_or_previous_index_revalidated':False,'frozen_component_hashes_rechecked':bool(a.check_component_manifest),'current_live_deployment_checked':False,'no_external_requests':True,'validation_limit':'Only included summaries, selected metadata and file hashes are validated. Omitted source bodies, full coordinates, decoder dependencies, original inventory and prior-index bytes cannot be reconstructed or checked by this public validator.'}))
+if __name__=='__main__':main()

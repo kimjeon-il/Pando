@@ -1,0 +1,130 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r21",
+  "scope_aw_ids": [
+    "hydro-system:50701991",
+    "hydro-system:50760625",
+    "hydro-system:50781500"
+  ],
+  "new_external_requests": 0,
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "figures": [
+        {
+          "figure": "4.1",
+          "physical_pdf_page": 120,
+          "printed_chapter_page": 5,
+          "scope": "Direct blue Clarence and Shoalhaven river-line labels and whole-region geography; town names are context only"
+        },
+        {
+          "figure": "4.22",
+          "physical_pdf_page": 142,
+          "printed_chapter_page": 27,
+          "scope": "Catchment leader-label context only; not sole river-line identity evidence"
+        },
+        {
+          "figure": "4.23",
+          "physical_pdf_page": 144,
+          "printed_chapter_page": 29,
+          "scope": "Numeric discharge-site context only; no named-station identity evidence"
+        },
+        {
+          "figure": "4.26",
+          "physical_pdf_page": 149,
+          "printed_chapter_page": 34,
+          "scope": "Direct blue Clarence and Shoalhaven river-line labels; storage symbols are context only"
+        },
+        {
+          "figure": "4.28",
+          "physical_pdf_page": 151,
+          "printed_chapter_page": 36,
+          "scope": "Direct Hunter River at Greta monitoring-site anchor upstream of Hunter Estuary wetlands"
+        },
+        {
+          "figure": "4.35",
+          "physical_pdf_page": 160,
+          "printed_chapter_page": 45,
+          "scope": "Direct mapped river-line geography and Tallowa storage context; storage labels are not river-name extent"
+        },
+        {
+          "figure": "4.45",
+          "physical_pdf_page": 172,
+          "printed_chapter_page": 57,
+          "scope": "Direct blue regional river-line labels; irrigation and storage symbols are context only"
+        },
+        {
+          "figure": "4.46",
+          "physical_pdf_page": 173,
+          "printed_chapter_page": 58,
+          "scope": "Direct blue Hunter, Goulburn and Munmurra river-line labels distinguish lower main river from western feeder corridor"
+        }
+      ],
+      "observation": "Original pages and legends were viewed. Blue labels following river lines and the Hunter River at Greta station were distinguished from black catchment leaders, town names, numeric discharge values and storage symbols. Clarence River and Shoalhaven River full forms are also explicit in report text; mapped short forms are recorded separately. Multiple figures remain one publication and one source group.",
+      "is_formal_naming_registry": false,
+      "supporting_text_physical_pdf_pages": [
+        119,
+        151,
+        163,
+        173
+      ]
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50701991",
+      "geometry_fids": [
+        6998,
+        6999
+      ],
+      "fragment_count": 2,
+      "part_count": 66,
+      "position_count": 515,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "Both selected fragments were viewed in full: a southwestern upper course curves east and north into a high northern bend, then the lower path turns southeast and northeast toward the coast. The direct blue Clarence label on the mapped lower/eastern river line supports Clarence River as the representative system identity. The long western and southwestern feeder course is not individually named; nearby Boyd wording does not establish its exact name partition. Both fragments carry modeled mainstem roles, which do not make every part Clarence. Coastal and feeder-to-main-river transitions remain unassigned at reach level."
+    },
+    {
+      "aw_id": "hydro-system:50760625",
+      "geometry_fids": [
+        7076
+      ],
+      "fragment_count": 1,
+      "part_count": 75,
+      "position_count": 587,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path starts on a far-western feeder, turns north and east through the western Goulburn corridor, and continues southeast along the lower Hunter through the Singleton, Greta and Maitland area toward Newcastle. The mapped Hunter River at Greta station and direct Hunter line label support Hunter River as a representative system identity. Figure 4.46 separately labels Goulburn and Munmurra along the western corridor, so this modeled mainstem is not uniformly Hunter. These are regional channel associations, not exact source-reach assignments. Feeder junctions, storage-related boundaries and the coastal ending remain unassigned at reach level; the northeastern Glenbawn/Pages branch is not the selected upper path."
+    },
+    {
+      "aw_id": "hydro-system:50781500",
+      "geometry_fids": [
+        7097
+      ],
+      "fragment_count": 1,
+      "part_count": 62,
+      "position_count": 428,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path runs north from the southern inland headwater, bends northeast and north through the interior, then turns east across the Tallowa vicinity toward the coast. Direct blue Shoalhaven river-line wording, the mapped storage location and explicit text placing Tallowa on the Shoalhaven River support Shoalhaven River as a representative system identity. The southern headwater or feeder nomenclature, exact river/storage transitions and coastal ending remain individually unassigned. The modeled mainstem role does not establish a uniform name for every part or name the storage water separately."
+    }
+  ],
+  "source_limit": "Low-resolution regional maps support bounded representative association and the Hunter western-channel distinction. They do not resolve precise name transitions, every feeder, storage water boundaries or a contemporary surveyed mouth. Original map bodies and complete paths are omitted; public validators cannot replay their interpretation."
+}
