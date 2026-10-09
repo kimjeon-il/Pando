@@ -7,6 +7,7 @@ on:
     paths:
       - tools/probe_german_empire_1914_coast_period_rasters.py
       - .github/workflows/german-empire-coast-period-raster-probe.yml
+      - tests/unit/historical-german-coastline-period-screen-samples.test.mjs
 
 permissions:
   contents: write
@@ -32,7 +33,7 @@ jobs:
         run: sha256sum tools/historical-library/working/german-empire-1914-base.geojson > /tmp/gis-coast-original.sha
       - name: Obtain and overlay original state-map rasters, do not trace invented 1914 coastlines
         env:
-          GIS_COAST_LOG_THUMBNAILS: "1"
+          GIS_COAST_LOG_THUMBNAILS: "0"
         run: python tools/probe_german_empire_1914_coast_period_rasters.py
       - name: Verify historical assertions and original geometry integrity
         run: |
