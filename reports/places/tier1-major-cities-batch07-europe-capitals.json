@@ -13,11 +13,12 @@
   "historicNameScope": "Historical capital city name records from 1801 onward, plus Pest as a verified formerly independent city only before its 1873-11-17 merger. Native/exonym co-usage and urban temporal eligibility are recorded separately.",
   "qualityNotes": [
     "Budapest is the unified city only from 1873-11-17. The separate historical Pest place (GeoNames 3046446, modern PPLX, coordinates 47.5/19.0833333) is shown in the city layer before 1873-11-17 and suppressed from that date by staged temporalEligibility.activeIntervals; Budapest GeoNames 3054643 is suppressed before that date by its existing temporalEligibility.cityEstablishedFromDate. Buda and Óbuda remain linked predecessor settlements, not aliases of Budapest.",
-    "Prag/Warschau are German exonyms, not date-switch legal renamings; Brussels names are coequal French/Dutch forms.",
-    "Athens became Greek capital in 1834 but retained its city identity/name. Αθήναι is a historical Greek written form, not an automatically dated official rename.",
+    "Warschau and Prag are historical German-language forms. The Warsaw and Prague records are deliberately untouched pending separate user review. Brussels historically used French and Dutch, with both selected as concurrent preferred native names from 1921 (Bruxelles first, Brussel second).",
+    "Athens: selected Ottoman Turkish آتینا from 1801, polytonic Katharevousa Ἀθῆναι from 1833-03-31, Demotic Ἀθήνα from approximate 1976, and monotonic Αθήνα from approximate 1982. These mark language/orthography choices, not city legal renamings.",
     "Amsterdam is a city point, not its municipality or metro; Brussels city point is distinct from the 19-municipality capital region.",
     "Short displayed text is <=28 Unicode codepoints. Map renderer and production manifest are unchanged.",
-    "GeoNames PPLX Pest is a scoped exception to the modern capital PPLC selection: independent historic municipality until 1873, then part of modern Budapest. As of this staged report, runtime label resolver does not consume activeIntervals; the historical display rule is pending runtime integration."
+    "GeoNames PPLX Pest is a scoped exception to the modern capital PPLC selection: independent historic municipality until 1873, then part of modern Budapest. As of this staged report, runtime label resolver does not consume activeIntervals; the historical display rule is pending runtime integration.",
+    "Vienna, Budapest, Amsterdam, and Lisbon now have explicit period ko/en/native names without introducing unsupported naming transitions. Budapest and Pest remain separate historic city IDs before 1873-11-17 and Pest is suppressed as independent city thereafter."
   ],
   "records": [
     {
@@ -96,8 +97,12 @@
         {
           "fromYear": 1801,
           "nameKo": "빈",
+          "nameEn": "Vienna",
+          "nameNative": "Wien",
+          "nativeLanguage": "de",
           "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/2761369/"
+          "sourceUrl": "https://www.geonames.org/2761369/",
+          "researchNote": "1801년부터 시대별 대표 이름 빈 / Vienna / Wien을 유지한다. 합스부르크 제국에서 현대 오스트리아로 정치체제가 바뀌어도 도시 개칭은 없다."
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
@@ -108,7 +113,10 @@
             "sourceUrl": "https://www.geonames.org/2761369/vienna.html"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Vienna",
+      "defaultDisplayNameNative": "Wien",
+      "defaultNativeLanguage": "de"
     },
     {
       "geonameId": 3067696,
@@ -255,6 +263,11 @@
           "usage": "standard"
         },
         {
+          "text": "Budapest",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
           "text": "부다페스트",
           "language": "ko",
           "usage": "standard"
@@ -272,8 +285,13 @@
         {
           "fromDate": "1873-11-17",
           "nameKo": "부다페스트",
+          "nameEn": "Budapest",
+          "nameNative": "Budapest",
+          "nativeLanguage": "hu",
           "kind": "municipalUnification",
-          "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest"
+          "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
+          "note": "부다·페슈트·오부다 통합",
+          "researchNote": "1873년 11월 17일부터 기존 별도 도시 부다·페슈트·오부다의 통합 도시 Budapest를 나타낸다. 이 날짜 이전에는 부다페스트 통합 도시 라벨을 제외하고 페슈트를 별도 ID 3046446으로 표시하는 기존 temporalEligibility 정책을 유지한다. 영어와 헝가리어 표기는 모두 Budapest다."
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1873",
@@ -323,15 +341,40 @@
             "sourceUrl": "https://archiv.budapest.hu/Lapok/Budapest-140-%C3%A9ves---v%C3%A1rosismereti-vet%C3%A9lked%C5%91t-rendeztek-k%C3%B6z%C3%A9piskol%C3%A1soknak.aspx?oe53=1"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Budapest",
+      "defaultDisplayNameNative": "Budapest",
+      "defaultNativeLanguage": "hu"
     },
     {
       "geonameId": 264371,
       "names": [
         {
+          "text": "آتینا",
+          "language": "ota-Arab",
+          "usage": "historical",
+          "variantType": "selectedOttomanAdministrativeName",
+          "note": "1801년 오스만 행정 기준 대표명"
+        },
+        {
+          "text": "Ἀθῆναι",
+          "language": "el",
+          "usage": "historical",
+          "variantType": "selectedKatharevousaFormalName",
+          "sourceUrl": "https://www.geonames.org/264371/athens.html"
+        },
+        {
+          "text": "Ἀθήνα",
+          "language": "el",
+          "usage": "historical",
+          "variantType": "selectedPolytonicDemoticName",
+          "note": "1976년 문어체 제도 전환과 1982년 단조식 채택 사이 지도 대표형"
+        },
+        {
           "text": "Αθήνα",
           "language": "el",
-          "usage": "standard"
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/264371/athens.html"
         },
         {
           "text": "Athens",
@@ -342,14 +385,6 @@
           "text": "아테네",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Αθήναι",
-          "language": "el",
-          "usage": "historical",
-          "variantType": "historicalFormalGreekOrthography",
-          "note": "역사적 그리스어 문어 형태",
-          "sourceUrl": "https://www.geonames.org/264371/athens.html"
         }
       ],
       "latitude": 37.98376,
@@ -364,27 +399,81 @@
         {
           "fromYear": 1801,
           "nameKo": "아테네",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/264371/"
+          "nameEn": "Athens",
+          "nameNative": "آتینا",
+          "nativeLanguage": "ota-Arab",
+          "kind": "historicalAdministrativeLanguageSelection",
+          "sourceUrl": "https://www.geonames.org/264371/athens.html",
+          "note": "오스만 튀르크어 원어 대표명",
+          "researchNote": "오스만 시대 그리스어 사용은 병존했다. 지도 원어명은 지배국의 행정언어로 선택한 오스만 튀르크어 아랍문자형 آتینا이고, 한국어 아테네·영어 Athens는 유지한다. 1801년은 조사 시작 연도다."
+        },
+        {
+          "fromDate": "1833-03-31",
+          "nameNative": "Ἀθῆναι",
+          "nativeLanguage": "el",
+          "kind": "postOttomanGreekLanguageSelection",
+          "note": "그리스 측 통치 재개 후 그리스어 기준",
+          "researchNote": "1833년 3월 31일 오스만군이 아크로폴리스에서 철수한 시점을 그리스어 문어형 Ἀθῆναι로 원어 대표언어를 변경하는 편집상 기준일로 선정했다. 1834년 그리스 수도 지정은 별도 사건이며 도시명 개칭이 아니다."
+        },
+        {
+          "fromYear": 1976,
+          "nameNative": "Ἀθήνα",
+          "nativeLanguage": "el",
+          "kind": "historicalGreekOfficialLanguageReform",
+          "note": "1976년 그리스어 민중어 공용화",
+          "researchNote": "1976년 공식 언어를 디모티키로 전환한 제도 변화를 원어 대표명 Ἀθῆναι→Ἀθήνα의 연도 단위 편집 기준으로 선정한다. 도시명 자체의 법적 개칭일은 아니며 일 단위 전환일은 확정하지 않는다."
+        },
+        {
+          "fromYear": 1982,
+          "nameNative": "Αθήνα",
+          "nativeLanguage": "el",
+          "kind": "historicalGreekOrthography",
+          "note": "1982년 단조식 철자법 적용",
+          "researchNote": "1982년 단조식 철자법 채택을 원어 대표명 Ἀθήνα→Αθήνα의 연도 단위 편집 기준으로 선정한다. 한국어 아테네·영어 Athens는 계속 유지한다."
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
       "historicalGeography": {
         "events": [
           {
+            "date": "1833-03-31",
+            "type": "greekControlOfAthens",
+            "detail": "오스만군 아테네 철수",
+            "researchDetail": "그리스 측의 행정언어를 원어 대표명으로 선택하는 편집 기준일이며 도시의 새로운 법적 개칭일로 보지 않는다."
+          },
+          {
             "year": 1834,
             "type": "becameNationalCapital",
             "detail": "그리스 왕국 수도로 지정",
             "sourceUrl": "https://www.namuseum.gr/en/to-moyseio/istoria-toy-moyseioy/"
+          },
+          {
+            "year": 1976,
+            "type": "demoticGreekOfficialLanguageAdoption",
+            "detail": "그리스 민중어 공식 언어 채택",
+            "researchDetail": "역사적 문어형에서 민중어형으로 대표명 변경, 지명 자체 개칭은 아님."
+          },
+          {
+            "year": 1982,
+            "type": "greekMonotonicOrthographyAdoption",
+            "detail": "그리스어 단조식 철자법 채택",
+            "researchDetail": "Athena 원어명에서 다조식 악센트·숨표의 변경에 해당."
           }
         ],
         "notes": [
           {
-            "detail": "수도 지정은 도시명 개칭 아님",
-            "sourceUrl": "https://www.namuseum.gr/en/to-moyseio/istoria-toy-moyseioy/"
+            "detail": "1833년 통치권·원어 전환",
+            "researchDetail": "오스만 튀르크어에서 그리스어로 바뀌는 지도 원어 대표 언어의 편집상 전환이다."
+          },
+          {
+            "detail": "1976·1982년 표기만 변경",
+            "researchDetail": "1976년 디모티키 공식화 및 1982년 단조식 채택은 아테네 도시의 법적 개칭이 아니라 그리스어 대표 표기 선택의 변화다."
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Athens",
+      "defaultDisplayNameNative": "Αθήνα",
+      "defaultNativeLanguage": "el"
     },
     {
       "geonameId": 2759794,
@@ -392,6 +481,11 @@
         {
           "text": "Amsterdam",
           "language": "nl",
+          "usage": "standard"
+        },
+        {
+          "text": "Amsterdam",
+          "language": "en",
           "usage": "standard"
         },
         {
@@ -412,8 +506,12 @@
         {
           "fromYear": 1801,
           "nameKo": "암스테르담",
+          "nameEn": "Amsterdam",
+          "nameNative": "Amsterdam",
+          "nativeLanguage": "nl",
           "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/2759794/"
+          "sourceUrl": "https://www.geonames.org/2759794/",
+          "researchNote": "1801년 이후 네덜란드어·영어명 Amsterdam과 한국어명 암스테르담을 유지. 수도 지위 변화는 명칭 변경이 아니다."
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
@@ -424,7 +522,10 @@
             "sourceUrl": "https://www.geonames.org/2759794/amsterdam.html"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Amsterdam",
+      "defaultDisplayNameNative": "Amsterdam",
+      "defaultNativeLanguage": "nl"
     },
     {
       "geonameId": 2800866,
@@ -462,8 +563,48 @@
         {
           "fromYear": 1801,
           "nameKo": "브뤼셀",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/2800866/"
+          "nameEn": "Brussels",
+          "nameNative": "Bruxelles",
+          "nativeLanguage": "fr",
+          "kind": "historicalAdministrativeLanguageSelection",
+          "sourceUrl": "https://www.vlaanderen.be/uw-overheid/over-vlaanderen/taalwetwijzer/taalwetwijs-in-brussel",
+          "note": "프랑스어 행정 대표명",
+          "researchNote": "1801년 당시 프랑스 지배기의 프랑스어 행정 대표형 Bruxelles를 선택. 네덜란드어 Brussel도 주민 사이에 사용되었으나 대표 이름 선택과 별개다."
+        },
+        {
+          "fromDate": "1823-01-01",
+          "nameNative": "Brussel",
+          "nativeLanguage": "nl",
+          "kind": "historicalAdministrativeLanguageSelection",
+          "note": "네덜란드 왕국 행정언어 기준",
+          "researchNote": "1823년 1월 1일 네덜란드 왕국의 네덜란드어 행정·사법 사용 기준을 원어 대표명 선택에 적용. 프랑스어 Bruxelles의 사용 중단이나 새 지명 부여를 뜻하지 않는다."
+        },
+        {
+          "fromDate": "1830-10-04",
+          "nameNative": "Bruxelles",
+          "nativeLanguage": "fr",
+          "kind": "historicalAdministrativeLanguageSelection",
+          "note": "벨기에 독립 후 프랑스어 우선",
+          "researchNote": "1830년 10월 4일 벨기에 독립 선언을 프랑스어 행정 대표명 선택의 편집상 기준으로 사용. 기존 네덜란드어 Brussel도 계속 사용됐다."
+        },
+        {
+          "fromYear": 1921,
+          "nameNative": "Bruxelles",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Bruxelles",
+              "language": "fr"
+            },
+            {
+              "text": "Brussel",
+              "language": "nl"
+            }
+          ],
+          "kind": "historicalCoOfficialNativeLanguages",
+          "sourceUrl": "https://www.vlaanderen.be/uw-overheid/over-vlaanderen/taalwetwijzer/taalwetwijs-in-brussel",
+          "note": "프랑스어·네덜란드어 공동 행정명",
+          "researchNote": "1921년 브뤼셀의 이중언어 행정제도 정립을 연도 정밀도의 편집 기준으로 사용. 프랑스어 Bruxelles와 네덜란드어 Brussel을 공동 원어로 선택한다. 이 두 이름은 훨씬 이전부터 병용됐으며 1921년 새로 만들어지거나 일괄 개칭된 것이 아니다. 첫 번째 원어 대표명은 Bruxelles로 둔다."
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
@@ -478,11 +619,47 @@
         ],
         "notes": [
           {
+            "detail": "1921년 이후 두 원어 병기",
+            "sourceUrl": "https://www.vlaanderen.be/uw-overheid/over-vlaanderen/taalwetwijzer/taalwetwijs-in-brussel",
+            "researchDetail": "Bruxelles(fr)와 Brussel(nl)은 별개의 도시가 아니라 동시 공식 원어명이다. 1921년 공동 선택은 행정언어 지위의 편집 기준이고 이름이 새로 만들어진 것은 아니다."
+          },
+          {
             "detail": "프랑스어·네덜란드어 동등 사용",
             "sourceUrl": "https://www.vlaanderen.be/uw-overheid/over-vlaanderen/taalwetwijzer/taalwetwijs-in-brussel"
           }
+        ],
+        "events": [
+          {
+            "date": "1823-01-01",
+            "type": "dutchAdministrativeLanguageImplementation",
+            "detail": "네덜란드어 행정 사용 확대"
+          },
+          {
+            "date": "1830-10-04",
+            "type": "belgiumIndependence",
+            "detail": "벨기에 독립 선언"
+          },
+          {
+            "year": 1921,
+            "type": "brusselsBilingualAdministrationStatus",
+            "detail": "브뤼셀 행정상 이중언어 지위",
+            "researchDetail": "이중언어 제도의 주요 연도이며 1932년 언어법에서도 행정상 적용이 명확해졌다."
+          }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Brussels",
+      "defaultDisplayNameNative": "Bruxelles",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Bruxelles",
+          "language": "fr"
+        },
+        {
+          "text": "Brussel",
+          "language": "nl"
+        }
+      ]
     },
     {
       "geonameId": 2267057,
@@ -515,11 +692,18 @@
         {
           "fromYear": 1801,
           "nameKo": "리스본",
+          "nameEn": "Lisbon",
+          "nameNative": "Lisboa",
+          "nativeLanguage": "pt",
           "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/2267057/"
+          "sourceUrl": "https://www.geonames.org/2267057/",
+          "researchNote": "1801년 이후 포르투갈어 Lisboa, 영어 Lisbon, 한국어 리스본 이름 변경 없음."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801"
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "defaultDisplayNameEn": "Lisbon",
+      "defaultDisplayNameNative": "Lisboa",
+      "defaultNativeLanguage": "pt"
     }
   ]
 }
