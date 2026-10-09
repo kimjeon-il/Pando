@@ -407,3 +407,135 @@ The strongest current interpretation is now:
    coastline.
 
 No historical or current production geometry was modified by this check.
+
+
+## 11. Whole-Netherlands country-minus-water test — 2026-10-10
+
+Machine-readable results:
+[phase0-land-water-subtraction-audit.json](phase0-land-water-subtraction-audit.json).
+
+### 11.1 European Netherlands aggregate area
+
+The current Pando European NLD components total approximately
+**36,957.00 km²**.
+
+CBS NBBG2022 reports for Nederland:
+
+- dry land: **33,626.00 km²**;
+- inland water: **3,748.92 km²**;
+- land + inland water: **37,374.92 km²**.
+
+Thus the unmasked Pando European country polygon is about **417.92 km²
+(-1.12%)** below the CBS land+inland-water total. This is consistent with a
+generalized administrative polygon that broadly includes inland water while
+losing/redistributing some detailed coastline area.
+
+CBS source:
+https://www.cbs.nl/nl-nl/cijfers/detail/86211ned
+
+CBS states that its land/water split is based on BRT topographic water
+surfaces, including drying water parts.
+
+### 11.2 What the current bundled lake mask removes
+
+Within the Netherlands study BBOX the current bundled Natural Earth lake source
+contains only:
+
+- IJsselmeer: approximately **1,961.58 km²** in the current source geometry;
+- Lauwersmeer: approximately **30.72 km²**.
+
+Total current removable lake area is therefore approximately
+**1,992.30 km²**.
+
+That is only **53.14%** of the CBS official inland-water area by aggregate area
+equivalence.
+
+Subtracting these two lake polygons from the current Pando European NLD area
+gives approximately:
+
+**34,964.71 km²**
+
+versus the CBS dry-land figure:
+
+**33,626.00 km²**.
+
+The derived land remains approximately **1,338.71 km² too large**, or
+**+3.98%**.
+
+Therefore:
+
+> **current Pando NLD polygon − current bundled lake polygons is not an
+> accurate dry-land polygon.**
+
+### 11.3 Why the remaining error is large
+
+CBS divides the **3,748.92 km²** of inland water approximately as follows:
+
+| CBS inland-water class | Area |
+| --- | ---: |
+| IJsselmeer + Markermeer | 1,820.88 km² |
+| closed sea arms | 320.85 km² |
+| Rhine and Meuse | 183.16 km² |
+| Randmeren | 155.14 km² |
+| reservoirs | 13.33 km² |
+| recreational inland water | 112.70 km² |
+| extraction water | 37.04 km² |
+| flow/sludge fields | 4.86 km² |
+| other inland water | 1,100.95 km² |
+
+The bundled lake mask represents the large IJsselmeer system and Lauwersmeer,
+but it does **not** provide a complete polygon mask for the Rhine/Meuse,
+Randmeren, closed sea arms, canals and the very large CBS “other inland water”
+class.
+
+The Natural Earth IJsselmeer polygon is itself generalized: its calculated
+area is about **140.70 km² (+7.73%)** larger than CBS's combined
+IJsselmeer+Markermeer category. Therefore the net missing-water estimate is not
+a direct polygon difference; over- and under-generalization partly cancel.
+
+### 11.4 Regional usefulness
+
+The subtraction is still useful as a **coarse historical-reclamation
+baseline**, but usefulness varies by region:
+
+- **Zuiderzee / Flevoland:** broad modern dry-land pattern is useful. Large
+  polders remain outside the lake polygon. Houtribdijk/Markermeer separation
+  and Randmeren are incomplete.
+- **Lauwersmeer:** explicit current lake polygon exists.
+- **Rhine–Meuse delta / Zeeland:** poor dry-land mask. Major river and
+  closed-sea-arm water areas are not represented by the current lake layer.
+- **Randstad and smaller lakes:** incomplete; many water surfaces remain inside
+  the derived “land”.
+- **small dikes / narrow water barriers:** topology can still be wrong even
+  where their area is below the map's ordinary visual threshold.
+
+So for the reclamation project the current subtraction can help identify the
+largest Flevoland-era changes, but it must not become the canonical modern
+land/water reference.
+
+### 11.5 Caribbean components
+
+The Pando NLD object also contains Bonaire, Sint Eustatius and Saba. Their
+combined calculated area is about **296.36 km²**. Rijksoverheid gives
+approximately **322 km²** total (288 + 21 + 13 km²).
+
+This difference is a separate 1:10m small-island generalization issue and is
+not part of the CBS European NBBG2022 land/water table.
+
+Source:
+https://www.rijksoverheid.nl/vraag-en-antwoord/caribische-deel-van-het-koninkrijk/waaruit-bestaat-het-koninkrijk-der-nederlanden
+
+### 11.6 Working decision
+
+For subsequent Netherlands rollback work:
+
+1. keep the current country polygon as the coarse ownership/outer-footprint
+   baseline;
+2. use the current Natural Earth lake mask only as a coarse visual aid;
+3. do **not** define modern dry land as country minus that mask;
+4. obtain a fuller BRT/TOP10NL or NBBG-derived water polygon control before
+   generating canonical modern/historical dry-land subtraction;
+5. continue treating country ownership, dry land, water polygons and hydraulic
+   connectivity as separate layers of evidence.
+
+No production geometry was modified by this audit.
