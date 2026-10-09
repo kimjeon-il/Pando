@@ -120,6 +120,26 @@
     "helgoland-1921-versailles-article115": {
       "publisher": "United States Department of State, 1919 Treaty of Versailles Article 115",
       "url": "https://history.state.gov/historicaldocuments/frus1919Parisv13/ch12subch13"
+    },
+    "reussenkoege-cecilien": {
+      "publisher": "Gemeinde Reußenköge (official municipality)",
+      "url": "https://www.reussenkoege.de/k%C3%B6ge-hallig/cecilienkoog/"
+    },
+    "reussenkoege-sonke": {
+      "publisher": "Gemeinde Reußenköge (official municipality)",
+      "url": "https://www.reussenkoege.de/k%C3%B6ge-hallig/s%C3%B6nke-nissen-koog/"
+    },
+    "niebuell-city-deich-history": {
+      "publisher": "Stadt Niebüll / cultural-heritage interpretive board, published 2015",
+      "url": "https://www.niebuell.de/fileadmin/user_upload/Tourismus/Marschenpark/Stadt_Nieb%C3%BCll_Infotafel_Marschenpark.pdf"
+    },
+    "northfriesland-archive-1914": {
+      "publisher": "Kreisarchiv Nordfriesland (archival finding aid; documents include 1913–1914 dyke papers)",
+      "url": "https://www.nordfriesland.de/media/custom/2271_586_1.PDF?1366096934="
+    },
+    "dehio-sonke": {
+      "publisher": "Dehio DE / Dehio-Vereinigung, cultural monuments inventory",
+      "url": "https://de.dehio.org/bauwerk/reussenkoege-soenke-nissen-koog"
     }
   },
   "events": [
@@ -150,6 +170,32 @@
       "note": "1889-1901 period is documented for protective canal dams by Rosmorport; the city almanac dates the beginning of the navigable channel works to 1890. Opened on 1901-11-15. Do not treat different definitions of construction start as an exact shoreline switch. The original canal and lagoons' artificial dams predate 1914."
     },
     {
+      "id": "cecilienkoog-1903-1905",
+      "name": "Cecilienkoog enclosure and dyke built before WWI",
+      "modernCountry": "DEU",
+      "sea": "North Sea",
+      "eventType": "reclamation-and-sea-dyke",
+      "datedWorks": {
+        "startYear": 1903,
+        "endYear": 1905,
+        "dating": "historical construction/protective works interval; exact land-water switch separately unverified",
+        "exactCoastlineSwitchDate": null
+      },
+      "geometryEffect": "new-protected-polder-dry-land-beyond-pre1903-dyke",
+      "geometry": {
+        "status": "not-digitized",
+        "screenDiscrepancyCssPx": null
+      },
+      "evidence": {
+        "status": "source-indexed",
+        "sourceIds": [
+          "reussenkoege-cecilien",
+          "northfriesland-archive-1914"
+        ]
+      },
+      "note": "Work 1903–1905; 1905 shore/land topology should be present in July 1914. Local municipality reports subsequent 1906 land auction. The WMS Chronologen 1878–1880 layer portrays Pieckhallig/Meedhallig before enclosure while the 1902–1930 group shows new dike, consistent with this chronology, but this WMS layer label does NOT establish the exact sheet publication or revision year. Need independently digitize sea-dike toe, tidal foreland and dry-land edge; do not simply extend all polder area to the waterline."
+    },
+    {
       "id": "helgoland-south-harbor-1908-1916",
       "name": "Helgoland Südhafen reclamation and harbor defenses",
       "modernCountry": "DEU",
@@ -175,6 +221,32 @@
         ]
       },
       "note": "1914 is an intermediate stage, so neither a pre-construction 1903 coast nor a fully completed 1916 basin can be substituted. Historical 1914 chart is the preferred direct period check. Port structures, seawalls, reclaimed dry land, and open basin are separate geometry classes."
+    },
+    {
+      "id": "galmsbuell-summer-koog-1913",
+      "name": "Galmsbüller Sommerkoog seasonal dyke constructed 1913",
+      "modernCountry": "DEU",
+      "sea": "North Sea",
+      "eventType": "summer-dyke",
+      "datedWorks": {
+        "startYear": 1913,
+        "endYear": 1913,
+        "dating": "historical construction/protective works interval; exact land-water switch separately unverified",
+        "exactCoastlineSwitchDate": null
+      },
+      "geometryEffect": "seasonally-protected-agricultural-land-not-necessarily-permanent-dry-shoreline",
+      "geometry": {
+        "status": "not-digitized",
+        "screenDiscrepancyCssPx": null
+      },
+      "evidence": {
+        "status": "source-indexed",
+        "sourceIds": [
+          "niebuell-city-deich-history",
+          "northfriesland-archive-1914"
+        ]
+      },
+      "note": "Municipal interpretation board cites a 1913 summer polder; contemporary archive indexes 1914 correspondence and a sketch of Galmsbüll summer dyke. This is evidence of a 1914 structure, NOT automatically proof of a watertight winter dyke or permanently dry land."
     },
     {
       "id": "gdynia-harbor-1921-1937",
@@ -226,6 +298,58 @@
         ]
       },
       "note": "Rosmorport states three of five planned harbor basins were built in 1921-1924. Count only completed basins; do not mistake an inland harbor basin for a change to the open-sea shoreline."
+    },
+    {
+      "id": "soenke-nissen-koog-1924-1926",
+      "name": "Sönke-Nissen-Koog post-1914 sea-dyke construction",
+      "modernCountry": "DEU",
+      "sea": "North Sea",
+      "eventType": "reclamation",
+      "datedWorks": {
+        "startYear": 1924,
+        "endYear": 1926,
+        "dating": "historical construction/protective works interval; exact land-water switch separately unverified",
+        "exactCoastlineSwitchDate": null
+      },
+      "geometryEffect": "large-new-polder-built-after-1914",
+      "geometry": {
+        "status": "not-digitized",
+        "screenDiscrepancyCssPx": null
+      },
+      "evidence": {
+        "status": "source-indexed",
+        "sourceIds": [
+          "reussenkoege-sonke",
+          "dehio-sonke"
+        ]
+      },
+      "note": "Official municipality dates groundbreaking 1924-04-04, dyke closure December 1925, and raising to final crest 1926. Therefore modern Sönke-Nissen-Koog must not appear as 1914 protected dry land. Distinguish later dry-land closure from existing 1875 Hamburger Hallig causeway, tidal foreland, and historical foreshore."
+    },
+    {
+      "id": "galmsbuell-winter-dyke-1933-1939",
+      "name": "Galmsbüllkoog permanent winter-dyke consolidation",
+      "modernCountry": "DEU",
+      "sea": "North Sea",
+      "eventType": "dyke-strengthening-and-enclosure",
+      "datedWorks": {
+        "startYear": 1933,
+        "endYear": 1939,
+        "dating": "historical construction/protective works interval; exact land-water switch separately unverified",
+        "exactCoastlineSwitchDate": null
+      },
+      "geometryEffect": "1913-seasonal-polder-to-1939-full-winter-protection",
+      "geometry": {
+        "status": "not-digitized",
+        "screenDiscrepancyCssPx": null
+      },
+      "evidence": {
+        "status": "source-indexed",
+        "sourceIds": [
+          "niebuell-city-deich-history",
+          "northfriesland-archive-1914"
+        ]
+      },
+      "note": "The historically earlier 1913 Sommerkoog is not identical in legal/physical status to its 1939 completed winter-dyke. The decision to strengthen protection around 1933 does not establish the precise land/sea polygon change date. Inspect 1914 seasonal flooding separately."
     },
     {
       "id": "peyse-pier-1935",
