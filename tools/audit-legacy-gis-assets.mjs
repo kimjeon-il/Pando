@@ -169,7 +169,7 @@ export function audit(root,{appManifest=null,treeJson=null}={}) {
   const scanTargets=tracked.filter(p=>/^(assets\/js\/|scripts\/|tools\/|tests\/|\.github\/)/.test(p)
     && /\.(?:js|mjs|cjs|ts|py|yml|yaml|sh)$/.test(p)
     && !p.includes('/fixtures/') && !p.includes('/research/') && !p.includes('/historical-library/')
-    && !['tests/unit/legacy-gis-assets-audit.test.mjs','tests/unit/legacy-release-consumers.test.mjs','tests/unit/gis-archive-rollout.test.mjs','tests/unit/pages-deployment-footprint.test.mjs'].includes(p));
+    && !['tests/unit/legacy-gis-assets-audit.test.mjs','tests/unit/legacy-release-consumers.test.mjs','tests/unit/gis-archive-rollout.test.mjs','tests/unit/pages-deployment-footprint.test.mjs','tests/unit/pages-release-staging.test.mjs','tests/unit/gis-release-transactions.test.mjs'].includes(p));
   const knownGroups=[...new Set([...tree.keys()].map(groupOf).filter(Boolean))];
   for(const p of scanTargets){
     const source=join(root,p);
