@@ -84,6 +84,22 @@
     "amzp-zimmerbude": {
       "publisher": "AMZP/MapyWIG historical map index",
       "url": "https://igrek.amzp.pl/result.php?cat=tk25&cmd=id&god=1386"
+    },
+    "rosmorport-port-history": {
+      "publisher": "FSUE Rosmorport, maritime port history",
+      "url": "https://www.rosmorport.ru/filials/spb_seaports/"
+    },
+    "kaliningrad-local-history": {
+      "publisher": "Kaliningrad city historical almanac",
+      "url": "https://www.klgd.ru/city/history/almanac/a8_25.php"
+    },
+    "amzp-koenigsberg-west": {
+      "publisher": "AMZP/MapyWIG TK25 index",
+      "url": "https://igrek.amzp.pl/TK25_1288"
+    },
+    "amzp-koenigsberg-east": {
+      "publisher": "AMZP/MapyWIG TK25 index",
+      "url": "https://igrek.amzp.pl/TK25_1289"
     }
   },
   "events": [
@@ -107,10 +123,11 @@
       "evidence": {
         "status": "source-indexed",
         "sourceIds": [
-          "koenigsberg-canal-history"
+          "rosmorport-port-history",
+          "kaliningrad-local-history"
         ]
       },
-      "note": "Original canal and lagoon-side embankments predate 1914. Do not remove them from a 1914 reconstruction; individual embankment geometry is not digitized."
+      "note": "1889-1901 period is documented for protective canal dams by Rosmorport; the city almanac dates the beginning of the navigable channel works to 1890. Opened on 1901-11-15. Do not treat different definitions of construction start as an exact shoreline switch. The original canal and lagoons' artificial dams predate 1914."
     },
     {
       "id": "gdynia-harbor-1921-1937",
@@ -137,6 +154,56 @@
         ]
       },
       "note": "1921 temporary port and later offshore piers/breakwaters; 1937 1:5,000 as-built plan is indexed. No single switch date is justified. 1914 location belonged to the German Empire but building works occurred mainly under Polish administration."
+    },
+    {
+      "id": "koenigsberg-three-harbor-basins-1921-1924",
+      "name": "Königsberg Freihafen, Holzhafen and Industriehafen",
+      "modernCountry": "RUS",
+      "sea": "Baltic",
+      "eventType": "port-development",
+      "datedWorks": {
+        "startYear": 1921,
+        "endYear": 1924,
+        "dating": "construction-interval",
+        "exactCoastlineSwitchDate": null
+      },
+      "geometryEffect": "excavated-or-engineered-harbor-basins",
+      "geometry": {
+        "status": "not-digitized",
+        "screenDiscrepancyCssPx": null
+      },
+      "evidence": {
+        "status": "source-indexed",
+        "sourceIds": [
+          "rosmorport-port-history"
+        ]
+      },
+      "note": "Rosmorport states three of five planned harbor basins were built in 1921-1924. Count only completed basins; do not mistake an inland harbor basin for a change to the open-sea shoreline."
+    },
+    {
+      "id": "peyse-pier-1935",
+      "name": "Peyse / Svetly maritime pier",
+      "modernCountry": "RUS",
+      "sea": "Baltic",
+      "eventType": "port-development",
+      "datedWorks": {
+        "startYear": 1935,
+        "endYear": 1935,
+        "dating": "construction-year",
+        "exactCoastlineSwitchDate": null
+      },
+      "geometryEffect": "coastal-port-structure-extent-unverified",
+      "geometry": {
+        "status": "not-digitized",
+        "screenDiscrepancyCssPx": null
+      },
+      "evidence": {
+        "status": "source-indexed",
+        "sourceIds": [
+          "kaliningrad-local-history"
+        ]
+      },
+      "note": "Municipal history documents a 1935 maritime pier. A pier alone is not proof of land reclamation; confirm footprint and polygon visibility before any geometry change."
     },
     {
       "id": "wilhelmshaven-heppenser-1936-1938",
@@ -566,6 +633,78 @@
         {
           "year": 1937,
           "kind": "port-as-built-plan"
+        }
+      ],
+      "surveyAndRevisionDatesChecked": false,
+      "georeferencingVerified": false
+    },
+    {
+      "id": "tk25-1288-koenigsberg-west",
+      "name": "Königsberg West / Kaliningrad",
+      "scaleDenominator": 25000,
+      "sourceIds": [
+        "amzp-koenigsberg-west"
+      ],
+      "editions": [
+        {
+          "year": 1908,
+          "kind": "topographic"
+        },
+        {
+          "year": 1916,
+          "kind": "topographic"
+        },
+        {
+          "year": 1930,
+          "kind": "topographic"
+        },
+        {
+          "year": 1937,
+          "kind": "topographic"
+        },
+        {
+          "year": 1939,
+          "kind": "topographic"
+        },
+        {
+          "year": 1944,
+          "kind": "topographic"
+        }
+      ],
+      "surveyAndRevisionDatesChecked": false,
+      "georeferencingVerified": false
+    },
+    {
+      "id": "tk25-1289-koenigsberg-east",
+      "name": "Königsberg Ost / Kaliningrad",
+      "scaleDenominator": 25000,
+      "sourceIds": [
+        "amzp-koenigsberg-east"
+      ],
+      "editions": [
+        {
+          "year": 1908,
+          "kind": "topographic"
+        },
+        {
+          "year": 1926,
+          "kind": "topographic"
+        },
+        {
+          "year": 1928,
+          "kind": "topographic"
+        },
+        {
+          "year": 1933,
+          "kind": "topographic"
+        },
+        {
+          "year": 1936,
+          "kind": "topographic"
+        },
+        {
+          "year": 1937,
+          "kind": "topographic"
         }
       ],
       "surveyAndRevisionDatesChecked": false,
