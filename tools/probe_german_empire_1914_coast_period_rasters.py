@@ -111,6 +111,64 @@ def draw_modern(map_image, coastline, bbox, subtitle):
     draw.text((12, HEIGHT + 70), MAP_CREDIT, fill=(191, 225, 239), font=font(16))
     return canvas
 
+
+def optional_params(layer, bbox, profile):
+    from math import radians, log, tan, pi
+    params = map_params(layer, bbox)
+    w, so, e, no = bbox
+    if profile == "wms111_epsg4326":
+        params.pop("CRS")
+        params["VERSION"] = "1.1.1"
+        params["SRS"] = "EPSG:4326"
+        params["BBOX"] = f"{w},{so},{e},{no}"
+    elif profile == "wms130_crs84":
+        params["CRS"] = "CRS:84"
+        params["BBOX"] = f"{w},{so},{e},{no}"
+    elif profile == "wms130_epsg3857":
+        earth = 6378137.0
+        merc_y = lambda lat: earth*log(tan(pi/4 + radians(lat)/2))
+        params["CRS"] = "EPSG:3857"
+        params["BBOX"] = f"{earth*radians(w)},{merc_y(so)},{earth*radians(e)},{merc_y(no)}"
+    elif profile == "wms130_lonlat_diagnostic":
+        params["CRS"] = "EPSG:4326"
+        params["BBOX"] = f"{w},{so},{e},{no}"
+    elif profile == "wms130_epsg4326":
+        pass
+    else:
+        raise ValueError("Unknown profile: "+profile)
+    return params
+
+def inspect_map_response(session, layer, bbox, profile):
+    params = optional_params(layer, bbox, profile)
+    info = {"profile":profile, "bbox":bbox, "layer":layer}
+    try:
+        rsp = session.get(BASE_URL, params=params, timeout=HTTP_TIMEOUT)
+        info["httpStatus"] = rsp.status_code
+        info["contentType"] = rsp.headers.get("Content-Type")
+        info["bytes"] = len(rsp.content)
+        info["url"] = rsp.url
+        rsp.raise_for_status()
+        if not info["contentType"] or not info["contentType"].lower().startswith("image/"):
+            raise ValueError("Not image: "+rsp.text[:140])
+        image = Image.open(io.BytesIO(rsp.content)).convert("RGBA")
+        alpha = image.getchannel("A")
+        hist = alpha.histogram()
+        nonzero = sum(hist[1:])
+        info["rgbaDimensions"] = list(image.size)
+        info["alphaNonzeroFraction"] = round(nonzero/(image.width*image.height),6)
+        info["alphaExtrema"] = list(alpha.getextrema())
+        sample = image.resize((100,75))
+        informative = 0
+        for red,green,blue,a in sample.getdata():
+            if a > 15 and min(red,green,blue) < 245:
+                informative += 1
+        info["coloredSampleFraction"] = round(informative/(100*75),6)
+        info["nonblank"] = bool(nonzero > 0 and informative >= 80)
+    except Exception as exc:
+        info["error"] = type(exc).__name__ + ": "+str(exc)[:260]
+        info["nonblank"] = False
+    return info
+
 def main():
     OUT.parent.mkdir(parents=True, exist_ok=True)
     PREVIEW.mkdir(parents=True, exist_ok=True)
@@ -167,6 +225,13 @@ def main():
         print(json.dumps({"result":report["status"],"error":report["capabilitiesError"]}))
         return
     by_name = {x["name"]: x for x in layers}
+    diagnostic_site = [8.98,54.435,9.10,54.52]  # Husum: inland SH, non-coastal control
+    profiles = ["wms130_epsg4326", "wms111_epsg4326",
+                "wms130_crs84", "wms130_epsg3857", "wms130_lonlat_diagnostic"]
+    sample_results = [inspect_map_response(session,"2", diagnostic_site,p) for p in profiles]
+    report["getMapProfilePreflight"] = sample_results
+    working_profile = next((x["profile"] for x in sample_results if x["nonblank"]),None)
+    report["workingGetMapProfile"] = working_profile
     for panel in PANELS:
         info = dict(panel)
         info["layerImages"] = []
@@ -184,7 +249,12 @@ def main():
                 result["fetchStatus"] = "not-requested-outside-advertised-extent"
                 info["layerImages"].append(result)
                 continue
-            params = map_params(lyr, panel["bbox"])
+            if not working_profile:
+                result["fetchStatus"] = "skipped-no-working-GetMap-profile"
+                info["layerImages"].append(result)
+                continue
+            params = optional_params(lyr, panel["bbox"], working_profile)
+            result["GetMapProfile"] = working_profile
             try:
                 rsp = session.get(BASE_URL, params=params, timeout=HTTP_TIMEOUT)
                 result["httpStatus"] = rsp.status_code
