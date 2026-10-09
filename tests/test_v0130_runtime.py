@@ -21,7 +21,15 @@ GPU = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(enc
 RENDERING = read_module(ROOT, "rendering-domain.js")
 COUNTRY_MODES = read_module(ROOT, "app-country-modes.js")
 TERRAIN_MANIFEST = json.loads((ROOT / "assets" / "data" / "terrain" / "v0.12.6" / "manifest.json").read_text(encoding="utf-8"))
-DATA = ROOT / "assets" / "data" / "hydro" / "v0.13.1"
+DATA = ROOT / "assets" / "data" / "hydro" / "v0.13.2"
+
+def read_resource(spec):
+    source = (DATA / spec["url"]).read_bytes()
+    if "offset" in spec:
+        start = int(spec["offset"])
+        source = source[start:start + int(spec["bytes"])]
+    assert len(source) == spec["bytes"]
+    return source
 
 
 def source_section(source: str, start: str, end: str) -> str:
@@ -33,13 +41,13 @@ class V0131RuntimeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf-8"))
-        cls.core = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["core"]["url"]).read_bytes()))["features"]
-        cls.detail = json.loads(gzip.decompress((DATA / cls.manifest["metadata"]["detail"]["url"]).read_bytes()))["features"]
+        cls.core = json.loads(gzip.decompress(read_resource(cls.manifest["metadata"]["core"])))["features"]
+        cls.detail = json.loads(gzip.decompress(read_resource(cls.manifest["metadata"]["detail"])))["features"]
 
     def test_current_shell_and_v0131_assets_are_compatible(self):
         assert_shell_versions(self, ROOT, INDEX)
-        self.assertIn("HYDRO_DATA_VERSION = '0.13.1'", APP)
-        self.assertEqual(self.manifest["version"], "0.13.1")
+        self.assertIn("HYDRO_DATA_VERSION = '0.13.2'", APP)
+        self.assertEqual(self.manifest["version"], "0.13.2")
         self.assertEqual(self.manifest["schema"], "pandolab-water-shards-v5")
         self.assertEqual(self.manifest["format"]["metadata"], 5)
         self.assertEqual(self.manifest["metadata"]["featureCount"], len(self.core))
@@ -148,10 +156,18 @@ class V0131RuntimeTests(unittest.TestCase):
         for name in ("욀뷔사우강", "코케매에니오키강", "퀴미요키강", "나르바강", "노르스트룀강", "시엔셀바강"):
             self.assertIn(name, river_names)
 
-    def test_v0131_reuses_unchanged_v0130_binary_assets(self):
-        self.assertEqual(self.manifest["index"]["url"], "../v0.13.0/index.bin.gz")
-        self.assertEqual(self.manifest["metadata"]["detail"]["url"], "../v0.13.0/metadata-detail.json.gz")
-        self.assertTrue(all(row["url"].startswith("../v0.13.0/shards/") for row in self.manifest["shards"]))
+    def test_v0132_packages_all_six_resources_inside_one_binary(self):
+        self.assertEqual(self.manifest["container"]["url"], "hydro.bin")
+        self.assertEqual(self.manifest["container"]["format"], "byte-concatenated-subresources-v1")
+        resources = [self.manifest["index"], self.manifest["metadata"]["core"],
+                     self.manifest["metadata"]["detail"], *self.manifest["shards"]]
+        end = 0
+        for resource in resources:
+            self.assertEqual(resource["offset"], end)
+            self.assertEqual(resource["url"], "hydro.bin")
+            end += resource["bytes"]
+        self.assertEqual(end, self.manifest["container"]["bytes"])
+        self.assertEqual((DATA / "hydro.bin").stat().st_size, end)
 
     def test_osm_provenance_and_segment_border_alignment_are_recorded(self):
         self.assertIn("OpenStreetMap contributors", README)
@@ -173,8 +189,7 @@ class V0131RuntimeTests(unittest.TestCase):
                 return 1
             return sum(count_coordinates(item) for item in value)
 
-        version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
-        preview = json.loads((ROOT / f"assets/data/world-preview-v{version}.json").read_text(encoding="utf-8"))
+        preview = json.loads((ROOT / "assets/data/world/current.json").read_text(encoding="utf-8"))
         expected_source_count = preview["assets"]["canonicalMesh"]["header"][6]
         self.assertEqual(sum(count_coordinates(row["geometry"]["coordinates"]) for row in countries["features"]), expected_source_count)
 
