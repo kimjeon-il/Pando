@@ -65,3 +65,12 @@ test('aggregate candidate and deferred counts without deleting',()=>{
   assert.equal(result.candidateFiles,3);
   assert.equal(result.holdFiles,2);
 });
+
+test('CI sparse-checkout exclusions and in-memory fixtures are not live hydro consumers',()=>{
+  assert.equal(classify('.github/workflows/world-dataset-stage3-gate.yml',
+    '            !/assets/data/hydro/v0.12.3/**','v0.12.3').kind,
+    'sparse-checkout-exclusion');
+  assert.equal(classify('tests/unit/gis-archive-rollout.test.mjs',
+    "const fixture='assets/data/hydro/v0.12.2/manifest.json';",'v0.12.2').kind,
+    'synthetic-unit-test-reference');
+});
