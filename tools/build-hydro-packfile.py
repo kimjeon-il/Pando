@@ -94,7 +94,8 @@ def create(source_dir: Path, dest_dir: Path, *, check_only: bool = False):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, default=ROOT / "assets/data/hydro/v0.13.1")
+    parser.add_argument("--source", type=Path, required=True,
+                        help="Restored historical v0.13.1 directory from immutable Git history")
     parser.add_argument("--output", type=Path, default=ROOT / "assets/data/hydro/v0.13.2")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()

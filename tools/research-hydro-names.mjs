@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import process from 'node:process';
 import { gunzipSync } from 'node:zlib';
@@ -17,10 +19,17 @@ const reportDirectory = path.join(root, 'reports', 'hydro-names');
 const reviewPath = path.join(reportDirectory, 'europe-major-rivers.json');
 const markdownPath = path.join(reportDirectory, 'europe-major-rivers.md');
 const overlayPath = path.join(reportDirectory, 'europe-major-rivers.geojson');
-const coreMetadataPath = path.join(root, 'assets', 'data', 'hydro', 'v0.13.0', 'metadata-core.json.gz');
+const immutableRef = '8de07030cccff5e7ec3c68e6beb6bb288c95afb2';
+// Historical candidate review must use the original *unnamed* v0.13.0, not v0.13.2 renamed features.
+const coreMetadataPath = optionValue('--archive-core');
+const originalCore = coreMetadataPath ? fs.readFileSync(path.resolve(coreMetadataPath))
+  : execFileSync('git', ['-C', root, 'show', immutableRef + ':assets/data/hydro/v0.13.0/metadata-core.json.gz'], { maxBuffer: 16 * 1024 * 1024 });
+const originalSha = '796ab937222bfa4d123d6fda2109e96bb90ce9e251c73274dcb0342decc1828';
+if (createHash('sha256').update(originalCore).digest('hex') !== originalSha)
+  throw new Error('Historical hydro name research core does not match pinned SHA-256');
 
 const review = JSON.parse(fs.readFileSync(reviewPath, 'utf8'));
-const core = JSON.parse(gunzipSync(fs.readFileSync(coreMetadataPath)));
+const core = JSON.parse(gunzipSync(originalCore));
 const currentCandidates = collectMajorUnnamedEuropeanCandidates(core.features.map(feature => ({
   ...feature,
   bounds: feature.bounds.map(value => Number(value) / 1e6),

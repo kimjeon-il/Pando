@@ -14,11 +14,18 @@ import {
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const hydroRoot = path.join(root, 'assets', 'data', 'hydro');
-const sourceDirectory = path.join(hydroRoot, 'v0.13.0');
-const targetDirectory = path.join(hydroRoot, 'v0.13.1');
+// Legacy name promotion is strictly archival. Never recreate retired versions under assets/data/hydro.
+const archiveIndex = process.argv.indexOf('--archive-root');
+if (archiveIndex < 0 || !process.argv[archiveIndex + 1])
+  throw new Error('Pass --archive-root OUTSIDE_CHECKOUT (restore historical v0.13.0 inputs there first)');
+const archiveRoot = path.resolve(process.argv[archiveIndex + 1]);
+if (archiveRoot === root || archiveRoot.startsWith(root + path.sep))
+  throw new Error('Legacy hydro output must remain outside the checked-out repository');
+const sourceDirectory = path.join(archiveRoot, 'v0.13.0');
+const targetDirectory = path.join(archiveRoot, 'v0.13.1');
 const review = readJson(path.join(root, 'reports', 'hydro-names', 'europe-major-rivers.json'));
-const overridePath = path.join(hydroRoot, 'hydronym-ko-overrides.json');
-const overrideDocument = readJson(overridePath);
+const overridePath = path.join(archiveRoot, 'hydronym-ko-overrides.json');
+const overrideDocument = readJson(path.join(hydroRoot, 'hydronym-ko-overrides.json'));
 // Keep explicit system corrections from the source override document in
 // addition to reviewed candidates. Explicit corrections win on conflicts so
 // a known mislabel cannot be reintroduced by a broad review regeneration.
@@ -28,6 +35,7 @@ const systems = {
 };
 
 const nextOverrides = { ...overrideDocument, version: '0.13.1', systems };
+fs.mkdirSync(archiveRoot, { recursive: true });
 fs.writeFileSync(overridePath, `${JSON.stringify(nextOverrides, null, 2)}\n`);
 
 const sourceCore = JSON.parse(gunzipSync(fs.readFileSync(path.join(sourceDirectory, 'metadata-core.json.gz'))));
