@@ -458,11 +458,11 @@ water, artificial islands and dike connectivity.
 Only after that inventory is complete should the first rollback geometry be
 created.
 
-## 15. Phase 0 started — 2026-10-09 (partial, point-based)
+## 15. Phase 0 started — 2026-10-09 (country + lake-source inventory)
 
 [Phase 0 canonical sample audit](phase0-canonical-audit.md) and [machine-readable probe locations](canonical-phase0-probes.json) have now been added. Against the **actual** `state:NLD:natural-earth-5.1.1` national geometry, 12 point samples were tested: 11 inside, the approximate Maasvlakte 2 place point outside. This result is **not** the required full present/absent/uncertain inventory of each event footprint. The NLD polygon has no interior water holes, so inner water presence and artificial islands cannot be classified from point-in-country.
 
-The corresponding [nine-event evidence index](change-events.json) provides independent construction, drainage and inlet-closure chronology with no digitized shoreline. Phase 0 must continue with dated modern coastal GIS/actual map rendering, and first rollback geometry must not start until the modern baseline and water masks are verified. The earlier Phase 0/1–4 sequence remains unchanged.
+The corresponding [nine-event evidence index](change-events.json) provides independent construction, drainage and inlet-closure chronology with no digitized shoreline. A second pass is now recorded in [phase0-current-representation-inventory.json](phase0-current-representation-inventory.json): large Flevoland/Wieringermeer samples are consistent with modern dry land, the current lake source contains no separate Markermeer feature and generalizes across sampled Houtribdijk positions, Marker Wadden/IJburg samples remain inside the water mask, and the published Maasvlakte 2 point is outside the current NLD country outline. Phase 0 must continue with dated modern coastal GIS/actual map rendering, and first rollback geometry must not start until the modern baseline and water masks are verified. The earlier Phase 0/1–4 sequence remains unchanged.
 
 
 ## 16. Bounded country-data lookup contract — 2026-10-09
