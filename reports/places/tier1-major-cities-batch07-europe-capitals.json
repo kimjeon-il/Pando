@@ -13,25 +13,34 @@
   "historicNameScope": "Historical capital city name records from 1801 onward, plus Pest as a verified formerly independent city only before its 1873-11-17 merger. Native/exonym co-usage and urban temporal eligibility are recorded separately.",
   "qualityNotes": [
     "Budapest is the unified city only from 1873-11-17. The separate historical Pest place (GeoNames 3046446, modern PPLX, coordinates 47.5/19.0833333) is shown in the city layer before 1873-11-17 and suppressed from that date by staged temporalEligibility.activeIntervals; Budapest GeoNames 3054643 is suppressed before that date by its existing temporalEligibility.cityEstablishedFromDate. Buda and Óbuda remain linked predecessor settlements, not aliases of Budapest.",
-    "Warschau and Prag are historical German-language forms. The Warsaw and Prague records are deliberately untouched pending separate user review. Brussels historically used French and Dutch, with both selected as concurrent preferred native names from 1921 (Bruxelles first, Brussel second).",
+    "Warsaw: 1801 Prussian Warschau/바르샤우, 1807-07-09 Duchy of Warsaw treaty Warszawa/바르샤바, 1868 year-level Russianized administration Варшава, 1917-12-07 Regency Kingdom Polish cabinet Warszawa. English Warsaw remains unchanged; Congress Poland from 1815 is not treated as direct Russian imperial territory. Prague: 1801 German Prag/프라크, 1861-11-01 municipal adoption of Czech Praha/프라하, English Prague unchanged. Neither language transition is construed as a new legal city name. Brussels' concurrent French/Dutch names continue under existing policy.",
     "Athens: selected Ottoman Turkish آتینا from 1801, polytonic Katharevousa Ἀθῆναι from 1833-03-31, Demotic Ἀθήνα from approximate 1976, and monotonic Αθήνα from approximate 1982. These mark language/orthography choices, not city legal renamings.",
     "Amsterdam is a city point, not its municipality or metro; Brussels city point is distinct from the 19-municipality capital region.",
     "Short displayed text is <=28 Unicode codepoints. Map renderer and production manifest are unchanged.",
     "GeoNames PPLX Pest is a scoped exception to the modern capital PPLC selection: independent historic municipality until 1873, then part of modern Budapest. As of this staged report, runtime label resolver does not consume activeIntervals; the historical display rule is pending runtime integration.",
-    "Vienna, Budapest, Amsterdam, and Lisbon now have explicit period ko/en/native names without introducing unsupported naming transitions. Budapest and Pest remain separate historic city IDs before 1873-11-17 and Pest is suppressed as independent city thereafter."
+    "Vienna, Budapest, Amsterdam, and Lisbon now have explicit period ko/en/native names without introducing unsupported naming transitions. Budapest and Pest remain separate historic city IDs before 1873-11-17 and Pest is suppressed as independent city thereafter.",
+    "Warsaw and Prague trilingual timelines finalized: 1915 wartime occupation does not prompt a Warsaw name switch; 1894 Prague Czech street-sign directive does not imply a city rename. The 1868 Warsaw transition is approximate year precision. Production runtime and Pest/Budapest historic separation are unchanged."
   ],
   "records": [
     {
       "geonameId": 756135,
       "names": [
         {
-          "text": "Warszawa",
-          "language": "pl",
-          "usage": "standard"
+          "text": "Warschau",
+          "language": "de",
+          "usage": "historical",
+          "variantType": "selectedPrussianGermanCityName",
+          "note": "1801~1807년 프로이센 통치 시기"
         },
         {
-          "text": "Warsaw",
-          "language": "en",
+          "text": "바르샤우",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "selectedGermanBasedKoreanName"
+        },
+        {
+          "text": "Warszawa",
+          "language": "pl",
           "usage": "standard"
         },
         {
@@ -40,12 +49,16 @@
           "usage": "standard"
         },
         {
-          "text": "Warschau",
-          "language": "de",
+          "text": "Варшава",
+          "language": "ru",
           "usage": "historical",
-          "variantType": "germanExonym",
-          "note": "독일어 명칭, 별도 공식 개칭 아님",
-          "sourceUrl": "https://www.geonames.org/756135/warsaw.html"
+          "variantType": "selectedRussianAdministrativeCityName",
+          "note": "1868~1917년의 러시아어 행정 대표형"
+        },
+        {
+          "text": "Warsaw",
+          "language": "en",
+          "usage": "standard"
         }
       ],
       "latitude": 52.22977,
@@ -55,16 +68,106 @@
       "sourceUrl": "https://www.geonames.org/756135/",
       "sourceCountryCode": "PL",
       "defaultDisplayNameKo": "바르샤바",
-      "shortDescriptionKo": "폴란드의 수도",
+      "shortDescriptionKo": "1868년 러시아어·1917년 폴란드어",
       "displayTimeline": [
         {
           "fromYear": 1801,
+          "nameKo": "바르샤우",
+          "nameEn": "Warsaw",
+          "nameNative": "Warschau",
+          "nativeLanguage": "de",
+          "kind": "historicalPrussianAdministrativeName",
+          "note": "프로이센령 독일어 대표명",
+          "researchNote": "1801년은 19세기 역사 지명 검수 시작 연도이며 프로이센 통치기의 독일어 Warschau를 선택한다. 영어 Warsaw는 별도 영어 관용명으로 유지. 1806년 나폴레옹군 점령만으로 도시명 전환하지 않는다."
+        },
+        {
+          "fromDate": "1807-07-09",
           "nameKo": "바르샤바",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/756135/"
+          "nameNative": "Warszawa",
+          "nativeLanguage": "pl",
+          "kind": "treatyBasedLanguageSelection",
+          "sourceUrl": "https://www.napoleon.org/en/history-of-the-two-empires/articles/treaty-between-prussia-and-france-tilsit-9-july-1807",
+          "note": "틸지트 조약·바르샤바 공국",
+          "researchNote": "1807-07-09 프랑스-프로이센 틸지트 조약 제13·15조로 프로이센이 폴란드 분할 영토의 주권을 포기하고 작센 국왕이 바르샤바 공국을 갖게 되는 시점에 폴란드어 원어 대표명을 선택. 1815년 폴란드 입헌왕국 성립과 1832년 자치권 축소에도 폴란드어명 Warszawa 유지. 영어 Warsaw 불변."
+        },
+        {
+          "fromYear": 1868,
+          "nameNative": "Варшава",
+          "nativeLanguage": "ru",
+          "kind": "historicalAdministrativeLanguageSelection",
+          "sourceUrl": "https://crispa.uw.edu.pl/object/files/603524/display/Default",
+          "note": "러시아화 행정언어 대표명",
+          "researchNote": "1867년 폴란드 왕국 자치기관 해체·러시아식 지방행정 통합 이후 1868년 러시아어 행정간행물과 공문 사용을 근거로 원어 대표명을 러시아어 Варшава로 선택. 정확한 개칭 효력일이 아니라 연도 단위 편집 기준이며 폴란드어 Warszawa 사용이 폐지되었다는 의미가 아니다."
+        },
+        {
+          "fromDate": "1917-12-07",
+          "nameNative": "Warszawa",
+          "nativeLanguage": "pl",
+          "kind": "polishRegencyGovernmentEditorialLanguageSelection",
+          "sourceUrl": "https://dzieje.pl/aktualnosci/rada-regencyjna",
+          "note": "섭정왕국 폴란드 내각 출범",
+          "researchNote": "독일·오스트리아헝가리 통제 아래 폴란드 왕국 섭정회의가 1917-12-07 얀 쿠하제프스키 내각을 임명한 날짜를 현지 폴란드 정부 성립의 지도 편집 기준으로 선택한다. 1915년 독일군의 군사 점령, 1916년 11월 5일의 왕국 선언, 1918년 3월 브레스트-리토프스크 조약, 1918년 11월 독립 회복과 구별한다. 영어 Warsaw·한국어 바르샤바는 변화 없음. 이는 완전한 독립국 수립일이 아니다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801"
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1807-1868-1917-language-transitions",
+      "defaultDisplayNameEn": "Warsaw",
+      "defaultDisplayNameNative": "Warszawa",
+      "defaultNativeLanguage": "pl",
+      "historicalGeography": {
+        "events": [
+          {
+            "date": "1807-07-09",
+            "type": "tilsitTreatyWarsawDuchy",
+            "detail": "틸지트 조약·바르샤바 공국",
+            "sourceUrl": "https://www.napoleon.org/en/history-of-the-two-empires/articles/treaty-between-prussia-and-france-tilsit-9-july-1807"
+          },
+          {
+            "year": 1815,
+            "type": "constitutionalCongressPoland",
+            "detail": "폴란드 입헌왕국 성립",
+            "researchDetail": "러시아 황제가 폴란드 국왕을 겸했지만 별도 헌법·행정부 및 폴란드어 행정 사용을 유지했다. 러시아 직할령이라는 뜻이 아니다."
+          },
+          {
+            "year": 1832,
+            "type": "polishKingdomAutonomyCurtailment",
+            "detail": "폴란드 왕국 자치권 축소"
+          },
+          {
+            "year": 1867,
+            "type": "russianAdministrativeIntegration",
+            "detail": "러시아식 행정체제 통합",
+            "researchDetail": "폴란드 왕국 중앙 자치기관 해체 및 러시아 행정제도의 확대. 도시 대표 원어명은 1868년 러시아어 시 행정 정착을 편집 기준으로 선택."
+          },
+          {
+            "year": 1868,
+            "type": "russianAdministrativeLanguageInWarsaw",
+            "detail": "바르샤바 러시아어 공문 확대",
+            "sourceUrl": "https://crispa.uw.edu.pl/object/files/603524/display/Default"
+          },
+          {
+            "date": "1917-12-07",
+            "type": "polishRegencyCabinetAppointed",
+            "detail": "폴란드 섭정왕국 내각 구성",
+            "sourceUrl": "https://dzieje.pl/aktualnosci/rada-regencyjna"
+          },
+          {
+            "date": "1918-11-11",
+            "type": "polishIndependenceRestored",
+            "detail": "폴란드 독립 회복",
+            "researchDetail": "독립 회복은 별도 정치사 사건. 이 자료에서는 폴란드어 원어명 대표 전환을 1917-12-07로 채택한다."
+          }
+        ],
+        "notes": [
+          {
+            "detail": "1815~1867년 폴란드 왕국 별도",
+            "researchDetail": "폴란드 왕국은 러시아 황제와 군주를 공유하였으나 폴란드어의 행정·교육 사용을 유지했고 단계적으로 자치권이 축소되었다. 원어명을 1815년부터 러시아어로 바꾸지 않는다."
+          },
+          {
+            "detail": "1915년 군사 점령은 전환 제외",
+            "researchDetail": "독일군의 일시 점령 그 자체는 원어명 변경 기준이 아니다. 폴란드 내각 출범일인 1917년 12월 7일을 별도 근거로 선택."
+          }
+        ]
+      }
     },
     {
       "geonameId": 2761369,
@@ -122,13 +225,20 @@
       "geonameId": 3067696,
       "names": [
         {
-          "text": "Praha",
-          "language": "cs",
-          "usage": "standard"
+          "text": "Prag",
+          "language": "de",
+          "usage": "historical",
+          "variantType": "selectedEarlyHabsburgGermanAdministrativeCityName"
         },
         {
-          "text": "Prague",
-          "language": "en",
+          "text": "프라크",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "selectedGermanBasedKoreanCityName"
+        },
+        {
+          "text": "Praha",
+          "language": "cs",
           "usage": "standard"
         },
         {
@@ -137,12 +247,9 @@
           "usage": "standard"
         },
         {
-          "text": "Prag",
-          "language": "de",
-          "usage": "historical",
-          "variantType": "germanExonym",
-          "note": "독일어 명칭, 도시 개칭은 아님",
-          "sourceUrl": "https://www.geonames.org/3067696/prague.html"
+          "text": "Prague",
+          "language": "en",
+          "usage": "standard"
         }
       ],
       "latitude": 50.08804,
@@ -152,16 +259,76 @@
       "sourceUrl": "https://www.geonames.org/3067696/",
       "sourceCountryCode": "CZ",
       "defaultDisplayNameKo": "프라하",
-      "shortDescriptionKo": "체코어·독일어 지명 병용",
+      "shortDescriptionKo": "1861년 체코어 시 행정 확대",
       "displayTimeline": [
         {
           "fromYear": 1801,
+          "nameKo": "프라크",
+          "nameEn": "Prague",
+          "nameNative": "Prag",
+          "nativeLanguage": "de",
+          "kind": "historicalHabsburgAdministrativeName",
+          "note": "오스트리아 제국 초기 독일어 행정",
+          "sourceUrl": "https://edext.praha.eu/web/praha/ulicni-tabule-historie",
+          "researchNote": "1801년은 역사 지명 검수 시작 연도. 당시 합스부르크 국가·도시 행정의 독일어 우세를 기준으로 Prag를 원어 대표명, 프라크를 한국어 편집 음역으로 사용한다. 체코어 Praha도 주민·체코어 문헌에서 이미 사용되었으며 영어 Prague는 유지한다."
+        },
+        {
+          "fromDate": "1861-11-01",
           "nameKo": "프라하",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/3067696/"
+          "nameNative": "Praha",
+          "nativeLanguage": "cs",
+          "kind": "municipalCzechAdministrativeLanguageEditorialSelection",
+          "note": "프라하시 체코어 행정 채택",
+          "sourceUrl": "https://www.ahmp.cz/index.html?mid=46&page=page%2Fdocs%2Fvyvoj-prazske-samospravy-II-D.html&wstyle=0",
+          "researchNote": "1861-04-11 체코계 시장 프란티셰크 프슈트로스 선출 이후 프라하 시정부가 1861-11-01부터 지방행정 업무에서 체코어를 일관되게 사용하도록 정한 것을 원어 대표명 Praha와 한국어 프라하의 편집상 전환 기준으로 삼는다. 이는 도시가 새 법적 이름으로 개칭되었다는 뜻이 아니다. 국가 상급기관에서 독일어, 도시 주민·문헌에서 체코어와 독일어 사용은 한동안 병존했다. 1894-04-20 체코어 단독 거리 표지, 1918년 체코슬로바키아 독립은 지명 변경이 아니므로 별도 전환점을 추가하지 않는다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801"
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1861-czech-municipal-language-selection",
+      "defaultDisplayNameEn": "Prague",
+      "defaultDisplayNameNative": "Praha",
+      "defaultNativeLanguage": "cs",
+      "historicalGeography": {
+        "events": [
+          {
+            "date": "1861-04-11",
+            "type": "czechMayorElectedInPrague",
+            "detail": "체코계 시장 프슈트로스 선출",
+            "sourceUrl": "https://www.ahmp.cz/index.html?mid=46&page=page%2Fdocs%2Fvyvoj-prazske-samospravy-II-A.html&wstyle=0"
+          },
+          {
+            "date": "1861-11-01",
+            "type": "czechPragueMunicipalAdministration",
+            "detail": "프라하시 체코어 행정 시행",
+            "sourceUrl": "https://www.ahmp.cz/index.html?mid=46&page=page%2Fdocs%2Fvyvoj-prazske-samospravy-II-D.html&wstyle=0",
+            "researchDetail": "시정부 내부 업무에서 체코어를 일관되게 사용하도록 정한 날짜. 독일어 사용의 전국적 종료, 도시명 신규 창설, 모든 공문의 즉각적 언어 변경은 아니다."
+          },
+          {
+            "date": "1894-04-20",
+            "type": "czechOnlyStreetNameSigns",
+            "detail": "프라하 체코어 거리 표지 고시",
+            "sourceUrl": "https://edext.praha.eu/web/praha/ulicni-tabule-historie",
+            "researchDetail": "거리명 표지의 체코어 단독 사용에 관한 시정부 고시. 도시 자체의 공식 이름을 바꾼 날로 해석하지 않는다."
+          },
+          {
+            "date": "1918-10-28",
+            "type": "czechoslovakIndependenceDeclared",
+            "detail": "체코슬로바키아 독립 선언",
+            "sourceUrl": "https://prague.eu/cs/objevujte/obecni-dum/",
+            "researchDetail": "독립은 1861년 이후 사용한 현지 시정부의 체코어 도시명 Praha를 새로 만든 사건이 아니다."
+          }
+        ],
+        "notes": [
+          {
+            "detail": "1894년은 거리명 표지의 언어 변경",
+            "sourceUrl": "https://edext.praha.eu/web/praha/ulicni-tabule-historie",
+            "researchDetail": "1894-04-20은 프라하시 전체 거리표지의 체코어 단독화 고시로 1861-11-01 이후 시작된 체코어 지방행정과 구별한다."
+          },
+          {
+            "detail": "독일어 Prag의 병용 지속",
+            "researchDetail": "독일어 Prag는 1861년 이후 합스부르크 제국·독일어 문서와 독일어 사용자 사이에서 계속 쓰였으나 지도 선택 원어명은 시정부의 체코어 행정을 기준으로 Praha를 선택한다."
+          }
+        ]
+      }
     },
     {
       "geonameId": 3046446,
