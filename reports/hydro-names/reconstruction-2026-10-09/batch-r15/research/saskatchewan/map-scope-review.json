@@ -1,0 +1,56 @@
+{
+  "schema": "hydro-public-map-scope-review-v2",
+  "batch": "r15",
+  "reviewed_at_utc": "2026-10-09T16:49:32.712868+00:00",
+  "method": "Whole-outline comparison of complete source and baseline ordered coordinates, geographic placement, relative shape and surrounding mapped waters. The original official map was inspected as pixels. No shoreline repair or exact name-boundary partition is claimed.",
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108369",
+      "complete_source_positions_considered": 53,
+      "complete_baseline_positions_considered": 53,
+      "observations": [
+        "The complete 53-position ring was considered, including the northern tip, broad northern basin, long eastern side, western indentation, southwest projection and southern lobes.",
+        "The whole north-south generalized outline corresponds at regional scale to the water mapped as Amisk Lake south of Creighton and adjacent to Denare Beach. The named Windy Lake lies separately southwest of the selected footprint.",
+        "The northern island-rich basin and southern branching shore remain associated with the mapped Amisk Lake footprint. All selected extremities were examined rather than identifying only the water around the label.",
+        "The source omits mapped islands and compresses bays and inlets. The southern and western shore details are generalized; no shoreline equality, island completeness or exact river transition was established."
+      ],
+      "assessment": "The complete generalized polygon corresponds to the mapped Amisk Lake waterbody at regional scale; this is bounded cartographic identification.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false
+    },
+    {
+      "aw_id": "lakes_base:1159109845",
+      "complete_source_positions_considered": 44,
+      "complete_baseline_positions_considered": 44,
+      "observations": [
+        "The complete 44-position ring was considered, including the northern cap, northeastern indentation, eastward middle projection, southeastern lobe, long southern edge and western side.",
+        "The two broad northern and southern portions correspond to the water labelled Cumberland Lake north of Cumberland House. The narrow middle and eastward projection are consistent with the mapped lake at regional scale.",
+        "The complete target footprint was compared with the surrounding water network. The map separately places McKenzie Lake to the northwest and Namew Lake to the northeast; those labels were not assigned to this feature.",
+        "The generalized west and south edges compress the intricate western inflow channels and southern margins. This bounded identity finding does not resolve individual channels, exact river-mouth boundaries or present-day shoreline vertices."
+      ],
+      "assessment": "The complete generalized polygon corresponds to the mapped Cumberland Lake waterbody at regional scale; this is bounded cartographic identification.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false
+    },
+    {
+      "aw_id": "lakes_base:1159109803",
+      "complete_source_positions_considered": 55,
+      "complete_baseline_positions_considered": 55,
+      "observations": [
+        "The complete 55-position ring was considered, including the northwest lobe, northern inward notch and spur, central indentations, northeast lobe and long south-pointing arm beside Stanley Mission.",
+        "The complete branching target lies in mapped water at and north of Stanley Mission. All its arms and the surrounding water network are visible in the acquired regional map.",
+        "The map prints Otter Lake to the west of much of the selected footprint, within the wider connected-water context. It does not clearly assign that name across this target's northwestern, northeastern and southern extents or establish a naming boundary.",
+        "No lake name is inferred from the Stanley Mission settlement label. The inspected map supplies neither an unambiguous name for the complete branching polygon nor an exhaustive set of constituent water names."
+      ],
+      "assessment": "Whole-feature naming is unresolved for the complete branching polygon at and north of Stanley Mission. Otter Lake is a contextual mapped label and is not established as this feature's identity.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true
+    }
+  ],
+  "included_evidence_limit": "Included records retain official bibliography, own factual observations and geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

@@ -1,0 +1,140 @@
+{
+  "schema": "hydro-bounded-lake-findings-v2",
+  "batch": "r15",
+  "frozen_at_utc": "2026-10-09T16:49:32.712868+00:00",
+  "target_count": 3,
+  "new_actual_inventory_targets": 3,
+  "full_feature_correspondence_review_completed_count": 3,
+  "source_limited_unresolved_count": 0,
+  "whole_feature_name_scope_hold_count": 1,
+  "compound_named_waterbody_required_by_evidence": null,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108369",
+      "source_id": "1159108369",
+      "candidate_name": "Amisk Lake",
+      "directly_supported_name_forms": [
+        "Amisk Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized polygon corresponds to the mapped Amisk Lake waterbody at regional scale; this is bounded cartographic identification.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "cartographic_identity_source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "correspondence_observations": [
+        "The complete 53-position ring was considered, including the northern tip, broad northern basin, long eastern side, western indentation, southwest projection and southern lobes.",
+        "The whole north-south generalized outline corresponds at regional scale to the water mapped as Amisk Lake south of Creighton and adjacent to Denare Beach. The named Windy Lake lies separately southwest of the selected footprint.",
+        "The northern island-rich basin and southern branching shore remain associated with the mapped Amisk Lake footprint. All selected extremities were examined rather than identifying only the water around the label.",
+        "The source omits mapped islands and compresses bays and inlets. The southern and western shore details are generalized; no shoreline equality, island completeness or exact river transition was established."
+      ],
+      "name_scope_limits": [
+        "One dated regional official map supplies the cartographic evidence; no second independent naming source or formal registry record was established.",
+        "The source is a 1:10 million generalized lake polygon. The official map is dated 2014-11-25 and has a printed scale of 1:1,750,000. These sources do not establish a precise current shoreline.",
+        "Review completion is a bounded whole-outline identity assessment, without fine channel partitions or formal naming-instrument verification."
+      ],
+      "compound_named_waterbody_required_by_evidence": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No unresolved gap remains for this bounded generalized identity question. Formal registry, exact shoreline and fine adjoining-channel verification remain outside scope.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true
+    },
+    {
+      "aw_id": "lakes_base:1159109845",
+      "source_id": "1159109845",
+      "candidate_name": "Cumberland Lake",
+      "directly_supported_name_forms": [
+        "Cumberland Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized polygon corresponds to the mapped Cumberland Lake waterbody at regional scale; this is bounded cartographic identification.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "cartographic_identity_source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "correspondence_observations": [
+        "The complete 44-position ring was considered, including the northern cap, northeastern indentation, eastward middle projection, southeastern lobe, long southern edge and western side.",
+        "The two broad northern and southern portions correspond to the water labelled Cumberland Lake north of Cumberland House. The narrow middle and eastward projection are consistent with the mapped lake at regional scale.",
+        "The complete target footprint was compared with the surrounding water network. The map separately places McKenzie Lake to the northwest and Namew Lake to the northeast; those labels were not assigned to this feature.",
+        "The generalized west and south edges compress the intricate western inflow channels and southern margins. This bounded identity finding does not resolve individual channels, exact river-mouth boundaries or present-day shoreline vertices."
+      ],
+      "name_scope_limits": [
+        "One dated regional official map supplies the cartographic evidence; no second independent naming source or formal registry record was established.",
+        "The source is a 1:10 million generalized lake polygon. The official map is dated 2014-11-25 and has a printed scale of 1:1,750,000. These sources do not establish a precise current shoreline.",
+        "Review completion is a bounded whole-outline identity assessment, without fine channel partitions or formal naming-instrument verification."
+      ],
+      "compound_named_waterbody_required_by_evidence": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No unresolved gap remains for this bounded generalized identity question. Formal registry, exact shoreline and fine adjoining-channel verification remain outside scope.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true
+    },
+    {
+      "aw_id": "lakes_base:1159109803",
+      "source_id": "1159109803",
+      "candidate_name": null,
+      "directly_supported_name_forms": [],
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "Whole-feature naming is unresolved for the complete branching polygon at and north of Stanley Mission. Otter Lake is a contextual mapped label and is not established as this feature's identity.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "cartographic_identity_source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "correspondence_observations": [
+        "The complete 55-position ring was considered, including the northwest lobe, northern inward notch and spur, central indentations, northeast lobe and long south-pointing arm beside Stanley Mission.",
+        "The complete branching target lies in mapped water at and north of Stanley Mission. All its arms and the surrounding water network are visible in the acquired regional map.",
+        "The map prints Otter Lake to the west of much of the selected footprint, within the wider connected-water context. It does not clearly assign that name across this target's northwestern, northeastern and southern extents or establish a naming boundary.",
+        "No lake name is inferred from the Stanley Mission settlement label. The inspected map supplies neither an unambiguous name for the complete branching polygon nor an exhaustive set of constituent water names."
+      ],
+      "name_scope_limits": [
+        "One dated regional official map supplies the cartographic evidence; no second independent naming source or formal registry record was established.",
+        "The source is a 1:10 million generalized lake polygon. The official map is dated 2014-11-25 and has a printed scale of 1:1,750,000. These sources do not establish a precise current shoreline.",
+        "Full map coverage and full-ring inspection complete the bounded assessment, but the complete branching feature remains unnamed in this result."
+      ],
+      "compound_named_waterbody_required_by_evidence": null,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Resolve official name coverage for all northwestern, northeastern and southern arms before any whole-feature naming or geometry change.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true,
+      "contextual_map_labels": [
+        "Otter Lake",
+        "Stanley Mission"
+      ],
+      "contextual_label_limits": "Otter Lake is not promoted to a candidate lake identity; Stanley Mission is a settlement label.",
+      "compound_scope_status": "A uniform or compound whole-feature identity is not established.",
+      "exact_name_partition_established": false
+    }
+  ],
+  "publication_scope": "Official bibliography and own factual observations only; no source publications, map derivatives or omitted-source fingerprints.",
+  "recorded_review_scope": "Complete original and baseline outlines considered against acquired official regional cartography. All three bounded assessments are complete; the Stanley Mission-area branching target remains on a whole-feature name-scope hold.",
+  "included_evidence_limit": "Included records retain official bibliography, own factual observations and geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

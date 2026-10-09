@@ -1,0 +1,192 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "reviewed_at_utc": "2026-10-09T16:53:01.991077+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159108369",
+    "lakes_base:1159109845",
+    "lakes_base:1159109803"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Independent inspection of the original WSA2014 map body, whole-map overview, imprint and all target regions; every complete source and baseline ring was viewed and independently decoded. Present public validation checks included files only.",
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "geometry_modified": false,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0,
+  "prior_distinct_targets": 42,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 45,
+  "duplicate_targets": 0,
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "new_pending_access_ids": [],
+  "pending_access_reassessment_performed": false,
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993"
+  ],
+  "new_scope_hold_ids": [
+    "lakes_base:1159109803"
+  ],
+  "cumulative_count_scope": "Recorded fresh-research targets including unresolved scope holds and access gaps, not verified scalar names. Only prior42 membership/follow-up flags and current3 delta were checked; prior source/geometry judgments were not reaudited.",
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159108369",
+      "source_id": "1159108369",
+      "logical_fid": 3958,
+      "geometry_fids": [
+        15333
+      ],
+      "position_count": 53,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Amisk Lake",
+      "directly_supported_name_forms": [
+        "Amisk Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_mapped_water_shapes_compared": true,
+      "complete_source_and_baseline_geometry_inspected": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "compound_named_waterbody_required_by_evidence": false,
+      "supported_name_scope": "The entire north-south polygon corresponds to Amisk Lake south of Creighton and beside Denare Beach. The northern tip and island-rich basin, east side, western indentation, southwest projection and southern lobes were compared. Windy Lake is separate southwest context. The generalized outline omits islands and compresses bays, without establishing exact shoreline or channel endpoints.",
+      "limits": [
+        "One regional official cartographic publication supports this generalized identity. A second independent naming source and formal registry were not established.",
+        "Islands, fine bays, current shoreline and exact adjoining-channel transitions remain generalized. No geometry repair is proposed."
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159109845",
+      "source_id": "1159109845",
+      "logical_fid": 4072,
+      "geometry_fids": [
+        15447
+      ],
+      "position_count": 44,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Cumberland Lake",
+      "directly_supported_name_forms": [
+        "Cumberland Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_mapped_water_shapes_compared": true,
+      "complete_source_and_baseline_geometry_inspected": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "compound_named_waterbody_required_by_evidence": false,
+      "supported_name_scope": "The complete polygon corresponds to Cumberland Lake north of Cumberland House. The northern cap, northeast indentation, eastward middle projection, southeastern lobe, long southern edge and western side were compared. Separate McKenzie and Namew lakes provide surrounding context. Simplified west and south edges do not resolve intricate inflow channels or precise river-mouth boundaries.",
+      "limits": [
+        "One regional official cartographic publication supports this generalized identity. A second independent naming source and formal registry were not established.",
+        "Western inflow channels and southern margins are compressed by the selected polygon. Fine partitions and present shoreline vertices were not established."
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159109803",
+      "source_id": "1159109803",
+      "logical_fid": 4069,
+      "geometry_fids": [
+        15444
+      ],
+      "position_count": 55,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": null,
+      "directly_supported_name_forms": [],
+      "research_category": "whole_polygon_scope_hold",
+      "source_research_category": "whole_polygon_scope_hold",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "actual_mapped_water_shapes_compared": true,
+      "complete_source_and_baseline_geometry_inspected": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "compound_named_waterbody_required_by_evidence": null,
+      "supported_name_scope": "The entire branching polygon lies in mapped water at and north of Stanley Mission. The northwest lobe, north notch and spur, central indentations, northeast lobe and southern arm are visible. Otter Lake is printed west of much of the polygon and does not establish one name across those reaches. No complete-feature name or exhaustive constituent list is assigned. The full map is usable for this bounded scope assessment, which ends in a naming hold.",
+      "limits": [
+        "Nearby Otter Lake and the Stanley Mission settlement are contextual labels, not assigned target names. No unsupported alternative is introduced.",
+        "Full map coverage and whole-ring inspection complete the bounded review while leaving naming scope unresolved. A uniform or compound identity and precise partition remain unverified."
+      ],
+      "constituent_list_exhaustive": false,
+      "exact_name_partition_established": false,
+      "second_named_constituent_established": false,
+      "nearby_contextual_name_forms": [
+        "Otter Lake"
+      ],
+      "contextual_label_promoted_to_target_name": false,
+      "settlement_label_promoted_to_water_name": false,
+      "candidate_name_role": "unassigned_after_complete_scope_review",
+      "unassigned_region": "The complete branching feature, including northwestern and northeastern lobes, central connections and southern arm beside Stanley Mission.",
+      "follow_up_scope": "Resolve name coverage across every arm before any whole-feature naming or geometry change."
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-09T16:53:01.991077+00:00",
+    "available_source_inspection_completed": true,
+    "full_source_review_completed": true,
+    "original_source_material_included": false,
+    "historical_results_recomputed_by_public_validator": false,
+    "scope": "All three complete-feature bounded map assessments are complete: Amisk and Cumberland generalized identities are supported; the fully visible branching target beside Stanley Mission remains unnamed on a scope hold. This current-batch statement does not complete prior pending targets."
+  },
+  "included_evidence_limit": "Included files contain factual observations, bibliography and selected public-domain geometry. Original publications and inspection materials are omitted. Public validation checks only included facts and coordinates; it cannot reproduce omitted visual source judgments or resolve the remaining naming-scope hold."
+}

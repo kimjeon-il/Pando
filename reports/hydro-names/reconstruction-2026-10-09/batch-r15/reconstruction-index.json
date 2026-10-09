@@ -1,0 +1,747 @@
+{
+  "schema": "hydro-reconstruction-index-v2",
+  "scope": "Fresh reconstructed research only. The unavailable historical504-target verdict ledger is not restored. Counted units are logical inventory targets.",
+  "total_distinct_reconstructed_targets": 45,
+  "previous_batch_distinct_targets": 42,
+  "current_batch_increment": 3,
+  "duplicate_targets": 0,
+  "previous_index_sha256": "3995c70bff375780805875ec7198c1694fe5ceeb4a80a189d62d0fb97724d9d9",
+  "prior_commit": "92e1143a98c5209958e4f4f546344e6abacb1301",
+  "current_batch": "r15",
+  "current_batch_commit_note": "The commit containing this file identifies r15; no self-referential commit hash is embedded.",
+  "target_types": {
+    "lake": 29,
+    "river_group": 16
+  },
+  "categories": {
+    "whole_polygon_scope_hold": 7,
+    "supported_generalized_water_identity": 17,
+    "supported_reservoir_association_geometry_hold": 1,
+    "candidate_representative_system_identity": 2,
+    "supported_representative_system_identity": 14,
+    "candidate_waterbody_identity_extent_hold": 1,
+    "unresolved_full_feature_correspondence": 1,
+    "compound_feature_name_scope_hold": 1,
+    "source_limited_unresolved": 1
+  },
+  "records": [
+    {
+      "source_id": "1159109497",
+      "aw_id": "lakes_base:1159109497",
+      "batch": "r01",
+      "candidate_name": "MacKay Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159106899",
+      "aw_id": "lakes_base:1159106899",
+      "batch": "r01",
+      "candidate_name": "Becharof Lake",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159107065",
+      "aw_id": "lakes_base:1159107065",
+      "batch": "r01",
+      "candidate_name": "Lac Tasiujaq",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159115267",
+      "aw_id": "lakes_base:1159115267",
+      "batch": "r02",
+      "candidate_name": "扎日南木错 / Zhari Namco",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159123531",
+      "aw_id": "lakes_base:1159123531",
+      "batch": "r02",
+      "candidate_name": "Represa Três Irmãos",
+      "research_category": "supported_reservoir_association_geometry_hold",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159107099",
+      "aw_id": "lakes_base:1159107099",
+      "batch": "r02",
+      "candidate_name": "Buffalo Lake",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "system_id": "30624681",
+      "aw_id": "hydro-system:30624681",
+      "category": "river_group",
+      "batch": "r03",
+      "candidate_name": "Nura River",
+      "research_category": "candidate_representative_system_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r03/results.json",
+      "fixed_commit": "ed7bdaf154563ebdce8de6b40aff463b714a7a17",
+      "automatic_application": false
+    },
+    {
+      "system_id": "50488324",
+      "aw_id": "hydro-system:50488324",
+      "category": "river_group",
+      "batch": "r03",
+      "candidate_name": "Flinders River system",
+      "research_category": "supported_representative_system_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r03/results.json",
+      "fixed_commit": "ed7bdaf154563ebdce8de6b40aff463b714a7a17",
+      "automatic_application": false
+    },
+    {
+      "system_id": "40182409",
+      "aw_id": "hydro-system:40182409",
+      "category": "river_group",
+      "batch": "r03",
+      "candidate_name": "Сарысу / Sarysu system",
+      "research_category": "supported_representative_system_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r03/results.json",
+      "fixed_commit": "ed7bdaf154563ebdce8de6b40aff463b714a7a17",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:70152112",
+      "category": "river_group",
+      "system_id": "70152112",
+      "source_id": null,
+      "candidate_name": "Attawapiskat River",
+      "research_category": "candidate_representative_system_identity",
+      "selection_origin": "historical_name_lead_freshly_researched",
+      "batch": "r04",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r04/results.json",
+      "fixed_commit": "0bc30a0477862be8249b9504e8425de781c36721",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159123163",
+      "category": "lake",
+      "system_id": null,
+      "source_id": "1159123163",
+      "candidate_name": "Kamianske Reservoir",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "historical_name_lead_freshly_researched",
+      "batch": "r04",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r04/results.json",
+      "fixed_commit": "0bc30a0477862be8249b9504e8425de781c36721",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159123567",
+      "category": "lake",
+      "system_id": null,
+      "source_id": "1159123567",
+      "candidate_name": "Theodomiro Carneiro Santiago (Emborcação)",
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r04",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r04/results.json",
+      "fixed_commit": "0bc30a0477862be8249b9504e8425de781c36721",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110371",
+      "category": "lake",
+      "source_id": "1159110371",
+      "candidate_name": "Artillery Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r05",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r05/results.json",
+      "fixed_commit": "761150320ff05b4459fbd3cb899d3b46a858fa4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109471",
+      "category": "lake",
+      "source_id": "1159109471",
+      "candidate_name": "Lac de Gras / Lac du Sauvage mapped waterbody association",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r05",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r05/results.json",
+      "fixed_commit": "761150320ff05b4459fbd3cb899d3b46a858fa4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159111751",
+      "category": "lake",
+      "source_id": "1159111751",
+      "candidate_name": "Yamba Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r05",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r05/results.json",
+      "fixed_commit": "761150320ff05b4459fbd3cb899d3b46a858fa4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109553",
+      "category": "lake",
+      "source_id": "1159109553",
+      "candidate_name": "Dore Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r06",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r06/results.json",
+      "fixed_commit": "9727db6a8f55a61dffed63109df5596f901f5af6",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110303",
+      "category": "lake",
+      "source_id": "1159110303",
+      "candidate_name": "Ennadai Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r06",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r06/results.json",
+      "fixed_commit": "9727db6a8f55a61dffed63109df5596f901f5af6",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108091",
+      "category": "lake",
+      "source_id": "1159108091",
+      "candidate_name": "Naknek Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r06",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r06/results.json",
+      "fixed_commit": "9727db6a8f55a61dffed63109df5596f901f5af6",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50668155",
+      "category": "river_group",
+      "system_id": "50668155",
+      "candidate_name": "Murchison River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r07",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r07/results.json",
+      "fixed_commit": "fef2fb3fc52a276fb0059ce66474116de08137d1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50611851",
+      "category": "river_group",
+      "system_id": "50611851",
+      "candidate_name": "Gascoyne River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r07",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r07/results.json",
+      "fixed_commit": "fef2fb3fc52a276fb0059ce66474116de08137d1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50552041",
+      "category": "river_group",
+      "system_id": "50552041",
+      "candidate_name": "Ashburton River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r07",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r07/results.json",
+      "fixed_commit": "fef2fb3fc52a276fb0059ce66474116de08137d1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50538951",
+      "category": "river_group",
+      "system_id": "50538951",
+      "candidate_name": "Fortescue River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r08",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r08/results.json",
+      "fixed_commit": "d6a86e96d5ec746d9497ecafa7b597244e195e4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50631583",
+      "category": "river_group",
+      "system_id": "50631583",
+      "candidate_name": "Wooramel River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r08",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r08/results.json",
+      "fixed_commit": "d6a86e96d5ec746d9497ecafa7b597244e195e4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50691033",
+      "category": "river_group",
+      "system_id": "50691033",
+      "candidate_name": "Greenough River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r08",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r08/results.json",
+      "fixed_commit": "d6a86e96d5ec746d9497ecafa7b597244e195e4b",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50737565",
+      "category": "river_group",
+      "system_id": "50737565",
+      "candidate_name": "Moore River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r09",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r09/results.json",
+      "fixed_commit": "ea66825657b0f7ff8e41616e375bf974cd4dbff1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50756799",
+      "category": "river_group",
+      "system_id": "50756799",
+      "candidate_name": "Murray River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r09",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r09/results.json",
+      "fixed_commit": "ea66825657b0f7ff8e41616e375bf974cd4dbff1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50782475",
+      "category": "river_group",
+      "system_id": "50782475",
+      "candidate_name": "Gordon-Frankland River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r09",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r09/results.json",
+      "fixed_commit": "ea66825657b0f7ff8e41616e375bf974cd4dbff1",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50766256",
+      "category": "river_group",
+      "system_id": "50766256",
+      "candidate_name": "Collie River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r10",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r10/results.json",
+      "fixed_commit": "480f9db0ea893051f9de9749e4786385d7daa45e",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50779535",
+      "category": "river_group",
+      "system_id": "50779535",
+      "candidate_name": "Warren River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r10",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r10/results.json",
+      "fixed_commit": "480f9db0ea893051f9de9749e4786385d7daa45e",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50782443",
+      "category": "river_group",
+      "system_id": "50782443",
+      "candidate_name": "Kalgan River",
+      "research_category": "supported_representative_system_identity",
+      "selection_origin": "new_inventory_investigation",
+      "batch": "r10",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r10/results.json",
+      "fixed_commit": "480f9db0ea893051f9de9749e4786385d7daa45e",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112291",
+      "category": "lake",
+      "source_id": "1159112291",
+      "candidate_name": "Dauphin Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "batch": "r11",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r11/results.json",
+      "fixed_commit": "deb137d5b858590bd3b016d07c1f5d7d62dd33bc",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112821",
+      "category": "lake",
+      "source_id": "1159112821",
+      "candidate_name": "Cold Lake",
+      "research_category": "unresolved_full_feature_correspondence",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "batch": "r11",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r11/results.json",
+      "fixed_commit": "deb137d5b858590bd3b016d07c1f5d7d62dd33bc",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109155",
+      "category": "lake",
+      "source_id": "1159109155",
+      "candidate_name": "Deschambault Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "batch": "r11",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r11/results.json",
+      "fixed_commit": "deb137d5b858590bd3b016d07c1f5d7d62dd33bc",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108391",
+      "category": "lake",
+      "source_id": "1159108391",
+      "candidate_name": "Montreal Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {},
+      "batch": "r12",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r12/results.json",
+      "fixed_commit": "bfaef10720f3f177a71758e928e3d9bffba98442",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112839",
+      "category": "lake",
+      "source_id": "1159112839",
+      "candidate_name": "Wapawekka Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {},
+      "batch": "r12",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r12/results.json",
+      "fixed_commit": "bfaef10720f3f177a71758e928e3d9bffba98442",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112207",
+      "category": "lake",
+      "source_id": "1159112207",
+      "candidate_name": "Mirond Lake",
+      "research_category": "compound_feature_name_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "initial_geographic_lead_not_whole_polygon_identity",
+        "directly_supported_name_forms": [
+          "Wood Lake",
+          "Mirond Lake"
+        ],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "named_water_associations": [
+          {
+            "name": "Wood Lake",
+            "whole_named_water_coverage_verified": false
+          },
+          {
+            "name": "Mirond Lake",
+            "whole_named_water_coverage_verified": false
+          }
+        ],
+        "unassigned_region": "Central connection and southwestern arm near the Pelican Narrows settlement; Jan Lake is separate nearby context.",
+        "follow_up_scope": "Resolve constituent naming extents and representation before any naming or geometry change."
+      },
+      "batch": "r12",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r12/results.json",
+      "fixed_commit": "bfaef10720f3f177a71758e928e3d9bffba98442",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110463",
+      "category": "lake",
+      "source_id": "1159110463",
+      "candidate_name": "Calcasieu Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Calcasieu Lake"
+        ]
+      },
+      "batch": "r13",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r13/results.json",
+      "fixed_commit": "2f9ed802b52193eb590c96697a9fa21fdeb0aea5",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159107033",
+      "category": "lake",
+      "source_id": "1159107033",
+      "candidate_name": "Lake Maurepas",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Lake Maurepas"
+        ]
+      },
+      "batch": "r13",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r13/results.json",
+      "fixed_commit": "2f9ed802b52193eb590c96697a9fa21fdeb0aea5",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159110475",
+      "category": "lake",
+      "source_id": "1159110475",
+      "candidate_name": "Lake Salvador",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "main_southern_basin_association_not_whole_polygon_name",
+        "directly_supported_name_forms": [
+          "Lake Salvador"
+        ],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Northern lobe, central connection and fine southwestern/coastal extensions.",
+        "follow_up_scope": "Resolve the unassigned naming extents before any whole-feature name application or geometry change."
+      },
+      "batch": "r13",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r13/results.json",
+      "fixed_commit": "2f9ed802b52193eb590c96697a9fa21fdeb0aea5",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108993",
+      "category": "lake",
+      "source_id": "1159108993",
+      "candidate_name": "Grand Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "main_basin_association_not_whole_polygon_name",
+        "directly_supported_name_forms": [
+          "Grand Lake"
+        ],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Northern/eastern reaches, connecting water and southeast projection.",
+        "follow_up_scope": "Resolve naming extent across those waters before any whole-feature name application or geometry change."
+      },
+      "batch": "r14",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r14/results.json",
+      "fixed_commit": "92e1143a98c5209958e4f4f546344e6abacb1301",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109007",
+      "category": "lake",
+      "source_id": "1159109007",
+      "candidate_name": "White Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "White Lake"
+        ]
+      },
+      "batch": "r14",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r14/results.json",
+      "fixed_commit": "92e1143a98c5209958e4f4f546344e6abacb1301",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108815",
+      "category": "lake",
+      "source_id": "1159108815",
+      "candidate_name": "Lake Timiskaming / lac Témiscamingue",
+      "research_category": "source_limited_unresolved",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "documented_usages_and_geographic_lead_not_verified_whole_polygon_identity",
+        "directly_supported_name_forms": [
+          "Lake Timiskaming",
+          "lac Témiscamingue"
+        ],
+        "follow_up_scope": "Obtain a permitted independent source that makes the complete northern arms, corridor and downstream endpoint inspectable."
+      },
+      "batch": "r14",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r14/results.json",
+      "fixed_commit": "92e1143a98c5209958e4f4f546344e6abacb1301",
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159108369",
+      "category": "lake",
+      "source_id": "1159108369",
+      "candidate_name": "Amisk Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Amisk Lake"
+        ]
+      },
+      "batch": "r15",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r15/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109845",
+      "category": "lake",
+      "source_id": "1159109845",
+      "candidate_name": "Cumberland Lake",
+      "research_category": "supported_generalized_water_identity",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Cumberland Lake"
+        ]
+      },
+      "batch": "r15",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r15/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109803",
+      "category": "lake",
+      "source_id": "1159109803",
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "selection_origin": "new_inventory_investigation",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete branching feature, including northwestern and northeastern lobes, central connections and southern arm beside Stanley Mission.",
+        "follow_up_scope": "Resolve name coverage across every arm before any whole-feature naming or geometry change."
+      },
+      "batch": "r15",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r15/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    }
+  ],
+  "recorded_index_targets": 45,
+  "pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "pending_access_count": 2,
+  "scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803"
+  ],
+  "scope_hold_count": 10,
+  "pending_access_scope": "Explicitly flagged source-access-limited reconstructed records. Other uncertain categories and unavailable historical decisions remain separate; no old source-coverage audit is implied.",
+  "complete_identity_review_claimed_for_all_records": false,
+  "current_batch_source_limited_follow_up_ids": [],
+  "current_batch_completed_source_scope_assessments": 3,
+  "counting_note": "Cumulative targets include recorded unresolved assessments; they are not a count of fully identified names. Explicit source-limited follow-up flags remain in affected records.",
+  "remaining_queue_recovery": {
+    "initial_inventory": {
+      "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+      "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+      "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+      "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+      "bytes": 441711,
+      "hash_scope": "Exact compressed CSV bytes.",
+      "rows": 5173
+    },
+    "eligible_filter": "classification != named_display",
+    "eligible_universe_count": 4065,
+    "eligible_universe_by_type": {
+      "river_group": 3455,
+      "lake": 610
+    },
+    "reviewed_index_targets": 45,
+    "all_reviewed_ids_in_eligible_universe": true,
+    "remaining_without_reconstructed_record": 4020,
+    "remaining_without_reconstructed_record_by_type": {
+      "river_group": 3439,
+      "lake": 581
+    },
+    "queue_order": "original_inventory_row_order",
+    "rebuild_script": "recover-remaining-queue.py",
+    "rebuild_inputs": "This complete cumulative index and the exact committed initial inventory. No local-only ledger is needed.",
+    "historical_never_reviewed_count_claimed": false,
+    "meaning": "Remaining denotes absent from fresh reconstructed records. It is not a count of historically never-researched targets; historical504 detailed decisions remain unavailable."
+  },
+  "automatic_application": false
+}

@@ -1,0 +1,157 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v2",
+  "batch": "r15",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three actual logical inventory lake features; not a count of newly approved scalar names.",
+  "counts": {
+    "supported_generalized_water_identity": 2,
+    "whole_polygon_scope_hold": 1
+  },
+  "pending_source_only_targets": 0,
+  "historical_name_lead_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "selection_count_note": "All three records are new actual-inventory investigations; no historical verdict or exact-ID lead is restored.",
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 152,
+  "lake_baseline_coordinate_count_including_closures": 152,
+  "position_counts_in_target_order": [
+    53,
+    44,
+    55
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108369",
+      "category": "lake",
+      "source_id": "1159108369",
+      "baseline_logical_fid": 3958,
+      "geometry_fids": [
+        15333
+      ],
+      "candidate_name": "Amisk Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "supported_generalized_water_identity",
+      "supported_name_scope": "The entire north-south polygon corresponds to Amisk Lake south of Creighton and beside Denare Beach. The northern tip and island-rich basin, east side, western indentation, southwest projection and southern lobes were compared. Windy Lake is separate southwest context. The generalized outline omits islands and compresses bays, without establishing exact shoreline or channel endpoints.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "limits": [
+        "One regional official cartographic publication supports this generalized identity. A second independent naming source and formal registry were not established.",
+        "Islands, fine bays, current shoreline and exact adjoining-channel transitions remain generalized. No geometry repair is proposed."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Amisk Lake"
+        ]
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159109845",
+      "category": "lake",
+      "source_id": "1159109845",
+      "baseline_logical_fid": 4072,
+      "geometry_fids": [
+        15447
+      ],
+      "candidate_name": "Cumberland Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete polygon corresponds to Cumberland Lake north of Cumberland House. The northern cap, northeast indentation, eastward middle projection, southeastern lobe, long southern edge and western side were compared. Separate McKenzie and Namew lakes provide surrounding context. Simplified west and south edges do not resolve intricate inflow channels or precise river-mouth boundaries.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "limits": [
+        "One regional official cartographic publication supports this generalized identity. A second independent naming source and formal registry were not established.",
+        "Western inflow channels and southern margins are compressed by the selected polygon. Fine partitions and present shoreline vertices were not established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Cumberland Lake"
+        ]
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159109803",
+      "category": "lake",
+      "source_id": "1159109803",
+      "baseline_logical_fid": 4069,
+      "geometry_fids": [
+        15444
+      ],
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "whole_polygon_scope_hold",
+      "supported_name_scope": "The entire branching polygon lies in mapped water at and north of Stanley Mission. The northwest lobe, north notch and spur, central indentations, northeast lobe and southern arm are visible. Otter Lake is printed west of much of the polygon and does not establish one name across those reaches. No complete-feature name or exhaustive constituent list is assigned. The full map is usable for this bounded scope assessment, which ends in a naming hold.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "limits": [
+        "Nearby Otter Lake and the Stanley Mission settlement are contextual labels, not assigned target names. No unsupported alternative is introduced.",
+        "Full map coverage and whole-ring inspection complete the bounded review while leaving naming scope unresolved. A uniform or compound identity and precise partition remain unverified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete branching feature, including northwestern and northeastern lobes, central connections and southern arm beside Stanley Mission.",
+        "follow_up_scope": "Resolve name coverage across every arm before any whole-feature naming or geometry change."
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "34b0147eebbe08aa1c2036b0b12b9b18ba173ad02609b37f839ccebc76261218",
+  "publication_contents": "Own factual evidence and review, exact identifier/coordinate/hash facts, three selected public-domain Natural Earth lake polygons and validators. Raw third-party documents, maps and crops are excluded.",
+  "previous_reconstruction_commit": "92e1143a98c5209958e4f4f546344e6abacb1301"
+}
