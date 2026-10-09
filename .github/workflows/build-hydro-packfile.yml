@@ -1,0 +1,46 @@
+name: Build immutable Hydro v0.13.2 two-file package
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/build-hydro-packfile.py'
+      - '.github/workflows/build-hydro-packfile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /tools/build-hydro-packfile.py
+            /assets/data/hydro/v0.13.0/
+            /assets/data/hydro/v0.13.1/
+            /assets/data/hydro/v0.13.2/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build container without re-encoding source fragments
+        run: |
+          python tools/build-hydro-packfile.py
+          python tools/build-hydro-packfile.py --check
+      - name: Commit only the two output files to the existing GIS branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- assets/data/hydro/v0.13.2/manifest.json assets/data/hydro/v0.13.2/hydro.bin
+          if git diff --cached --quiet; then
+            echo 'Two-file hydro package already matches deterministic builder'
+          else
+            git commit -m 'data(gis): produce v0.13.2 two-file lossless hydro package'
+            git push origin HEAD:refs/heads/work/gis
+          fi
