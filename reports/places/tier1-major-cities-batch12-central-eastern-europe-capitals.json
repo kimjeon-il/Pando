@@ -67,21 +67,6 @@
           "variantType": "historicalHungarianOfficialAndContemporaryExonym",
           "note": "19세기 관용·공식 헝가리어명",
           "sourceUrl": "https://www.slovensko.sk/sk/lokality/_a9a73232-f853-4d69-9b13-189650e28842"
-        },
-        {
-          "text": "Prešporok",
-          "language": "sk",
-          "usage": "historical",
-          "variantType": "pre1919SlovakForm",
-          "note": "현행명 이전 슬로바키아어명",
-          "sourceUrl": "https://www.slovensko.sk/sk/lokality/_a9a73232-f853-4d69-9b13-189650e28842"
-        },
-        {
-          "text": "Posonium",
-          "language": "la",
-          "usage": "historical",
-          "variantType": "historicalLatinName",
-          "sourceUrl": "https://www.slovensko.sk/sk/lokality/_a9a73232-f853-4d69-9b13-189650e28842"
         }
       ],
       "latitude": 48.14816,
