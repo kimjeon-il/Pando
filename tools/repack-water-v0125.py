@@ -186,14 +186,19 @@ def decode_v3_pack(raw: bytes, builder_module):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, default=ROOT / "assets" / "data" / "hydro" / "v0.12.4")
+    parser.add_argument("--source", type=Path, required=True, help="Restored archived v0.12.4 directory")
     parser.add_argument("--natural-earth-root", type=Path, default=ROOT / "assets" / "data" / "hydro")
-    parser.add_argument("--output", type=Path, default=ROOT / "assets" / "data" / "hydro" / "v0.12.5")
+    parser.add_argument("--output", type=Path, required=True, help="Rebuilt output directory outside this repository")
     args = parser.parse_args()
     module = load_builder_module()
     source = args.source.resolve()
     hydro_root = args.natural_earth_root.resolve()
     output = args.output.resolve()
+    source_root = (ROOT / "assets" / "data").resolve()
+    if output == ROOT.resolve() or ROOT.resolve() in output.parents:
+        parser.error("--output must point outside the project checkout (no legacy data reintroduction)")
+    if not (source / "manifest.json").is_file():
+        parser.error("--source must contain a restored v0.12.4 manifest; see restore-archival-hydro.py")
     old_manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
     packs = read_index(source / old_manifest["index"]["url"])
     shards = {row["id"]: (source / row["url"]).read_bytes() for row in old_manifest["shards"]}
