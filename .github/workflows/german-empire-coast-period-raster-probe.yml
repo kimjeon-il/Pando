@@ -53,6 +53,11 @@ jobs:
               assert not b["actualSurveyOrRevisionYearVerified"]
           print("PASS: source images only; historical delta UNVERIFIED.")
           PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Recalculate sourced CSS pixel samples from the working polygon
+        run: node --test tests/unit/historical-german-coastline-period-screen-samples.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
