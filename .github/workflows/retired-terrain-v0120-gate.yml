@@ -9,6 +9,9 @@ on:
       - '.github/workflows/retired-terrain-v0120-gate.yml'
       - 'docs/validation/terrain-v0120-retirement-evidence.json'
       - 'docs/validation/data-versioning-phase11.md'
+      - 'docs/data-versioning-progress.md'
+      - 'docs/data-url-retention-policy.md'
+      - 'assets/data/terrain/v0.12.0/**'
   workflow_dispatch:
 
 permissions:
