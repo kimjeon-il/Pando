@@ -1,0 +1,265 @@
+{
+  "schema": "hydro-name-reconstruction-source-evidence-v1",
+  "batch": "r09",
+  "created_at_utc": "2026-10-09T14:30:32.951272+00:00",
+  "target_aw_ids": [
+    "hydro-system:50737565",
+    "hydro-system:50756799"
+  ],
+  "sources": [
+    {
+      "evidence_id": "MOORE-MURRAY-BOM-AWRA2012",
+      "publication_id": "BOM-Australian-Water-Resources-Assessment-2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "agency_or_publisher": "Australian Government, Bureau of Meteorology",
+      "official_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "source_date": "2013",
+      "date_basis": "The report title year is 2012; copyright/publication year is 2013.",
+      "retrieval": {
+        "requested_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "started_at_utc": "2026-10-09T13:39:38.842251+00:00",
+        "http_status": 200,
+        "final_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "content_type": "application/pdf",
+        "bytes": 26172797,
+        "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+        "completed_at_utc": "2026-10-09T13:39:46.198340+00:00"
+      },
+      "hash_scope": "Complete original PDF response bytes, rechecked locally; not a text capture or map crop.",
+      "retrieved_again_this_batch": false,
+      "original_receipt_sha256": "4ea0da94c6a9e2007f26e93a6b6abff593338d49269b12759eb850f352849e5f",
+      "target_aw_ids": [
+        "hydro-system:50737565",
+        "hydro-system:50756799"
+      ],
+      "source_role": "Shared regional river-course and basin context; not the sole name authority.",
+      "locators": [
+        {
+          "pdf_page_one_based": 477,
+          "printed_page": "South West Coast chapter, 5",
+          "figure": "10.1",
+          "complete_map_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 499,
+          "printed_page": "South West Coast chapter, 27",
+          "figure": "10.22",
+          "complete_map_visually_inspected": true
+        }
+      ],
+      "own_factual_extraction": [
+        "The Southwest maps show the northern Moore-Hill drainage and the Murray River (W) basin near Mandurah, separately from the Swan-Coastal/Avon area. The basin label is regional context, not a name for each blue river line."
+      ],
+      "limits": [
+        "The low-resolution regional raster does not establish exact headwater transitions, every reach name or a surveyed estuary outlet. The two figures are one publication."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "published_material": "Own compact factual extraction, public source identifiers and hashes only."
+      }
+    },
+    {
+      "evidence_id": "WA-SLUI38-2005",
+      "publication_id": "WA-DoE-SLUI38-2005",
+      "title": "Stream salinity status and trends in south-west Western Australia",
+      "agency_or_publisher": "Western Australia Department of Environment",
+      "authors": [
+        "Xanthe Mayer",
+        "John Ruprecht",
+        "Mohammed Bari"
+      ],
+      "official_url": "https://www.wa.gov.au/system/files/2023-03/Stream-salinity-status-and-trends-in-south-west-WA.pdf",
+      "source_date": "2005-01",
+      "date_basis": "Title page, Report No. SLUI 38, January 2005.",
+      "retrieval": {
+        "requested_url": "https://www.wa.gov.au/system/files/2023-03/Stream-salinity-status-and-trends-in-south-west-WA.pdf",
+        "started_at_utc": "2026-10-09T14:25:45.505268+00:00",
+        "http_status": 200,
+        "final_url": "https://www.wa.gov.au/system/files/2023-03/Stream-salinity-status-and-trends-in-south-west-WA.pdf",
+        "content_type": "application/pdf",
+        "bytes": 4634645,
+        "sha256": "409f638c71046d932f916c38f0c4d7940953f9a8bcdd44f450af18a21b6e1d95",
+        "completed_at_utc": "2026-10-09T14:25:51.366760+00:00"
+      },
+      "hash_scope": "Complete original PDF response bytes.",
+      "target_aw_ids": [
+        "hydro-system:50737565",
+        "hydro-system:50756799"
+      ],
+      "source_role": "Direct official river maps and named confluence/course descriptions, independently created from the later BOM assessment.",
+      "locators": [
+        {
+          "pdf_page_one_based": 55,
+          "printed_page": "45",
+          "section": "3.3.9 Murray River Basin (614)",
+          "page_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 58,
+          "printed_page": "48",
+          "figure": "3.27",
+          "complete_map_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 67,
+          "printed_page": "57",
+          "section": "3.5.1 Moore-Hill Rivers Basin (617)",
+          "page_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 73,
+          "printed_page": "63",
+          "figure": "3.37",
+          "complete_map_visually_inspected": true
+        }
+      ],
+      "own_factual_extraction": [
+        "The Moore description distinguishes Marchagee, Coonderoo and Moore River North. The North and East branches unite before the Moore continues via Regans Ford to Guilderton. Gingin Brook joins at the estuary head.",
+        "The Murray description identifies the Hotham-Williams confluence south of Boddington as the formation of the Murray, followed by the Darling Range and coastal plain. The river reaches the ocean via Peel Inlet near Mandurah.",
+        "Figure 3.27 labels the Hotham, Williams and Murray courses separately; Figure 3.37 labels the Moore corridor to Guilderton. Their complete mapped courses provide regional comparison with the selected paths."
+      ],
+      "limits": [
+        "The maps are regional and lack a coordinate-resolved name-boundary crosswalk to the selected source reaches. Shared underlying geographic data between official publications are possible; distinct publications do not imply independent surveys."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "published_material": "Own compact factual extraction, public source identifiers and hashes only."
+      }
+    },
+    {
+      "evidence_id": "MOORE-DWER-HEALTHYRIVERS",
+      "publication_id": "DWER-HealthyRivers-Moore-catchment",
+      "title": "Moore River - Healthy Rivers",
+      "agency_or_publisher": "Western Australia Department of Water and Environmental Regulation",
+      "official_url": "https://rivers.dwer.wa.gov.au/catchment/moore-river/",
+      "source_date": null,
+      "date_basis": "No original publication or last-update date established from the acquired page.",
+      "retrieval": {
+        "requested_url": "https://rivers.dwer.wa.gov.au/catchment/moore-river/",
+        "started_at_utc": "2026-10-09T14:24:07.002341+00:00",
+        "http_status": 200,
+        "final_url": "https://rivers.dwer.wa.gov.au/catchment/moore-river/",
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 132186,
+        "sha256": "3a2f1ca45c5e828b068b4a1c292b27f17f0255b3c4b29cdbf99a3c27e7cb4ea8",
+        "completed_at_utc": "2026-10-09T14:24:16.224290+00:00"
+      },
+      "hash_scope": "Complete original HTML response bytes.",
+      "target_aw_ids": [
+        "hydro-system:50737565"
+      ],
+      "source_role": "Official English usage and explicit separate named monitoring sites.",
+      "locators": [
+        {
+          "section": "Moore River; Sites",
+          "acquired_page_text_inspected": true,
+          "interactive_map_inspected": false
+        }
+      ],
+      "own_factual_extraction": [
+        "The monitoring list separately uses Moore River and Moore River North Branch, alongside Gingin Brook, Lennard Brook and other tributaries. Moore sites include Mogumber West Nature Reserve, Regans Ford, Waterville Road and Indian Ocean Drive."
+      ],
+      "limits": [
+        "The page is used for inspected text only. Its interactive map was not loaded or treated as inspected cartographic evidence. Site names are not a complete reach-name inventory."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "published_material": "Own compact factual extraction, public source identifiers and hashes only."
+      }
+    },
+    {
+      "evidence_id": "MURRAY-DWER-HEALTHYRIVERS",
+      "publication_id": "DWER-HealthyRivers-Murray-basin",
+      "title": "Murray River - Healthy Rivers",
+      "agency_or_publisher": "Western Australia Department of Water and Environmental Regulation",
+      "official_url": "https://rivers.dwer.wa.gov.au/basin/murray-river/",
+      "source_date": null,
+      "date_basis": "No original publication or last-update date established from the acquired page.",
+      "retrieval": {
+        "requested_url": "https://rivers.dwer.wa.gov.au/basin/murray-river/",
+        "started_at_utc": "2026-10-09T14:24:16.224746+00:00",
+        "http_status": 200,
+        "final_url": "https://rivers.dwer.wa.gov.au/basin/murray-river/",
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 129061,
+        "sha256": "165dc761ecf60bbf0217d4bb1550a9ab2f0198af37001b0bafda6b23839a7065",
+        "completed_at_utc": "2026-10-09T14:24:21.270226+00:00"
+      },
+      "hash_scope": "Complete original HTML response bytes.",
+      "target_aw_ids": [
+        "hydro-system:50756799"
+      ],
+      "source_role": "Official English usage, western-Australian location, tributary distinction and estuary relation.",
+      "locators": [
+        {
+          "section": "Murray River basin description",
+          "acquired_page_text_inspected": true,
+          "interactive_map_inspected": false
+        }
+      ],
+      "own_factual_extraction": [
+        "The profile places the Hotham headwaters near Narrogin and Williams headwaters between Williams and Narrogin. It describes the Murray through the Darling Range to Pinjarra, joined downstream by Dandalup, and ending in the Peel-Harvey Estuary near Mandurah."
+      ],
+      "limits": [
+        "The basin contains several named rivers. The profile does not name every selected part or justify calling the estuary and ocean connector Murray River."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "published_material": "Own compact factual extraction, public source identifiers and hashes only."
+      }
+    },
+    {
+      "evidence_id": "DWER-PEEL-HARVEY2021-PAGE",
+      "publication_id": "DWER-Peel-Harvey-hydrological-modelling-2021-landing",
+      "title": "Hydrological and nutrient modelling of the Peel-Harvey estuary catchment 2021",
+      "agency_or_publisher": "Western Australia Department of Water and Environmental Regulation",
+      "official_url": "https://www.wa.gov.au/government/publications/hydrological-and-nutrient-modelling-of-the-peel-harvey-estuary-catchment-2021",
+      "source_date": "2021-08-01",
+      "last_updated": "2023-06-09",
+      "date_basis": "Dates displayed in the acquired landing page.",
+      "retrieval": {
+        "requested_url": "https://www.wa.gov.au/government/publications/hydrological-and-nutrient-modelling-of-the-peel-harvey-estuary-catchment-2021",
+        "started_at_utc": "2026-10-09T14:27:11.938931+00:00",
+        "http_status": 200,
+        "final_url": "https://www.wa.gov.au/government/publications/hydrological-and-nutrient-modelling-of-the-peel-harvey-estuary-catchment-2021",
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 80404,
+        "sha256": "cc5463b0f9294e06983ac6b11dde1a5f37c1c05c9eca0445eee12ab2838e8c6c",
+        "completed_at_utc": "2026-10-09T14:27:17.254285+00:00"
+      },
+      "hash_scope": "Complete original landing-page HTML response bytes; not the linked technical-report PDF.",
+      "target_aw_ids": [
+        "hydro-system:50756799"
+      ],
+      "source_role": "Explicit separation of estuarine basins, river reaches and ocean channels.",
+      "locators": [
+        {
+          "section": "Opening description",
+          "acquired_page_text_inspected": true
+        }
+      ],
+      "own_factual_extraction": [
+        "The estuary comprises Peel Inlet and Harvey Estuary and includes estuarine reaches of the Murray, Serpentine and Harvey rivers. Mandurah Channel and Dawesville Cut link this estuarine complex to the Indian Ocean."
+      ],
+      "limits": [
+        "The landing page was acquired; the linked 12.46 MB report was not downloaded or inspected. It establishes naming distinctions, not an exact baseline-fragment boundary."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "published_material": "Own compact factual extraction, public source identifiers and hashes only."
+      }
+    }
+  ],
+  "distinct_supporting_publications_total": 5,
+  "shared_publications_counted_once": true,
+  "cached_inventory2014_role": "Consulted as background only; management-area labels are excluded from direct target-name evidence.",
+  "new_acquisition_count": 4,
+  "new_acquisitions_complete": true,
+  "raw_originals_html_or_maps_published": false,
+  "automatic_application": false
+}

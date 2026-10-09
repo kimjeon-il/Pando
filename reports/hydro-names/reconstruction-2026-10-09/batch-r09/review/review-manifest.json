@@ -1,0 +1,48 @@
+{
+  "schema": "hydro-independent-review-manifest-v2",
+  "scope_aw_ids": [
+    "hydro-system:50737565",
+    "hydro-system:50756799",
+    "hydro-system:50782475"
+  ],
+  "files": [
+    {
+      "file": "README.md",
+      "bytes": 6009,
+      "sha256": "2f0e88772a9aac0d7027f09e8b74167b4778e36b6a48e835835981df58b49517"
+    },
+    {
+      "file": "frozen-input-pins.json",
+      "bytes": 16547,
+      "sha256": "57f7a8bae43afaed6c434c834a03764c0b266a299f2e05685ccf0f78a552da9c"
+    },
+    {
+      "file": "independent-review.json",
+      "bytes": 8942,
+      "sha256": "ba2186133a1a4b49228582e7cfd7e5b19b3dbb7efcc5d5325e25e02e0b660c61"
+    },
+    {
+      "file": "review-validation.json",
+      "bytes": 10914,
+      "sha256": "5ab6c900670ae748cfe0128e2dd4a5c3f59e4e99766c742ca937a45b924e4ca5"
+    },
+    {
+      "file": "source-observations.json",
+      "bytes": 11307,
+      "sha256": "d59cebc7fa72c2e3864a02ff1e02b338aee5a654caf4153bdb55546f9fcc199c"
+    },
+    {
+      "file": "test-independent-review.py",
+      "bytes": 7052,
+      "sha256": "9ccef0b1a8e362ac416bc8b727ea819191f8505c65870f03720539996002435c"
+    },
+    {
+      "file": "validate-independent-review.py",
+      "bytes": 29469,
+      "sha256": "521bd29001f012fc5313f09c850969e51e2362d462a0121de52151f7d37c3b1c"
+    }
+  ],
+  "manifest_excludes_itself": true,
+  "hash_scope": "Exact distributed file bytes",
+  "automatic_application": false
+}

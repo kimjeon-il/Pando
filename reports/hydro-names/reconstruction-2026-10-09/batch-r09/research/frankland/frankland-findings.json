@@ -1,0 +1,118 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r09",
+  "created_at_utc": "2026-10-09T14:29:31.610625+00:00",
+  "target": {
+    "aw_id": "hydro-system:50782475",
+    "system_id": "50782475",
+    "logical_fid": 2136,
+    "geometry_fids": [
+      7099
+    ],
+    "historical_baseline_bbox": [
+      116.727083,
+      -35.013127,
+      117.652083,
+      -33.825
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Gordon-Frankland River",
+    "candidate_name": "Gordon-Frankland River",
+    "supported_name_scope": "Representative combined-mainstem river-system identity only; not a uniform name for every part",
+    "category": "representative_combined_system_support",
+    "name_original": "Gordon-Frankland River",
+    "name_original_language": "en",
+    "name_en": "Gordon-Frankland River",
+    "name_ko": null,
+    "component_river_names": [
+      "Gordon River",
+      "Frankland River"
+    ],
+    "status": "Supported representative combined-system identity; a uniform Frankland River name for the entire group is not supported.",
+    "identity_confidence": "High for representative system and broad course association; exact headwater and reach-name boundaries unresolved.",
+    "scope": "Existing selected baseline group, not a complete basin inventory or a uniform label for all parts.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming evidence acquired.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "../../geometry-reference.json",
+    "fragment_facts_file": "../../selected-river-metadata.json",
+    "ordered_source_ids_file": "../../source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 1,
+    "all_line_parts_reviewed": 66,
+    "all_coordinate_positions_reviewed": 412,
+    "distinct_source_reach_ids": 66,
+    "canonical_fragment_geometry_sha256": "26ecd54dfa5a748584b725d1053602bfef4804db5f3cd78cd0c3c24de1a9a5e4",
+    "ordered_source_id_csv_sha256": "eb7f762b370b248d17512bf7382b5a6e91b491a02b115843a65cf9f61c059c85",
+    "canonical_ordered_group_geometry_sha256": "42e354f667a1c472db3f61064de902a65a35cc996a4fbb19f992249a467905cd",
+    "source_ids_sha256": "786644d7595ec1356c7084a017785bb11d5362238b3ade221b6f745dbfab84a2",
+    "fragment_and_all_part_geometry_hashes_independently_recomputed": true,
+    "source_id_hashes_independently_recomputed": true,
+    "discontinuous_adjacent_part_joins_detected": 0,
+    "complete_geometry_published": false,
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "All decoded parts were included in the complete-route view and count, bounds, continuity and hash checks. Matching counts alone do not verify the original source-to-rendered-part crosswalk."
+  },
+  "spatial_identity_check": {
+    "method": "Side-by-side visual review of all decoded baseline parts against complete regional, catchment, surveyed-section and estuary map views. No georegistered overlay or exact line fit.",
+    "evidence_ids": [
+      "FRANKLAND-BOM-AWRA2012",
+      "FRANKLAND-WA-WRM44",
+      "FRANKLAND-DBCA-MARINE-PARK"
+    ],
+    "baseline_role": "mainstem",
+    "baseline_role_is_not_a_name_authority": true,
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false,
+    "per_reach_name_assignment_cleared": false,
+    "regional_course_comparison": "The full baseline starts near 117.502,-33.825, bends southeast then west around latitude -34.2, and continues southwest before turning toward the coastal estuary. The distinctive middle bend agrees visually with the Gordon-labelled section in WRM44 Figure 6.3; the wider route is consistent with the regional and catchment maps.",
+    "headwater_limit": "The northern starting extension is outside the detailed surveyed-section map; its exact local name is unresolved. Regional system membership does not assign a name to every headwater.",
+    "name_transition_limit": "Gordon and Frankland are distinct component names. The documented transition north of Muir Highway has no verified selected-part or source-reach boundary.",
+    "coastal_limit": "Estuary context supports association with Nornalup Inlet; neither the inlet nor a terminal connector inherits the river name. Exact river/inlet and inlet/ocean boundaries are unverified."
+  },
+  "outlet_scope": {
+    "regional_receiving_water": "Nornalup Inlet, within the Walpole-Nornalup estuarine system",
+    "baseline_terminal_class": "sea",
+    "source_endpoint_lonlat": [
+      116.75624999999982,
+      -34.99791666666686
+    ],
+    "render_endpoint_before_quantization_lonlat": [
+      116.75301634227253,
+      -35.01312688900203
+    ],
+    "decoded_render_endpoint_lonlat": [
+      116.753016,
+      -35.013127
+    ],
+    "source_endpoint_equals_render_endpoint": false,
+    "endpoint_interpretation": "The retained source endpoint and rendered endpoint are distinct historical-baseline facts. Sea-terminal metadata does not establish a direct open-ocean mouth or the name of the terminal connector.",
+    "surveyed_outlet_verified": false,
+    "exact_river_inlet_transition_verified": false,
+    "coastal_connector_name_application": false
+  },
+  "evidence_package": {
+    "source_evidence_file": "source-evidence.json",
+    "source_evidence_sha256": "aa1f56a948832356e1bcf359e5883edf44e2d83ce268bcd9b887b9c2b256720d",
+    "distinct_supporting_publications_for_this_target": 3,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Representative combined-system identity is supported, while whole-group scalar and per-reach naming remain false.",
+    "Exact headwater, Gordon/Frankland transition and river/inlet boundaries require finer authoritative evidence and a verified reach crosswalk.",
+    "Current deployment and original continental HydroRIVERS coordinate equality remain unverified."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

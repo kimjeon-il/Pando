@@ -1,0 +1,29 @@
+{
+  "schema": "frozen-selected-river-geometry-component-v2",
+  "batch": "r09",
+  "scope_aw_ids": [
+    "hydro-system:50737565",
+    "hydro-system:50756799",
+    "hydro-system:50782475"
+  ],
+  "frozen_at_utc": "2026-10-09T14:28:06Z",
+  "full_selected_river_coordinates_in_public_package": false,
+  "binary_packs_or_worker_bodies_in_public_package": false,
+  "new_external_requests": 0,
+  "files": {
+    "geometry-support.py": "5427afc9c6d1ed13947f6ca08b3fe7532dd7884717d44f691b50d0d5f479bd12",
+    "selected-river-metadata.json": "8451a5a6bee4839551fe14e204301670bb9ab9f6685f1b2fc163744240092734",
+    "source-reach-manifest.json": "86145f5e4a62ee62dbb8d4fd85f6d172ed0f25870d8bb87496bccccd6afbcc9b",
+    "selected-inventory-records.json": "cd3c32d3a31d60a52a3e477cad34112ea3dd508c6aded9d3956e78123f84949c",
+    "geometry-duplicate-check.json": "a927e4d4bde4ebf606b46fc3caf5b3450955bdb3e9a45c2598ef5c7836ff02c1",
+    "selected-pack-receipts.json": "e28d9f5e6817cf68dda28a777dd21ba2a6afa3cfea8cbd136e8ec9a281e72fed",
+    "extract-baseline-geometries.mjs": "a8a9deb652bd54d3c289d9546f6c9795bfd2ef28e8ea6f1e480a446f85459699",
+    "geometry-publication-rights.json": "040ab6f3c8df946469c7215f127fdcc3f10c9c92c9d27f1ea4e55b81cf1368e6",
+    "geometry-request-receipts.json": "3cad90b967e330f4c903381b89133a3012c59c5be4d07d305514069a026bbef4",
+    "geometry-README.md": "5683f44b63ba133249a420017828ba889681b919c0274b00bf20feda510cc5ff",
+    "geometry-reference.json": "fb6e226a64c4a39ab3d686a20d890d507f6b49c2a22a366eb5a1698f4795a053",
+    "validate-geometry-reference.py": "f6249d8aca3b07d23c00ff06d4b0c080b69229e3ef815fdc468ddee378a70689",
+    "test-geometry-reference.py": "feb5a80076ac0abe13f79aab93054c77177c7d9c4ebdafcfab2c20aebdaf83ba",
+    "geometry-validation.json": "1fe228e91b9f0ed622599f556365d9718f235c005c253a601e45bd28156b2429"
+  }
+}

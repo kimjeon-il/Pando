@@ -1,0 +1,172 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r09",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r09",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "d6a86e96d5ec746d9497ecafa7b597244e195e4b",
+  "scope": "Three bounded new actual-inventory representative river identities. Upstream branch names, Western Australian Murray estuarine continuation and Gordon-Frankland component naming remain explicit. Complete cumulative index and pinned initial inventory recover the fresh-reconstruction remainder, not the unavailable historical504 ledger.",
+  "automatic_application": false,
+  "product_changes": false,
+  "full_river_coordinates_included": false,
+  "selected_public_domain_lake_features": 0,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 38,
+  "bytes_excluding_self": 350404,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 5263,
+      "sha256": "a71667395d4a0a6c8a85b9caa53eb3545fd495cb8fc5dbe8f21ed764054e1778"
+    },
+    "extract-baseline-geometries.mjs": {
+      "bytes": 5575,
+      "sha256": "a8a9deb652bd54d3c289d9546f6c9795bfd2ef28e8ea6f1e480a446f85459699"
+    },
+    "geometry-README.md": {
+      "bytes": 7505,
+      "sha256": "5683f44b63ba133249a420017828ba889681b919c0274b00bf20feda510cc5ff"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1841,
+      "sha256": "dfb4ce3d626885f44992118fdf1e9d81cd5e762e98472cc1276e1a852e822fbf"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 1387,
+      "sha256": "a927e4d4bde4ebf606b46fc3caf5b3450955bdb3e9a45c2598ef5c7836ff02c1"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 2319,
+      "sha256": "040ab6f3c8df946469c7215f127fdcc3f10c9c92c9d27f1ea4e55b81cf1368e6"
+    },
+    "geometry-reference.json": {
+      "bytes": 15139,
+      "sha256": "fb6e226a64c4a39ab3d686a20d890d507f6b49c2a22a366eb5a1698f4795a053"
+    },
+    "geometry-request-receipts.json": {
+      "bytes": 5066,
+      "sha256": "3cad90b967e330f4c903381b89133a3012c59c5be4d07d305514069a026bbef4"
+    },
+    "geometry-support.py": {
+      "bytes": 2259,
+      "sha256": "5427afc9c6d1ed13947f6ca08b3fe7532dd7884717d44f691b50d0d5f479bd12"
+    },
+    "geometry-validation.json": {
+      "bytes": 8589,
+      "sha256": "1fe228e91b9f0ed622599f556365d9718f235c005c253a601e45bd28156b2429"
+    },
+    "queue-recovery-validation.json": {
+      "bytes": 1580,
+      "sha256": "deb66421dea2b7a1509d2631c3ea1711310b89ec3ca1110cee661f583ef3885b"
+    },
+    "reconstruction-index.json": {
+      "bytes": 15809,
+      "sha256": "69d489865765862f62e701c447af6368731ab78edbffb4502a2395a0d3f37acd"
+    },
+    "recover-remaining-queue.py": {
+      "bytes": 3121,
+      "sha256": "2d2d85529f6550e0ad79a0be1596bb5701dbeab2333d14257a8ae42e79fa1d61"
+    },
+    "research/frankland/frankland-findings.json": {
+      "bytes": 6432,
+      "sha256": "f6cb197f942ba170df73a4c04ac2ebca20e80319c596029987c19f58551d9ed1"
+    },
+    "research/frankland/frankland-research-manifest.json": {
+      "bytes": 832,
+      "sha256": "9245c2d3f58325a0d55e8fbefde85a357b6030fbb56828ba9e170c2a1af0049c"
+    },
+    "research/frankland/source-evidence.json": {
+      "bytes": 10012,
+      "sha256": "aa1f56a948832356e1bcf359e5883edf44e2d83ce268bcd9b887b9c2b256720d"
+    },
+    "research/moore-murray/moore-findings.json": {
+      "bytes": 5608,
+      "sha256": "1f05e0024c81e8439b8a3fc8a13f9a98366b11b1513450cf7f2b5a9eaaec3e02"
+    },
+    "research/moore-murray/murray-findings.json": {
+      "bytes": 6956,
+      "sha256": "d5e93f84d71203092aea5f36119e6fda357d2ca9e63af2001e5469098e21cdd3"
+    },
+    "research/moore-murray/research-manifest.json": {
+      "bytes": 1177,
+      "sha256": "4ff1429401e51fd57be0e535801464ac47c3c35a9777006d12f9df8778fcc49d"
+    },
+    "research/moore-murray/source-evidence.json": {
+      "bytes": 13450,
+      "sha256": "dbbf7c3fff9b61e19ea8da77ee34c0b02683e73ea541e5ef46597195bd14490b"
+    },
+    "results.json": {
+      "bytes": 7495,
+      "sha256": "34fe90681b160b1c065f8d3a8513c9042fbbcfe5246b88b1a4e1320d45bfb746"
+    },
+    "review/README.md": {
+      "bytes": 6009,
+      "sha256": "2f0e88772a9aac0d7027f09e8b74167b4778e36b6a48e835835981df58b49517"
+    },
+    "review/frozen-input-pins.json": {
+      "bytes": 16547,
+      "sha256": "57f7a8bae43afaed6c434c834a03764c0b266a299f2e05685ccf0f78a552da9c"
+    },
+    "review/independent-review.json": {
+      "bytes": 8942,
+      "sha256": "ba2186133a1a4b49228582e7cfd7e5b19b3dbb7efcc5d5325e25e02e0b660c61"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1406,
+      "sha256": "948515f2d9f766ac31b967b0cdca95e489926f24765f5cdd32885c4858445b77"
+    },
+    "review/review-validation.json": {
+      "bytes": 10914,
+      "sha256": "5ab6c900670ae748cfe0128e2dd4a5c3f59e4e99766c742ca937a45b924e4ca5"
+    },
+    "review/source-observations.json": {
+      "bytes": 11307,
+      "sha256": "d59cebc7fa72c2e3864a02ff1e02b338aee5a654caf4153bdb55546f9fcc199c"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 7052,
+      "sha256": "9ccef0b1a8e362ac416bc8b727ea819191f8505c65870f03720539996002435c"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 29469,
+      "sha256": "521bd29001f012fc5313f09c850969e51e2362d462a0121de52151f7d37c3b1c"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 4729,
+      "sha256": "cd3c32d3a31d60a52a3e477cad34112ea3dd508c6aded9d3956e78123f84949c"
+    },
+    "selected-pack-receipts.json": {
+      "bytes": 675,
+      "sha256": "e28d9f5e6817cf68dda28a777dd21ba2a6afa3cfea8cbd136e8ec9a281e72fed"
+    },
+    "selected-river-metadata.json": {
+      "bytes": 73567,
+      "sha256": "8451a5a6bee4839551fe14e204301670bb9ab9f6685f1b2fc163744240092734"
+    },
+    "source-publication-rights.json": {
+      "bytes": 921,
+      "sha256": "ca6a0b5516aeefb805b60e6612fcda4f40c408301ec86798f59e40b8faa157de"
+    },
+    "source-reach-manifest.json": {
+      "bytes": 13575,
+      "sha256": "86145f5e4a62ee62dbb8d4fd85f6d172ed0f25870d8bb87496bccccd6afbcc9b"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 7208,
+      "sha256": "feb5a80076ac0abe13f79aab93054c77177c7d9c4ebdafcfab2c20aebdaf83ba"
+    },
+    "test-remaining-queue.py": {
+      "bytes": 2820,
+      "sha256": "6f99857d5d9890a2376807b4e3d4057f2d2b23e2b71222405ba25e2fcbfb4757"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 20620,
+      "sha256": "f6249d8aca3b07d23c00ff06d4b0c080b69229e3ef815fdc468ddee378a70689"
+    },
+    "validate-package.py": {
+      "bytes": 7228,
+      "sha256": "9d439b07b29a34540bb9c977346d0ed3f149f6451f38147653114418cc58f3cb"
+    }
+  }
+}

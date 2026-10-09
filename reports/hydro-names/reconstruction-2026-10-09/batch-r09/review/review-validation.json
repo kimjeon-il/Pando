@@ -1,0 +1,332 @@
+{
+  "schema": "hydro-independent-river-review-validation-v2",
+  "validated_at_utc": "2026-10-09T14:37:13.013822+00:00",
+  "status": "passed",
+  "durable_only": {
+    "status": "passed",
+    "mode": "durable_only",
+    "scope_aw_ids": [
+      "hydro-system:50737565",
+      "hydro-system:50756799",
+      "hydro-system:50782475"
+    ],
+    "public_input_files_checked": 22,
+    "independent_binary_decoder_replayed": false,
+    "omitted_full_coordinates_rechecked": false,
+    "original_inventory_rechecked": false,
+    "original_prior_index_rechecked": false,
+    "local_evidence_assets_rehashed": 0,
+    "local_evidence_assets_rehashed_by_kind": {},
+    "independent_geometry_checks": [],
+    "independent_queue_check": null,
+    "source_provenance_keys_checked": [
+      "BOM-AWRA2012",
+      "WA-SLUI38-2005",
+      "MOORE-DWER-HEALTHYRIVERS",
+      "MURRAY-DWER-HEALTHYRIVERS",
+      "DWER-PEEL-HARVEY2021-PAGE",
+      "FRANKLAND-WA-WRM44",
+      "FRANKLAND-DBCA-MARINE-PARK"
+    ],
+    "visual_inspection_repeated": false,
+    "original_hydrorivers_coordinate_equality_verified": false,
+    "network_requests": 0,
+    "automatic_application": false,
+    "geometry_component": {
+      "status": "passed",
+      "scope_aw_ids": [
+        "hydro-system:50737565",
+        "hydro-system:50756799",
+        "hydro-system:50782475"
+      ],
+      "group_count": 3,
+      "fragment_count": 4,
+      "fragment_counts_by_group": [
+        1,
+        2,
+        1
+      ],
+      "source_reach_counts": [
+        103,
+        71,
+        66
+      ],
+      "rendered_part_counts": [
+        103,
+        71,
+        66
+      ],
+      "rendered_coordinate_counts": [
+        561,
+        423,
+        412
+      ],
+      "rendered_part_counts_by_fragment": [
+        103,
+        70,
+        1,
+        66
+      ],
+      "rendered_coordinate_counts_by_fragment": [
+        561,
+        418,
+        5,
+        412
+      ],
+      "complete_unpublished_coordinates_rechecked": false,
+      "production_decoder_replayed": false,
+      "actual_metadata_name_states_and_ordered_source_ids_rechecked": true,
+      "prior24_duplicate_count": 0,
+      "original_selected_inventory_rows_rechecked": false,
+      "original_previous_index_rechecked": false,
+      "frozen_component_hashes_rechecked": true,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limitation": "Published factual tables, counts and independent pins are checked; unpublished full coordinates cannot be independently recomputed without the verified input cache."
+    },
+    "durable_only_limitation": "Public facts and hashes are replayed. Omitted full coordinates and original publications are not independently reopened without local inputs; image hashing does not repeat visual review."
+  },
+  "full_local": {
+    "status": "passed",
+    "mode": "full_local",
+    "scope_aw_ids": [
+      "hydro-system:50737565",
+      "hydro-system:50756799",
+      "hydro-system:50782475"
+    ],
+    "public_input_files_checked": 22,
+    "independent_binary_decoder_replayed": true,
+    "omitted_full_coordinates_rechecked": true,
+    "original_inventory_rechecked": true,
+    "original_prior_index_rechecked": true,
+    "local_evidence_assets_rehashed": 34,
+    "local_evidence_assets_rehashed_by_kind": {
+      "original_source_body": 7,
+      "acquisition_receipt": 7,
+      "local_text_extraction": 7,
+      "independently_viewed_map_or_text_derivative": 12,
+      "complete_path_comparison_view": 1
+    },
+    "independent_geometry_checks": [
+      {
+        "aw_id": "hydro-system:50737565",
+        "fid": 7039,
+        "part_count": 103,
+        "coordinate_count": 561,
+        "all_ordered_coordinates_metadata_and_source_ids_checked": true,
+        "internal_part_joins_checked": true
+      },
+      {
+        "aw_id": "hydro-system:50756799",
+        "fid": 7072,
+        "part_count": 70,
+        "coordinate_count": 418,
+        "all_ordered_coordinates_metadata_and_source_ids_checked": true,
+        "internal_part_joins_checked": true
+      },
+      {
+        "aw_id": "hydro-system:50756799",
+        "fid": 7073,
+        "part_count": 1,
+        "coordinate_count": 5,
+        "all_ordered_coordinates_metadata_and_source_ids_checked": true,
+        "internal_part_joins_checked": true
+      },
+      {
+        "aw_id": "hydro-system:50782475",
+        "fid": 7099,
+        "part_count": 66,
+        "coordinate_count": 412,
+        "all_ordered_coordinates_metadata_and_source_ids_checked": true,
+        "internal_part_joins_checked": true
+      }
+    ],
+    "independent_queue_check": {
+      "initial_inventory_rows": 5173,
+      "eligible_targets": 4065,
+      "distinct_reviewed_targets": 27,
+      "remaining_fresh_index_targets": 4038,
+      "remaining_river_groups": 3442,
+      "remaining_lakes": 596,
+      "historical_never_reviewed_claimed": false
+    },
+    "source_provenance_keys_checked": [
+      "BOM-AWRA2012",
+      "WA-SLUI38-2005",
+      "MOORE-DWER-HEALTHYRIVERS",
+      "MURRAY-DWER-HEALTHYRIVERS",
+      "DWER-PEEL-HARVEY2021-PAGE",
+      "FRANKLAND-WA-WRM44",
+      "FRANKLAND-DBCA-MARINE-PARK"
+    ],
+    "visual_inspection_repeated": false,
+    "original_hydrorivers_coordinate_equality_verified": false,
+    "network_requests": 0,
+    "automatic_application": false,
+    "geometry_component": {
+      "status": "passed",
+      "scope_aw_ids": [
+        "hydro-system:50737565",
+        "hydro-system:50756799",
+        "hydro-system:50782475"
+      ],
+      "group_count": 3,
+      "fragment_count": 4,
+      "fragment_counts_by_group": [
+        1,
+        2,
+        1
+      ],
+      "source_reach_counts": [
+        103,
+        71,
+        66
+      ],
+      "rendered_part_counts": [
+        103,
+        71,
+        66
+      ],
+      "rendered_coordinate_counts": [
+        561,
+        423,
+        412
+      ],
+      "rendered_part_counts_by_fragment": [
+        103,
+        70,
+        1,
+        66
+      ],
+      "rendered_coordinate_counts_by_fragment": [
+        561,
+        418,
+        5,
+        412
+      ],
+      "complete_unpublished_coordinates_rechecked": true,
+      "production_decoder_replayed": true,
+      "actual_metadata_name_states_and_ordered_source_ids_rechecked": true,
+      "prior24_duplicate_count": 0,
+      "original_selected_inventory_rows_rechecked": true,
+      "original_previous_index_rechecked": true,
+      "frozen_component_hashes_rechecked": true,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limitation": "Published factual tables, counts and independent pins are checked; unpublished full coordinates cannot be independently recomputed without the verified input cache."
+    },
+    "durable_only_limitation": "Public facts and hashes are replayed. Omitted full coordinates and original publications are not independently reopened without local inputs; image hashing does not repeat visual review."
+  },
+  "durable_tests": {
+    "status": "passed",
+    "scope_aw_ids": [
+      "hydro-system:50737565",
+      "hydro-system:50756799",
+      "hydro-system:50782475"
+    ],
+    "durable_only_scope_truthful": true,
+    "corrupt_fixtures_rejected": 27,
+    "fixtures": [
+      "automatic_application",
+      "whole_group_clearance",
+      "per_reach_clearance",
+      "unsupported_korean",
+      "wrong_identifier_domain",
+      "target_order_reversed",
+      "historical_verdict_restoration",
+      "false_original_coordinate_equality",
+      "unsupported_registry_claim",
+      "tributary_distinctions_erased",
+      "source_reach_name_boundary_claim",
+      "unsupported_continuous_flow",
+      "murray_darling_confusion",
+      "murray_short_role_reinterpreted",
+      "murray_short_fragment_omitted",
+      "uniform_frankland_name",
+      "invented_system_suffix",
+      "connector_name_inheritance",
+      "cumulative_count_inflated",
+      "prior_duplicate_added",
+      "body_hash_replaced_by_derivative",
+      "printed_date_replaced_by_upload_year",
+      "reused_acquisition_time_overwritten",
+      "whole_path_geometry_hash_changed",
+      "text_page_counted_as_map",
+      "cached_source_falsely_reacquired",
+      "frozen_source_bytes_changed"
+    ],
+    "local_geometry_fixtures_run": false,
+    "local_original_byte_fixture_run": false,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "full_local_tests": {
+    "status": "passed",
+    "scope_aw_ids": [
+      "hydro-system:50737565",
+      "hydro-system:50756799",
+      "hydro-system:50782475"
+    ],
+    "durable_only_scope_truthful": true,
+    "corrupt_fixtures_rejected": 34,
+    "fixtures": [
+      "automatic_application",
+      "whole_group_clearance",
+      "per_reach_clearance",
+      "unsupported_korean",
+      "wrong_identifier_domain",
+      "target_order_reversed",
+      "historical_verdict_restoration",
+      "false_original_coordinate_equality",
+      "unsupported_registry_claim",
+      "tributary_distinctions_erased",
+      "source_reach_name_boundary_claim",
+      "unsupported_continuous_flow",
+      "murray_darling_confusion",
+      "murray_short_role_reinterpreted",
+      "murray_short_fragment_omitted",
+      "uniform_frankland_name",
+      "invented_system_suffix",
+      "connector_name_inheritance",
+      "cumulative_count_inflated",
+      "prior_duplicate_added",
+      "body_hash_replaced_by_derivative",
+      "printed_date_replaced_by_upload_year",
+      "reused_acquisition_time_overwritten",
+      "whole_path_geometry_hash_changed",
+      "text_page_counted_as_map",
+      "cached_source_falsely_reacquired",
+      "frozen_source_bytes_changed",
+      "local_murray_short_fragment_missing",
+      "local_murray_role_changed",
+      "local_terminal_invented",
+      "local_part_order_reversed",
+      "local_interior_coordinate_changed",
+      "local_source_ids_reversed",
+      "local_original_body_byte_changed"
+    ],
+    "local_geometry_fixtures_run": true,
+    "local_original_byte_fixture_run": true,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "privacy_scan": {
+    "status": "passed",
+    "review_files_scanned": 8,
+    "scope": "All eight final review files; manifest checked after final regeneration",
+    "checks": [
+      "No absolute local paths",
+      "No private approvals, conversations or coordination",
+      "No raw source HTML or coordinate arrays",
+      "No original documents, maps, derivatives or packs distributed",
+      "Only eight allowed review filenames"
+    ],
+    "findings": []
+  },
+  "original_source_and_map_visual_review_completed": true,
+  "visual_review_note": "Recorded completed source/map inspection; validation replay rehashes assets but does not repeat human inspection.",
+  "network_requests": 0,
+  "automatic_application": false
+}

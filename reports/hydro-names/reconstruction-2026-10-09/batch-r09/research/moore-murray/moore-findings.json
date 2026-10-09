@@ -1,0 +1,107 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r09",
+  "created_at_utc": "2026-10-09T14:30:32.951272+00:00",
+  "target": {
+    "aw_id": "hydro-system:50737565",
+    "system_id": "50737565",
+    "logical_fid": 2081,
+    "geometry_fids": [
+      7039
+    ],
+    "historical_baseline_bbox": [
+      115.496299,
+      -31.360481,
+      116.620833,
+      -29.864583
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Moore River system; representative mainstem identity only",
+    "name_original": "Moore River",
+    "name_original_language": "en",
+    "name_en": "Moore River",
+    "name_ko": null,
+    "status": "Supported representative system/mainstem identity; uniform whole-group and per-reach naming are not cleared.",
+    "identity_confidence": "High for representative regional system identity; exact headwater and estuarine transition boundaries unresolved.",
+    "scope": "The selected historical baseline group only, with explicit tributary and estuarine exclusions from uniform naming.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming evidence acquired.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "../../geometry-reference.json",
+    "fragment_facts_file": "../../selected-river-metadata.json",
+    "ordered_source_ids_file": "../../source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 1,
+    "all_line_parts_reviewed": 103,
+    "all_coordinate_positions_reviewed": 561,
+    "distinct_source_reach_ids": 103,
+    "canonical_ordered_group_geometry_sha256": "192f7df5944983feae9207c32f5d6216833d765f7c1da0eb480c6bdf1652c59e",
+    "source_ids_sha256": "a35949172691eebd63b0bee8f56af54d519c2901fd358d2f662e5e33a73d7b0d",
+    "fragment_facts": [
+      {
+        "fid": 7039,
+        "stage": 3,
+        "part_count": 103,
+        "coordinate_count": 561,
+        "canonical_geometry_sha256": "2a3a7075b97f50d9268f007be88d20bbad1fb98917b41dbf473bd144b547a88c",
+        "ordered_source_id_csv_sha256": "dca16de42362b8b9cab32ceff94cf954a39483c69fff3f131bd5edd21248df63"
+      }
+    ],
+    "fragment_geometry_and_source_id_hashes_independently_recomputed": true,
+    "discontinuous_adjacent_part_joins_detected": 0,
+    "complete_geometry_published": false,
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "All decoded parts were included in the plot and numeric checks. Equal part/reach counts do not prove a reach-to-part correspondence."
+  },
+  "spatial_identity_check": {
+    "method": "Complete baseline path plotted and all parts, counts, bounds and hashes checked, followed by side-by-side visual comparison with complete official regional maps and inspected course descriptions. No georegistered overlay or exact line fit.",
+    "evidence_ids": [
+      "MOORE-MURRAY-BOM-AWRA2012",
+      "WA-SLUI38-2005",
+      "MOORE-DWER-HEALTHYRIVERS"
+    ],
+    "baseline_role_sequence": [
+      "mainstem"
+    ],
+    "baseline_role_is_not_a_name_authority": true,
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false,
+    "per_reach_name_assignment_cleared": false,
+    "regional_course_comparison": "The selected northern inland route runs south through the Moora region, turns west along the Moore-labelled lower corridor, and reaches the Guilderton coast. This supports a representative Moore system identity across the complete selected path.",
+    "named_transition_check": "The inspected source explicitly distinguishes upstream named channels and North/East branches. Regional agreement does not establish which selected headwater parts carry each upstream name or their exact transition boundaries.",
+    "bounded_unresolved_scope": "The northern loop and upstream channel names remain unresolved at individual-part level. Neither basin labels nor monitoring-site names authorize applying Moore River to all 103 parts."
+  },
+  "outlet_scope": {
+    "regional_location": "Guilderton, Western Australia",
+    "regional_receiving_water": "Indian Ocean via the Moore estuarine lower reach",
+    "baseline_terminal_class": "sea",
+    "source_endpoint_equals_render_endpoint": false,
+    "surveyed_outlet_verified": false,
+    "endpoint_interpretation": "Source and rendered terminal metadata differ. They remain baseline geometry facts, not a verified contemporary mouth survey."
+  },
+  "evidence_package": {
+    "source_evidence_file": "source-evidence.json",
+    "source_evidence_sha256": "dbbf7c3fff9b61e19ea8da77ee34c0b02683e73ea541e5ef46597195bd14490b",
+    "distinct_supporting_publications_for_this_target": 3,
+    "shared_reports_counted_once_across_targets": true,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Only the pinned historical baseline was checked; current deployment and original HydroRIVERS coordinate equality are not claimed.",
+    "No exact name-boundary crosswalk or universal component name is established.",
+    "Representative identity does not authorize automatic changes."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}
