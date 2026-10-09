@@ -117,11 +117,28 @@ export function audit(root,{appManifest=null,treeJson=null}={}) {
   requireThat(buildMeta.includes('assets/data/'+hydroPath) && buildMeta.includes('assets/data/'+terrainPath),
     'Runtime physical dataset and build metadata pins disagree');
   const hydro=manifest(hydroPath,'runtime:hydro');
-  for(const [key,d] of [['index',hydro.index],['metadata-core',hydro.metadata?.core],['metadata-detail',hydro.metadata?.detail],
-    ...(hydro.shards||[]).map(s=>['shard-'+s.id,s])]) {
-    requireThat(typeof d?.url==='string' && Number.isSafeInteger(d.bytes),
-      'Missing current hydro role '+key);
-    mark(dataRelative(hydroPath,d.url),'runtime:hydro:'+key,{bytes:d.bytes});
+  const hydroRoles=[['index',hydro.index],['metadata-core',hydro.metadata?.core],
+    ['metadata-detail',hydro.metadata?.detail],...(hydro.shards||[]).map(s=>['shard-'+s.id,s])];
+  if(hydro.container){
+    const whole=hydro.container;
+    requireThat(hydro.version==='0.13.2'&&whole.url==='hydro.bin'&&
+      Number.isSafeInteger(whole.bytes)&&whole.bytes>0,
+      'Invalid two-file current hydro container');
+    mark(dataRelative(hydroPath,whole.url),'runtime:hydro-container',{bytes:whole.bytes});
+    let position=0;
+    for(const [role,part] of hydroRoles){
+      requireThat(part?.url===whole.url&&part.offset===position&&
+        Number.isSafeInteger(part.bytes)&&part.bytes>0&&
+        part.bytes<=whole.bytes-position,'Packed hydro part differs: '+role);
+      position+=part.bytes;
+    }
+    requireThat(position===whole.bytes,'Packed hydro lengths differ from container');
+  } else {
+    for(const [key,d] of hydroRoles) {
+      requireThat(typeof d?.url==='string' && Number.isSafeInteger(d.bytes),
+        'Missing current hydro role '+key);
+      mark(dataRelative(hydroPath,d.url),'runtime:hydro:'+key,{bytes:d.bytes});
+    }
   }
   const terrain=manifest(terrainPath,'runtime:terrain');
   requireThat(terrain.urlTemplate?.startsWith('terrain/v'+tv[1]+'/'),

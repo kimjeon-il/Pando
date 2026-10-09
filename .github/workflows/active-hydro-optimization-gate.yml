@@ -33,6 +33,7 @@ jobs:
             /scripts/generate-build-metadata.mjs
             /assets/data/hydro/v0.13.0/
             /assets/data/hydro/v0.13.1/
+            /assets/data/hydro/v0.13.2/
       - uses: actions/checkout@v4
         with:
           repository: kimjeon-il/PandoEditor

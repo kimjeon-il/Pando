@@ -8,6 +8,7 @@ import {gunzipSync,gzipSync} from 'node:zlib';
 
 const PREVIOUS='hydro/v0.13.0/manifest.json';
 const CURRENT='hydro/v0.13.1/manifest.json';
+const BUNDLED='hydro/v0.13.2/manifest.json';
 const DATA='assets/data/';
 const ensure=(value,message)=>{if(!value)throw Error(message);};
 const sha256=value=>createHash('sha256').update(value).digest('hex');
@@ -131,6 +132,28 @@ export function auditLayout(root,{appManifest=null,benchmarkGzip=true}={}) {
   const unexpectedLatest=leftover.filter(p=>p.startsWith('hydro/v0.13.1/'));
   ensure(unexpectedLatest.length===0,
     'Unreferenced binary copies in current hydro release: '+unexpectedLatest.join(', '));
+  // The current 2-file bundle is losslessly repacked from the SHA-locked v0.13.1 source.
+  const packed=readManifest(BUNDLED);
+  const combined=readFileSync(join(root,DATA,'hydro/v0.13.2/hydro.bin'));
+  const packedManifestBytes=readFileSync(join(root,DATA,BUNDLED));
+  ensure(packed.version==='0.13.2'&&packed.container?.url==='hydro.bin'&&
+    packed.container.bytes===combined.length&&
+    packed.container.sha256===sha256(combined),
+    'Packed hydro container size/hash differs');
+  const bundleSpecs=[packed.index,packed.metadata?.core,packed.metadata?.detail,...(packed.shards||[])];
+  const sourceSpecs=[current.index,current.metadata?.core,current.metadata?.detail,...(current.shards||[])];
+  ensure(bundleSpecs.length===6&&sourceSpecs.length===6,'Packed hydro role count changed');
+  let cursor=0;
+  for(let i=0;i<bundleSpecs.length;i++){
+    const item=bundleSpecs[i],reference=sourceSpecs[i];
+    ensure(item.url==='hydro.bin'&&item.offset===cursor&&
+      item.bytes===reference.bytes&&item.sha256===reference.sha256,
+      'Packed hydro role differs from original: '+i);
+    ensure(sha256(combined.subarray(cursor,cursor+item.bytes))===reference.sha256,
+      'Packed hydro resource checksum differs: '+i);
+    cursor+=item.bytes;
+  }
+  ensure(cursor===combined.length,'Packed hydro binary coverage incomplete');
   let appPinsVerified=0;
   const appManifests=appManifest?(Array.isArray(appManifest)?appManifest:[appManifest]):[];
   for(const file of appManifests){
@@ -138,24 +161,26 @@ export function auditLayout(root,{appManifest=null,benchmarkGzip=true}={}) {
     const pin=app.hydro;
     ensure(app.schema==='pandoeditor-world-dataset'&&
       (app.version===1||app.version===2)&&
-      pin?.path==='hydro/v0.13.1/manifest.json'&&pin.version==='0.13.1'&&
-      (pin.bytes===undefined||pin.bytes===manifestBytes.length)&&
-      pin.sha256===sha256(manifestBytes)&&
-      pin.gitBlobSha===gitBlob(manifestBytes)&&
-      (!pin.source?.path||pin.source.path===DATA+CURRENT),
+      ['0.13.1','0.13.2'].includes(pin?.version)&&
+      pin.path==='hydro/v'+pin.version+'/manifest.json'&&
+      (pin.bytes===undefined||pin.bytes===(pin.version==='0.13.2'?packedManifestBytes:manifestBytes).length)&&
+      pin.sha256===sha256(pin.version==='0.13.2'?packedManifestBytes:manifestBytes)&&
+      pin.gitBlobSha===gitBlob(pin.version==='0.13.2'?packedManifestBytes:manifestBytes)&&
+      (!pin.source?.path||pin.source.path===DATA+pin.path),
       'Native app pinned hydro manifest differs from Web: '+file);
     appPinsVerified++;
   }
   const runtime=readFileSync(join(root,'assets/js/modules/app-environment.js'),'utf8');
   const buildMetadata=readFileSync(join(root,'scripts/generate-build-metadata.mjs'),'utf8');
-  ensure(/HYDRO_DATA_VERSION\s*=\s*['"]0\.13\.1['"]/.test(runtime)&&
-    buildMetadata.includes(DATA+CURRENT),
+  ensure(/HYDRO_DATA_VERSION\s*=\s*['"]0\.13\.2['"]/.test(runtime)&&
+    buildMetadata.includes(DATA+BUNDLED),
     'Runtime/build metadata does not pin the checked hydro manifest');
   const previousFileCount=physical.filter(p=>p.startsWith('hydro/v0.13.0/')).length;
   const currentFileCount=physical.filter(p=>p.startsWith('hydro/v0.13.1/')).length;
   return {
     schema:'pandolab-active-hydro-optimization-audit',version:1,passed:true,
-    sourceVersions:['0.13.0','0.13.1'],binaryFilesChecked:checks.length,
+    sourceVersions:['0.13.0','0.13.1','0.13.2'],binaryFilesChecked:checks.length+1,
+    packedContainerBytes:combined.length,packedContainerSha256:packed.container.sha256,
     currentReleaseFiles:currentFileCount,previousReleaseFiles:previousFileCount,
     uniqueAssetBytes:checks.reduce((s,a)=>s+a.bytes,0),
     reusedRoles:contract.reused.map(x=>x.role),
