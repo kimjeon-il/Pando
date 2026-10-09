@@ -13,6 +13,8 @@ function setup(){
    'assets/js/vendor/gdal/gdal3WebAssembly.wasm','assets/js/vendor/gdal/gdal3WebAssembly.data',
    'assets/data/terrain/v0.12.6/manifest.json',
    'assets/data/hydro/v0.13.1/manifest.json',
+   'assets/data/hydro/v0.13.2/manifest.json',
+   'assets/data/hydro/v0.13.2/hydro.bin',
    'assets/data/territorial-entities/generated/v2/index.json',
    'assets/data/hydro/v0.12.2/manifest.json','assets/data/terrain/v0.12.0/0/0-0.webp'];
  const fileManifest=paths.map((path,i)=>{const raw=path==='.nojekyll'?'':'file-'+i;
