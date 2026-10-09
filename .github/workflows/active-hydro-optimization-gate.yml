@@ -1,0 +1,61 @@
+name: Active Hydro Layout and Compression Audit
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/check-current-hydro-layout.mjs'
+      - 'tests/unit/current-hydro-layout.test.mjs'
+      - '.github/workflows/active-hydro-optimization-gate.yml'
+      - 'assets/data/hydro/v0.13.0/**'
+      - 'assets/data/hydro/v0.13.1/**'
+      - 'assets/js/modules/app-environment.js'
+      - 'scripts/generate-build-metadata.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  current-hydro:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /tools/check-current-hydro-layout.mjs
+            /tests/unit/current-hydro-layout.test.mjs
+            /assets/js/modules/app-environment.js
+            /scripts/generate-build-metadata.mjs
+            /assets/data/hydro/v0.13.0/
+            /assets/data/hydro/v0.13.1/
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoEditor
+          ref: main
+          path: pinned-app
+          persist-credentials: false
+          sparse-checkout: |
+            assets/world/manifest.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static syntax and synthetic non-mutation tests
+        run: |
+          node --check tools/check-current-hydro-layout.mjs
+          node --test tests/unit/current-hydro-layout.test.mjs
+      - name: Verify all active binaries, reused paths and native pin
+        run: |
+          node tools/check-current-hydro-layout.mjs --root . \
+            --app-manifest pinned-app/assets/world/manifest.json \
+            --out reports/active-hydro-optimization.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: active-hydro-optimization-audit
+          if-no-files-found: warn
+          path: reports/active-hydro-optimization.json
