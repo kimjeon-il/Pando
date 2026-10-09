@@ -1,0 +1,116 @@
+{
+  "schema": "hydro-independent-review-v1",
+  "batch": "r02",
+  "reviewed_at_utc": "2026-10-09T11:45:06.418951+00:00",
+  "review_status": "accepted_as_bounded_research_with_explicit_geometry_hold",
+  "scope_source_ids": [
+    "1159115267",
+    "1159123531",
+    "1159107099"
+  ],
+  "method": "Independent offline reading of acquired original text and maps, full selected source/baseline geometry and raw-byte hashes; independent binary decode plus production-decoder replay. Historical names are leads only.",
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "current_live_deployment_checked": false,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0,
+  "korean_names_supported": 0,
+  "formal_registry_approvals": 0,
+  "surveyed_shoreline_approvals": 0,
+  "prominent_geometry_warning": {
+    "source_id": "1159123531",
+    "severity": "hold",
+    "result": "Substantial visible land overreach and incomplete upstream detail prevent accepting this polygon as an accurate Três Irmãos water mask.",
+    "generalized_identity_support_retained": true,
+    "quantitative_land_fraction": null,
+    "geometry_replacement_approved": false
+  },
+  "findings": [
+    {
+      "source_id": "1159115267",
+      "candidate_name": "扎日南木错 / Zhari Namco",
+      "identity": "扎日南木错 / Zhari Namco",
+      "review_status": "supported_generalized_whole_waterbody_identity",
+      "approved_name_scope": "Chinese government-published usage and English scientific usage identify the generalized whole lake. This is research support, not product-field approval.",
+      "source_keys": [
+        "ZHARI-ALI-WATER-2018",
+        "ZHARI-ALI-2023",
+        "ZHARI-NIGLAS-2021",
+        "ZHARI-SUN-2021"
+      ],
+      "name_ko": null,
+      "name_bo": null,
+      "full_geometry_reviewed": true,
+      "coordinate_count_including_closure": 95,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "surveyed_shoreline_approved": false,
+      "precise_water_mask_verdict": "unverified",
+      "limits": [
+        "All 95 ordered coordinates were checked. The broad west basin, northwest apex, indented north shore, concave south shore and southeast-curving arm match the named full-lake inset.",
+        "Frontiers Figure 1 partly obscures the shore with labels/tracks and does not establish shoreline date, CRS or independent geometry lineage; the match is not an independent survey.",
+        "The NIGLAS map distinguishes the northern upstream lakes; overflow connectivity does not merge their names into this polygon.",
+        "Chinese aliases are source-reported usage. Tibetan script, Korean name, legal naming act and effective date remain unestablished."
+      ],
+      "automatic_application": false,
+      "scalar_product_name_application_approved": false
+    },
+    {
+      "source_id": "1159123531",
+      "candidate_name": "Represa Três Irmãos",
+      "identity": "Três Irmãos reservoir, lower Rio Tietê",
+      "review_status": "supported_generalized_reservoir_association_with_geometry_hold",
+      "approved_name_scope": "Portuguese operator map form and ONS proper-name usage support the main reservoir association only. No scalar product field or whole-polygon water mask is approved.",
+      "source_keys": [
+        "TRES-IRMAOS-TIJOA-RSA-2022",
+        "TRES-IRMAOS-ONS-TIETE-2022"
+      ],
+      "name_ko": null,
+      "name_en": null,
+      "full_geometry_reviewed": true,
+      "coordinate_count_including_closure": 184,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "surveyed_shoreline_approved": false,
+      "precise_water_mask_verdict": "hold_visible_geometry_mismatch",
+      "limits": [
+        "All 184 ordered coordinates were checked. The northwest–southeast main basin and lateral arms associate with the named reservoir, but broad polygon margins and southern projections contain visible mapped land.",
+        "The source eastern end truncates upstream detail toward Buritama. The overlay does not establish a precise dam, channel, tributary-mouth or adjoining-reservoir boundary.",
+        "Yellow lines on the operator map mark reforestation projects, not a certified water boundary. Land mismatch is assessed against underlying imagery as well as the full map context.",
+        "Assumed WGS84/UTM22S registration is diagnostic. Fit residuals are label-fit residuals, not shoreline error; no overlap or land fraction is measured.",
+        "Ilha Solteira and Jupiá remain separate Paraná installations; Nova Avanhandava and downstream Tietê/lock waters remain separately described. Exhaustive exclusion against adjacent vector polygons was not possible."
+      ],
+      "automatic_application": false,
+      "scalar_product_name_application_approved": false
+    },
+    {
+      "source_id": "1159107099",
+      "candidate_name": "Buffalo Lake",
+      "identity": "Buffalo Lake",
+      "review_status": "supported_generalized_whole_waterbody_identity",
+      "approved_name_scope": "English mapped usage identifies the full generalized Buffalo Lake basin; the Tathlina lead is excluded for this feature. No product name field is approved.",
+      "source_keys": [
+        "NLUIS-85B-1975",
+        "GNWT-OILGAS-2023-F5",
+        "GNWT-BISON-216-2012-F2"
+      ],
+      "name_ko": null,
+      "full_geometry_reviewed": true,
+      "coordinate_count_including_closure": 88,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "surveyed_shoreline_approved": false,
+      "precise_water_mask_verdict": "unverified",
+      "rejected_candidate": "Tathlina Lake",
+      "limits": [
+        "All 88 ordered coordinates were checked. Federal sheet 85B labels the corresponding entire lake between 116°W and 115°W north of 60°N, including its west arm, enlarged northeast head and south-projecting lobe.",
+        "Two regional GNWT maps distinguish Buffalo east/southeast of Enterprise from Tathlina west of Enterprise near 117–118°W. The oil/gas map clips Buffalo and is not the full-perimeter source.",
+        "The 1975 federal thematic sheet uses older NAD27 base mapping. No datum transformation, quantitative registration or overlap calculation was performed.",
+        "The one-ring source is highly generalized; islands, small adjoining waters and exact seasonal shores are unverified. Current registry status and Indigenous-language names are unestablished."
+      ],
+      "automatic_application": false,
+      "scalar_product_name_application_approved": false
+    }
+  ],
+  "publication_scope": "Own factual extraction and validation only. Selected Natural Earth geometries have their separate rights record. Raw source PDFs, maps, HTML and derivative crops are excluded.",
+  "review_reproduction": "Run validate-independent-review.py with the existing local geometry cache and historical-input root; pass the private local-source index to repeat original-source byte checks. Visual source interpretation remains a human-readable review, not an automated proof."
+}

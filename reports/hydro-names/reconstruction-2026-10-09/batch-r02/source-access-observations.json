@@ -1,0 +1,49 @@
+{
+  "schema": "hydro-source-access-observations-v1",
+  "batch": "r02",
+  "scope": "Only observed failures relevant to this batch; successful acquisitions are documented in the three source-evidence files.",
+  "observations": [
+    {
+      "publication": "São Paulo SIGRH UGRHI 15–22 map",
+      "url": "https://sigrh.sp.gov.br/public/uploads/documents/6962/ugrhi_15_22.pdf",
+      "http_status": 502,
+      "result": "HTTP Error 502: Bad Gateway",
+      "observed_at_utc": "2026-10-09T11:33:04.227455+00:00",
+      "used_as_evidence": false,
+      "same_publication_retried": false,
+      "alternate_route_attempted": false
+    },
+    {
+      "publication": "São Paulo state water plan Volume2 TomoII",
+      "url": "https://www.sigrh.sp.gov.br/public/uploads/ckfinder/files/Volume%202%20Tomo%20II%20.pdf",
+      "http_status": 502,
+      "result": "HTTP Error 502: Bad Gateway",
+      "observed_at_utc": "2026-10-09T11:33:42.534709+00:00",
+      "used_as_evidence": false,
+      "same_publication_retried": false,
+      "alternate_route_attempted": false
+    },
+    {
+      "publication": "USP 2011 dissertation abstract tde-11052011-092917",
+      "url": "https://teses.usp.br/teses/disponiveis/18/18139/tde-11052011-092917/pt-br.html",
+      "http_status": null,
+      "result": "The read operation timed out",
+      "observed_at_utc": "2026-10-09T11:34:36.652046+00:00",
+      "used_as_evidence": false,
+      "same_publication_retried": false,
+      "alternate_route_attempted": false
+    },
+    {
+      "publication": "ITPCAS 2009-11-06 southern Tibetan lakes expedition",
+      "url": "https://www.itpcas.cas.cn/xwzx/zhxw/200911/t20091106_2649928.html",
+      "http_status": 502,
+      "result": "HTTP 502 error body, not acquired article content",
+      "observed_at_utc": null,
+      "used_as_evidence": false,
+      "same_publication_retried": false,
+      "alternate_route_attempted": false
+    }
+  ],
+  "interpretation": "These are individual service availability failures, not evidence about a lake name. Failed original documents supplied no substantive source evidence.",
+  "new_401_or_403_observations": 0
+}

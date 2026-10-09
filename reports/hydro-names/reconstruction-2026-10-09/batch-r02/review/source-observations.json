@@ -1,0 +1,76 @@
+{
+  "schema": "hydro-independent-source-observations-v1",
+  "checked_at_utc": "2026-10-09T11:45:06.418951+00:00",
+  "source_originals_hash_checked": 13,
+  "sources": [
+    {
+      "source_key": "ZHARI-ALI-WATER-2018",
+      "locator": "Article title and lake-description paragraph",
+      "observed": "Official Chinese title uses 扎日南木错; body variant 扎日南木措 and aliases 塔热错 / 特里纳木错 are explicit.",
+      "supports": "Chinese published usage and reported aliases",
+      "does_not_establish": "Formal naming act, Tibetan spelling or exact boundary"
+    },
+    {
+      "source_key": "ZHARI-ALI-2023",
+      "locator": "Title, publication line and first paragraph",
+      "observed": "Government article places 扎日南木错 northeast of 措勤县; date is 2023-10-07.",
+      "supports": "Later Chinese published usage",
+      "does_not_establish": "An independent naming authority or dated shoreline survey"
+    },
+    {
+      "source_key": "ZHARI-NIGLAS-2021",
+      "locator": "Research text and Figure 2",
+      "observed": "Text describes northern 蔡几错 overflow contribution from 2017; the figure also labels 齐格错 separately. Only the target north shore is in this cropped map.",
+      "supports": "Chinese usage and distinct upstream-lake scope",
+      "does_not_establish": "Whole-lake extent or proof that all hydrologically connected lakes are one named waterbody"
+    },
+    {
+      "source_key": "ZHARI-SUN-2021",
+      "locator": "Study Area, Figure 1 full-lake right panel, Lake Area text",
+      "observed": "English name Zhari Namco and source-reported alias Chi-jih are explicit. Full-lake shape matches all major lobes and is distinct from the red drainage-basin perimeter.",
+      "supports": "English research usage and generalized full-waterbody correspondence",
+      "does_not_establish": "Independent shoreline lineage, current shore, unobscured vertex-level accuracy or formal registry"
+    },
+    {
+      "source_key": "TRES-IRMAOS-TIJOA-RSA-2022",
+      "locator": "PDF/printed pages 7, 34, 36 and 40",
+      "observed": "Operator context, named reservoir and full map establish the lower-Tietê association; page 36 distinguishes the downstream sampling point and upstream Nova Avanhandava. Page 40 describes yellow overlays as reforestation projects. Underlying map imagery exposes land within the generalized polygon.",
+      "supports": "Portuguese map form and bounded reservoir identity, with a concrete geometry-fidelity warning",
+      "does_not_establish": "Accurate water mask or exact mouth/dam limits. Page-34 area unit/magnitude is suspect and not used."
+    },
+    {
+      "source_key": "TRES-IRMAOS-ONS-TIETE-2022",
+      "locator": "Main operational notice",
+      "observed": "ONS places UHE Três Irmãos on the Tietê and separately refers to Ilha Solteira and Jupiá on the Paraná.",
+      "supports": "Proper-name and river-system distinction",
+      "does_not_establish": "Reservoir outline, English name or registry"
+    },
+    {
+      "source_key": "NLUIS-85B-1975",
+      "locator": "Complete southwest basin; bottom title, datum, adjoining-sheet inset and 1975 imprint",
+      "observed": "BUFFALO LAKE is printed across the full target-corresponding basin. Geographic frame, distinctive lobes and sheet inset agree; neighboring Tathlina is on 85C.",
+      "supports": "Historical mapped English name and whole generalized basin identity",
+      "does_not_establish": "Current surveyed shoreline or modern-datum equality"
+    },
+    {
+      "source_key": "GNWT-OILGAS-2023-F5",
+      "locator": "PDF page 15, Figure 5",
+      "observed": "Tathlina is west of Enterprise around 117–118°W near 60°30′N; Buffalo is east/southeast and clipped by the map frame. Figure states WGS84.",
+      "supports": "Geographic exclusion of Tathlina for this target",
+      "does_not_establish": "Complete Buffalo perimeter"
+    },
+    {
+      "source_key": "GNWT-BISON-216-2012-F2",
+      "locator": "PDF page 11, printed page 6, Figure 2; report cover",
+      "observed": "Distinct Buffalo and Tathlina labels appear on opposite sides of Enterprise; Buffalo has corresponding west arm, northeast head and southern lobe. Cover year is 2012.",
+      "supports": "Independent report corroboration of regional identity",
+      "does_not_establish": "Independent survey lineage or metric shoreline precision"
+    }
+  ],
+  "common_limits": [
+    "Publication independence does not guarantee independent upstream base hydrography.",
+    "Acquired error bodies, timed-out sources and discovery snippets are not substantive evidence.",
+    "All Korean names remain null. No newly inferred English translation or Tibetan/Indigenous spelling is approved."
+  ],
+  "automatic_application": false
+}

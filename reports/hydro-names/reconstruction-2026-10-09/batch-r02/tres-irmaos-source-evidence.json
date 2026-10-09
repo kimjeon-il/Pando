@@ -1,0 +1,279 @@
+{
+  "schema": "hydro-name-reconstruction-source-evidence-v1",
+  "batch": "r02",
+  "created_at_utc": "2026-10-09T11:40:16.634867+00:00",
+  "target_aw_id": "lakes_base:1159123531",
+  "sources": [
+    {
+      "evidence_id": "TRES-IRMAOS-TIJOA-RSA-2022",
+      "title": "Relatório de Responsabilidade Socioambiental 2022",
+      "agency_or_publisher": "Tijoá Participações e Investimentos S.A.",
+      "source_role": "Primary concession-operator report; operator cartography, not a government naming registry.",
+      "official_url": "https://www.tijoa.com/assets/pdf/relatorios/RSA_TIJOA_2022.pdf",
+      "report_year": 2022,
+      "publication_date": null,
+      "date_note": "The report identifies its reporting year; a distinct formal publication date was not established.",
+      "retrieval": {
+        "requested_url": "https://www.tijoa.com/assets/pdf/relatorios/RSA_TIJOA_2022.pdf",
+        "requested_at_utc": "2026-10-09T11:34:21.480625+00:00",
+        "status": 200,
+        "final_url": "https://www.tijoa.com/assets/pdf/relatorios/RSA_TIJOA_2022.pdf",
+        "content_type": "application/pdf",
+        "bytes": 2057438,
+        "sha256": "cb2db62c60d2e0a9d367367adbc9ab083acc5654f4284859001fbc833e008e23",
+        "retrieved_at_utc": "2026-10-09T11:34:27.761514+00:00"
+      },
+      "pdf_page_count": 52,
+      "locators": [
+        {
+          "pdf_page_one_based": 7,
+          "printed_page": "7",
+          "section": "Nosso Negócio",
+          "support": "Operator identity and lower Tietê location."
+        },
+        {
+          "pdf_page_one_based": 34,
+          "printed_page": "34",
+          "section": "Apresentação",
+          "support": "Canal de Pereira Barreto connects this reservoir to Ilha Solteira via Rio São José dos Dourados."
+        },
+        {
+          "pdf_page_one_based": 36,
+          "printed_page": "36",
+          "section": "Do Ambiente Aquático",
+          "support": "Reservoir-wide map shows the two bounding hydroelectric installations and water-monitoring locations; P4-JTI is explicitly downstream of Três Irmãos."
+        },
+        {
+          "pdf_page_one_based": 40,
+          "printed_page": "40",
+          "section": "Programa de Monitoramento de Flora e Reflorestamento",
+          "support": "A named reservoir map covers the complete target bbox, with numerous coves and peripheral rivers."
+        }
+      ],
+      "direct_quote": "Represa Três Irmãos",
+      "quote_word_count": 3,
+      "own_factual_extraction": [
+        "Tijoá identifies itself as the Três Irmãos concession operator.",
+        "The map labels the waterbody Represa Três Irmãos.",
+        "The report distinguishes the reservoir, the downstream river/lock-channel confluence, the upstream Nova Avanhandava installation and the canal connection to Ilha Solteira."
+      ],
+      "source_parent_and_coverage": {
+        "original_container": "52-page operator report",
+        "map_parent": "Printed/PDF pages 36 and 40 within the acquired complete report",
+        "map40_visible_eastings_m": [
+          480000,
+          495000,
+          510000,
+          525000,
+          540000,
+          555000,
+          570000
+        ],
+        "map40_visible_northings_m": [
+          7665000,
+          7680000,
+          7695000,
+          7710000,
+          7725000
+        ],
+        "map40_visible_datum_zone": null,
+        "full_target_bbox_covered": true,
+        "whole_actual_reservoir_shoreline_authority": false,
+        "independent_official_vector_parent_acquired": false
+      },
+      "limits": [
+        "The yellow map overlay represents shoreline reforestation projects, not a certified water-boundary vector; the underlying dark-water imagery was also inspected.",
+        "Map imagery epoch and precise datum/zone are not legibly established in the inspected frame.",
+        "The page-34 area figure has an apparent unit/magnitude problem and is not used as an area measurement.",
+        "No current gazetteer or legal reservoir-boundary record is provided."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "rights_for_bulk_redistribution_established": false,
+        "published_material": "Own selected facts, original geometry analysis and compact citation/retrieval metadata only."
+      }
+    },
+    {
+      "evidence_id": "TRES-IRMAOS-ONS-TIETE-2022",
+      "title": "Nota de Esclarecimento - Operação Rio Tietê",
+      "agency_or_publisher": "Operador Nacional do Sistema Elétrico (ONS)",
+      "source_role": "Independent official system-operator operational notice.",
+      "official_url": "https://www.ons.org.br/Paginas/Noticias/20221229-Nota-de-Esclarecimento---Opera%C3%A7%C3%A3o-Rio-Tiet%C3%AA.aspx",
+      "source_date": "2022-12-29",
+      "date_basis": "Date encoded in the official publication URL; the body refers to a planned 4 January 2023 operation.",
+      "retrieval": {
+        "requested_url": "https://www.ons.org.br/Paginas/Noticias/20221229-Nota-de-Esclarecimento---Opera%C3%A7%C3%A3o-Rio-Tiet%C3%AA.aspx",
+        "requested_at_utc": "2026-10-09T11:33:04.227867+00:00",
+        "status": 200,
+        "final_url": "https://www.ons.org.br/Paginas/Noticias/20221229-Nota-de-Esclarecimento---Opera%C3%A7%C3%A3o-Rio-Tiet%C3%AA.aspx",
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 156287,
+        "sha256": "23280e15df42ec872a6c83ab89ef1f7f75c707ed7378c63ed6629043f71e078b",
+        "retrieved_at_utc": "2026-10-09T11:33:07.621029+00:00"
+      },
+      "locators": [
+        {
+          "section": "Main notice body",
+          "support": "Opening paragraph identifies UHE Três Irmãos on Rio Tietê; final paragraph distinguishes Ilha Solteira and Jupiá on Rio Paraná."
+        }
+      ],
+      "direct_quote": "UHE Três Irmãos, localizada no rio Tietê",
+      "quote_word_count": 8,
+      "own_factual_extraction": [
+        "ONS describes Três Irmãos as a Tietê installation and coordinates its outflow operation separately from Jupiá and Ilha Solteira on the Paraná."
+      ],
+      "limits": [
+        "Supports official Portuguese proper-name usage and river-system distinctions; no complete reservoir boundary or current naming-registry record is supplied."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "published_material": "Own factual extraction, one short quotation and citation/retrieval metadata."
+      }
+    }
+  ],
+  "diagnostic_map_registration": {
+    "publication": "Tijoá Relatório de Responsabilidade Socioambiental 2022",
+    "pdf_page_one_based": 40,
+    "map_label": "Represa Três Irmãos",
+    "map_crop_pdf_points": [
+      435,
+      277,
+      797,
+      510
+    ],
+    "display_max_pixels": 1400,
+    "registration": "Independent linear x/y fits from all seven visible eastings and all five northings; numerical centers of PDF text labels, not surveyed grid intersections. WGS84 UTM22S assumed from geographic location and grid magnitudes; visible map crop does not state datum/zone. Diagnostic qualitative alignment only.",
+    "coordinate_transform": "GDAL/OSR EPSG:4326 traditional GIS longitude-latitude axis order to EPSG:32722",
+    "x_pdf_points_fit": [
+      0.003071654692150308,
+      -995.1850585937565
+    ],
+    "y_pdf_points_fit": [
+      -0.003071646830241025,
+      24027.086216736916
+    ],
+    "easting_label_centers": [
+      [
+        480000,
+        479.22637939453125
+      ],
+      [
+        495000,
+        525.2613525390625
+      ],
+      [
+        510000,
+        571.3753662109375
+      ],
+      [
+        525000,
+        617.411376953125
+      ],
+      [
+        540000,
+        663.525390625
+      ],
+      [
+        555000,
+        709.5603637695312
+      ],
+      [
+        570000,
+        755.6753540039062
+      ]
+    ],
+    "northing_label_centers": [
+      [
+        7665000,
+        482.92884826660156
+      ],
+      [
+        7680000,
+        436.8148651123047
+      ],
+      [
+        7695000,
+        390.7798767089844
+      ],
+      [
+        7710000,
+        344.6658630371094
+      ],
+      [
+        7725000,
+        298.6298370361328
+      ]
+    ],
+    "max_label_fit_residual_pdf_points": 0.02369537353661144,
+    "source_utm22s_bbox": [
+      471750.37829530204,
+      7665830.568186179,
+      572367.055767762,
+      7723017.202062355
+    ],
+    "source_overlay_color": "magenta",
+    "formal_geodetic_registration": false,
+    "shoreline_error_metric_calculated": false,
+    "controls_scope": "Map text-label centers are numerical controls for the diagnostic image fit; their residual is not geodetic or shoreline error.",
+    "source_geometry_all_vertices_included": 184,
+    "map_frame_coverage": "All target source vertices fall within the inspected map frame. The map also depicts water outside the source polygon, including upstream detail near Buritama."
+  },
+  "unsuccessful_original_requests": [
+    {
+      "title_or_description": "SIGRH UGRHI 15–22 cartographic PDF",
+      "url": "https://sigrh.sp.gov.br/public/uploads/documents/6962/ugrhi_15_22.pdf",
+      "requested_at_utc": "2026-10-09T11:32:55.385975+00:00",
+      "observed_at_utc": "2026-10-09T11:33:04.227455+00:00",
+      "http_status": 502,
+      "error": "HTTP Error 502: Bad Gateway",
+      "source_content_acquired": false,
+      "source_bytes": null,
+      "raw_source_sha256": null,
+      "retry_attempted": false,
+      "alternate_route_attempted": false,
+      "used_for_factual_support": false,
+      "handling": "Individual failure recorded without retry or alternate acquisition. No authorization denial inferred."
+    },
+    {
+      "title_or_description": "SIGRH state water-resources plan Volume 2 Tomo II",
+      "url": "https://www.sigrh.sp.gov.br/public/uploads/ckfinder/files/Volume%202%20Tomo%20II%20.pdf",
+      "requested_at_utc": "2026-10-09T11:33:35.166331+00:00",
+      "observed_at_utc": "2026-10-09T11:33:42.534709+00:00",
+      "http_status": 502,
+      "error": "HTTP Error 502: Bad Gateway",
+      "source_content_acquired": false,
+      "source_bytes": null,
+      "raw_source_sha256": null,
+      "retry_attempted": false,
+      "alternate_route_attempted": false,
+      "used_for_factual_support": false,
+      "handling": "Individual failure recorded without retry or alternate acquisition. No authorization denial inferred."
+    },
+    {
+      "title_or_description": "University of São Paulo Miranda dissertation abstract, 2011",
+      "url": "https://teses.usp.br/teses/disponiveis/18/18139/tde-11052011-092917/pt-br.html",
+      "requested_at_utc": "2026-10-09T11:33:42.535171+00:00",
+      "observed_at_utc": "2026-10-09T11:34:36.652046+00:00",
+      "http_status": null,
+      "error": "The read operation timed out",
+      "source_content_acquired": false,
+      "source_bytes": null,
+      "raw_source_sha256": null,
+      "retry_attempted": false,
+      "alternate_route_attempted": false,
+      "used_for_factual_support": false,
+      "handling": "Individual failure recorded without retry or alternate acquisition. No authorization denial inferred."
+    }
+  ],
+  "english_name_acquired": false,
+  "korean_name_acquired": false,
+  "acquisition_summary": {
+    "substantive_original_sources_acquired": 2,
+    "map_bearing_original_sources_acquired": 1,
+    "current_formal_naming_registry_acquired": false,
+    "new_401_or_403_observed": false,
+    "failed_originals_retried": false,
+    "search_snippets_used_as_acquired_source_evidence": false
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "hydro-reconstruction-index-v1",
+  "scope": "Fresh reconstructed research only. The unavailable detailed historical504-target ledger has not been restored.",
+  "total_distinct_reconstructed_targets": 6,
+  "previous_batch_distinct_targets": 3,
+  "current_batch_increment": 3,
+  "duplicate_targets": 0,
+  "previous_results_sha256": "684a8e68387de81c3342bed93449e7784026353d8134c8280543e8f62cabd637",
+  "prior_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+  "current_batch": "r02",
+  "current_batch_commit_note": "The commit containing this file identifies r02; no self-referential commit hash is embedded.",
+  "categories": {
+    "supported_generalized_water_identity": 4,
+    "whole_polygon_scope_hold": 1,
+    "supported_reservoir_association_geometry_hold": 1
+  },
+  "records": [
+    {
+      "source_id": "1159109497",
+      "aw_id": "lakes_base:1159109497",
+      "batch": "r01",
+      "candidate_name": "MacKay Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false
+    },
+    {
+      "source_id": "1159106899",
+      "aw_id": "lakes_base:1159106899",
+      "batch": "r01",
+      "candidate_name": "Becharof Lake",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false
+    },
+    {
+      "source_id": "1159107065",
+      "aw_id": "lakes_base:1159107065",
+      "batch": "r01",
+      "candidate_name": "Lac Tasiujaq",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false
+    },
+    {
+      "source_id": "1159115267",
+      "aw_id": "lakes_base:1159115267",
+      "batch": "r02",
+      "candidate_name": "扎日南木错 / Zhari Namco",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    },
+    {
+      "source_id": "1159123531",
+      "aw_id": "lakes_base:1159123531",
+      "batch": "r02",
+      "candidate_name": "Represa Três Irmãos",
+      "research_category": "supported_reservoir_association_geometry_hold",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    },
+    {
+      "source_id": "1159107099",
+      "aw_id": "lakes_base:1159107099",
+      "batch": "r02",
+      "candidate_name": "Buffalo Lake",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    }
+  ],
+  "automatic_application": false
+}
