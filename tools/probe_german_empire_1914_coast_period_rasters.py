@@ -32,7 +32,7 @@ WIDTH, HEIGHT = 1500, 1120
 PANELS = [
     {"id": "eider-mouth", "label": "Eider mouth / 1973 barrage", "bbox": [8.795, 54.224, 8.895, 54.304]},
     {"id": "eiderstedt-husum", "label": "Eiderstedt to Husum", "bbox": [8.985, 54.44, 9.095, 54.52]},
-    {"id": "hauke-haien-koog", "label": "Hauke-Haien-Koog 1958-1959", "bbox": [8.80, 54.69, 8.92, 54.77]},
+    {"id": "hauke-haien-koog", "label": "Hauke-Haien-Koog 1958-1959", "bbox": [8.68, 54.69, 8.80, 54.77]},
     {"id": "beltringharder", "label": "Beltringharder Koog 1987", "bbox": [8.865, 54.52, 8.975, 54.600]},
 ]
 HTTP_TIMEOUT = (18, 70)
