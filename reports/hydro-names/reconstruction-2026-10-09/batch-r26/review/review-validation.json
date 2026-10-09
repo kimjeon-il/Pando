@@ -1,0 +1,62 @@
+{
+  "status": "passed",
+  "mode": "included_public_files_only",
+  "validated_at_utc": "2026-10-09T21:17:47.453595+00:00",
+  "validation": {
+    "status": "passed",
+    "mode": "included_public_files_only",
+    "batch": "r26",
+    "scope_aw_ids": [
+      "hydro-system:50442438",
+      "hydro-system:50442579",
+      "hydro-system:50442814"
+    ],
+    "recorded_fragment_count": 6,
+    "recorded_part_count": 172,
+    "recorded_position_count": 865,
+    "recorded_full_feature_correspondence_reviews_completed": 3,
+    "representative_system_identities_supported": 1,
+    "current_scope_hold_ids": [
+      "hydro-system:50442438",
+      "hydro-system:50442579"
+    ],
+    "current_source_limited_targets": 0,
+    "recorded_cumulative_distinct_targets": 78,
+    "remaining_unrecorded_targets": 3987,
+    "original_source_material_reopened": false,
+    "map_judgments_reproduced": false,
+    "omitted_full_paths_recomputed": false,
+    "original_decoder_replayed": false,
+    "network_requests": 0,
+    "automatic_application": false,
+    "limit": "Included facts and file consistency only; omitted source, map, full-path and decoder judgments are recorded, not reproduced."
+  },
+  "tests": {
+    "status": "passed",
+    "semantic_and_integrity_mutations_rejected": [
+      "wrong_target",
+      "missing_fragment",
+      "wrong_parts",
+      "wrong_positions",
+      "unverified_scalar",
+      "unverified_korean",
+      "all_reach_upgrade",
+      "geometry_scope_mismatch",
+      "access_pending_misclassified",
+      "pending_erased",
+      "hold_erased",
+      "region_conflated",
+      "new_acquisition_invented",
+      "maps_counted_as_independent",
+      "private_fingerprint_added",
+      "full_coordinates_added",
+      "omitted_replay_claimed",
+      "invalid_timestamp",
+      "duplicate_prior_id",
+      "automatic_application",
+      "included_bytes_changed"
+    ],
+    "network_requests": 0,
+    "original_map_or_full_path_or_decoder_judgments_reproduced": false
+  }
+}
