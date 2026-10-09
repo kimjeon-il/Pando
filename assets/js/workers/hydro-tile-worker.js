@@ -32,6 +32,7 @@ let mobileSession = false;
 let backgroundCacheController = null;
 let backgroundCacheTimer = 0;
 let cacheCompleted = false;
+let wholeHydroBundle = null;
 
 function resolveUrl(path) {
   const url = new URL(path, baseUrl);
@@ -90,10 +91,52 @@ async function fetchWithRetry(input, init = {}, {
   throw lastError;
 }
 
-async function fetchGzip(path) {
-  const response = await fetchWithRetry(resolveUrl(path));
-  if (!response.ok) throw responseError(path, response);
-  return self.fflate.gunzipSync(new Uint8Array(await response.arrayBuffer()));
+async function hydroDigest(bytes) {
+  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
+    byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function saveWholeHydroBundle(bytes) {
+  if (!manifest?.container) return;
+  const spec = manifest.container;
+  if (bytes.length !== spec.bytes || await hydroDigest(bytes) !== spec.sha256)
+    throw new Error('통합 수계 파일의 길이 또는 SHA-256이 일치하지 않습니다.');
+  wholeHydroBundle = bytes;
+}
+
+async function fetchGzip(asset) {
+  if (typeof asset === 'string') {
+    const response = await fetchWithRetry(resolveUrl(asset));
+    if (!response.ok) throw responseError(asset, response);
+    return self.fflate.gunzipSync(new Uint8Array(await response.arrayBuffer()));
+  }
+  const { url, offset, bytes: length, sha256 } = asset || {};
+  if (!manifest?.container || !Number.isSafeInteger(offset) || offset < 0 ||
+      !Number.isSafeInteger(length) || length <= 0 ||
+      offset + length > manifest.container.bytes || url !== manifest.container.url)
+    throw new Error('통합 수계 구성요소 범위가 올바르지 않습니다.');
+  let content;
+  if (wholeHydroBundle) {
+    content = wholeHydroBundle.subarray(offset, offset + length);
+  } else {
+    const response = await fetchWithRetry(resolveUrl(url),
+      { headers: { Range: `bytes=${offset}-${offset + length - 1}` } });
+    if (!response.ok) throw responseError(url, response);
+    const raw = new Uint8Array(await response.arrayBuffer());
+    if (response.status === 206) {
+      if (response.headers.get('Content-Range') !==
+          `bytes ${offset}-${offset + length - 1}/${manifest.container.bytes}` ||
+          raw.length !== length)
+        throw new Error('통합 수계 부분 응답의 범위가 다릅니다.');
+      content = raw;
+    } else if (response.status === 200) {
+      await saveWholeHydroBundle(raw);
+      content = raw.subarray(offset, offset + length);
+    } else throw new Error('통합 수계 다운로드 응답이 올바르지 않습니다.');
+  }
+  if (await hydroDigest(content) !== sha256)
+    throw new Error('통합 수계 구성요소의 SHA-256이 일치하지 않습니다.');
+  return self.fflate.gunzipSync(content);
 }
 
 function readGlobalIndex(bytes) {
@@ -147,7 +190,7 @@ async function ensureDetailMetadata() {
   if (detailMetadataPromise) return detailMetadataPromise;
   const detailUrl = manifest.metadata?.detail?.url;
   if (!detailUrl) return null;
-  detailMetadataPromise = fetchGzip(detailUrl).then(bytes => {
+  detailMetadataPromise = fetchGzip(manifest.container ? manifest.metadata.detail : detailUrl).then(bytes => {
     const payload = JSON.parse(textDecoder.decode(bytes));
     if (Number(payload?.version) !== 5 || !Array.isArray(payload?.features)) {
       throw new Error('수계 상세 메타데이터 버전이 올바르지 않습니다.');
@@ -180,7 +223,7 @@ async function detectRangeSupport() {
   try {
     const response = await fetchWithRetry(resolveUrl(first.url), { headers: { Range: 'bytes=0-0' } }, { attempts: 2 });
     const bytes = new Uint8Array(await response.arrayBuffer());
-    return response.status === 206 && bytes.length === 1 && response.headers.get('Content-Range') === 'bytes 0-0/' + first.bytes;
+    return response.status === 206 && bytes.length === 1 && response.headers.get('Content-Range') === 'bytes 0-0/' + (first.fileBytes || first.bytes);
   } catch (_) { return false; }
 }
 
@@ -673,6 +716,13 @@ onmessage = async event => {
   if (message.type === 'init') {
     try {
       manifest = message.manifest;
+      if (manifest.container) {
+        if (manifest.version !== '0.13.2' ||
+            manifest.container.url !== 'hydro.bin' ||
+            manifest.container.format !== 'byte-concatenated-subresources-v1')
+          throw new Error('통합 수계 형식 또는 버전이 올바르지 않습니다.');
+      }
+      wholeHydroBundle = null;
       baseUrl = message.baseUrl;
       assetRevision = message.assetRevision || manifest.version || '';
       dataRevision = message.dataRevision || assetRevision;
@@ -689,14 +739,19 @@ onmessage = async event => {
         openCache: openHydroCache,
         resolveUrl,
         gunzip: bytes => self.fflate.gunzipSync(bytes),
-        digest: async bytes => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join(''),
+        digest: hydroDigest,
+        sharedBundle: async () => wholeHydroBundle,
+        onWholeBundle: saveWholeHydroBundle,
       });
       cacheCompleted = false;
       firstViewReady = false;
-      for (const shard of manifest.shards || []) shardSpecs.set(Number(shard.id), shard);
-      readGlobalIndex(await fetchGzip(manifest.index.url));
-      readFeatureMetadata(await fetchGzip(manifest.metadata?.core?.url || manifest.metadata?.url));
-      rangeSupportPromise = detectRangeSupport();
+      for (const shard of manifest.shards || [])
+        shardSpecs.set(Number(shard.id), manifest.container
+          ? { ...shard, fileBytes: manifest.container.bytes } : shard);
+      readGlobalIndex(await fetchGzip(manifest.container ? manifest.index : manifest.index.url));
+      readFeatureMetadata(await fetchGzip(manifest.container
+        ? manifest.metadata.core : manifest.metadata?.core?.url || manifest.metadata?.url));
+      rangeSupportPromise = wholeHydroBundle ? Promise.resolve(false) : detectRangeSupport();
       postMessage({ type: 'ready' });
     } catch (error) {
       postMessage({ type: 'init-error', message: error?.message || String(error) });
