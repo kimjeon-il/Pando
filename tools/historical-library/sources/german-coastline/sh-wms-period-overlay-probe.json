@@ -166,9 +166,9 @@
       "id": "hauke-haien-koog",
       "label": "Hauke-Haien-Koog 1958-1959",
       "bbox": [
-        8.8,
+        8.68,
         54.69,
-        8.92,
+        8.8,
         54.77
       ],
       "layerImages": [
@@ -192,8 +192,8 @@
           "GetMapProfile": "wms130_epsg4326",
           "httpStatus": 200,
           "mimeType": "image/png",
-          "downloadBytes": 266389,
-          "sha256": "dcb703691fbdbf4b6d4cbd37513f646e55f370e7adae809f32947465e036cc33",
+          "downloadBytes": 178184,
+          "sha256": "24516b94101ff1f93415ed071df8e2f1becb308f66b4cfd19a7139d8fee6718b",
           "fetchStatus": "image-rendered",
           "sourceImage": "hauke-haien-koog-3-original.png",
           "overlayImage": "hauke-haien-koog-3-overlay.jpg",
@@ -222,8 +222,8 @@
           "GetMapProfile": "wms130_epsg4326",
           "httpStatus": 200,
           "mimeType": "image/png",
-          "downloadBytes": 243835,
-          "sha256": "8661954d9a74a1edb6b5341a10ca6c3386d86a77b38f83a4c186c45e5da33911",
+          "downloadBytes": 183960,
+          "sha256": "aa2761ede5dbf320aa1e0daa139825e7410c22bfeec8852800cf0012417e7af7",
           "fetchStatus": "image-rendered",
           "sourceImage": "hauke-haien-koog-2-original.png",
           "overlayImage": "hauke-haien-koog-2-overlay.jpg",
@@ -489,5 +489,5 @@
   ],
   "workingGetMapProfile": "wms130_epsg4326",
   "successfulLayerImages": 8,
-  "ciRunId": "37920677432"
+  "ciRunId": "37921081699"
 }
