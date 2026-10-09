@@ -76,6 +76,25 @@ These entries use the same `territory-replacement` materialization mode, so addi
 subtracts its transferred geometry from overlapping current-country objects in
 one undoable operation.
 
+## German coastline changes across eras
+
+The [coastline event/source index](sources/german-coastline/README.md) and
+[`change-events.json`](sources/german-coastline/change-events.json) record
+coastal engineering and land/water changes across the German Empire,
+German Reich (1919–1945), and later periods **without assigning each change to
+a permanent country owner or inventing a precise completion date**.
+
+The index currently records historical sources, construction/closure year
+ranges and the available Pillau/Zimmerbude/Gdynia map-sheet series. It is
+**research evidence, not digitized shoreline geometry**. Do not promote an
+event into a dated polygon until independent period maps have established its
+location, geometry, actual land/water classification and applicable dates.
+The present German Empire 1914 working geometry still has provisional modern
+coastline sections.
+
+Validate its data contract with
+`node --test tests/unit/historical-german-coastline-events.test.mjs`.
+
 ## German Empire 1914 working base
 
 `german-empire-1914-base.recipe.json` defines the reproducible working-base
