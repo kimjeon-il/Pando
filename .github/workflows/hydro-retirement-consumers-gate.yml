@@ -53,6 +53,7 @@ jobs:
           node --check tools/decode-hydro-connectivity.mjs
           node --check tools/research-hydro-names.mjs
           node --check tools/promote-hydro-names.mjs
+          node tools/research-hydro-names.mjs --check
           node tools/research-hydro-names.mjs --check --archive-core original-name-research/assets/data/hydro/v0.13.0/metadata-core.json.gz
       - name: Decode actual 2-file corpus and exercise production Serbia, Croatia and Moldova partitions
         run: |
