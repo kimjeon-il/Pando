@@ -123,14 +123,14 @@ export function planRelease(stage6,stage7,lock,webBranches,budget,{appBranchHead
   if(stage7.deleteReadyFiles!==0)blockers.push({code:'STAGE7_UNEXPECTED_APPROVAL',detail:'Stage 7 unexpectedly indicates deletable paths'});
   if(stage7.appReleases?.count>0)
     blockers.push({code:'PAST_NATIVE_RELEASES_UNVERIFIED',detail:'Native release ZIP/EXE payloads not completely checked'});
-  blockers.push({code:'FULL_URL_SHA_PARITY_MISSING',detail:'All archived public URLs and response bytes must be verified after a validated cutover'});
+  blockers.push({code:'CURRENT_URL_SHA_PARITY_MISSING',detail:'Current runtime and native-pinned URL bytes require validation; retired URLs have no permanent guarantee'});
   blockers.push({code:'NO_POST_CUTOVER_DEPLOYMENT',detail:'Actions-source cutover has not been performed, nor post-cutover smoke-tested'});
   blockers.push({code:'EXPLICIT_DELETION_APPROVAL_REQUIRED',detail:'Deleting across branches needs a separate explicit approval and lease-locked commits'});
   const ordered=[
     {phase:1,title:'Freeze source evidence and release package',required:'Record exact source SHA, candidate file Blob SHA and all branch heads'},
-    {phase:2,title:'Resolve Pages capacity and immutable origin routing',required:'Produce a supported <=1GB Pages artifact retaining every required old URL, or obtain an explicitly approved alternative URL contract'},
+    {phase:2,title:'Resolve Pages capacity and immutable origin routing',required:'Produce a supported <=1GB Pages artifact retaining current runtime/native-pinned assets; old-version URLs may expire by policy'},
     {phase:3,title:'Build and test static deployment artifact off-line',required:'Validate runtime, all published URL paths, response bytes and manifest/source provenance'},
-    {phase:4,title:'Switch Pages source and deploy with rollback prepared',required:'Use approved github-pages environment; verify old and current URLs after deployment; preserve pre-cutover release'},
+    {phase:4,title:'Switch Pages source and deploy with rollback prepared',required:'Use approved github-pages environment; verify current URLs after deployment; preserve pre-cutover release'},
     {phase:5,title:'Prepare all branch-specific deletion commits',required:'From pinned branch heads and exact path allowlist; reject drift and unrelated file changes; preserve native App payloads'},
     {phase:6,title:'Execute coordinated multi-branch cleanup',required:'Only after explicit approval, verify each ref lease, test branches, keep rollback SHA for every ref; no genuine cross-ref atomicity'},
     {phase:7,title:'Final public and native regression',required:'Reverify Pages binary URLs, Web rendering/cache, Qt/offline data and release provenance'}
