@@ -68,7 +68,7 @@ test('any different data Blob on any web branch blocks multi-branch removal',()=
 test('duplicate branch plans, invalid heads and unapproved deletion lock are rejected',()=>{
  const lock=locked(),branches=exampleBranches(lock);
  assert.throws(()=>planWebDeletes(lock,[branches[0],branches[0]]),/Duplicate branch/);
- assert.throws(()=>planWebDeletes({...lock,totalFiles:5},branches),/Exact Stage8/);
+ assert.throws(()=>planWebDeletes({...lock,totalFiles:5},branches),/Exact current remaining archive inventory/);
  assert.throws(()=>planWebDeletes(lock,[{name:'main',head:'bad',tree:new Map()},branches[1]]),/Incomplete/);
 });
 test('readiness reports both Pages overage and native regression blockers',()=>{
