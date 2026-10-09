@@ -71,3 +71,120 @@ Official primary-source URLs are recorded under each event's `sourceIds`. Uninde
 After the modern port experiment, use Zuiderzee/Flevoland to test **hydrography and disconnected-island** transitions. Treat broad waterfront changes of Germany/Netherlands as *linked evidence*, not independent country-by-country edits.
 
 **Out of scope here:** any Web/App runtime changes, generating 1914 Netherlands polygons, integrating the global event schema into production, changing official hydro files, historical Hausdorff verification or merging to `main`.
+
+
+## 6. Current representation inventory — bounded source comparison
+
+A second read-only Phase 0 pass now compares the current NLD country geometry
+against the current Natural Earth lake source. Machine-readable results are in
+[current representation inventory](phase0-current-representation-inventory.json).
+
+Pinned source blobs for this pass:
+
+- `assets/data/territorial-entities/source/countries/nld.json`:
+  `b6bb670257d4e73d5fc4cf1880064b91bb365c8b`
+- `assets/data/hydro/lakes_base.geojson`:
+  `02ec805c9ec3347b81b7b6ec3aba5ed5eb0028a8`
+
+### 6.1 What the current bundled data actually contains
+
+Within the Netherlands study BBOX, the Natural Earth lake source contains only
+two intersecting lake features:
+
+- `Lauwersmeer`
+- `IJsselmeer`
+
+There is **no separate Markermeer feature**. The IJsselmeer feature is one
+Polygon with one interior ring. Its outer extent covers both the IJsselmeer and
+Markermeer sample areas.
+
+Three samples placed on/near the Houtribdijk run
+(`[5.37,52.61]`, `[5.45,52.54]`, `[5.31,52.69]`) all test **inside the
+IJsselmeer water polygon**. Both the Markermeer water sample and IJsselmeer
+water sample also test inside that same feature.
+
+Therefore the current lake source must **not** be treated as a correct modern
+hydraulic-topology baseline for the Houtribdijk / Markermeer split. At the
+tested positions, the barrier is generalized away.
+
+### 6.2 Large polders represented consistently with modern dry land
+
+The existing Phase 0 samples for:
+
+- Wieringermeer
+- Noordoostpolder
+- Oostelijk Flevoland
+- Zuidelijk Flevoland
+
+are all inside the current NLD national polygon and outside the current
+IJsselmeer lake polygon. At these samples the bundled country+lake sources are
+therefore consistent with the modern dry-land state.
+
+This is still **sample-level evidence**, not proof of each full polder
+shoreline.
+
+### 6.3 Modern artificial islands not exposed by the current lake mask
+
+The existing Marker Wadden sample (`[5.37,52.59]`) and IJburg sample
+(`[5.01,52.36]`) both test inside the current IJsselmeer water polygon.
+
+This means the current Natural Earth lake mask does not expose dry land at
+those sample positions. It is not sufficient to infer whether every island is
+absent from every render path, but the source geometry itself is too generalized
+to serve as the modern rollback baseline for these projects.
+
+Chronology controls:
+
+- Natuurmonumenten: Marker Wadden construction began in 2016; the first five
+  islands were completed by 2021 and islands 6–7 by 2023.
+  https://www.natuurmonumenten.nl/projecten/marker-wadden/planning-en-voortgang
+- Gemeente Amsterdam: IJburg first-phase construction began in 1999; the second
+  phase began in 2013, Strandeiland in 2018 and Buiteneiland in 2023.
+  https://www.amsterdam.nl/projecten/ijburg/geschiedenis/
+
+These dates index events only; they are not substitute shoreline geometry.
+
+### 6.4 Maasvlakte 2 remains the first external-geometry target
+
+The published Maasvlakte 2 place point (`3.9833, 51.9583`) is outside the
+current NLD polygon. The closest point found on the current NLD boundary is
+approximately `[4.021169, 51.963324]`, about **2.66 km** away by local
+WGS84-distance approximation. The Maasvlakte 1 control point
+(`[4.05,51.96]`) remains inside.
+
+This strengthens the earlier conclusion: the current Natural Earth national
+outline misses at least part of the modern Maasvlakte 2 area. It still does not
+establish the complete missing footprint. The next geometry source comparison
+remains current PDOK/TOP10NL coastline versus dated pre-/post-reclamation
+mapping.
+
+PDOK documents its Zeegebieden dataset as TOP10NL-derived and containing
+Shoreline and Coastline features:
+https://www.pdok.nl/ogc-apis/-/article/zeegebieden
+
+### 6.5 Lauwersmeer correction
+
+The previous manually selected Lauwersmeer probe `[6.22,53.38]` is not inside
+the bundled Lauwersmeer polygon and should not be used as a lake-presence
+probe. The current source nevertheless does contain an explicit Lauwersmeer
+Polygon. A geometry-derived interior point is approximately
+`[6.1953974,53.3670096]`.
+
+This correction does not change the historical conclusion: the current source
+represents the enclosed modern lake, while the pre-1969 tidal connection still
+requires dated historical geometry.
+
+## 7. Phase 0 status after this pass
+
+Current status:
+
+- **modern dry-land sample confirmed:** Wieringermeer, Noordoostpolder,
+  Oostelijk Flevoland, Zuidelijk Flevoland;
+- **modern lake feature confirmed:** Lauwersmeer, IJsselmeer;
+- **modern hydro topology deficient:** Houtribdijk / Markermeer separation;
+- **recent artificial-land samples masked as water:** Marker Wadden, IJburg;
+- **current outer coast materially incomplete at sample:** Maasvlakte 2;
+- **still footprint-unresolved:** every event above until authoritative modern
+  and dated geometry is compared.
+
+No rollback polygon or historical shoreline has been generated by this pass.
