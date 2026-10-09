@@ -71,7 +71,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: kimjeon-il/PandoEditor
-          ref: f3dc9852ec93691980b3c6afdeb84a82d4ccfad4
+          ref: 20e32516d81e1249db5ee5d8f4fe4c19a01bcdc0
           path: pinned-app
           persist-credentials: false
           sparse-checkout: |
