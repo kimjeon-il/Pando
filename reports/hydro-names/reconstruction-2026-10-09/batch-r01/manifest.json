@@ -1,0 +1,133 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r01",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r01",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "initial_recovery_commit_reported_verified": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+  "scope": "Three new source-based re-evaluations; missing historical504record ledger not restored",
+  "automatic_application": false,
+  "product_changes": false,
+  "raw_third_party_pdf_count": 1,
+  "raw_pdf_rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 29,
+  "bytes_excluding_self": 2327357,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 4825,
+      "sha256": "f3ca45ebada399c5f6442f336d394d889e09a6652d8fab7d41799e7e9ed993b5"
+    },
+    "access-policy-at-reconstruction.json": {
+      "bytes": 5498,
+      "sha256": "9a8bbade942dcfd9a68bd4fd6970d57528d12937c6ba22227912353fe1297672"
+    },
+    "becharof-findings.json": {
+      "bytes": 7556,
+      "sha256": "ee3e46023f311d8c75b551a6c68e3d34ebda59d2a05665b2d718fb4c30b12705"
+    },
+    "becharof-source-evidence.json": {
+      "bytes": 10148,
+      "sha256": "b45b33f4f461f3e23f32d64fe34f548e705629a1d06cdd84b7daf37263c5168c"
+    },
+    "canada-findings.json": {
+      "bytes": 9752,
+      "sha256": "65ea57ccd9db8b7fc0707873386e1dc29ebb5fbf9efa4fb558df726b18da9401"
+    },
+    "canada-source-evidence.json": {
+      "bytes": 10805,
+      "sha256": "5934b79f042a5b2afe89641044978c09134fc1d79fdac3dfa6658db6f6e18ef5"
+    },
+    "extract-baseline-geometries.mjs": {
+      "bytes": 4030,
+      "sha256": "cdc096c5121475ae963ebe76634806d6197c465feff5eef480c7153f138faa0f"
+    },
+    "geometry-README.md": {
+      "bytes": 4931,
+      "sha256": "7aa49807e358d91649386342c9927ac685d36a1c8b03047af58a92e5753c0ade"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1028,
+      "sha256": "08bcddf4237a3ade423a4e4f3cc4297fd877a0904b579e61369f5fcfa39841e7"
+    },
+    "geometry-reference.json": {
+      "bytes": 18342,
+      "sha256": "a494858d0e662528a84d0829a4b88014773eebdadb175153565fa5228ea383ab"
+    },
+    "geometry-request-receipts.json": {
+      "bytes": 10517,
+      "sha256": "62fd94873c308b0169e2ea0fb258e00e6298189b55a9319b411d65a4f257495a"
+    },
+    "geometry-validation.json": {
+      "bytes": 262,
+      "sha256": "da5c6b43934217741eb91fba119702c3393367b47a030bdaf1a2966e3c4c63d1"
+    },
+    "results.json": {
+      "bytes": 5136,
+      "sha256": "684a8e68387de81c3342bed93449e7784026353d8134c8280543e8f62cabd637"
+    },
+    "review/frozen-input-pins.json": {
+      "bytes": 868,
+      "sha256": "3de8577503f320878861741e2cb0668bc1ac28d7905548424cbc7ea955c2b64c"
+    },
+    "review/independent-review.json": {
+      "bytes": 5691,
+      "sha256": "ae2ba70264a62a3b8058fd58db688d956466004bd23a790ebcf27bb853907e39"
+    },
+    "review/mackay-registration-facts.json": {
+      "bytes": 6295,
+      "sha256": "e6080b87f1ff18a79045a599581e528039c5a3d4e4e3c2fc76f0e109f5b07101"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1355,
+      "sha256": "e4b6b34eca366fdf194ddf7e0e4185c9b3b614b0642f9318136525b552ba6e89"
+    },
+    "review/source-observations.json": {
+      "bytes": 13983,
+      "sha256": "d62c8bd77edddc8c11a99201a7730ff47767e07193b551fb928fe310b94b1dbf"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 9161,
+      "sha256": "dc2649e3dd3db05be8c5ea2801e3b81b903af5debf7bcb20dd93ab12ae5255cf"
+    },
+    "review/validation-durable.json": {
+      "bytes": 1235,
+      "sha256": "fc22ba1fa0d7a16d40323e195a237abac3f972c9c75188051e5d5cb96266b495"
+    },
+    "review/validation-execution.json": {
+      "bytes": 1717,
+      "sha256": "206bc935fe07953f9ffdd21c1a1d11485a6178fed90055ed5ace5e9000fc86c7"
+    },
+    "review/validation-full-inputs.json": {
+      "bytes": 4473,
+      "sha256": "f9cbd80e36d1046c301517564c9532089406623d6f2a1f07a265016bda285e53"
+    },
+    "selected-baseline-rendered-geometries.geojson": {
+      "bytes": 10259,
+      "sha256": "1b98d7bb09a0b2b21df3295f5bd803ba401a462a21d52342ff5917a44bd143c3"
+    },
+    "selected-lake-geometries.geojson": {
+      "bytes": 16505,
+      "sha256": "5d4e3e19a007d911b9ac289bf4f662e87dfedc0a96f4206db92dda24e3bd943a"
+    },
+    "selected-pack-receipts.json": {
+      "bytes": 533,
+      "sha256": "47bd88fd2e7e53c56fcea1a04630c915e9a79e1fe54d31046ad0c6887d3ceb87"
+    },
+    "source-publication-rights.json": {
+      "bytes": 916,
+      "sha256": "2b3986170f20fb3a017ce1afe73866e1a0164416ecd70644b43d88993e439aab"
+    },
+    "sources/becharof-fws-guide-use-areas-2012.pdf": {
+      "bytes": 2153038,
+      "sha256": "5d37dfd13f863be39cf4d1c0de30dd14476e85c2e50536ad2f6ed7d3fb54e117"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 5724,
+      "sha256": "6c96c74d3cc2bafd7eb44172a0be56a04bb6310191f3ac34be54cecb9d3c00a8"
+    },
+    "validate-package.py": {
+      "bytes": 2774,
+      "sha256": "27964907f11db3ad72c2013aa649939f26910edcacd230bc1b397cd0bb8c39d8"
+    }
+  }
+}

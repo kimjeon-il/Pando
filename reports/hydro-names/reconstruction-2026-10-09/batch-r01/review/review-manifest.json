@@ -1,0 +1,38 @@
+{
+  "kind": "Published independent research review component; original-source hashes and findings preserved",
+  "reviewed_input_manifest": "frozen-input-pins.json",
+  "files": {
+    "frozen-input-pins.json": {
+      "bytes": 868,
+      "sha256": "3de8577503f320878861741e2cb0668bc1ac28d7905548424cbc7ea955c2b64c"
+    },
+    "independent-review.json": {
+      "bytes": 5691,
+      "sha256": "ae2ba70264a62a3b8058fd58db688d956466004bd23a790ebcf27bb853907e39"
+    },
+    "mackay-registration-facts.json": {
+      "bytes": 6295,
+      "sha256": "e6080b87f1ff18a79045a599581e528039c5a3d4e4e3c2fc76f0e109f5b07101"
+    },
+    "source-observations.json": {
+      "bytes": 13983,
+      "sha256": "d62c8bd77edddc8c11a99201a7730ff47767e07193b551fb928fe310b94b1dbf"
+    },
+    "validate-independent-review.py": {
+      "bytes": 9161,
+      "sha256": "dc2649e3dd3db05be8c5ea2801e3b81b903af5debf7bcb20dd93ab12ae5255cf"
+    },
+    "validation-durable.json": {
+      "bytes": 1235,
+      "sha256": "fc22ba1fa0d7a16d40323e195a237abac3f972c9c75188051e5d5cb96266b495"
+    },
+    "validation-execution.json": {
+      "bytes": 1717,
+      "sha256": "206bc935fe07953f9ffdd21c1a1d11485a6178fed90055ed5ace5e9000fc86c7"
+    },
+    "validation-full-inputs.json": {
+      "bytes": 4473,
+      "sha256": "f9cbd80e36d1046c301517564c9532089406623d6f2a1f07a265016bda285e53"
+    }
+  }
+}

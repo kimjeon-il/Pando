@@ -1,0 +1,240 @@
+{
+  "schema": "reviewer-cartographic-registration-facts-v1",
+  "source_id": "CA-GNWT-20181218",
+  "source_sha256": "5aac878c13156f298024181f73255789cf115638f1959f6989e9a11655d96f3a",
+  "pdf_page_1_based": 2,
+  "coordinate_conventions": {
+    "GPTS": "alternating latitude, longitude degrees in declared GCS",
+    "LPTS": "normalized local viewport pairs in original order",
+    "BBox": "original PDF array preserved including inverted y order",
+    "page_output": "PDF points, top-left origin; y increases downward",
+    "transform": "[Lambert_easting_m,Lambert_northing_m,1] @ affine_3x2 = [page_x,page_y]"
+  },
+  "GCS_WKT": "PROJCS[\"NWT_Lambert\",GEOGCS[\"GCS_GRS_1980\",DATUM[\"D_GRS_1980\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Lambert_Conformal_Conic\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-115.0],PARAMETER[\"Standard_Parallel_1\",60.0],PARAMETER[\"Standard_Parallel_2\",66.0],PARAMETER[\"Scale_Factor\",1.0],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+  "BBox": [
+    35.27965,
+    2550.23939,
+    3387.56598,
+    48.92306
+  ],
+  "media_box": [
+    0.0,
+    0.0,
+    3456.0,
+    2592.0
+  ],
+  "GPTS": [
+    62.82566,
+    -115.78085,
+    65.99483,
+    -115.87528,
+    65.71027,
+    -105.52583,
+    62.5711,
+    -106.53558
+  ],
+  "LPTS": [
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    1.0
+  ],
+  "controls": [
+    {
+      "latitude": 62.82566,
+      "longitude": -115.78085,
+      "LPTS": [
+        0.0,
+        1.0
+      ],
+      "projected_meters": [
+        -39748.44705506541,
+        8270052.784232166
+      ],
+      "page_xy_top_left_points": [
+        35.27965,
+        2543.07694
+      ]
+    },
+    {
+      "latitude": 65.99483,
+      "longitude": -115.87528,
+      "LPTS": [
+        0.0,
+        0.0
+      ],
+      "projected_meters": [
+        -39748.4735554256,
+        8623055.930351902
+      ],
+      "page_xy_top_left_points": [
+        35.27965,
+        41.760609999999815
+      ]
+    },
+    {
+      "latitude": 65.71027,
+      "longitude": -105.52583,
+      "LPTS": [
+        1.0,
+        0.0
+      ],
+      "projected_meters": [
+        433360.2314867101,
+        8623056.389249256
+      ],
+      "page_xy_top_left_points": [
+        3387.56598,
+        41.760609999999815
+      ]
+    },
+    {
+      "latitude": 62.5711,
+      "longitude": -106.53558,
+      "LPTS": [
+        1.0,
+        1.0
+      ],
+      "projected_meters": [
+        433360.2882265663,
+        8270053.308453417
+      ],
+      "page_xy_top_left_points": [
+        3387.56598,
+        2543.07694
+      ]
+    }
+  ],
+  "affine_3x2": [
+    [
+      0.007085657454913389,
+      7.362156525388513e-09
+    ],
+    [
+      8.354198806871595e-10,
+      -0.007085819457790072
+    ],
+    [
+      316.9165676637616,
+      61143.17828381582
+    ]
+  ],
+  "four_corner_fit_residual_pdf_points": [
+    0.0001275151459566904,
+    0.0001275151054015075,
+    0.00012751515829709912,
+    0.00012751515248166692
+  ],
+  "three_control_fit_fourth_holdout_residual_pdf_points": 0.0005100605311066048,
+  "source_geometry_canonical_sha256": "5f2c16b74227170091515278dca8b769a1af2b9445e63ea437c84341475055b0",
+  "all_173_source_positions_transformed_without_simplification": true,
+  "southwest_text_center_relationships": [
+    {
+      "text": "Lockhart Lake",
+      "text_bbox_top_left_pdf_points": [
+        1337.3865966796875,
+        1846.949951171875,
+        1431.753662109375,
+        1873.2432861328125
+      ],
+      "center_top_left_pdf_points": [
+        1384.5701293945312,
+        1860.0966186523438
+      ],
+      "center_inside_generalized_source_exterior": false
+    },
+    {
+      "text": "Lockhart Lake",
+      "text_bbox_top_left_pdf_points": [
+        1372.3062744140625,
+        1866.750244140625,
+        1466.67333984375,
+        1893.0435791015625
+      ],
+      "center_top_left_pdf_points": [
+        1419.4898071289062,
+        1879.8969116210938
+      ],
+      "center_inside_generalized_source_exterior": false
+    },
+    {
+      "text": "Lockhart Lake",
+      "text_bbox_top_left_pdf_points": [
+        1373.0262451171875,
+        1815.26953125,
+        1467.393310546875,
+        1841.5628662109375
+      ],
+      "center_top_left_pdf_points": [
+        1420.2097778320312,
+        1828.4161987304688
+      ],
+      "center_inside_generalized_source_exterior": false
+    },
+    {
+      "text": "Lockhart",
+      "text_bbox_top_left_pdf_points": [
+        1374.826171875,
+        1767.748779296875,
+        1433.38232421875,
+        1794.0421142578125
+      ],
+      "center_top_left_pdf_points": [
+        1404.104248046875,
+        1780.8954467773438
+      ],
+      "center_inside_generalized_source_exterior": true
+    },
+    {
+      "text": "River",
+      "text_bbox_top_left_pdf_points": [
+        1374.826171875,
+        1783.948974609375,
+        1409.3079833984375,
+        1810.2423095703125
+      ],
+      "center_top_left_pdf_points": [
+        1392.0670776367188,
+        1797.0956420898438
+      ],
+      "center_inside_generalized_source_exterior": false
+    },
+    {
+      "text": "Lockhart",
+      "text_bbox_top_left_pdf_points": [
+        1302.826904296875,
+        1796.5491943359375,
+        1361.383056640625,
+        1822.842529296875
+      ],
+      "center_top_left_pdf_points": [
+        1332.10498046875,
+        1809.6958618164062
+      ],
+      "center_inside_generalized_source_exterior": false
+    },
+    {
+      "text": "River",
+      "text_bbox_top_left_pdf_points": [
+        1326.586669921875,
+        1812.7493896484375,
+        1361.0684814453125,
+        1839.042724609375
+      ],
+      "center_top_left_pdf_points": [
+        1343.8275756835938,
+        1825.8960571289062
+      ],
+      "center_inside_generalized_source_exterior": false
+    }
+  ],
+  "limits": [
+    "Embedded map-registration consistency only; these tiny residuals are not shoreline or positional accuracy.",
+    "Label centers inside a polygon establish visual label placement, not water-feature boundaries, legal name scope or a two-lake composite.",
+    "Map shows adjacent connected waters; detailed islands and shoreline are absent from generalized input. No scalar whole-polygon name cleared."
+  ]
+}

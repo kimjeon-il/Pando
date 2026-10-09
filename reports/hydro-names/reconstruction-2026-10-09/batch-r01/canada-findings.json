@@ -1,0 +1,206 @@
+{
+  "schema": "hydro-canada-findings-v1",
+  "created_at_utc": "2026-10-09T11:02:45.832026+00:00",
+  "scope": [
+    "lakes_base:1159109497",
+    "lakes_base:1159107065"
+  ],
+  "evidence_file": "canada-source-evidence.json",
+  "geometry_reference": "geometry-reference.json",
+  "automatic_application": false,
+  "product_application": false,
+  "findings": [
+    {
+      "source_id": "1159109497",
+      "aw_id": "lakes_base:1159109497",
+      "source_feature_zero_based_index": 228,
+      "baseline_fid": 15421,
+      "baseline_logical_fid": 4046,
+      "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "source_file_sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+      "source_feature_canonical_sha256": "7f15c4d9ca80e871a7410b75ce2ffc9f079662eb161a16bb8c9f08ca01ea6e8b",
+      "source_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            173
+          ]
+        ],
+        "total_coordinates_including_closure": 173,
+        "bbox": [
+          -111.94520171566145,
+          63.68490959062734,
+          -109.76602408250571,
+          64.23242686709224
+        ],
+        "all_rings_closed": true,
+        "canonical_geometry_sha256": "5f2c16b74227170091515278dca8b769a1af2b9445e63ea437c84341475055b0"
+      },
+      "baseline_rendered_geometry_sha256": "14e3508b1357c7c6f116cb72b7892bb649fecfeee3f9b3ab315f62575725aacf",
+      "current_live_deployment_checked": false,
+      "historical_lead": "MacKay Lake",
+      "candidate_name": "MacKay Lake",
+      "name_ko": null,
+      "name_ko_reason": "No direct Korean-name evidence acquired.",
+      "verdict": "manual_hold_main_body_match_whole_polygon_scope_unresolved",
+      "name_evidence_status": "Direct mapped GNWT usage from 2018; current registry status not verified",
+      "official_registry_id": null,
+      "official_name_decision_date": null,
+      "formal_naming_type": null,
+      "whole_lake_identity": "Principal west basin and northeast arm support MacKay Lake, but this does not establish that every part of the supplied polygon belongs to that scalar name.",
+      "sources": [
+        "CA-GNWT-20181218"
+      ],
+      "complete_geometry_check": {
+        "entire_exterior_examined": true,
+        "coordinates_including_closure": 173,
+        "holes": 0,
+        "method": "Project complete unsimplified exterior using the original PDF’s embedded NWT_Lambert GCS and four GPTS/LPTS corners, then inspect the complete registered overlay against all adjacent mapped waters.",
+        "registration": {
+          "projection": "NWT_Lambert, GRS_1980, central meridian -115; standard parallels 60 and 66; latitude of origin 0",
+          "four_corner_fit_residual_pdf_points": [
+            0.00012751514023737312,
+            0.00012751511174167397,
+            0.0001275151575329762,
+            0.00012751514645192508
+          ],
+          "registration_input": "Embedded PDF viewport GPTS/LPTS and GCS WKT; whole 173-coordinate source exterior projected without simplification",
+          "comparison_only": true,
+          "shoreline_metric_computed": false,
+          "map_extent_pdf_points": [
+            35.27965,
+            2550.23939,
+            3387.56598,
+            48.92306
+          ]
+        },
+        "matched_features": [
+          "West basin with northern lobe and Nodinka Narrows",
+          "Warburton Bay and Portage Bay configuration",
+          "Long northeast arm and eastward terminal lobe"
+        ],
+        "competing_waters_checked": [
+          "Courageous Lake",
+          "Matthews Lake",
+          "Dumbell Lake",
+          "Snake Lake",
+          "King Lake",
+          "Lockhart River",
+          "Lockhart Lake"
+        ],
+        "scope_issue": "The southwest source extension encloses the map’s Lockhart River label and associated connecting-water corridor; repeated Lockhart Lake labels lie just outside. The map does not provide feature boundaries that resolve the allocation of that southwestern reach.",
+        "composite_status": "Not proven to be a two-lake composite; not cleared as one wholly MacKay-named footprint.",
+        "exact_shoreline_match": false,
+        "shoreline_or_overlap_metric": null
+      },
+      "limitations": [
+        "Single source ring omits Big Island and other islands and heavily generalizes shorelines.",
+        "A precise geospatial registration fit is not shoreline accuracy or name-boundary evidence.",
+        "Do not apply one MacKay scalar label across the full polygon until southwestern scope is resolved with independent official delineation.",
+        "No legal naming-record acquisition was attempted through stopped routes."
+      ]
+    },
+    {
+      "source_id": "1159107065",
+      "aw_id": "lakes_base:1159107065",
+      "source_feature_zero_based_index": 43,
+      "baseline_fid": 15236,
+      "baseline_logical_fid": 3861,
+      "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "source_file_sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+      "source_feature_canonical_sha256": "3a90fd7689b093d699935fdec7c84aebf617a88e1e0a01f6816fb023f8d4ac27",
+      "source_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            105
+          ]
+        ],
+        "total_coordinates_including_closure": 105,
+        "bbox": [
+          -76.61311708223786,
+          56.11268678429229,
+          -75.88324122901489,
+          56.56512444769365
+        ],
+        "all_rings_closed": true,
+        "canonical_geometry_sha256": "ffcb8e6068c59b9cfc6447e51d0dbe37f1706fcfde841b62ec49fdf388ba3300"
+      },
+      "baseline_rendered_geometry_sha256": "9f86f12b9c590e67a3520658e9e5255e00151d9018c86fb6b8aa06b58957fdf5",
+      "current_live_deployment_checked": false,
+      "historical_lead": "Tasiujaq",
+      "candidate_name": "Lac Tasiujaq",
+      "name_ko": null,
+      "name_ko_reason": "No direct Korean-name evidence acquired.",
+      "verdict": "supported_generalized_whole_water_identity_manual_review_only",
+      "name_evidence_status": "Direct current park usage plus historical provincial map and independent official alias bridge",
+      "observed_forms": [
+        {
+          "form": "Lac Tasiujaq",
+          "source": "CA-NUNAVIK-TURSUJUQ-CURRENT",
+          "scope": "Current park usage"
+        },
+        {
+          "form": "Lake Tasiujaq",
+          "source": "CA-NUNAVIK-TURSUJUQ-CURRENT",
+          "scope": "English park usage, not an asserted English registry form"
+        },
+        {
+          "form": "Lac Guillaume-Delisle",
+          "source": "CA-NUNAVIK-FISHING-2024",
+          "scope": "2015 map label in 2024–2025 guide"
+        }
+      ],
+      "official_registry_id": null,
+      "official_name_decision_date": null,
+      "formal_naming_type": null,
+      "whole_lake_identity": "The full generalized source polygon represents the park water currently called Lac Tasiujaq, linked to the map’s older Lac Guillaume-Delisle by the independent DFO text.",
+      "sources": [
+        "CA-NUNAVIK-TURSUJUQ-CURRENT",
+        "CA-NUNAVIK-FISHING-2024",
+        "CA-DFO-SEAL-2018"
+      ],
+      "complete_geometry_check": {
+        "entire_exterior_examined": true,
+        "coordinates_including_closure": 105,
+        "holes": 0,
+        "method": "Compare every source-ring extent in a complete longitude/latitude outline against Annex 1’s entire coast-adjacent water and surrounding park map; use the independent alias text to connect older mapped and current park names.",
+        "matched_features": [
+          "Narrow northern reach adjacent to Umiujaq",
+          "Widening southward into a broad triangular southern basin",
+          "Eastern embayments and southeastern end",
+          "Southwestern channel spur aligned with mapped Le Goulet and Hudson Bay"
+        ],
+        "competing_waters_checked": [
+          "Baie d’Hudson",
+          "Le Goulet",
+          "Separate inland Lac à l’Eau Claire / Wiyâshâkimî"
+        ],
+        "name_collision": "The map locates the water south of Umiujaq on Hudson Bay; this is not an assignment from the distant village named Tasiujaq or any homonymous Nunavut feature.",
+        "composite_status": "No separate second large lake appears inside the candidate outline; the southwest connector is retained but its exact naming-boundary cutoff is unresolved.",
+        "exact_shoreline_match": false,
+        "shoreline_or_overlap_metric": null
+      },
+      "physical_classification": {
+        "directly_supported": "Brackish tidal water linked to Hudson Bay through Le Goulet; lake is the park-used name generic.",
+        "not_established": "Formal current gazetteer feature-type code or legally delimited lake-versus-gulf class.",
+        "caution": "Do not infer freshwater or hydrologic isolation from the baseline feature_class Lake. No classification change is applied."
+      },
+      "limitations": [
+        "Map is generalized and older, with a rasterized 1:850,000 image. Full-outline identity is qualitative, not a precision shoreline validation.",
+        "Source ring has no holes despite islands on the official map.",
+        "Exact lake/channel/marine boundary at Le Goulet is not established.",
+        "DFO alias sentence has Guillaume-Deslisle spelling; official map uses Guillaume-Delisle.",
+        "Formal current registration, decision date and feature type are deliberately unverified because applicable naming-publication restrictions are incomplete."
+      ]
+    }
+  ]
+}

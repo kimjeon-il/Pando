@@ -1,0 +1,131 @@
+{
+  "schema": "hydro-source-access-record-v1",
+  "scope": "Reconstructed source-access observations and exclusions relevant to reproducing research; not a complete historical access ledger.",
+  "complete_historical_ledger_available": false,
+  "historical_entries_original_receipts_available": false,
+  "entries": [
+    {
+      "url": "https://denr.nt.gov.au/__data/assets/pdf_file/0007/722329/aswr_strategyvol1.pdf",
+      "publication": "Alice Springs Water Resource Strategy2006–2016 Volume1",
+      "historical_response": "403"
+    },
+    {
+      "url": "https://onlinelibrary.wiley.com/doi/10.1111/mec.70509",
+      "publication": "Zhao/Zheng2026 Molecular Ecology study",
+      "historical_response": "403"
+    },
+    {
+      "url": "https://www.tandfonline.com/doi/full/10.1080/03721426.2021.2003514",
+      "publication": "Landscapes of the Lake Eyre Basin",
+      "historical_response": "403"
+    },
+    {
+      "url": "https://oulurepo.oulu.fi/bitstream/handle/10024/31779/nbnfi-fe2022041329095.pdf?sequence=1",
+      "publication": "Fahlian/Parsian-reservoir study",
+      "historical_response": "403"
+    },
+    {
+      "url": "https://research-repository.uwa.edu.au/files/3214540/Boggs_Dimity_2007.pdf",
+      "publication": "Boggs2007 Playas of Yarra Yarra Drainage System thesis",
+      "historical_response": "403"
+    },
+    {
+      "url": "https://www.epa.wa.gov.au/sites/default/files/PER_documentation2/App%20D%20-%20Mine%20Closure%20Plan.pdf",
+      "publication": "Yogi-Magnetite mine closure plan2019",
+      "historical_response": "403"
+    },
+    {
+      "url": "https://www.der.wa.gov.au/images/documents/our-work/licences-and-works-approvals/Decisions_/L7798/L7798%20AR%2020230420.pdf",
+      "publication": "Deflector2023 L7798 amendment report",
+      "historical_response": "403"
+    },
+    {
+      "url": "https://doi.org/10.15853/2072-8212.2015.37.53-145",
+      "publication": "Koval et al2015 Penzhina/Talovka freshwater ichthyofauna",
+      "historical_response": "HTTP200 error-page redirect"
+    },
+    {
+      "url": "https://www.sonora.gob.mx/images/documentos/plan-hidrico-sonora-2023-2053.pdf",
+      "publication": "Plan Hídrico Sonora2023–2053",
+      "historical_response": "403"
+    },
+    {
+      "url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/sonora/DR_2624.pdf",
+      "publication": "CONAGUA Acuífero Río Sonora DR2624",
+      "historical_response": "403"
+    },
+    {
+      "url": "https://www.mdpi.com/2073-4441/17/7/1021",
+      "publication": "MDPI Water17(7)1021",
+      "historical_response": "429"
+    },
+    {
+      "url": "https://www.mdpi.com/2071-1050/12/16/6654",
+      "publication": "MDPI Sustainability12(16)6654",
+      "historical_response": "429"
+    },
+    {
+      "url": "https://sahtulanduseplan.org/document/653",
+      "publication": "Sahtu document653",
+      "historical_response": "429"
+    },
+    {
+      "url": "https://www.sciengine.com/parse/pdf/1008-858X/15DACC338889409285EEC2729F38983D.pdf?attname=%E5%8F%AF%E5%8F%AF%E8%A5%BF%E9%87%8C%E7%9B%90%E6%B9%96%E5%8F%8A%E5%85%B6%E6%B2%89%E7%A7%AF%E7%89%B9%E5%BE%81%E5%88%9D%E6%AD%A5%E7%A0%94%E7%A9%B6.pdf",
+      "publication": "Kekexili saline-lake/sediments study",
+      "historical_response": "429"
+    },
+    {
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12960848/",
+      "publication": "PMC12960848 study",
+      "historical_response": "browser/reCAPTCHA challenge"
+    },
+    {
+      "url": "https://reseau-tchad.org/reseau/",
+      "publication": "Chad portal",
+      "historical_response": "unrelated gambling redirect"
+    },
+    {
+      "url": "https://www.cdig.td/ressources/",
+      "publication": "Chad gated resources",
+      "historical_response": "email/secure-link CAPTCHA gate"
+    },
+    {
+      "url": "https://geo.phys.spbu.ru/Science/Files/RFBR-Kharionsky-report-2020.pdf",
+      "publication": "RFBR Kharionsky2020 report",
+      "historical_response": "502"
+    },
+    {
+      "url": "https://pureportal.spbu.ru/files/118318045/10084.pdf",
+      "publication": "SPBU10084 PDF",
+      "historical_response": "404"
+    },
+    {
+      "url": "https://www.mee.gov.cn/ywdt/gs/wqgs_1/201811/W020181109556876633651.pdf",
+      "publication": "Lianyungang airport EIA2018",
+      "historical_response": "unrelated successful content"
+    },
+    {
+      "url": "https://www.fws.gov/r7/nwr/Realty/data/Maps/WaterResources/Becharof.pdf",
+      "publication": "USFWS WRIA Becharof water-resources map",
+      "historical_response": "New r01 HTTP403",
+      "timestamp_scope": "Tool-return observation time, not exact request/response timestamp",
+      "observed_clock_utc": "2026-10-09T10:52:11Z"
+    },
+    {
+      "url": "https://pubs.usgs.gov/publication/ofr97127",
+      "publication": "USGS Open-File Report97-127",
+      "historical_response": "New r01 HTTP403",
+      "timestamp_scope": "Tool-return observation time, not exact request/response timestamp",
+      "observed_clock_utc": "2026-10-09T10:52:33Z"
+    }
+  ],
+  "unrequested_ambiguous_publications": [
+    {
+      "url": "https://toponymie.gouv.qc.ca/ct/salle-de-presse/communiques-de-presse/20160226_quatre-entites-geographiques-nord-quebec.aspx",
+      "publication": "Commission de toponymie2016-02-26 northern Québec naming press release",
+      "actually_requested": false,
+      "access_denial_observed": false,
+      "research_limit": "Relationship to incomplete historical access exclusions could not be resolved; no original content used."
+    }
+  ]
+}
