@@ -38,6 +38,8 @@ jobs:
             /assets/js/workers/hydro-shard-store.js
             /assets/js/modules/app-environment.js
             /scripts/generate-build-metadata.mjs
+            /assets/data/hydro/v0.13.0/
+            /assets/data/hydro/v0.13.1/
             /assets/data/hydro/v0.13.2/
       - uses: actions/checkout@v4
         with:
@@ -64,9 +66,9 @@ jobs:
           node --check assets/js/workers/hydro-tile-worker.js
           node --check assets/js/workers/hydro-shard-store.js
           node --test tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
-      - name: Verify current exact two-file package and native pin (pre-retirement)
+      - name: Verify retired hydro absent and exact current two-file package/native pins
         run: |
-          node tools/check-current-hydro-layout.mjs --root . --allow-retired true \
+          node tools/check-current-hydro-layout.mjs --root . --allow-retired false \
             --app-manifest pinned-app/assets/world/manifest.json \
             --app-manifest-gis pinned-app-gis/assets/world/manifest.json \
             --out reports/active-hydro-optimization.json
