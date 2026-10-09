@@ -41,6 +41,14 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             assets/world/manifest.json
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoEditor
+          ref: work/gis
+          path: pinned-app-gis
+          persist-credentials: false
+          sparse-checkout: |
+            assets/world/manifest.json
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -52,6 +60,7 @@ jobs:
         run: |
           node tools/check-current-hydro-layout.mjs --root . \
             --app-manifest pinned-app/assets/world/manifest.json \
+            --app-manifest-gis pinned-app-gis/assets/world/manifest.json \
             --out reports/active-hydro-optimization.json
       - uses: actions/upload-artifact@v4
         if: always()
