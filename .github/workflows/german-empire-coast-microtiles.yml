@@ -6,6 +6,8 @@ on:
     paths:
       - tools/probe_german_empire_coast_microtiles.py
       - .github/workflows/german-empire-coast-microtiles.yml
+      - tools/build_german_cecilienkoog_1905_provisional.py
+      - tools/historical-library/sources/german-coastline/cecilienkoog-1905-dyke-manual-source.json
 permissions:
   contents: write
 concurrency:
@@ -43,6 +45,33 @@ jobs:
           assert len(x["tiles"])==2
           print("PASS: microtile probe cannot promote 1914 shoreline accuracy")
           PY
+      - name: Derive independent-period protective dyke LINE only (not a 1914 shoreline)
+        run: |
+          python tools/build_german_cecilienkoog_1905_provisional.py
+          python tools/build_german_cecilienkoog_1905_provisional.py --check
+      - name: Verify output is explicitly non-final and old/new linework remains separate
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          folder=Path('tools/historical-library/working')
+          prefix='german-empire-1914-cecilienkoog-1905-seaward-dyke-candidate'
+          geo=json.loads((folder/(prefix+'.geojson')).read_text())
+          qa=json.loads((folder/(prefix+'.qa.json')).read_text())
+          assert len(geo['features'])==1
+          f=geo['features'][0]
+          assert f['geometry']['type']=='LineString'
+          assert len(f['geometry']['coordinates'])>=20
+          assert f['properties']['doNotPromote'] is True
+          assert f['properties']['notAHistoricalLegalSeaCoast'] is True
+          assert f['properties']['isNotCountryPolygon'] is True
+          assert qa['historicallyVerified1914Geometry'] is False
+          assert qa['independent1914CoastlineDigitized'] is False
+          assert qa['individualSheetRevisionDateVerified'] is False
+          assert qa['shouldUpdateMasterOrTimeline'] is False
+          assert qa['screenSpace']['notMeasured1914ToPresentShorelineDeviation'] is True
+          print('PASS: period-dyke-only line, reproducible; 1914 coastline still unverified.')
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: sh-german-coast-microtile-period-originals
@@ -53,7 +82,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tools/historical-library/sources/german-coastline/sh-coast-microtile-source-probe.json
+          git add \
+            tools/historical-library/sources/german-coastline/sh-coast-microtile-source-probe.json \
+            tools/historical-library/working/german-empire-1914-cecilienkoog-1905-seaward-dyke-candidate.geojson \
+            tools/historical-library/working/german-empire-1914-cecilienkoog-1905-seaward-dyke-candidate.qa.json
           if git diff --cached --quiet; then
             echo "no metadata changes"
           else
