@@ -1,0 +1,247 @@
+{
+  "status": "passed",
+  "validation_scope": "included-selected-evidence-only",
+  "validation_runs": [
+    {
+      "status": "passed",
+      "validation_scope": "included-selected-evidence-only",
+      "scope_aw_ids": [
+        "lakes_base:1159108993",
+        "lakes_base:1159109007",
+        "lakes_base:1159108815"
+      ],
+      "source_coordinate_counts_including_closure": [
+        43,
+        31,
+        62
+      ],
+      "all_complete_included_source_and_baseline_coordinates_rechecked": true,
+      "part_ring_vertex_order_and_hashes_rechecked": true,
+      "included_source_feature_original_JSON_tokens_rechecked": true,
+      "included_metadata_and_name_states_rechecked": true,
+      "prior39_duplicate_count": 0,
+      "included_selected_inventory_facts_and_eligible_status_rechecked": true,
+      "included_current_three_queue_delta_rechecked": true,
+      "prior39_geometry_or_naming_revalidation_performed": false,
+      "preserved_pending_access_ids": [
+        "lakes_base:1159112821"
+      ],
+      "pending_access_reassessment_performed": false,
+      "preserved_scope_hold_ids": [
+        "lakes_base:1159109497",
+        "lakes_base:1159123531",
+        "lakes_base:1159123567",
+        "lakes_base:1159110371",
+        "lakes_base:1159109471",
+        "lakes_base:1159111751",
+        "lakes_base:1159112207",
+        "lakes_base:1159110475"
+      ],
+      "scope_hold_reassessment_performed": false,
+      "historical_source_baseline_comparison_recorded": true,
+      "omitted_source_body_checks_replayed": false,
+      "production_decoder_replayed": false,
+      "original_inventory_or_previous_index_revalidated": false,
+      "frozen_component_hashes_rechecked": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "validation_limit": "Only included selected evidence is validated; omitted source bodies, decoder dependencies, original inventory and prior-index bytes are not reconstructed or checked."
+    }
+  ],
+  "corrupt_fixtures": [
+    {
+      "case": "source_vertex_changed",
+      "rejected": true,
+      "expected_semantic_check": "source feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "source_ring_closure_broken",
+      "rejected": true,
+      "expected_semantic_check": "source feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_feature_id_changed",
+      "rejected": true,
+      "expected_semantic_check": "source feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_feature_order_reversed",
+      "rejected": true,
+      "expected_semantic_check": "selected source order",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_source_id_changed",
+      "rejected": true,
+      "expected_semantic_check": "selected baseline source IDs and order",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_fragment_count_changed",
+      "rejected": true,
+      "expected_semantic_check": "baseline feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_fragment_omitted",
+      "rejected": true,
+      "expected_semantic_check": "complete selected baseline count",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_fragment_duplicated",
+      "rejected": true,
+      "expected_semantic_check": "complete selected baseline count",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "inventory_category_changed",
+      "rejected": true,
+      "expected_semantic_check": "selected inventory pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "current_batch_delta_changed",
+      "rejected": true,
+      "expected_semantic_check": "prior39 duplicate pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "pending_access_ID_changed",
+      "rejected": true,
+      "expected_semantic_check": "prior39 duplicate pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "scope_hold_ID_changed",
+      "rejected": true,
+      "expected_semantic_check": "prior39 duplicate pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_vertex_order_reversed",
+      "rejected": true,
+      "expected_semantic_check": "source feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "source_JSON_tokens_rewritten",
+      "rejected": true,
+      "expected_semantic_check": "source JSON token pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "baseline_logical_fid_changed",
+      "rejected": true,
+      "expected_semantic_check": "baseline feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "baseline_name_changed",
+      "rejected": true,
+      "expected_semantic_check": "baseline feature pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": true
+    },
+    {
+      "case": "baseline_core_metadata_name_changed",
+      "rejected": true,
+      "expected_semantic_check": "exact core metadata pin",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "baseline_detail_metadata_name_inserted",
+      "rejected": true,
+      "expected_semantic_check": "exact detail metadata pin",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "actual_name_state_misreported",
+      "rejected": true,
+      "expected_semantic_check": "actual name state",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "ordered_ring_hash_changed",
+      "rejected": true,
+      "expected_semantic_check": "geometry structure and ordered ring hashes",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "source_original_index_changed",
+      "rejected": true,
+      "expected_semantic_check": "source index pin",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "inventory_logical_fid_changed",
+      "rejected": true,
+      "expected_semantic_check": "selected inventory pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "prior39_duplicate_list_changed",
+      "rejected": true,
+      "expected_semantic_check": "prior39 duplicate pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "false_current_deployment_claim",
+      "rejected": true,
+      "expected_semantic_check": "current deployment limit",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "omitted_dependency_scope_reintroduced",
+      "rejected": true,
+      "expected_semantic_check": "included evidence scope",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "rights_fact_changed",
+      "rejected": true,
+      "expected_semantic_check": "rights pin",
+      "artifact_receipt_updated": true,
+      "separate_reference_field_rebased": false
+    },
+    {
+      "case": "public_source_URL_changed",
+      "rejected": true,
+      "expected_semantic_check": "public source provenance",
+      "artifact_receipt_updated": false,
+      "separate_reference_field_rebased": false
+    }
+  ],
+  "corrupt_fixture_count": 27,
+  "durable_corrupt_fixture_count": 27,
+  "included_input_files_unchanged": true,
+  "omitted_input_replay_interfaces_absent": true,
+  "no_external_requests": true
+}

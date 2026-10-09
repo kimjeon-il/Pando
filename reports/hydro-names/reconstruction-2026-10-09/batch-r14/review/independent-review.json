@@ -1,0 +1,211 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "reviewed_at_utc": "2026-10-09T16:29:13.560744+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159108993",
+    "lakes_base:1159109007",
+    "lakes_base:1159108815"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Independent inspection of original CPRA map pages, relevant CELCP map/body context, both Canadian webpage bodies and the ORRPB basin schematic; every complete original and baseline ring was viewed and independently decoded. Present public validation checks included files only.",
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "geometry_modified": false,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0,
+  "prior_distinct_targets": 39,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 42,
+  "duplicate_targets": 0,
+  "current_batch_full_feature_correspondence_reviews_completed": 2,
+  "current_batch_source_limited_targets": 1,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821"
+  ],
+  "new_pending_access_ids": [
+    "lakes_base:1159108815"
+  ],
+  "pending_access_reassessment_performed": false,
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475"
+  ],
+  "new_scope_hold_ids": [
+    "lakes_base:1159108993"
+  ],
+  "cumulative_count_scope": "Recorded fresh-research targets including unresolved scope holds and access gaps, not verified scalar names. Only prior39 membership/follow-up flags and current3 delta were checked; prior source/geometry judgments were not reaudited.",
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159108993",
+      "source_id": "1159108993",
+      "logical_fid": 4004,
+      "geometry_fids": [
+        15379
+      ],
+      "position_count": 43,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Grand Lake",
+      "directly_supported_name_forms": [
+        "Grand Lake"
+      ],
+      "research_category": "whole_polygon_scope_hold",
+      "source_research_category": "whole_polygon_scope_hold",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "actual_named_water_shapes_compared": true,
+      "complete_source_and_baseline_geometry_inspected": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "freshwater_classification_verified": false,
+      "measured_salinity_verified": false,
+      "compound_named_waterbody_required_by_evidence": null,
+      "supported_name_scope": "The main western/northwestern basin corresponds to Grand Lake on the CPRA southwest map. The full 43-position ring includes a broad northern extent, indented eastern connections, a long simplified southern edge and a southeast toe. The source covers the whole area, but the label does not assign all of those reaches. This completes a bounded scope assessment with a hold; it does not establish another named constituent.",
+      "water_context": "The state CELCP plan identifies the Mermentau basin as a controlled drainage system with runoff impoundment. It describes a regional freshwater-to-brackish/saline marsh transition. This does not establish present or uniform salinity within the polygon.",
+      "limits": [
+        "Full source and baseline rings were compared; differences from the regional map were not repaired. The hold concerns naming scope rather than exact vertex agreement.",
+        "CPRA repeated panels constitute one cartographic publication. The state CELCP map and text add regional context, not another named-boundary verification.",
+        "No second constituent, exhaustive union, precise name partition, formal registry status or survey shoreline is established."
+      ],
+      "constituent_list_exhaustive": false,
+      "exact_name_partition_established": false,
+      "second_named_constituent_established": false,
+      "candidate_name_role": "main_basin_association_not_whole_polygon_name",
+      "unassigned_region": "Northern/eastern reaches, connecting water and southeast projection.",
+      "follow_up_scope": "Resolve naming extent across those waters before any whole-feature name application or geometry change."
+    },
+    {
+      "aw_id": "lakes_base:1159109007",
+      "source_id": "1159109007",
+      "logical_fid": 4005,
+      "geometry_fids": [
+        15380
+      ],
+      "position_count": 31,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "White Lake",
+      "directly_supported_name_forms": [
+        "White Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_named_water_shapes_compared": true,
+      "complete_source_and_baseline_geometry_inspected": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "freshwater_classification_verified": false,
+      "measured_salinity_verified": false,
+      "compound_named_waterbody_required_by_evidence": false,
+      "supported_name_scope": "The complete heart-like footprint corresponds to White Lake southeast of Grand Lake. Both northern lobes, their central indentation, the west and east sides, broad southern perimeter and southern point were compared against the mapped water shape. The separate Grand Lake and Vermilion Bay were retained as surrounding waters. Small channels and shoreline vertices remain generalized.",
+      "water_context": "The White Lake area shares the Mermentau coastal-basin context. The state plan describes drainage controls and a coastal-marsh gradient; those regional descriptions are not a lake-wide freshwater classification or salinity measurement.",
+      "limits": [
+        "One official cartographic publication supports generalized identity. The separate 2011 state plan supplies regional context.",
+        "The source name fields are generic or empty. The interpreted name is kept as a research finding, with all scalar and language outputs unassigned.",
+        "Formal registry, small adjoining channels, exact shoreline and present salinity remain unverified."
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159108815",
+      "source_id": "1159108815",
+      "logical_fid": 3990,
+      "geometry_fids": [
+        15365
+      ],
+      "position_count": 62,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Lake Timiskaming / lac Témiscamingue",
+      "directly_supported_name_forms": [
+        "Lake Timiskaming",
+        "lac Témiscamingue"
+      ],
+      "research_category": "source_limited_unresolved",
+      "source_research_category": "source_limited_unresolved",
+      "source_keys": [
+        "obvt_portrait_landing",
+        "orrpb_reservoirs"
+      ],
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "actual_named_water_shapes_compared": false,
+      "complete_source_and_baseline_geometry_inspected": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "freshwater_classification_verified": false,
+      "measured_salinity_verified": false,
+      "compound_named_waterbody_required_by_evidence": null,
+      "supported_name_scope": "The two documented usages are associated with the Ottawa River basin. ORRPB reservoir 4 supplies regional context, but its small schematic and marker obscure the full northern fork and water corridor and do not define the lake/downstream endpoint. The actual complete 62-position geometry was inspected, while whole-feature named-water correspondence remains incomplete.",
+      "water_context": "ORRPB discusses Timiskaming as a principal managed reservoir in the Ottawa River basin. OBVT identifies lac Témiscamingue as a receiving waterbody in its basin description. Reservoir terminology does not imply an additional separate waterbody or define its exact extent.",
+      "limits": [
+        "The ORRPB table and body and OBVT body document usages only; they do not establish formal bilingual equivalence or whole-polygon applicability.",
+        "The acquired basin schematic is too coarse to distinguish the complete northern arms, marker-obscured corridor and downstream limit against the inventory polygon. This is inadequate feature coverage, not a completed scope hold.",
+        "Four unsuccessful map/report acquisitions supplied no source content or evidence. No failed original or equivalent was retried by this review.",
+        "No compound identity, official naming status or unsourced variant is inferred."
+      ],
+      "formal_bilingual_equivalence_verified": false,
+      "whole_polygon_applicability_of_name_forms_verified": false,
+      "directly_supported_name_forms_scope": "Separate English and French body usages; no formal equivalence or whole-polygon scope established.",
+      "candidate_name_role": "documented_usages_and_geographic_lead_not_verified_whole_polygon_identity",
+      "follow_up_scope": "Obtain a permitted independent source that makes the complete northern arms, corridor and downstream endpoint inspectable."
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-09T16:29:13.560744+00:00",
+    "available_source_inspection_completed": true,
+    "full_source_review_completed": false,
+    "original_source_material_included": false,
+    "historical_results_recomputed_by_public_validator": false,
+    "scope": "Two completed bounded whole-feature assessments include a Grand Lake scope hold. Timiskaming has actual geometry and contextual source inspection, but inadequate usable feature coverage leaves whole-feature correspondence pending."
+  },
+  "included_evidence_limit": "Included files contain factual observations, bibliography and selected public-domain geometry. Original publications and inspection materials are omitted. Public validation checks only included facts and coordinates; it cannot reproduce omitted visual source judgments or complete the pending Timiskaming assessment."
+}

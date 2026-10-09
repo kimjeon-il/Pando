@@ -1,0 +1,44 @@
+{
+  "schema": "hydro-public-map-scope-review-v2",
+  "batch": "r14",
+  "reviewed_at_utc": "2026-10-09T16:25:13.335844+00:00",
+  "method": "Qualitative whole-outline comparison of complete original and baseline ordered coordinates, geographic placement, relative shape and surrounding mapped coastal waters. No geometric registration, shoreline repair or name-boundary partition is claimed.",
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108993",
+      "complete_source_positions_considered": 43,
+      "complete_baseline_positions_considered": 43,
+      "observations": [
+        "The complete 43-position ring was considered, including its western and northern limits, deeply indented eastern side, northeast reach, long simplified southern edge and narrow southeast projection.",
+        "The main broad basin lies northwest of the separately mapped White Lake, in the water complex labelled Grand Lake on CPRA physical PDF pages 28 and 90. The relative positions of these two waters are consistent with the inventory coordinates.",
+        "The acquired regional maps cover the complete target area. The Grand Lake label supports association of the main basin, but does not separately establish the name scope of the northern/eastern reaches, connecting water or southeast projection.",
+        "The simplified ring has long straight segments and compressed eastern indentations compared with the more intricate mapped shore. These differences are not repaired or treated as precise shoreline matches. The map does not establish an exhaustive set of named components or a defensible boundary between them."
+      ],
+      "assessment": "Grand Lake is supported for the main basin association. Uniform naming of the entire generalized polygon, including its reaches and southeast projection, is unresolved.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true
+    },
+    {
+      "aw_id": "lakes_base:1159109007",
+      "complete_source_positions_considered": 31,
+      "complete_baseline_positions_considered": 31,
+      "observations": [
+        "The complete 31-position ring was considered, including both northern lobes, the intervening northern indentation, western curve, broad southern edge and southernmost point.",
+        "The overall two-lobed, heart-like outline corresponds at regional scale to the water labelled White Lake southeast of Grand Lake and west of Vermilion Bay on CPRA physical PDF pages 28 and 90.",
+        "The full western, eastern and southern extents remain with the mapped White Lake footprint at this regional scale; neither the northern indentation nor southern tip was omitted in favor of the central label.",
+        "The inventory simplifies small shore irregularities and adjoining channels. The regional maps cannot validate individual shoreline vertices, current conditions or a formal naming instrument."
+      ],
+      "assessment": "The complete generalized polygon corresponds to the mapped White Lake waterbody at regional scale; this is bounded cartographic identification.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false
+    }
+  ],
+  "coastal_context": [
+    "The 2011 Louisiana CELCP plan places this southwestern coastal area in the Mermentau drainage basin, describes controlled drainage and runoff impoundment, and describes a regional transition from freshwater to intermediate, brackish and saline coastal marsh. This is regional hydrologic context, not a current salinity measurement or uniform water-class determination for either complete polygon."
+  ],
+  "included_evidence_limit": "Included records retain official bibliography, own factual observations and geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

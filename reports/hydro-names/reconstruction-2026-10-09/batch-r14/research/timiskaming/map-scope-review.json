@@ -1,0 +1,26 @@
+{
+  "schema": "hydro-public-map-scope-review-v2",
+  "batch": "r14",
+  "reviewed_at_utc": "2026-10-09T16:24:54.921040+00:00",
+  "method": "Complete ordered inventory and baseline coordinates were inspected, and the acquired official basin schematic was visually assessed for sufficient target coverage. No geometric registration, shoreline repair or name-boundary partition is claimed.",
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108815",
+      "complete_source_positions_considered": 62,
+      "complete_baseline_positions_considered": 62,
+      "observations": [
+        "All 62 ordered source positions and all 62 baseline positions, including the closing position, were considered. The polygon has a northwestern arm, a broader northeastern lobe, an elongated central reach and a long southeastern/downstream extension.",
+        "The northern perimeter reaches approximately 47.578188°N, the western arm approximately 79.655812°W, and the downstream endpoint approximately 46.827265°N, 79.156129°W. These are generalized inventory limits, not an official lake-boundary definition.",
+        "The ORRPB map places numbered reservoir 4 on the western part of the Ottawa River basin, and its table calls that reservoir Timiskaming. This supports regional context only.",
+        "The small basin schematic does not resolve the two northern arms, detailed eastern shore or the downstream endpoint against the full polygon. No full-feature correspondence or exhaustive constituent-water assessment can be completed from it."
+      ],
+      "assessment": "Whole-feature correspondence remains pending because the inspected map is too generalized to establish all arms and downstream scope.",
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true
+    }
+  ],
+  "included_evidence_limit": "Included records contain official bibliographic references and own factual observations. Original publications and inspection materials are not included. Public offline checks do not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

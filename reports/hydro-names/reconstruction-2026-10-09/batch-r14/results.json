@@ -1,0 +1,170 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v2",
+  "batch": "r14",
+  "research_completed_targets": 2,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 2,
+  "source_access_limited_targets": 1,
+  "pending_full_feature_source_review_targets": 1,
+  "counting_unit": "Three actual logical inventory lake features; not a count of newly approved scalar names.",
+  "counts": {
+    "whole_polygon_scope_hold": 1,
+    "supported_generalized_water_identity": 1,
+    "source_limited_unresolved": 1
+  },
+  "pending_source_only_targets": 1,
+  "historical_name_lead_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "selection_count_note": "All three records are new actual-inventory investigations; no historical verdict or exact-ID lead is restored.",
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 136,
+  "lake_baseline_coordinate_count_including_closures": 136,
+  "position_counts_in_target_order": [
+    43,
+    31,
+    62
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108993",
+      "category": "lake",
+      "source_id": "1159108993",
+      "baseline_logical_fid": 4004,
+      "geometry_fids": [
+        15379
+      ],
+      "candidate_name": "Grand Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "whole_polygon_scope_hold",
+      "supported_name_scope": "The main western/northwestern basin corresponds to Grand Lake on the CPRA southwest map. The full 43-position ring includes a broad northern extent, indented eastern connections, a long simplified southern edge and a southeast toe. The source covers the whole area, but the label does not assign all of those reaches. This completes a bounded scope assessment with a hold; it does not establish another named constituent.",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "limits": [
+        "Full source and baseline rings were compared; differences from the regional map were not repaired. The hold concerns naming scope rather than exact vertex agreement.",
+        "CPRA repeated panels constitute one cartographic publication. The state CELCP map and text add regional context, not another named-boundary verification.",
+        "No second constituent, exhaustive union, precise name partition, formal registry status or survey shoreline is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "main_basin_association_not_whole_polygon_name",
+        "directly_supported_name_forms": [
+          "Grand Lake"
+        ],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Northern/eastern reaches, connecting water and southeast projection.",
+        "follow_up_scope": "Resolve naming extent across those waters before any whole-feature name application or geometry change."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159109007",
+      "category": "lake",
+      "source_id": "1159109007",
+      "baseline_logical_fid": 4005,
+      "geometry_fids": [
+        15380
+      ],
+      "candidate_name": "White Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete heart-like footprint corresponds to White Lake southeast of Grand Lake. Both northern lobes, their central indentation, the west and east sides, broad southern perimeter and southern point were compared against the mapped water shape. The separate Grand Lake and Vermilion Bay were retained as surrounding waters. Small channels and shoreline vertices remain generalized.",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "limits": [
+        "One official cartographic publication supports generalized identity. The separate 2011 state plan supplies regional context.",
+        "The source name fields are generic or empty. The interpreted name is kept as a research finding, with all scalar and language outputs unassigned.",
+        "Formal registry, small adjoining channels, exact shoreline and present salinity remain unverified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "White Lake"
+        ]
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159108815",
+      "category": "lake",
+      "source_id": "1159108815",
+      "baseline_logical_fid": 3990,
+      "geometry_fids": [
+        15365
+      ],
+      "candidate_name": "Lake Timiskaming / lac Témiscamingue",
+      "research_category": "source_limited_unresolved",
+      "independent_review_status": "source_limited_unresolved",
+      "supported_name_scope": "The two documented usages are associated with the Ottawa River basin. ORRPB reservoir 4 supplies regional context, but its small schematic and marker obscure the full northern fork and water corridor and do not define the lake/downstream endpoint. The actual complete 62-position geometry was inspected, while whole-feature named-water correspondence remains incomplete.",
+      "source_keys": [
+        "obvt_portrait_landing",
+        "orrpb_reservoirs"
+      ],
+      "limits": [
+        "The ORRPB table and body and OBVT body document usages only; they do not establish formal bilingual equivalence or whole-polygon applicability.",
+        "The acquired basin schematic is too coarse to distinguish the complete northern arms, marker-obscured corridor and downstream limit against the inventory polygon. This is inadequate feature coverage, not a completed scope hold.",
+        "Four unsuccessful map/report acquisitions supplied no source content or evidence. No failed original or equivalent was retried by this review.",
+        "No compound identity, official naming status or unsourced variant is inferred."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "documented_usages_and_geographic_lead_not_verified_whole_polygon_identity",
+        "directly_supported_name_forms": [
+          "Lake Timiskaming",
+          "lac Témiscamingue"
+        ],
+        "follow_up_scope": "Obtain a permitted independent source that makes the complete northern arms, corridor and downstream endpoint inspectable."
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "1094e3b773171baf26d6a54e72abb1def8dd5307316bc78302d752e2337055e4",
+  "publication_contents": "Own factual evidence and review, exact identifier/coordinate/hash facts, three selected public-domain Natural Earth lake polygons and validators. Raw third-party documents, maps and crops are excluded.",
+  "previous_reconstruction_commit": "2f9ed802b52193eb590c96697a9fa21fdeb0aea5"
+}

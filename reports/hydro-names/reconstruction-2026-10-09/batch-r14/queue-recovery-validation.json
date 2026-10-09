@@ -1,0 +1,103 @@
+{
+  "status": "passed",
+  "positive_rebuild": {
+    "status": "passed",
+    "initial_inventory_rows": 5173,
+    "initial_eligible_targets": 4065,
+    "reviewed_index_targets": 42,
+    "remaining_without_reconstructed_record": 4023,
+    "remaining_by_type": {
+      "river_group": 3439,
+      "lake": 584
+    },
+    "recorded_index_targets": 42,
+    "pending_access_ids": [
+      "lakes_base:1159112821",
+      "lakes_base:1159108815"
+    ],
+    "pending_access_count": 2,
+    "scope_hold_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159123531",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159112207",
+      "lakes_base:1159110475",
+      "lakes_base:1159108993"
+    ],
+    "scope_hold_count": 9,
+    "queue_order": "original_inventory_row_order",
+    "scope": "Remaining means absent from this fresh reconstructed index. It does not mean historically never researched; the unavailable historical504-record ledger is not reconstructed.",
+    "network_calls": 0,
+    "automatic_application": false
+  },
+  "complete_remaining_IDs_rebuilt": 4023,
+  "no_reviewed_IDs_in_remaining": true,
+  "semantic_corrupt_fixtures": [
+    {
+      "case": "altered_initial_compressed_bytes",
+      "rejected": true
+    },
+    {
+      "case": "duplicate_reviewed_ID_with_rebased_counts",
+      "rejected": true
+    },
+    {
+      "case": "unknown_reviewed_ID",
+      "rejected": true
+    },
+    {
+      "case": "wrong_target_type",
+      "rejected": true
+    },
+    {
+      "case": "automatic_application_enabled",
+      "rejected": true
+    },
+    {
+      "case": "remaining_total_miscount",
+      "rejected": true
+    },
+    {
+      "case": "remaining_type_miscount",
+      "rejected": true
+    },
+    {
+      "case": "historically_never_reviewed_false_claim",
+      "rejected": true
+    },
+    {
+      "case": "initial_inventory_provenance_hash_changed",
+      "rejected": true
+    },
+    {
+      "case": "pending_access_list_dropped",
+      "rejected": true
+    },
+    {
+      "case": "pending_access_count_miscount",
+      "rejected": true
+    },
+    {
+      "case": "pending_access_unknown_ID",
+      "rejected": true
+    },
+    {
+      "case": "pending_access_marked_complete",
+      "rejected": true
+    },
+    {
+      "case": "pending_access_follow_up_dropped",
+      "rejected": true
+    },
+    {
+      "case": "scope_hold_list_dropped",
+      "rejected": true
+    }
+  ],
+  "semantic_corrupt_fixture_count": 15,
+  "network_calls": 0,
+  "input_files_changed": false
+}
