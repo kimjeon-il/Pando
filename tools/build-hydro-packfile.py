@@ -89,6 +89,7 @@ def create(source_dir: Path, dest_dir: Path, *, check_only: bool = False):
             "containerBytes": len(combined),
             "containerSha256": result["container"]["sha256"],
             "manifestBytes": len(serialized),
+            "manifestSha256": digest(serialized),
             "sourceVersion": old["version"], "targetVersion": result["version"]}
 
 def main():
