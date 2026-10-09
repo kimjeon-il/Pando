@@ -1,0 +1,118 @@
+# INACTIVE RELEASE TEMPLATE: docs/validation/gis-pages-activation.template.yml
+# Not in .github/workflows; activating requires an explicitly approved release.
+# Use only after the exact current main tree meets the 1GB limit, 2124 URLs
+# and app/web regressions have passed, and Pages source is GitHub Actions.
+name: Pando approved GitHub Pages release
+
+on:
+  workflow_dispatch:
+    inputs:
+      main_commit:
+        description: "Approved 40-character main HEAD SHA after selective code integration"
+        required: true
+        type: string
+      preflight_run_id:
+        description: "Fresh successful Stage10 GitHub Actions run ID for this exact SHA"
+        required: true
+        type: string
+      approval:
+        description: "Enter I_APPROVE_PANDO_PAGES_CUTOVER"
+        required: true
+        type: string
+
+concurrency:
+  group: pando-pages-activation
+  cancel-in-progress: false
+
+jobs:
+  verify-and-stage:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.approval == 'I_APPROVE_PANDO_PAGES_CUTOVER'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      source_sha: ${{ steps.pin.outputs.source_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.main_commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify main branch has not changed after approval
+        id: pin
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APPROVED_SHA: ${{ inputs.main_commit }}
+        run: |
+          [[ "$APPROVED_SHA" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq '.commit.sha')" = "$APPROVED_SHA"
+          echo "source_sha=$APPROVED_SHA" >> "$GITHUB_OUTPUT"
+      - name: Retrieve immutable reviewed cutover plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.preflight_run_id }}
+          APPROVED_SHA: ${{ inputs.main_commit }}
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || exit 1
+          mkdir -p "$RUNNER_TEMP/pando-evidence"
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" \
+            --name web-gis-stage10-cutover-cleanup-main-promotion-dryrun \
+            --dir "$RUNNER_TEMP/pando-evidence"
+          cd "$RUNNER_TEMP/pando-evidence"
+          jq -e --arg s "$APPROVED_SHA" '.mainSha == $s && .archivePaths == 2124' \
+            stage10-pages-plan.json
+          jq -e --arg s "$APPROVED_SHA" \
+            '.readyToStage == true && .sourceHead == $s && .retainedHistoricalURLs == 2124' \
+            stage10-pages-main-stage-gate.json
+          jq -e '.totalFiles == 2124 && .totalBytes == 564189000' stage10-stage8-lock.json
+          jq -e '.budget.includedBytes <= 1000000000 && .archive.files == 2124' \
+            stage10-main-publication.json
+      - name: Stage every file with exact Git Blob byte verification
+        env:
+          APPROVED_SHA: ${{ inputs.main_commit }}
+        run: |
+          node tools/prepare-pages-release-bundle.mjs \
+            --mode stage \
+            --profile "$RUNNER_TEMP/pando-evidence/stage10-main-publication.json" \
+            --lock "$RUNNER_TEMP/pando-evidence/stage10-stage8-lock.json" \
+            --source-head "$APPROVED_SHA" \
+            --source-root . \
+            --staging-dir "$RUNNER_TEMP/pando-pages-site" \
+            --out "$RUNNER_TEMP/pando-evidence/stage10-exact-byte-proof.json"
+      - name: Preserve byte-verification results
+        uses: actions/upload-artifact@v4
+        with:
+          name: pando-pages-cutover-exact-byte-proof
+          path: ${{ runner.temp }}/pando-evidence/stage10-exact-byte-proof.json
+          if-no-files-found: error
+      - name: Upload only the audited Pages filesystem
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/pando-pages-site
+
+  deploy:
+    needs: verify-and-stage
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      needs.verify-and-stage.result == 'success' &&
+      inputs.approval == 'I_APPROVE_PANDO_PAGES_CUTOVER'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - name: Deploy byte-exact Pages artifact without deleting repository assets
+        id: pages
+        uses: actions/deploy-pages@v4
