@@ -46,3 +46,46 @@ test('one canonical language switch rule is used by Web and native contract fixt
   assert.equal(togglePlaceLanguage({ ko: false, en: true, native: false }, 'en', false), null);
   assert.throws(() => togglePlaceLanguage({ ko: true }, 'fr', true), TypeError);
 });
+
+
+test('multiple native forms deduplicate against English without losing remaining names', () => {
+  const record = place({ name: '니코시아', nameEn: 'Nicosia', nameNative: 'Nicosia',
+    nameNativeExtras: ['Λευκωσία', 'لفقوشه'], nameTimeline: [] });
+  const languages = { ko: true, en: true, native: true };
+  assert.deepEqual(resolvePlaceLabelRows(record, languages).map(row => row.text),
+    ['니코시아', 'Nicosia', 'Λευκωσία', 'لفقوشه']);
+  assert.deepEqual(resolvePlaceLabelRows(record, { ko: false, en: false, native: true }).map(row => row.text),
+    ['Nicosia', 'Λευκωσία', 'لفقوشه']);
+  const size = placeLabelDimensions(resolvePlaceLabelRows(record, languages));
+  assert.equal(size.height, 61);
+});
+
+test('historical native extras replace, clear and restore without leaking across periods', () => {
+  const record = place({ name: '니코시아', nameEn: 'Nicosia', nameNative: 'Λευκωσία',
+    nameNativeExtras: ['Lefkoşa'], nameTimeline: [
+      { fromYear: 1801, ko: '레프코샤', native: 'لفقوشه' },
+      { fromDate: '1878-07-05', native: 'لفقوشه', nativeExtras: ['Nicosia', 'Λευκωσία'] },
+      { fromDate: '1914-11-05', ko: '니코시아', native: 'Nicosia', nativeExtras: ['Λευκωσία', 'لفقوشه'] },
+      { fromYear: 1930, native: 'Nicosia', nativeExtras: ['Λευκωσία', 'Lefkoşa'] },
+      { fromDate: '1960-08-16', native: 'Λευκωσία', nativeExtras: ['Lefkoşa'] },
+    ] });
+  const all = { ko: true, en: true, native: true };
+  const names = date => resolvePlaceLabelRows(record, all, date).map(row => row.text);
+  assert.deepEqual(names('1878-07-04'), ['레프코샤', 'Nicosia', 'لفقوشه']);
+  assert.deepEqual(names('1878-07-05'), ['레프코샤', 'Nicosia', 'لفقوشه', 'Λευκωσία']);
+  assert.deepEqual(names('1914-11-05'), ['니코시아', 'Nicosia', 'Λευκωσία', 'لفقوشه']);
+  assert.deepEqual(names('1930-05-01'), ['니코시아', 'Nicosia', 'Λευκωσία', 'Lefkoşa']);
+  assert.deepEqual(names('1960-08-16'), ['니코시아', 'Nicosia', 'Λευκωσία', 'Lefkoşa']);
+});
+
+test('native variants reject invalid type, excess count and normalized duplicates', () => {
+  for (const patch of [
+    { nameNativeExtras: ['A', 'B', 'C'] },
+    { nameNativeExtras: ['Київ', 'Київ'] },
+    { nameNative: 'Budapest', nameNativeExtras: ['budapest'] },
+    { nameNativeExtras: [27] },
+    { nameNative: '', nameNativeExtras: ['Λευκωσία'] },
+    { nameTimeline: [{ fromYear: 1801, nativeExtras: ['Λευκωσία'] }] },
+    { nameTimeline: [{ fromYear: 1801, native: 'Nicosia', nativeExtras: ['Nicosia'] }] },
+  ]) assert.throws(() => place(patch));
+});
