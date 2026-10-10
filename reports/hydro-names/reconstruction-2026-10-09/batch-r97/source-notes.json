@@ -1,0 +1,432 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r97",
+  "sources": [
+    {
+      "source_key": "r97-mma-maipo-hydro",
+      "title": "Río Maipo y sus afluentes, Red Hídrica 2022, and Humedales regional overview",
+      "publisher": "Ministerio del Medio Ambiente, SEREMI del Medio Ambiente Región Metropolitana de Santiago, Chile",
+      "supports": "Repeated explicit Maipo labels, regional connected receiving course, distinction of major named tributaries and textual Llolleo outlet context.",
+      "limits": "Regional hydrographic map generalizes the head and cannot resolve the anomalous selected southeastern dogleg. The prose's Laguna Nacimiento source description does not prove exact selected lake correspondence. Historical length and basin metrics are not adopted as modeled measurements.",
+      "context_url": "https://biodiversidadrm.mma.gob.cl/ecosistemas-acuaticos/humedales/",
+      "official_url": "https://biodiversidadrm.mma.gob.cl/wp-content/uploads/2023/11/Red-hidrica-2022.pdf"
+    },
+    {
+      "source_key": "r97-mop-metropolitana",
+      "title": "Red Vial de la Región Metropolitana de Santiago, cartographic edition August 2024, scale 1:325,000",
+      "publisher": "Ministerio de Obras Públicas, Dirección de Vialidad, Unidad de Gestión de la Información Territorial, Chile",
+      "supports": "Connected geographic corridor, settlement/road orientation, distinct eastern branches and lakes, central-valley bends and westward continuity.",
+      "limits": "Most selected river lines on this sheet lack printed hydronyms; river names are supplied by independent MMA and IGN mapping, not inferred solely from nearby town names. Official road cartography is not a current channel survey.",
+      "official_url": "https://mapasvialidad.mop.gob.cl/archivos/sites/10/2026/01/Region_Metropolitana.pdf"
+    },
+    {
+      "source_key": "r97-mop-valparaiso",
+      "title": "Red Vial de la Región de Valparaíso, cartographic edition March 2024, scale 1:400,000",
+      "publisher": "Ministerio de Obras Públicas, Dirección de Vialidad, Unidad de Gestión de la Información Territorial, Chile",
+      "supports": "Explicit Río Maipo label on the lower reach and actual estuarine/coastal destination.",
+      "limits": "Regional road map; no exact modern mouth vertex, tidal limit or individual channel thread is established.",
+      "official_url": "https://mapasvialidad.mop.gob.cl/archivos/sites/10/2026/01/Region_de_Valparaiso.pdf"
+    },
+    {
+      "source_key": "r97-ign-maipo-head-100k",
+      "title": "Cartas topográficas 1:100 000: western Volcán Maipo, Paso Maipú and upper Maipo tributary junctions",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Detailed distinction between the mapped Maipo valley, neighboring Alvarado/Argüelles/Cruz de Piedra tributaries and the selected volcanic-slope dogleg; material headward correspondence limitation.",
+      "limits": "Historical composite topography with a narrow blank seam near the volcanic summit. No current-flow claim, modern glacier boundary or date for every component sheet is made. Exact export parameters, original raster and private orientation material are not part of the public finding.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r97-cruz-piedra-nomination",
+      "title": "Solicitud de declaración de Santuario de la Naturaleza Cruz de Piedra, in the Ministry of Environment dossier",
+      "publisher": "Ministerio del Medio Ambiente repository; nomination prepared by the Facultad de Ciencias Forestales y de la Conservación de la Naturaleza, Universidad de Chile",
+      "supports": "Regional Laguna Nacimiento source context and distinction of upper Maipo and neighboring named catchments.",
+      "limits": "The regional microcatchment figure uses DGA 2022, IDE 2022 and MMA 2020 sources and is independent of the stopped Loa/DGA 2014 figures. It is too small-scale to close the selected headward connection gap; the property diagram's labels are not used to override the readable independent topography. Unrelated dossier material is not used.",
+      "official_url": "https://expedientes.mma.gob.cl/storage/2025/06/27/expedientes/pdf/doc_6_20250627155444.pdf"
+    },
+    {
+      "source_key": "r97-nrcan-dewar-hantzsch-map",
+      "title": "Canada Base Map - Transportation, CBMT3978: northern Baffin interior, Dewar Lakes and lower Hantzsch River",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Complete bounded selected-route correspondence, Dewar Lakes distinction, short lower Hantzsch receiving identity, Hantzsch Bay terminal and exclusion of unselected side approaches.",
+      "limits": "Independent CanVec-based federal cartography, not a gazetteer/CGN record or stopped Arctic/parks/provincial source. Composite feature dates, legal naming status, exact banks and all minor stream/lake names are not established. Artificial river-network labels across broad water do not erase lake components.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r97-inegi-matehuala-topographic",
+      "title": "Información topográfica 1:250 000, Matehuala F1401",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "year": 2024,
+      "supports": "Coyotillos, Los Saltillos, San Juan del Tuzal and Arroyo de San Juan setting; northeastern plain and San Martín terminal setting.",
+      "limits": "Scale 1:250 000; no surveyed initial source, present flow state, exact naming-transition point or river-mouth identity established. Publication copyright is 2024; printed sixth-edition information is 2023.",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154625_geo.pdf"
+    },
+    {
+      "source_key": "r97-inegi-sanluis-topographic",
+      "title": "Información Topográfica F14-4 San Luis Potosí escala 1:250 000, serie VI",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2020,
+      "supports": "Arroyo de San Juan, Laguna la Salinera, full subsequent plain route, towns and transport crossings; separation of local named streams from the long unknown connectors.",
+      "limits": "Generalized topographic map, not current flow observation or a survey proving all seasonal connections. Short stream labels are not extended beyond supported components.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/889463836063_geo.pdf"
+    },
+    {
+      "source_key": "r97-nrcan-caribou-river-map",
+      "title": "Canada Base Map - Transportation, CBMT3978: upper lake country, Caribou River and Hudson Bay coastal outlet",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Complete bounded route correspondence, Caribou River identity, named lake distinctions and the actual Hudson Bay ending by Hubbart Point.",
+      "limits": "Independent CanVec-based federal cartography rather than a CGN/gazetteer record or stopped provincial/Arctic/parks publication. No single composite feature edition, exact banks, present tidal boundary, legal name status or all minor watercourse names is established.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61501314",
+      "source_keys": [
+        "r97-mma-maipo-hydro",
+        "r97-mop-metropolitana",
+        "r97-mop-valparaiso",
+        "r97-ign-maipo-head-100k",
+        "r97-cruz-piedra-nomination"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14081
+          ],
+          "finding": "The short initial fragment lies in the western Volcán Maipo/Paso Maipú headward setting. It proceeds south and then east in the vicinity of the upper Maipo valley and adjacent slope drainage. Its exact feeder, separate hydronym and natural-source status are not established. The small terminal elbow does not justify assigning the whole fragment to Laguna Nacimiento or to a named glacier.",
+          "sources": [
+            "r97-ign-maipo-head-100k",
+            "r97-cruz-piedra-nomination"
+          ]
+        },
+        {
+          "fragments": [
+            14081,
+            14082,
+            14083
+          ],
+          "finding": "After the 14081–14082 junction, the selection travels north across the western volcanic slope, then turns sharply west at the 14082–14083 junction. IGN's original contour and hydrography map shows the Maipo valley farther southwest and separately maps drainage from the volcano. The long straight westward connector crosses intervening mapped terrain toward the Los Chorreados/Alvarado tributary-junction area. This source does not establish either leg as a continuous river channel or lake crossing; their names and actual hydraulic connection remain null. A narrow blank source-map seam nearer the volcanic summit is not used as evidence of absent water.",
+          "sources": [
+            "r97-ign-maipo-head-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14083
+          ],
+          "finding": "From the upper receiving-valley setting west of the anomalous connector, the selected long northwest and northward course follows Río Maipo toward Las Melosas and San Gabriel. The MMA regional map explicitly names this southern river arm. IGN separately labels R. Maipo, R. Alvarado, R. Argüelles and R. de la Cruz de Piedra in the headward junction area. The sanctuary hydrological figure likewise distinguishes the upper Maipo from the Barroso, Blanco, Alvarado, Negro and Cruz de Piedra catchments. Those neighboring tributaries are not aliases for the whole selected route.",
+          "sources": [
+            "r97-mma-maipo-hydro",
+            "r97-mop-metropolitana",
+            "r97-ign-maipo-head-100k",
+            "r97-cruz-piedra-nomination"
+          ]
+        },
+        {
+          "fragments": [
+            14083
+          ],
+          "finding": "The source maps show the selected Maipo corridor passing the separate Volcán and Yeso junctions near the San Gabriel surroundings, then San Alfonso, San José de Maipo and El Manzano. It bends west past Puente Alto and Pirque and continues southwest toward Buin. The selection does not ascend Río Volcán, Río Yeso, Río Colorado or Río Clarillo, and does not pass through the separately mapped Embalse El Yeso or Laguna Negra.",
+          "sources": [
+            "r97-mma-maipo-hydro",
+            "r97-mop-metropolitana"
+          ]
+        },
+        {
+          "fragments": [
+            14083,
+            14084,
+            14085
+          ],
+          "finding": "The selected southwestern bend reaches the Valdivia de Paine setting and turns north around Isla de Maipo before continuing west across the Talagante/El Monte surroundings. The regional hydrography distinguishes the southern Angostura approach and northern Mapocho contribution from the selected Maipo. The 14083–14084 and 14084–14085 boundaries lie along this connected westward Maipo corridor; neither boundary establishes a new watercourse name.",
+          "sources": [
+            "r97-mma-maipo-hydro",
+            "r97-mop-metropolitana"
+          ]
+        },
+        {
+          "fragments": [
+            14085
+          ],
+          "finding": "The lower selected course follows Maipo west through the Melipilla, Chocalán, Huechún Bajo and La Floresta surroundings, then makes the large northward coastal bend. The MMA map labels the lower Maipo and keeps Estero Puangue distinct. The Valparaíso road map labels Río Maipo directly on the northward lower reach. Generalized cells simplify broad alluvial channels and do not identify an individual braided thread.",
+          "sources": [
+            "r97-mma-maipo-hydro",
+            "r97-mop-metropolitana",
+            "r97-mop-valparaiso"
+          ]
+        },
+        {
+          "fragments": [
+            14085
+          ],
+          "finding": "The western terminal selection reaches the Maipo estuarine/coastal opening south of San Antonio and north of Rocas de Santo Domingo. The MMA's actual prose identifies the river's Pacific outlet near Llolleo, and the original Valparaíso map shows the mouth at that setting. The modeled final tip is treated as the river-mouth setting, not an exact present shoreline, tidal boundary or surveyed outlet vertex.",
+          "sources": [
+            "r97-mop-valparaiso",
+            "r97-mma-maipo-hydro"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80071771",
+      "source_keys": [
+        "r97-nrcan-dewar-hantzsch-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2523
+          ],
+          "component_scope": "Northeastern headward stream and initial lake-chain turn",
+          "finding": "The northeastern beginning lies on a minor stream-and-small-lake approach. The selected corridor descends southwest, reaches a small lake junction and turns west along the connected upper stream-and-pool chain. Its name and the names of these initial lakes are not established. The starting modeled vertex is not an official source-point determination.",
+          "sources": [
+            "r97-nrcan-dewar-hantzsch-map"
+          ]
+        },
+        {
+          "fragments": [
+            2523
+          ],
+          "component_scope": "Northern westward elbow and receiving branch choice",
+          "finding": "The westward continuation turns northwest and west through the upper valley, then bends southwest and south into the long meridional corridor. The detailed original shows the connected waterways around the broad elbow; the stepped model cuts several local stream and lake bends. Nearby northern watercourses, including the separately labeled McBeth River setting, are not substituted for the selected approach. No independent upper-river name is assigned.",
+          "sources": [
+            "r97-nrcan-dewar-hantzsch-map"
+          ]
+        },
+        {
+          "fragments": [
+            2523
+          ],
+          "component_scope": "Northern meridional river and lake corridor",
+          "finding": "South of the upper elbow the route follows the long south-running stream and narrow-lake corridor. It stays on the eastern receiving trunk where a broad western lake arm approaches, then continues south through connected narrow waterbodies and turns southwest into the northern Dewar Lakes setting. The broad western lake arm is not selected upstream and its separate name is not established.",
+          "sources": [
+            "r97-nrcan-dewar-hantzsch-map"
+          ]
+        },
+        {
+          "fragments": [
+            2523
+          ],
+          "component_scope": "Dewar Lakes transit",
+          "finding": "Repeated Dewar Lakes labels identify the selected central lake chain. The route enters from the northeast, bends southwest through the northern named lake, continues through the mapped interlake connections and passes south through the larger irregular southern lake setting. The lake group is a separate component, not a river name. No uniform Hantzsch label is applied to its interiors or short connecting passages.",
+          "sources": [
+            "r97-nrcan-dewar-hantzsch-map"
+          ]
+        },
+        {
+          "fragments": [
+            2523
+          ],
+          "component_scope": "Southern lake outlet and valley junction",
+          "finding": "The route leaves the southeastern end of the southern lake setting and follows the short curving channel east of the intervening hill into the south-running valley. A separate lake-rich tributary approaches from the northeast/east. The selected line remains on the downstream southern continuation instead of following that side approach upstream. Individual outlet and eastern tributary names are not established.",
+          "sources": [
+            "r97-nrcan-dewar-hantzsch-map"
+          ]
+        },
+        {
+          "fragments": [
+            2523
+          ],
+          "component_scope": "Long southwestern tributary corridor",
+          "finding": "The selection continues south and southwest along the mapped valley, passing narrow pools and irregular lakes. In the lower part it stays on the southwest continuation through the major east–west tributary-junction setting, then passes through the lower lake-rich corridor toward the northern side of the coastal receiving river. The source shows actual connected waterways along this corridor; the model simplifies lake traverses and local bends, and does not identify exact channel threads. Its river name remains null.",
+          "sources": [
+            "r97-nrcan-dewar-hantzsch-map"
+          ]
+        },
+        {
+          "fragments": [
+            2523
+          ],
+          "component_scope": "Lower Hantzsch receiving connection and coastal terminal",
+          "finding": "Near the coast, the northern tributary corridor reaches the waterway repeatedly labeled Hantzsch River, which approaches from the east. Only this short lower receiving component is selected: it continues through the mapped southwest connection into the final broad waterbody and west to the Hantzsch Bay opening. The separate upper Hantzsch approach from the east is not selected. The terminal lies at the mapped river-to-bay opening, with no exact modern shoreline or tidal-limit claim. River-network labels across broad water do not establish a separate lake name or make every upstream lake a Hantzsch River reach.",
+          "sources": [
+            "r97-nrcan-dewar-hantzsch-map"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70860547",
+      "source_keys": [
+        "r97-inegi-matehuala-topographic",
+        "r97-inegi-sanluis-topographic"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10383
+          ],
+          "component_scope": "Coyotillos and San Juan del Tuzal approach",
+          "finding": "The northern start lies near Coyotillos, west of the Charcas hills. The selection descends southwest toward San Juan del Tuzal along the local intermittent-drainage setting, including the stream labeled A. los Saltillos near Saltillos and Noria de Gutiérrez. The short initial channel is not independently named, and the first model point is not asserted to be an official source.",
+          "sources": [
+            "r97-inegi-matehuala-topographic"
+          ]
+        },
+        {
+          "fragments": [
+            10383
+          ],
+          "component_scope": "Arroyo de San Juan and Laguna la Salinera",
+          "finding": "South of San Juan del Tuzal the selected route follows the explicitly labeled Arroyo de San Juan past Noria del Tajo and El Cedazo, east of Laguna Cornejo and past the El Toro surroundings. It reaches the mapped Laguna la Salinera. The legend identifies its diagonal blue water-body symbol as intermittent. Laguna Cornejo and Laguna la Tepocata lie separately west of the selected approach; they are not substituted for the receiving lake.",
+          "sources": [
+            "r97-inegi-matehuala-topographic",
+            "r97-inegi-sanluis-topographic"
+          ]
+        },
+        {
+          "fragments": [
+            10383
+          ],
+          "component_scope": "La Salinera to Moctezuma plain extension",
+          "finding": "The model continues southeast across the La Salinera lake/plain setting and then east through the El Tezontle–Cruces and Los Tajos surroundings. It turns northeast around Santa Teresa and passes through Moctezuma toward La Matanza and Estación Moctezuma. The map shows intermittent local drainage, roads, rail lines and broad open ground; it does not show a single continuously named river connecting all of this extension. Arroyo el Tule is a separate approach into the Moctezuma setting, not a verified name for the entire selection.",
+          "sources": [
+            "r97-inegi-sanluis-topographic"
+          ]
+        },
+        {
+          "fragments": [
+            10383
+          ],
+          "component_scope": "Moctezuma to Villa de Arista plains",
+          "finding": "Beyond Estación Moctezuma the route bends northeast past Pozos de Matanza, then southeast through the San Felipe and San Francisco de la Dicha surroundings toward Guardarraya, El Pozo and El Tajo. It continues across the plain north of Villa de Arista, near Saltillos and El Charquito. Numerous short intermittent streams end or disperse on the plain; the full modeled link has no supported continuous river name. The two Santa Teresa and two San Francisco settings on the sheets are kept geographically distinct.",
+          "sources": [
+            "r97-inegi-sanluis-topographic"
+          ]
+        },
+        {
+          "fragments": [
+            10383
+          ],
+          "component_scope": "Southern bend near Palos Altos",
+          "finding": "The selection crosses the broad plain and the San Lorenzo–San Isidro divided-highway corridor. It reaches the Palos Altos surroundings north of San Ignacio, bends north, and proceeds toward Charco Blanco and the Guadalcázar road junction. Local channels, transport crossings and relief locate the bend directly; no lake outlet or continuous named river is inferred from the modeled connection.",
+          "sources": [
+            "r97-inegi-sanluis-topographic"
+          ]
+        },
+        {
+          "fragments": [
+            10383
+          ],
+          "component_scope": "Eastern northward plain passage",
+          "finding": "North of Charco Blanco the selection runs through the Núñez and La Campana surroundings and the corridor near the Santa Ana and Noria de las Flores junctions. It turns through the Pozos de Santa Ana/Charco Cercado setting and then crosses northwest toward El Coyote and San Juan Sin Agua. It traverses areas with separately drawn intermittent streams and open plains rather than one continuously labeled river.",
+          "sources": [
+            "r97-inegi-sanluis-topographic"
+          ]
+        },
+        {
+          "fragments": [
+            10383
+          ],
+          "component_scope": "San Martín terminal plain",
+          "finding": "Across the sheet join the selection continues north through the plain by Santa Teresa, east of San Francisco, toward San Martín and Palo Blanco. The endpoint lies within that road-and-plain setting, not at a mapped sea coast, major-river confluence or identified lake shore. Its local terminal channel name remains null.",
+          "sources": [
+            "r97-inegi-matehuala-topographic",
+            "r97-inegi-sanluis-topographic"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70008527",
+      "source_keys": [
+        "r97-nrcan-caribou-river-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8941
+          ],
+          "component_scope": "Initial northwestern approach and McCaskill Lake",
+          "finding": "The modeled beginning is a minor stream-and-small-lake approach west and northwest of McCaskill Lake. The selection turns southeast through McCaskill Lake and continues to the Chawanski lake setting. The source does not establish a separate name for the initial feeder or its small waters, and the first vertex is not asserted to be the official river source.",
+          "sources": [
+            "r97-nrcan-caribou-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            8941
+          ],
+          "component_scope": "Chawanski and northern Manders branch",
+          "finding": "The route crosses the connected Chawanski Lake arms eastward and takes the northern lake-and-channel passage in the Manders Lake setting. The detailed map shows the selected northern arm and its eastward water connection. The larger southern Manders basin is not traversed. William Wright Lake lies beside the northwestern approach and is not substituted for the selected through-route.",
+          "sources": [
+            "r97-nrcan-caribou-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            8941
+          ],
+          "component_scope": "Commonwealth Lake and beginning of labeled Caribou corridor",
+          "finding": "The northern interlake channel enters the western arm of Commonwealth Lake. The selection crosses that arm toward the Lion Island setting and turns south through the lake outlet. It does not traverse the full northern Commonwealth basin. The downstream watercourse is repeatedly labeled Caribou River. The river name is not extended automatically across the separately named upstream lakes or unknown feeder.",
+          "sources": [
+            "r97-nrcan-caribou-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            8941
+          ],
+          "component_scope": "Upper Caribou and Pollon–Baroni connection",
+          "finding": "Below Commonwealth Lake the selected river continues southeast through the channel-and-pool corridor beside de Rzonca Lake and Fetherstonhaugh Lake, bends around the Edmond Island setting and follows the connected Pollon and Baroni lake passage eastward. Adjacent lakes and alternative island-side channel threads are not all included by the generalized model. The original cartography establishes the receiving corridor and the named lakes, rather than an exact trace around each island.",
+          "sources": [
+            "r97-nrcan-caribou-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            8941
+          ],
+          "component_scope": "Round Sand and southeastern lake-outlet setting",
+          "finding": "The route enters Round Sand Lake from the northwest, crosses the lake to its southeastern connection and continues through the Petrie lake setting toward the Desilets Lake surroundings and labeled Caribou River. Round Sand Lake and Petrie Lake remain separate lake components. No separate river name is assigned to the short interlake connections, and the finding does not assert a complete traversal of every arm or the entire separate Desilets waterbody.",
+          "sources": [
+            "r97-nrcan-caribou-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            8941
+          ],
+          "component_scope": "South-running central Caribou River",
+          "finding": "From the southeastern lake-outlet setting the selection follows the repeatedly labeled Caribou River south through its bends and pools, alongside the western Gagnon Lake setting, then continues past the Baskerville, Gamsby, Raban, Pekin and Lawlor lake surroundings. Those side lakes are not treated as automatically traversed components. The selected downstream branch eventually bends southeast and east toward Caribou Lake.",
+          "sources": [
+            "r97-nrcan-caribou-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            8941
+          ],
+          "component_scope": "Caribou Lake and northeastward turn",
+          "finding": "The river enters the western side of Caribou Lake. The selection crosses the connected western and central lake waters, turns through the eastern lake arm and then follows the north-running Caribou River outlet. The lake’s southern extensions and nearby Chalcroft, Kwasny and Sirett lakes are not substituted for the selected crossing. The route continues through broad lower-river waters and northeast across the lowland toward the large northern bend.",
+          "sources": [
+            "r97-nrcan-caribou-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            8941
+          ],
+          "component_scope": "Lower northern bend and Long Lake",
+          "finding": "The selected Caribou corridor bends east and then southeast around the large lower northern elbow. It passes along the mapped elongated Long Lake waterbody before turning east through the lake’s southeastern outlet setting. The source labels Long Lake separately within the river corridor; repeated Caribou River labels do not replace the lake name. Separate Cross Lake and other southern side waters are not selected upstream.",
+          "sources": [
+            "r97-nrcan-caribou-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            8941
+          ],
+          "component_scope": "Lower Caribou and actual Hudson Bay terminal",
+          "finding": "Below Long Lake the selection continues east along Caribou River across the coastal lowland, then turns south and northeast through the lower outlet. The final source crop places this opening on Hudson Bay immediately southwest/south of the land labeled Hubbart Point. The terminal is the Caribou coastal opening, not the northern Thlewiaza drainage or another nearby estuary. Tidal-flat/shoreline symbols make an exact present-day coast line or tidal limit inappropriate; no exact estuary-channel thread is claimed.",
+          "sources": [
+            "r97-nrcan-caribou-river-map"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
