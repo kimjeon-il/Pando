@@ -1,0 +1,394 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r84",
+  "sources": [
+    {
+      "source_key": "r84-jica-supporting-f",
+      "title": "The Study on Flood Control and Landslide Prevention in Tegucigalpa Metropolitan Area in the Republic of Honduras, Supporting Report F: Flood Damage Mitigation Plan",
+      "publisher": "Japan International Cooperation Agency, study report for the Republic of Honduras",
+      "year_note": "Digital PDF created and modified in June 2002; the report describes the study team's 2001 surveys.",
+      "supports": "Receiving-system identity, separately named upper branches, Concepción Dam on Grande, whole-route north/east/south loop and Gulf of Fonseca receiving context.",
+      "limits": "The full-basin figure is a generalized scanned channel map. It supports corridor correspondence, not fine channel positions or exact internal name boundaries. Detailed sheets supplement the upper and terminal intervals.",
+      "official_url": "https://openjicareport.jica.go.jp/pdf/11688421_11.pdf"
+    },
+    {
+      "source_key": "r84-dma-lepaterique",
+      "title": "Lepaterique, Honduras 1:50,000, Series E752, sheet 2758 III, Edition 2-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1980; the acquired sheet states a July 2003 NIMA reprint.",
+      "supports": "The selected western initial Río San José corridor and its distinction from the Guacerique drainage to the north.",
+      "limits": "Historical cartography; only the selected interval within this sheet is attributed to it.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/lepaterique-honduras-50k-2758iii-1980.pdf"
+    },
+    {
+      "source_key": "r84-ams-ojojona",
+      "title": "Ojojona, Honduras 1:50,000, Series E752, sheet 2757 IV, Edition 1-AMS",
+      "publisher": "U.S. Army Map Service, Corps of Engineers, based on Honduras Dirección General de Cartografía mapping; preserved by University of Texas Perry-Castañeda Library",
+      "year_note": "Despite 1956 in the file URL, the imprint states preparation in 1965 from a Honduran sheet printed in 1963, based on November 1954 and January 1956 aerial photography.",
+      "supports": "Selected connector through the San Sebastián-labeled valley toward Concepción de Río Grande and the Grande corridor.",
+      "limits": "Historical pre-reservoir channel context; not evidence of present reservoir shoreline or exact current naming transition.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/ojojona-honduras-50k-2757iv-1956.pdf"
+    },
+    {
+      "source_key": "r84-ign-dma-san-buenaventura",
+      "title": "San Buenaventura, Honduras 1:50,000, Series E752, sheet 2757 I, Edition 2-DMA",
+      "publisher": "Instituto Geográfico Nacional, Honduras, in collaboration with the U.S. Defense Mapping Agency; preserved by University of Texas Perry-Castañeda Library",
+      "year_note": "Updated in 1993 using 1977 aerial photography and 1990 field classification, as printed on the acquired map.",
+      "supports": "Direct Río Grande label on the selected eastward connector and northward exit toward Tegucigalpa.",
+      "limits": "Historical sheet, used for the bounded upper connection rather than contemporary land use or water infrastructure.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_buenaventura-honduras-50k-2757i-1993.pdf"
+    },
+    {
+      "source_key": "r84-ign-nima-punta-condega",
+      "title": "Punta Condega, Honduras 1:50,000, Series E752, sheet 2755 III, Edition 2-NIMA",
+      "publisher": "Instituto Geográfico Nacional, Honduras, with the U.S. National Imagery and Mapping Agency; preserved by University of Texas Perry-Castañeda Library",
+      "year_note": "Updated in 1996 from 1993 aerial photography and 1995 field classification, as printed on the acquired map; the file URL contains 1995.",
+      "supports": "Separate river and terminal estero labels and the Gulf of Fonseca receiving setting.",
+      "limits": "Historical coastal channel context, not a current shoreline, engineering or navigational assessment.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/punta_condega-honduras-50k-2755iii-1995.pdf"
+    },
+    {
+      "source_key": "r84-usgs-topo-utukok",
+      "title": "The National Map, USGS Topo reference cartography: Utukok–Driftwood drainage and Kasegaluk Lagoon delta views",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "year_note": "Undated live reference-map service read 10 October 2026; feature-specific survey and update dates were not established.",
+      "supports": "Complete selected path coverage; direct Driftwood and Utukok labels; actual headwater-branch choice; large middle bends; distinction from Kokolik, Colville, Avak and Ivisaruk; terminal lagoon/delta feature classes.",
+      "limits": "Three views are one reference-map publication, not independent naming authorities. Generalization can shortcut bends or differ locally from map channels. No exact current source/mouth, every small braid, official hydronym boundary or present channel condition is established.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r84-ipece-monsenhor-tabosa-2025",
+      "title": "Mapa Municipal de Monsenhor Tabosa, Projeto Atlas de Divisas Municipais Georreferenciadas do Estado do Ceará, 2025",
+      "publisher": "Instituto de Pesquisa e Estratégia Econômica do Ceará (IPECE), GEGIN; state municipal-boundary project with IBGE and Assembleia Legislativa cooperation",
+      "supports": "Riacho Acaraú and Rio Acaraú labels; Serra da Lagoa, Saco do Souza, Chupador, Morro Redondo and Cacimba dos Mocós connections; neighboring Mulungu, Gavião, Salobro and Quixeramobim distinctions.",
+      "limits": "The imprint describes a digital base compiled from DSG/SUDENE sheets, SPOT5 imagery, earlier IBGE work and IPECE field updates. The 2025 map date is not proof of a 2025 hydrological survey. Municipal boundaries and exact small-channel/name limits are not adjudicated.",
+      "official_url": "https://www.ipece.ce.gov.br/wp-content/uploads/sites/45/2025/05/mapas_municipais_Monsenhor_Tabosa_2025.pdf"
+    },
+    {
+      "source_key": "r84-ipece-tamboril-2025",
+      "title": "Mapa Municipal de Tamboril, Projeto Atlas de Divisas Municipais Georreferenciadas do Estado do Ceará, 2025",
+      "publisher": "Instituto de Pesquisa e Estratégia Econômica do Ceará (IPECE), GEGIN; state municipal-boundary project with IBGE and Assembleia Legislativa cooperation",
+      "supports": "Continuity across the upper southern bow and Tamboril; local Fundo label; downstream Acaraú labels; separation from the Curtume/Feijão urban watercourse and neighboring headwater tributaries.",
+      "limits": "Detailed municipal cartography supports connected route and printed component names; it does not establish exact name-transition vertices or imply that neighboring local stream labels are synonyms. Original pixels stay local.",
+      "official_url": "https://www.ipece.ce.gov.br/wp-content/uploads/sites/45/2025/05/mapas_municipais_Tamboril_2025.pdf"
+    },
+    {
+      "source_key": "r84-ibge-ceara-political-2015",
+      "title": "Mapa Político do Estado do Ceará, scale 1:650,000, 2015",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências / Coordenação de Cartografia",
+      "year_note": "©IBGE 2015; the imprint identifies BCIM 2014 as its cartographic base.",
+      "supports": "Repeated Acaraú labels and route from the Tamboril/Nova Russas setting through Araras and Sobral to the Atlantic; reservoir name and distinctions from Feitosa, Macacos, Jacurutu, Groaíras, Jaibaras, Coreaú and Aracatiaçu.",
+      "limits": "Regional historical state cartography, not a current channel or shoreline survey. Generalized streams, reservoir arms and coastal water are compared at corridor scale. Reproduction rights are reserved; original maps and crops remain local.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/ce_politico650k_2015.pdf"
+    },
+    {
+      "source_key": "r84-ibge-maranhao-retained",
+      "title": "Maranhão, mapa estadual político",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year_note": "No exact publication year asserted from this retained map.",
+      "supports": "Regional Rio Turiaçu identity, Atlantic-draining setting, and distinction from Gurupi and Pericumã.",
+      "limits": "Small-scale educational map cannot resolve the actual side branch or upper component boundaries.",
+      "official_url": "https://geoftp.ibge.gov.br/produtos_educacionais/mapas_tematicos/mapas_do_brasil/mapas_estaduais/politico/maranhao.pdf"
+    },
+    {
+      "source_key": "r84-ibge-alto-turiacu",
+      "title": "Alto Turiaçu, carta planimétrica SA-23-Y-D-I, MI-0606",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year_note": "First edition and editing 2009; printed imprint identifies 2004 imagery and 2006 geometric correction.",
+      "supports": "The Rio do Peixe valley near Vitória da Conquista joins separately labelled Rio Turiaçu; the receiving upper Turiaçu continues northeast across the sheet.",
+      "limits": "The initial southwestern modeled approach is not continuously matched to a named or confidently traced source channel. The whole initial interval is not assigned Rio do Peixe solely by downstream continuity.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/folhas_topograficas/editoradas/escala_100mil/projeto_ma_pa/alto_turiacu0606.pdf"
+    },
+    {
+      "source_key": "r84-ibge-ze-doca",
+      "title": "Zé Doca, carta planimétrica SA-23-Y-D-II, MI-0607",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year_note": "Historical project sheet; 2009 cartographic production context, not present-day field verification.",
+      "supports": "Northwestern sheet portion labels Rio Turiaçu through the selected northeastward continuation at the edge of Área Indígena Alto Turiaçu.",
+      "limits": "Only the northwest part of this sheet intersects the selection; no identity assigned to neighboring southern drainage.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/folhas_topograficas/editoradas/escala_100mil/projeto_ma_pa/ze_doca0607.pdf"
+    },
+    {
+      "source_key": "r84-ibge-santa-luzia-parua",
+      "title": "Santa Luzia do Paruá, carta planimétrica SA-23-Y-B-V, MI-0546",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year_note": "Historical project sheet; 2009 cartographic production context, not present-day field verification.",
+      "supports": "Rio Turiaçu through the southern Araguatins/Turi Velho setting and toward the northbound eastern lowland corridor; separate smaller streams remain separately labelled.",
+      "limits": "The eastern selection extends beyond this sheet and is covered by the Santa Helena municipal map; map boundaries are not river-name boundaries.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/folhas_topograficas/editoradas/escala_100mil/projeto_ma_pa/santa_luzia_do_parua0546.pdf"
+    },
+    {
+      "source_key": "r84-ibge-governador-nunes-freire",
+      "title": "Governador Nunes Freire, carta planimétrica SA-23-Y-B-II, MI-0492",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year_note": "Historical project sheet; 2009 cartographic production context, not present-day field verification.",
+      "supports": "The actual western tributary approaches through the Rio Paruá corridor near Parnação and Guarirama; Turiaçu is separately named farther east.",
+      "limits": "Only the western part of the selected tributary falls on this sheet; its junction is established on the Santa Helena map.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/folhas_topograficas/editoradas/escala_100mil/projeto_ma_pa/governador_nunes_freire0492.pdf"
+    },
+    {
+      "source_key": "r84-ibge-santa-helena-2022",
+      "title": "Santa Helena - MA, Mapa Municipal, código 2109809, edição 2022",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year_note": "Edition 2022; IBGE municipal collection publication credited 2023.",
+      "supports": "Selected northbound Turiaçu lowland course; western Rio Paruá joining the receiving Turiaçu; separately labelled Rio Turiaçu branches and floodplain waterbodies.",
+      "limits": "Cartography depicts a floodplain channel/lake complex. No reservoir is inferred; no claim is made about exact contemporary shorelines, flow or every individual lake name.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/MA/santa_helena/A0_2109809_MM.pdf"
+    },
+    {
+      "source_key": "r84-ibge-turiacu-2022",
+      "title": "Turiaçu - MA, Mapa Municipal, código 2112407, edição 2022",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year_note": "Edition 2022; IBGE municipal map collection.",
+      "supports": "Rio Turiaçu label on the broad lower channel, its major bends, the Turiaçu/Bacuri/Serrano do Maranhão setting and the downstream Atlantic estuarine continuation.",
+      "limits": "Selected geometry stops within the lower river/estuarine channel upstream of Turiaçu town. It does not represent the entire bay, estuary polygon or open-ocean mouth.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/MA/turiacu/A0_2112407_MM.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70963359",
+      "source_keys": [
+        "r84-jica-supporting-f",
+        "r84-dma-lepaterique",
+        "r84-ams-ojojona",
+        "r84-ign-dma-san-buenaventura",
+        "r84-ign-nima-punta-condega"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10664
+          ],
+          "interval": "Western initial headwater southeast of Lepaterique",
+          "finding": "The selected southeastward upper corridor matches the watercourse labeled Río San José on the Lepaterique sheet. It belongs to the western approach to Grande, rather than the Guacerique route farther north. The receiving name Choluteca is not extended over this headwater label.",
+          "sources": [
+            "r84-dma-lepaterique",
+            "r84-jica-supporting-f"
+          ]
+        },
+        {
+          "fragments": [
+            10664
+          ],
+          "interval": "Southern bend and eastward connection toward Concepción and Grande",
+          "finding": "The upper connector follows the northern edge of the Ojojona sheet through the San Sebastián-labeled valley and onward to the Grande corridor at Concepción de Río Grande. San Buenaventura directly labels Río Grande on the eastward reach that turns north toward Tegucigalpa. These historical sheets and JICA's later upper-basin map resolve the selected connection without naming it all Choluteca.",
+          "sources": [
+            "r84-ams-ojojona",
+            "r84-ign-dma-san-buenaventura",
+            "r84-jica-supporting-f"
+          ]
+        },
+        {
+          "fragments": [
+            10664
+          ],
+          "interval": "Tegucigalpa, northern loop, eastern turn and southbound middle valley",
+          "finding": "The complete distinctive route agrees with JICA Figure F.1.2: the receiving river runs north from Tegucigalpa, bends east and then south. Figure F.1.1 separately distinguishes Grande, Guacerique, San José and Chiquito approaches, so the selected modeled mainstem is not treated as evidence that all those waterways share one name.",
+          "sources": [
+            "r84-jica-supporting-f"
+          ]
+        },
+        {
+          "fragments": [
+            10664
+          ],
+          "interval": "Lower southwestward course and coastal terminal approach",
+          "finding": "JICA's whole-basin map supports the continuation southwest through the lower Choluteca corridor to the Gulf of Fonseca. On the detailed Punta Condega sheet, the selected terminal setting follows Río Choluteca into the Estero La Joya corridor toward Estero El Pedregal. The latter labels describe estuarine components, not alternative names for the entire river.",
+          "sources": [
+            "r84-jica-supporting-f",
+            "r84-ign-nima-punta-condega"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80035625",
+      "source_keys": [
+        "r84-usgs-topo-utukok"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2341
+          ],
+          "finding": "The actual southern beginning lies on the directly labeled Driftwood Creek corridor. It runs north through the mountain valley and turns northwest past the separately mapped Kietag, Nucleus and Elbow creek approaches. The selected route remains on Driftwood rather than those arriving branches; the farthest formal source point is not asserted.",
+          "sources": [
+            "r84-usgs-topo-utukok"
+          ]
+        },
+        {
+          "fragments": [
+            2341
+          ],
+          "finding": "Driftwood continues northwest and then west into the Utukok River. The separately named upper Utukok approaches from the south near Adventure Creek and is shown beginning farther upstream at the Kogruk/Tupik setting; that southern main-river continuation is not the chosen model headwater. The model follows the eastern Driftwood approach before joining the common receiving trunk.",
+          "sources": [
+            "r84-usgs-topo-utukok"
+          ]
+        },
+        {
+          "fragments": [
+            2341
+          ],
+          "finding": "The selected Utukok receiving reach runs north past the Seismo Creek vicinity, makes the broad eastward foothill bend, then turns north near the Carbon Creek and Ketik River surroundings. Repeated Utukok labels identify this irregular course. The nearby Colville drainage to the east and Kokolik/Avingak drainage to the west are separate.",
+          "sources": [
+            "r84-usgs-topo-utukok"
+          ]
+        },
+        {
+          "fragments": [
+            2341
+          ],
+          "finding": "Across the middle coastal plain, the selected trunk bends west and northwest below the Ilakoluk vicinity and continues on the repeatedly labeled Utukok. The Avak and Ivisaruk corridors farther north and east are not substituted for it, and the selection does not traverse their named lakes or inlets.",
+          "sources": [
+            "r84-usgs-topo-utukok"
+          ]
+        },
+        {
+          "fragments": [
+            2341
+          ],
+          "finding": "The lower Utukok enters a broad marsh-fringed braided/delta setting on the Kasegaluk Lagoon mainland shore. The terminal enlargement distinguishes the labeled river, tidal-flat channels, lagoon and offshore barrier islands. The selected ending is retained as the delta/lagoon-margin transition, without assigning a precise active mouth arm, a present shoreline vertex or a river route through the lagoon to the sea.",
+          "sources": [
+            "r84-usgs-topo-utukok"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60588835",
+      "source_keys": [
+        "r84-ipece-monsenhor-tabosa-2025",
+        "r84-ipece-tamboril-2025",
+        "r84-ibge-ceara-political-2015"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13763
+          ],
+          "finding": "The headward selection is in the valley southwest of Monsenhor Tabosa and east of Serra da Lagoa. The detailed municipal map prints Riacho Acaraú on this descending valley and Rio Acaraú farther south near Saco do Souza/Sítio do Souza. Riacho da Serra and Riacho do Mulungu are separately labeled adjoining branches. The modeled beginning is not promoted to an officially surveyed river source.",
+          "sources": [
+            "r84-ipece-monsenhor-tabosa-2025",
+            "r84-ipece-tamboril-2025"
+          ]
+        },
+        {
+          "fragments": [
+            13763
+          ],
+          "finding": "The southern bow passes the Chupador and Morro Redondo setting, turns west through the Cacimba dos Mocós area, then northwest past the Acaraú-labeled corridor toward Tamboril. The detailed maps distinguish Riacho do Gavião and Riacho do Salobro from the receiving route, and separate the Quixeramobim drainage east of the divide.",
+          "sources": [
+            "r84-ipece-monsenhor-tabosa-2025",
+            "r84-ipece-tamboril-2025"
+          ]
+        },
+        {
+          "fragments": [
+            13763
+          ],
+          "finding": "Around Tamboril, the west/northwestward continuation bears the local Riacho Fundo label. It continues through the Barra/Carnaúba direction toward Irapuá and the river directly labeled Rio Acaraú east of Nova Russas. The municipal sheet also distinguishes the nearby Riacho do Combe and Riacho da Carnaúba labels; exact local name-boundary vertices are not inferred. The more westerly Riacho do Curtume/Riacho do Feijão corridor through the Nova Russas urban setting is not substituted for the selected eastern receiving route.",
+          "sources": [
+            "r84-ipece-tamboril-2025",
+            "r84-ibge-ceara-political-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13763
+          ],
+          "finding": "Northward from the Nova Russas vicinity, the route passes Conceição and Recanto, follows the directly labeled Rio Acaraú west of Hidrolândia, and enters the southern arm of Açude Público Araras. It leaves the reservoir in the Varjota/Macaraú direction on the river again labeled Rio Acaraú. Rio Feitosa and Rio dos Macacos occupy separate eastern approaches; the reservoir remains a reservoir, not an alternate river name.",
+          "sources": [
+            "r84-ibge-ceara-political-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13763
+          ],
+          "finding": "Below Araras the selected receiving river runs north through the Cariré–Groaíras surroundings to Sobral. Jacurutu and Groaíras approach from the east, while Jaibaras and Açude Aires de Souza are on the separate western branch. The selection follows the main receiving corridor, not one of those tributaries or their reservoirs.",
+          "sources": [
+            "r84-ibge-ceara-political-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13763
+          ],
+          "finding": "The lower route passes Sobral and Santana do Acaraú, runs through the Morrinhos/Marco river plain, continues east of Bela Cruz and by Cruz, and reaches the estuarine channel north of Acaraú. The state map repeatedly names this connected river Rio Acaraú and depicts its Atlantic coastal opening. The generalized endpoint is retained as the estuarine/mouth setting rather than an exact shoreline crossing or present-day tidal-channel survey.",
+          "sources": [
+            "r84-ibge-ceara-political-2015"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60515284",
+      "source_keys": [
+        "r84-ibge-maranhao-retained",
+        "r84-ibge-alto-turiacu",
+        "r84-ibge-ze-doca",
+        "r84-ibge-santa-luzia-parua",
+        "r84-ibge-governador-nunes-freire",
+        "r84-ibge-santa-helena-2022",
+        "r84-ibge-turiacu-2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13710
+          ],
+          "finding": "The upper modeled route approaches the Rio do Peixe valley near Vitória da Conquista, then reaches separately named Rio Turiaçu and continues northeast across Alto Turiaçu, the northwest corner of Zé Doca and the southern Santa Luzia do Paruá sheet. The initial southwestern approach before the mapped Rio do Peixe corridor is not continuously traced and remains material pending; no hydronym is assigned to that unresolved interval.",
+          "sources": [
+            "r84-ibge-alto-turiacu",
+            "r84-ibge-ze-doca",
+            "r84-ibge-santa-luzia-parua"
+          ]
+        },
+        {
+          "fragments": [
+            13711
+          ],
+          "finding": "The receiving modeled mainstem follows the Rio Turiaçu corridor from the Araguatins/Turi Velho area toward the northbound lowland course west of the Presidente Sarney setting. The two detailed map coverages distinguish neighboring tributaries and continue the same receiving channel.",
+          "sources": [
+            "r84-ibge-santa-luzia-parua",
+            "r84-ibge-santa-helena-2022"
+          ]
+        },
+        {
+          "fragments": [
+            13712
+          ],
+          "finding": "The mainstem crosses the Turiaçu lowland channel and floodplain-waterbody setting, receives the western Paruá branch, passes Santa Helena and Turilândia and reaches the broader lower channel toward Serrano do Maranhão and Bacuri. The map labels Turiaçu on the receiving course.",
+          "sources": [
+            "r84-ibge-santa-helena-2022",
+            "r84-ibge-turiacu-2022"
+          ]
+        },
+        {
+          "fragments": [
+            13713
+          ],
+          "finding": "The terminal fragment follows the broad, explicitly labelled Rio Turiaçu estuarine channel and its westward/northward bend. Its modeled endpoint is upstream of Turiaçu town and of the continuation to the wider coastal bay; it is not the open-Atlantic mouth.",
+          "sources": [
+            "r84-ibge-turiacu-2022"
+          ]
+        },
+        {
+          "fragments": [
+            13714
+          ],
+          "finding": "The actual separate western branch corresponds to Rio Paruá near Parnação/Guarirama, then through the São Bento and Machado–Guaribas setting to the Turiaçu receiving course. It is not another Turiaçu mainstem fragment.",
+          "sources": [
+            "r84-ibge-governador-nunes-freire",
+            "r84-ibge-santa-helena-2022"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
