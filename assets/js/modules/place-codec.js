@@ -10,7 +10,8 @@ export function encodePlaceTile(records) {
   const strings = new Map(); let poolBytes = 0;
   for (const record of normalized) {
     for (const field of STRING_FIELDS) {
-      const value = field === 'nameTimelineText' ? JSON.stringify(record.nameTimeline) : record[field];
+      const value = field === 'nameTimelineText' ? JSON.stringify(record.nameTimeline)
+        : field === 'nameNativeExtrasText' ? JSON.stringify(record.nameNativeExtras) : record[field];
       if (!strings.has(value)) { const bytes = encoder.encode(value); if (bytes.length > MAX_STRING_BYTES) throw new RangeError('Place string byte budget exceeded'); strings.set(value, { offset: poolBytes, bytes }); poolBytes += 4 + bytes.length; }
     }
   }
@@ -27,7 +28,8 @@ export function encodePlaceTile(records) {
     view.setFloat64(base + 16, record.population, true); view.setFloat32(base + 24, record.priority, true); view.setFloat32(base + 28, record.minZoom, true);
     view.setUint8(base + 32, PLACE_KINDS.indexOf(record.kind));
     STRING_FIELDS.forEach((field, j) => {
-      const value = field === 'nameTimelineText' ? JSON.stringify(record.nameTimeline) : record[field];
+      const value = field === 'nameTimelineText' ? JSON.stringify(record.nameTimeline)
+        : field === 'nameNativeExtrasText' ? JSON.stringify(record.nameNativeExtras) : record[field];
       view.setUint32(base + STRING_OFFSET_BASE + j * STRING_OFFSET_STRIDE, strings.get(value).offset, true);
     });
   });
@@ -53,7 +55,10 @@ export function decodePlaceTile(input) {
     const raw = { coordinates: [view.getFloat64(base, true), view.getFloat64(base + 8, true)], population: view.getFloat64(base + 16, true), priority: view.getFloat32(base + 24, true), minZoom: view.getFloat32(base + 28, true), kind: PLACE_KINDS[view.getUint8(base + 32)] };
     if (!raw.kind) throw new TypeError('Invalid place kind');
     STRING_FIELDS.forEach((field, j) => { const offset = view.getUint32(base + STRING_OFFSET_BASE + j * STRING_OFFSET_STRIDE, true); if (!pool.has(offset)) throw new RangeError('Invalid place string offset'); raw[field] = pool.get(offset); });
-    try { raw.nameTimeline = JSON.parse(raw.nameTimelineText); } catch { throw new TypeError('Invalid place name timeline payload'); }
+    try {
+      raw.nameNativeExtras = JSON.parse(raw.nameNativeExtrasText);
+      raw.nameTimeline = JSON.parse(raw.nameTimelineText);
+    } catch { throw new TypeError('Invalid place name metadata payload'); }
     return normalizePlace(raw);
   });
 }
