@@ -1,0 +1,87 @@
+{
+  "schema": "selected-lake-inventory-summary-public-v1",
+  "scope_aw_ids": [
+    "lakes_base:1159112265",
+    "lakes_base:1159112279",
+    "lakes_base:1159112305"
+  ],
+  "scope_source_ids": [
+    "1159112265",
+    "1159112279",
+    "1159112305"
+  ],
+  "records": [
+    {
+      "aw_id": "lakes_base:1159112265",
+      "category": "lake",
+      "source_id": "1159112265",
+      "logical_fid": 4234,
+      "geometry_fids": [
+        15609
+      ],
+      "geometry_count": 1,
+      "source_ids_count": 1,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "lake-417"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        -98.072556,
+        56.885393,
+        -97.589358,
+        57.187705
+      ],
+      "minimum_stage": 2
+    },
+    {
+      "aw_id": "lakes_base:1159112279",
+      "category": "lake",
+      "source_id": "1159112279",
+      "logical_fid": 4235,
+      "geometry_fids": [
+        15610
+      ],
+      "geometry_count": 1,
+      "source_ids_count": 1,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "lake-418"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        -98.586958,
+        51.510009,
+        -98.157922,
+        51.841758
+      ],
+      "minimum_stage": 2
+    },
+    {
+      "aw_id": "lakes_base:1159112305",
+      "category": "lake",
+      "source_id": "1159112305",
+      "logical_fid": 4237,
+      "geometry_fids": [
+        15612
+      ],
+      "geometry_count": 1,
+      "source_ids_count": 1,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "lake-420"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        -99.645638,
+        51.905635,
+        -99.475937,
+        52.269174
+      ],
+      "minimum_stage": 2
+    }
+  ],
+  "summary_of_original_rows_only": true,
+  "original_csv_rows_in_public_package": false,
+  "historical_names_used_as_identity_evidence": false
+}
