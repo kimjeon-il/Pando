@@ -1,0 +1,235 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r53",
+  "sources": [
+    {
+      "source_key": "r49-quebec-patp-cote-nord-north-2012",
+      "title": "Plan d’affectation du territoire public de la Côte-Nord — Carte 2 : Droits, statuts et activités usuelles — Partie nord",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune",
+      "year": 2012,
+      "page": "Single sheet, PDF page 1; southwestern Labrador water outlines, graticule and northern group context",
+      "supports": "Regional waterbody/channel shapes along the southwestern modeled route and separate northern drainage branches.",
+      "limits": "The Labrador context is largely unlabeled. This sheet alone does not identify the feeder or connecting river names, current flow or every minor channel. Used only for river-route context; paused lake assessments were not resumed.",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Cote-Nord/CA_02_droits-statuts-activites-nord-PATP_CN_MERN.pdf.pdf?1592922714="
+    },
+    {
+      "source_key": "r53-dfo-bruce-parsons-1979",
+      "title": "Biology of the Fishes of Ossokmanuan Reservoir, Labrador, 1976",
+      "authors": "W. J. Bruce and R. F. Parsons",
+      "publisher": "Fisheries and Marine Service, Department of Fisheries and the Environment; Technical Report 836",
+      "year": 1979,
+      "page": "Printed pp. 1–2, PDF pages 7–8; Figure 1",
+      "supports": "Separately labeled Ossokmanuan/Smallwood reservoirs, Unknown River, Twin Falls installation and Churchill connection.",
+      "limits": "Historical reservoir mapping. It supports the named outlet-corridor distinction, not current operating flows or exact current reservoir shorelines.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/11912.pdf"
+    },
+    {
+      "source_key": "r53-nalcor-lower-churchill-plain-summary",
+      "title": "Lower Churchill Hydroelectric Generation Project: A description of the proposed project and its potential effects on the environment — Plain Language Summary",
+      "publisher": "Nalcor Energy; official copy hosted by Newfoundland and Labrador Hydro",
+      "year": null,
+      "page": "Unnumbered opening map spread, PDF pages 2–3; printed p. 21, PDF page 27",
+      "supports": "Direct Churchill River labeling and the complete lower-valley sequence including Winokapau, Gull Island, Muskrat Falls and Happy Valley-Goose Bay.",
+      "limits": "Generalized regional map. Proposed infrastructure illustrations do not establish current construction or operating conditions; the western upper feeder is outside its detailed coverage.",
+      "official_url": "https://www.nlhydro.com/wp-content/uploads/2022/12/Environmental-Impact-Statement-Plain-Language-Summary.pdf"
+    },
+    {
+      "source_key": "r53-nalcor-water-management-2009",
+      "title": "Water Management Agreement Application, Volume I — Pre-filed Evidence, Appendix A: Churchill River Drainage Basin and Hydrological Sequence",
+      "publisher": "Nalcor Energy; Commission of Inquiry Respecting the Muskrat Falls Project, Exhibit P-00032",
+      "year": 2009,
+      "page": "Appendix A, pp. A-1 to A-3; exhibit/PDF pages 72–74",
+      "supports": "Joseph–Atikonak–Ossokmanuan relationship and the distinction between Gabbro diversion and the Twin Falls/Unknown outlet corridor.",
+      "limits": "Historical hydrological description, not current operating data. Only extracted text supports this finding; proposed-project and contractual details are outside scope.",
+      "official_url": "https://www.muskratfallsinquiry.ca/files/P-00032.pdf"
+    },
+    {
+      "source_key": "r53-nl-canal-atikonak-profile",
+      "title": "Canada Newfoundland Water Quality Station Profile: NF03OC0012, Atikonak River Above Panchia Lake",
+      "publisher": "Government of Newfoundland and Labrador, CANAL",
+      "year": null,
+      "page": "Station heading, location, description and barriers-to-migration sections",
+      "supports": "Direct Atikonak River wording and location on the selected northward corridor; downstream Panchia/Ossokmanuan context.",
+      "limits": "Point and corridor evidence, not a name for the entire upstream modeled route. Historical environmental and development statements are not treated as current.",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF03OC0012"
+    },
+    {
+      "source_key": "r53-nl-churchill-flood-warning",
+      "title": "Churchill River Early Flood Warning and Alert System",
+      "publisher": "Government of Newfoundland and Labrador, Environment, Conservation and Climate Change",
+      "year": null,
+      "page": "Background section",
+      "supports": "Churchill River system in Labrador; Smallwood-to-Lake Melville relationship and explicitly separate upper-basin tributaries.",
+      "limits": "Regional system description, not uniform naming of all modeled branches. The linked watershed map's extracted labels were not substituted for a readable visual map.",
+      "official_url": "https://www.gov.nl.ca/eccc/waterres/flooding/lc-flood-warning/"
+    },
+    {
+      "source_key": "ign_catamarca_physical_2017",
+      "title": "Provincia de Catamarca, Mapa Físico",
+      "author": "Instituto Geográfico Nacional (Argentina)",
+      "year": 2017,
+      "page": "Single-sheet map, PDF page 1; edition October 2017",
+      "limits": "Original PDF acquired with HTTP 200. Whole sheet and readable upper/lower corridor portions inspected. Direct river and salt-flat labels, graticule and neighboring drainages support regional correspondence; generalized mapping does not assign the exact northern headwater, all intermittent channels or every modeled segment.",
+      "official_url": "https://www.ign.gob.ar/gallery-app/mapas-escolares-202307/download/CATAMARCA%20FISICO%20WEB%202017.pdf"
+    },
+    {
+      "source_key": "ign_larioja_physical_2017",
+      "title": "Provincia de La Rioja, Mapa Físico",
+      "author": "Instituto Geográfico Nacional (Argentina)",
+      "year": 2017,
+      "page": "Single-sheet map, PDF page 1; edition October 2017",
+      "limits": "Original PDF acquired with HTTP 200. Whole sheet and readable Salado/Colorado–Desagües–La Antigua corridor inspected. Distinguishes the terminating named river, salt flats and nearby Paganzo/Colorado and Bermejo/Vinchina systems. It is not a contemporary channel/flow survey and does not by itself disprove ephemeral connections.",
+      "official_url": "https://www.ign.gob.ar/gallery-app/mapas-escolares-202307/download/LA%20RIOJA%20FISICO%20WEB%20%202017.pdf"
+    },
+    {
+      "source_key": "ina_catamarca_hydrology_2010",
+      "title": "Relevamiento de la Disponibilidad de Recursos Hídricos Superficiales de Cuenca Salar de Pipanaco, Cuenca Abaucán–Colorado–Salado y Cuencas Faldeo Oriental del Ancasti, Informe Final, Tomo I, IT Nº 129–CRA",
+      "author": "Instituto Nacional del Agua, Centro Regional Andino; Gobierno de la Provincia de Catamarca, Secretaría del Agua y del Ambiente",
+      "year": 2010,
+      "page": "Title dated October 2010; pp. 23, 56–59, 72–75; Figures 14–16",
+      "limits": "Original PDF acquired with HTTP 200; relevant original text read and Figures 14–16 visually inspected. The river description supplies actual name/corridor succession. Its main Abaucán morphometric study closes at the provincial boundary, so its listed length is not the full selected modeled route length. It discusses endorheic and intermittent interactions but does not name the complete La Antigua–Salinas Grandes connector.",
+      "official_url": "https://www.ina.gov.ar/archivos/publicaciones/CRA-H.Sup-5-RECURSOS-HIDRICOS-SUPERFICIALES_Catamarca-I.pdf"
+    },
+    {
+      "source_key": "ssrh_abaucan_basin93",
+      "title": "Cuenca del Río Abaucán, Salado, Colorado o Bermejo, Cuenca Nº 93",
+      "author": "Argentina national water-resources basin description, hosted on Argentina.gob.ar",
+      "year": null,
+      "page": "PDF pp. 1–3, especially p. 3",
+      "limits": "Readable web extraction of the three-page official document used for its river-course and infiltration wording. A screenshot attempt returned Internal Error; its map was not acquired or relied upon, and no alternate retrieval was attempted. Publication year is not established; population and discharge data are historical and are not treated as current.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/93.pdf"
+    },
+    {
+      "source_key": "ianigla_abaucan_2018",
+      "title": "Informe de la subcuenca del río Abaucán y Laguna Verde, Cuenca del río Abaucán, Provincias de Catamarca y La Rioja",
+      "author": "Ministerio de Ambiente y Desarrollo Sustentable; IANIGLA–CONICET, Inventario Nacional de Glaciares",
+      "year": 2018,
+      "page": "May 2018 imprint; printed p. 9, Figure 4, PDF page 14",
+      "limits": "Original PDF acquired with HTTP 200; Figure 4 visually inspected. The basin map independently places the Fiambalá–Tinogasta–Salado–Mazán corridor and southern basin tail. It is an inventory/basin-location map, not evidence that the selected lower salt-flat routing is a named river or a current continuous channel.",
+      "official_url": "https://www.glaciaresargentinos.gob.ar/wp-content/uploads/provincias/Catamarca/docs/informes/informe_final_abaucan-laguna-verde_25-04-2018.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; northern Inland Ice, Mylius-Erichsen Land, inner Danmark Fjord, northern graticule and Inland Ice legend",
+      "supports": "Northern ice-sheet setting of the long interior section and the northeastern marginal land/fjord setting of the eastern approach, while distinguishing geographical labels and ice contours from river-name evidence.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "p. 12 map description; pp. 64–65 Glaciology and fig. 47; pp. 113–115 place names register",
+      "supports": "Identifies the Inland Ice as the continental ice sheet and explains the map representation of surface elevation, ice thickness and sub-ice bedrock contours. Its register locates Danmark Fjord and Mylius-Erichsen Land without identifying this modeled route as a named river.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70138351",
+      "source_keys": [
+        "r49-quebec-patp-cote-nord-north-2012",
+        "r53-dfo-bruce-parsons-1979",
+        "r53-nalcor-lower-churchill-plain-summary",
+        "r53-nalcor-water-management-2009",
+        "r53-nl-canal-atikonak-profile",
+        "r53-nl-churchill-flood-warning"
+      ],
+      "correspondence": [
+        "Piece 9207 follows the western feeder/lake corridor southward and then turns northeast within the broad Lac Joseph setting. Piece 9208 continues southeast through the connecting lake-and-channel chain toward the western Atikonak Lake approach. The retained Quebec sheet supplies the water outlines and graticule for this entire southwestern context but does not print the needed local river names. Nalcor's hydrological account independently places Lac Joseph upstream of Atikonak Lake. No name is invented for the initial feeder or every connecting reach.",
+        "Piece 9209 proceeds north through the Atikonak Lake outlet corridor, past the independently located Atikonak River above Panchia Lake station, and into the southeastern Ossokmanuan lake/reservoir corridor. Its later eastward and northward bend follows the Unknown River/Twin Falls outlet toward Churchill. DFO Figure 1 separately labels Unknown River and shows the Ossokmanuan outlet relationship; it does not call this river Churchill.",
+        "Nalcor's 2009 hydrological sequence distinguishes normal Ossokmanuan outflow through Gabbro into Smallwood from the Ossokmanuan control-structure spill route through the former Twin Falls site into Churchill. The selected model follows the latter corridor. It must not be described as the ordinary present-day operational flow route through Smallwood, nor as proof of current discharge through every modeled reach.",
+        "Piece 9210 follows the mapped lower Churchill corridor east from the Unknown River junction region, through the long Winokapau Lake passage, the southward valley bend, Gull Island and Muskrat Falls vicinity, and the outlet beside Happy Valley-Goose Bay. The readable Nalcor two-page map shows this sequence and directly labels Churchill River. The named river's Smallwood-to-Lake Melville relationship is also stated by the provincial flood-warning page.",
+        "The wider group includes separate northwestern and northern lake/tributary corridors in the Menihek–Smallwood setting and shorter central tributary approaches. The retained Quebec sheet, DFO reservoir map and provincial description provide representative surrounding-system context. MAIN_RIV membership and the modeled mainstem classification do not establish identical names for those separate branches; no attempt is made to name all 16 fragments."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61457180",
+      "source_keys": [
+        "ign_catamarca_physical_2017",
+        "ign_larioja_physical_2017",
+        "ina_catamarca_hydrology_2010",
+        "ssrh_abaucan_basin93",
+        "ianigla_abaucan_2018"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14003,
+            14004,
+            14005
+          ],
+          "finding": "All three actual cached pieces were inspected together and individually against readable graticules, complete IGN physical sheets and enlarged corridor portions. The correspondence used the north–south upper valley, eastward bend south of Tinogasta, southeast passage below Pipanaco, southward turn through the Llanos, southern U-shaped bend and final northeastward salt-flat traverse; neither the bounding box nor MAIN_RIV was used as a river-name assignment."
+        },
+        {
+          "fragments": [
+            14003
+          ],
+          "finding": "The northern headwater approaches the eastern upper branch of the mapped Fiambalá valley and continues south along the corridor labeled Río Fiambalá o Saujil. The exact northernmost modeled extension and its local headwater name remain unresolved. IGN separately shows Chaschuil/Guanchín approaching from the west and Río Grande from the east; those tributary names are not transferred to the selected northern branch."
+        },
+        {
+          "fragments": [
+            14003
+          ],
+          "finding": "Farther south the route follows IGN’s Río Abaucán, passes the Tinogasta corridor and turns east beneath the Sierras de Copacabana and Vinquis, then southeast along the river printed Río Salado o Colorado south of Salar de Pipanaco. INA’s 2010 description directly sets out the Fiambalá–Abaucán naming sequence and the Tinogasta/El Salado turns. Precise name-change points are not fixed by these generalized sources."
+        },
+        {
+          "fragments": [
+            14003
+          ],
+          "finding": "After the southeast bend, the selected line turns south through the Mazán corridor east of Sierra de Velasco. The La Rioja sheet labels this Río Salado o Colorado and shows its southern weakening/termination at Desagües del Río Salado. The federal basin description places loss by infiltration near Cebollar. The 2018 glacier-inventory basin figure covers the upper route and a southeastern basin tail, but does not establish a named river continuing to Salinas Grandes."
+        },
+        {
+          "fragments": [
+            14003,
+            14004
+          ],
+          "finding": "The southern end of 14003 and the beginning of 14004 lie beyond the IGN sheet’s printed Desagües del Río Salado, in the northern Salina La Antigua setting. Piece 14004 proceeds south along that salt-flat corridor, bends east south of 30°S, then reaches the western Salinas Grandes setting. IGN labels La Antigua and Salinas Grandes as salt flats and does not draw or name a continuous river matching this whole connector. This does not prove that all ephemeral drainage or occasional flow connections are absent."
+        },
+        {
+          "fragments": [
+            14005
+          ],
+          "finding": "The final piece continues east and then northeast across the Salinas Grandes setting toward its eastern side. The Catamarca sheet covers this complete eastern extension and labels the salt flat, but provides no river name for the modeled traverse. Salinas Grandes is therefore geographical/feature-class context, not a candidate river name."
+        },
+        {
+          "fragments": [
+            14003,
+            14004,
+            14005
+          ],
+          "finding": "The regional maps separately label Río Bermejo o Vinchina west of the route, Río Belén and Salar de Pipanaco east of the upper valley, and Río Paganzo o Colorado and Desagües de Los Colorados farther southwest of the lower extension. In particular, the Colorado name on the Paganzo drainage is not the selected Salado/Colorado corridor. No adjacent river or salt-flat name is applied to the entire group."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90007489",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": {
+        "object_scope": "Both actual cached modeled mainstem pieces were read over the complete displayed route, including the short northeastern terminal piece. The bounding box and the earlier Greenland target were not substituted for this path.",
+        "displayed_mainstem_length_km": 725.79,
+        "displayed_length_limit": "Retained model display length, not an independently established natural-river length.",
+        "full_path_finding": "The long western northward leg, its northern bend and the eastward interior reaches lie on the mapped Inland Ice. The later eastward and northward approach reaches the ice-margin and ice-free terrain south of Mylius-Erichsen Land; the final short piece approaches inner Danmark Fjord. Both pieces were considered against the readable northern graticule, ice shading, mapped margin and fjord/land outline.",
+        "map_interpretation": "Blue surface contours, dashed ice-thickness isopachs and grey sub-ice bedrock contours are descriptions of ice and underlying terrain, not named river courses. The northeastern fjord and land labels do not name the long modeled interior route.",
+        "name_limit": "Neither retained original establishes the complete route as one named surface river, one named subglacial river or one named glacier. Proximity to Danmark Fjord does not authorize a fjord-name transfer to a river, and a possible marginal watercourse cannot supply the identity of the entire ice-sheet route.",
+        "conclusion": "Readable coverage supports the completed geographical and feature-class scope review. Retain null names and no automatic application; a later assignment requires positive natural-river identity evidence.",
+        "tributary_scope": "The two displayed mainstem pieces cover the cached group; no additional tributary piece is present. This finding does not name other northeastern Greenland streams, glaciers or fjords."
+      }
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
