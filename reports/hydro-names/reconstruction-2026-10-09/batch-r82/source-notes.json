@@ -1,0 +1,421 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r82",
+  "sources": [
+    {
+      "source_key": "r82-corponor-pamplonita2010",
+      "title": "Plan de ordenación y manejo de la cuenca hidrográfica del río Pamplonita — Resumen ejecutivo",
+      "publisher": "Corporación Autónoma Regional de la Frontera Nororiental, CORPONOR",
+      "year_note": "2010 printed title; geographic maps credited to the technical group in 2009.",
+      "supports": "Pamplonita basin, Pamplona–Cúcuta–Puerto Santander geographic corridor, separate Táchira tributary and Pamplonita within the Gran Zulia and Catatumbo hierarchy.",
+      "limits": "Map 1 is principally administrative/basin geography, not a detailed channel-name map. The finding does not adopt the document’s printed river length or current environmental assessments.",
+      "official_url": "https://www.corponor.gov.co/images/file/Resumen%20Ejecutivo%20POMCH%20Pamplonita_ajustado.pdf"
+    },
+    {
+      "source_key": "r82-corponor-pamplonita2025",
+      "title": "Resultados de la caracterización del río Pamplonita: coordenadas y mapa de identificación de puntos de monitoreo",
+      "publisher": "CORPONOR, Subdirección de Medición y Análisis Ambiental",
+      "year_note": "2025 publication path; map references the 2024–2027 institutional plan.",
+      "supports": "Actual selected Pamplonita course from the Pamplona headwater setting through La Donjuana and Cúcuta to Puerto Santander; separate El Rosal and Monteadentro monitoring locations.",
+      "limits": "Map is 1:630,000 and the headwater stations overlap at this scale. It does not justify assigning an exact name to every initial model segment or a present-day water-quality conclusion.",
+      "official_url": "https://corponor.gov.co/calidad_del_aire/2025/AGUA/RIO_PAMPLONITA/2.GEORREFERENCIACION_RIO_PAMPLONITA_2025_VF.pdf"
+    },
+    {
+      "source_key": "r82-corponor-hydro2016",
+      "title": "Plan de Acción 2016–2019, Figura 12: Hidrografía de Norte de Santander",
+      "publisher": "CORPONOR; map credits SIRAP-CORPONOR and basic IGAC cartography",
+      "year_note": "2016–2019 plan; Figure 12 map face dated December 2015.",
+      "supports": "Department-wide selected network setting; separate Pamplonita, Zulia, Colombian Tarra, Sardinata, Catatumbo and Río de Oro; explicit Sardinata-to-Tarra Venezuelan usage and Catatumbo receiving Lago de Maracaibo.",
+      "limits": "Regional map at 1:1,100,000 mainly covers Colombia and cannot alone resolve the lower Venezuelan reaches. Historical length, basin-area and environmental statements are not adopted.",
+      "official_url": "https://www.corponor.gov.co/corponor/PLAN_ACCION_2016_2019/antPlan_Accion_Institucional_2016_2019.pdf"
+    },
+    {
+      "source_key": "r82-tibu-zoning2000",
+      "title": "Plan Básico, Municipio de Tibú: Mapa de zonificación ambiental",
+      "publisher": "Municipio de Tibú, Norte de Santander, with CORPONOR and departmental institutional credits",
+      "year_note": "Map face: August 2000.",
+      "supports": "Selected Catatumbo course through the Tibú/La Gabarra setting; Río de Oro junction and nearby independent Socuavo courses; Sardinata, Nuevo Presidente and Tibú geometry near Tres Bocas.",
+      "limits": "An environmental-zoning sheet primarily for Colombian Tibú; it cannot independently establish downstream Venezuelan continuation or present zoning/channel conditions.",
+      "official_url": "https://www.corponor.gov.co/pot/Tibu/rural/zonificacion.pdf"
+    },
+    {
+      "source_key": "r82-sgc-norte1930",
+      "title": "Mapa geográfico del Norte de Santander, escala 1:500.000",
+      "publisher": "Comisión Geológica del Petróleo, 1930; official Servicio Geológico Colombiano Enrique Hubach collection",
+      "year_note": "1930 printed map; SGC catalog describes the 1933 Hubach route annotations and underlying 1924/1929 surveys.",
+      "supports": "Pamplonita versus Zulia and Táchira; actual Colombian Tarra selection and its Catatumbo junction versus Algodonal; Sardinata/Tres Bocas course and its northern Catatumbo junction; Río de Oro border bends and Catatumbo eastbound receiving reaches.",
+      "limits": "Historical surveying and nomenclature, with a Bogotá-based longitude reference, are used only for bounded regional correspondence. The map keeps Sardinata in Venezuela where the later CORPONOR account uses Tarra. It does not reach the lake mouth and is not evidence of current channel positions or legal boundaries.",
+      "official_url": "https://www2.sgc.gov.co/sites/Geocientificos/Documents/Catatumbo/1.MapaCatumbo.PDF"
+    },
+    {
+      "source_key": "r82-luz-catatumbo2012",
+      "title": "Estructura histológica de hígado de Mylossoma acanthogaster y Cynopotamus venezuelae — Figure 1, Mapa físico-político del Municipio Catatumbo",
+      "publisher": "Universidad del Zulia, Boletín del Centro de Investigaciones Biológicas, vol. 46 (2012); authors Maribel Viloria Narváez and colleagues",
+      "year_note": "2012 research article; Figure 1 attributes its base cartography to Dirección de Cartografía Nacional 1979. That attribution is not treated as a current map date.",
+      "supports": "Lower Zulia northbound connector and Catatumbo receiving trunk at Encontrados; lower Catatumbo’s northeast course to the southwestern lake shore, distinct from northern wetlands and the neighboring southeastern drainage. Fieldwork prose independently identifies the sampled Catatumbo at Encontrados.",
+      "limits": "The official-map reproduction is a small historical raster. It supports regional corridor/junction and endpoint setting, not every meander, minor channel, exact mouth arm or contemporary river condition. The biological findings are outside this naming task.",
+      "official_url": "https://produccioncientificaluz.org/index.php/boletin/article/download/3922/3921"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; southern Inland Ice and southwestern glaciated margin around 60.9–63.5°N, 44.8–46.8°W, full graticule context and Inland Ice legend.",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology; regional map-label context.",
+      "supports": "Explains ice-contour classes and regional map context without establishing a natural river identity for this selected route.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r82-nrcan-cbmt-north-knife",
+      "title": "Canada Base Map - Transportation (CBMT3978), North Knife lake-country, river and shared coastal-delta views",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "year_note": "Undated live reference-map service read 10 October 2026; feature-specific survey and update dates were not established.",
+      "supports": "Complete selected-route coverage; Ashley and western lake-country approach; North Knife Lake passage; repeated North Knife River trunk labels; separation of Drift River, South Knife and Seal; North Knife–South Knife shared delta and selected South Knife-labeled eastward terminal outlet.",
+      "limits": "Four views are one publication. The generalized model does not exactly follow every shoreline or channel. Some small feeder names and precise through-lake routes remain unassigned. Map labels distinguish terminal components but do not establish formal hydronym-boundary vertices or present-day delta flow dominance.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r82-mgs-bedrock-of2024-4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Geological Survey",
+      "year_note": "Open File OF2024-4, 2024; retained original PDF reviewed 10 October 2026.",
+      "supports": "Regional North Knife and South Knife river distinction; North Knife Lake/Ashley Lake geography; separation from Seal, Shethanei Lake, Great Island and Churchill coastal drainage.",
+      "limits": "Provincial geology at 1:1,000,000 uses a generalized hydrographic base. It does not assign every western feeder, through-lake segment or current delta branch. Its hydrographic base credits CanVec and Manitoba sources, so it is not presented as wholly independent federal hydrography.",
+      "official_url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf"
+    },
+    {
+      "source_key": "r82-mgs-of77-3",
+      "title": "The Seal River Area (Major Parts of 54-L, M; 64-I, P), MRD Open File Report 77-3",
+      "author": "D. C. P. Schledewitz",
+      "publisher": "Manitoba Department of Energy and Mines, Mineral Resources Division",
+      "year_note": "1977 report; electronic capture marked 2011; official PDF text read 10 October 2026.",
+      "supports": "Historical primary geological prose distinguishes Seal and North Knife rivers across the region, identifies the tidal delta context and explicitly describes the North Knife–South Knife confluence.",
+      "limits": "Historical geology prose, with acknowledged OCR imperfections, is used only for regional identity and confluence context. Its figures were not acquired as readable pixels or used to trace the selection. No contemporary flow, access or navigation claim is adopted.",
+      "official_url": "https://www.gov.mb.ca/iem/info/libmin/OF77-3.pdf"
+    },
+    {
+      "source_key": "r82-dma-tpc-p26c",
+      "title": "Tactical Pilotage Chart P-26C, Argentina, Bolivia, Chile, Paraguay, Edition 1, scale 1:500,000",
+      "publisher": "U.S. Defense Mapping Agency Aerospace Center; original government chart preserved by University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled May 1990; lithographed January 1991; printed aeronautical information cutoff 12 July 1990. Historical chart, not for navigation or current channel conditions.",
+      "supports": "Quetena label, Grande de Lípez receiving valley, separate Alota and eastern approaches, initial hooked feeder setting, southern Uyuni margin and the extensive salt-flat interior beyond the river arrival.",
+      "limits": "Regional cartography does not fix every channel or hydronym boundary. Some stream segments are unnamed and intermittent. Aeronautical and infrastructure lines are distinguished from hydrography. No source pixels are public.",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_p-26c.jpg"
+    },
+    {
+      "source_key": "r82-worldbank-potosi-1991",
+      "title": "Estudio de recursos hídricos para el suministro de agua potable a la población dispersa del departamento de Potosí, Proyecto Yacupaj",
+      "publisher": "Programa PNUD/Banco Mundial de Agua y Saneamiento; Claure Pereira & Asociados",
+      "year_note": "November 1991 on acquired cover; later repository digitization is not a new hydrological survey.",
+      "supports": "Grande de Lípez receiving drainage to Uyuni; Quetena and Alota as distinct southern tributaries; distinction between the principal drainage and other closed lagoon/salar basins.",
+      "limits": "Historical descriptions of perennial or ephemeral flows are not current measurements. Text supports river-system relationships, while visual correspondence comes from the DMA chart.",
+      "official_url": "https://documents1.worldbank.org/curated/en/182301468016756224/pdf/720100WP0SPANI0ricos0Dept0De0Potosi.pdf"
+    },
+    {
+      "source_key": "r82-jica-altiplano-municipal-maps",
+      "title": "El estudio preparatorio para el Programa de Desarrollo Integral del Altiplano central y sur, Informe Final, Documento Adjunto 1, Annexes 1-3 to 1-5",
+      "publisher": "Japan International Cooperation Agency; maps credit INE–MDSP–COSUDE",
+      "year_note": "Acquired final report discusses the proposed 2013–2022 program; the annex maps explicitly cite Bolivia un mundo de potencialidades, Atlas estadístico de Municipios, 1999.",
+      "supports": "Independent regional settlement and closed-lake context around Quetena, San Cristóbal, Río Grande and Uyuni; distinguishes neighboring Colorada and southern lagoon settings.",
+      "limits": "Faint, generalized hydrography is insufficient for precise selected-channel matching; these maps are contextual only. Their own note says administrative limits are statistical and not officially approved boundaries.",
+      "official_url": "https://openjicareport.jica.go.jp/pdf/12083010_02.pdf"
+    },
+    {
+      "source_key": "r82-ylb-2018-delta",
+      "title": "Yacimientos de Litio Bolivianos Corporación, Memoria 2018, section 5.2 and Mapa de ubicación de clusters y pozos en el delta del Río Grande de Lípez",
+      "publisher": "Yacimientos de Litio Bolivianos Corporación",
+      "year_note": "2018 annual report; 2025 hosting path is not the map observation year.",
+      "supports": "Official identification of the Grande de Lípez delta at the southern Salar de Uyuni; distinction between the delta and salar production area.",
+      "limits": "A hydrogeological well/infrastructure map, not a full-basin river-name map. It does not show the full selected salar extension or establish a river across the salar. No economic, extraction-volume or present industrial-status claims are adopted.",
+      "official_url": "https://www.ylb.gob.bo/wp-content/uploads/2025/09/Memoria-YLB-2018.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60013422",
+      "source_keys": [
+        "r82-corponor-pamplonita2010",
+        "r82-corponor-pamplonita2025",
+        "r82-corponor-hydro2016",
+        "r82-tibu-zoning2000",
+        "r82-sgc-norte1930",
+        "r82-luz-catatumbo2012"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10834
+          ],
+          "finding": "The southern selected approach lies in the Pamplona headwater setting and follows the Pamplonita valley north, past Pamplonita and the Bochalema/La Donjuana approach toward Cúcuta. CORPONOR’s monitoring map separately identifies El Rosal and Monteadentro headwater sampling sites; the selected southern approach is not renamed El Rosal. Its very first small feeder is left unassigned. The western Zulia valley and eastern Táchira valley are distinct from this selected route.",
+          "sources": [
+            "r82-corponor-pamplonita2025",
+            "r82-corponor-pamplonita2010",
+            "r82-sgc-norte1930"
+          ]
+        },
+        {
+          "fragments": [
+            10835,
+            10836
+          ],
+          "finding": "The selected route continues along Pamplonita through and north of Cúcuta, including the Táchira receiving-junction setting and the elongated lowland course toward Puerto Santander. Táchira is an eastern arrival, not the selected southern headwater. The separately drawn Zulia course west of the Pamplonita is not substituted for these fragments.",
+          "sources": [
+            "r82-corponor-pamplonita2025",
+            "r82-sgc-norte1930",
+            "r82-corponor-hydro2016"
+          ]
+        },
+        {
+          "fragments": [
+            10837,
+            10847
+          ],
+          "finding": "The northern Pamplonita approach reaches the Zulia/Puerto Santander confluence setting. The short western selected tributary is the joining Zulia approach, while the modeled mainstem continues from the Pamplonita side into the shared northbound course. Model fragment boundaries are not treated as surveyed hydronym-change points.",
+          "sources": [
+            "r82-sgc-norte1930",
+            "r82-corponor-pamplonita2025",
+            "r82-corponor-hydro2016"
+          ]
+        },
+        {
+          "fragments": [
+            10838
+          ],
+          "finding": "From the border confluence setting, the selected mainstem follows the lower Zulia north through the Venezuelan lowland to its Catatumbo receiving-junction setting at Encontrados. The municipality map reproduces this northbound western boundary river and its meeting with the west-to-east trunk. Regional cartographic correspondence supports the connector; the old raster does not determine present-day meander vertices or every distributary.",
+          "sources": [
+            "r82-luz-catatumbo2012",
+            "r82-sgc-norte1930",
+            "r82-corponor-hydro2016"
+          ]
+        },
+        {
+          "fragments": [
+            10839
+          ],
+          "finding": "The shared lower course east and northeast of Encontrados is Catatumbo and terminates in the southwestern Lago de Maracaibo shore/delta setting. The acquired map separates the Catatumbo route from the northern wetland/lake complex and the Escalante drainage to the southeast. No extension across the lake, direct Caribbean mouth, particular delta-arm name or current shoreline position is asserted.",
+          "sources": [
+            "r82-luz-catatumbo2012",
+            "r82-corponor-hydro2016"
+          ]
+        },
+        {
+          "fragments": [
+            10840,
+            10841
+          ],
+          "finding": "The independent central-western tributary selection begins in the Sardinata headwater corridor and follows its north/northeast route past the Sardinata area to the Tres Bocas border setting. Tibú, Nuevo Presidente and other arriving tributaries are distinguished from the selected southern Sardinata approach. No hydronym is assigned to every small starting reach.",
+          "sources": [
+            "r82-corponor-hydro2016",
+            "r82-sgc-norte1930",
+            "r82-tibu-zoning2000"
+          ]
+        },
+        {
+          "fragments": [
+            10842
+          ],
+          "finding": "Beyond Tres Bocas the selected tributary follows the northern Venezuelan continuation of the Sardinata drainage to the Catatumbo. CORPONOR explicitly describes the Venezuelan name as Tarra, while the 1930 map retains Sardinata along that northern course. This is a source- and jurisdiction-dependent name usage, distinct from the Colombian Tarra branch farther west.",
+          "sources": [
+            "r82-corponor-hydro2016",
+            "r82-sgc-norte1930"
+          ]
+        },
+        {
+          "fragments": [
+            10843
+          ],
+          "finding": "Below the Venezuelan Tarra/Sardinata arrival, this short selected tributary fragment belongs to the Catatumbo receiving reach leading east to the Zulia junction. It is not an extension of the Sardinata/Tarra name across the common Catatumbo trunk.",
+          "sources": [
+            "r82-sgc-norte1930",
+            "r82-luz-catatumbo2012"
+          ]
+        },
+        {
+          "fragments": [
+            10844
+          ],
+          "finding": "The far-western selection starts on a small hooked approach within the Colombian Tarra drainage, proceeds north along Tarra and then joins the Catatumbo before continuing toward La Gabarra and the northern border lowland. The official 1930 map distinguishes this Tarra approach from the Algodonal/Catatumbo arrival from the southwest and from the Borra and other side valleys. The hooked starting feeder remains unnamed.",
+          "sources": [
+            "r82-sgc-norte1930",
+            "r82-corponor-hydro2016",
+            "r82-tibu-zoning2000"
+          ]
+        },
+        {
+          "fragments": [
+            10845,
+            10846
+          ],
+          "finding": "These fragments continue on Catatumbo through the Río de Oro border-junction setting and eastward across the Venezuelan plain toward the separate Tarra/Sardinata arrival. The maps distinguish Río de Oro, Socuavó Norte/Sur and the central Sardinata route from this selected Catatumbo trunk.",
+          "sources": [
+            "r82-sgc-norte1930",
+            "r82-tibu-zoning2000",
+            "r82-corponor-hydro2016"
+          ]
+        },
+        {
+          "fragments": [
+            10848,
+            10849
+          ],
+          "finding": "The northern tributary follows the selected lower Río de Oro border corridor, including its pronounced south/east bends, to Catatumbo. It is not the Catatumbo mainstem itself or an alias of the central Sardinata/Tarra route. The regional map covers the short northern starting portion beyond the detailed historical map’s principal interior.",
+          "sources": [
+            "r82-corponor-hydro2016",
+            "r82-sgc-norte1930",
+            "r82-tibu-zoning2000"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90134567",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete selected one-piece mainstem was inspected, with no separate tributary fragment selected. It begins with a southwest-trending northern diagonal, changes to a long near-southward line around 46°W, shifts gradually southwest, and has a very long nearly vertical lower-interior leg around 46.7°W before a short irregular southeastward ending. These statements describe the generalized model, not an observed natural channel.",
+        "The original geological sheet, readable graticule and newly inspected southern regional pixels place the long upper and middle route within the southern Inland Ice. Its southern continuation approaches the southwestern glaciated margin and coastal foreland north and west of the southern Greenland settlement region. The source supports an ice-sheet-to-margin feature-class description, not a precise terminal glacier or fjord identity.",
+        "No natural-river hydronym is established for the complete selected ice-sheet line. Nearby settlement, fjord and glacier names cannot name the long modeled interior route. A completed feature-class/name-scope hold is supported; it does not imply that every natural marginal or subglacial watercourse lacks a name.",
+        "The inspected original Inland Ice legend and retained descriptive bulletin distinguish ice-surface contours, dashed ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments south of 68°N. These map symbols are not evidence of a continuously flowing named river along the model. The historical mapped ice margin is not treated as a contemporary observation."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70013244",
+      "source_keys": [
+        "r82-nrcan-cbmt-north-knife",
+        "r82-mgs-bedrock-of2024-4",
+        "r82-mgs-of77-3"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8950
+          ],
+          "finding": "The selected western beginning lies at the northern Ashley Lake setting, passes southeast around its eastern side and continues east through the connected lake-and-stream country around McCumber, Trakalo and Walford lakes. It then turns northeast through the Lawson Lake approach toward North Knife Lake. The original upper map shows the relevant waterbody chain and surrounding streams. The modeled straight segments are generalized and locally offset; no uniform river name, exact route through every small lake or formal source point is inferred.",
+          "sources": [
+            "r82-nrcan-cbmt-north-knife"
+          ]
+        },
+        {
+          "fragments": [
+            8950
+          ],
+          "finding": "The approach from the west reaches the northern part of North Knife Lake, above the Chemin Island setting, and turns north to the outlet corridor repeatedly labeled North Knife River. The selection does not begin at the far southern end of the large lake. Drift River, labeled from the Quinn–Paragon lake country toward the northwestern lake shore, is a distinct incoming branch and is not substituted for the selected western lake feeder.",
+          "sources": [
+            "r82-nrcan-cbmt-north-knife",
+            "r82-mgs-bedrock-of2024-4"
+          ]
+        },
+        {
+          "fragments": [
+            8950
+          ],
+          "finding": "From the northern lake outlet, the selected river runs north through the Beganili/Levins lake surroundings, bends east and then northeast, and continues along the repeatedly labeled North Knife River. The large middle bends and long eastward corridor north of the South Knife River agree with the selected route. Nearby lake and tributary labels are context rather than aliases for the trunk.",
+          "sources": [
+            "r82-nrcan-cbmt-north-knife",
+            "r82-mgs-bedrock-of2024-4"
+          ]
+        },
+        {
+          "fragments": [
+            8950
+          ],
+          "finding": "The lower selection turns northeast and then north through the coastal lowland west of Nowell Lake before turning east toward the shared river junction. North Knife River is repeatedly labeled along this entire approach. The South Knife River runs separately to its south and east, while the Seal River and its island-channel system are north. The original provincial geological prose independently distinguishes Seal and North Knife rivers and describes the North Knife–South Knife confluence.",
+          "sources": [
+            "r82-nrcan-cbmt-north-knife",
+            "r82-mgs-bedrock-of2024-4",
+            "r82-mgs-of77-3"
+          ]
+        },
+        {
+          "fragments": [
+            8950,
+            8951
+          ],
+          "finding": "At the coast, the selected western approach meets the shared North Knife–South Knife delta. The short final fragment follows the northward connection and then an eastward outlet carrying a South Knife River label, ending at the Hudson Bay coastal-flat setting. An alternative delta route continuing northeast is labeled North Knife River and is not the selected terminal route. The black North River locality label is not adopted as a river alias. Thus the terminal choice is explicitly distinguished from the long North Knife trunk, without assigning exact hydronym boundaries, current distributary dominance or a surveyed mouth position.",
+          "sources": [
+            "r82-nrcan-cbmt-north-knife",
+            "r82-mgs-of77-3"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61298122",
+      "source_keys": [
+        "r82-dma-tpc-p26c",
+        "r82-worldbank-potosi-1991",
+        "r82-jica-altiplano-municipal-maps",
+        "r82-ylb-2018-delta"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13946
+          ],
+          "finding": "The southern hook lies east of Laguna Colorada and joins the channel south of Peña Barrosa. The chart distinguishes this approach from the neighboring closed lake basins; the initial feeder is not named in this finding.",
+          "sources": [
+            "r82-dma-tpc-p26c"
+          ]
+        },
+        {
+          "fragments": [
+            13946
+          ],
+          "finding": "The long northbound southern section corresponds to Río Quetena. Alota approaches separately from the west, while the eastern Lípez tributary approaches remain separate. The official water-resources account explicitly treats Quetena and Alota as tributaries of Grande de Lípez, rather than aliases for the entire river.",
+          "sources": [
+            "r82-dma-tpc-p26c",
+            "r82-worldbank-potosi-1991"
+          ]
+        },
+        {
+          "fragments": [
+            13946
+          ],
+          "finding": "The selected receiving valley east of San Cristóbal is directly labeled Río Grande de Lípez on the chart. Its northward course and northwest bend toward the southern Uyuni margin correspond to the cached path. No exact Quetena/Grande name-change point is assigned.",
+          "sources": [
+            "r82-dma-tpc-p26c"
+          ]
+        },
+        {
+          "fragments": [
+            13946
+          ],
+          "finding": "The course reaches the southern Uyuni delta setting east/northeast of Río Grande settlement. YLB independently identifies this as the delta of Río Grande de Lípez. Settlement names, industrial works and well lines are not interpreted as river channels.",
+          "sources": [
+            "r82-dma-tpc-p26c",
+            "r82-ylb-2018-delta"
+          ]
+        },
+        {
+          "fragments": [
+            13946
+          ],
+          "finding": "A substantial northern part of the selected model lies inside the charted Salar de Uyuni salt flat. The chart does not depict a named river along this modeled interior line. It is retained as a modeled terminal extension, not proof of a perennial channel, an additional river or a northward surface-water outlet.",
+          "sources": [
+            "r82-dma-tpc-p26c"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

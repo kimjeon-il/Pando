@@ -1,0 +1,452 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r82",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r81",
+    "commit": "adf6ef1b728427269e5a4fe011c7ba5751f3ec6a",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r81/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:60013422",
+    "hydro-system:90134567",
+    "hydro-system:70013244",
+    "hydro-system:61298122"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:60013422",
+      "category": "river_group",
+      "system_id": "60013422",
+      "baseline_logical_fid": 3351,
+      "geometry_fids": [
+        10839,
+        10838,
+        10843,
+        10846,
+        10837,
+        10842,
+        10845,
+        10834,
+        10835,
+        10836,
+        10840,
+        10841,
+        10844,
+        10847,
+        10848,
+        10849
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -73.122917,
+        7.341667,
+        -71.745352,
+        9.339583
+      ],
+      "rendered_mainstem_length_km": 331.869,
+      "rendered_network_length_km": 860.002,
+      "geometry_summary": {
+        "fragment_count": 16,
+        "mainstem_fragment_count": 6,
+        "mainstem_bbox": [
+          -72.664583,
+          7.341667,
+          -71.745352,
+          9.339583
+        ]
+      },
+      "candidate_name": "Río Catatumbo",
+      "candidate_names": [
+        "Río Catatumbo"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Catatumbo for the common receiving trunk and representative system; Pamplonita, Zulia, Colombian Tarra, Sardinata/Venezuelan Tarra and Río de Oro retain distinct component roles. The short initial feeders and exact mouth arm are not assigned additional names.",
+      "geographic_disambiguation": "The selection is south of the Santa Ana drainage and west of Escalante in the Lake Maracaibo basin. Its modeled mainstem starts south of Pamplona, proceeds north through the Pamplonita–Cúcuta corridor to Puerto Santander, continues along Zulia through the Venezuelan lowland and reaches the Catatumbo near Encontrados before ending at the southwestern lake shore. The western selected branch begins in the Colombian Tarra drainage and joins Catatumbo; it is separate from Sardinata, called Tarra downstream in Venezuela. Río de Oro is the northern border tributary, not the similarly named settlement or another Colombian river.",
+      "source_keys": [
+        "r82-corponor-pamplonita2010",
+        "r82-corponor-pamplonita2025",
+        "r82-corponor-hydro2016",
+        "r82-tibu-zoning2000",
+        "r82-sgc-norte1930",
+        "r82-luz-catatumbo2012"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Norte de Santander, Colombia, and western Zulia, Venezuela; southwestern Lago de Maracaibo drainage",
+      "candidate_name_role": "bounded_representative_receiving_system_identity_with_distinct_upper_river_and_transboundary_tributary_components",
+      "completion_scope": "Completed bounded regional correspondence of all six mainstem and ten tributary fragments against acquired and inspected primary map pixels. The 1930 official regional map resolves the western and central transboundary branch structure; modern CORPONOR maps establish the Pamplonita corridor and distinguish the two Tarra usages; the national-cartography reproduction in the 2012 Universidad del Zulia study covers lower Zulia, Encontrados and the lake-facing Catatumbo reach. Historical maps support regional identity, not current channel position. Fine headwater labels, every small side channel and exact shoreline vertices are outside this finding. Stopped optional sources leave no substantial regional coverage gap.",
+      "naming_scope_details": {
+        "representative_receiving_system": "Río Catatumbo",
+        "selected_mainstem_sequence": "Unnamed short southern headwater approach in the Pamplona setting → Río Pamplonita → Río Zulia → Río Catatumbo → Lago de Maracaibo shore/delta setting.",
+        "distinct_tarra_usages": "Colombian Río Tarra joins the western Catatumbo trunk; Sardinata is described by CORPONOR as Tarra after entering Venezuela. These are distinct branches within the selection, not interchangeable names for the entire network.",
+        "other_selected_tributary": "Río de Oro border corridor and the short western Zulia arrival.",
+        "endpoint_scope": "Southwestern Lago de Maracaibo receiving shoreline. No named lake-interior river, marine continuation or exact current delta arm is inferred.",
+        "model_limits": "Modeled mainstem length and role are not an official river length, uniform hydronym, source location, language alias or current-flow claim."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90134567",
+      "category": "river_group",
+      "system_id": "90134567",
+      "baseline_logical_fid": 2891,
+      "geometry_fids": [
+        8924
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -46.785417,
+        60.920255,
+        -44.841667,
+        63.483333
+      ],
+      "rendered_mainstem_length_km": 331.574,
+      "rendered_network_length_km": 331.574,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -46.785417,
+          60.920255,
+          -44.841667,
+          63.483333
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for the complete modeled Inland Ice path. This completed feature-class and naming-scope hold does not claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "A distinct southern Greenland modeled path begins near 63.48°N, 44.84°W, trends southwest into the southern Inland Ice, then runs nearly south near 46°W before continuing south-southwest. Its lower interior has a very long nearly north–south leg around 46.7°W; a short irregular southeastward ending reaches about 60.92°N. The complete route approaches the southwestern glaciated margin and southern coastal foreland. No exact terminal glacier, fjord or marginal stream is assigned.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Greenland Inland Ice and southwestern glaciated margin, north and west of the southern coastal foreland.",
+      "completion_scope": "Readable coverage supports the completed scope hold. Positive natural-river identity evidence would be required before any later name assignment; no further acquisition is pending now.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 331.574,
+        "length_limit": "Model display length, not a measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false,
+        "candidate_names_scope": "No whole-route natural river candidate; terminal glacier/fjord/stream identity remains unassigned."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70013244",
+      "category": "river_group",
+      "system_id": "70013244",
+      "baseline_logical_fid": 2905,
+      "geometry_fids": [
+        8951,
+        8950
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -97.870833,
+        58.072917,
+        -94.608144,
+        58.89375
+      ],
+      "rendered_mainstem_length_km": 331.156,
+      "rendered_network_length_km": 331.156,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -97.870833,
+          58.072917,
+          -94.608144,
+          58.89375
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "North Knife River",
+        "South Knife River"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Repeated North Knife River labels identify the selected lake outlet, northward upper river, long eastward middle course and lower coastal elbow. South Knife River is independently labeled on the selected eastward terminal outlet in the shared delta; the more northeasterly delta channel labeled North Knife River is not the modeled ending. No single hydronym is assigned to the complete lake-feeder, river and delta-path selection.",
+      "geographic_disambiguation": "The actual western beginning traverses the Ashley Lake setting and trends east through the McCumber, Trakalo, Walford and Lawson lake-country corridor to the western side of North Knife Lake. It turns north across the northern part of that lake and follows its named North Knife outlet, then east and northeast before the pronounced northward coastal leg west of Nowell Lake. The final eastward fragment reaches the South Knife-labeled part of the shared coastal delta. Drift River enters North Knife Lake from a different northwestern approach; the separate South Knife inland river remains south and east of the selected trunk. Seal River, Shethanei Lake and Great Island lie north and are not selected.",
+      "source_keys": [
+        "r82-nrcan-cbmt-north-knife",
+        "r82-mgs-bedrock-of2024-4",
+        "r82-mgs-of77-3"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Manitoba, Canada, from the Ashley Lake and North Knife Lake country to the shared North Knife–South Knife coastal delta on Hudson Bay northwest of Churchill.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed bounded correspondence for both selected mainstem fragments using a regional original federal map, overlapping upper and lower original enlargements, a final original coastal enlargement, retained provincial cartography and directly read provincial geological prose. No substantial interval lacks readable coverage. The hold concerns the composite naming scope and alternative delta-outlet choice, not missing material or a minor unidentified feeder. No further source acquisition is pending now.",
+      "naming_scope_details": {
+        "main_named_component": "North Knife River from the North Knife Lake outlet through the long inland and lower coastal trunk.",
+        "upper_feeder_scope": "Western Ashley–Walford–Lawson lake-country approach into the northern North Knife Lake setting. Individual lakes retain lake roles; the entire western approach is not asserted to bear the North Knife River name.",
+        "headwater_alternative_scope": "The selected source is neither the southern North Knife Lake continuation nor the separately labeled Drift River approach. Those are not exchanged for the actual model beginning.",
+        "terminal_component": "The shared delta contains differently labeled North Knife and South Knife outlets. The selected final eastward outlet is labeled South Knife River, while the North Knife-labeled northeast route is unselected.",
+        "tributary_scope": "There are no separately selected tributary fragments. The inland South Knife River, Drift River and northern Seal River are contextual waterways and are not added to the selected geometry.",
+        "hold_reason": "The whole-line identity combines a substantial lake-bearing western approach, the named North Knife trunk, and a different named terminal delta outlet. The explicit North Knife/South Knife terminal distinction is not resolved by simply extending the dominant trunk name across every modeled piece.",
+        "model_limits": "The 331.156 km model display length, two fragments and model stages do not establish official river length, surveyed source or mouth, current tidal channels, exact lake crossings, or formal hydronym boundaries. No Korean form, complete alias history or naming date is established.",
+        "source_authority_limit": "Reference cartography and geological maps provide geographic labels and context, not a formal naming decision. The federal map and provincial geological hydrographic base are not claimed to be independent naming authorities. The 1977 prose supports regional distinctions and confluence context only.",
+        "separately_named_corridor_parts": [
+          "North Knife River",
+          "South Knife River"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed bounded correspondence for both selected mainstem fragments using a regional original federal map, overlapping upper and lower original enlargements, a final original coastal enlargement, retained provincial cartography and directly read provincial geological prose. No substantial interval lacks readable coverage. The hold concerns the composite naming scope and alternative delta-outlet choice, not missing material or a minor unidentified feeder. No further source acquisition is pending now."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61298122",
+      "category": "river_group",
+      "system_id": "61298122",
+      "baseline_logical_fid": 3517,
+      "geometry_fids": [
+        13946
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -67.522917,
+        -22.347917,
+        -67.022917,
+        -20.172917
+      ],
+      "rendered_mainstem_length_km": 330.961,
+      "rendered_network_length_km": 330.961,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -67.522917,
+          -22.347917,
+          -67.022917,
+          -20.172917
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Río Quetena",
+        "Río Grande de Lípez"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Río Grande de Lípez for the receiving river/system; Río Quetena remains the southern component. The short initial western feeder is unnamed here. Salar de Uyuni retains its distinct salt-flat identity; no river hydronym is assigned to the modeled salar-interior continuation.",
+      "geographic_disambiguation": "The whole selection lies in the Potosí Altiplano, not the Amazonian Río Grande or a Pando administrative river. It begins east of the Laguna Colorada basin on a west-to-east hooked approach south of Peña Barrosa, follows the Quetena corridor north, continues through the Grande de Lípez valley east of San Cristóbal, and bends northwest toward the southern Salar de Uyuni delta. The final modeled course goes north inside the salar. It is not the separate Río Colorado/Puca Mayu arrival east of Uyuni or an outlet toward Coipasa.",
+      "source_keys": [
+        "r82-dma-tpc-p26c",
+        "r82-worldbank-potosi-1991",
+        "r82-jica-altiplano-municipal-maps",
+        "r82-ylb-2018-delta"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Bolivian Altiplano, Potosí: Quetena and Grande de Lípez drainage to Salar de Uyuni",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed full-route correspondence and whole-group scope-hold finding against readable independent primary chart pixels, supported by acquired official reports. The upper component, receiving Grande de Lípez, delta and substantial uncharted salar-interior continuation are distinguished. No material or access gap remains, and no further research is required now to establish this scope distinction. Any future whole-group display-name choice or separation of the salar routing is a separate naming decision; follow_up_required records that unresolved application scope, not unfinished source acquisition.",
+      "naming_scope_details": {
+        "representative_receiving_system": "Río Grande de Lípez for the river portion only; no whole-group assignment.",
+        "upper_component": "Río Quetena; not a whole-selection synonym.",
+        "initial_approach": "Unnamed western headwater hook south of Peña Barrosa; Laguna Colorada is a neighboring closed lake, not a selected passage.",
+        "terminal_component": "Southern Uyuni delta followed by a substantial modeled Salar de Uyuni interior extension; no uniform river name applies to the salar routing.",
+        "flow_caution": "Historical sources describe different perennial, seasonal and ephemeral reaches. Basin location and map line continuity do not establish present-day flow or year-round hydrological connection.",
+        "model_limits": "The inventory length is a modeled path length, not a measured official river length. No Korean or Indigenous-language name is derived.",
+        "separately_named_corridor_parts": [
+          "Río Quetena",
+          "Río Grande de Lípez"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed full-route correspondence and whole-group scope-hold finding against readable independent primary chart pixels, supported by acquired official reports. The upper component, receiving Grande de Lípez, delta and substantial uncharted salar-interior continuation are distinguished. No material or access gap remains, and no further research is required now to establish this scope distinction. Any future whole-group display-name choice or separation of the salar routing is a separate naming decision; follow_up_required records that unresolved application scope, not unfinished source acquisition."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90134567",
+      "hydro-system:70013244",
+      "hydro-system:61298122"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 3,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 271,
+    "non_pending_records": 263,
+    "source_access_pending": 3,
+    "source_material_pending": 5,
+    "source_any_pending": 8,
+    "scope_holds": 88,
+    "river_groups": 173,
+    "lakes": 98,
+    "unrecorded": 3794,
+    "unrecorded_river_groups": 3282,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r82-corponor-pamplonita2010",
+      "official_url": "https://www.corponor.gov.co/images/file/Resumen%20Ejecutivo%20POMCH%20Pamplonita_ajustado.pdf"
+    },
+    {
+      "source_key": "r82-corponor-pamplonita2025",
+      "official_url": "https://corponor.gov.co/calidad_del_aire/2025/AGUA/RIO_PAMPLONITA/2.GEORREFERENCIACION_RIO_PAMPLONITA_2025_VF.pdf"
+    },
+    {
+      "source_key": "r82-corponor-hydro2016",
+      "official_url": "https://www.corponor.gov.co/corponor/PLAN_ACCION_2016_2019/antPlan_Accion_Institucional_2016_2019.pdf"
+    },
+    {
+      "source_key": "r82-tibu-zoning2000",
+      "official_url": "https://www.corponor.gov.co/pot/Tibu/rural/zonificacion.pdf"
+    },
+    {
+      "source_key": "r82-sgc-norte1930",
+      "official_url": "https://www2.sgc.gov.co/sites/Geocientificos/Documents/Catatumbo/1.MapaCatumbo.PDF"
+    },
+    {
+      "source_key": "r82-luz-catatumbo2012",
+      "official_url": "https://produccioncientificaluz.org/index.php/boletin/article/download/3922/3921"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r82-nrcan-cbmt-north-knife",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r82-mgs-bedrock-of2024-4",
+      "official_url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf"
+    },
+    {
+      "source_key": "r82-mgs-of77-3",
+      "official_url": "https://www.gov.mb.ca/iem/info/libmin/OF77-3.pdf"
+    },
+    {
+      "source_key": "r82-dma-tpc-p26c",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_p-26c.jpg"
+    },
+    {
+      "source_key": "r82-worldbank-potosi-1991",
+      "official_url": "https://documents1.worldbank.org/curated/en/182301468016756224/pdf/720100WP0SPANI0ricos0Dept0De0Potosi.pdf"
+    },
+    {
+      "source_key": "r82-jica-altiplano-municipal-maps",
+      "official_url": "https://openjicareport.jica.go.jp/pdf/12083010_02.pdf"
+    },
+    {
+      "source_key": "r82-ylb-2018-delta",
+      "official_url": "https://www.ylb.gob.bo/wp-content/uploads/2025/09/Memoria-YLB-2018.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "adf6ef1b728427269e5a4fe011c7ba5751f3ec6a",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      127,
+      128,
+      129,
+      130
+    ],
+    "next_unrecorded_id": "hydro-system:80031846",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}
