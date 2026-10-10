@@ -1,0 +1,398 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r80",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r79",
+    "commit": "461ecd03de95bb8643211c456fb53afa0813177b",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r79/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:90104636",
+    "hydro-system:80043465",
+    "hydro-system:70131397",
+    "hydro-system:90103860"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:90104636",
+      "category": "river_group",
+      "system_id": "90104636",
+      "baseline_logical_fid": 2865,
+      "geometry_fids": [
+        8881
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -38.235417,
+        66.359117,
+        -37.783333,
+        69.358333
+      ],
+      "rendered_mainstem_length_km": 346.597,
+      "rendered_network_length_km": 346.597,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -38.235417,
+          66.359117,
+          -37.783333,
+          69.358333
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for the complete modeled Inland Ice path. This completed feature-class and naming-scope hold does not claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "The western of the two separately recorded neighboring Greenland model paths. It begins near 69.36°N around 37.8°W, runs southwest into a long near-southward interior line around 38.1°W, shifts west through the middle course and finishes after a short irregular marginal segment near 66.36°N. It has a near-straight southward upper-middle leg, a small westward step around the 67.4°N sector and another very long north–south lower-interior leg. The final short curved portion approaches the glaciated northern Tasiilaq-region margin. It is separate from the slightly more easterly hydro-system:90103860 selection. No exact terminal glacier, fjord or marginal stream is assigned.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southeastern Greenland Inland Ice and glaciated margin north of the Tasiilaq/Ammasalik coastal region.",
+      "completion_scope": "Readable coverage supports the completed scope hold. Positive natural-river identity evidence would be required before any later name assignment; no further acquisition is pending now.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 346.597,
+        "length_limit": "Model display length, not a measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false,
+        "candidate_names_scope": "No whole-route natural river candidate; terminal glacier/fjord/stream identity remains unassigned."
+      }
+    },
+    {
+      "aw_id": "hydro-system:80043465",
+      "category": "river_group",
+      "system_id": "80043465",
+      "baseline_logical_fid": 876,
+      "geometry_fids": [
+        2365
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -123.866538,
+        68.33125,
+        -120.66875,
+        69.373656
+      ],
+      "rendered_mainstem_length_km": 342.98,
+      "rendered_network_length_km": 342.98,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -123.866538,
+          68.33125,
+          -120.66875,
+          69.373656
+        ]
+      },
+      "candidate_name": "Hornaday River",
+      "candidate_names": [
+        "Hornaday River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Repeated Hornaday River labels directly identify the selected receiving trunk from the southwestern connection through the Melville Hills to the Paulatuk-area delta. No inspected label establishes an individual hydronym for the substantial eastern approach or its lakes. A separate southern continuation is also labeled Hornaday River and is not substituted for the selected approach.",
+      "geographic_disambiguation": "The actual modeled beginning runs east through a small lake-and-stream corridor, turns south into a chain of larger eastern lakes, then follows the southwestward valley around the large southern bend into the north-running Hornaday corridor. The lower river turns northwest through the Melville Hills and reaches the delta east of Paulatuk. Erly Lake and the separately labeled southern Hornaday continuation are outside the selected route; Rummy Lake, Seven Islands Lake, Rat Lake and Brock River retain separate contextual roles.",
+      "source_keys": [
+        "r80-nrcan-cbmt-hornaday",
+        "r80-parks-tuktut-paddling"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Canadian Arctic mainland, Melville Hills and Paulatuk coastal setting, Northwest Territories, Canada",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "The complete single selected mainstem was compared with one readable original NRCan regional map and two overlapping enlarged original windows. The actual eastern beginning, lake chain, southwestward feeder valley, southern receiving junction, entire northward and northwestward named trunk, and coastal delta endpoint are covered. Parks Canada prose independently supports the Hornaday coastal identity and distinguishes Little Hornaday tributary access from the main river. No substantial route interval lacks readable cartography. Exact channel registration, lake crossing lines, official source point, delta distributary choice and hydronym boundaries are not adjudicated.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Hornaday River",
+        "feeder_scope": "The long eastern beginning, lake chain and southwestward approach are connected parts of the selected receiving drainage but have no individual river or lake hydronym established in the inspected cartography. They are not asserted to be uniformly named Hornaday River or Little Hornaday River.",
+        "named_trunk_scope": "The selected Hornaday receiving trunk from the southwestern junction, north through the Melville Hills and northwest to the coastal delta east of Paulatuk, is repeatedly labeled on the official map.",
+        "alternative_headwater_scope": "A separate southern continuation also carries Hornaday River labels near the Erly Lake setting. It is off the selected modeled route, so it is neither adopted as the modeled beginning nor treated as proof that the selected eastern feeder has the same name.",
+        "lake_scope": "The eastern lake passages retain lake roles and no names are assigned to them. Erly Lake, Rummy Lake, Seven Islands Lake and Rat Lake supply off-route context, not representative river aliases.",
+        "tributary_scope": "One selected mainstem fragment and no separately selected tributary fragment. The model role does not erase the actual tributary and lake nature of the eastern approach. Little Hornaday is recognized only in the scope of the Parks Canada tributary description, not imposed on the model.",
+        "terminal_scope": "Hornaday coastal delta/mouth setting east of Paulatuk; not an offshore river extension. Exact distributary and river-to-coastal-water boundary remain unassigned.",
+        "model_limits": "The 342.98 km modeled length and model membership do not establish official river length, a definitive source, exact channel or shoreline positions, or uniform name coverage. No Korean form, formal naming date, or complete alias history is established.",
+        "source_authority_limit": "NRCan reference cartography supplies CanVec-derived labels and geographic context, not a formal naming decision. The three map windows are views of one publication. Parks Canada visitor information is independent descriptive context rather than a detailed survey of the selected eastern approach."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70131397",
+      "category": "river_group",
+      "system_id": "70131397",
+      "baseline_logical_fid": 2958,
+      "geometry_fids": [
+        9199,
+        9198,
+        9197
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -62.708333,
+        53.520999,
+        -60.140519,
+        54.414583
+      ],
+      "rendered_mainstem_length_km": 339.996,
+      "rendered_network_length_km": 339.996,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -62.708333,
+          53.520999,
+          -60.140519,
+          54.414583
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Naskaupi River",
+        "North West River"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Selected upper lake/feeder approach, the Naskaupi corridor through Caribou and Wuchusk lake settings and the eastern Seal–Naskaupi lake corridor, the lower river to Grand Lake, a long Grand Lake interior passage, Little Lake, and the North West River outlet to Lake Melville. The initial southern feeder has no river name assigned.",
+      "geographic_disambiguation": "The western selection approaches the upper Naskaupi from a southern lake-and-stream branch east of Mary Lake and in the Red Wine Lake vicinity, then turns northeast toward Caribou Lake and east through Wuchusk Lake. It follows the Naskaupi valley southeast to Grand Lake, rather than the separate Kanairiktok corridor to the northwest, Thomas River to the south of the upper lakes, the lower Red Wine River approach from the southwest, or Crooked River immediately east of the lower Naskaupi. Beyond Grand Lake it follows the Little Lake–North West River outlet near Sheshatshiu and North West River, ending at the Lake Melville margin.",
+      "source_keys": [
+        "r80-nrcan-cbmt-naskaupi-grand",
+        "r80-anderson-labrador-1985",
+        "r80-canal-naskaupi-below-lake",
+        "r80-canal-wuchusk-inflow",
+        "r80-canal-grand-outflow"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central Labrador, Newfoundland and Labrador, Canada",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed bounded regional correspondence review of all three selected mainstem fragments. Federal cartographic pixels cover the entire route, with a second readable western view resolving the selected southern feeder versus the western upper-river approach. The hold concerns the real Naskaupi–Grand Lake–Little Lake–North West River composite, not an unresolved source-material or access gap. Minor generalized offsets, exact lake-entry vertices and present-day flow are outside this review.",
+      "naming_scope_details": {
+        "principal_river_component": "Naskaupi River",
+        "initial_feeder": "Selected southern lake-and-stream approach east of Mary Lake and in the Red Wine Lake vicinity; no separate river hydronym assigned.",
+        "lake_components": "Caribou, Wuchusk, eastern Seal and Naskaupi lake settings upstream; extensive Grand Lake passage and Little Lake downstream. Lake names retain lake roles and are not river aliases.",
+        "outlet_component": "North West River, below Little Lake and above Lake Melville.",
+        "separate_waterways": "Kanairiktok, Thomas, lower Red Wine and Crooked rivers remain distinct. Red Wine Lake proximity does not establish that the initial feeder is Red Wine River.",
+        "model_limits": "Modeled mainstem status, stage boundaries and length do not establish official naming boundaries, surveyed length, Indigenous-name equivalence, current flow or a Korean form.",
+        "separately_named_corridor_parts": [
+          "Naskaupi River",
+          "North West River"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed bounded regional correspondence review of all three selected mainstem fragments. Federal cartographic pixels cover the entire route, with a second readable western view resolving the selected southern feeder versus the western upper-river approach. The hold concerns the real Naskaupi–Grand Lake–Little Lake–North West River composite, not an unresolved source-material or access gap. Minor generalized offsets, exact lake-entry vertices and present-day flow are outside this review."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90103860",
+      "category": "river_group",
+      "system_id": "90103860",
+      "baseline_logical_fid": 2863,
+      "geometry_fids": [
+        8878
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -37.935417,
+        66.430976,
+        -37.5,
+        69.4
+      ],
+      "rendered_mainstem_length_km": 338.72,
+      "rendered_network_length_km": 338.72,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -37.935417,
+          66.430976,
+          -37.5,
+          69.4
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for the complete modeled Inland Ice path. This completed feature-class and naming-scope hold does not claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "The eastern of the two separately recorded neighboring Greenland model paths. It begins near 69.4°N around 37.5°W, descends south-southwest, follows a long near-southward middle leg, shifts southwest below that leg and ends in the glaciated margin near 66.43°N. It retains a narrow north–south interior corridor east of the neighboring hydro-system:90104636, with a southwestward lower bend followed by short near-vertical terminal legs. The selections approach different modeled terminal positions and are not merged or treated as alternate IDs for one named natural river. No exact terminal glacier, fjord or marginal stream is assigned.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southeastern Greenland Inland Ice and glaciated margin north of the Tasiilaq/Ammasalik coastal region.",
+      "completion_scope": "Readable coverage supports the completed scope hold. Positive natural-river identity evidence would be required before any later name assignment; no further acquisition is pending now.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 338.72,
+        "length_limit": "Model display length, not a measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false,
+        "candidate_names_scope": "No whole-route natural river candidate; terminal glacier/fjord/stream identity remains unassigned."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90104636",
+      "hydro-system:70131397",
+      "hydro-system:90103860"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 3,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 263,
+    "non_pending_records": 255,
+    "source_access_pending": 3,
+    "source_material_pending": 5,
+    "source_any_pending": 8,
+    "scope_holds": 84,
+    "river_groups": 165,
+    "lakes": 98,
+    "unrecorded": 3802,
+    "unrecorded_river_groups": 3290,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r80-nrcan-cbmt-hornaday",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r80-parks-tuktut-paddling",
+      "official_url": "https://parks.canada.ca/pn-np/nt/tuktutnogait/activ/activ/activ3"
+    },
+    {
+      "source_key": "r80-nrcan-cbmt-naskaupi-grand",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r80-anderson-labrador-1985",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    },
+    {
+      "source_key": "r80-canal-naskaupi-below-lake",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF03PB0025"
+    },
+    {
+      "source_key": "r80-canal-wuchusk-inflow",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF03PB0037"
+    },
+    {
+      "source_key": "r80-canal-grand-outflow",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF03PB0029"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "461ecd03de95bb8643211c456fb53afa0813177b",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      119,
+      120,
+      121,
+      122
+    ],
+    "next_unrecorded_id": "hydro-system:70807755",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

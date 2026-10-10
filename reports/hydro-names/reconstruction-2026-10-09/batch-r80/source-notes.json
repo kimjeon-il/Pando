@@ -1,0 +1,268 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r80",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; southeastern Inland Ice and glaciated margin around 66.3–69.4°N near 38°W, full graticule context and Inland Ice legend.",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology; regional map-label context.",
+      "supports": "Explains ice-contour classes and regional map context without establishing a natural river identity for this selected route.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r80-nrcan-cbmt-hornaday",
+      "title": "Canada Base Map - Transportation (CBMT3978), Hornaday receiving drainage and Paulatuk coastal views",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "year_note": "Undated live reference-map service accessed 10 October 2026; feature-specific survey and update dates were not established.",
+      "supports": "Continuous geographic coverage of the entire selected route; direct Hornaday River labels on the receiving trunk; substantial eastern lake-bearing feeder and its connection; different southern labeled continuation near Erly Lake; lower course and coastal delta east of Paulatuk; separation from Brock River and surrounding named lakes.",
+      "limits": "The overview supplies regional connections but sparse labels; the two enlarged windows supply readable river and neighboring-feature labels. Reference cartography and the model both generalize detail. No exact stream-centre registration, active delta distributary, individual eastern feeder/lake names, official source or hydronym boundaries are established. Three windows are one source, not three independent publications.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r80-parks-tuktut-paddling",
+      "title": "Camping II: Paddling, Tuktut Nogait National Park",
+      "publisher": "Parks Canada",
+      "year_note": "Web page displayed a modification date of 27 January 2025; read 10 October 2026.",
+      "supports": "Independent contemporary use of Hornaday River for the national-park river reaching the Arctic coast east of Paulatuk; Little Hornaday River is explicitly described as a tributary reached from Hornaday Lake.",
+      "limits": "Visitor prose and route guidance do not map the complete selected eastern beginning, delimit official hydronym boundaries, or establish the names of its individual lake passages. Its trip distances are not official measurements of this model.",
+      "official_url": "https://parks.canada.ca/pn-np/nt/tuktutnogait/activ/activ/activ3"
+    },
+    {
+      "source_key": "r80-nrcan-cbmt-naskaupi-grand",
+      "title": "Canada Base Map Transportation (CBMT3978), Naskaupi River–Grand Lake–North West River regional and western-headwater views",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "year_note": "Agency map service viewed 10 October 2026; individual underlying feature-survey dates not established.",
+      "supports": "Complete regional correspondence, selected western branch choice, named lake sequence, separate neighboring rivers, the long Grand Lake traversal and Little Lake outlet setting.",
+      "limits": "General cartography, not current flow observations or exact shoreline and naming-boundary determination. Initial feeder is left without a river hydronym; long Indigenous-language labels are not converted into unverified aliases.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r80-anderson-labrador-1985",
+      "title": "The Rivers of Labrador — Canadian Special Publication of Fisheries and Aquatic Sciences 81",
+      "author": "T. C. Anderson",
+      "publisher": "Fisheries and Oceans Canada, Scientific Information and Publications Branch",
+      "year_note": "Published 1985; historical description includes the effects of the 1971 Churchill Falls diversion.",
+      "page": "Printed pp. 187–188 / PDF pp. 196–197, Naskaupi River account and Figure 66.",
+      "supports": "Naskaupi name, mouth at Grand Lake, tributary distinctions and historical headwater diversion context.",
+      "limits": "Historical generalized fisheries map has faint upper hydrography; detailed selected western-branch correspondence relies on readable federal cartography rather than interpreting faint lines. Historical flow, survey lengths and fisheries statements are not represented as current.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    },
+    {
+      "source_key": "r80-canal-naskaupi-below-lake",
+      "title": "Canada Newfoundland Water Quality Station Profile NF03PB0025 — Naskaupi River below Naskaupi Lake",
+      "publisher": "Government of Newfoundland and Labrador, CANAL",
+      "year_note": "Undated station profile read 10 October 2026; contains historical information and no single publication date is assigned.",
+      "supports": "Naskaupi below Naskaupi Lake, relation to Wapustan River, Wuchusk/Seal lake context and Naskaupi mouth at Grand Lake.",
+      "limits": "Broad conventional source description does not substitute for the selected southern feeder; no current flow or station-status claim is inferred.",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF03PB0025"
+    },
+    {
+      "source_key": "r80-canal-wuchusk-inflow",
+      "title": "Canada Newfoundland Water Quality Station Profile NF03PB0037 — Wuchusk Lake at Naskaupi River Inflow",
+      "publisher": "Government of Newfoundland and Labrador, CANAL",
+      "year_note": "Undated station profile read 10 October 2026; current status and historical operational details are not independently dated.",
+      "supports": "Naskaupi inflow on Wuchusk Lake’s western side and continuation southeast toward Grand Lake.",
+      "limits": "Station and regional text do not establish every lake connector, a whole-composite river name or current hydrological operations.",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF03PB0037"
+    },
+    {
+      "source_key": "r80-canal-grand-outflow",
+      "title": "Canada Newfoundland Water Quality Station Profile NF03PB0029 — Grand Lake Outflow at North West River",
+      "publisher": "Government of Newfoundland and Labrador, CANAL",
+      "year_note": "Undated station profile read 10 October 2026; contains historical planning and station information.",
+      "supports": "Grand Lake–Rapids–Little Lake–North West River–Lake Melville sequence and terminal community setting.",
+      "limits": "Does not extend the Naskaupi hydronym through Grand Lake or establish exact current tidal limits and lake/channel boundaries.",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF03PB0029"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90104636",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete selected one-piece mainstem and its distinct extent were inspected. The western of the two separately recorded neighboring Greenland model paths. It begins near 69.36°N around 37.8°W, runs southwest into a long near-southward interior line around 38.1°W, shifts west through the middle course and finishes after a short irregular marginal segment near 66.36°N. No separate tributary fragment is selected. These directional and shape statements describe the generalized model, not an observed natural channel.",
+        "The original geological sheet, readable graticule and southeastern regional pixels place the long upper and middle route within the mapped Inland Ice. The southern continuation approaches the southeastern glaciated margin north of the Tasiilaq/Ammasalik coastal setting. It has a near-straight southward upper-middle leg, a small westward step around the 67.4°N sector and another very long north–south lower-interior leg. The final short curved portion approaches the glaciated northern Tasiilaq-region margin. It is separate from the slightly more easterly hydro-system:90103860 selection.",
+        "No natural-river hydronym is established for the complete selected ice-sheet line. The nearby coastal place names and any outlet-glacier or fjord context cannot name the long modeled interior route. A completed feature-class/name-scope hold is supported; it does not imply that every natural marginal or subglacial watercourse lacks a name.",
+        "The inspected original Inland Ice legend and retained descriptive bulletin distinguish ice-surface contours, dashed ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments south of 68°N. These map symbols are not evidence of a continuously flowing named river along the model. The historical mapped ice margin is not treated as a contemporary observation."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80043465",
+      "source_keys": [
+        "r80-nrcan-cbmt-hornaday",
+        "r80-parks-tuktut-paddling"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2365
+          ],
+          "finding": "The actual eastern beginning follows a small stream setting east into an elongated lake, then continues east through a branching stream-and-small-lake landscape. It turns south at the eastern lake-bearing corridor and passes a sequence of larger connected lake settings. These features and their connecting valleys are visible on the original upper map. The modeled straight connectors are generalized and locally offset from channels and shorelines; they do not define surveyed through-lake routes or a formal river source. No individual lake or feeder name is established by the inspected pixels.",
+          "sources": [
+            "r80-nrcan-cbmt-hornaday"
+          ]
+        },
+        {
+          "fragments": [
+            2365
+          ],
+          "finding": "Below the prominent eastern lake chain, the selected valley trends south and then southwest. It follows the mapped stream through the southern canyon-and-bend sequence before entering the Hornaday corridor at the southwestern junction. The receiving trunk is directly labeled Hornaday River. The map separately labels a southern continuation toward the Erly Lake surroundings as Hornaday River; that branch and Erly Lake are unselected, and the model does not establish its eastern approach as the uniformly named upper Hornaday.",
+          "sources": [
+            "r80-nrcan-cbmt-hornaday"
+          ]
+        },
+        {
+          "fragments": [
+            2365
+          ],
+          "finding": "From the southern connection, the selected line turns northwest and north along the repeatedly labeled Hornaday River, through the broad-to-confined valley and its large middle bends. Both detail windows overlap on this named trunk. East-side tributary valleys and nearby large lake waters remain distinct. In particular, Parks Canada identifies Little Hornaday River as a tributary reached from Hornaday Lake; that general description is not used to assign either name to the selected eastern feeder without a direct map label.",
+          "sources": [
+            "r80-nrcan-cbmt-hornaday",
+            "r80-parks-tuktut-paddling"
+          ]
+        },
+        {
+          "fragments": [
+            2365
+          ],
+          "finding": "The lower selection follows the northward Hornaday valley and then its westward and northwestward canyon course through the Melville Hills. Repeated labels lie along the actual selected corridor. Rummy Lake lies in a separate western lake-and-stream setting; Seven Islands Lake and Brock River are east and northeast of the selected lower route. Neither the lake settings nor Brock River is substituted for the selected river.",
+          "sources": [
+            "r80-nrcan-cbmt-hornaday"
+          ]
+        },
+        {
+          "fragments": [
+            2365
+          ],
+          "finding": "After the final lower bend, the selection follows the Hornaday delta setting east of Paulatuk, with Rat Lake separately labeled nearby. Its endpoint lies in the coastal delta/mouth setting rather than on a route across open coastal water. Parks Canada independently describes Hornaday River reaching the Arctic Ocean east of Paulatuk. The generalized line does not establish the exact active distributary, current shoreline, tidal boundary or formally defined mouth point.",
+          "sources": [
+            "r80-nrcan-cbmt-hornaday",
+            "r80-parks-tuktut-paddling"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70131397",
+      "source_keys": [
+        "r80-nrcan-cbmt-naskaupi-grand",
+        "r80-anderson-labrador-1985",
+        "r80-canal-naskaupi-below-lake",
+        "r80-canal-wuchusk-inflow",
+        "r80-canal-grand-outflow"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9197
+          ],
+          "finding": "The initial modeled route starts in the lake-and-wetland country east of Mary Lake, first goes southeast through the southern lake complex, then turns north toward the Red Wine Lake vicinity. It continues west and north on a tributary approach before joining the east/northeast upper-river corridor south of Rainbow Hill. The selected beginning is therefore not replaced by the conventional Marie Lake/Smallwood headwater account. No name is assigned to this southern feeder, and Mary Lake is a neighboring reference rather than a claimed selected passage.",
+          "sources": [
+            "r80-nrcan-cbmt-naskaupi-grand"
+          ]
+        },
+        {
+          "fragments": [
+            9197
+          ],
+          "finding": "After the western junction the selection follows the northeast-trending valley through the Caribou Lake setting, then the eastward Wuchusk Lake corridor. The separate Kanairiktok route and Blake–Hall lake corridor lie northwest; Thomas River and its lake chain lie south. The provincial Wuchusk station explicitly identifies the Naskaupi inflow at the west side of Wuchusk and its continuation toward Grand Lake.",
+          "sources": [
+            "r80-nrcan-cbmt-naskaupi-grand",
+            "r80-canal-wuchusk-inflow"
+          ]
+        },
+        {
+          "fragments": [
+            9197
+          ],
+          "finding": "The selection continues from Wuchusk east and southeast into the eastern Seal Lake setting, then south through Naskaupi Lake and the downstream winding valley. It does not traverse the long western arms of Seal/Upper Seal Lake or the separate Namaycush–Portage lake branch to the northeast. The Naskaupi-below-lake profile supports the named river immediately downstream of Naskaupi Lake and distinguishes the Wapustan tributary.",
+          "sources": [
+            "r80-nrcan-cbmt-naskaupi-grand",
+            "r80-canal-naskaupi-below-lake"
+          ]
+        },
+        {
+          "fragments": [
+            9198
+          ],
+          "finding": "The middle fragment follows the continuous southeast-trending Naskaupi valley below the upper lake district. The regional cartography distinguishes side-valley arrivals from the principal corridor; the historical fisheries account describes the Wapustan, North Pole and lower Red Wine waterways as tributaries, not alternative names for the whole selected line. No tributary fragments are included in this object.",
+          "sources": [
+            "r80-nrcan-cbmt-naskaupi-grand",
+            "r80-anderson-labrador-1985",
+            "r80-canal-naskaupi-below-lake"
+          ]
+        },
+        {
+          "fragments": [
+            9199
+          ],
+          "finding": "The final fragment continues down the Naskaupi past its lower western tributary approach into the northern end of Grand Lake. Crooked River is a distinct neighboring arrival from the northeast/east and is not the selected upstream corridor. Both the historical river account and the provincial station description locate the Naskaupi mouth at Grand Lake.",
+          "sources": [
+            "r80-nrcan-cbmt-naskaupi-grand",
+            "r80-anderson-labrador-1985",
+            "r80-canal-naskaupi-below-lake"
+          ]
+        },
+        {
+          "fragments": [
+            9199
+          ],
+          "finding": "After reaching Grand Lake, the selected line runs a substantial distance southeast inside the lake to its outlet. It then passes through the Little Lake setting and the short North West River outlet near the two communities to the Lake Melville margin. The provincial Grand Lake outflow profile explicitly describes Grand Lake draining via the Rapids into Little Lake and then through North West River into Lake Melville. These lake interiors and the separately named outlet are not a uniform continuation of the Naskaupi hydronym.",
+          "sources": [
+            "r80-nrcan-cbmt-naskaupi-grand",
+            "r80-canal-grand-outflow"
+          ]
+        },
+        {
+          "fragments": [
+            9197,
+            9198,
+            9199
+          ],
+          "finding": "The retained 1985 fisheries account and provincial profiles document diversion of former Naskaupi headwaters into the Churchill system. That history does not establish contemporary flow at every modeled upper connection or make the current modeled start the official source. The research result is regional identity and component scope, not an operational flow assessment or an official river-length claim.",
+          "sources": [
+            "r80-anderson-labrador-1985",
+            "r80-canal-naskaupi-below-lake",
+            "r80-canal-wuchusk-inflow"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90103860",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete selected one-piece mainstem and its distinct extent were inspected. The eastern of the two separately recorded neighboring Greenland model paths. It begins near 69.4°N around 37.5°W, descends south-southwest, follows a long near-southward middle leg, shifts southwest below that leg and ends in the glaciated margin near 66.43°N. No separate tributary fragment is selected. These directional and shape statements describe the generalized model, not an observed natural channel.",
+        "The original geological sheet, readable graticule and southeastern regional pixels place the long upper and middle route within the mapped Inland Ice. The southern continuation approaches the southeastern glaciated margin north of the Tasiilaq/Ammasalik coastal setting. It retains a narrow north–south interior corridor east of the neighboring hydro-system:90104636, with a southwestward lower bend followed by short near-vertical terminal legs. The selections approach different modeled terminal positions and are not merged or treated as alternate IDs for one named natural river.",
+        "No natural-river hydronym is established for the complete selected ice-sheet line. The nearby coastal place names and any outlet-glacier or fjord context cannot name the long modeled interior route. A completed feature-class/name-scope hold is supported; it does not imply that every natural marginal or subglacial watercourse lacks a name.",
+        "The inspected original Inland Ice legend and retained descriptive bulletin distinguish ice-surface contours, dashed ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments south of 68°N. These map symbols are not evidence of a continuously flowing named river along the model. The historical mapped ice margin is not treated as a contemporary observation."
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
