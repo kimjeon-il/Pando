@@ -1,0 +1,120 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r41",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r41",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "3dd3e5a3fa80e56c7a7dbccbd518d0d7ed074953",
+  "scope": "Three new lake-feature research assessments. Included summaries do not reproduce omitted full-polygon/map/decoder judgments. The cumulative index and exact initial inventory recover the fresh-reconstruction remainder.",
+  "automatic_application": false,
+  "product_changes": false,
+  "full_river_coordinates_included": false,
+  "selected_public_domain_lake_features": 0,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 25,
+  "bytes_excluding_self": 404667,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 4335,
+      "sha256": "37833cd8de4473ef73f65def438a49d65022f4c1c107619bb9aa8adc5b665c57"
+    },
+    "geometry-README.md": {
+      "bytes": 2523,
+      "sha256": "47e205c6e1c7ccb92c3469b94128ca93e91e2ab85690294833843fbfea618fa0"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1323,
+      "sha256": "e0215a17d9f2313d36fdc1175f5092ef4063e9a8190147011af9ec96df8bf86a"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 6273,
+      "sha256": "e4713400181ddd80b986dd615b9eadfdb8e7de3873b0ea169101f5c4607b8184"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 1065,
+      "sha256": "15c9976455b2f47972becb78f764ed1e9a83ccfb9633d85b812e16490315b2f8"
+    },
+    "geometry-reference.json": {
+      "bytes": 8031,
+      "sha256": "b599d1647b87f74d3763a81e777c0f99e9fd57a284ea863c5075a0b00e0fd258"
+    },
+    "geometry-validation.json": {
+      "bytes": 6044,
+      "sha256": "e520a413f20ff8ba78623ae557208742eff889adb6f8771dcdcc69df5798c0fe"
+    },
+    "queue-recovery-validation.json": {
+      "bytes": 2020,
+      "sha256": "02d758c754491c1292770874416ee8b23674f8af74b6b0568e4b107598dcaf62"
+    },
+    "reconstruction-index.json": {
+      "bytes": 235498,
+      "sha256": "9ce8cb7b9ffeb58c2aa9485eb9e48ed2343e17b1c688dc98bc6886b9a0acadce"
+    },
+    "recover-remaining-queue.py": {
+      "bytes": 5179,
+      "sha256": "bc5786163f670591f2a5ab1f176715b6050337a7501cdb8183f2b9959945b19d"
+    },
+    "results.json": {
+      "bytes": 16075,
+      "sha256": "448f4c6883d9028ef093f19d6006794699e858407a0cca844f40e7f2db000de9"
+    },
+    "review/README.md": {
+      "bytes": 3889,
+      "sha256": "8e01307033513517b8e89fe007d3a707ce0ec5f3e7296527e3dfa36f28160669"
+    },
+    "review/independent-review.json": {
+      "bytes": 22708,
+      "sha256": "5182abf8179bc4b78f3f1d3ef6ebdb8cb662dd15824760365a12076615e6adc7"
+    },
+    "review/public-input-pins.json": {
+      "bytes": 1574,
+      "sha256": "bb378e20739e5f91b2eb89e4449b5f0f531e0fd93bf1f493d977eb2f5471c79c"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1506,
+      "sha256": "8ee9c7eb4fa8fbd02e846730f339a57c76c71b5e2c7ea7fb245c1c14fd23a8ef"
+    },
+    "review/review-validation.json": {
+      "bytes": 3987,
+      "sha256": "8a9f16b5bfbb6a7071b71c27821c98ccd2a161357890f8a5934d461b2ea3e3fd"
+    },
+    "review/source-observations.json": {
+      "bytes": 12917,
+      "sha256": "5affceaa9ce2fc77491249b7e191665d13549d012bd04fe5b112858d1171ae46"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 4961,
+      "sha256": "fa8b81a05f312d2532c7e0381f3a1b7cb8f0989ebaa4a1884c7707fc486ec61a"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 25395,
+      "sha256": "bc283249a0168478f1ed691354d69221aff4812f5eb8ce65dcc79dd4f5d23dfe"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 1977,
+      "sha256": "f8a2e5191e9202c047eeca70313cc5c496f1e6db9f905c60ab0adeb2a303fc9f"
+    },
+    "source-publication-rights.json": {
+      "bytes": 3612,
+      "sha256": "e9aef0d8ef3981f4ef635d630c1ea54809f775cb1199066c6898c1b2b3c9d392"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 5568,
+      "sha256": "13a6c5305b869bc3fd698026e2f61565b07e2a7575b39d1a3fc76f37e15305e5"
+    },
+    "test-remaining-queue.py": {
+      "bytes": 4160,
+      "sha256": "7cf7910589a4c7e0f7fbb87f409aba0b5fdbc67f14301a8c05dab8c383795af6"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 14436,
+      "sha256": "b352e805b1f0329b7db3f76c16db42027f00c2347def6daedcf167be26bdf464"
+    },
+    "validate-package.py": {
+      "bytes": 9611,
+      "sha256": "1f31055760759f36fc840dc99d1a0b60e4357ef7cfd15cef372eca87e04d76e9"
+    }
+  }
+}
