@@ -1,0 +1,155 @@
+{
+  "schema": "hydro-original-source-observations-v3",
+  "batch": "r45",
+  "scope_aw_ids": [
+    "lakes_base:1159109407",
+    "lakes_base:1159110033",
+    "lakes_base:1159107185"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "The retained original Manitoba bedrock map was read locally. No external search, original-body request or source acquisition occurred in this batch.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": null,
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "source_group_definition": "One Manitoba Geological Survey thematic publication. Its credited hydrographic base is not independently inspected as a separate source.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All 65 ordered positions were independently registered from original full-precision EPSG:26914 controls using a six-parameter affine with both cross terms and explicit MediaBox/CropBox handling. Placements agree with fresh GDAL registration within 0.000001 PDF point. Maximum original-control residual is below 0.01 PDF point, measuring affine consistency rather than shoreline or name-boundary accuracy. Six original detail/context, four fine-detail/transition and one imprint/credit arrays match fresh renders. No manual shoreline fitting was used. Geographic crop containment does not prove sufficient source resolution: the tiny third target remains unresolved.",
+  "observations": [
+    {
+      "source_key": "manitoba_bedrock_geology_of2024_4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Economic Development, Investment, Trade and Natural Resources, Manitoba Geological Survey",
+      "url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf",
+      "original_acquired_at_utc": "2026-10-10T00:02:56.872607+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2024",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The publication imprint explicitly says published by Manitoba Geological Survey, 2024. No month or day of publication is established; PDF modification and HTTP dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r34",
+      "directly_read_water_labels": [
+        "Northern Indian Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Thorsteinson Lake",
+        "Wood Lake",
+        "Fidler Lake",
+        "Oldman River",
+        "Cobham River",
+        "Gunisao River",
+        "Reindeer Lake",
+        "McMillan Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Readable whole-footprint contexts support one generalized identity and one completed unnamed scope hold; regional-map resolution leaves the tiny third target material-pending.",
+      "authority_scope": "Official provincial thematic cartographic usage supports these bounded associations. It is not a formal naming-registry decision and does not certify exact shorelines or name partitions.",
+      "registered_overlay_performed": true,
+      "own_observations": "Fresh original pixels and all 41 independently registered positions associate the central, northern and eastern basin and short western spur with the Northern Indian Lake label. White blue-shored water is distinct from peach, green and grey geological land. The southwestern edge ends at the connecting-water area before the long Thorsteinson southern basin, the northern tip stops below Oldman River, and the eastern tip does not follow the long continuation toward Fidler Lake. Coarse edges overshoot land, include islands and omit shoreline water. One generalized research identity is supported; exact lake/river and adjoining-lake name boundaries are unverified. Fresh original pixels and all 19 registered positions show the selected ring overlapping the western part of a compact unlabelled white lake amid purple and tan geological land. Much of the northern and western footprint lies over mapped land, while eastern and southern water is omitted. The southern connecting line leads toward the Cobham River context; Gunisao River is farther north. No direct target-water label is established and neither river name is assigned. Full readable context supports a completed unnamed identity/extent hold rather than source-material or access pending. Fresh source and rendered rings confirm five ordered positions but only three distinct vertices, including a consecutive duplicate and closure. All five are independently registered near the provincial border over orange geological pixels beside a narrow blue-shored white-water feature. The regional original cannot resolve the sliver's actual water association, even when magnified. Land-colored placement is not evidence that water is absent. Reindeer Lake and McMillan Lake are nearby labels, not supported target candidates. Complete geometry inspection is finished, but whole-feature source identity review remains material-pending; no source access denial occurred.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "The digital topographic base credits the CanVec+ data model, Natural Resources Canada for hydrographic features, and the Manitoba Land Initiative, Manitoba Environment, Climate and Parks.",
+      "original_requested_at_utc": "2026-10-10T00:02:49.675330+00:00",
+      "printed_bibliographic_citation_year": "2024",
+      "printed_copyright_year": null,
+      "hydrographic_base_provider": "CanVec+ data model, Natural Resources Canada (hydrographic features); Manitoba Land Initiative, Manitoba Environment, Climate and Parks"
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159109407",
+      "aw_id": "lakes_base:1159109407",
+      "source_id": "1159109407",
+      "geometry_fids": [
+        15415
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 41,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_whole_feature_identity": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Fresh original pixels and all 41 independently registered positions associate the central, northern and eastern basin and short western spur with the Northern Indian Lake label. White blue-shored water is distinct from peach, green and grey geological land. The southwestern edge ends at the connecting-water area before the long Thorsteinson southern basin, the northern tip stops below Oldman River, and the eastern tip does not follow the long continuation toward Fidler Lake. Coarse edges overshoot land, include islands and omit shoreline water. One generalized research identity is supported; exact lake/river and adjoining-lake name boundaries are unverified."
+    },
+    {
+      "observation_id": "lakes_base:1159110033",
+      "aw_id": "lakes_base:1159110033",
+      "source_id": "1159110033",
+      "geometry_fids": [
+        15460
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 19,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_whole_feature_identity": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [],
+      "context_source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "independent_observation": "Fresh original pixels and all 19 registered positions show the selected ring overlapping the western part of a compact unlabelled white lake amid purple and tan geological land. Much of the northern and western footprint lies over mapped land, while eastern and southern water is omitted. The southern connecting line leads toward the Cobham River context; Gunisao River is farther north. No direct target-water label is established and neither river name is assigned. Full readable context supports a completed unnamed identity/extent hold rather than source-material or access pending."
+    },
+    {
+      "observation_id": "lakes_base:1159107185",
+      "aw_id": "lakes_base:1159107185",
+      "source_id": "1159107185",
+      "geometry_fids": [
+        15246
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 5,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": false,
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_whole_feature_identity": false,
+      "full_feature_source_identity_review_completed": false,
+      "source_material_pending": true,
+      "source_keys": [],
+      "context_source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "independent_observation": "Fresh source and rendered rings confirm five ordered positions but only three distinct vertices, including a consecutive duplicate and closure. All five are independently registered near the provincial border over orange geological pixels beside a narrow blue-shored white-water feature. The regional original cannot resolve the sliver's actual water association, even when magnified. Land-colored placement is not evidence that water is absent. Reindeer Lake and McMillan Lake are nearby labels, not supported target candidates. Complete geometry inspection is finished, but whole-feature source identity review remains material-pending; no source access denial occurred."
+    }
+  ],
+  "source_group_limit": "Official thematic cartography supports the recorded bounded observations and one generalized identity. Printed hydrographic attribution does not establish independent dataset comparison, formal naming-registry status or exact named extents. Regional-map resolution is insufficient for the tiny third target.",
+  "independent_review_and_source_research_agree": true,
+  "request_accounting": {
+    "search_tool_calls": 0,
+    "search_queries": 0,
+    "explicit_web_open_requests": 0,
+    "original_body_requests": 0,
+    "new_original_bodies_acquired": 0,
+    "new_source_access_denials": 0,
+    "new_source_availability_failures": 0,
+    "stopped_resource_requests": 0,
+    "additional_source_acquisitions_planned": false
+  }
+}
