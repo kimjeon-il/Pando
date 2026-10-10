@@ -1,0 +1,632 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r107",
+  "sources": [
+    {
+      "source_key": "r107-igm-rivers",
+      "title": "SIIE_v3 Quebradas ríos, public MapServer layer40",
+      "publisher": "Instituto Geográfico Militar de Chile",
+      "supports": "Cachapoal trunk and mountain/central-valley junctions; terminal Tinguiririca and Las Cadenas distinction; lower Rapel continuation.",
+      "limits": "Styled public Map output with the existing nombre attribute, not a scanned sheet. No external source vectors fetched. Does not draw open rivers through the glacier or the reservoir interior. Those components are separately established. No gated IGM250K access.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r107-igm-water",
+      "title": "SIIE_v3 Cuerpos de agua, public MapServer layer37",
+      "publisher": "Instituto Geográfico Militar de Chile",
+      "supports": "Whole Rapel reservoir passage, inflow/short-branch setting, western reservoir outlet and lower Rapel estuarine waterbody.",
+      "limits": "Generalized public polygon rendering; no current shoreline, dam-operation or exact river-mouth claim. The sea itself is not drawn as a polygon.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r107-esri-imagery",
+      "title": "World Imagery: Gran Cachapoal head and Rapel–La Boca terminal",
+      "publisher": "Esri; service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "supports": "Direct landscape correspondence of the selected glacial tongue, southern proglacial turn and westward valley; independent coastal estuary, spit and adjacent ocean setting of the selected terminal.",
+      "limits": "Image acquisition dates and local contributing imagery vendors were not resolved; service credits retained without claiming a specific scene date. Imagery is not naming evidence by itself or proof of present conditions. No bulk tile export or download attempted; exportTilesAllowed=false was respected. Source images and derivatives remain private.",
+      "official_url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r107-soza-falaschi2020",
+      "title": "Validación de modelos de elevación digital en los Andes Centrales de Chile, Terra Australis56, pp.22–40",
+      "publisher": "Diego A. Soza and Daniel Falaschi; CONICET repository",
+      "supports": "Names and locates Gran Cachapoal glacier in the high headwaters of the Rapel basin, matching the independent observed glacial setting.",
+      "limits": "Only already-acquired descriptive prose used, not its unavailable Figure2 or reproduced/cited MOP material. No DEM validation or published numerical accuracy is adopted for this model.",
+      "official_url": "https://ri.conicet.gov.ar/bitstream/handle/11336/138329/CONICET_Digital_Nro.e824f069-2096-4525-a690-41a240715e76_A.pdf?isAllowed=y&sequence=2"
+    },
+    {
+      "source_key": "r107-egu2013",
+      "title": "Glacialmorphological reconstruction of glacier advances and glacial lake outburst floods at the Cachapoal glacier in the Dry Central Andes of Chile (34°S), EGU2013-2320",
+      "publisher": "Lasafam Iturrizaga and Reynaldo Charrier; EGU/Copernicus",
+      "supports": "Cachapoal glacier identity, descent from Picos del Barroso, bifurcated terminal tongue and separate Cachapoal/Molina proglacial surroundings.",
+      "limits": "Distinct2013 conference abstract, not the stopped2019 Andean Geology paper or its figures. Historical scientific description; no present glacier length, elevation or hazard inference. Printed CC Attribution3.0 notice.",
+      "official_url": "https://meetingorganizer.copernicus.org/EGU2013/EGU2013-2320.pdf"
+    },
+    {
+      "source_key": "r107-bcn-ohiggins",
+      "title": "Hidrografía Región Libertador B. O’Higgins",
+      "publisher": "Biblioteca del Congreso Nacional de Chile",
+      "supports": "Rapel system, separate Cachapoal/Tinguiririca components, La Junta and the artificial Rapel reservoir.",
+      "limits": "Regional descriptive context, not detailed path evidence. Storage/power figures and unrelated current-information portions not used.",
+      "official_url": "https://www.bcn.cl/siit/nuestropais/region6/hidrografia.htm"
+    },
+    {
+      "source_key": "r107-sernatur-navidad",
+      "title": "Interesante propuesta de turismo aventura en el destino Navidad, 29 April2016",
+      "publisher": "Servicio Nacional de Turismo, Chile",
+      "supports": "La Boca peninsula at the mouth of Río Rapel and coastal receiving setting.",
+      "limits": "Only stable geographical context used, not business/service claims or current travel advice.",
+      "official_url": "https://www.sernatur.cl/interesante-propuesta-de-turismo-aventura-en-el-destino-navidad/"
+    },
+    {
+      "source_key": "r107-usgs-national-map-steptoe-goshute",
+      "title": "The National Map USGS Topo, Steptoe and southern Goshute Valley corridor",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Actual southern wash, Steptoe valley floor, Ely/McGill waterway settings, lower Duck Creek, Goshute Lake, McDermid Creek, Nelson Creek, and mapped absence of a demonstrated full terminal channel.",
+      "limits": "Independently maintained federal cartography, distinct from all stopped USGS and other publications. Generalized and scale-dependent; not an exact channel survey, formal name-boundary decision or evidence of present wetness. Blank mapping cannot prove that episodic runoff is impossible.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r107-usace-duck-creek-2009",
+      "title": "Approved Jurisdictional Determination Form: Nevada Northern Railroad Track Renovation, SPK-2001-25033-NO",
+      "publisher": "U.S. Army Corps of Engineers, Sacramento District",
+      "year": 2009,
+      "supports": "Closed-basin setting; distinct Duck Creek/Goshute Lake and Nelson/Phalen drainages; variable and dissipating surface flow.",
+      "limits": "Used for historical physical descriptions only. The report does not prove the selected Currie connector or northern plain extension; its old legal conclusions are not represented as current law.",
+      "official_url": "https://www.spk.usace.army.mil/Portals/12/documents/regulatory/jd/2009/May/SPK-2001-25033.pdf"
+    },
+    {
+      "source_key": "r107-ndwr-hydrographic-regions",
+      "title": "Hydrographic Regions and Basins",
+      "publisher": "Nevada Division of Water Resources",
+      "supports": "Separate named hydrographic areas for Steptoe Valley, Goshute Valley and Spring Valley.",
+      "limits": "Administrative table only, not a cartographic line correspondence or evidence of present hydrological continuity.",
+      "official_url": "https://tools.water.nv.gov/hydrographicregions.aspx"
+    },
+    {
+      "source_key": "r107-usgs-national-map-monitor-diamond",
+      "title": "The National Map USGS Topo: Monitor, Kobeh and Diamond Valley surroundings",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Complete geographic coverage; direct bounded Meadow, Pine, Dry Lake, Stoneberger and Slough labels; neighboring creek distinctions; bedrock-gap, alluvial, floodway and terminal-playa settings.",
+      "limits": "Independent national cartographic service, not a recovery route for denied USGS reports or their plates. Map area coverage does not resolve the specified initial and inter-Monitor surface-water connections. Exact requests, source pixels, crops and orientation derivatives remain private; no vectors were acquired.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r107-eureka-water-plan2016",
+      "title": "Eureka County Water Resources Master Plan, September2016",
+      "publisher": "Eureka County, Nevada",
+      "supports": "Independent county maps and prose distinguish Monitor, Kobeh, Antelope and Diamond settings; ephemeral Stoneberger/Slough connections; Devils Gate outlet; separate eastern and western Diamond floodways and northern playa.",
+      "limits": "Historical2016 planning and floodplain cartography, not current legal or flood-risk advice. The county makes no warranty of mapped accuracy, reliability or completeness. Independently composed county GIS figures credit National Geographic, Esri and other basemap contributors; none is a reproduced plate from denied SIR2006-5249. County groundwater statements attributed to Tumbusch and Plume2006 are not used as substitute access to that stopped report. No map, crop, page or derivative is republished.",
+      "official_url": "https://www.eurekacountynv.gov/media/05cb2n2j/water-resources-master-plan-final.pdf"
+    },
+    {
+      "source_key": "r107-nevada-recon30-1964",
+      "title": "Ground-water appraisal of Monitor, Antelope, and Kobeh Valleys, Nevada, Ground-Water Resources Reconnaissance Series Report30, November1964",
+      "authors": "F. Eugene Rush and D. E. Everett",
+      "publisher": "State of Nevada Department of Conservation and Natural Resources, cooperatively with U.S. Geological Survey",
+      "supports": "Independent historical valley-scale hydrogeology and surface-drainage observations, episodic flows through Devils Gate, flooded southern Monitor playa, and expressly qualified probable inter-Monitor surface drainage.",
+      "limits": "Independent1964 publication, distinct from denied2006 report. Reconnaissance scale and historical observations do not demonstrate the selected southern connector or present-day flow. Cover bears an office-library property/removal stamp, not a distribution prohibition; the report itself states its public-information purpose and is openly served by Nevada. Plate1 uses1959/1962 topographic bases. No report map or source image is republished.",
+      "official_url": "https://images.water.nv.gov/images/publications/recon%20reports/rpt30-monitor_antelope_kobeh_valley.pdf"
+    },
+    {
+      "source_key": "r107-ibge-fronteira2007",
+      "title": "Fronteira dos Vales-MG, Mapa Municipal Estatístico, 2007",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "supports": "Pedra/Jacutinga opening, connected continuation to the upper Itanhém and distinction from the eastern Monte Castelo/Alcobaça creek.",
+      "limits": "Historical 1:100,000 municipal compilation. Printed integration/completeness caveat and reproduction rights respected; no source image republished. Exact spring and name-change boundary unassigned.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/mg/fronteira_dos_vales.pdf"
+    },
+    {
+      "source_key": "r107-ibge-machacalis2007",
+      "title": "Machacalis-MG, Mapa Municipal Estatístico, 2007",
+      "publisher": "IBGE",
+      "supports": "Upper Itanhém/Alcobaça course, southeastward bend and separation of Rio do Norte/Água Preta approaches.",
+      "limits": "Historical 1:50,000 municipal compilation, with its printed integration/completeness caveat; no current-condition or legal determination and no reproduction.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/mg/machacalis.pdf"
+    },
+    {
+      "source_key": "r107-ibge-umburatiba2007",
+      "title": "Umburatiba-MG, Mapa Municipal Estatístico, 2007",
+      "publisher": "IBGE",
+      "supports": "Alcobaça ou Itanhém trunk and distinct Rio Umburanas joining near Umburatiba; continuation toward Bahia.",
+      "limits": "Historical 1:50,000 municipal compilation. Named tributary is not assigned to the whole selected mainstem. No source cartography republished.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/mg/umburatiba.pdf"
+    },
+    {
+      "source_key": "r107-sei-itanhem2023",
+      "title": "Itanhém, mapa municipal com descritivo, June 2023",
+      "publisher": "Superintendência de Estudos Econômicos e Sociais da Bahia (SEI)",
+      "supports": "Overlap at Umburatiba and mapped Itanhém/Alcobaça alternative, Umburanas and Damazinho junction context.",
+      "limits": "1:100,000 compilation drawing on SUDENE1977, DERBA2007, IBGE2010 and SEI boundary information. Administrative text is contextual, not a current legal adjudication.",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2916005.pdf"
+    },
+    {
+      "source_key": "r107-sei-medeiros2025",
+      "title": "Medeiros Neto, mapa municipal com descritivo, January 2025",
+      "publisher": "SEI Bahia",
+      "supports": "Selected middle trunk from the state-border surroundings through Medeiros Neto to Nova Lídice; nearby tributary and lagoon distinctions.",
+      "limits": "1:100,000 cartographic compilation; the publication date does not establish every channel or infrastructure feature as current. No legal-boundary claim or source reproduction.",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2921104.pdf"
+    },
+    {
+      "source_key": "r107-sei-teixeira2014",
+      "title": "Teixeira de Freitas, mapa municipal com descritivo, August 2014",
+      "publisher": "SEI Bahia",
+      "supports": "Nova Lídice–Teixeira de Freitas–lower Alcobaça continuity and local incoming creeks.",
+      "limits": "Historical 1:100,000 compilation with generalization and base-map-era limitations. No source cartography republished.",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2931350.pdf"
+    },
+    {
+      "source_key": "r107-sei-alcobaca2014",
+      "title": "Alcobaça, mapa municipal com descritivo, August 2014",
+      "publisher": "SEI Bahia",
+      "supports": "Lower Rio Alcobaça, estuarine bends, coastal spit/opening, Oceano Atlântico and distinct northern Prado/Jucuruçu setting.",
+      "limits": "Historical 1:100,000 compilation, not a present-day coastal survey. No precise modern shoreline or seaward mouth coordinate is asserted.",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2900801.pdf"
+    },
+    {
+      "source_key": "r107-inema-rpga2010",
+      "title": "Programa Monitora, 2ª campanha/2010, RPGA dos Rios Peruípe, Itanhém e Jucuruçu",
+      "publisher": "Bahia water/environment authorities, original report hosted by INEMA",
+      "supports": "Independent regional placement and separation of Alcobaça, Jucuruçu and Peruípe; lower Alcobaça continuation to the ocean.",
+      "limits": "Small-scale regional map and historical sampling report. No 2010 condition is asserted as current. Distinct from the stopped ANA2017 semi-arid reservoir publication and annexes.",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/201002_campanha_3.RPGA_RIOS_PERUPE_ITANHM_e_JUCURUU__2C.2010.pdf"
+    },
+    {
+      "source_key": "r107-inema-cbh",
+      "title": "CBH Peruípe, Itanhém e Jucuruçu, official basin characterization",
+      "publisher": "INEMA Bahia",
+      "supports": "Distinct named basins within RPGA III and their Bahia–Minas Gerais to Atlantic setting.",
+      "limits": "Regional prose corroboration only; not original pointwise route or headwater evidence.",
+      "official_url": "https://www.ba.gov.br/inema/gestao-2/comites-de-bacias/comites/cbh-peruipe-itanhem-e-jucurucu"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61504231",
+      "source_keys": [
+        "r107-igm-rivers",
+        "r107-igm-water",
+        "r107-esri-imagery",
+        "r107-soza-falaschi2020",
+        "r107-egu2013",
+        "r107-bcn-ohiggins",
+        "r107-sernatur-navidad"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14087
+          ],
+          "component_scope": "Selected glacial opening and actual headward route",
+          "finding": "The eastern opening lies on the Gran Cachapoal glacier tongue. Independent satellite pixels show the modeled route running down the ice and debris-covered valley tongue, bending southwest around its southern terminal lobe, then west into the proglacial Cachapoal valley. The neighboring small marginal lake and northern tributary valley are not traversed. Soza and Falaschi locate Gran Cachapoal in this headwater setting, and the independent 2013 EGU abstract describes the Cachapoal glacier descending from Picos del Barroso with a bifurcated terminal tongue. The line is a generalized glacier/drainage axis, not proof of an open surface river throughout the ice-covered reach.",
+          "sources": [
+            "r107-esri-imagery",
+            "r107-soza-falaschi2020",
+            "r107-egu2013",
+            "r107-igm-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14087
+          ],
+          "component_scope": "Upper Cachapoal westward valley and mountain junctions",
+          "finding": "From the proglacial valley the selected course continues west along upper Cachapoal, receiving the distinct Los Baños and Don Manuel-side tributary surroundings from the north. The source shows the separate Cauquencito-side approach to the upper valley and the separate Las Leñas entry from the southeast. The selection remains on the Cachapoal trunk past the Las Leñas, Cortaderal and Los Cipreses joining settings; none of those longer tributary valleys is the selected opening. The river rendering does not depict a river through the glacier, which is supplied by independent image and descriptive coverage.",
+          "sources": [
+            "r107-igm-rivers",
+            "r107-esri-imagery"
+          ]
+        },
+        {
+          "fragments": [
+            14087
+          ],
+          "component_scope": "Pangal and Coya junctions to the central valley",
+          "finding": "The same feature turns northwest along Cachapoal, passes the separate eastern Pangal contribution and the northern Coya joining setting, then turns southwest and west through the Claro de Cauquenes joining corridor. Its recognizable sequence of bends and tributary mouths continues toward the Rancagua central-valley setting. The northern Pangal and Coya courses and southern Claro approach are neighboring contributors, not selected continuations.",
+          "sources": [
+            "r107-igm-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14087
+          ],
+          "component_scope": "Middle and lower Cachapoal to La Junta",
+          "finding": "The river source establishes the full westward, southwestward and northwestward Cachapoal corridor through the central valley, with La Cadena and Idahue-side northern contributions and the distinct Río Claro de Rengo and Zamorano-side contributions to the south. The large southern bend is on Cachapoal; the route then turns northwest toward the reservoir head. This feature ends at the Cachapoal–Tinguiririca/La Junta reservoir-inflow setting. The modeled break is not asserted as the exact legal or historical name boundary.",
+          "sources": [
+            "r107-igm-rivers",
+            "r107-igm-water",
+            "r107-bcn-ohiggins"
+          ]
+        },
+        {
+          "fragments": [
+            14089
+          ],
+          "component_scope": "Complete short southern tributary feature",
+          "finding": "The entire small feature occupies the western braided/backwater part of the terminal Tinguiririca approach immediately below the neighboring Las Cadenas joining surroundings and connects northward to the selected Cachapoal–Rapel node. The waterbody rendering places this little arm in the combined river-mouth/reservoir-head setting. It does not represent the full Tinguiririca or Las Cadenas course and has no independently established local branch name. Its connection is visible and complete; exact braid naming and waterline changes are not treated as a material gap.",
+          "sources": [
+            "r107-igm-rivers",
+            "r107-igm-water"
+          ]
+        },
+        {
+          "fragments": [
+            14088
+          ],
+          "component_scope": "Rapel reservoir passage and outlet",
+          "finding": "The downstream mainstem feature starts in the La Junta inflow setting, follows the long southern Rapel reservoir axis northward, then bends northwest through the western narrowing to the reservoir outlet and Río Rapel. The labeled waterbody source establishes the entire lake-interior connection that is absent from the river-only rendering. The broad eastern Alhué-side reservoir arm is not selected. This is a generalized traversal of an artificial reservoir, not an independently named open river for every point of the lake interior.",
+          "sources": [
+            "r107-igm-water",
+            "r107-igm-rivers",
+            "r107-bcn-ohiggins"
+          ]
+        },
+        {
+          "fragments": [
+            14088
+          ],
+          "component_scope": "Lower Rapel and coastal receiving setting",
+          "finding": "Below the reservoir outlet the selected course follows the labeled Rapel northwest and west past the Litueche/Quelentaro, Comeche and Rucatalca-side tributary surroundings into the broad La Boca estuarine reach. Independent satellite pixels establish the coastal estuary and ocean connection, while SERNATUR independently identifies La Boca at the Rapel mouth. The selected terminal is seaward of the mapped estuary, in the adjacent Pacific receiving setting. The final straight segment generalizes across the mouth/spit surroundings and is not a claim that a surveyed river channel cuts that exact straight line across the peninsula. The estuary and ocean connection are established without asserting a present-day mouth position or exact channel centerline.",
+          "sources": [
+            "r107-igm-rivers",
+            "r107-igm-water",
+            "r107-esri-imagery",
+            "r107-sernatur-navidad"
+          ]
+        },
+        {
+          "fragments": [
+            14087,
+            14088,
+            14089
+          ],
+          "component_scope": "Whole selected representative system",
+          "finding": "Together the selected glacial opening and Cachapoal trunk, terminal Tinguiririca-side arm, Rapel reservoir and lower Rapel continuation form the connected Rapel system. Río Rapel is supported as the representative identity. This does not propagate that name over Gran Cachapoal glacier, Río Cachapoal, Río Tinguiririca or the reservoir. The model length is not an official river-length claim.",
+          "sources": [
+            "r107-igm-rivers",
+            "r107-igm-water",
+            "r107-esri-imagery",
+            "r107-bcn-ohiggins"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70549678",
+      "source_keys": [
+        "r107-usgs-national-map-steptoe-goshute",
+        "r107-usace-duck-creek-2009",
+        "r107-ndwr-hydrographic-regions"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "Southern mountain hook and Cattle Camp Wash approach",
+          "finding": "The selected initial westward hook follows the mapped mountain drainage east of southern Steptoe Valley. It rounds the southern valley head and turns north into the wash corridor east of the South Egan Range. Cattle Camp Wash is directly labeled farther north on this valley-floor drainage.",
+          "limits": "The initial mountain reach is not given the wash label by proximity alone; no official source vertex or complete uniform upper hydronym is asserted.",
+          "sources": [
+            "r107-usgs-national-map-steptoe-goshute"
+          ]
+        },
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "Southern valley floor and Steptoe Creek vicinity",
+          "finding": "The selected northbound route continues in the broad axial wash country past the Willow Creek joining surroundings, the southern wetland/pond setting and the Steptoe Creek crossing east of Ely. The mountain branch of Steptoe Creek approaches from the east; the model instead selects the much longer southern valley-floor approach.",
+          "limits": "The model mainstem role is not treated as a source-name hierarchy. No claim that the whole southern wash is Steptoe Creek.",
+          "sources": [
+            "r107-usgs-national-map-steptoe-goshute"
+          ]
+        },
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "Ely-to-McGill drainage, Tailings Creek and Bassett Lake",
+          "finding": "North of Ely the selected route remains on the valley floor west of the Duck Creek Range. It approaches the Tailings Creek-labeled corridor along the western side of the large impounded-water setting, passes the Steptoe Slough/Bassett Lake surroundings, and continues into the north-trending lower Duck Creek wetland corridor.",
+          "limits": "No exact impoundment shoreline or distributary assignment is inferred from small-scale offsets. The nearby mountain Duck Creek approach is distinct from the selected southern approach.",
+          "sources": [
+            "r107-usgs-national-map-steptoe-goshute"
+          ]
+        },
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "Lower Duck Creek through the Cherry Creek road setting",
+          "finding": "The full long middle section follows the distinctly mapped lower Duck Creek corridor, its wetland and multiple-channel stretches, and the west-of-highway approach through the Cherry Creek road setting. Rabbit Creek, Fitzhugh Creek and the eastern Spring Valley Creek remain separately mapped context.",
+          "limits": "A recognizable generalized corridor does not imply continuously flowing water or a uniform channel through every wetland.",
+          "sources": [
+            "r107-usgs-national-map-steptoe-goshute"
+          ]
+        },
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "Goshute Lake approach and selected lake-interior passage",
+          "finding": "North of the Cherry Creek road setting the mapped Duck Creek becomes discontinuous before the large Goshute Lake playa/wetland complex. The selected line continues into and through that complex, then leaves its northern side toward the McDermid Creek surroundings.",
+          "limits": "The lake setting is established, but the source does not establish this as a single northbound through-channel or lake outlet.",
+          "sources": [
+            "r107-usgs-national-map-steptoe-goshute"
+          ]
+        },
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "Currie-area cross-connection",
+          "finding": "Detailed original cartography places McDermid Creek south of the Currie surroundings and Nelson Creek with its Phalen Creek junction farther north. The selected route joins these settings through an interval for which the map does not show a complete corresponding aquatic connector.",
+          "limits": "The actual connection remains material pending. Nearby mapped ditches or parallel railway alignments cannot be substituted for the selected natural-waterway correspondence.",
+          "sources": [
+            "r107-usgs-national-map-steptoe-goshute"
+          ]
+        },
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "Nelson Creek northeast corridor",
+          "finding": "After the Currie transition, the selected route corresponds to the mapped Nelson Creek valley and its northeastward course between Spruce Mountain and the Dolly Varden Mountains. Phalen Creek joins from the west, and Indian Creek approaches farther north from Spruce Mountain.",
+          "limits": "Nelson Creek is supported for this bounded corridor, not as an alias for the entire selected feature.",
+          "sources": [
+            "r107-usgs-national-map-steptoe-goshute"
+          ]
+        },
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "Long final plain and Flowery Lake vicinity",
+          "finding": "The map carries Nelson Creek into the southern Goshute Valley plain, where its plotted channel ends. The selected route continues much farther north across the broad plain, east of the mountains, toward and beyond the Flowery Lake label. Neither the original overview nor the enlarged terminal detail shows a matching complete channel or waterbody passage for this extension.",
+          "limits": "The final receiving feature and actual flow-path correspondence are unresolved. The name Flowery Lake is nearby geographic context, not a demonstrated selected lake passage or terminal identity.",
+          "sources": [
+            "r107-usgs-national-map-steptoe-goshute"
+          ]
+        },
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "Independent hydrologic context",
+          "finding": "The 2009 Corps account treats Steptoe and Goshute as closed basins. It describes lower Duck Creek as becoming ephemeral and dissipating near the Goshute Lake playa, while allowing possible shallow surface connection. Nelson and Phalen are separately identified ephemeral Goshute Valley drainages.",
+          "limits": "Historical physical context only; no present-day jurisdictional conclusion, current flow condition or exact selected-line connection is inferred.",
+          "sources": [
+            "r107-usace-duck-creek-2009"
+          ]
+        },
+        {
+          "fragments": [
+            9786
+          ],
+          "role": "mainstem",
+          "component_scope": "State basin disambiguation",
+          "finding": "The Nevada listing separately identifies Steptoe Valley as basin 179 and Goshute Valley as basin 187. Spring Valley is a different listed basin, 184.",
+          "limits": "Administrative basin identities do not name the selected line or establish a surface-water connection.",
+          "sources": [
+            "r107-ndwr-hydrographic-regions"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70566840",
+      "source_keys": [
+        "r107-usgs-national-map-monitor-diamond",
+        "r107-eureka-water-plan2016",
+        "r107-nevada-recon30-1964"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9792
+          ],
+          "component_scope": "Initial southern Monitor alluvial tract",
+          "finding": "The opening lies in the low alluvial ground between the valley margins north of the Belmont surroundings. Finer national cartography shows a nearby eastern drainage labeled Wackles Creek and the Meadow/Barley drainage farther north, but does not establish the actual selected opening as a connected tributary of Meadow Creek. Wackles Creek is not assigned merely because it is nearby.",
+          "sources": [
+            "r107-usgs-national-map-monitor-diamond",
+            "r107-nevada-recon30-1964"
+          ]
+        },
+        {
+          "fragments": [
+            9792
+          ],
+          "component_scope": "Meadow Creek and Pine Creek lowlands",
+          "finding": "Original national labels distinguish Meadow Creek, its wetland-lined valley reach, Pine Creek entering from the Toquima side and continuing north on the valley floor, and separate Corcoran, Barley, Mosquito and Morgan creeks. The selected southern lowland corresponds broadly to the Meadow/Pine corridor after its unresolved opening. Their mountain headwaters are outside the selected route; neither name is extended over the entire modeled feature.",
+          "sources": [
+            "r107-usgs-national-map-monitor-diamond",
+            "r107-nevada-recon30-1964"
+          ]
+        },
+        {
+          "fragments": [
+            9792
+          ],
+          "component_scope": "Dry Lake passage",
+          "finding": "The modeled line crosses the explicitly labeled Dry Lake playa in southern Monitor Valley. Wadsworth Creek enters from the east and is not the selected long southern feeder. The 1964 field report separately records this southern Monitor playa as dry in mid-April and flooded after early-May storm and snowmelt. The Dry Lake interior is treated as a generalized playa passage, not a named permanent river channel.",
+          "sources": [
+            "r107-usgs-national-map-monitor-diamond",
+            "r107-nevada-recon30-1964"
+          ]
+        },
+        {
+          "fragments": [
+            9792
+          ],
+          "component_scope": "Inter-Monitor connection",
+          "finding": "North of Dry Lake the original detail shows Box Spring marsh, the narrow lowland beside bedrock, Crane Creek ending in that setting, and the separate northward spring/wetland corridor near Dianas Punch Bowl. The selected route links these settings, but the inspected maps do not establish the whole link as one surface-water connector. The 1964 text explicitly qualifies infrequent drainage from southern to northern Monitor Valley through the bedrock gap as probable. Groundwater underflow and regional valley membership are not substituted for proof of that surface link.",
+          "sources": [
+            "r107-usgs-national-map-monitor-diamond",
+            "r107-nevada-recon30-1964"
+          ]
+        },
+        {
+          "fragments": [
+            9792
+          ],
+          "component_scope": "Northern Monitor Valley and Stoneberger Creek",
+          "finding": "Beyond the southern connection, the long northern Monitor corridor is repeatedly labeled Stoneberger Creek. Its named mountain branch enters from the west, while Willow Creek and other eastern tributaries are distinct. The selected line follows the lowland Stoneberger corridor northward, curves northeast around the northern Monitor margin and crosses toward Bean Flat and southern Kobeh Valley.",
+          "sources": [
+            "r107-usgs-national-map-monitor-diamond",
+            "r107-nevada-recon30-1964",
+            "r107-eureka-water-plan2016"
+          ]
+        },
+        {
+          "fragments": [
+            9792
+          ],
+          "component_scope": "Southern Kobeh Valley",
+          "finding": "The west-to-east selected corridor corresponds to Stoneberger Creek across the southern valley, joining the Coils/Roberts and Slough Creek setting. The separate Antelope Wash approaches from the south. County prose describes Stoneberger and Slough as dry washes and its original floodplain map follows the same eastward corridor; dry or episodic flow alone is not treated as a correspondence failure.",
+          "sources": [
+            "r107-usgs-national-map-monitor-diamond",
+            "r107-eureka-water-plan2016",
+            "r107-nevada-recon30-1964"
+          ]
+        },
+        {
+          "fragments": [
+            9792
+          ],
+          "component_scope": "Slough Creek and Devils Gate",
+          "finding": "The selection follows Slough Creek south of Lone Mountain through the constrained Devils Gate outlet and turns northeast into Diamond Valley. The county plan documents episodic surface flow through this outlet, while the 1964 reconnaissance reports actual Slough Creek flow at Devils Gate during its field work. This is established surface-water outlet correspondence, independent of groundwater underflow.",
+          "sources": [
+            "r107-usgs-national-map-monitor-diamond",
+            "r107-eureka-water-plan2016",
+            "r107-nevada-recon30-1964"
+          ]
+        },
+        {
+          "fragments": [
+            9792
+          ],
+          "component_scope": "Diamond Valley eastern floodway",
+          "finding": "The county plan distinguishes a floodway from Devils Gate to the valley axis and two downstream branches, one trending toward the western side and the other following the eastern valley. Figure7-9 and the original national relief/channel setting locate the selection along the eastern floodway, toward the southeast margin of the northern playa. The western axial branch and separate Garden Pass, Simpson and Pedrioli drainages are not substituted for the selected branch. The county floodplain correspondence does not assert an uninterrupted perennial or currently active channel.",
+          "sources": [
+            "r107-usgs-national-map-monitor-diamond",
+            "r107-eureka-water-plan2016"
+          ]
+        },
+        {
+          "fragments": [
+            9792
+          ],
+          "component_scope": "Terminal northern Diamond Valley playa",
+          "finding": "The selection enters and ends within the large northern Diamond Valley playa south of Garcia Flat. Original map pixels distinguish the dry-lake floor, marginal marshes and small surrounding basins; the county map identifies the same large terminal floodplain. The modeled interior continuation is a generalized playa representation, not evidence of a river called Slough Creek crossing its whole floor, a route to Humboldt River, or an exact natural mouth vertex. Its terminal-playa setting is established and is not itself the reason for material-pending.",
+          "sources": [
+            "r107-usgs-national-map-monitor-diamond",
+            "r107-eureka-water-plan2016"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61249959",
+      "source_keys": [
+        "r107-ibge-fronteira2007",
+        "r107-ibge-machacalis2007",
+        "r107-ibge-umburatiba2007",
+        "r107-sei-itanhem2023",
+        "r107-sei-medeiros2025",
+        "r107-sei-teixeira2014",
+        "r107-sei-alcobaca2014",
+        "r107-inema-rpga2010",
+        "r107-inema-cbh"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13907
+          ],
+          "component_scope": "Headward Pedra–Jacutinga drainage",
+          "finding": "The Fronteira dos Vales original locates the selected opening in the Córrego da Pedra corridor and its southwestward continuation into Córrego Jacutinga. The mapped connected course proceeds south through the Alcobaça/Andaraí surroundings into a reach labeled Rio Itanhém. The separately drawn eastern Córrego Alcobaça through Monte Castelo and the western Encerado approach are not substituted for the selected headward branch. Exact creek-name transition points and an official spring location are not assigned.",
+          "sources": [
+            "r107-ibge-fronteira2007"
+          ]
+        },
+        {
+          "fragments": [
+            13907
+          ],
+          "component_scope": "Upper Itanhém west and south of Machacalis",
+          "finding": "The Machacalis original carries the selected southbound course along the western side of the municipality and around its southeastward turn, with Itanhém and Alcobaça labels on the main river. The Rio do Norte approaching from Machacalis and the Água Preta drainage are separate incoming waterways. The modeled route continues along the southern main channel through their junction setting rather than turning north into that tributary.",
+          "sources": [
+            "r107-ibge-machacalis2007"
+          ]
+        },
+        {
+          "fragments": [
+            13907
+          ],
+          "component_scope": "Umburatiba junction and Bahia entry",
+          "finding": "The Umburatiba sheet directly labels the selected western-to-southeastern trunk Rio Alcobaça ou Itanhém and shows its junction near Umburatiba with Rio Umburanas from the north. The Itanhém and Medeiros Neto originals overlap this area and continue the trunk past the Damazinho junction. The larger Mucuri drainage farther south is separate.",
+          "sources": [
+            "r107-ibge-umburatiba2007",
+            "r107-sei-itanhem2023",
+            "r107-sei-medeiros2025"
+          ]
+        },
+        {
+          "fragments": [
+            13907
+          ],
+          "component_scope": "Connected middle corridor through Medeiros Neto",
+          "finding": "The selected bends and eastward middle valley follow the repeatedly labeled Rio Alcobaça/Itanhém through Medeiros Neto toward Nova Lídice. The northern Água Fria and Cachoeira do Mato drainage approaches are distinct from the selected trunk. Nearby lagoons south of the river are outside the selected route; the mapped passage is fluvial rather than a selected reservoir crossing.",
+          "sources": [
+            "r107-sei-medeiros2025"
+          ]
+        },
+        {
+          "fragments": [
+            13907
+          ],
+          "component_scope": "Nova Lídice to Teixeira de Freitas",
+          "finding": "The Teixeira de Freitas original overlaps Nova Lídice and follows the same river southeast and then east past the northern margin of the city. Its meandering continuation is labeled Alcobaça. The source distinguishes incoming local creeks from the main valley, with no material connector gap at the road crossings or between the adjacent map sheets.",
+          "sources": [
+            "r107-sei-teixeira2014"
+          ]
+        },
+        {
+          "fragments": [
+            13907
+          ],
+          "component_scope": "Lower river and actual coastal receiving setting",
+          "finding": "The Alcobaça original follows the lower named Rio Alcobaça through its broad bends into the estuary immediately south of the coastal town and into the Oceano Atlântico. Original terminal pixels distinguish the tidal meanders, coastal spit and sea opening. The retained line simplifies these bends and the coastal approach; it is not treated as a surveyed channel centerline or exact mouth coordinate. The corresponding waterway is the same river estuary, not a different coastal river or inferred distributary.",
+          "sources": [
+            "r107-sei-alcobaca2014"
+          ]
+        },
+        {
+          "fragments": [
+            13907
+          ],
+          "component_scope": "Independent regional distinction",
+          "finding": "INEMA’s 2010 map and lower-river sampling network separately identify the Alcobaça corridor between Teixeira de Freitas and Alcobaça, Jucuruçu farther north and Peruípe farther south. Its Alcobaça schematic continues to the ocean. The official committee overview independently places these as distinct constituent basins of the same planning region; the regional grouping is not a single river name.",
+          "sources": [
+            "r107-inema-rpga2010",
+            "r107-inema-cbh"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
