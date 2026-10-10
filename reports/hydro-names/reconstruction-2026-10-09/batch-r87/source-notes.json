@@ -1,0 +1,361 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r87",
+  "sources": [
+    {
+      "source_key": "r87-sgc-sinu2007",
+      "title": "Mapa Geológico de Colombia, 2007: published hydrography, reservoir and settlement layers",
+      "publisher": "Servicio Geológico Colombiano / INGEOMINAS",
+      "supports": "Named receiving Sinú, Urrá, the middle/lower course and broad coastal outlet setting.",
+      "limits": "Small-scale base cartography does not resolve the initial upstream branch. It is not a present shoreline survey; the service description identifies the 2007 national map.",
+      "official_url": "https://srvags.sgc.gov.co/arcgis/rest/services/Mapa_Geologico_Colombia/Mapa_Geologico_Colombia/MapServer"
+    },
+    {
+      "source_key": "r87-ingeominas-cordoba1997",
+      "title": "Geología del Departamento de Córdoba, 1997, scale 1:250,000; Londoño G. and González I.",
+      "publisher": "INGEOMINAS; intact map reproduced in Annex A of Juan Pablo Medrano Barboza, UABC thesis, August 2019",
+      "supports": "Manso/Sinú component distinction, junction context, nearby competing drainages and Tinajones delta naming.",
+      "limits": "The original map predates the reservoir. Its headward Manso depiction is insufficient for the initial modeled interval. The thesis itself is not treated as the original map publisher.",
+      "official_url": "https://repositorioinstitucional.uabc.mx/bitstreams/0d216d8d-a403-438c-9116-e648863796c2/download"
+    },
+    {
+      "source_key": "r87-pnn-water2016",
+      "title": "Valoración del servicio ecosistémico de provisión de agua hacia diferentes sectores con relación a la Cuenca del Río Sinú – Parque Nacional Natural Paramillo, 2016",
+      "publisher": "Parques Nacionales Naturales de Colombia, Subdirección de Sostenibilidad y Negocios Ambientales; Miguel Ángel Bedoya Paniagua",
+      "supports": "Independent named Urrá reservoir and upper Sinú drainage context.",
+      "limits": "Most maps depict basin polygons rather than labeled continuous reaches. They cannot close the remaining headward gap.",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2018/08/Informe-de-valoracion-recurso-hidrico-PNN-Paramillo-Cuenca-Sinu.pdf"
+    },
+    {
+      "source_key": "r87-usgs-topo-vamori-san-simon",
+      "title": "The National Map, USGS Topo map service: Vamori Wash and lower San Simon Wash",
+      "publisher": "U.S. Geological Survey",
+      "supports": "Selected Vamori course north and northwest into the lower San Simon corridor, the southward turn toward Mexico, and separation from San Luis, Sells, Baboquivari, Chukut Kuk and the unselected upper San Simon approach.",
+      "limits": "United States cartographic coverage is used for the Arizona portion. Sparse Mexican coverage in this raster is supplemented by original INEGI maps. Exact editions of the composite service are not asserted.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r87-inegi-altar-2010",
+      "title": "Compendio de información geográfica municipal 2010: Altar, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía",
+      "supports": "Mexican headward selection in the El Coyote drainage, its northward approach to the international border and distinction from the separate El Plomo, Río Sásabe and Río Altar drainage.",
+      "limits": "The map supports drainage correspondence, not a formal source monument or an exact name for the first small feeder cells.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26004.pdf"
+    },
+    {
+      "source_key": "r87-inegi-caborca-2010",
+      "title": "Compendio de información geográfica municipal 2010: Caborca, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía",
+      "supports": "The selected return to Mexico and southern bend belong to the named Sonoyta corridor in the northern projection of Caborca municipality. The Río Asunción and its El Coyote tributary farther south are separate.",
+      "limits": "Municipal extent clips the river; adjoining official cartography supplies continuity.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26017.pdf"
+    },
+    {
+      "source_key": "r87-inegi-eliascalles-2010",
+      "title": "Compendio de información geográfica municipal 2010: General Plutarco Elías Calles, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía",
+      "supports": "Repeated Río Sonoyta labels along the eastern approach, bend around the La Nariz/La Angostura terrain, Sonoyta town corridor and northwestward continuation near the international border.",
+      "limits": "Intermittent classification and mapped channel identity are not a claim of present continuous surface flow.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26070.pdf"
+    },
+    {
+      "source_key": "r87-inegi-puertopenasco-2010",
+      "title": "Compendio de información geográfica municipal 2010: Puerto Peñasco, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía",
+      "supports": "Western turn and southward river corridor along the eastern side of the Pinacate terrain, passage between the Sierra Blanca and Sierra San Francisco surroundings, and lower coastal-plain continuation east of Puerto Peñasco.",
+      "limits": "Small-scale coastal depiction is not a current tidal-channel or shoreline survey.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26048.pdf"
+    },
+    {
+      "source_key": "r87-inegi-sonora-state",
+      "title": "Condensado Estatal Sonora, fourth edition 2024, published 2025",
+      "publisher": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "supports": "Cross-checks the entire Mexican corridor against graticule, terrain, roads, settlements, adjoining channels and coastal setting; directly labels A. el Coyote and the lower A. Sonoyta.",
+      "limits": "The state sheet leaves United States territory blank, which is covered by the USGS raster. Dashed desert channels and generalized coastline do not establish continuous water or exact present-day mouth position.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/son/794551162958.pdf"
+    },
+    {
+      "source_key": "r87-ign-perdido-mosaic",
+      "title": "IGN raster topographic mosaic, 1:250,000: Lagunita Salada–Arroyo Perdido–Bajo de la Tierra Colorada",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "attribution": "Official raster layer cartas_mosaicos:cartas_250k. The map clips do not expose all contributing sheet edition dates; none is inferred.",
+      "supports": "Repeated Arroyo Perdido labels, distinct adjacent streams, complete valley alignment and the substantial unmatched terminal lowland continuation.",
+      "limits": "Historical raster cartography and a generalized model do not establish current flooding, a permanent channel, exact ephemeral flow direction or precise shoreline/bank positions. Original imagery and derivatives remain local.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r87-kaless-perdido-chapter",
+      "title": "Cuando en el desierto patagónico los arroyos braman. Evento extraordinario de abril de 2017 en la cuenca del Arroyo Perdido, chapter 21 of Comodoro Rivadavia y la catástrofe de 2017",
+      "authors": "Gabriel Kaless, Oscar Frumento, Erico Bianchi, María Jesús Chachero, Rodrigo Bastida and Sebastián Iglesias",
+      "publisher": "Research by UNPSJB and CONICET-CENPAT authors; official CONICET Digital repository hosting",
+      "page": "Printed pp. 275–276, physiographic description.",
+      "supports": "Ephemeral, closed-basin context and Bajo de la Tierra Colorada receiving relationship; Telsen is separately described.",
+      "limits": "A later sole original download returned HTTP 502 and was stopped without further retrieval. The acquired text suffices for this limited context; only IGN pixels supply map correspondence. Publication year is not inferred from the event year or search crawl date.",
+      "official_url": "https://ri.conicet.gov.ar/bitstream/handle/11336/114139/CONICET_Digital_Nro.2aa97154-f0a9-4bd2-b19c-5933743f514f_B-1-1.pdf?isAllowed=y&sequence=5"
+    },
+    {
+      "source_key": "r87-ign-sanluis-cordoba-raster-mosaics",
+      "title": "IGN topographic raster mosaics, 1:250,000 and 1:100,000: San Luis–southern Córdoba selected corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "supports": "Complete geographic correspondence, selected first-setting context, separation from Río Quinto, farmland/dune/depression settings, terminal wetlands and Pincén locality/road/railway context.",
+      "limits": "Mosaic sheets differ in edition and cartographic style; their historical dates are not asserted. The finer headward request includes blank sheet coverage, independently covered by the complete 1:250,000 response. No present hydraulic continuity or absence of modern drains is claimed. Original maps and local crops remain private.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-sanluis-physical-2016",
+      "title": "Provincia de San Luis — Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "year": 2016,
+      "supports": "Regional physical context and separate named Quinto course north/northeast of the selected plains path.",
+      "limits": "Regional-scale context only; small local drains and the exact selected source are not established.",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/SAN-LUIS/SAN-LUIS-FISICO-WEB.jpg"
+    },
+    {
+      "source_key": "ign-cordoba-physical-2016",
+      "title": "Provincia de Córdoba — Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "year": 2016,
+      "supports": "Regional distinction between the Quinto/Popopis trunk and La Amarga receiving region versus this selected southern plains continuation.",
+      "limits": "Small local drains, exact terminal feature and modern hydraulic connectivity are outside its scale.",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/CORDOBA/CORDOBA-FISICO-WEB.jpg"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60012573",
+      "source_keys": [
+        "r87-sgc-sinu2007",
+        "r87-ingeominas-cordoba1997",
+        "r87-pnn-water2016"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10831
+          ],
+          "finding": "The southern and westward upper approach corresponds to the separately labeled Río Manso course and its junction with the receiving Sinú. The initial northern approach extends beyond the continuously readable Manso line on the inspected departmental map. Its channel identity is not established by a nearby label or by basin membership.",
+          "sources": [
+            "r87-ingeominas-cordoba1997"
+          ]
+        },
+        {
+          "fragments": [
+            10832
+          ],
+          "finding": "The receiving route turns north along the Sinú and passes through the mapped Urrá impoundment before continuing toward Tierralta. The pre-impoundment departmental map and later reservoir cartography distinguish this corridor from the western Río Verde and Esmeralda approaches.",
+          "sources": [
+            "r87-sgc-sinu2007",
+            "r87-ingeominas-cordoba1997",
+            "r87-pnn-water2016"
+          ]
+        },
+        {
+          "fragments": [
+            10833
+          ],
+          "finding": "The main corridor continues down the Sinú valley through the Montería, San Pelayo and Lorica settings to San Bernardo del Viento. Its coastal endpoint lies in the Tinajones delta setting west of Bahía de Cispatá. The generalized last cells do not establish a precise distributary, present shoreline intersection or surveyed mouth.",
+          "sources": [
+            "r87-sgc-sinu2007",
+            "r87-ingeominas-cordoba1997"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70778800",
+      "source_keys": [
+        "r87-usgs-topo-vamori-san-simon",
+        "r87-inegi-altar-2010",
+        "r87-inegi-caborca-2010",
+        "r87-inegi-eliascalles-2010",
+        "r87-inegi-puertopenasco-2010",
+        "r87-inegi-sonora-state"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9937
+          ],
+          "finding": "The initial Mexican portion follows a small headward corridor into the mapped El Coyote drainage in northern Altar municipality and runs north toward the international boundary. This is separate from El Plomo and the southward Río Sásabe/Altar receiving network. The first generalized cells are not assigned a precise tiny-fork name or formal source point.",
+          "sources": [
+            "r87-inegi-altar-2010",
+            "r87-inegi-sonora-state"
+          ]
+        },
+        {
+          "fragments": [
+            9937
+          ],
+          "finding": "After entering Arizona, the selected channel follows the repeatedly labeled Vamori Wash northwest, east of the Alvarez Mountains and south of the Sells/Artesa setting. San Luis Wash, Sells Wash, Baboquivari Wash and other tributaries are distinguishable separate approaches. The selection continues west to lower San Simon Wash and turns south; it does not include the full San Simon headwaters farther north.",
+          "sources": [
+            "r87-usgs-topo-vamori-san-simon"
+          ]
+        },
+        {
+          "fragments": [
+            9937
+          ],
+          "finding": "The southward lower San Simon approach returns to Mexico. Its receiving Sonoyta corridor bends south in the northern Caborca projection before turning west and northwest around the border-range terrain. Caborca and General Plutarco Elías Calles cartography independently label this receiving course Sonoyta/Sonoita. The first model-fragment boundary is a subdivision of that course, not a demonstrated river-name transition.",
+          "sources": [
+            "r87-usgs-topo-vamori-san-simon",
+            "r87-inegi-caborca-2010",
+            "r87-inegi-eliascalles-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9937,
+            9938
+          ],
+          "finding": "The selection runs through the La Nariz/Valdez surroundings into the Sonoyta town corridor and continues northwest almost parallel to the international border. Its sequence of bends, neighboring ridges and town position match the mapped Sonoyta course; nearby Bajo San Francisquito, Burro Pardo and other desert channels are not substituted as whole-route names.",
+          "sources": [
+            "r87-inegi-eliascalles-2010",
+            "r87-inegi-sonora-state"
+          ]
+        },
+        {
+          "fragments": [
+            9939
+          ],
+          "finding": "The western segment turns southwest and then south along the eastern side of the Pinacate terrain. It follows the mapped receiving corridor through the Cerro San Pedro/Sierra Blanca and Sierra San Francisco surroundings, passing the federal-road crossing and continuing down the coastal plain east of Puerto Peñasco. Palo Fierro and Guadalupe are distinguishable tributary approaches rather than synonyms for the selected whole route.",
+          "sources": [
+            "r87-inegi-puertopenasco-2010",
+            "r87-inegi-sonora-state"
+          ]
+        },
+        {
+          "fragments": [
+            9939
+          ],
+          "finding": "The lower state map directly labels A. Sonoyta and follows it to the coastal outlet plain near Playa Encanto, west of Estero Almejas. The selected coarse terminus belongs to this Gulf-margin setting east of Puerto Peñasco. It is not extended to a different estuary, a precise surveyed mouth or a present-day tidal inlet; minor shoreline/channel offset in generalized geometry is left explicit.",
+          "sources": [
+            "r87-inegi-sonora-state",
+            "r87-inegi-puertopenasco-2010"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61570168",
+      "source_keys": [
+        "r87-ign-perdido-mosaic",
+        "r87-kaless-perdido-chapter"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14593
+          ],
+          "finding": "The short initial approach is on the northeast side of Lagunita Salada and joins the clearly labeled Arroyo Perdido valley to the west/south. The initial feeder is not separately named with confidence; no formal source point or complete Sierra de Blancuntre headwater is substituted for the selected start.",
+          "sources": [
+            "r87-ign-perdido-mosaic"
+          ]
+        },
+        {
+          "fragments": [
+            14593
+          ],
+          "finding": "Repeated Arroyo Perdido labels match the long southward course west of Sierra Rosada, past El Escorial and along Valle General Racedo. The broad southern bend and succeeding east/northeast valley remain consistent with that mapped stream. The adjoining Zanjón Colorado and other side valleys are not whole-path names.",
+          "sources": [
+            "r87-ign-perdido-mosaic"
+          ]
+        },
+        {
+          "fragments": [
+            14593
+          ],
+          "finding": "The northeast continuation passes below the separate El Mirasol/Arroyo Salado approach and proceeds on the mapped Perdido corridor toward Bajo de la Tierra Colorada. The source map distinguishes the northern Mirasol Chico/Telsen-side drainage and the southern Chubut-side country from the selection.",
+          "sources": [
+            "r87-ign-perdido-mosaic"
+          ]
+        },
+        {
+          "fragments": [
+            14593
+          ],
+          "finding": "Near the western part of Bajo de la Tierra Colorada, the model turns east and then northeast beyond the explicitly drawn lower Arroyo Perdido course. A substantial terminal interval traverses the broad lowland and finishes at a northern wet/saline depression near the southern Telsen approach. The map does not show a continuous named Perdido channel along that whole modeled detour. Shared lowland location is not evidence for a present through-channel or a change to the Telsen name.",
+          "sources": [
+            "r87-ign-perdido-mosaic"
+          ]
+        },
+        {
+          "fragments": [
+            14593
+          ],
+          "finding": "The research chapter describes Perdido as an ephemeral closed-basin drainage reaching Bajo de la Tierra Colorada, which also receives the separate Telsen system. This supports the regional receiving depression, not the identity or hydraulic continuity of every modeled terminal cell. No Atlantic outlet or present flow is asserted.",
+          "sources": [
+            "r87-kaless-perdido-chapter"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61512764",
+      "source_keys": [
+        "r87-ign-sanluis-cordoba-raster-mosaics",
+        "ign-sanluis-physical-2016",
+        "ign-cordoba-physical-2016"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14450
+          ],
+          "component_scope": "Headward beginning and upper plains",
+          "finding": "The first selected setting lies south of Eleodoro Lobos in mapped open agricultural/wooded country with contours and local tracks. The readable 1:100,000 first-setting detail does not establish a named source stream there. The selected southeast route toward Nueva Escocia is spatially separate from the prominently drawn Quinto corridor northeast of Fraga. No formal Río Quinto source or named upper tributary is assigned.",
+          "sources": [
+            "r87-ign-sanluis-cordoba-raster-mosaics",
+            "ign-sanluis-physical-2016"
+          ]
+        },
+        {
+          "fragments": [
+            14450
+          ],
+          "component_scope": "Nueva Escocia, Lavaysse and southern Villa Mercedes country",
+          "finding": "The selected upper-middle path traverses dune/contour and farmland terrain around Nueva Escocia and south of the Villa Mercedes–Lavaysse corridor. The map depicts separate small lagoons in the surrounding country, while Río Quinto runs through Villa Mercedes and Justo Daract farther north and northeast. No continuous mapped watercourse connects the full selected sequence through these plains, and the scattered lagoon names do not identify the whole route.",
+          "sources": [
+            "r87-ign-sanluis-cordoba-raster-mosaics"
+          ]
+        },
+        {
+          "fragments": [
+            14450
+          ],
+          "component_scope": "Southern San Luis to Villa Valeria–Del Campillo plains",
+          "finding": "Across the provincial transition and the middle reach, the selection continues southeast through predominantly farmland and dune/lowland mapping south of the Quinto. The named Quinto course through the Villa Sarmiento setting remains distinct to the north; it is not a selected receiving trunk. The route subsequently passes north and northeast of Villa Valeria toward the Del Campillo surroundings without a cartographically established continuous named stream.",
+          "sources": [
+            "r87-ign-sanluis-cordoba-raster-mosaics",
+            "ign-cordoba-physical-2016"
+          ]
+        },
+        {
+          "fragments": [
+            14450
+          ],
+          "component_scope": "Southern Córdoba lowlands and actual terminal setting",
+          "finding": "The lower selection enters a broad mosaic of marsh/depression symbols, scattered lakes, fields and low contours west and south of the Santa Magdalena/Jovita setting. Detailed original mapping covers its final southeastward continuation and places the endpoint in inland lowland country north-northeast of Pincén, close to the road and railway corridor. Neither a named river mouth nor an exact named terminal lake is established. The endpoint is not moved to a nearby lake label, to Bañados de la Amarga or to the Río Quinto.",
+          "sources": [
+            "r87-ign-sanluis-cordoba-raster-mosaics"
+          ]
+        },
+        {
+          "fragments": [
+            14450
+          ],
+          "component_scope": "Whole-route identity conclusion",
+          "finding": "The topographic evidence distinguishes the selected plains route from the neighboring named Quinto river and depicts multiple intervening terrestrial and low-depression settings. A whole-route natural-channel or receiving-system identity remains unsupported. A name-scope hold is appropriate; map omission alone does not prove permanent disconnection, absence of flood flow or absence of modern artificial drains.",
+          "sources": [
+            "r87-ign-sanluis-cordoba-raster-mosaics",
+            "ign-sanluis-physical-2016",
+            "ign-cordoba-physical-2016"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
