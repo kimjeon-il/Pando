@@ -8,6 +8,7 @@ import {
   parseTemporal,
   temporalContains,
   temporalIntervalsOverlap,
+  temporalMonthEnd,
 } from '../../assets/js/modules/temporal.js';
 
 test('calendar validation handles leap years and rejects impossible dates', () => {
@@ -157,6 +158,15 @@ test('reversed monthly and mixed precision intervals are rejected', () => {
   ]) assert.throws(() => normalizeTemporalInterval(from, to), { code: 'PL-TEMPORAL-INTERVAL' });
   assert.doesNotThrow(() => normalizeTemporalInterval('1914-07-31', '1914-07'));
   assert.doesNotThrow(() => normalizeTemporalInterval('1914-07', '1914-07-01'));
+});
+
+test('timeline month-end reference is an exact date without changing source precision', () => {
+  assert.equal(temporalMonthEnd('1953-07').canonical, '1953-07-31');
+  assert.equal(temporalMonthEnd('2000-02').canonical, '2000-02-29');
+  assert.equal(temporalMonthEnd('-0001-02').canonical, '-0001-02-28');
+  assert.equal(temporalMonthEnd('1953-07').precision, 'date');
+  assert.throws(() => temporalMonthEnd('1953'), { code: 'PL-TEMPORAL-001' });
+  assert.throws(() => temporalMonthEnd('1953-07-27'), { code: 'PL-TEMPORAL-001' });
 });
 
 test('a month interval is not silently treated as a month-end snapshot', () => {
