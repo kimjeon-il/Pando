@@ -1,0 +1,668 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r105",
+  "sources": [
+    {
+      "source_key": "r105-sgm-atengo-2014",
+      "title": "Carta Geológico-Minera Atengo F13-D73, Jalisco",
+      "publisher": "Servicio Geológico Mexicano, Secretaría de Economía",
+      "year": 2014,
+      "page": "Single sheet; first edition October 2014, scale 1:50,000.",
+      "supports": "The initial east-to-west feeder bend and its connection to El Tacote, continuation through the Trigo de Alteñas and San Pedro la Chale surroundings, Río San Pedro and Río de Atengo.",
+      "limits": "Geological symbols locally overprint the topographic base, which is credited to INEGI second edition 2001. Solid/dashed light-blue hydrography was distinguished from faults, lineaments, roads and mineral prospects. The large EL TACOTE mineral-prospect label alone is not hydronym evidence; separate El Tacote channel labels and connected linework were read. No exact spring, surveyed location or legal name boundary is asserted.",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/997_F13-D73_GM.pdf"
+    },
+    {
+      "source_key": "r105-inegi-atengo-2010",
+      "title": "Compendio de información geográfica municipal 2010: Atengo, Jalisco",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF pages 3, 5 and 6: hydrography, Localidades e Infraestructura para el Transporte, Relieve.",
+      "supports": "Upper corridor, western/eastern tributary distinctions, Atengo town and southwesterly exit toward Cofradía de Lepe.",
+      "limits": "The municipal map clips neighboring territory and cannot alone prove the first northern connector. It labels parts of the connected route El Pedregoso and Atenco, whereas SGM supplies San Pedro/Atengo labels. No formal equivalence or precise label-transition rule is inferred. The inventory is supporting context, not a substitute for mapped correspondence.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/14/14011.pdf"
+    },
+    {
+      "source_key": "r105-inegi-jalisco-2020",
+      "title": "Condensado Estatal Jalisco",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "year": 2020,
+      "page": "Single sheet; first edition 2020, copyright 2021, scale 1:650,000.",
+      "supports": "Atengo–Ayutla approach, sequential reservoir setting, Ayuquila course through El Corcovado/El Grullo, Tuxcacuesco joining setting near El Paso Real, Armería continuation and regional coast.",
+      "limits": "Generalized from 1:250,000 series III. Upper detailed correspondence uses the separate 1:50,000 SGM sheet; the more detailed Colima sheet supplies lower reaches. Printed prior-written-authorization requirement for full or partial reproduction is preserved; no source images or derivatives are shared.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/jal/889463836964.pdf"
+    },
+    {
+      "source_key": "r105-inegi-colima-2024",
+      "title": "Condensado Estatal Colima",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "year": 2024,
+      "page": "Single sheet; fourth edition 2024, copyright 2025, scale 1:160,000.",
+      "supports": "Armería course from Perempitz/Tetapán through the Jalisco–Colima boundary, Zacualpan, Juluapan and Coquimatlán surroundings, broad lower river past Jala/Madrid, and outlet at Boca de Pascuales.",
+      "limits": "Derived from 1:250,000 sixth edition 2023. Several labels read A. Armería; the Jalisco original and federal text identify Río Armería. This abbreviation difference is preserved without formal hydronym adjudication. No current water width, discharge, inlet state or bank-thread assignment is implied.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/col/794551162750.pdf"
+    },
+    {
+      "source_key": "r105-dof-armeria-technical",
+      "title": "Acuerdo por el que se da a conocer el resultado de los estudios técnicos de aguas nacionales superficiales de la subregión hidrológica Río Armería de la región hidrológica número 16 Armería-Coahuayana",
+      "publisher": "Diario Oficial de la Federación; Comisión Nacional del Agua / SEMARNAT",
+      "supports": "Atengo–Ayuquila reservoir roles, Tacotán and Ramón Corona (Trigomil), distinct Tuxcacuesco/Las Piedras branch, joining setting near Tolimán and lower Armería tributary/irrigation context.",
+      "limits": "Textual topology supplements the maps; it is not map-pixel evidence, legal advice, an assertion of current operations or a current water-allocation finding. This is a distinct Armería technical publication, not any stopped CONAGUA aquifer report or RH28 Papaloapan study.",
+      "official_url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5280549"
+    },
+    {
+      "source_key": "r105-jira-territorio",
+      "title": "Territorio",
+      "publisher": "Junta Intermunicipal de Medio Ambiente para la Gestión Integral de la Cuenca Baja del Río Ayuquila (JIRA)",
+      "supports": "Direct institutional use of Río Ayuquila-Armería as a basin/system identity while separately locating the Ayuquila, Tuxcacuesco and Armería components.",
+      "limits": "Regional naming and component context only; it does not prove the selected headward twig or precise channel correspondence.",
+      "official_url": "https://jira.org.mx/territorio/"
+    },
+    {
+      "source_key": "r105-igm-chile-hydrocourses",
+      "title": "SIIE_v3 Quebradas ríos, public natural-watercourse layer",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "supports": "Lauca corridor, upstream lake-outlet context and distinct Guallatire and Paquisa approaches.",
+      "limits": "Unchanged source nombre labels displayed through supported dynamic rendering. Not a scanned sheet, hydraulic survey or recovery of authenticated 250K content. No source vector geometry downloaded or modified.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r105-igm-chile-waterbodies",
+      "title": "SIIE_v3 Cuerpos de agua, public waterbody layer",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "supports": "Selected transit through northern small lakes and the main Cotacotani footprint, separate from Chungará.",
+      "limits": "This raster itself prints no hydronym. CONAF supplies names and seasonal context; no exact shore, permanent interlake channel or present water level is inferred.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r105-conaf-lauca2008",
+      "title": "Plan de Manejo Parque Nacional Lauca, November 2008",
+      "publisher": "Corporación Nacional Forestal, Chile",
+      "supports": "Cotacotani–Desaguadero–Parinacota–Lauca relationship, seasonal lake connections, separate Chungará and Canal Lauca.",
+      "limits": "CONAF thematic mapping, attributed to IGM digital cartography and CONAF information. Not MOP cartography or gated IGM250K. No present canal operation or every small-lake name established.",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-del-pn-lauca/?filename=PN-Lauca.pdf&ind=1719522698671&refresh=6214db36&wpdmdl=60043"
+    },
+    {
+      "source_key": "r105-jog-nevado-sajama",
+      "title": "Nevado Sajama, Bolivia–Chile, SE 19-11, Series 1501 AIR, Edition 1, 1996; 2004 reprint",
+      "publisher": "Defense Mapping Agency in cooperation with Instituto Geográfico Militar, Bolivia; preserved by University of Texas Libraries",
+      "supports": "Explicit Río Lauca labels and continuous generalized eastward, northern-bend and southbound corridor; adjacent channels, wetlands, settlements and joining Río Cosapa setting.",
+      "limits": "Historical regional mapping, not modern channel positions. Its own overview/imprint shows no limited-distribution caveat. It is a distinct sheet from the two excluded neighboring sheets and the stopped Uyuni sheet. No navigational use or official-boundary determination.",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/se-19-11-nevado_sajama-bolivia-chile-1996.pdf"
+    },
+    {
+      "source_key": "r105-cebem-chipaya2018",
+      "title": "Qnas Soñi (Hombres del Agua): Chipaya, entre tradición y tecnología, hacia un municipio resiliente, 2018",
+      "publisher": "Grupo de Voluntariado Civil and Centro Boliviano de Estudios Multidisciplinarios; José Blanes Jiménez and Édgar Pabón Balderas, compilers",
+      "supports": "Western Lauca branch through Aransaya to Coipasa, distinct Mamañica/Barras channels, irrigation network and seasonal delta setting.",
+      "limits": "Its own thematic maps use fieldwork and specified cartographic bases; not reproductions of either excluded JOG sheet. Source describes changing channels and seasonal inundation, not a fixed contemporary shoreline.",
+      "official_url": "https://cebem.org/wp-content/uploads/2018/12/chipaya-1994.pdf"
+    },
+    {
+      "source_key": "r105-inegi-el-salto-topo-2020",
+      "title": "Información topográfica, El Salto F1302, 1:250 000, serie VI, fifth edition 2020",
+      "publisher": "INEGI, Dirección General de Geografía y Medio Ambiente",
+      "supports": "Actual eastern Cigarrero limb and connected San Diego mountain corridor through the southern sheet boundary; neighboring tributary and drainage distinctions.",
+      "limits": "Regional 2020 topographic mapping with generalized linework. It does not supply official name-transition coordinates or a present-day hydraulic condition.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/889463835950_geo.pdf"
+    },
+    {
+      "source_key": "r105-inegi-escuinapa-topo-2020",
+      "title": "Información topográfica, Escuinapa de Hidalgo F1305, 1:250 000, serie VI, fifth edition 2020",
+      "publisher": "INEGI, Dirección General de Geografía y Medio Ambiente",
+      "supports": "Northern joining corridor, Acaponeta lower river, distinct Las Cañas and Acatita settings, marsh branches and coastal-barrier geography.",
+      "limits": "Does not establish the selected final direct wetland-to-open-coast connector south of Novillero. Generalized map evidence is not a current shoreline or flow survey.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/889463835974_geo.pdf"
+    },
+    {
+      "source_key": "r105-dof-acaponeta-canas-2016",
+      "title": "Acuerdo por el que se da a conocer el resultado de los estudios técnicos de las aguas nacionales subterráneas del Acuífero Valle Acaponeta-Cañas, clave 1801",
+      "publisher": "Diario Oficial de la Federación / Comisión Nacional del Agua",
+      "supports": "Regional Acaponeta river and locality context, distinction of component subbasins, and the stated Teacapán/Puerta del Río receiving setting.",
+      "limits": "Regional prose, not an acquired river map. Its San Bartolo source description is not substituted for the actual selected Cigarrero limb; no source length or current water-management fact is transferred to the model.",
+      "official_url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5439952"
+    },
+    {
+      "source_key": "r105-sernatur-los-rios",
+      "title": "Mapa Región de Los Ríos, MAPA_RUTERO_PANGUIPULLI_DIC_2019_TRZ",
+      "publisher": "SERNATUR Región de Los Ríos / Gobierno Regional de Los Ríos; official municipal Sietelagos portal",
+      "supports": "Regional lake-and-river connections, settlements, Cruces and neighboring branches, Calle Calle–Valdivia corridor and Corral coastal setting.",
+      "limits": "Tourism cartography, not a river survey. File metadata records a December 2019 title/creation and July 2022 modification; no current hydrologic condition is inferred. The printed authorization concerns circulation and international-boundary representation, not restricted distribution. Source imagery remains private.",
+      "context_url": "https://sietelagos.cl/mapas-y-planos/",
+      "official_url": "https://sietelagos.cl/wp-content/uploads/2022/07/MAPA-RUTERO-REGION-DE-LOS-RIOS.pdf"
+    },
+    {
+      "source_key": "r105-ign-lacar250k",
+      "title": "IGN topographic mosaic, 1:250,000: San Martín, Lácar, Nonthué and Hua Hum",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "San Martín lake approach, Lácar crossing, La Angostura and Nonthué continuation, northward Hua Hum outlet and cross-border Pirihueico approach; distinguishes Lolog–Quilquihue and Chachín–Queñi.",
+      "limits": "Historical composite topography. Limited Chilean marginal coverage and differing sheet styles; no common edition date, exact shoreline or present flow is asserted.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r105-ign-head100k",
+      "title": "IGN topographic mosaic, 1:100,000: Chapelco Chico and Vega Maipú–San Martín corridor",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Eastern selected opening on the Chapelco Chico/vega corridor, connected drainage across Vega Maipú and the San Martín lake approach; distinguishes northern Quilquihue and southern mountain feeders.",
+      "limits": "Historical source has white missing-image rectangles south of the selected valley corridor. These do not interrupt the selected connection at the stated scale. Exact Chapelco Chico/Maipú/Calbuco naming transitions are not assigned.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r105-igm-public-rivers",
+      "title": "SIIE_v3, Quebradas ríos, public MapServer layer 40",
+      "publisher": "Instituto Geográfico Militar de Chile",
+      "supports": "Fuy/Fui–Llanquihue–Enco and San Pedro–Calle Calle–Valdivia sequence; continuous upper Cruces feeder and entire selected Cruces arm, with distinct Las Cruces, Leufucade, Pichoy, Nanihue and other neighboring channels.",
+      "limits": "Styled official feature rendering using the unchanged nombre attribute, not a scanned sheet. No external source vector geometry fetched. Labels do not establish exact name-transition points. Blank first rendering is not absence evidence. Public Map operations only; gated 250K resources untouched.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r105-igm-public-water",
+      "title": "SIIE_v3, Cuerpos de agua, public MapServer layer 37",
+      "publisher": "Instituto Geográfico Militar de Chile",
+      "supports": "Pirihueico, Panguipulli and Riñihue passages and their connectors; proves that feature 14535 is a modeled lake-interior branch and distinguishes nearby Neltume, Calafquén, Pullinque and Pellaifa.",
+      "limits": "Styled official polygon rendering. Western estuarine water coverage is incomplete and is not used to infer a dry gap or exact coastline. Regional SERNATUR mapping and named river-bank rendering supply the estuarine correspondence. No current level or exact lake centerline claimed.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r105-argentina-basin74",
+      "title": "Cuenca del Río Hua-Hum, Cuenca Nº 74, December 2003",
+      "publisher": "Argentina, Subsecretaría de Recursos Hídricos; Andrea Valladares",
+      "supports": "Lácar–Nonthué narrows, Hua Hum outlet toward Chile and Valdivia; eastern Calbuco–Pocahullo relation and distinction of southern Chachín/Queñi tributaries.",
+      "limits": "Historical descriptive prose only. Basin dimensions, discharge, station status and pollution descriptions are not adopted as present facts. Text does not substitute for map observation.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/74.pdf"
+    },
+    {
+      "source_key": "r105-argentina-pocahullo",
+      "title": "Avanza la obra del Parque lineal en el arroyo Pocahullo en San Martín de los Andes, 21 September 2017",
+      "publisher": "Gobierno de Argentina",
+      "supports": "Pocahullo forms from Trabunco and Calbuco, crosses San Martín and enters Lácar.",
+      "limits": "Prose corroboration only; no infrastructure status or exact selected upper-name boundary inferred.",
+      "official_url": "https://www.argentina.gob.ar/noticias/avanza-la-obra-del-parque-lineal-en-el-arroyo-pocahullo-en-san-martin-de-los-andes"
+    },
+    {
+      "source_key": "r105-bcn-los-rios",
+      "title": "Hidrografía Región de los Ríos",
+      "publisher": "Biblioteca del Congreso Nacional de Chile, SIIT",
+      "supports": "Calle Calle and Cruces form Valdivia; lake-system drainage and Bahía de Corral receiving context.",
+      "limits": "Regional prose, not full route proof. Its area, length, discharge and flow-regime generalizations are not adopted.",
+      "official_url": "https://www.bcn.cl/siit/nuestropais/region14/hidrografia.htm"
+    },
+    {
+      "source_key": "r105-conaf-cruces",
+      "title": "Santuario de la Naturaleza Río Cruces y Chorocamayo",
+      "publisher": "CONAF",
+      "supports": "Lower Cruces wetland is tidally influenced and part of the Valdivia estuarine system.",
+      "limits": "Used for estuarine setting only. Visitor rules, opening hours, current ecological status and the inconsistent area figures are outside this finding.",
+      "official_url": "https://www.conaf.cl/parque_nacionales/santuario-de-la-naturaleza-rio-cruces-y-chorocamayo/"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70894151",
+      "source_keys": [
+        "r105-sgm-atengo-2014",
+        "r105-inegi-atengo-2010",
+        "r105-inegi-jalisco-2020",
+        "r105-inegi-colima-2024",
+        "r105-dof-armeria-technical",
+        "r105-jira-territorio"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "Initial feeder and western turn",
+          "finding": "The selected northern beginning agrees with the small east-to-west feeder in the El Tacote/Campanario surroundings on the detailed SGM original. The map shows the connected westward bend into the El Tacote channel and its southward turn beside Trigo de Alteñas. This closes the short connector that is too generalized or clipped on the state/municipal sheets. The easternmost twig has no separately adopted name; neither the nearby mineral prospect nor the fault labelled El Campanario is substituted for a stream.",
+          "sources": [
+            "r105-sgm-atengo-2014"
+          ]
+        },
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "Upper southward corridor into Atengo",
+          "finding": "The connected route continues past San Pedro la Chale and La Chale along the SGM Río San Pedro corridor, then past El Horno/La Presa surroundings into the Río de Atengo valley. It reaches the Atengo town setting and bends southwest toward Cofradía de Lepe. The Atengo relief original independently depicts this connected upper route and its side junctions; its El Pedregoso and Atenco labels remain source-specific component observations. The Yerbabuena/Quila drainage joining from the east and the Las Juntas-side approach from the west are distinct tributaries.",
+          "sources": [
+            "r105-sgm-atengo-2014",
+            "r105-inegi-atengo-2010",
+            "r105-inegi-jalisco-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "Atengo to Ayutla and reservoir approach",
+          "finding": "The route follows the Atengo-labelled valley southwest through the Tepantla surroundings toward Ayutla, then turns southeast and south near San Pedro/San Clemente. The Jalisco sheet separates this selected northern approach from the western San Antonio/Tepospizaloya drainage and the eastern Tenamaxtlán/Tecolotlán channels. The sequence leads to the upper impoundment near Tacotán.",
+          "sources": [
+            "r105-inegi-jalisco-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "Tacotán and Ramón Corona reservoir sequence",
+          "finding": "The selection follows the connected northern reservoir approach near Tacotán, continues to the southwestern impoundment labelled Presa General Ramón Corona and exits southward along Río Ayuquila. Federal technical text identifies Tacotán and Ramón Corona (Trigomil) as structures regulating Atengo-Ayuquila. These are reservoir passages/settings, not uniformly exposed river. The separate eastern Basilio Badillo/Las Piedras reservoir belongs to the Tuxcacuesco branch and is not a selected transit.",
+          "sources": [
+            "r105-inegi-jalisco-2020",
+            "r105-dof-armeria-technical"
+          ]
+        },
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "El Corcovado, El Grullo and canyon reach",
+          "finding": "Below the reservoirs, the selected river winds southeast past El Corcovado and the Ayuquila settlement, then along the El Grullo–Las Paredes surroundings east of Autlán de Navarro. The map labels the river Río Ayuquila and shows its continuation southeast along the northern/eastern Sierra Manantlán flank toward El Paso Real. Local irrigation lines and the separate El Limón/Tuxcacuesco network are distinguishable from this trunk.",
+          "sources": [
+            "r105-inegi-jalisco-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "Tuxcacuesco junction and lower Armería entry",
+          "finding": "The western Ayuquila approach meets the northward Tuxcacuesco branch near El Paso Real and San Pedro, west of Tolimán. The selected route follows the western approach and the connected southeast/south receiving course through the Teutlán–Santa Elena surroundings. It does not take the eastern upstream route through Tuxcacuesco, Tonaya or San Gabriel. The federal description independently places the Ayuquila–Tuxcacuesco confluence near Tolimán, with the downstream river identified as Armería.",
+          "sources": [
+            "r105-inegi-jalisco-2020",
+            "r105-dof-armeria-technical",
+            "r105-jira-territorio"
+          ]
+        },
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "Jalisco–Colima boundary and Zacualpan corridor",
+          "finding": "Overlapping originals show the route through Perempitz, Tetapán and Mazatán, across the Jalisco–Colima boundary, and south past Zacualpan and La Caja. The course is west of Comala and Villa de Álvarez. Tributaries from the Volcán de Colima side, including the Lumbre-side setting, remain distinct from the selected northern trunk. The separate Minatitlán/Marabasco drainage lies farther west.",
+          "sources": [
+            "r105-inegi-jalisco-2020",
+            "r105-inegi-colima-2024"
+          ]
+        },
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "Juluapan, Coquimatlán and widening lower river",
+          "finding": "The selected river continues through the Juluapan joining setting, then south through the El Chical–Coquimatlán surroundings. It enters the broad lower corridor between Pueblo Juárez/La Magdalena on the west and Jala on the east, then passes El Banco de Jicotán and Madrid. The original distinguishes the Armería course from the adjoining Colima channel, Cachepegual-side drainage and irrigation lines. Those adjacent channels are not whole-object aliases or additional selected tributary fragments.",
+          "sources": [
+            "r105-inegi-colima-2024",
+            "r105-dof-armeria-technical"
+          ]
+        },
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "Lower plain and actual coastal endpoint",
+          "finding": "The lower route continues south beside Rincón de López, Las Compuertas and La Cañita, bends near Periquillo and crosses the transport corridor between Ciudad de Armería and Tecomán. It reaches the Pacific at Boca de Pascuales. The source separately depicts Estero Mudo next to the mouth, Estero Palo Verde and Laguna de Cuyutlán farther west, and the Tecuanillo/Amela setting to the east. The selection does not traverse those entire coastal waterbodies. The endpoint is the mapped coastal-outlet setting, not a surveyed mouth point or a claim about the present inlet opening.",
+          "sources": [
+            "r105-inegi-colima-2024",
+            "r105-inegi-jalisco-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10437
+          ],
+          "component_scope": "Representative naming scope",
+          "finding": "The full connected selected corridor supports Ayuquila–Armería as a representative system identity, consistent with JIRA’s compound basin usage and the federal component descriptions. El Tacote, Río San Pedro, Atengo/Atenco, the reservoirs and the Ayuquila/Armería reaches retain separate scopes. The compound is not asserted as a uniform scalar name for every selected reach.",
+          "sources": [
+            "r105-sgm-atengo-2014",
+            "r105-inegi-atengo-2010",
+            "r105-inegi-jalisco-2020",
+            "r105-inegi-colima-2024",
+            "r105-jira-territorio",
+            "r105-dof-armeria-technical"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61280005",
+      "source_keys": [
+        "r105-igm-chile-hydrocourses",
+        "r105-igm-chile-waterbodies",
+        "r105-conaf-lauca2008",
+        "r105-jog-nevado-sajama",
+        "r105-cebem-chipaya2018"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13921
+          ],
+          "component_scope": "Northern lake opening and Cotacotani passage",
+          "finding": "The selected opening traverses the small northern waterbody cluster and the larger island-studded Cotacotani setting. Original IGM lake pixels locate this passage, while CONAF distinguishes it from Chungará southeast of the route. CONAF describes seasonally interconnected closed lake basins; this is lake-system correspondence, not proof of a perennial channel between every small pool. Individual small-lake names are unassigned.",
+          "sources": [
+            "r105-igm-chile-waterbodies",
+            "r105-conaf-lauca2008"
+          ]
+        },
+        {
+          "fragments": [
+            13921
+          ],
+          "component_scope": "Westward headwater drainage and Parinacota transition",
+          "finding": "The westward component occupies the mapped outlet/drainage corridor into the Parinacota wetland setting and then turns south into Lauca. CONAF identifies Desaguadero as a feeder of that bofedal. The exact reach-name transition is unassigned.",
+          "sources": [
+            "r105-igm-chile-hydrocourses",
+            "r105-conaf-lauca2008"
+          ]
+        },
+        {
+          "fragments": [
+            13921
+          ],
+          "component_scope": "Southbound Chilean Lauca and eastward frontier approach",
+          "finding": "Original labeled IGM linework follows the selected southward valley, southeastward turn and eastbound frontier approach. Guallatire arrives from the north/east and Paquisa from the south; they are separate incoming courses. The separately mapped westward Canal Lauca is not the selected mainstem.",
+          "sources": [
+            "r105-igm-chile-hydrocourses",
+            "r105-conaf-lauca2008"
+          ]
+        },
+        {
+          "fragments": [
+            13921
+          ],
+          "component_scope": "Bolivian frontier valley and Carangas bend",
+          "finding": "The source labels Río Lauca at its western edge. The selected eastward wetland corridor then bends north around Cerro Volcamquemado beside Carangas and Estancia Huasquiri before turning southeast past Abra Jankho Willkhi. The northern excursion is the main mapped Lauca bend, not a selected tributary. The nearby Macaya/Khachuma and Sacabaya lake-drainage settings remain distinct.",
+          "sources": [
+            "r105-jog-nevado-sajama"
+          ]
+        },
+        {
+          "fragments": [
+            13921
+          ],
+          "component_scope": "Middle Lauca and Cosapa junction",
+          "finding": "The selected eastward reach corresponds to the explicitly labeled Lauca through the Cerro Jinchupalla, Santa Laura, Chana Huano and Rosa Pata surroundings. The broad middle wetland corridor joins the north-originating Cosapa near the Aulamaya Laucapata/Vilaque setting; the selection continues down the common southbound receiving corridor. Fine meander and bank offsets are not evaluated.",
+          "sources": [
+            "r105-jog-nevado-sajama"
+          ]
+        },
+        {
+          "fragments": [
+            13921
+          ],
+          "component_scope": "Huachacalla–Escara lower valley",
+          "finding": "The southbound route follows the Lauca corridor east of Huachacalla, Payrumani and Cerro Inka Camacho, beside Escara and onward past the Romero Pampa/Estancia Carpa vicinity to the southern sheet edge. The source separates neighboring drainage and wetlands; no separate lake passage or transbasin transfer is needed here.",
+          "sources": [
+            "r105-jog-nevado-sajama"
+          ]
+        },
+        {
+          "fragments": [
+            13921
+          ],
+          "component_scope": "Western Chipaya delta and terminal Coipasa margin",
+          "finding": "Cortez’s original Aransaya map locates the western Lauca from the Escara side through the Chico Loma/Tuska and Río Parkhe surroundings south to Coipasa. Its hydrography map separates the eastern Mamañica, Barras and artificial channels. The selected terminal belongs to the western Lauca–salar corridor; the modeled tip is not adopted as a surveyed mouth or current shoreline.",
+          "sources": [
+            "r105-cebem-chipaya2018"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70865140",
+      "source_keys": [
+        "r105-inegi-el-salto-topo-2020",
+        "r105-inegi-escuinapa-topo-2020",
+        "r105-dof-acaponeta-canas-2016"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10387
+          ],
+          "role": "mainstem",
+          "component_scope": "Actual eastern headward limb",
+          "finding": "The selected opening corresponds to the small approach near San Juan Aguinaldo and the connected westward course labeled Río el Cigarrero, south of the El Madroño–Kary road setting. The source separates this course from Arroyo el Toro farther north and the stream by Ciénega de Ibarra and Echeverría de la Sierra farther south. The short first twig is not assigned an independently established proper name.",
+          "sources": [
+            "r105-inegi-el-salto-topo-2020"
+          ],
+          "limits": "Headward correspondence is supported at corridor scale; no claim that the first modeled point is the official river source."
+        },
+        {
+          "fragments": [
+            10387
+          ],
+          "role": "mainstem",
+          "component_scope": "El Salto canyon and northern San Diego continuation",
+          "finding": "The westward approach meets the drainage arriving from the Coyotes and El Salto surroundings, then turns south into the deeply incised course mapped with the San Diego name. The route passes the La Soledad and San Francisco surroundings and receives distinct eastern mountain tributaries. Locality names and the separately printed San Juan de Dios and Espíritu Santo tributary labels are not promoted to names for the initial Cigarrero limb.",
+          "sources": [
+            "r105-inegi-el-salto-topo-2020"
+          ],
+          "limits": "Exact formal name-transition vertices are not established and are not needed to identify this connected corridor."
+        },
+        {
+          "fragments": [
+            10387
+          ],
+          "role": "mainstem",
+          "component_scope": "Middle and southern mountain corridor",
+          "finding": "The selected continuation descends west of San Bernardino de Milpillas Chico and through the Agua Caliente–Yerbabuenal de Milpillas surroundings. The southern part of the sheet repeatedly labels the selected trunk Río San Diego and distinguishes the western San Bartolo approach and eastern tributaries around El Tepehuaje, San Francisco de Lajas and the southern sheet boundary. The successive bends and junction settings connect to the adjoining Escuinapa sheet.",
+          "sources": [
+            "r105-inegi-el-salto-topo-2020",
+            "r105-inegi-escuinapa-topo-2020"
+          ],
+          "limits": "No uniform San Bartolo name is inferred from regional prose; the source map's selected eastern approach is followed directly."
+        },
+        {
+          "fragments": [
+            10387
+          ],
+          "role": "mainstem",
+          "component_scope": "Mountain-to-lowland joining setting",
+          "finding": "On the southern sheet the selected northern approach passes the Tescomatita surroundings toward Mineral de Cucharas and El Molino, where mapped western and eastern approaches meet. Río Acatita is distinguished from the lower Acaponeta trunk. The selected continuation then follows the named Acaponeta corridor through Guamuchilar, Quiviquinta and Zonteco toward Huajicori. The originals show a river-and-junction sequence here, with no selected reservoir transit requiring an impoundment-name assignment.",
+          "sources": [
+            "r105-inegi-escuinapa-topo-2020"
+          ],
+          "limits": "Junction relationships are used at generalized map scale; individual tributary labels are not extended over the whole selected feature."
+        },
+        {
+          "fragments": [
+            10387
+          ],
+          "role": "mainstem",
+          "component_scope": "Huajicori–Acaponeta–Tecuala lower trunk",
+          "finding": "The route continues south by Huajicori and Pachecos to Acaponeta, then bends southwest through the lower river and bridge setting toward Tecuala, Camalotita, El Filo and Milpas Viejas. Repeated Acaponeta labels and the connected channel establish this lower receiving identity. Río las Cañas and its road crossing lie separately to the west; they are not the selected river.",
+          "sources": [
+            "r105-inegi-escuinapa-topo-2020",
+            "r105-dof-acaponeta-canas-2016"
+          ],
+          "limits": "The federal prose corroborates the regional river relationship; it does not independently identify every selected branch."
+        },
+        {
+          "fragments": [
+            10387
+          ],
+          "role": "mainstem",
+          "component_scope": "Quimichis marsh and modeled terminal",
+          "finding": "Near Quimichis and El Caminín the selected line enters the branching wetland setting west of the named lower Acaponeta. Its final westward limb reaches the open coast south of Novillero. The original sheet shows marsh channels, the north–south Estero Cuautla waterway and a coastal barrier there, but does not establish a continuous channel corresponding to that last selected crossing. The acquired federal account instead describes Acaponeta's coastal discharge through the Teacapán/Puerta del Río setting. Neither account establishes the selected direct ocean approach.",
+          "sources": [
+            "r105-inegi-escuinapa-topo-2020",
+            "r105-dof-acaponeta-canas-2016"
+          ],
+          "limits": "Material terminal-connector gap. The map is not treated as proof of present-day channel closure or of model error. A broad estuary association alone cannot complete this particular route."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61552151",
+      "source_keys": [
+        "r105-sernatur-los-rios",
+        "r105-ign-lacar250k",
+        "r105-ign-head100k",
+        "r105-igm-public-rivers",
+        "r105-igm-public-water",
+        "r105-argentina-basin74",
+        "r105-argentina-pocahullo",
+        "r105-bcn-los-rios",
+        "r105-conaf-cruces"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14531
+          ],
+          "component_scope": "Eastern selected opening and San Martín lake entry",
+          "finding": "The opening lies in the mapped Chapelco Chico–Vega Maipú drainage corridor east of San Martín de los Andes. The 100k original resolves its westward valley connection to the lower Calbuco/Pocahullo approach and Lago Lácar. The neighboring Quilquihue route from Lago Lolog lies north of the divide and is not selected. The southern Trabunco/Quitrahue approach is a joining feeder, not the modeled eastern opening. The exact local Chapelco Chico/Maipú/Calbuco name-change points remain unassigned, while the connected valley corridor is established.",
+          "sources": [
+            "r105-ign-head100k",
+            "r105-ign-lacar250k",
+            "r105-argentina-basin74",
+            "r105-argentina-pocahullo"
+          ]
+        },
+        {
+          "fragments": [
+            14531
+          ],
+          "component_scope": "Lácar, Nonthué and cross-Andean outlet",
+          "finding": "The long nearly straight selected section is a generalized traversal of Lago Lácar. It turns through the La Angostura/Nonthué setting and follows Río Hua Hum north across the international-border corridor into the southern end of Lago Pirihueico. The lake neck and actual northern outlet are visible on the IGN original; they are not inferred solely from basin membership. Lago Queñi and Río Chachín form a different southern contribution. Exact lake centerlines are not treated as surveyed channels.",
+          "sources": [
+            "r105-ign-lacar250k",
+            "r105-argentina-basin74",
+            "r105-sernatur-los-rios",
+            "r105-igm-public-water"
+          ]
+        },
+        {
+          "fragments": [
+            14531
+          ],
+          "component_scope": "Pirihueico and Fuy/Fui continuation",
+          "finding": "The selected upstream feature follows the long Pirihueico lake axis to Puerto Fuy, then the westward Fuy/Fui river corridor through the Huilo Huilo–Neltume surroundings. The Neltume river arrives separately from the north. This feature ends at the Fuy–Neltume joining setting; it does not traverse Lago Neltume, Calafquén or Pullinque. The two spellings Fuy and Fui occur in the independent source renderings and refer to this component, not the whole group.",
+          "sources": [
+            "r105-sernatur-los-rios",
+            "r105-igm-public-rivers",
+            "r105-igm-public-water"
+          ]
+        },
+        {
+          "fragments": [
+            14532
+          ],
+          "component_scope": "Llanquihue and southeastern Panguipulli entry",
+          "finding": "The short second mainstem feature continues west from the joining setting as Río Llanquihue, passing the Punahue/Choshuenco surroundings into the southeastern end of Lago Panguipulli. The mapped Chumpulli and northern Neltume approaches are separate contributors. The model feature break and downstream joining node are not asserted to be formal hydronym boundaries.",
+          "sources": [
+            "r105-igm-public-rivers",
+            "r105-igm-public-water",
+            "r105-sernatur-los-rios"
+          ]
+        },
+        {
+          "fragments": [
+            14535
+          ],
+          "component_scope": "Selected Panguipulli lake-interior branch",
+          "finding": "This modeled tributary opens inside Lago Panguipulli and follows its central/southeastern lake arm to the selected mainstem node near the Enco outlet. It is a generalized lake branch, not an independently named river from an external watershed. Its starting point does not establish a Panguipulli headwater or include the upstream Calafquén–Pullinque chain. The junction of modeled lines is in the lake/outlet setting, not a claim of a natural river confluence at that exact point.",
+          "sources": [
+            "r105-igm-public-water",
+            "r105-sernatur-los-rios"
+          ]
+        },
+        {
+          "fragments": [
+            14533
+          ],
+          "component_scope": "Enco, Riñihue and San Pedro",
+          "finding": "The third mainstem feature goes south along Río Enco into the eastern end of Lago Riñihue, then northwest through that lake to its San Pedro outlet. Source river and waterbody renderings establish both connectors and distinguish Río Blanco entering Enco. The selected course follows San Pedro west through the Desagüe Riñihue, Pucono and Malihue corridor, then bends south toward the Los Lagos/Quinchilca joining setting. Lake-crossing straightness is model generalization, not evidence for an artificial canal.",
+          "sources": [
+            "r105-igm-public-rivers",
+            "r105-igm-public-water",
+            "r105-sernatur-los-rios"
+          ]
+        },
+        {
+          "fragments": [
+            14533
+          ],
+          "component_scope": "Calle Calle to the Cruces junction",
+          "finding": "The same feature continues down the Calle Calle corridor past the Los Lagos, Antilhue, Pishuinco, Huellelhue and Valdivia surroundings. Its ordered bends and neighboring Quinchilca, Collilelfu and tributary junctions distinguish the selected trunk from parallel drainage. It ends at the lower Cruces joining setting. San Pedro and Calle Calle are successive component names; neither is propagated over the preceding lakes and feeder rivers.",
+          "sources": [
+            "r105-igm-public-rivers",
+            "r105-sernatur-los-rios",
+            "r105-bcn-los-rios"
+          ]
+        },
+        {
+          "fragments": [
+            14536
+          ],
+          "component_scope": "Northern opening and upper Cruces arm",
+          "finding": "The northern selection opens on the eastern feeder of the mapped Cruces corridor north of Lago Calafquén. Its connected westward course and northward kink are visible in the eastern public river rendering. It continues along the Cruces corridor toward Loncoche and Lanco, separate from the southern parallel watercourse labeled Río Las Cruces on the sources and from Río Voipir farther north. The opening feeder has no securely read individual label; its bounded connection is nevertheless established.",
+          "sources": [
+            "r105-igm-public-rivers",
+            "r105-sernatur-los-rios"
+          ]
+        },
+        {
+          "fragments": [
+            14536
+          ],
+          "component_scope": "Lanco to San José de la Mariquina",
+          "finding": "The same northern feature turns south by Lanco, receives the separate Leufucade approach from Malalhue, and turns west through the San José de la Mariquina corridor. The western rendering supplies the complete bend and junction sequence, including the separate Lingue drainage northward toward Mehuín. This selected arm does not follow Leufucade, Pichoy or Lingue merely because those appear nearby.",
+          "sources": [
+            "r105-igm-public-rivers",
+            "r105-sernatur-los-rios"
+          ]
+        },
+        {
+          "fragments": [
+            14537
+          ],
+          "component_scope": "Lower Cruces wetland and confluence",
+          "finding": "The final tributary feature continues the lower Cruces arm southwest and south through the wetland/Santuario Carlos Anwandter–Punucapa corridor, past the separate Nanihue, Pichoy and Cayumapu joining surroundings, to Calle Calle near Valdivia. It is the downstream continuation of 14536, not an unrelated tributary created by the model stage break. CONAF independently identifies this lower wetland as tidally influenced within the Valdivia estuarine system.",
+          "sources": [
+            "r105-igm-public-rivers",
+            "r105-sernatur-los-rios",
+            "r105-conaf-cruces"
+          ]
+        },
+        {
+          "fragments": [
+            14534
+          ],
+          "component_scope": "Valdivia estuarine terminal and ultimate receiver",
+          "finding": "The final mainstem feature leaves the Calle Calle–Cruces junction as Río Valdivia and runs southwest, then west, in the lower estuarine channel toward Niebla and Bahía de Corral. The selected endpoint is in this lower Valdivia estuarine approach; it is not asserted to coincide with the seaward mouth or extend into the open Pacific. Regional mapping shows the continuing Corral/Niebla coastal outlet and distinguishes the southern Tornagaleones/Isla del Rey waterways. The ultimate receiving setting is Bahía de Corral and the Pacific Ocean.",
+          "sources": [
+            "r105-igm-public-rivers",
+            "r105-sernatur-los-rios",
+            "r105-bcn-los-rios"
+          ]
+        },
+        {
+          "fragments": [
+            14531,
+            14532,
+            14533,
+            14534,
+            14535,
+            14536,
+            14537
+          ],
+          "component_scope": "Whole-network representative identity",
+          "finding": "All four mainstem and three tributary features correspond to the connected Valdivia system at generalized corridor scale, including the modeled Panguipulli lake branch and the entire selected Cruces arm. Río Valdivia is supported as a representative system identity. It does not rename Chapelco Chico, Calbuco/Pocahullo, Hua Hum, Fuy/Fui, Llanquihue, Enco, San Pedro, Calle Calle, Cruces or any lake. The rendered mainstem length is a model measurement rather than an official river length.",
+          "sources": [
+            "r105-ign-head100k",
+            "r105-ign-lacar250k",
+            "r105-igm-public-rivers",
+            "r105-igm-public-water",
+            "r105-sernatur-los-rios"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
