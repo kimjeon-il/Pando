@@ -16,7 +16,7 @@
     "Serbian Cyrillic Београд and Latin Beograd are both local spellings; Turkish/German Belgrad is a language variant, not an automatic Korean official rename upon 1867 changes.",
     "Sofia's Sredets/Serdica name history predates 1801; the verified 1879-04-03 capital selection did not rename the city.",
     "Zagreb was administratively unified on 1850-09-07; earlier Gradec/Kaptol existed. Do not treat the unification as a newly founded settlement or a renamed city.",
-    "German Agram, Hungarian Zágráb, German Laibach and Italian Lubiana are historical/contextual exonyms, not automatically period-conditioned Korean city names.",
+    "Zagreb: Croatian Latin-script Zagreb is the selected native form and Korean 자그레브 remains constant from 1801. English Agram, used as a 1911 Encyclopaedia Britannica headword, is selected through 1918-10-28; switch English to Zagreb at Croatian Parliament's 1918-10-29 severance from Austria-Hungary (editorial boundary, not a legal English renaming). German/Hungarian exonyms are retained in historical geography context, not as unused names[] aliases. Ljubljana German Laibach remains a separate historic name pending its own timeline finalization.",
     "Ljubljana's 1809–1813 capital status in the Napoleonic Illyrian Provinces and 1821 Congress do not imply a city rename.",
     "Current country code is GeoNames metadata only; historical borders/polities must come from separately verified map relations.",
     "English and native may share exactly the same spelling (Zagreb, Ljubljana). Preserve each independently; renderer deduplicates displayed rows.",
@@ -171,32 +171,22 @@
           "usage": "standard"
         },
         {
-          "text": "Zagreb",
-          "language": "en",
-          "usage": "standard"
-        },
-        {
           "text": "자그레브",
           "language": "ko",
           "usage": "standard"
         },
         {
           "text": "Agram",
-          "language": "de",
+          "language": "en",
           "usage": "historical",
-          "variantType": "germanHistoricalExonym",
-          "sourceUrl": "https://www.geonames.org/3186886/zagreb.html",
-          "note": "오스트리아권 독일어 역사명",
-          "researchNote": "오스트리아-헝가리 제국 시기 사용된 독일어 역사적 외국 지명"
+          "variantType": "selectedPre1918EnglishExonym",
+          "sourceUrl": "https://en.wikisource.org/wiki/1911_Encyclop%C3%A6dia_Britannica/Agram",
+          "note": "1918년 이전 영어권 대표명으로 선택"
         },
         {
-          "text": "Zágráb",
-          "language": "hu",
-          "usage": "historical",
-          "variantType": "hungarianExonym",
-          "sourceUrl": "https://www.geonames.org/3186886/zagreb.html",
-          "note": "헝가리어 별칭 Zágráb",
-          "researchNote": "헝가리어 표기로 크로아티아어 Zagreb와 별도 도시가 아님"
+          "text": "Zagreb",
+          "language": "en",
+          "usage": "standard"
         }
       ],
       "latitude": 45.81444,
@@ -211,13 +201,24 @@
         {
           "fromYear": 1801,
           "nameKo": "자그레브",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://zagreb.hr/en/zagreb-in-brief/185627",
-          "note": "1801년은 역사명 검토 기준연도",
-          "researchNote": "1801년은 검토 시작연도이지 지금의 자그레브시 단일 행정구역 성립연도가 아님"
+          "nameEn": "Agram",
+          "nameNative": "Zagreb",
+          "nativeLanguage": "hr",
+          "kind": "historicalEnglishExonymEditorialSelection",
+          "sourceUrl": "https://en.wikisource.org/wiki/1911_Encyclop%C3%A6dia_Britannica/Agram",
+          "note": "영어 관용명 Agram 사용",
+          "researchNote": "1801년은 조사 시작일. 크로아티아어 원어 Zagreb 및 한국어 자그레브는 유지하되, 오스트리아-헝가리 시기 영어권에서 실제 사용된 대표명 Agram을 영어명으로 선택한다. 1911년판 Encyclopaedia Britannica는 Agram을 표제어로 사용한다. 이 선택은 Agram이 모든 영어자료에서 유일하게 사용된 형태였다는 뜻이 아니다."
+        },
+        {
+          "fromDate": "1918-10-29",
+          "nameEn": "Zagreb",
+          "kind": "editorialEnglishNameSelection",
+          "sourceUrl": "https://www.sabor.hr/en/information-access/important-legislation/constitution-republic-croatia-consolidated-text",
+          "note": "합스부르크 관계 단절 후 영어명 전환",
+          "researchNote": "크로아티아 의회가 1918-10-29 오스트리아·헝가리와 국가적 관계를 단절하고 슬로벤인·크로아트인·세르브인 국가에 참여한 날을 Agram→Zagreb 영어 지도 대표명 전환의 편집상 기준으로 선택한다. 영어권의 모든 문헌에서 일시에 표기가 바뀐 법적 개칭일이 아니며, 크로아티아어 라틴 문자 Zagreb 및 한국어 자그레브는 변함없다. 유고슬라비아 시대에도 크로아티아어 원어명을 키릴 문자로 변경하지 않는다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-municipal-boundary-note",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1918-english-editorial-transition",
       "historicalGeography": {
         "events": [
           {
@@ -233,6 +234,13 @@
             "detail": "1991년 크로아티아 독립 선언",
             "sourceUrl": "https://zagreb.hr/en/zagreb-in-brief/185627",
             "researchDetail": "크로아티아 의회의 독립·주권 선언 이후 독립국 수도가 됨. 도시명 개칭 아님"
+          },
+          {
+            "date": "1918-10-29",
+            "type": "croatianParliamentSeversHabsburgRelations",
+            "detail": "크로아티아 의회 합스부르크 관계 단절",
+            "sourceUrl": "https://www.sabor.hr/en/information-access/important-legislation/constitution-republic-croatia-consolidated-text",
+            "researchDetail": "1918년 크로아티아 의회가 오스트리아·헝가리와 관계 단절 및 슬로벤인·크로아트인·세르브인 국가 참여를 선언. 지명 자체의 개칭이나 크로아티아어 문자 변경은 아니며 영어 지도의 대표명 전환 기준으로만 사용한다."
           }
         ],
         "notes": [
@@ -244,7 +252,7 @@
           {
             "detail": "Agram·Zágráb은 외국어명",
             "sourceUrl": "https://www.geonames.org/3186886/zagreb.html",
-            "researchDetail": "독일어 Agram과 헝가리어 Zágráb은 언어·역사적 외국 지명. 이를 통치권 변경에 맞춰 자동 한국어 표기로 대체하지 않음."
+            "researchDetail": "독일어 Agram·헝가리어 Zágráb은 역사적인 언어별 이름이다. 이 중 Agram은 1911년 영문 Britannica에 사용되어 1918-10-28까지 영어 지도 대표형으로 선정했으나 독일어·헝가리어 원어로 자동 전환하지 않는다."
           },
           {
             "detail": "PPLC 취락과 ADM1 구분",
@@ -252,7 +260,10 @@
             "researchDetail": "자그레브 도시 PPLC와 Zagreb 행정구역 ADM1 구별"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Zagreb",
+      "defaultDisplayNameNative": "Zagreb",
+      "defaultNativeLanguage": "hr"
     },
     {
       "geonameId": 3196359,
