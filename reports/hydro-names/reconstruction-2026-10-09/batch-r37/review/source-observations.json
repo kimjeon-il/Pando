@@ -1,0 +1,165 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r37",
+  "scope_aw_ids": [
+    "lakes_base:1159109455",
+    "lakes_base:1159109439",
+    "lakes_base:1159109395"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "No new external source requests or original acquisitions in r37. Original-pixel work reused the Manitoba geological map successfully acquired in r34 and, for the cross-border target only, the Saskatchewan WSA map retained from earlier work. The independent reviewer also made zero external requests. Successful HTTP statuses and acquisition times describe those retained originals, not new retrievals.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": 0,
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 2,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 2,
+  "source_group_definition": "Two official publications from two provincial-government publisher groups: Government of Manitoba and Saskatchewan Water Security Agency. Only the Manitoba map supplies directly supported selected-water names.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All selected source parts and rings were registered to the retained Manitoba GeoPDF using its independently reopened full embedded affine, including both rotation terms. The cross-border target was also registered to the independently reopened Saskatchewan WSA GeoPDF. Registered crop coverage includes blank out-of-province areas; display correspondence does not certify surveyed shores or exact named-water partitions.",
+  "observations": [
+    {
+      "source_key": "manitoba_bedrock_geology_of2024_4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Economic Development, Investment, Trade and Natural Resources, Manitoba Geological Survey",
+      "url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf",
+      "original_acquired_at_utc": "2026-10-10T00:02:56.872607+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2024",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The publication imprint explicitly says published by Manitoba Geological Survey, 2024. No month or day of publication is established; PDF modification and HTTP dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r34",
+      "directly_read_water_labels": [
+        "Highrock Lake",
+        "Nelson Lake",
+        "Sisipuk Lake",
+        "Granville Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Suwannee Lake",
+        "Flatrock Lake",
+        "Costello Lake",
+        "Laurie River",
+        "Loon Lake",
+        "Britton Lake",
+        "Chicken Lake",
+        "Eden Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Direct water labels and cartographic context for all three targets; the western part of the cross-border target lies beyond this map's hydrographic coverage.",
+      "authority_scope": "Official provincial thematic cartographic usage supports bounded associations. The publication does not establish a formal naming-registry decision, current surveyed shoreline or exact named-water boundary.",
+      "registered_overlay_performed": true,
+      "own_observations": "Highrock Lake and Nelson Lake are distinct supported associations in the first selected ring, whose northern arm remains unnamed. Sisipuk Lake is supported for the eastern Manitoba basin of the second ring, with the western portion outside provincial map coverage. Granville Lake is supported for the third ring's main basin and northeastern arm; its southern prong follows the Laurie-labelled corridor with exact named-water scope unresolved. Suwannee and Costello proximity does not establish additional selected components. All three are scope holds.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "The digital topographic base credits the CanVec+ data model, Natural Resources Canada for hydrographic features, and the Manitoba Land Initiative, Manitoba Environment, Climate and Parks."
+    },
+    {
+      "source_key": "wsa_completed_watershed_plans_2014",
+      "title": "Completed Watershed Plans / WSA Watershed Planning Areas",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "original_acquired_at_utc": "2026-10-09T13:17:20.296694+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": null,
+      "publication_date_precision": "unknown",
+      "publication_date_verified": false,
+      "printed_production_date": "2014-11-25",
+      "printed_production_date_precision": "day",
+      "printed_production_date_verified": true,
+      "publication_date_note": "The original imprint explicitly says Map Produced: Nov. 25, 2014. This establishes a production date only; actual release/publication date is unknown. The upload URL year and HTTP modification dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": null,
+      "original_acquisition_batch_note": "Receipt timestamp verified; the original acquisition batch is not established here. An earlier retained original supplies the inspected map.",
+      "directly_read_water_labels": [],
+      "nearby_distinct_water_labels": [],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Complementary Saskatchewan-side shape context only for lakes_base:1159109439; no selected western water-name label is established.",
+      "authority_scope": "Official provincial thematic map provides western hydrographic context; it supplies no selected-water naming decision and no exact cross-border name partition.",
+      "registered_overlay_performed": true,
+      "own_observations": "The western selected footprint intersects a branching water along the provincial border, while the eastern Manitoba portion lies on blank paper. No selected western water-name label is present in the inspected crop. Sandy Bay is a black settlement label southwest of the selected footprint. This map does not establish that the whole selected cross-border ring is Sisipuk Lake.",
+      "printed_scale": "1:1,750,000",
+      "cartographic_credit_observed": "Map produced by Water Security Agency, Geomatics; map and all datasets credited to Government of Saskatchewan, 2014."
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159109455",
+      "aw_id": "lakes_base:1159109455",
+      "source_id": "1159109455",
+      "geometry_fids": [
+        15418
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 115,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Highrock Lake and Nelson Lake are distinct directly supported associations in the central/southern and eastern portions of one 115-position ring. The narrow northern arm and intervening reaches include water and mapped land; its proximity to the Suwannee Lake text does not establish a Suwannee component or exact name assignment. Western Highrock bays and detailed southern/eastern continuations are outside the selected ring. Non-exhaustive compound scope hold."
+    },
+    {
+      "observation_id": "lakes_base:1159109439",
+      "aw_id": "lakes_base:1159109439",
+      "source_id": "1159109439",
+      "geometry_fids": [
+        15417
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 40,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "independent_observation": "Sisipuk Lake is directly supported for the Manitoba/eastern selected water. The selected western portion crosses the provincial border, outside Manitoba-map hydrographic coverage. The complementary WSA map shows a branching western water footprint but no selected water-name label, and its eastern region is blank. Sandy Bay is a settlement. The two source footprints do not establish a whole-ring named identity or exact cross-border named extent. Unresolved scope hold; no access failure."
+    },
+    {
+      "observation_id": "lakes_base:1159109395",
+      "aw_id": "lakes_base:1159109395",
+      "source_id": "1159109395",
+      "geometry_fids": [
+        15414
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 102,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Granville Lake is directly supported for the main selected basin, western lobes and northeastern arm toward the separate Leaf Rapids settlement. The narrow southern selected prong follows the Laurie-labelled corridor; the distinct Costello Lake basin is east of that prong. No exact southern-prong named-water assignment is established and no Costello component is warranted by proximity. Chicken Lake is separate northwestern context. Conservative unresolved scope hold for the southern-prong/name transition, with detailed shorelines generalized."
+    }
+  ],
+  "source_group_limit": "Two official provincial publications, with Saskatchewan used only as complementary border-shape context. Publisher count does not establish underlying hydrographic dataset independence, and no formal naming registry was checked.",
+  "independent_review_and_source_research_agree": true
+}
