@@ -1,0 +1,295 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r91",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; East Greenland ice interior and eastern mountain-margin region, graticule and Inland Ice legend.",
+      "supports": "Northern and upper ice-interior setting; southern and eastern glaciated mountain-margin setting and its neighboring exposed-rock/fjord country; regional geographic disambiguation; distinction between map ice symbols and river evidence.",
+      "limits": "Historical regional geological map, not a river survey. Does not establish a full-route natural-river identity or resolve a precise named terminal feature or present ice/land/water boundary.",
+      "reuse_limit": "GEUS custom terms restrict redistribution and new maps based on the data. Originals, local source crops and derived comparison material remain private. Only independently written factual findings and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Pages 64–65, Glaciology.",
+      "supports": "Distinguishes the continental Inland Ice from local ice caps and glaciers; explains ice-surface, thickness and sub-ice bedrock contours; supplies general glaciated-margin and fjord context.",
+      "limits": "Does not name this selected route or prove hydrological continuity. Figure 46 depicts a different West Greenland locality north-northeast of Søndre Strømfjord, not this target. Figure 47 is a general historical/model diagram. No historical ice or mass-balance information is asserted as current.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r91-nrcan-macalpine-atkinson-map",
+      "title": "Canada Base Map, CBMT3978: MacAlpine Lake and the coastal river southwest of Atkinson Point",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Full geographic setting, MacAlpine Lake passage, northward coastal route and terminal adjacent to Atkinson Point.",
+      "limits": "No whole-route river name is printed in the inspected views. Composite map dates and precise shorelines are not asserted. Original maps and private orientation material remain local.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r91-alisauskas-boyd-1994",
+      "title": "Previously Unrecorded Colonies of Ross’ and Lesser Snow Geese in the Queen Maud Gulf Bird Sanctuary",
+      "authors": "Ray T. Alisauskas and Hugh Boyd",
+      "publisher": "Arctic Institute of North America, Arctic 47(1), 1994, pages 69–73",
+      "attribution": "Primary field research by Canadian Wildlife Service researchers; journal-hosted original. Figure 2 is used for regional geographic context, not as a national naming registry.",
+      "supports": "The selected coastal setting is west of the separately depicted Perry River. Colony 68 occupies the mouth of a river described by the authors as unnamed southwest of Atkinson Point.",
+      "limits": "Historical field-study terminology does not establish present official or local naming. The small-scale figure does not cover the entire selected headward route. No map or table is republished.",
+      "official_url": "https://pubs.aina.ucalgary.ca/arctic/Arctic47-1-69.pdf"
+    },
+    {
+      "source_key": "r91-usgs-quinn-river-map",
+      "title": "USGS Topo, The National Map: Oregon Canyon Creek, Quinn River and Black Rock Desert",
+      "publisher": "United States Geological Survey",
+      "supports": "Representative Quinn River identity; Oregon Canyon Creek and The Slough as the actual selected headward approach; distinct neighboring tributary exclusion; and the Black Rock Desert inland terminal.",
+      "limits": "Composite map dates are not asserted. This is bounded geographic correspondence, not precise channel-centerline matching, a surveyed official-source designation or a current-flow assessment. The map labels the terminal setting Black Rock Desert; no additional formal sink name is inferred. Only own factual synthesis and the ordinary official service URL are released; original rasters and private orientation material remain local.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r91-usgs-choctawhatchee-map",
+      "title": "The National Map, USGS Topo: Billy Creek, Pea River, Choctawhatchee River and Bunker Cove delta",
+      "publisher": "U.S. Geological Survey",
+      "supports": "All selected fragments and their connected route, named upper components, Geneva junction, selected delta branch, neighboring-drainage exclusions and Bunker Cove endpoint.",
+      "limits": "This independent operational map service is distinct from stopped USGS publications. Composite source dates are not asserted. Cartography supports generalized correspondence, not exact banks, survey geometry or tidal flow direction. Original rasters, crops and orientation material remain local.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r91-alabama-pea-overview",
+      "title": "About the Watersheds – Pea River",
+      "publisher": "Choctawhatchee, Pea and Yellow Rivers Water Management Authority, Alabama",
+      "supports": "Independent ordered-route confirmation for the selected Pea component.",
+      "limits": "This broad overview does not establish the exact modeled initial vertex, Billy Creek selection or delta branch; those are supported by actual map pixels. Its river-length statistics are not substituted for the modeled length.",
+      "official_url": "https://cpyrwma.alabama.gov/about-watersheds/about-the-watersheds-pea-river/"
+    },
+    {
+      "source_key": "r91-nwfwmd-choctawhatchee-overview",
+      "title": "Choctawhatchee River and Bay",
+      "publisher": "Northwest Florida Water Management District",
+      "supports": "Representative receiving-system context and distinction between a river-to-bay endpoint and the bay's separate Gulf outlet.",
+      "limits": "Basin prose alone does not identify the selected upper branch or Bunker Cove route; those depend on the inspected federal maps.",
+      "official_url": "https://nwfwater.com/water-resources/surface-water-improvement-and-management/choctawhatchee-river-and-bay/"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90060803",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8853
+          ],
+          "component_scope": "Western beginning and northern hook",
+          "finding": "The selected cached line opens almost northward, with a small eastward displacement, and turns around a short northern crest before taking a southeastward course. The original sheet and graticule put this opening in the eastern part of the continental Inland Ice, inland and west of the exposed East Greenland mountain belt. No river name or mapped natural-river trace is established for this northern opening.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8853
+          ],
+          "component_scope": "Long southeastward limb and western kink",
+          "finding": "The route descends southeast through a long stepped interval, includes a short almost north–south interval, and continues southeast before making a westward kink. The northern and upper interior portions are compared against the Inland Ice, while the southward approach leads toward the irregular ice-margin and nunatak belt. The generalized straight and stair-stepped segments belong to the modeled inventory geometry; the map’s blue ice contours and gray sub-ice bedrock contours do not supply evidence of a surface or subglacial river along them.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8853
+          ],
+          "component_scope": "Southern eastward course, trough and eastern ending",
+          "finding": "After its western kink, the selected line continues southeast, develops a more eastward interval, descends to a broad southern trough and finally turns east-northeast. Original regional and marginal pixels cover the surrounding Fraenkel Land–Suess Land–Goodenough Land country and distinguish exposed-rock units, glaciated corridors and the fjord belt farther east. This supports a mountainous glaciated-margin setting for the final part, rather than treating the whole line as undifferentiated ice interior. The source does not establish that the final vertex is a specific river mouth, glacier front, named fjord reach or shoreline crossing. No selected vertex is moved to match a nearby named feature.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8853
+          ],
+          "component_scope": "Complete selected mainstem and feature-class limit",
+          "finding": "There is one selected mainstem geometry and no selected tributary geometry. Its internal coordinate parts were considered as the complete pinned route, not as additional independently named tributaries. Neither the original regional geological map nor the descriptive glaciology establishes a continuously named natural river across this ice-interior-to-margin selection. The map legend differentiates ice-surface contours, dashed ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments; these are not river lines. The aeromagnetic-lineament convention is explicitly for Greenland south of 68°N and is not a local river feature at this target.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80064632",
+      "source_keys": [
+        "r91-nrcan-macalpine-atkinson-map",
+        "r91-alisauskas-boyd-1994"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2508
+          ],
+          "finding": "The southwest head runs north briefly and then east through connected small lakes and channels south of MacAlpine Lake. It bends north into the large mapped lake system. Initial minor feeders have no assigned hydronym in this finding, and the westernmost model point is not designated an official source.",
+          "sources": [
+            "r91-nrcan-macalpine-atkinson-map"
+          ]
+        },
+        {
+          "fragments": [
+            2508
+          ],
+          "finding": "The long northwestward modeled interval traverses the directly labeled MacAlpine Lake setting, including widened arms and islands. Beyond its northwestern side the selection follows mapped smaller waterways, a westward bend and a northeastward lake/stream corridor. The lake name identifies a component, not a uniform river name for the group.",
+          "sources": [
+            "r91-nrcan-macalpine-atkinson-map"
+          ]
+        },
+        {
+          "fragments": [
+            2508
+          ],
+          "finding": "The northern half continues through an independently visible river corridor to the lowland delta southwest of Atkinson Point. The original coastal map places the selected terminal in the near-mouth channel on Queen Maud Gulf, not at the more easterly Perry River outlet. The exact present coastline or distributary boundary is not asserted.",
+          "sources": [
+            "r91-nrcan-macalpine-atkinson-map",
+            "r91-alisauskas-boyd-1994"
+          ]
+        },
+        {
+          "fragments": [
+            2508
+          ],
+          "finding": "Alisauskas and Boyd describe their colony 68 as at the mouth of an unnamed river southwest of Atkinson Point. Their Figure 2 and Table 2 place it in this selected coastal setting and distinguish it from Perry River to the east. This supplies historical geographic exclusion, not proof that the river remains unnamed today.",
+          "sources": [
+            "r91-alisauskas-boyd-1994"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70545986",
+      "source_keys": [
+        "r91-usgs-quinn-river-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9777
+          ],
+          "finding": "The initial selected approach corresponds to Oregon Canyon Creek in the Oregon Canyon Mountains. It follows the northward canyon corridor and then the eastward valley reach. The map separately labels the West Fork and East Fork; their distinct headward courses are not substituted for the selected initial reach. An irrigation-channel complex is present in the eastern upper valley, so the representative finding does not assign one natural-stream name to every generalized short segment there.",
+          "sources": [
+            "r91-usgs-quinn-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            9777
+          ],
+          "finding": "The route continues south on Oregon Canyon Creek and the mapped The Slough wetland corridor through the McDermitt area, crosses into Nevada, and reaches the labeled Quinn River near Fort McDermitt. McDermitt Creek enters from the west and a separately labeled Quinn River course enters from the east. Neither incoming headward course is the selected northern approach.",
+          "sources": [
+            "r91-usgs-quinn-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            9777
+          ],
+          "finding": "South of Fort McDermitt, repeated Quinn River labels follow the selected southward valley corridor. The large western turn around the southern end of the Double H Mountains, subsequent westward reach, Kings River junction surroundings and northwest-to-southwest bend all correspond to the mapped Quinn River. These large bends distinguish the selection from the separate Kings River headwaters and other adjacent valleys.",
+          "sources": [
+            "r91-usgs-quinn-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            9777
+          ],
+          "finding": "The lower selected route continues southwest through the Black Rock Desert on repeatedly labeled Quinn River reaches. Jackson Creek Slough is mapped separately to the east. After the lower branching-channel area, the selection turns west into the Black Rock Desert playa; its final northward hook remains within the mapped terminal water/playa feature. The full inland terminal setting is visible, without requiring an ocean outlet or a connection to the Humboldt River.",
+          "sources": [
+            "r91-usgs-quinn-river-map"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70796101",
+      "source_keys": [
+        "r91-usgs-choctawhatchee-map",
+        "r91-alabama-pea-overview",
+        "r91-nwfwmd-choctawhatchee-overview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9971
+          ],
+          "finding": "The initial modeled reach near Three Notch corresponds to Billy Creek. The detailed map separately labels the Pea River channel to its east and shows Billy Creek joining it. The selection then continues on Pea River; Johnson Creek is a separate eastern tributary and is not the selected headward route.",
+          "sources": [
+            "r91-usgs-choctawhatchee-map"
+          ]
+        },
+        {
+          "fragments": [
+            9971
+          ],
+          "finding": "The long southwestward and southward branch follows repeatedly labeled Pea River through the Pike–Barbour/Coffee County corridor to Elba and onward through Geneva County. Its eastward lower bend briefly enters Florida before returning to the junction south of Geneva. The Alabama water authority independently describes that same ordered route. The western Conecuh and eastern upper Choctawhatchee headward systems are not substituted for the selected Pea branch.",
+          "sources": [
+            "r91-usgs-choctawhatchee-map",
+            "r91-alabama-pea-overview"
+          ]
+        },
+        {
+          "fragments": [
+            9971,
+            9972,
+            9973
+          ],
+          "finding": "The Geneva enlargement shows Pea River entering from the west and Choctawhatchee River approaching from the north near Eunola. The selected 9973 fragment is the short northern Choctawhatchee approach, while 9971 reaches the junction along the Pea and 9972 continues downstream on Choctawhatchee. Nearby Double Bridges Creek and Spring Creek remain separately mapped and do not supply the selected short fragment.",
+          "sources": [
+            "r91-usgs-choctawhatchee-map"
+          ]
+        },
+        {
+          "fragments": [
+            9972
+          ],
+          "finding": "Below Geneva the selected corridor follows labeled Choctawhatchee River into Florida, past the Pittman-creek setting, the Caryville road and interstate crossings, and the lower floodplain toward Ebro. Wrights Creek and Holmes Creek enter from the east but their headward courses are not additional selected tributary fragments.",
+          "sources": [
+            "r91-usgs-choctawhatchee-map",
+            "r91-nwfwmd-choctawhatchee-overview"
+          ]
+        },
+        {
+          "fragments": [
+            9972
+          ],
+          "finding": "Downstream of the Ebro setting the selection leaves the more northerly Choctawhatchee channel along the mapped Pine Log Creek connection, turns west along East River, and returns to the lower Choctawhatchee corridor near the Inside Lake setting. Original map pixels show the intervening channel connections around East River Island; this is not an assumed straight connector across an unreviewed interval.",
+          "sources": [
+            "r91-usgs-choctawhatchee-map"
+          ]
+        },
+        {
+          "fragments": [
+            9972
+          ],
+          "finding": "The final westward reach lies in the lower Choctawhatchee delta, then takes the southern channel network by Bunker Island into Bunker Cove. The selected endpoint is on Choctawhatchee Bay in that cove setting. It is south of the separately mapped principal Choctawhatchee outlet and the Mitchell, Indian and Cypress outlets; the model does not continue through the bay to the Gulf's East Pass. A separate name for the final narrow channel is not established by the inspected map.",
+          "sources": [
+            "r91-usgs-choctawhatchee-map",
+            "r91-nwfwmd-choctawhatchee-overview"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
