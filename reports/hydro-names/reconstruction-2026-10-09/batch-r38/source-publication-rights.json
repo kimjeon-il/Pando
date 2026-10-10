@@ -1,0 +1,33 @@
+{
+  "schema": "hydro-lake-publication-rights-v2",
+  "batch": "r38",
+  "included": "Own factual observations, brief geographic labels, public publisher and hosting URLs, bounded selected identifier/name-state/count/bounds metadata, included public-file validation hashes and necessary already-public continuity or payload declarations. No private source, coordinate, derivative, registration, receipt or cache fingerprints are included.",
+  "selected_lake_feature_count": 3,
+  "full_lake_coordinates_published": false,
+  "full_river_coordinates_published": false,
+  "raw_third_party_sources_published": false,
+  "raw_pdf_html_map_crop_count": 0,
+  "private_source_derivative_coordinate_registration_receipt_cache_fingerprints_included": false,
+  "cartographic_attribution": "The Manitoba geological map credits Manitoba Geological Survey cartography, a CanVec+ hydrographic base from Natural Resources Canada and Manitoba Land Initiative. The Saskatchewan planning map credits Water Security Agency Geomatics and Government of Saskatchewan datasets. The Cumberland electoral map credits adapted Information Services Corporation of Saskatchewan cadastral data, administrative overlays and OpenStreetMap. These credits do not establish public-domain status or independent hydrographic evidence.",
+  "rights_scope": "Official maps are retained only for private source inspection. Government hosting does not establish public-domain status or unrestricted republication rights. No original map, crop, overlay, coordinate-bearing geometry or private source/coordinate/derivative fingerprint is included. This component contains original factual extracts and public bibliography only; no redistribution license for source cartography is asserted.",
+  "reproducibility_limit": "Public included-file checks can verify the retained factual record and its bounded metadata, but cannot replay the omitted source-map and complete-polygon visual comparison.",
+  "automatic_application": false,
+  "product_application": false,
+  "new_original_source_acquisitions_this_batch": 0,
+  "source_authority_scope": "Official geological, planning and electoral cartographic usage supports bounded observations. These publications do not establish formal naming-registry decisions or exact name partitions.",
+  "geographic_scope_limit": "Two selected generalized lake features in northern Manitoba and one in northern Saskatchewan. Exact detailed lake extents and name partitions are not certified.",
+  "source_hosts": [
+    "Manitoba Geological Survey, Government of Manitoba",
+    "Water Security Agency, Government of Saskatchewan",
+    "Elections Saskatchewan"
+  ],
+  "source_urls": [
+    "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf",
+    "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+    "https://cdn.elections.sk.ca/maps-ge30/Cumberland_GE30.pdf"
+  ],
+  "sources_acquired_in_current_batch": false,
+  "retained_sources_reused": true,
+  "retained_source_acquisition_batch": null,
+  "retained_source_acquisition_note": "The Manitoba original was acquired in r34. The WSA planning and Cumberland electoral originals are retained from earlier research; their original-body receipts are checked without inferring originating acquisition batches from retention locations."
+}
