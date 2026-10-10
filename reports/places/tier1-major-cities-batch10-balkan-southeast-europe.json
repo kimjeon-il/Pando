@@ -3,7 +3,7 @@
   "batch": "10-balkan-southeast-europe-capitals",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0), city official histories, and naming/administrative records",
-  "checkedOn": "2026-10-08",
+  "checkedOn": "2026-10-10",
   "selection": "Four unambiguous Southeastern European national capital populated places, all GeoNames P/PPLC: Belgrade, Sofia, Zagreb, Ljubljana.",
   "coordinateConvention": "WGS84 (EPSG:4326), GeoNames representative settlement-point latitude/longitude, not administrative polygons or historical boundaries.",
   "countryCodeSemantics": "sourceCountryCode is present-day GeoNames source metadata only, never a historic sovereignty or map-name policy authority.",
@@ -13,7 +13,7 @@
   "historicNameScope": "Attested names during or relevant to the period since 1801; older names are archival variants, not 19th-century date transitions.",
   "qualityNotes": [
     "Four new GeoNames feature-class P, code PPLC capital city records; distinguish from identically named administrative units and older local settlements.",
-    "Serbian Cyrillic Београд and Latin Beograd are both local spellings; Turkish/German Belgrad is a language variant, not an automatic Korean official rename upon 1867 changes.",
+    "Belgrade: Ottoman Turkish بلغراد (Belgrad) selected native from 1801; Serbian Cyrillic Београд from 1815-04-23, chosen based on start of the Second Serbian Uprising/Serbian Principality's de facto formation. This is an EDITORIAL native-language choice, not evidence of the city's immediate transfer or legal rename. English Belgrade and Korean 베오그라드 are unchanged. Ottoman/Serbian authority remained overlapping; 1830 formal autonomy, 1841 capital transfer, 1867 fortress transfer kept as events.",
     "Sofia's Sredets/Serdica name history predates 1801; the verified 1879-04-03 capital selection did not rename the city.",
     "Zagreb was administratively unified on 1850-09-07; earlier Gradec/Kaptol existed. Do not treat the unification as a newly founded settlement or a renamed city.",
     "Zagreb: Croatian Latin-script Zagreb is the selected native form and Korean 자그레브 remains constant from 1801. English Agram, used as a 1911 Encyclopaedia Britannica headword, is selected through 1918-10-28; switch English to Zagreb at Croatian Parliament's 1918-10-29 severance from Austria-Hungary (editorial boundary, not a legal English renaming). German/Hungarian exonyms are retained in historical geography context, not as unused names[] aliases. Ljubljana uses German Laibach (native/ko/en) from 1801, Slovene Ljubljana (native/ko) from 1883-01-01, and English Ljubljana from 1918-10-29; dates are administrative/editorial map-name boundaries, not city legal renamings.",
@@ -29,11 +29,19 @@
       "geonameId": 792680,
       "names": [
         {
+          "text": "بلغراد",
+          "language": "ota",
+          "script": "Arab",
+          "usage": "historical",
+          "variantType": "selectedOttomanTurkishNativeName1801",
+          "sourceUrl": "https://dpul.princeton.edu/islamicmss/catalog/dv13zt28z"
+        },
+        {
           "text": "Београд",
           "language": "sr",
           "script": "Cyrl",
           "usage": "standard",
-          "note": "세르비아어 키릴 표기; 원어 기본 표기로 선택"
+          "sourceUrl": "https://www.beograd.rs/en/discover-belgrade/a2014/History.html"
         },
         {
           "text": "Belgrade",
@@ -44,15 +52,6 @@
           "text": "베오그라드",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Belgrad",
-          "language": "tr",
-          "usage": "historical",
-          "variantType": "ottomanEraAndModernTurkishExonym",
-          "sourceUrl": "https://www.geonames.org/792680/belgrade.html",
-          "note": "오스만기·현대 튀르키예어명",
-          "researchNote": "오스만 제국 시기와 현대 튀르키예어에서 사용되는 명칭"
         }
       ],
       "latitude": 44.80401,
@@ -62,18 +61,50 @@
       "sourceUrl": "https://www.geonames.org/792680/belgrade.html",
       "sourceCountryCode": "RS",
       "defaultDisplayNameKo": "베오그라드",
-      "shortDescriptionKo": "세르비아 수도, 오스만기 Belgrad",
+      "shortDescriptionKo": "1815년 세르비아 공국 성립 기준",
       "displayTimeline": [
         {
           "fromYear": 1801,
           "nameKo": "베오그라드",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://www.beograd.rs/en/discover-belgrade/a2015/Facts-about-Belgrade.html"
+          "nameEn": "Belgrade",
+          "nameNative": "بلغراد",
+          "nativeLanguage": "ota",
+          "kind": "historicalOttomanAdministrativeLanguageSelection",
+          "sourceUrl": "https://dpul.princeton.edu/islamicmss/catalog/dv13zt28z",
+          "researchNote": "1801년 검수 범위의 초기 원어 대표형은 오스만 튀르키예어 بلغراد(Belgrad)로 선택한다. 오스만 제국의 아랍문자 철자를 원어란에 기재하며 영어 Belgrade·한국어 베오그라드는 계속 유지한다. 1806~1813년 제1차 세르비아 봉기에 따른 일시적인 통치 변화를 전부 명칭 전환점으로 추가하지 않는다. 1801년은 최초 작명일이 아니다."
+        },
+        {
+          "fromDate": "1815-04-23",
+          "nameNative": "Београд",
+          "nativeLanguage": "sr",
+          "kind": "serbianPrincipalityFormationEditorialNameSelection",
+          "sourceUrl": "https://www.mod.gov.rs/lat/10822/drugi-srpski-ustanak-10822",
+          "note": "제2차 봉기·세르비아어 대표명",
+          "researchNote": "1815-04-23(그레고리력, 율리우스력 1815-04-11)은 타코보에서 제2차 세르비아 봉기가 시작된 날이다. 이를 사실상 세르비아 공국 형성의 기준일이자 지도 베오그라드 원어 대표명을 오스만 튀르키예어에서 세르비아어 Београд로 선택하는 편집상 전환점으로 채택한다. 봉기 시작 직후 베오그라드가 세르비아 정부의 완전한 행정권에 들어갔거나 법적 도시명이 개칭되었다는 뜻은 아니다. 오스만의 공식 공국 자치 승인(1830), 베오그라드 시 행정(1830~1839), 수도 이전(1841), 오스만 요새 주둔군 철수(1867)와 명확히 구분한다. 한국어 베오그라드·영어 Belgrade는 유지한다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-contextual-names",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1815-04-23-editorial-native-name-transition",
       "historicalGeography": {
         "events": [
+          {
+            "date": "1815-04-23",
+            "type": "secondSerbianUprisingBeganPrincipalityFormation",
+            "detail": "제2차 세르비아 봉기 개시",
+            "sourceUrl": "https://www.mod.gov.rs/lat/10822/drugi-srpski-ustanak-10822",
+            "researchDetail": "율리우스력 1815-04-11, 그레고리력 1815-04-23. 공국의 사실상 성립 기준일이지 도시 실효지배나 법적 개명일이 아니다."
+          },
+          {
+            "year": 1830,
+            "type": "ottomanFormalSerbianAutonomyGranted",
+            "detail": "오스만 세르비아 공국 자치 승인",
+            "sourceUrl": "https://www.beograd.rs/en/discover-belgrade/a2014/History.html"
+          },
+          {
+            "year": 1841,
+            "type": "serbianPrincipalityCapitalMovedToBelgrade",
+            "detail": "베오그라드 세르비아 공국 수도",
+            "sourceUrl": "https://www.beograd.rs/en/discover-belgrade/a2014/History.html"
+          },
           {
             "year": 1867,
             "type": "ottomanGarrisonDeparture",
@@ -83,6 +114,11 @@
           }
         ],
         "notes": [
+          {
+            "detail": "1815년은 원어 선택의 편집 기준",
+            "sourceUrl": "https://www.mod.gov.rs/lat/10822/drugi-srpski-ustanak-10822",
+            "researchDetail": "오스만 제국의 도시 행정과 세르비아 공국의 점진적 자치 확대가 공존했다. 이미 사용되던 세르비아어 Београд를 1815-04-23부터 지도 원어 대표형으로 선택하는 것이지 실제 1815-04-23 법적 지명 변경을 주장하지 않는다."
+          },
           {
             "detail": "언어별 지명은 도시 개칭과 구별",
             "sourceUrl": "https://www.geonames.org/792680/belgrade.html",
@@ -94,7 +130,10 @@
             "researchDetail": "베오그라드의 PPLC 취락 객체와 동일 명칭의 ADM2 행정구역을 구별"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Belgrade",
+      "defaultDisplayNameNative": "Београд",
+      "defaultNativeLanguage": "sr"
     },
     {
       "geonameId": 727011,
