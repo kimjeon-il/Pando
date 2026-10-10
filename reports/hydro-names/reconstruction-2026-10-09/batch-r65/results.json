@@ -1,0 +1,429 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r65",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r64",
+    "commit": "a6fb771e4d78911c49933c9f487982c5c75fd441",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r64/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70284161",
+    "hydro-system:60622264",
+    "hydro-system:70843673",
+    "hydro-system:90111457"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70284161",
+      "category": "river_group",
+      "system_id": "70284161",
+      "baseline_logical_fid": 3017,
+      "geometry_fids": [
+        9401,
+        9400,
+        9399
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -70.670833,
+        49.135893,
+        -68.371518,
+        52.039583
+      ],
+      "rendered_mainstem_length_km": 461.366,
+      "rendered_network_length_km": 461.366,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -70.670833,
+          49.135893,
+          -68.371518,
+          52.039583
+        ]
+      },
+      "candidate_name": "Rivière aux Outardes system (Boivin–Maublant–Plétipi route)",
+      "candidate_names": [
+        "Rivière aux Outardes"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rivière aux Outardes identifies the downstream named trunk and the representative connected system. The selected headwater approaches Plétipi from the west through the Boivin–Maublant corridor, rather than following the separate northern inlet labeled Rivière aux Outardes. The individual name of the initial selected feeder remains unassigned.",
+      "geographic_disambiguation": "The western headwater hook, Boivin–Maublant–Plétipi lake sequence, long southeast-to-south river, Réservoir Outardes 4 passage and lower coastal approach jointly identify the Outardes system. The selected route remains west of the Manicouagan reservoir and river corridor and east of the Péribonka/Betsiamites drainage setting.",
+      "source_keys": [
+        "r65-mrnf-saguenay-north-carte3",
+        "r65-mddep-pletipi-consultation",
+        "r65-cehq-regions0713-annual-lowflow",
+        "r62-cehq-region08-annual-lowflow",
+        "r65-cehq-outardes2-east-dike"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Québec, Canada: northern Mont-Valin in Saguenay–Lac-Saint-Jean and the western Côte-Nord, west of Réservoir Manicouagan, continuing south toward the Saint-Laurent coast southwest of Baie-Comeau.",
+      "candidate_name_role": "bounded_representative_system_identity_with_route_qualifier",
+      "completion_scope": "Completed for bounded representative-system identity from readable primary cartography and a technical lower-development locator. Every selected piece was inspected. Exact small-feeder naming, waterbody entry/exit vertices and surveyed estuarine limits remain unassigned. Failed additional sources do not leave the supported representative identity pending.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rivière aux Outardes",
+        "route_qualifier": "Boivin–Maublant–Plétipi is an editorial description of the selected western approach, not an official compound hydronym.",
+        "upper_scope": "Northwestern headwater hook and western feeder leading into the Boivin lake corridor. Rivière Boivin is mapped in this feeder setting; no exact upstream naming transition or name for the initial selected small waterbody is assigned. The separate northern Rivière aux Outardes inlet into the Plétipi lake country is not substituted for the actual selected route.",
+        "lake_scope": "The selected western lake sequence corresponds to Lac Boivin, Lac Maublant and Lac Plétipi, followed by the Lac des Îles Brûlées outlet setting. The last is described as an outlet setting rather than a surveyed exact lake-entry segment. Lac Kaussishkakamau, Matonipi and Matonipis are separately mapped in the northern/eastern setting and are not added to the selected western chain merely because they appear on the same map.",
+        "reservoir_scope": "Réservoir Outardes 4 is directly distinguished from the river and neighboring reservoirs. The lower selected corridor reaches the Outardes-2 development setting. Exact boundaries among lower river, impoundments, dikes, tailraces and estuarine water are not established from these generalized maps.",
+        "tributary_scope": "All three selected pieces are modeled as mainstem; that modeling role does not make the western feeder’s hydronym identical to the downstream river. Matonipi and other separately depicted lateral branches are not separately selected fragments and are not absorbed into a full-group naming assertion.",
+        "terminal_scope": "Lower Outardes-2 coastal approach southwest of Baie-Comeau. The wider drainage reaches the Saint-Laurent, but the selected endpoint does not certify the full mouth/estuary or an exact freshwater–tidal boundary.",
+        "historical_source_scope": "The planning and conservation maps are historical cartographic sources. Their proposed conservation boundaries, legal status, planned projects and water-management statistics are not treated as current conditions.",
+        "model_limits": "Fragment boundaries do not establish hydronym boundaries. Model length is not an official river length. No formal naming date, historical alias series, Indigenous-name equivalence or Korean form is established. Gazetteer-derived historical-name prose appearing incidentally in the conservation document was excluded from this finding."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60622264",
+      "category": "river_group",
+      "system_id": "60622264",
+      "baseline_logical_fid": 3434,
+      "geometry_fids": [
+        13775,
+        13778,
+        13772,
+        13774,
+        13777,
+        13771,
+        13773,
+        13770,
+        13776
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -46.61875,
+        -6.791667,
+        -44.572917,
+        -3.300226
+      ],
+      "rendered_mainstem_length_km": 461.252,
+      "rendered_network_length_km": 992.978,
+      "geometry_summary": {
+        "fragment_count": 9,
+        "mainstem_fragment_count": 6,
+        "mainstem_bbox": [
+          -45.908333,
+          -5.59375,
+          -44.572917,
+          -3.300226
+        ]
+      },
+      "candidate_name": "Rio Mearim system (Maranhão)",
+      "candidate_names": [
+        "Rio Mearim"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Mearim supports the representative identity of the selected group downstream through Barra do Corda, Pedreiras and Bacabal toward the inland Arari–Vitória do Mearim setting. The modeled initial northern feeder and the long western Grajaú contribution retain separate scopes. The selection does not represent the entire natural Mearim from its source to the sea.",
+      "geographic_disambiguation": "All nine selected fragments were inspected, including all six modeled-mainstem pieces and the three-piece western contribution. The initial northern feeder differs from the mapped southern upper Mearim; the northeast-to-north trunk and western Grajaú join distinguish this group from the separate Pindaré and Itapecuru selections.",
+      "source_keys": [
+        "ibge_maranhao_political_map",
+        "r65-ana-subbasin33-2016",
+        "sema_progestao_2025_report_2026",
+        "r65-cprm-jenipapo-waterpoints-2011"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central Maranhão, Brazil: a headward approach south of Jenipapo dos Vieiras, Barra do Corda–Pedreiras–Bacabal, the western Grajaú corridor and the inland lower Mearim.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative correspondence using inspected official map pixels and the river-name station table. Initial feeder names and transitions, the southern Grajaú headward name limit, exact junction vertices and lower floodplain-channel boundaries remain unassigned. These explicit scope limits do not prevent the representative-system finding; additional material is not pending.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rio Mearim",
+        "geographic_qualifier": "Maranhão and system are editorial scope qualifiers, not an official extended hydronym.",
+        "upper_scope": "Initial northern feeder toward Barra do Corda; the named southern upper Mearim and its natural source are not selected. Capim Duro/Cipó provides regional feeder context only, not an accepted name for every vertex of the first piece.",
+        "tributary_scope": "The long western contribution has a supported Grajaú corridor identity, with its extreme southern feeder and lower connecting-channel names unassigned. Corda/Capim and Flores are separate mapped contributing context; Pindaré is a separate lower-network approach.",
+        "terminal_scope": "The selection ends inland near the Arari–Vitória do Mearim setting. No extension to the coast or exact confluence, floodplain-channel, mouth or tidal-limit assignment.",
+        "model_limits": "Modeled mainstem membership does not establish official river-name continuity. Fragment lengths are not natural-river lengths; no formal naming history, alias series, Korean name, current navigation or flow conditions are established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70843673",
+      "category": "river_group",
+      "system_id": "70843673",
+      "baseline_logical_fid": 3217,
+      "geometry_fids": [
+        10357
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -109.431777,
+        25.83098,
+        -107.970833,
+        28.15
+      ],
+      "rendered_mainstem_length_km": 460.269,
+      "rendered_network_length_km": 460.269,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -109.431777,
+          25.83098,
+          -107.970833,
+          28.15
+        ]
+      },
+      "candidate_name": "Río Fuerte system (Chínipas headwater corridor)",
+      "candidate_names": [
+        "Río Fuerte"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Oteros and Chínipas are supported for successive bounded upper-corridor settings, and Río Fuerte for the downstream system. The initial Ocampo–Uruachi approach is not assigned a precise feeder name. Reservoir passages and the coastal outlet retain separate scope; one river name is not extended over every modeled segment.",
+      "geographic_disambiguation": "The complete selected line begins in the eastern Ocampo headwater setting, descends near the Uruachi–Maguarichi boundary, turns west and southwest into the Oteros–Chínipas corridor, enters Huites from the north, continues through the Miguel Hidalgo storage setting and follows the lower Fuerte plain to Boca las Piedras. This is distinct from the nearby Mayo and the previously researched Yaqui system.",
+      "source_keys": [
+        "r65-inegi-chihuahua-state-2024-2025",
+        "r65-inegi-sinaloa-state-2020-2021",
+        "r65-inegi-ocampo-2010",
+        "r65-inegi-maguarichi-2010",
+        "r65-inegi-uruachi-2010"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southwestern Chihuahua, the southeastern Sonora border sector and northern Sinaloa, Mexico; Pacific drainage to the Gulf of California.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence using the whole selected mainstem and readable official state and municipal map pixels. Exact initial feeder, hydronym transitions, reservoir boundaries and modern outlet vertices remain unassigned. Those limits do not prevent this representative-system finding; no further acquisition is pending.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río Fuerte",
+        "upper_scope": "Initial eastern Ocampo feeder remains unnamed in this assessment. The maps support its connection into the lower Oteros–Chínipas corridor, while Maguarichi and the separate eastern Oteros approach retain their own reach scope. No precise junction or name-transition vertex is assigned.",
+        "reservoir_scope": "Luis Donaldo Colosio Murrieta (Huites) and Miguel Hidalgo y Costilla (El Mahone) are distinct storage settings crossed by the modeled route. This is not a claim that their water surfaces carry a uniform river hydronym or that modeled crossings follow a contemporary shoreline.",
+        "tributary_scope": "Septentrión, the eastern Río Fuerte approach and other mapped tributaries are separate contributions, not aliases for the entire selected object.",
+        "terminal_scope": "Lower Fuerte coastal approach at Boca las Piedras in the Gulf of California setting. Exact modern outlet and adjacent estuarine or canal boundaries are outside the supported scope.",
+        "model_limits": "A single modeled mainstem does not establish one hydronym, permanent surface flow, an official source-to-mouth length or an exhaustive network name. The cartography has mixed reference dates. No Korean form or historical name sequence was established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90111457",
+      "category": "river_group",
+      "system_id": "90111457",
+      "baseline_logical_fid": 2872,
+      "geometry_fids": [
+        8892,
+        8891,
+        8890
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -50.693707,
+        64.329167,
+        -44.595833,
+        65.477083
+      ],
+      "rendered_mainstem_length_km": 459.784,
+      "rendered_network_length_km": 459.784,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -50.693707,
+          64.329167,
+          -44.595833,
+          65.477083
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for the complete modeled Inland Ice path. This completed feature-class and naming-scope hold does not claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "Southwestern Greenland: a long Inland Ice corridor toward the western ice margin and inland terrain east of Maniitsoq and north of Nuuk, near the broader Isukasia region. Nearby land, glacier, settlement and fjord names are contextual, not assigned river names.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "Readable coverage supports the completed scope hold. Positive natural-river identity evidence would be required before any later name assignment; no further acquisition is pending now.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 459.784,
+        "length_limit": "Model display length, not a measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90111457"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 203,
+    "non_pending_records": 198,
+    "source_access_pending": 3,
+    "source_material_pending": 2,
+    "source_any_pending": 5,
+    "scope_holds": 65,
+    "river_groups": 105,
+    "lakes": 98,
+    "unrecorded": 3862,
+    "unrecorded_river_groups": 3350,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r65-mrnf-saguenay-north-carte3",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Saguenay-Lac-Saint-Jean/CA_03_potentiel-projets-nord-SLSJ_MERN.pdf?1605550916="
+    },
+    {
+      "source_key": "r65-mddep-pletipi-consultation",
+      "official_url": "https://archives.bape.gouv.qc.ca/sections/mandats/8reserves_cote-nord/documents/PR1_4.1_lac_pl%C3%A9tipi.pdf"
+    },
+    {
+      "source_key": "r65-cehq-regions0713-annual-lowflow",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_07_13specifique_annuel.pdf"
+    },
+    {
+      "source_key": "r62-cehq-region08-annual-lowflow",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_08_specifique_annuel.pdf"
+    },
+    {
+      "source_key": "r65-cehq-outardes2-east-dike",
+      "official_url": "https://www.cehq.gouv.qc.ca/barrages/detail.asp?no_mef_lieu=X0003189"
+    },
+    {
+      "source_key": "ibge_maranhao_political_map",
+      "official_url": "https://geoftp.ibge.gov.br/produtos_educacionais/mapas_tematicos/mapas_do_brasil/mapas_estaduais/politico/maranhao.pdf"
+    },
+    {
+      "source_key": "r65-ana-subbasin33-2016",
+      "official_url": "https://metadados.snirh.gov.br/geonetwork/srv/api/records/92c8c8e2-a82e-4753-9bda-f3a6818e961e/attachments/c04._Sub-Bacia_33_Rios_Mearim_Itapecuru_e_Outros.pdf"
+    },
+    {
+      "source_key": "sema_progestao_2025_report_2026",
+      "official_url": "https://progestao.ana.gov.br/progestao-1/certificacao/certificacoes-2013-a-2018/certificacao-2025/certificacao-das-metas-federativas-2025/relatorios-progestao-2025/ma_relatorio_progestao_3operiodo_2025.pdf/%40%40download/file/MA_Relatorio_Progestao_3oPeriodo_2025.pdf"
+    },
+    {
+      "source_key": "r65-cprm-jenipapo-waterpoints-2011",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/d33e1038-fb66-4ee2-b2c9-acbdb9b9c234/content"
+    },
+    {
+      "source_key": "r65-inegi-chihuahua-state-2024-2025",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/chih/794551162774.pdf"
+    },
+    {
+      "source_key": "r65-inegi-sinaloa-state-2020-2021",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf"
+    },
+    {
+      "source_key": "r65-inegi-ocampo-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08051.pdf"
+    },
+    {
+      "source_key": "r65-inegi-maguarichi-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08041.pdf"
+    },
+    {
+      "source_key": "r65-inegi-uruachi-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08066.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "a6fb771e4d78911c49933c9f487982c5c75fd441",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      59,
+      60,
+      61,
+      62
+    ],
+    "next_unrecorded_id": "hydro-system:60740555",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

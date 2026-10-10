@@ -1,0 +1,377 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r65",
+  "sources": [
+    {
+      "source_key": "r65-mrnf-saguenay-north-carte3",
+      "title": "Plan d’affectation du territoire public du Saguenay–Lac-Saint-Jean — Carte 3 : Potentiels, projets et éléments particuliers, Partie Nord",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune, Direction des affaires régionales du Saguenay–Lac-Saint-Jean",
+      "attribution": "© Gouvernement du Québec; legal deposit, second trimester 2012. BDTA 250k base, 2011; map scale 1:350,000; NAD83, Lambert with 46° and 60° standard parallels.",
+      "year": 2012,
+      "page": "Single northern sheet; whole sheet and readable northwestern feeder/Boivin–Maublant–Plétipi enlargement.",
+      "supports": "Selected western headwater approach and Boivin–Maublant–Plétipi lake sequence; distinction from the separately mapped northern inlet.",
+      "limits": "Land-use overlays and generalized channels do not supply a hydronym for every small feeder or exact lake entry/exit. Planning designations are not used as current legal claims.",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Saguenay-Lac-Saint-Jean/CA_03_potentiel-projets-nord-SLSJ_MERN.pdf?1605550916="
+    },
+    {
+      "source_key": "r65-mddep-pletipi-consultation",
+      "title": "Projet d’attribution d’un statut permanent de réserve de biodiversité pour huit territoires dans la région administrative de la Côte-Nord — Document d’information pour les consultations publiques, section 4.1 : Réserve de biodiversité projetée du lac Plétipi",
+      "publisher": "Gouvernement du Québec, Ministère du Développement durable, de l’Environnement et des Parcs; primary document archived by the Bureau d’audiences publiques sur l’environnement",
+      "attribution": "Primary conservation-planning document. Figure 16 reproduces the ministry’s April 2005 conservation-plan map; Figures 20 and 21 provide whole-basin and detailed hydrographic context.",
+      "year": 2011,
+      "page": "Printed pp. 30–31 and 35–36, PDF pp. 2–3 and 7–8: Figures 16, 20 and 21 and the hydrographic description.",
+      "supports": "Lake/trunk distinction, separate northern Outardes inlet, Matonipi tributary context, full Outardes basin, reservoir corridor and downstream Saint-Laurent setting.",
+      "limits": "Whole-basin map is generalized and does not establish precise terminal vertices. Gazetteer-attributed historical-name prose and conservation-status assertions were excluded.",
+      "official_url": "https://archives.bape.gouv.qc.ca/sections/mandats/8reserves_cote-nord/documents/PR1_4.1_lac_pl%C3%A9tipi.pdf"
+    },
+    {
+      "source_key": "r65-cehq-regions0713-annual-lowflow",
+      "title": "Débits spécifiques d’étiage annuels — Régions hydrographiques 07 et 13",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011, updated December 2014. Cartography: Marie-Lise Paquin and Eric Levasseur; approved by Joëlle Bérubé. BDGA 1:1,000,000 base; map scale 1:2,250,000; NAD83 Québec Lambert.",
+      "year": 2011,
+      "page": "Single regional sheet; complete map and readable western corridor enlargement.",
+      "supports": "Named Outardes trunk, Outardes 4 reservoir and separation from Manicouagan, Manic 3, Manic 2 and Pipmuacan; lower coast context.",
+      "limits": "Far-western headwater coverage is incomplete on this sheet and is supplemented by the Saguenay sheet. Regional scale does not resolve every small feeder or terminal boundary. Low-flow estimates are outside this finding.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_07_13specifique_annuel.pdf"
+    },
+    {
+      "source_key": "r62-cehq-region08-annual-lowflow",
+      "title": "Débits spécifiques d’étiage annuels — Région hydrographique 08",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011. Cartography: Marie-Lise Paquin and Eric Levasseur; approved by Joëlle Bérubé. BDGA 1:1,000,000 base; map scale 1:1,750,000; NAD83 Québec Lambert.",
+      "year": 2011,
+      "page": "Single regional sheet, eastern margin and readable upper-eastern enlargement.",
+      "supports": "Rivière Boivin/Lac Maublant feeder setting east of the Péribonka drainage divide.",
+      "limits": "Peripheral context only; the map title obscures part of the northern continuation. Shares the CEHQ generalized hydrographic base and is not an independent detailed source for the complete headwater path.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_08_specifique_annuel.pdf"
+    },
+    {
+      "source_key": "r65-cehq-outardes2-east-dike",
+      "title": "Répertoire des barrages — Fiche technique X0003189 : Outardes-2, Digue Est aux",
+      "publisher": "Gouvernement du Québec, expertise hydrique et barrages",
+      "page": "Identification, location and hydrography sections.",
+      "supports": "Lower Outardes-2 vicinity, separately identified reservoir and Rivière aux Outardes watercourse, used only as a bounded terminal-context locator.",
+      "limits": "A single dike location does not establish the selected endpoint as that structure, the mouth or a tidal boundary. Safety, operating status and engineering measurements were not used.",
+      "official_url": "https://www.cehq.gouv.qc.ca/barrages/detail.asp?no_mef_lieu=X0003189"
+    },
+    {
+      "source_key": "ibge_maranhao_political_map",
+      "title": "Maranhão (mapas estaduais, político)",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year": null,
+      "page": "Single-sheet map, PDF page 1",
+      "supports": "Regional Mearim/Grajaú course shapes, labeled western contribution, town sequence and inland versus coastal distinction.",
+      "limits": "Generalized educational map; does not resolve the initial northern feeder, exact name transitions or lower joining channels. No publication year inferred from file metadata.",
+      "official_url": "https://geoftp.ibge.gov.br/produtos_educacionais/mapas_tematicos/mapas_do_brasil/mapas_estaduais/politico/maranhao.pdf"
+    },
+    {
+      "source_key": "r65-ana-subbasin33-2016",
+      "title": "Rede Hidrometeorológica Nacional — Sub-Bacia 33 Rios Mearim Itapecuru e Outros; Estações Fluviométricas e Pluviométricas da ANA em Operação",
+      "publisher": "Agência Nacional de Águas, Superintendência de Gestão da Rede Hidrometeorológica, CPLAR/SGH",
+      "edition": "November 2016, version 01",
+      "year": 2016,
+      "page": "Single-sheet map, PDF page 1",
+      "supports": "Detailed regional main-river geometry, separate Corda/Capim and Grajaú corridors, station setting and lower network.",
+      "limits": "Historical station map, not a present operating-status source or exact hydronym-boundary survey. Several minor feeders are unlabeled. Basemap credits appear on the original; no map content is republished.",
+      "official_url": "https://metadados.snirh.gov.br/geonetwork/srv/api/records/92c8c8e2-a82e-4753-9bda-f3a6818e961e/attachments/c04._Sub-Bacia_33_Rios_Mearim_Itapecuru_e_Outros.pdf"
+    },
+    {
+      "source_key": "sema_progestao_2025_report_2026",
+      "title": "Relatório Progestão 2025 – 3º Ciclo, 3º Período de Certificação, Maranhão; Annex 03, Relatório Metodológico de Definição de Cotas de Referência",
+      "publisher": "Governo do Estado do Maranhão, Secretaria de Estado do Meio Ambiente e Recursos Naturais, CPDAm/Sala de Situação; hosted by ANA",
+      "year": 2026,
+      "page": "Cover dated 15 April 2026; Annex 03 Table 1, printed pp. 17–18, PDF pp. 150–151",
+      "supports": "Explicit river-name assignments for the Mearim, Grajaú and Flores station sequence.",
+      "limits": "Station points corroborate the maps but do not name every intervening reach or identify exact headwater and junction limits. Source coordinate values are not reproduced.",
+      "official_url": "https://progestao.ana.gov.br/progestao-1/certificacao/certificacoes-2013-a-2018/certificacao-2025/certificacao-das-metas-federativas-2025/relatorios-progestao-2025/ma_relatorio_progestao_3operiodo_2025.pdf/%40%40download/file/MA_Relatorio_Progestao_3oPeriodo_2025.pdf"
+    },
+    {
+      "source_key": "r65-cprm-jenipapo-waterpoints-2011",
+      "title": "Mapa de pontos d’água do município de Jenipapo dos Vieiras – MA; Projeto Cadastro de Fontes de Abastecimento por Água Subterrânea no Estado do Maranhão",
+      "publisher": "Ministério de Minas e Energia, CPRM – Serviço Geológico do Brasil, Residência de Teresina",
+      "year": 2011,
+      "page": "Single-sheet map, PDF page 1, southern municipal drainage and footer",
+      "supports": "Distinction between the northern Capim Duro/Cipó feeder setting and the named Rio Mearim along São Pedro–Arranca farther south.",
+      "limits": "Municipal groundwater-inventory map, not full-corridor coverage. Its hydrographic base was digitized in 2007 from older topographic mapping; it does not establish present flow permanence or exact modeled feeder-name transitions.",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/d33e1038-fb66-4ee2-b2c9-acbdb9b9c234/content"
+    },
+    {
+      "source_key": "r65-inegi-chihuahua-state-2024-2025",
+      "title": "Condensado Estatal Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "year": 2024,
+      "publication_year": 2025,
+      "page": "Single map sheet, PDF p. 1; fourth edition 2024, copyright 2025; scale 1:1,000,000.",
+      "supports": "Complete regional route correspondence, Chínipas and Septentrión labels, Huites and Miguel Hidalgo storage sequence, lower Fuerte and coastal setting.",
+      "limits": "Generalized state cartography derived from 1:250,000 sixth-edition 2023 topographic coverage. Sparse labels do not establish every upstream hydronym or exact shoreline. Original map pixels remain local.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/chih/794551162774.pdf"
+    },
+    {
+      "source_key": "r65-inegi-sinaloa-state-2020-2021",
+      "title": "Condensado Estatal Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "year": 2020,
+      "publication_year": 2021,
+      "page": "Single map sheet, PDF p. 1; first edition 2020, copyright 2021; scale 1:700,000.",
+      "supports": "Huites, Miguel Hidalgo and separate Josefa Ortiz storage settings; lower river continuity past El Fuerte and San Blas to the Boca las Piedras coastal setting.",
+      "limits": "State map with planimetry derived from 1:250,000 series III coverage and other mixed-date inputs. It does not cover the northernmost selected feeder or prove contemporary channel and shoreline details. Source imagery is not redistributed.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf"
+    },
+    {
+      "source_key": "r65-inegi-ocampo-2010",
+      "title": "Compendio de información geográfica municipal 2010. Ocampo, Chihuahua",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF pp. 5–6, Localidades e Infraestructura para el Transporte and Relieve; hydrography table on PDF p. 3.",
+      "supports": "Eastern Ocampo headwater setting, locality context and separation of the Fuerte/Oteros portion from the municipality's Mayo and Yaqui drainage portions.",
+      "limits": "Municipal map based on generalized topographic and INEGI–CONAGUA hydrographic mapping. Several local streams are named, but no exact initial feeder name is assigned from a municipal table or generalized label alone.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08051.pdf"
+    },
+    {
+      "source_key": "r65-inegi-maguarichi-2010",
+      "title": "Compendio de información geográfica municipal 2010. Maguarichi, Chihuahua",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; hydrography table on PDF p. 3.",
+      "supports": "Separately labeled Maguarichi and Oteros branches and the western municipal-boundary channel context.",
+      "limits": "The municipality's Oteros sub-basin membership is broader than an individual river-name extent. Map labels are not extended to every northern boundary reach.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08041.pdf"
+    },
+    {
+      "source_key": "r65-inegi-uruachi-2010",
+      "title": "Compendio de información geográfica municipal 2010. Uruachi, Chihuahua",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; hydrography table on PDF p. 3.",
+      "supports": "Eastern boundary approach, the lower Oteros turn toward Chínipas and the distinct Mayo drainage farther west.",
+      "limits": "Generalized municipal hydrography does not name every northern feeder or establish exact name-transition vertices. Basin proportions were not used as path-identification evidence.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08066.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; southwestern Inland Ice and Isukasia–Maniitsoq–Nuuk regional context, graticule and Inland Ice legend",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description, pp. 64–65 Glaciology, and label register for Isukasia, Maniitsoq and Nuuk",
+      "supports": "Explains map feature classes and supplies regional label context without establishing a river identity for the selected line.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70284161",
+      "source_keys": [
+        "r65-mrnf-saguenay-north-carte3",
+        "r65-mddep-pletipi-consultation",
+        "r65-cehq-regions0713-annual-lowflow",
+        "r62-cehq-region08-annual-lowflow",
+        "r65-cehq-outardes2-east-dike"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9399
+          ],
+          "finding": "The northwestern beginning bends east and south, then turns east through the western lake approach. The MRNF sheet places Lac Boivin west of Lac Maublant and the retained CEHQ sheet labels the associated Boivin feeder corridor. This supports the western approach; the exact hydronym of the initial small selected feeder is not established.",
+          "sources": [
+            "r65-mrnf-saguenay-north-carte3",
+            "r62-cehq-region08-annual-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            9399,
+            9400
+          ],
+          "finding": "The eastward connection reaches Maublant and turns southeast through Plétipi toward the Lac des Îles Brûlées outlet setting. MDDEP’s detailed hydrographic map distinguishes this western lake entry from the separate northern river inlet labeled Rivière aux Outardes. The source lake, intervening lake passages and downstream river therefore retain separate naming scope.",
+          "sources": [
+            "r65-mrnf-saguenay-north-carte3",
+            "r65-mddep-pletipi-consultation",
+            "r65-cehq-regions0713-annual-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            9400,
+            9401
+          ],
+          "finding": "Below the Plétipi lake country, the selected corridor continues southeast and then south along the named Rivière aux Outardes, remaining west of Réservoir Manicouagan. Matonipi is a separately mapped eastern tributary basin; the selection does not follow its upper lake branch or the Manicouagan trunk.",
+          "sources": [
+            "r65-mddep-pletipi-consultation",
+            "r65-cehq-regions0713-annual-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            9401
+          ],
+          "finding": "The middle-to-lower route enters the long north–south Réservoir Outardes 4 corridor before turning southeast into the lower river. The CEHQ and MDDEP maps separately depict Outardes 4, Pipmuacan to the west and Manic 3/Manic 2 to the east; the selected line does not switch into those neighboring reservoir systems. The river-system identity does not rename the reservoir as a natural river reach.",
+          "sources": [
+            "r65-cehq-regions0713-annual-lowflow",
+            "r65-mddep-pletipi-consultation"
+          ]
+        },
+        {
+          "fragments": [
+            9401
+          ],
+          "finding": "The selected final approach is in the lower Outardes-2 vicinity southwest of Baie-Comeau. The provincial technical record locates the east dike and identifies its reservoir and watercourse as Outardes 2 and Rivière aux Outardes. The regional maps show the wider downstream connection to the Saint-Laurent. The selected endpoint is not asserted to be a dam crest, a surveyed mouth, a tidal limit or the full estuarine channel.",
+          "sources": [
+            "r65-cehq-outardes2-east-dike",
+            "r65-cehq-regions0713-annual-lowflow",
+            "r65-mddep-pletipi-consultation"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60622264",
+      "source_keys": [
+        "ibge_maranhao_political_map",
+        "r65-ana-subbasin33-2016",
+        "sema_progestao_2025_report_2026",
+        "r65-cprm-jenipapo-waterpoints-2011"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13770
+          ],
+          "finding": "The first modeled-mainstem piece approaches Barra do Corda from the west, north of the officially mapped upper Mearim. CPRM maps the Capim Duro/Cipó feeder setting on this northern side, while its explicitly labeled Rio Mearim follows the southern São Pedro–Arranca corridor. The selected approach is therefore retained as a headward feeder complex; neither the whole piece nor its start is asserted to be the natural upper Mearim. Exact feeder-name transitions remain unassigned.",
+          "sources": [
+            "r65-cprm-jenipapo-waterpoints-2011",
+            "r65-ana-subbasin33-2016",
+            "ibge_maranhao_political_map"
+          ]
+        },
+        {
+          "fragments": [
+            13771
+          ],
+          "finding": "From Barra do Corda the selected trunk turns northeast toward the Santa Vitória and Esperantinópolis setting, then bends east toward the Flores junction region. ANA maps this route separately from the southern Corda/Capim and Flores contributions. SEMA explicitly assigns Barra do Corda and Santa Vitória stations to Mearim and Joselândia to Flores; Flores is not a replacement name for the selected trunk.",
+          "sources": [
+            "r65-ana-subbasin33-2016",
+            "sema_progestao_2025_report_2026"
+          ]
+        },
+        {
+          "fragments": [
+            13772,
+            13773,
+            13774
+          ],
+          "finding": "The middle pieces turn north through Pedreiras, westward through the São Luiz Gonzaga–Bacabal setting and then northeast toward the lower river. The IBGE and ANA maps show this distinctive sequence; SEMA directly identifies Pedreiras II, São Luiz Gonzaga and Bacabal stations on Mearim. The eastern Itapecuru corridor is separate.",
+          "sources": [
+            "ibge_maranhao_political_map",
+            "r65-ana-subbasin33-2016",
+            "sema_progestao_2025_report_2026"
+          ]
+        },
+        {
+          "fragments": [
+            13776,
+            13777,
+            13778
+          ],
+          "finding": "The three western contribution pieces rise from the southern headward setting, pass Grajaú, turn northeast past Itaipava do Grajaú and continue north to the Aratoí Grande setting before joining the selected eastern trunk. Official maps identify the main contributing corridor as Rio Grajaú; SEMA assigns Grajaú II and Aratoí Grande stations to Grajaú. Its extreme southern feeder name and the final joining-channel name remain unassigned. This long contribution is not renamed Mearim or Pindaré.",
+          "sources": [
+            "ibge_maranhao_political_map",
+            "r65-ana-subbasin33-2016",
+            "sema_progestao_2025_report_2026"
+          ]
+        },
+        {
+          "fragments": [
+            13775
+          ],
+          "finding": "After the western contribution joins, the short final piece continues north through the inland Arari–Vitória do Mearim setting. The mapped Mearim and coastal network continue beyond the selected endpoint, while Pindaré approaches separately from the west. No Atlantic mouth, estuary, tidal boundary or complete lower floodplain network is assigned to this truncated selection.",
+          "sources": [
+            "ibge_maranhao_political_map",
+            "r65-ana-subbasin33-2016"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70843673",
+      "source_keys": [
+        "r65-inegi-chihuahua-state-2024-2025",
+        "r65-inegi-sinaloa-state-2020-2021",
+        "r65-inegi-ocampo-2010",
+        "r65-inegi-maguarichi-2010",
+        "r65-inegi-uruachi-2010"
+      ],
+      "correspondence": [
+        {
+          "finding": "The northern approach matches the Huevachi/eastern Ocampo setting and the southward channel near the Uruachi–Maguarichi boundary. Municipal maps distinguish the Maguarichi and Oteros branches; neither name is assigned wholesale to this initial feeder.",
+          "sources": [
+            "r65-inegi-chihuahua-state-2024-2025",
+            "r65-inegi-ocampo-2010",
+            "r65-inegi-maguarichi-2010",
+            "r65-inegi-uruachi-2010"
+          ]
+        },
+        {
+          "finding": "Below the Uruachi setting, the selected westward and southwestward course follows the lower Oteros corridor and then turns south past Chínipas de Almada. The separate Mayo drainage lies to the west; municipal basin membership alone was not used to choose the identity.",
+          "sources": [
+            "r65-inegi-chihuahua-state-2024-2025",
+            "r65-inegi-uruachi-2010"
+          ]
+        },
+        {
+          "finding": "The southward Chínipas approach reaches the Septentrión junction and the northern arm of Luis Donaldo Colosio Murrieta (Huites). The separately mapped Río Fuerte approach from the east is not the selected upstream branch.",
+          "sources": [
+            "r65-inegi-chihuahua-state-2024-2025",
+            "r65-inegi-sinaloa-state-2020-2021"
+          ]
+        },
+        {
+          "finding": "Below Huites, the route bends west through the Agua Caliente de Baca setting and south through Miguel Hidalgo y Costilla (El Mahone) toward El Fuerte. Josefa Ortiz de Domínguez storage is separately mapped to the west and is not traversed by this selected course.",
+          "sources": [
+            "r65-inegi-chihuahua-state-2024-2025",
+            "r65-inegi-sinaloa-state-2020-2021"
+          ]
+        },
+        {
+          "finding": "The lower course continues south through the San Blas setting, turns west across the San Miguel Zapotitlán–El Guayabo plain and approaches the coast near Las Grullas and Boca las Piedras. The maps distinguish the river corridor from the surrounding canal grid; no exact current mouth, shoreline or distributary extent is asserted.",
+          "sources": [
+            "r65-inegi-chihuahua-state-2024-2025",
+            "r65-inegi-sinaloa-state-2020-2021"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90111457",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete three-piece selected mainstem was inspected, including the long north-northwest interior leg, westward undulating middle corridor, abrupt western southward turn and winding western ending. There is no separately selected tributary piece.",
+        "The long eastern and middle portions lie on mapped Inland Ice. The western portion approaches the ice margin and adjoining inland terrain in the broader Isukasia region, east of Maniitsoq and north of Nuuk. The map graticule and surrounding ice/land arrangement support regional correspondence, but no exact terminal stream, lake or glacier boundary is assigned.",
+        "The map does not establish the complete modeled line as a named natural river or glacier. Western marginal waterways cannot supply a uniform hydronym for the extensive interior-ice path, and the scope hold does not assert that every local marginal stream is unnamed.",
+        "The legend distinguishes ice-surface, thickness and sub-ice bedrock contours. In this southern region, bold blue aeromagnetic lineaments are also present and are not river channels. Historical mapping establishes neither present-day ice margins nor flow or subglacial connectivity along the selected line."
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
