@@ -12,14 +12,15 @@
   "historicalDisplayStatus": "timeline-staged-not-runtime",
   "historicNameScope": "Attested names in use during/after 1801. Administrative status and orthographic/editorial transitions are not mistaken for city rename.",
   "qualityNotes": [
-    "Oslo official legal rename effective 1925-01-01. Christiania→Kristiania is an earlier Norwegian spelling shift (state 1877, municipal 1897), not a separate Korean map label.",
-    "Kjøbenhavn→København 1906 municipal spelling change, not an official renamed city or a distinct Korean city name.",
+    "Oslo: Norwegian Christiania from 1801, Kristiania in municipal usage from approximate 1897, official Oslo from 1925-01-01 (1924-07-11 law). English Christiania and Korean 크리스티아니아 remain until the 1925 legal rename; do not confuse 1877 state spelling with 1897 municipal practice.",
+    "Copenhagen: Kjøbenhavn to København selected native spelling switch in approximate 1906 based on municipal orthography change. Korean 코펜하겐 and English Copenhagen remain constant; exact day unknown and national orthography permitted overlap.",
     "Helsinki and Helsingfors coexist in Finnish and Swedish. Dublin and Baile Átha Cliath similarly coexist.",
     "Bern became federal seat on 1848-11-28; no technically designated Swiss de jure national capital.",
     "Kyiv: PandoEditor Korean label convention changes 키예프→키이우 on Ukraine's 1991-08-24 independence declaration. The 2022-03-10 South Korean norm adoption remains evidence only. Ukrainian Київ and Russian Киев are coexisting language forms; no official city renaming occurred in 1991.",
     "Bucharest 1862-02-05 Gregorian (24 Jan Julian) became capital; city name persisted.",
     "UI notes/details and short descriptions <=28 Unicode codepoints; detailed notes and sources retained separately.",
-    "Data is staged for later merge; map runtime and production manifest not updated."
+    "Data is staged for later merge; map runtime and production manifest not updated.",
+    "Stockholm: Swedish/English Stockholm and Korean 스톡홀름 remain unchanged from 1801. Batch 08 Stockholm, Copenhagen and Oslo trilingual names are finalized; other five city records are not part of this update."
   ],
   "records": [
     {
@@ -28,6 +29,11 @@
         {
           "text": "Stockholm",
           "language": "sv",
+          "usage": "standard"
+        },
+        {
+          "text": "Stockholm",
+          "language": "en",
           "usage": "standard"
         },
         {
@@ -46,21 +52,36 @@
       "shortDescriptionKo": "스웨덴의 수도",
       "displayTimeline": [
         {
-          "nameKo": "스톡홀름",
           "fromYear": 1801,
+          "nameKo": "스톡홀름",
+          "nameEn": "Stockholm",
+          "nameNative": "Stockholm",
+          "nativeLanguage": "sv",
           "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/2673730/"
+          "sourceUrl": "https://www.geonames.org/2673730/",
+          "researchNote": "1801년부터 조사 범위 전체에서 스웨덴어 Stockholm, 영어 Stockholm, 한국어 스톡홀름을 유지한다. 1801년은 검수 범위의 시작일이지 도시 성립일이 아니다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801"
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "defaultDisplayNameEn": "Stockholm",
+      "defaultDisplayNameNative": "Stockholm",
+      "defaultNativeLanguage": "sv"
     },
     {
       "geonameId": 2618425,
       "names": [
         {
+          "text": "Kjøbenhavn",
+          "language": "da",
+          "usage": "historical",
+          "variantType": "selectedHistoricalMunicipalSpelling",
+          "sourceUrl": "https://sproget.dk/sprogviden/spoergsmaal-og-svar/dansk-sprognaevn/sv00016847/"
+        },
+        {
           "text": "København",
           "language": "da",
-          "usage": "standard"
+          "usage": "standard",
+          "sourceUrl": "https://sproget.dk/sprogviden/spoergsmaal-og-svar/dansk-sprognaevn/sv00016847/"
         },
         {
           "text": "Copenhagen",
@@ -71,14 +92,6 @@
           "text": "코펜하겐",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Kjøbenhavn",
-          "language": "da",
-          "usage": "historical",
-          "variantType": "historicalDanishOrthography",
-          "sourceUrl": "https://sproget.dk/sprogviden/spoergsmaal-og-svar/dansk-sprognaevn/sv00016847/",
-          "note": "1906년 시 표기 변경, 철자 병용"
         }
       ],
       "latitude": 55.67594,
@@ -91,13 +104,27 @@
       "shortDescriptionKo": "1906년 덴마크어 표기 변경",
       "displayTimeline": [
         {
-          "nameKo": "코펜하겐",
           "fromYear": 1801,
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/2618425/"
+          "nameKo": "코펜하겐",
+          "nameEn": "Copenhagen",
+          "nameNative": "Kjøbenhavn",
+          "nativeLanguage": "da",
+          "kind": "historicalDanishOrthography",
+          "sourceUrl": "https://sproget.dk/sprogviden/spoergsmaal-og-svar/dansk-sprognaevn/sv00016847/",
+          "note": "1906년 이전 덴마크어 철자",
+          "researchNote": "도시의 역사적 덴마크어 철자 Kjøbenhavn을 1801년부터의 원어 대표명으로 선택한다. 한국어 코펜하겐·영어 Copenhagen은 시대별 변경하지 않는다."
+        },
+        {
+          "fromYear": 1906,
+          "nameNative": "København",
+          "nativeLanguage": "da",
+          "kind": "municipalOrthographyChange",
+          "sourceUrl": "https://sproget.dk/sprogviden/spoergsmaal-og-svar/dansk-sprognaevn/sv00016847/",
+          "note": "시정부의 덴마크어 철자 변경",
+          "researchNote": "1906년 코펜하겐 시정부가 Kjøbenhavn→København 표기를 채택한 시기를 원어 전환점으로 선택한다. 실제 정확한 시행 일자를 확인하지 못해 fromYear만 기록한다. 두 철자는 국가 정서법에서 1938년까지 병용 가능했으며, 도시 자체 개칭이나 발음 변경은 아니다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1906-danish-orthography-transition",
       "historicalGeography": {
         "events": [
           {
@@ -113,45 +140,57 @@
             "sourceUrl": "https://sproget.dk/sprogviden/spoergsmaal-og-svar/dansk-sprognaevn/sv00016847/"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Copenhagen",
+      "defaultDisplayNameNative": "København",
+      "defaultNativeLanguage": "da"
     },
     {
       "geonameId": 3143244,
       "names": [
         {
-          "text": "Oslo",
-          "language": "nb",
-          "usage": "standard"
-        },
-        {
-          "text": "오슬로",
-          "language": "ko",
-          "usage": "standard"
-        },
-        {
           "text": "Christiania",
           "language": "no",
           "usage": "historical",
-          "variantType": "earlierOfficialSpelling",
+          "variantType": "selectedEarlyNorwegianOfficialSpelling",
           "sourceUrl": "https://snl.no/Oslo"
         },
         {
           "text": "Kristiania",
           "language": "no",
           "usage": "historical",
-          "variantType": "lateNineteenthCenturyOfficialSpelling",
-          "sourceUrl": "https://snl.no/Oslo",
-          "usageNotes": {
-            "fromYearInStateRecords": 1877,
-            "fromYearInMunicipalRecords": 1897
-          }
+          "variantType": "selectedLateNorwegianMunicipalSpelling",
+          "sourceUrl": "https://snl.no/Oslo"
+        },
+        {
+          "text": "Christiania",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "selectedHistoricalEnglishExonym",
+          "sourceUrl": "https://snl.no/Oslo"
         },
         {
           "text": "크리스티아니아",
           "language": "ko",
           "usage": "historical",
-          "variantType": "koreanRenderingOfPriorCityName",
+          "variantType": "selectedPre1925KoreanName",
           "sourceUrl": "https://snl.no/Oslo"
+        },
+        {
+          "text": "Oslo",
+          "language": "nb",
+          "usage": "standard",
+          "sourceUrl": "https://snl.no/Oslo"
+        },
+        {
+          "text": "Oslo",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "오슬로",
+          "language": "ko",
+          "usage": "standard"
         }
       ],
       "latitude": 59.91273,
@@ -164,19 +203,38 @@
       "shortDescriptionKo": "1925-01-01 크리스티아니아 개칭",
       "displayTimeline": [
         {
-          "nameKo": "크리스티아니아",
           "fromYear": 1801,
+          "nameKo": "크리스티아니아",
+          "nameEn": "Christiania",
+          "nameNative": "Christiania",
+          "nativeLanguage": "no",
           "kind": "historicalLocalName",
-          "sourceUrl": "https://snl.no/Oslo"
+          "sourceUrl": "https://snl.no/Oslo",
+          "note": "노르웨이어 구 철자",
+          "researchNote": "1801년부터 노르웨이 시정부의 기존 철자 Christiania를 원어 대표명으로 사용한다. 영어권의 통용명 Christiania와 한국어 크리스티아니아를 별도로 유지한다. 1801년은 조사 시작 연도다."
         },
         {
-          "nameKo": "오슬로",
+          "fromYear": 1897,
+          "nameNative": "Kristiania",
+          "nativeLanguage": "no",
+          "kind": "municipalSpellingPracticeChange",
+          "sourceUrl": "https://snl.no/Oslo",
+          "note": "시정부 Kristiania 표기 사용",
+          "researchNote": "중앙 국가기관은 1877년부터 Kristiania를 사용했으나, 지도 원어명은 시정부가 표기를 바꾸어 사용하기 시작한 1897년부터 적용한다. 별도 공식 시의회 개칭 결의가 확인되지 않아 연도 단위로 저장한다. 영어 Christiania와 한국어 크리스티아니아는 그대로 둔다."
+        },
+        {
           "fromDate": "1925-01-01",
+          "nameKo": "오슬로",
+          "nameEn": "Oslo",
+          "nameNative": "Oslo",
+          "nativeLanguage": "nb",
           "kind": "officialRenaming",
-          "sourceUrl": "https://lovdata.no/lov/1924-07-11-4"
+          "sourceUrl": "https://lovdata.no/lov/1924-07-11-4",
+          "note": "Oslo 공식 개칭 시행",
+          "researchNote": "1924-07-11 개칭법 제정과 1925-01-01 실제 시행을 구분한다. 이날부터 원어 Oslo, 한국어 오슬로, 영어 Oslo를 지도 대표명으로 사용한다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1897-orthography-and-1925-official-renaming",
       "historicalGeography": {
         "events": [
           {
@@ -192,6 +250,12 @@
             "sourceUrl": "https://snl.no/Oslo"
           },
           {
+            "date": "1924-07-11",
+            "type": "osloRenamingActPassed",
+            "detail": "오슬로 개칭법 제정",
+            "sourceUrl": "https://lovdata.no/lov/1924-07-11-4"
+          },
+          {
             "date": "1925-01-01",
             "type": "officialCityRenaming",
             "detail": "크리스티아니아 → 오슬로",
@@ -202,9 +266,17 @@
           {
             "detail": "옛 Oslo는 별도 구도심 지명",
             "sourceUrl": "https://snl.no/Oslo"
+          },
+          {
+            "detail": "1897년은 시정부 표기 관행",
+            "sourceUrl": "https://snl.no/Oslo",
+            "researchDetail": "국가기관의 1877년 사용과 시정부의 1897년 사용을 구별한다. 시의회가 도시 이름을 1897년에 법적 개칭했다고 주장하지 않는다."
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Oslo",
+      "defaultDisplayNameNative": "Oslo",
+      "defaultNativeLanguage": "nb"
     },
     {
       "geonameId": 658225,
