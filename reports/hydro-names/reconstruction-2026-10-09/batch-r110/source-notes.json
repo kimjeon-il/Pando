@@ -1,0 +1,486 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r110",
+  "sources": [
+    {
+      "source_key": "r110-cbmt-naujaat",
+      "title": "BaseMaps/CBMT3978 (MapServer)",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "source_kind": "primary federal cartographic service, bounded raster exports",
+      "source_observation": "A full-corridor image and three overlapping headward, middle and lower detail images were acquired sequentially; all four export responses and all four image requests returned HTTP 200. Retained originals were directly inspected, including unobscured local crops of narrow connectors and the terminal.",
+      "supports": [
+        "complete generalized selected corridor",
+        "mapped lake-component labels",
+        "material headward and interlake connectors",
+        "lower junctions and broad coastal-terminal setting"
+      ],
+      "limits": [
+        "one hydronym covering the complete selected line",
+        "name of every connecting stream",
+        "formal legal name boundaries",
+        "surveyed endpoints or current flow state"
+      ],
+      "source_independence": "Independent public national cartographic publication relative to the retained HydroRIVERS-derived selection. This is not a CGN/geogratis naming-record route or an equivalent of stopped Nunavut/NRCan reports or NTS 88-A/11. No claim of wholly independent underlying national hydrographic datasets is made."
+    },
+    {
+      "source_key": "r110-cgm204-online",
+      "title": "Surficial geology, Curtis Lake north, Nunavut, NTS 56-I north",
+      "publisher": "Geological Survey of Canada / Natural Resources Canada",
+      "official_url": "https://canada3d.geosciences.ca/map?id=49115c63-439f-42d8-be6f-ba2c23cd9575&limit=20&name=CGM+204&offset=0&open=unitDetailsCard",
+      "source_kind": "official geological-map online unit description",
+      "source_observation": "Official online unit-description reader opened normally; no HTTP status supplied. No original geological map pixels or vector data acquired.",
+      "supports": [
+        "Stewart Lake outlet connection to Qamanialuk Lakes"
+      ],
+      "limits": [
+        "complete selected route",
+        "whole-route hydronym",
+        "original geological-map visual correspondence"
+      ],
+      "source_independence": "Distinct dated geological publication, not a naming API or a recovery of stopped Nunavut/NRCan reports or NTS 88-A/11.",
+      "series": "Geological Survey of Canada, Canadian Geoscience Map 204",
+      "authors": [
+        "I. McMartin",
+        "J. E. Campbell",
+        "L. A. Dredge"
+      ],
+      "year": 2015,
+      "doi": "https://doi.org/10.4095/295851",
+      "qualification": "The viewer states that its data include modifications, additions and omissions relative to the original map. It is treated as the official online description, not as inspection of the original geological map."
+    },
+    {
+      "source_key": "r110-nrcan-cbmt-isortoq",
+      "title": "Canada Base Map – Transportation, BaseMaps/CBMT3978 (MapServer): Isortoq corridor",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "acquired_scope": "One bounded overview and four overlapping original detail rasters, covering headward, middle, lake-approach and terminal settings. Each export JSON and returned PNG completed sequentially with HTTP200; necessary private local crops were read.",
+      "supports": "Complete generalized geographic corridor, actual waterbody and junction connections, repeated representative Isortoq River labeling, Isortoq Lake passage and Isortoq Fiord setting.",
+      "limits": "Independent federal cartographic service, not CGN/geogratis naming records or recovery of stopped Nunavut/NRCan reports. No source vectors, source survey date, current registry decision, exact legal name boundaries or mouth vertices established. Originals, private crops/comparisons, dynamic request URLs and parameters stay private."
+    },
+    {
+      "source_key": "r110-ives1962",
+      "title": "Indications of Recent Extensive Glacierization in North–Central Baffin Island, N.W.T.",
+      "author": "J. D. Ives",
+      "year": 1962,
+      "publisher": "International Glaciological Society / Journal of Glaciology",
+      "journal": "Journal of Glaciology 4(32),197–205",
+      "official_url": "https://www.cambridge.org/core/journals/journal-of-glaciology/article/indications-of-recent-extensive-glacierization-in-northcentral-baffin-island-nwt/95C465FA4AD7E8914B76555F48131AA7",
+      "doi": "https://doi.org/10.3189/S0022143000027398",
+      "acquired_scope": "Original publisher HTML prose opened normally; section Extent of Former Ice–Dammed Lakes read. Figure2 visual request failed and was not retried.",
+      "supports": "First-hand field account of the upper lake-fed river, southward middle bend, Rimrock and glacier-side joining settings, and discharge into Isortoq Fiord.",
+      "limits": "Historical field context, not current registry adjudication or complete selected-line map proof. Figure2 was not visually inspected. Copyright1962 International Glaciological Society; factual paraphrase only."
+    },
+    {
+      "source_key": "r110-ives2016",
+      "title": "Baffin Island, chapter1: Baffin Island: The Place and the Research",
+      "author": "Jack D. Ives",
+      "year": 2016,
+      "publisher": "University of Calgary Press",
+      "official_url": "https://ucp.manifoldapp.org/read/baffin-island/section/d89d644a-a6e4-4e6d-9e3e-6255fdcf6d81",
+      "acquired_scope": "Publisher-hosted chapter1 HTML opened normally. Next chapter returned interface-only text and was not retried.",
+      "supports": "The field author distinguishes the river from its elongated lake expansion and relates their naming to Isortoq Fiord.",
+      "limits": "Historical first-person context, not a current formal naming record. Figures reproduced from Ives1962 were not acquired. Copyright2016 Jack D. Ives; factual paraphrase only."
+    },
+    {
+      "source_key": "r110-cbmt-murchison",
+      "title": "BaseMaps/CBMT3978 (MapServer): Murchison River, Murchison Lake and Inglis Bay corridor",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "source_kind": "Primary independent federal cartography; bounded original raster views",
+      "source_observation": "One full corridor overview and four overlapping detail views: headward, middle, lake and lower. All five export responses and five sequential original-image downloads completed with HTTP200. Originals and necessary private orientation/crop copies were visually read.",
+      "supports": [
+        "Complete generalized selected-route correspondence",
+        "Named Murchison River trunk and lower corridor",
+        "Murchison Lake passage and outlet connections",
+        "Inglis Bay coastal terminal setting"
+      ],
+      "limits": [
+        "Name of the initial feeder or initial small lake",
+        "A uniform scalar hydronym for all selected reaches and lakes",
+        "Formal current registry decision or Korean name",
+        "Surveyed banks, exact source/mouth points or present flow conditions"
+      ],
+      "source_independence": "Independent national cartographic service, distinct from CGN/geogratis naming records, stopped Nunavut/Gjoa Haven inventory, PCSP/NRCan reports and their figures. No stopped publication was recovered through this service. Independence is relative to the selected modeled line; no assertion of fully independent underlying hydrographic datasets."
+    },
+    {
+      "source_key": "r110-arc403-inglis",
+      "title": "Canadian Sailing Directions, ARC 403: Western Arctic, 2023/09",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202309-41198116.pdf",
+      "source_kind": "Primary hydrographic descriptive publication",
+      "source_observation": "Normally opened PDF text reader, then a completed cached find. Chapter 8, printed page 8-7, paragraph 125 and front-matter use notice. No original map visual observation is claimed from this text-only reading.",
+      "supports": [
+        "Murchison River and Inglis River enter east side of Inglis Bay",
+        "Regional coastal terminal corroboration"
+      ],
+      "limits": [
+        "Complete inland selected path",
+        "Uniform name for the feeder, river and lake",
+        "Exact mouth or current navigational condition"
+      ],
+      "source_independence": "Distinct ARC403 publication, not stopped ARC401 or a CGN naming-record route.",
+      "use_notice": "Personal noncommercial reproduction is permitted; commercial reproduction requires prior written permission. Only own concise factual paraphrase and citation are public-ready; no source page or extensive extract reproduced."
+    },
+    {
+      "source_key": "r110-inegi-oaxaca-state",
+      "title": "Condensado Estatal Oaxaca, scale 1:625,000, first edition 2020",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/oax/889463837022.pdf",
+      "acquired_scope": "Complete original single-sheet PDF acquired and viewed. The full sheet and private enlargements of the complete headward, middle, reservoir, lower and terminal corridors were inspected.",
+      "supports": "Continuous selected corridor from the Ejutla-side opening through Santa María Zoquitlán, San Pedro Totolápam and the Nejapa northward loop, onward to Presidente Benito Juárez reservoir and the lower coastal outlet by Boca del Río.",
+      "limits": "Generalized cartography derived from INEGI 1:250,000 series III, with 2017 road information and 2018 geographic framework. The map is not a present-day channel or shoreline survey. Its printed restriction requires prior written permission for full or partial reproduction; no original pixels, crops, overlays or derivative maps are included in public output. A completed reader size error was followed by one successful normal original-file acquisition; no publication stop arose."
+    },
+    {
+      "source_key": "r110-inegi-ejutla",
+      "title": "Compendio de información geográfica municipal 2010: Heroica Ciudad de Ejutla de Crespo, Oaxaca",
+      "publisher": "INEGI",
+      "official_url": "https://inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/20/20028.pdf",
+      "acquired_scope": "Original PDF; hydrography table and Relieve map, PDF page 6, inspected.",
+      "supports": "The selected southeastern Ejutla headward corridor lies on the mapped Grande drainage, distinctly east of the Atoyac/Coapa drainage.",
+      "limits": "Municipal map clipping does not name the whole downstream selection. The hydrography table distinguishes the Tehuantepec/San Antonio drainage context from Atoyac; a subbasin designation is not treated as a uniform reach name. No exact source point or naming boundary is established."
+    },
+    {
+      "source_key": "r110-inegi-coatecas",
+      "title": "Compendio de información geográfica municipal 2010: Coatecas Altas, Oaxaca",
+      "publisher": "INEGI",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/20/20015.pdf",
+      "acquired_scope": "Original PDF; hydrography table and Relieve map, PDF page 5, inspected, including a private enlargement of the eastern junctions.",
+      "supports": "The selected southward/eastward opening continues through the San Diego-side corridor into the Peña Larga continuation; the San Juan approach is a separate joining branch.",
+      "limits": "Names identify mapped component corridors. Their exact transition locations are not adjudicated, and the separate San Juan branch is not promoted to the selected headwater. The subbasin name San Antonio is not assigned as a scalar name for the selected route."
+    },
+    {
+      "source_key": "r110-inegi-jalapa",
+      "title": "Compendio de información geográfica municipal 2010: Santa María Jalapa del Marqués, Oaxaca",
+      "publisher": "INEGI",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/20/20418.pdf",
+      "acquired_scope": "Original PDF; hydrography table and Relieve map, PDF page 6, inspected.",
+      "supports": "Direct Tehuantepec label on the northern incoming selected trunk and the mapped Presidente Benito Juárez impoundment and outlet setting.",
+      "limits": "Municipal coverage is supplemented by the independent state sheet for intervening reaches and the coastal terminal. Reservoir identity remains separate from river identity. No current water level or exact inundated centerline is asserted."
+    },
+    {
+      "source_key": "r110-inegi-huilotepec",
+      "title": "Compendio de información geográfica municipal 2010: San Pedro Huilotepec, Oaxaca",
+      "publisher": "INEGI",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/20/20308.pdf",
+      "acquired_scope": "Original PDF; hydrography table and Localidades e Infraestructura para el Transporte map, PDF page 4, inspected.",
+      "supports": "Direct Tehuantepec labels along the selected southeastward lower channel through the San Pedro Huilotepec corridor toward the Salina Cruz/Boca del Río coastal setting.",
+      "limits": "The municipal map stops short of the ocean; the already acquired state map supplies the remaining continuous terminal corridor. It is not used to infer a different mouth or to extend the selected route through nearby coastal lagoons."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80097695",
+      "source_keys": [
+        "r110-cbmt-naujaat",
+        "r110-cgm204-online"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2555
+          ],
+          "component_scope": "western headward feeder and Pearce Lake passage",
+          "finding": "The selected initial line follows mapped connected small lakes and the eastward stream valley into Pearce Lake. Its generalized passage through the southern lake arm corresponds to the same waterbody. The raster shows the connecting channels as well as adjoining tributaries; the initial point is a retained selection endpoint, not a claimed surveyed source.",
+          "sources": [
+            "r110-cbmt-naujaat"
+          ],
+          "name_limit": "Pearce Lake is a lake-component label; no hydronym is assigned to the headward feeder.",
+          "correspondence": "supported at ordinary generalized corridor scale"
+        },
+        {
+          "fragments": [
+            2555
+          ],
+          "component_scope": "Pearce–Curtis lake connection",
+          "finding": "The source shows a continuous eastward watercourse through intervening small waterbodies to the southern Curtis Lake arm. The selected line then follows the elongated lake northward. Simplified corners differ from the mapped channel and shore curves, but no actual connector remains uncovered.",
+          "sources": [
+            "r110-cbmt-naujaat"
+          ],
+          "name_limit": "Mapped lake labels establish component identities, not a shared name for the interlake stream.",
+          "correspondence": "supported at ordinary generalized corridor scale"
+        },
+        {
+          "fragments": [
+            2555
+          ],
+          "component_scope": "Curtis–Stewart connection and Stewart Lake passage",
+          "finding": "A narrow mapped stream connects the east side of Curtis Lake with Stewart Lake around the intervening upland. The selected line crosses this same connection and then follows Stewart Lake southward. The raster was inspected without the selected-line overlay at the narrow connector.",
+          "sources": [
+            "r110-cbmt-naujaat"
+          ],
+          "correspondence": "supported at ordinary generalized corridor scale"
+        },
+        {
+          "fragments": [
+            2555
+          ],
+          "component_scope": "Stewart outlet and Qamanialuk Lakes",
+          "finding": "The raster shows the Stewart outlet stream becoming braided before entering the adjoining lake complex, then the connected water passages eastward and southeastward through Qamanialuk Lakes. These include the material junctions and small connections crossed by the selected generalized line. The distinct CGM204 online description separately corroborates the Stewart-to-Qamanialuk connection.",
+          "sources": [
+            "r110-cbmt-naujaat",
+            "r110-cgm204-online"
+          ],
+          "name_limit": "No name is assigned to the outlet stream merely from the names of its connected lakes.",
+          "correspondence": "supported at ordinary generalized corridor scale"
+        },
+        {
+          "fragments": [
+            2555
+          ],
+          "component_scope": "lower valley bends and coastal terminal",
+          "finding": "The source shows the same connected lower stream and lake valleys around the intervening uplands, including the broad return bend and final coastward branch. The terminal lies in a mapped river-mouth setting with coastal shoal/intertidal symbols. The source channel connections, nearby tributary junctions and final shoreward connection were inspected directly. No exact active branch, current flow direction at each minor junction, tidal boundary, bank or surveyed mouth vertex is asserted.",
+          "sources": [
+            "r110-cbmt-naujaat"
+          ],
+          "name_limit": "The label Ikkattujuq appears beside a lower lake-linked section, but its formal extent and feature-type scope are not established here. It is not adopted as a river or whole-system name.",
+          "correspondence": "supported at ordinary generalized corridor scale"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80036017",
+      "source_keys": [
+        "r110-nrcan-cbmt-isortoq",
+        "r110-ives1962",
+        "r110-ives2016"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2343
+          ],
+          "component_scope": "Eastern headward and upper westward corridor",
+          "finding": "The original headward view shows a linked sequence of narrow channels and small waterbody expansions matching the selected upper westward course, its broad northern bend and southwestward continuation. Readable Isortoq River labels occur along this connected channel. At Causeway Lake, the original shows the adjoining lake connection and the continuing main channel; the generalized selection is not treated as a precise traverse of that small lake.",
+          "sources": [
+            "r110-nrcan-cbmt-isortoq"
+          ],
+          "limits": "Names for the individual small headward lakes and exact initial reach remain null; no natural source point is assigned.",
+          "correspondence": "complete at generalized corridor/component scale"
+        },
+        {
+          "fragments": [
+            2343
+          ],
+          "component_scope": "Southward middle bend and glacier-side joining setting",
+          "finding": "The selected southwest approach leads to the broad turn into the southward valley. The map continuously shows the trunk and tributaries joining from the west/north and from the Barnes Ice Cap side. Downstream, the route bends beside the Lewis Glacier setting and continues through a broadened, islanded river corridor toward the Limit Lake vicinity. The source view covers the actual connections rather than relying on ice-cap proximity or a regional name label.",
+          "sources": [
+            "r110-nrcan-cbmt-isortoq",
+            "r110-ives1962"
+          ],
+          "limits": "The journal describes Rimrock River joining the upper bend and two glacier-side tributaries farther down; exact selected confluence vertices and every tributary name are not assigned. Flitaway Lake and Lewis Glacier are adjoining context.",
+          "correspondence": "complete at generalized corridor/component scale"
+        },
+        {
+          "fragments": [
+            2343
+          ],
+          "component_scope": "Westward middle trunk to Isortoq Lake inlet",
+          "finding": "The source maps show the same southwest and west course through the islanded/braided reach, subsequent narrower channel bends, material northern/southern joining streams and the turn toward the northeast end of Isortoq Lake. The Limit Lake vicinity is visible; its local label is not promoted to a precisely bounded selected-lake assignment. River labels continue along the trunk.",
+          "sources": [
+            "r110-nrcan-cbmt-isortoq"
+          ],
+          "limits": "Generalized bends are compared by their connected valley sequence, not by bank coincidence. Nearby tributary lakes are not substituted for the mainstem.",
+          "correspondence": "complete at generalized corridor/component scale"
+        },
+        {
+          "fragments": [
+            2343
+          ],
+          "component_scope": "Isortoq Lake passage, lower river and fiord terminal",
+          "finding": "The overlapping lake and terminal views show the river entering the northeastern end of Isortoq Lake, the continuous elongated southwestward lake passage, its southwestern outlet and the lower river turning south toward the fiord head. The lower channel and terminal setting remain connected in the original cartography. The overview supplies the Isortoq Fiord label.",
+          "sources": [
+            "r110-nrcan-cbmt-isortoq",
+            "r110-ives2016",
+            "r110-ives1962"
+          ],
+          "limits": "Isortoq Lake retains its lake identity. No exact branch, bank, contemporary tidal transition or surveyed mouth point is selected.",
+          "correspondence": "complete at generalized corridor/component scale"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80054125",
+      "source_keys": [
+        "r110-cbmt-murchison",
+        "r110-arc403-inglis"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2496
+          ],
+          "component_scope": "Initial unnamed feeder and westward connection",
+          "finding": "The detailed original map shows a small-lake and stream drainage from the eastern beginning running southwest and west through a shallow valley into the broader Murchison River corridor. The selected display loop is strongly generalized relative to the mapped stream bends. The connection is visible as mapped watercourse continuity rather than inferred from proximity of a name label.",
+          "sources": [
+            "r110-cbmt-murchison"
+          ],
+          "name_limit": "No readable hydronym establishes a separate name for the initial feeder or lake. Murchison River labels on the receiving trunk are not extended automatically to this feeder.",
+          "correspondence": "Supported at generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            2496
+          ],
+          "component_scope": "Northeast trunk and eastward middle bend",
+          "finding": "Repeated Murchison River labels occur on the broad braided valley followed northeast by the selection, around the eastward middle bend, and on the northward reach approaching the lake. The map shows the connected valley and broad bend continuously across overlapping views. Darby Lake is a separate nearby southern waterbody rather than a selected crossing.",
+          "sources": [
+            "r110-cbmt-murchison"
+          ],
+          "correspondence": "Supported representative trunk and complete middle geographic corridor."
+        },
+        {
+          "fragments": [
+            2496
+          ],
+          "component_scope": "Murchison Lake and northern river continuation",
+          "finding": "The selected northeastward broad-water passage follows the elongated waterbody repeatedly labeled Murchison Lake. Its northeastern outlet continues through the mapped Murchison River, including narrower channel sections, a northern bend and the broad westward river reach. The lake-to-river connections are visible in the original map.",
+          "sources": [
+            "r110-cbmt-murchison"
+          ],
+          "name_limit": "Murchison Lake remains a separately named waterbody. Murchison River labels resume on the connected outlet corridor; no exact legal name-transition vertex is assigned.",
+          "correspondence": "Complete lake crossing and channel connections supported."
+        },
+        {
+          "fragments": [
+            2496
+          ],
+          "component_scope": "Westward lower river and Inglis Bay terminal",
+          "finding": "The source follows the Murchison River west through widened channel reaches and then northwest into a broad wetland and branching coastal tract. Multiple channels reach Inglis Bay around the mapped Avalliq Island and Kuungmiuvik Island setting. The selected generalized end belongs to this terminal complex; it is not treated as an exact present-day distributary trace or surveyed mouth. ARC403 chapter 8, printed page 8-7, paragraph 125 independently places Murchison River and Inglis River on the east side of Inglis Bay.",
+          "sources": [
+            "r110-cbmt-murchison",
+            "r110-arc403-inglis"
+          ],
+          "correspondence": "Supported through the broad actual coastal terminal; no material connector gap."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70931236",
+      "source_keys": [
+        "r110-inegi-oaxaca-state",
+        "r110-inegi-ejutla",
+        "r110-inegi-coatecas",
+        "r110-inegi-jalapa",
+        "r110-inegi-huilotepec"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10565
+          ],
+          "component_scope": "Headward opening",
+          "finding": "The retained opening descends southeast on the Grande-side drainage east of Ejutla, continues through the San Diego-side joining corridor and Peña Larga, then follows the eastward low bend toward the San Luis Amatlán-side junction setting. The neighboring Atoyac/Coapa route to the west and the separate San Juan approach are not substituted for this selection.",
+          "limits": "The exact first modeled reach name and Grande/San Diego/Peña Larga transition vertices are not assigned.",
+          "sources": [
+            "r110-inegi-ejutla",
+            "r110-inegi-coatecas",
+            "r110-inegi-oaxaca-state"
+          ]
+        },
+        {
+          "fragments": [
+            10565
+          ],
+          "component_scope": "Upper and western middle corridor",
+          "finding": "The selected route turns northeast and north through the Río Seco/Santa María Zoquitlán setting toward San Pedro Totolápam, then follows the eastward valley past the La Mancornada/Las Ánimas setting to the Nejapa approach. The full connecting course is visible on the state original.",
+          "limits": "Settlement names orient the selected watercourse and are not asserted as hydronyms. Unlabeled or unresolved local reach names remain unassigned.",
+          "sources": [
+            "r110-inegi-oaxaca-state"
+          ]
+        },
+        {
+          "fragments": [
+            10565
+          ],
+          "component_scope": "Northern loop and eastern middle corridor",
+          "finding": "From the Nejapa setting the selected river turns north toward Guadalupe Lachiriega/Santo Domingo Narro, then east and southeast through the Shilabala joining setting. It continues down the valley toward Arroyo las Truchas and the northern arm of Presidente Benito Juárez. This distinctive northward loop and southeast continuation match the complete retained middle course.",
+          "limits": "Neighboring branches near Santa Ana Tavela, Santiago Lachiguiri and the Tequisistlán valley are context, not additional selected rivers.",
+          "sources": [
+            "r110-inegi-oaxaca-state",
+            "r110-inegi-jalapa"
+          ]
+        },
+        {
+          "fragments": [
+            10565
+          ],
+          "component_scope": "Reservoir and downstream trunk",
+          "finding": "The selected northern incoming trunk is directly labeled Tehuantepec in the Jalapa original and passes through the Presidente Benito Juárez reservoir setting to its southeast outlet. The route then continues east and southeast toward Santa María Mixtequilla and Santo Domingo Tehuantepec. The separately named Tequisistlán approach enters from the west and is not the selected upstream route.",
+          "limits": "The modeled reservoir crossing is assessed as component/corridor correspondence. A different reservoir centerline or historical shoreline does not establish a material geographic gap or a name change.",
+          "sources": [
+            "r110-inegi-oaxaca-state",
+            "r110-inegi-jalapa"
+          ]
+        },
+        {
+          "fragments": [
+            10565
+          ],
+          "component_scope": "Lower course and coastal terminal",
+          "finding": "The selected channel continues southeast from Santo Domingo Tehuantepec/San Blas Atempa through San Pedro Huilotepec, where the municipal original directly labels it Tehuantepec. The state sheet continues this same channel to the Pacific shore by Boca del Río and Ensenada de la Ventosa in the Gulf of Tehuantepec setting. Nearby Laguna Superior, Huazantlán del Río waterways and Salina Cruz harbor are distinct coastal context.",
+          "limits": "No exact bank, mouth vertex, present flow or shoreline intersection is asserted; the review covers the ordinary generalized terminal corridor.",
+          "sources": [
+            "r110-inegi-oaxaca-state",
+            "r110-inegi-huilotepec"
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:80036017",
+      "publication": "Indications of Recent Extensive Glacierization in North–Central Baffin Island, N.W.T., Figure2",
+      "official_url": "https://static.cambridge.org/binary/version/id/urn%3Acambridge.org%3Aid%3Abinary-alt%3A20170925171326-97425-mediumThumb-S0022143000027398_fig2g.jpg?pub-status=live",
+      "observed_outcome": "Web reader Cache miss; no HTTP status or access denial exposed.",
+      "restriction_scope": "Further visual acquisition of article and equivalent figures paused; no original/mirror/screenshot retry.",
+      "earlier_lawful_prose_exception": "Successfully opened article prose remains usable within observed scope.",
+      "parent_publication_url": "https://www.cambridge.org/core/journals/journal-of-glaciology/article/indications-of-recent-extensive-glacierization-in-northcentral-baffin-island-nwt/95C465FA4AD7E8914B76555F48131AA7"
+    },
+    {
+      "aw_id": "hydro-system:80036017",
+      "publication": "Baffin Island: Field Research and High Arctic Adventure,1961–67, Chapter2: Reconnaissance1961: Learning about Airborne Support",
+      "official_url": "https://ucp.manifoldapp.org/read/baffin-island/section/6fbc2cb8-26b5-4a9a-8d17-4bd714eff7b8",
+      "observed_outcome": "Web reader returned an interface/cookie shell without chapter body; no HTTP status or access denial exposed.",
+      "restriction_scope": "This chapter body acquisition paused; no retry or alternate route.",
+      "earlier_lawful_prose_exception": "Chapter1 previously opened normally; its actually read prose remains usable."
+    },
+    {
+      "aw_id": "hydro-system:80054125",
+      "publication": "Characterization of skin- and intestine microbial communities in migrating High Arctic lake whitefish and cisco",
+      "official_url": "https://www.sciencedirect.com/org/science/article/pii/S2368746023000091",
+      "observed_outcome": "Web reader returned HTTP403 Forbidden. No article body or figure acquired.",
+      "restriction_scope": "Entire article and equivalent copies, figures, formats and acquisition routes stopped. No retry or alternate route.",
+      "earlier_lawful_prose_exception": {
+        "status": "not_used",
+        "scope": "Search discovery snippets are excluded; no earlier acquired article prose for this target."
+      },
+      "authors": "Hamilton et al.",
+      "doi": "https://doi.org/10.1139/as-2023-0022",
+      "bibliographic_detail": "Arctic Science 10(1), 125–139; published online 16 August 2023"
+    },
+    {
+      "aw_id": "hydro-system:70931236",
+      "publication": "Compendio de información geográfica municipal 2010: San Pedro Totolápam, Oaxaca",
+      "official_url": "https://inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/20/20333.pdf",
+      "observed_outcome": "The PDF opened in the web text reader. The first requested map screenshot, Relieve at PDF page 6, returned Cache miss; no HTTP status was provided.",
+      "restriction_scope": "Further acquisition of the missing map is paused, with no original-file, alternate reader or equivalent-copy retry. This is an availability limitation, not an access denial.",
+      "earlier_lawful_prose_exception": "The hydrography table read before the screenshot failure remains limited prose context: it places the municipality in the Tehuantepec basin and lists San Antonio and Alto Tehuantepec subbasins. Its parsed labels are not treated as observed map geometry or reach-name assignments.",
+      "material_effect": "None for this finding: the complete relevant geography was viewed on the independently acquired Oaxaca state original. No unseen municipal map is needed for the completed correspondence."
+    },
+    {
+      "aw_id": "hydro-system:70931236",
+      "publication": "Compendio de información geográfica municipal 2010: Santo Domingo Tehuantepec, Oaxaca",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/20/20515.pdf",
+      "observed_outcome": "The one original-file request timed out. No HTTP response status or PDF body was obtained.",
+      "restriction_scope": "This publication and equivalent missing content remain paused for availability, without retry or another route. No denial is inferred.",
+      "earlier_lawful_prose_exception": "None. Discovery search snippets and copied text on other sites are not evidence.",
+      "material_effect": "None for this finding: independent Oaxaca state, Jalapa del Marqués and San Pedro Huilotepec originals supply the selected downstream geography and direct river labels."
+    }
+  ]
+}
