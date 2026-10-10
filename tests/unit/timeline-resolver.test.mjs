@@ -14,6 +14,7 @@ test('month-end resolution selects exact geometry versions and parent graph', ()
   const june = resolve('1914-06');
   const july = resolve('1914-07');
   const later = resolve('1916-01');
+  assert.equal(july.month, '1914-07');
   assert.deepEqual(june.entities.map(row => row.id), ['A', 'B', 'C', 'R']);
   assert.deepEqual(june.byId.get('A').geometryRef, { id: 'shape', version: 1 });
   assert.deepEqual(july.byId.get('A').geometryRef, { id: 'shape', version: 2 });
@@ -34,7 +35,7 @@ test('month-end resolution respects disjoint lifetimes and exact days', () => {
 });
 
 test('month-end resolution includes exact starts and excludes exact mid-month ends', () => {
-  assert.equal(resolve('1910-01').byId.has?.('B') ?? !!resolve('1910-01').byId.get('B'), true);
+  assert.ok(resolve('1910-01').byId.get('B'));
 
   const ended = structuredClone(project.timelineRecords);
   ended.lifetimes.find(row => row.id === 'B:modern').validTo = '1910-01-15';
