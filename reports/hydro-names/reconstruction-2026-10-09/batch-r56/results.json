@@ -1,0 +1,460 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r56",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r55",
+    "commit": "6d96b73f2149916ca591df80e01c52912bc37f41",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r55/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61457989",
+    "hydro-system:70826559",
+    "hydro-system:80082028",
+    "hydro-system:70531480"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61457989",
+      "category": "river_group",
+      "system_id": "61457989",
+      "baseline_logical_fid": 3554,
+      "geometry_fids": [
+        14013,
+        14020,
+        14012,
+        14016,
+        14019,
+        14011,
+        14015,
+        14018,
+        14023,
+        14010,
+        14014,
+        14021,
+        14022,
+        14017
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -54.039583,
+        -30.24375,
+        -50.01875,
+        -28.2625
+      ],
+      "rendered_mainstem_length_km": 632.358,
+      "rendered_network_length_km": 1499.167,
+      "geometry_summary": {
+        "fragment_count": 14,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -53.34375,
+          -30.110417,
+          -51.260417,
+          -28.2625
+        ]
+      },
+      "candidate_name": "Rio Jacuí (Rio Grande do Sul)",
+      "candidate_names": [
+        "Rio Jacuí"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Jacuí is supported as the representative identity of the selected main corridor in Rio Grande do Sul, Brazil. This does not give every fragment that name: the western Vacacaí branch, eastern Taquari–Antas branch and its feeders remain separate. Impounded passages and the terminal delta setting are retained as distinct feature context; precise reservoir boundaries, delta-channel names and named-river endpoints are not assigned.",
+      "geographic_disambiguation": "The actual four-piece mainstem and ten additional fragments were read against the official maps. The northern southwestward course, long southern limb, eastward lower sweep and the contrasting western and eastern tributary approaches support the correspondence. Rio Grande do Sul is an editorial qualifier, not part of the official hydronym.",
+      "source_keys": [
+        "r56-sema-alto-jacui-map",
+        "r56-sema-baixo-jacui-map",
+        "r56-sgb-guaiba-2025",
+        "r56-fepam-jacui-description"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Rio Grande do Sul, southern Brazil, from the Passo Fundo headwater setting through the Alto Jacuí to Dona Francisca, Cachoeira do Sul and the eastward Baixo Jacuí–delta corridor.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence for the four selected modeled-mainstem pieces, with all ten remaining fragments inspected in their group context. Readable official maps and direct official text are sufficient; no additional source acquisition is pending. Reach-level tributary naming, exact source and mouth vertices, reservoir crossings and individual delta channels are outside this completed finding.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rio Jacuí",
+        "geographic_qualifier": "Rio Grande do Sul, Brazil; editorial disambiguation only.",
+        "upper_scope": "The source-area setting supports the upper Jacuí corridor. The exact natural source, individual headwater name changes and small tributaries are not derived from the model's northern endpoint.",
+        "reservoir_scope": "FEPAM describes the upper Jacuí hydropower sequence as Ernestina, Passo Real, Salto do Jacuí, Itaúba and Dona Francisca. These are retained as impoundment and infrastructure context. The selected line through water bodies does not establish precise inundation limits or a uniform natural-channel name.",
+        "tributary_scope": "Vacacaí and Taquari–Antas are separate branch identities. Additional tributaries visible on the maps are not aliases for the whole selected group. The two northern feeders of the eastern branch have not been exhaustively named.",
+        "terminal_scope": "Jacuí delta and Guaíba remain distinct downstream contexts. No exact delta-channel name, confluence vertex, current mouth geometry or transition boundary is assigned.",
+        "model_limits": "Fragment roles, model stages and display lengths locate the selection; they do not establish an official hydronym, exact natural-river length, perennial flow or contemporary reservoir and channel geometry."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70826559",
+      "category": "river_group",
+      "system_id": "70826559",
+      "baseline_logical_fid": 3201,
+      "geometry_fids": [
+        10249
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -100.427083,
+        27.85625,
+        -97.516366,
+        30.03125
+      ],
+      "rendered_mainstem_length_km": 613.138,
+      "rendered_network_length_km": 613.138,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -100.427083,
+          27.85625,
+          -97.516366,
+          30.03125
+        ]
+      },
+      "candidate_name": "Nueces River (South Texas)",
+      "candidate_names": [
+        "Nueces River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Nueces River is supported as the representative system identity of the selected corridor. Its western upstream approach follows the West Nueces tributary corridor before joining the Nueces; Lake Corpus Christi and the lower river toward Nueces Bay retain their own waterbody and reach scope. This is not an assertion that every selected coordinate bears the single natural-river name Nueces River.",
+      "geographic_disambiguation": "South Texas, United States: the Edwards Plateau western headwater approach through Edwards and Kinney counties to the Nueces in Uvalde County, then the southward route and broad eastward bend through the South Texas Plains, Lake Corpus Christi and the Nueces Bay approach near Corpus Christi.",
+      "source_keys": [
+        "r56-tpwd-strategic-planning-river-map",
+        "r56-tsswcb-nueces-watershed-2000",
+        "r56-tpwd-west-nueces-2001",
+        "r56-tpwd-waterways-nueces",
+        "r56-tpwd-region-n-streams"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence for the full selected fragment. The readable original maps and direct official text are sufficient for this finding. Exact headmost feeder naming, vertex-level confluence or reservoir boundaries and precise terminal tidal-channel selection are outside the completed representative scope and remain unapplied. No additional source acquisition is pending.",
+      "naming_scope_details": {
+        "upstream_limit": "West Nueces River is a distinct tributary name, not an alias automatically replacing the upper Nueces. The regional correspondence supports that western tributary approach, while the short headmost approach and an exact name-transition vertex are not individually assigned.",
+        "waterbody_and_branch_limit": "The selected line passes through the Lake Corpus Christi setting. A modeled centerline through an impoundment is not evidence that the reservoir has only a river name. Frio River, Atascosa River and Choke Canyon Reservoir remain separately mapped features and are not promoted to names of the selected route.",
+        "coastal_limit": "The lower Nueces and Nueces Bay approach are supported at the regional corridor level. The source scale does not settle every tidal distributary, a precise contemporary mouth point, or any bay-water centerline name; no Gulf-crossing extension is asserted.",
+        "model_limit": "One modeled mainstem fragment can span tributary, river, reservoir and tidal settings. Its role and length do not establish uniform naming, natural-source selection, present flow or current shorelines.",
+        "separately_named_corridor_parts": [
+          "West Nueces River",
+          "Lake Corpus Christi"
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80082028",
+      "category": "river_group",
+      "system_id": "80082028",
+      "baseline_logical_fid": 919,
+      "geometry_fids": [
+        2538,
+        2537,
+        2536
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -163.064583,
+        67.064019,
+        -154.80625,
+        68.127083
+      ],
+      "rendered_mainstem_length_km": 613.068,
+      "rendered_network_length_km": 613.068,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -163.064583,
+          67.064019,
+          -154.80625,
+          68.127083
+        ]
+      },
+      "candidate_name": "Noatak River (Alaska)",
+      "candidate_names": [
+        "Noatak River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Noatak River is supported as the representative identity of the selected three-fragment route in northwestern Alaska. This is a corridor-level finding, not a uniform naming decision for every headwater vertex, lake connection, braid or lower channel. The modeled endpoint is upstream of the coastal outlet, and the selection does not represent the entire delta or every tributary.",
+      "geographic_disambiguation": "The actual selected line was compared across its eastern headwater hook, westward upper valley, alternating central bends, canyon corridor, western southward turn and lower bends. The identification follows this sequence across readable original NPS maps and supporting direct text; it is not inferred from the bounding box, model mainstem status or the village name.",
+      "source_keys": [
+        "r56-nps-gaar-gmp-2014",
+        "r56-nps-noat-gmp-1986",
+        "r56-nps-noat-visitor-use-2025",
+        "r56-nps-noatak-river-2024",
+        "r56-riversgov-noatak"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northwestern Alaska, United States: the Mount Igikpak headwater setting in Gates of the Arctic National Park, the westward Noatak corridor, and the lower southward reach toward Kotzebue Sound.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence across all three selected modeled-mainstem fragments. Independent original NPS cartography supplies the required upper, middle and lower corridor coverage despite an optional USGS source denial. Exact natural-source attribution, minor feeder names, lake entry or exit vertices and present-day lower-channel or mouth selection remain outside this completed scope. No additional acquisition is required for this finding.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Noatak River",
+        "geographic_qualifier": "Alaska, United States; the qualifier is editorial, not asserted to be part of the official hydronym.",
+        "upper_feeder_scope": "The upper map establishes the headwater corridor by Mount Igikpak, but not the precise natural-source vertex or a separate name for every small headwater feeder. No nearby mountain or tributary label is transferred to the entire feature.",
+        "lake_scope": "Lake Matcharak remains a separately mapped lake alongside the upper corridor. The sources are not used to assign its name to the river, establish a modeled passage through its water surface or fix an outlet transition. Other adjacent lakes are geographical context only.",
+        "tributary_scope": "All three selected fragments are modeled mainstem fragments; there are no separately classified tributary fragments in this selection. Aniuk, Cutler, Anisak, Nimiuktuk, Kaluktavik, Kugururok, Kelly, Eli and Agashashok are separately mapped approaches, not aliases of the whole selected route. Model fragment breaks are not assumed to mark natural name transitions.",
+        "endpoint_scope": "The selected line stops before the coastal outlet. Its final lower-channel identity, contemporary shoreline intersection and any downstream delta distributary selection remain unassigned.",
+        "designation_scope": "Rivers.gov describes the designated Wild and Scenic reach as extending from the source to the Kelly River. That designation extent is not the naming extent of the whole natural river and is not treated as the selected feature's boundary.",
+        "model_limits": "Stage, mainstem classification and displayed length identify the modeled object to inspect, not its official length, surveyed centerline, present flow, exact source, current shoreline or uniform reach name. Historical map geometry is not a current channel survey."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70531480",
+      "category": "river_group",
+      "system_id": "70531480",
+      "baseline_logical_fid": 3068,
+      "geometry_fids": [
+        9767,
+        9766
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -112.83125,
+        40.754167,
+        -110.827083,
+        42.65625
+      ],
+      "rendered_mainstem_length_km": 609.125,
+      "rendered_network_length_km": 609.125,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -112.83125,
+          40.754167,
+          -110.827083,
+          42.65625
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Bear River"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Bear River is supported for the long circuitous river corridor through Utah, Wyoming and Idaho. The selected object also includes an upper Uinta headwater extension and a substantial modeled continuation through Great Salt Lake. The lake continuation is not established as a river named Bear River. Impoundments, feeder scope and terminal-lake scope remain separate. This is a completed naming-scope hold, not an access-pending assessment.",
+      "geographic_disambiguation": "Western United States: north slope of the Uinta Mountains, Evanston, Woodruff Narrows, the Woodruff–Randolph valley, Cokeville, Bear Lake Valley, Montpelier, Soda Springs, Gem Valley, Oneida, Cache Valley, Cutler Reservoir and the lower Bear River near Corinne. The selected line then extends south into the Great Salt Lake setting, west around the southern Promontory Mountains and northwest into the Gunnison Bay setting. This is the Bear River draining to Great Salt Lake, not another river of the same name.",
+      "source_keys": [
+        "r56-utah-dwr-bear-basin-2004",
+        "r56-utah-dwr-bear-interstate",
+        "r56-ugs-gunnison-cub-2023"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Both selected fragments have a completed bounded source-correspondence assessment using readable original state maps and direct official text. The hold follows from mixed headwater, named-river, impoundment and terminal-lake scope. No additional source acquisition is pending for this finding. Optional USGS access failures do not prevent this assessment. Follow-up is required only before any future whole-object name assignment.",
+      "naming_scope_details": {
+        "supported_named_corridor": "Bear River, Utah–Wyoming–Idaho, tributary of Great Salt Lake",
+        "headwater_scope": "An upper Uinta fork/feeder extension is retained without a precise local hydronym or name-transition vertex. The acquired flow chart distinguishes West Fork, East Fork and Hayden Fork; these are not blanket aliases.",
+        "waterbody_context": [
+          "Woodruff Narrows Reservoir",
+          "Soda/Alexander reservoir setting",
+          "Oneida Reservoir",
+          "Cutler Reservoir",
+          "Bear River Bay",
+          "Great Salt Lake",
+          "Gunnison Bay"
+        ],
+        "not_aliases": "Reservoir and lake/bay names describe waterbody context, not alternative names for all selected segments. Bear Lake is separately mapped and managed through inlet/outlet infrastructure; it is not crossed by the selected path.",
+        "unassigned": "Exact upper fork-name boundary, reservoir entry/exit transitions, fine lower-delta channel identity, exact river-to-lake transition and the complete modeled terminal-lake route as a named linear feature.",
+        "excluded_name_transfer": "Adjacent tributary, canal, settlement, basin, bay and lake labels are not applied to unsupported portions of the selected object.",
+        "model_limits": "Two modeled mainstem fragments do not prove one natural source-to-mouth hydronym or river length. The assessment does not imply all unresolved portions are unnamed.",
+        "separately_named_corridor_parts": [
+          "Bear River"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Both selected fragments have a completed bounded source-correspondence assessment using readable original state maps and direct official text. The hold follows from mixed headwater, named-river, impoundment and terminal-lake scope. No additional source acquisition is pending for this finding. Optional USGS access failures do not prevent this assessment. Follow-up is required only before any future whole-object name assignment."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70531480"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 166,
+    "non_pending_records": 161,
+    "source_access_pending": 3,
+    "source_material_pending": 2,
+    "source_any_pending": 5,
+    "scope_holds": 55,
+    "river_groups": 68,
+    "lakes": 98,
+    "unrecorded": 3899,
+    "unrecorded_river_groups": 3387,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r56-sema-alto-jacui-map",
+      "official_url": "https://www3.sema.rs.gov.br/g050-bh-alto-jacui"
+    },
+    {
+      "source_key": "r56-sema-baixo-jacui-map",
+      "official_url": "https://www.sema.rs.gov.br/g070-bh-baixo-jacui"
+    },
+    {
+      "source_key": "r56-sgb-guaiba-2025",
+      "official_url": "https://rigeo.sgb.gov.br/handle/doc/25594.2"
+    },
+    {
+      "source_key": "r56-fepam-jacui-description",
+      "official_url": "https://ww3.fepam.rs.gov.br/qualidade/qualidade_jacui/jacui.asp"
+    },
+    {
+      "source_key": "r56-tpwd-strategic-planning-river-map",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/media/pwd_mp_e0100_1070m_34.pdf"
+    },
+    {
+      "source_key": "r56-tsswcb-nueces-watershed-2000",
+      "official_url": "https://www.tsswcb.texas.gov/sites/default/files/files/programs/agency-reports/Nueces%20River%20Watershed.pdf"
+    },
+    {
+      "source_key": "r56-tpwd-west-nueces-2001",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/pwd_rp_t3200_1059d/media/west_nueces.pdf"
+    },
+    {
+      "source_key": "r56-tpwd-waterways-nueces",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/pwd_rp_t3200_1047/21_c_tx_medina_navidad_nueces.phtml"
+    },
+    {
+      "source_key": "r56-tpwd-region-n-streams",
+      "official_url": "https://tpwd.texas.gov/landwater/water/conservation/water_resources/water_quantity/sigsegs/regionn.phtml"
+    },
+    {
+      "source_key": "r56-nps-gaar-gmp-2014",
+      "official_url": "https://www.nps.gov/gaar/learn/management/upload/2014_GAAR_GeneralManagementPlanAmendment_WildernessStewardshipPlan_EA_508.pdf"
+    },
+    {
+      "source_key": "r56-nps-noat-gmp-1986",
+      "official_url": "https://parkplanning.nps.gov/document.cfm?documentID=38091"
+    },
+    {
+      "source_key": "r56-nps-noat-visitor-use-2025",
+      "official_url": "https://www.nps.gov/locations/alaska/noat-vua-map.htm"
+    },
+    {
+      "source_key": "r56-nps-noatak-river-2024",
+      "official_url": "https://www.nps.gov/noat/learn/nature/noatakriver.htm"
+    },
+    {
+      "source_key": "r56-riversgov-noatak",
+      "official_url": "https://www.fws.gov/rivers/river/noatak"
+    },
+    {
+      "source_key": "r56-utah-dwr-bear-basin-2004",
+      "official_url": "https://water.utah.gov/wp-content/uploads/2020/06/Bear-River-2004.pdf"
+    },
+    {
+      "source_key": "r56-utah-dwr-bear-interstate",
+      "official_url": "https://water.utah.gov/interstate-streams/bear-river/"
+    },
+    {
+      "source_key": "r56-ugs-gunnison-cub-2023",
+      "official_url": "https://ugspub.nr.utah.gov/publications/survey_notes/snt55-1.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "6d96b73f2149916ca591df80e01c52912bc37f41",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      22,
+      23,
+      24,
+      25
+    ],
+    "next_unrecorded_id": "hydro-system:90050999",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}
