@@ -3,7 +3,7 @@
   "batch": "11-western-balkans-capitals",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0), municipal histories, ICJ and public official-language references",
-  "checkedOn": "2026-10-08",
+  "checkedOn": "2026-10-10",
   "selection": "Five GeoNames P/PPLC capital populated places: Sarajevo, Podgorica, Skopje, Tirana, Pristina. City points only; administrative areas are separately identified.",
   "coordinateConvention": "WGS84 EPSG:4326 GeoNames settlement representative points in latitude/longitude; not historical city boundaries.",
   "countryCodeSemantics": "sourceCountryCode is present-day GeoNames metadata. XK is used by GeoNames for Kosovo; do not derive state recognition, territorial sovereignty or historical polity from it.",
@@ -13,7 +13,7 @@
   "historicNameScope": "Evidence and editorial Korean map-label choices since 1801; distinguish earlier settlement/ruin names, later city renaming, regime status and coexisting official languages.",
   "qualityNotes": [
     "All five are P/PPLC populated-place city points with independent GeoNames IDs. Do not merge with same-named ADM1, ADM2 or ADM3 records.",
-    "Sarajevo: Bosnian, Croatian and Serbian spellings coexist; Turkish Saraybosna is a language variant, not proof of a later renamed city.",
+    "Sarajevo: Ottoman Turkish Arabic-script سرای بوسنه / Korean 사라이보스나 from 1801; Latin Sarajevo / Korean 사라예보 selected at the 1908-10-07 local Austro-Hungarian annexation proclamation; Latin/Cyrillic coofficial map nativeNames[] from 1918-11-03 regional language-and-scripts law, Latin-only Federal constitutional standard from 1994-03-30, restored coofficial Latin/Cyrillic from 2002-04-19 High Representative constitutional amendment decision (gazetted 2002-04-28). These are editorial naming/script-regime thresholds, not city renamings, first uses, or proof every municipality implemented new signage on each date.",
     "Podgorica alone has a grounded time-based Korean label switch to 티토그라드 from 1946-07-13 and back to 포드고리차 from 1992-04-02. The first is an editorial date backed by city chronology; law enactment timing and Titovgrad/Titograd orthography have distinct source concerns.",
     "Skopje: Macedonian Скопје, Albanian Shkupi, Turkish Üsküp coexist contextually. The Roman archaeological Scupi is not a current-city object or a nineteenth-century renaming.",
     "Tirana: Albanian indefinite Tiranë and definite Tirana are grammatical forms, not separate villages. Provisional 1920 and definitive 1925 capital status events are not name changes.",
@@ -27,23 +27,33 @@
       "geonameId": 3191281,
       "names": [
         {
+          "text": "سرای بوسنه",
+          "language": "ota",
+          "script": "Arab",
+          "usage": "historical",
+          "variantType": "selectedOttomanAdministrativeMapName",
+          "sourceUrl": "https://en.wiktionary.org/wiki/سرای_بوسنه"
+        },
+        {
           "text": "Sarajevo",
           "language": "bs",
+          "script": "Latn",
           "usage": "standard",
-          "note": "보스니아어 현행 표기"
+          "note": "보스니아어 현행 라틴 문자"
         },
         {
           "text": "Sarajevo",
           "language": "hr",
+          "script": "Latn",
           "usage": "standard",
-          "note": "크로아티아어 표기"
+          "note": "크로아티아어 라틴 문자"
         },
         {
           "text": "Сарајево",
           "language": "sr",
           "script": "Cyrl",
           "usage": "standard",
-          "note": "세르비아어 키릴 표기"
+          "note": "세르비아어 키릴 문자"
         },
         {
           "text": "Sarajevo",
@@ -51,17 +61,15 @@
           "usage": "standard"
         },
         {
+          "text": "사라이보스나",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "selectedOttomanKoreanMapName"
+        },
+        {
           "text": "사라예보",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Saraybosna",
-          "language": "tr",
-          "usage": "historical",
-          "variantType": "turkishHistoricalExonym",
-          "note": "튀르키예어 역사·현행 명칭",
-          "sourceUrl": "https://www.geonames.org/3191281/"
         }
       ],
       "latitude": 43.84864,
@@ -71,16 +79,87 @@
       "sourceUrl": "https://www.geonames.org/3191281/",
       "sourceCountryCode": "BA",
       "defaultDisplayNameKo": "사라예보",
-      "shortDescriptionKo": "보스니아 헤르체고비나의 수도",
+      "shortDescriptionKo": "1908년 원어 전환·문자 병기",
       "displayTimeline": [
         {
           "fromYear": 1801,
+          "nameKo": "사라이보스나",
+          "nameEn": "Sarajevo",
+          "nameNative": "سرای بوسنه",
+          "nativeLanguage": "ota",
+          "kind": "historicalOttomanAdministrativeName",
+          "sourceUrl": "https://en.wiktionary.org/wiki/سرای_بوسنه",
+          "note": "오스만어 원어·한글 이름",
+          "researchNote": "1801년부터 오스만 튀르키예어 아랍문자 سرای بوسنه(Saraybosna)를 지도 대표 원어명으로 선택한다. 한국어 지도명도 발음에 맞춰 사라이보스나로 선택하고 영어 Sarajevo는 유지한다. 당시 실제 한국어 사용례라는 뜻이 아니다. 1878년부터 오스트리아-헝가리가 실질 점령·민정을 운영했어도 사용자가 지정한 1908년 정식 합병을 전환점으로 삼는다. 1801년은 조사 시작 연도다."
+        },
+        {
+          "fromDate": "1908-10-07",
           "nameKo": "사라예보",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://www.sarajevo.ba/en/article/1212/sarajevo-u-osmanskom-periodu"
+          "nameNative": "Sarajevo",
+          "nativeLanguage": "hr",
+          "kind": "austroHungarianAnnexationLatinNativeSelection",
+          "sourceUrl": "https://en.wikipedia.org/wiki/Austro-Hungarian_rule_in_Bosnia_and_Herzegovina",
+          "note": "사라예보 합병 공고·라틴 표기",
+          "researchNote": "1908-10-07 사라예보 현지에서 보스니아·헤르체고비나 합병 선언이 공고된 날짜를 오스만어 سرای بوسنه·한국어 사라이보스나에서 라틴 Sarajevo·한국어 사라예보로 전환하는 편집 기준으로 선택한다. 보스니아의 오스트리아-헝가리 실질 점령은 1878년부터 계속됐으며 Sarajevo와 키릴 문자 지명도 합병 전부터 사용됐다. 정식 도시 개명이나 새 이름 창설일이라는 뜻은 아니다. 라틴 대표형은 보스니아·헤르체고비나의 당시 남슬라브계 현지 사용을 대표한다."
+        },
+        {
+          "fromDate": "1918-11-03",
+          "nameNative": "Sarajevo",
+          "nativeLanguage": "hr",
+          "nativeNames": [
+            {
+              "text": "Sarajevo",
+              "language": "hr",
+              "script": "Latn"
+            },
+            {
+              "text": "Сарајево",
+              "language": "sr",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "historicalCoOfficialScriptsBasedOn1918Law",
+          "sourceUrl": "https://izj.unsa.ba/wp-content/uploads/2021/02/09._Nazibegovic_et_al._Primjena-min.pdf",
+          "note": "라틴·키릴 문자 법적 동등화",
+          "researchNote": "1918-11-03 보스니아 헤르체고비나 민족평의회가 채택한 '공식 언어 및 문자에 관한 법률' 제2조에서 라틴·키릴 문자를 대내외 행정업무에 동등하게 사용하도록 규정하고 제3조에서 즉시 시행을 명시한다. 1918-12-01 세르브·크로아트·슬로벤 왕국 성립보다 앞선 현지 법령이다. Sarajevo 및 Сарајево 두 표기형을 공식 공동 원어명으로 선택하되, 두 이름이 이날 새로 만들어지거나 도시가 개명된 것은 아니다. 1941~45년과 전후 실제 정책에는 별도 특수 상황이 있었으나 전쟁 중 점령군의 제한 때문에 자동으로 매번 대표 원어를 전환하지 않는다."
+        },
+        {
+          "fromDate": "1994-03-30",
+          "nameNative": "Sarajevo",
+          "nativeLanguage": "bs",
+          "nativeNames": [
+            {
+              "text": "Sarajevo",
+              "language": "bs",
+              "script": "Latn"
+            }
+          ],
+          "kind": "federationConstitutionLatinOnlyOfficialScriptSelection",
+          "sourceUrl": "https://parlamentfbih.gov.ba/bos/parlament/o_parlamentu/ustavfbih.html",
+          "note": "연방헌법 라틴 문자만 공식",
+          "researchNote": "1994-03-30 0시 발효한 보스니아 헤르체고비나 연방 헌법 제I.6조는 보스니아어(당시 Bosniac 명칭)·크로아티아어 및 라틴 문자를 공식 지위로 규정한다. 보스니아 국가 전체나 역사적 사라예보 모든 주민·기관에서 키릴 문자 사용이 불가능해졌다는 뜻이 아니라, 당시 사라예보가 속한 연방정부의 공식 문자 규정을 기준으로 지도 원어 병기를 라틴 Sarajevo 하나로 일시 선택한 것이다. 중복 라틴 철자만 저장한다."
+        },
+        {
+          "fromDate": "2002-04-19",
+          "nativeNames": [
+            {
+              "text": "Sarajevo",
+              "language": "bs",
+              "script": "Latn"
+            },
+            {
+              "text": "Сарајево",
+              "language": "sr",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "federationConstitutionLatinCyrillicCoofficialSelection",
+          "sourceUrl": "https://www.ohr.int/decision-on-constitutional-amendments-in-the-federation/?print=print",
+          "note": "연방헌법 라틴·키릴 병기 복원",
+          "researchNote": "2002-04-19 최고대표의 보스니아 헤르체고비나 연방 헌법 개정 결정 제XXIX조가 공식 언어를 보스니아어·크로아티아어·세르비아어로 하고 공식 문자를 라틴·키릴로 규정했다. 이 결정의 발령일을 지도 병기 복원 편집 기준으로 선택하며 2002-04-28 관보 16/02 게재와 구별한다. 이 날짜가 사라예보 개별 시정부의 거리표지판 일괄 교체일을 증명하지 않는다. Sarajevo와 Сарајево 두 철자를 동시 선택하며 영어 Sarajevo, 한국어 사라예보는 유지한다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-language-variants",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1908-annexation-1918-scripts-1994-latin-only-2002-bilingual",
       "historicalGeography": {
         "events": [
           {
@@ -97,13 +176,50 @@
             "detail": "오스트리아-헝가리 제국 점령",
             "researchDetail": "1878년 보스니아·헤르체고비나 점령은 정치적 지위 변화. 사라예보의 도시 지명이 1878년에 공식 변경됐다는 뜻은 아님.",
             "sourceUrl": "https://www.sarajevo.ba/en/category/134/1"
+          },
+          {
+            "date": "1908-10-07",
+            "type": "annexationProclaimedInSarajevo",
+            "detail": "오스트리아-헝가리 합병 공고",
+            "sourceUrl": "https://en.wikipedia.org/wiki/Austro-Hungarian_rule_in_Bosnia_and_Herzegovina",
+            "researchDetail": "보스니아·헤르체고비나 실질 점령은 1878년부터, 정식 병합은 1908년. 10월 7일 현지 공고를 지도 명칭 전환점으로 사용한다."
+          },
+          {
+            "date": "1918-11-03",
+            "type": "officialLatinCyrillicEqualityLaw",
+            "detail": "공식 라틴·키릴 문자 동등화",
+            "sourceUrl": "https://izj.unsa.ba/wp-content/uploads/2021/02/09._Nazibegovic_et_al._Primjena-min.pdf",
+            "researchDetail": "세르브·크로아트·슬로벤 왕국 성립 12월 1일보다 앞서 보스니아 지역의 민족평의회가 채택한 즉시 시행 법률이다."
+          },
+          {
+            "date": "1994-03-30",
+            "type": "federationConstitutionLatinScriptOfficial",
+            "detail": "연방헌법 라틴 문자만 공식",
+            "sourceUrl": "https://parlamentfbih.gov.ba/bos/parlament/o_parlamentu/ustavfbih.html"
+          },
+          {
+            "date": "2002-04-19",
+            "type": "federationConstitutionScriptsCoofficial",
+            "detail": "연방헌법 개정 라틴·키릴 동등",
+            "sourceUrl": "https://www.ohr.int/decision-on-constitutional-amendments-in-the-federation/?print=print",
+            "researchDetail": "헌법 개정 결정일(4월 19일)을 지도 편집 기준으로 선택. 관보 게재는 4월 28일이며 개별 도시의 새 개명 사건은 아니다."
           }
         ],
         "notes": [
           {
-            "detail": "Saraybosna는 튀르키예어명",
-            "researchDetail": "현지 보스니아어·크로아티아어 Sarajevo와 세르비아어 Сарајево, 튀르키예어 Saraybosna는 언어별 명칭이며 도시 개칭 연표로 단순 환산하지 않음.",
-            "sourceUrl": "https://www.geonames.org/3191281/"
+            "detail": "오스만어 Saraybosna는 선호 구간명",
+            "sourceUrl": "https://en.wiktionary.org/wiki/سرای_بوسنه",
+            "researchDetail": "오스만어 원문 سرای بوسنه를 1801~1908-10-06 선택한다. Saraybosna는 라틴 문자 전사·현대 튀르키예어의 후계형일 뿐 별도 동시 공식명으로 기록하지 않는다."
+          },
+          {
+            "detail": "1918·2002는 문자 지위 기준",
+            "sourceUrl": "https://izj.unsa.ba/wp-content/uploads/2021/02/09._Nazibegovic_et_al._Primjena-min.pdf",
+            "researchDetail": "오스트리아-헝가리 시기에도 라틴·키릴 문자가 모두 존재했고 1918년은 공식 동등화 기준, 2002년은 연방 헌법상 공식 동등성 복원 기준이다. 지방별 개별 공문서 최초 병기일과 구분한다."
+          },
+          {
+            "detail": "1994~2002는 연방헌법만 적용",
+            "sourceUrl": "https://parlamentfbih.gov.ba/bos/parlament/o_parlamentu/ustavfbih.html",
+            "researchDetail": "1994-03-30~2002-04-18 라틴 단독 선택은 사라예보가 속한 보스니아 헤르체고비나 연방의 헌법적 공식 문자 규정에 따르는 지도 정책이다. 국가 전체·세르비아계 주민의 일상적 키릴 사용까지 부정하지 않는다."
           },
           {
             "detail": "도시 취락과 사라예보주 구분",
@@ -111,7 +227,22 @@
             "sourceUrl": "https://www.geonames.org/3191281/"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Sarajevo",
+      "defaultDisplayNameNative": "Sarajevo",
+      "defaultNativeLanguage": "bs",
+      "defaultNativeNames": [
+        {
+          "text": "Sarajevo",
+          "language": "bs",
+          "script": "Latn"
+        },
+        {
+          "text": "Сарајево",
+          "language": "sr",
+          "script": "Cyrl"
+        }
+      ]
     },
     {
       "geonameId": 3193044,
