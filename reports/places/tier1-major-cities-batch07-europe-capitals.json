@@ -3,7 +3,7 @@
   "batch": "07-europe-capitals",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0)",
-  "checkedOn": "2026-10-08",
+  "checkedOn": "2026-10-10",
   "selection": "Eight current European capital-city GeoNames P/PPLC records plus one separate historical predecessor Pest GeoNames P/PPLX record, with city-label validity ending at Budapest's 1873-11-17 unification.",
   "coordinateConvention": "Dataset-wide WGS84 (EPSG:4326), decimal-degree settlement representative points rather than city/region polygons.",
   "countryCodeSemantics": "sourceCountryCode is present-day GeoNames metadata only, not a historical ownership assignment.",
@@ -14,7 +14,7 @@
   "qualityNotes": [
     "Budapest is the unified city only from 1873-11-17. The separate historical Pest place (GeoNames 3046446, modern PPLX, coordinates 47.5/19.0833333) is shown in the city layer before 1873-11-17 and suppressed from that date by staged temporalEligibility.activeIntervals; Budapest GeoNames 3054643 is suppressed before that date by its existing temporalEligibility.cityEstablishedFromDate. Buda and Óbuda remain linked predecessor settlements, not aliases of Budapest.",
     "Warsaw: 1801 Prussian Warschau/바르샤우, 1807-07-09 Duchy of Warsaw treaty Warszawa/바르샤바, 1868 year-level Russianized administration Варшава, 1917-12-07 Regency Kingdom Polish cabinet Warszawa. English Warsaw remains unchanged; Congress Poland from 1815 is not treated as direct Russian imperial territory. Prague: 1801 German Prag/프라크, 1861-11-01 municipal adoption of Czech Praha/프라하, English Prague unchanged. Neither language transition is construed as a new legal city name. Brussels' concurrent French/Dutch names continue under existing policy.",
-    "Athens: selected Ottoman Turkish آتینا from 1801, polytonic Katharevousa Ἀθῆναι from 1833-03-31, Demotic Ἀθήνα from approximate 1976, and monotonic Αθήνα from approximate 1982. These mark language/orthography choices, not city legal renamings.",
+    "Athens: selected Ottoman Turkish آتینا / Korean 아티나 from 1801; Greek Ἀθῆναι / Korean 아테네 from 1833-03-31 (Ottoman withdrawal), then Greek Ἀθήνα c. 1976 and Αθήνα c. 1982. English Athens remains unchanged. Korean is the selected native-language pronunciation convention by period, not evidence of contemporary Korean historical usage or an actual city renaming.",
     "Amsterdam is a city point, not its municipality or metro; Brussels city point is distinct from the 19-municipality capital region.",
     "Short displayed text is <=28 Unicode codepoints. Map renderer and production manifest are unchanged.",
     "GeoNames PPLX Pest is a scoped exception to the modern capital PPLC selection: independent historic municipality until 1873, then part of modern Budapest. As of this staged report, runtime label resolver does not consume activeIntervals; the historical display rule is pending runtime integration.",
@@ -552,6 +552,13 @@
           "text": "아테네",
           "language": "ko",
           "usage": "standard"
+        },
+        {
+          "text": "아티나",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "selectedOttomanEraKoreanMapName",
+          "note": "오스만어 Atina의 편집상 한글 표기"
         }
       ],
       "latitude": 37.98376,
@@ -565,14 +572,14 @@
       "displayTimeline": [
         {
           "fromYear": 1801,
-          "nameKo": "아테네",
+          "nameKo": "아티나",
           "nameEn": "Athens",
           "nameNative": "آتینا",
           "nativeLanguage": "ota-Arab",
           "kind": "historicalAdministrativeLanguageSelection",
           "sourceUrl": "https://www.geonames.org/264371/athens.html",
           "note": "오스만 튀르크어 원어 대표명",
-          "researchNote": "오스만 시대 그리스어 사용은 병존했다. 지도 원어명은 지배국의 행정언어로 선택한 오스만 튀르크어 아랍문자형 آتینا이고, 한국어 아테네·영어 Athens는 유지한다. 1801년은 조사 시작 연도다."
+          "researchNote": "오스만 제국 시기의 지도 원어명을 آتینا(Atina)로 선택하며, 한국어명도 그 발음에 맞춰 아티나로 표시한다. 영어 Athens는 유지한다. 이 표기는 과거 한국어 실제 사용례를 주장하는 것이 아닌 판도편집기의 시대별 발음 표기 원칙이다. 1801년은 조사 시작 연도다."
         },
         {
           "fromDate": "1833-03-31",
@@ -580,7 +587,8 @@
           "nativeLanguage": "el",
           "kind": "postOttomanGreekLanguageSelection",
           "note": "그리스 측 통치 재개 후 그리스어 기준",
-          "researchNote": "1833년 3월 31일 오스만군이 아크로폴리스에서 철수한 시점을 그리스어 문어형 Ἀθῆναι로 원어 대표언어를 변경하는 편집상 기준일로 선정했다. 1834년 그리스 수도 지정은 별도 사건이며 도시명 개칭이 아니다."
+          "researchNote": "1833-03-31 오스만군 아크로폴리스 철수를 지도 그리스어 Ἀθῆναι 및 한국어 아테네를 동시에 채택하는 기준일로 사용한다. 아테네는 한국어 지도 관용 표기로, 해당 날짜에 그리스어 원어명 자체가 새로 만들어졌거나 도시가 법적으로 개명됐다는 뜻은 아니다. 영어 Athens는 이전과 동일하게 유지한다.",
+          "nameKo": "아테네"
         },
         {
           "fromYear": 1976,
@@ -599,7 +607,7 @@
           "researchNote": "1982년 단조식 철자법 채택을 원어 대표명 Ἀθήνα→Αθήνα의 연도 단위 편집 기준으로 선정한다. 한국어 아테네·영어 Athens는 계속 유지한다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1833-03-31-greek-korean-display-switch-1976-1982-greek-orthography",
       "historicalGeography": {
         "events": [
           {
