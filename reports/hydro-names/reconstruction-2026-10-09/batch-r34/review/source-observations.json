@@ -1,0 +1,164 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r34",
+  "scope_aw_ids": [
+    "lakes_base:1159109169",
+    "lakes_base:1159109861",
+    "lakes_base:1159109871"
+  ],
+  "new_external_requests": 4,
+  "new_external_requests_scope": "Batch total: one discovery search, one original geological-map web-read timeout without an HTTP status, and two successful original-body GETs. Backend HTTP subrequest totals are unknown. The independent reviewer made zero external requests and reused the two originals acquired earlier in r34. No failed request is counted as an original acquisition.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": null,
+  "new_original_source_acquisitions_this_batch": 2,
+  "distinct_reviewed_publications": 2,
+  "distinct_cartographic_identity_publications": 2,
+  "independent_source_groups": 1,
+  "source_group_definition": "One provincial-government publisher group: Government of Manitoba. Its geological-survey and park publications are distinct works but not demonstrated independent hydrographic datasets.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "Full source rings were registered to the geological GeoPDF using its embedded full affine transform, including rotation. Park maps were visually compared but not registered. Display correspondence does not certify surveyed shores, exact named-water partitions or present conditions.",
+  "observations": [
+    {
+      "source_key": "manitoba_bedrock_geology_of2024_4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Economic Development, Investment, Trade and Natural Resources, Manitoba Geological Survey",
+      "url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf",
+      "original_acquired_at_utc": "2026-10-10T00:02:56.872607+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": true,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2024",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The publication imprint explicitly says published by Manitoba Geological Survey, 2024. No month or day of publication is established; PDF modification and HTTP dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": true,
+      "review_reused_original_acquired_in_prior_batch": false,
+      "original_acquisition_batch": "r34",
+      "directly_read_water_labels": [
+        "Kississing Lake",
+        "Clearwater Lake",
+        "Cormorant Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Kisseynew Lake",
+        "Root Lake",
+        "Reader Lake",
+        "Mawdesley Lake",
+        "North Moose Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Direct water labels and full selected-footprint cartographic context for all three targets.",
+      "authority_scope": "Official provincial thematic cartographic usage supports bounded associations. Neither publication establishes a formal naming-registry decision, current surveyed shoreline or exact named-water boundary.",
+      "registered_overlay_performed": true,
+      "own_observations": "The original map directly prints Kississing Lake, Clearwater Lake and Cormorant Lake over waters with the corresponding selected basin arrangements. Distinct nearby waters and river context distinguish them. The complete ring overlays show extensive shoreline generalization, filled islands and omitted thin arms; detailed whole-lake coverage is not established.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "The digital topographic base credits the CanVec+ data model, Natural Resources Canada for hydrographic features, and the Manitoba Land Initiative, Manitoba Environment, Climate and Parks."
+    },
+    {
+      "source_key": "clearwater_park_plan_2013",
+      "title": "Clearwater Lake Provincial Park Management Plan",
+      "publisher": "Manitoba Conservation and Water Stewardship, Parks and Natural Areas Branch",
+      "url": "https://www.gov.mb.ca/sd/pubs/parks-protected-spaces/management_plan/clearwater_lake_management_plan.pdf",
+      "original_acquired_at_utc": "2026-10-10T00:02:42.900727+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": true,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2013-01",
+      "publication_date_precision": "month",
+      "publication_date_verified": true,
+      "publication_date_note": "The printed front matter on physical page 2 explicitly states January 2013. No day of publication is established; PDF creation and HTTP dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": true,
+      "review_reused_original_acquired_in_prior_batch": false,
+      "original_acquisition_batch": "r34",
+      "directly_read_water_labels": [
+        "Clearwater Lake",
+        "Cormorant Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Root Lake",
+        "Reader Lake"
+      ],
+      "physical_pdf_pages": [
+        2,
+        6,
+        9
+      ],
+      "role": "Second direct Clearwater Lake map association and detailed bay/island context; only partial Cormorant edge and Clearwater connection context. No Kississing evidence.",
+      "authority_scope": "Official provincial thematic cartographic usage supports bounded associations. Neither publication establishes a formal naming-registry decision, current surveyed shoreline or exact named-water boundary.",
+      "registered_overlay_performed": false,
+      "own_observations": "Map page 6 directly labels Clearwater Lake over its rounded main basin and northern bays, with Cormorant Lake only partly visible to the northeast. Page 9 repeats the Clearwater Lake label in a land-use map. Both support Clearwater correspondence while showing detail lost in the generalized ring. The park maps were not geometrically registered for this review."
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159109169",
+      "aw_id": "lakes_base:1159109169",
+      "source_id": "1159109169",
+      "geometry_fids": [
+        15394
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 71,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "The direct blue Kississing Lake label identifies the water with a broad island-studded central basin, northwestern lobe, elongated northeastern arm and two narrow southern lobes. The complete selected ring follows this arrangement. Islands are filled and detailed narrow arms and peninsula margins are generalized. Kisseynew Lake is separately labelled south beyond the ring; Kississing River is river context, not an alternative lake identity. No differently named lake is implicated by the selected generalized footprint on this inspected map. Exact river/lake transition and detailed named extent remain unverified."
+    },
+    {
+      "observation_id": "lakes_base:1159109861",
+      "aw_id": "lakes_base:1159109861",
+      "source_id": "1159109861",
+      "geometry_fids": [
+        15448
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 39,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4",
+        "clearwater_park_plan_2013"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "The complete ring surrounds the rounded main Clearwater Lake basin with a projecting northern arm and indented eastern shore, west of the road/rail corridor and south/southwest of Cormorant. The geological original directly labels the basin, and park map pages 6 and 9 confirm the same water and detailed bays/islands. The long straight generalized northern edge omits fine bays and islands, the southwestern and southern margin omits small shoreline extensions, and the southeast projection is simplified. Root and Reader lakes lie separately west/southwest. Cormorant is a distinct lake northeast, and named internal bays are not additional whole-lake names."
+    },
+    {
+      "observation_id": "lakes_base:1159109871",
+      "aw_id": "lakes_base:1159109871",
+      "source_id": "1159109871",
+      "geometry_fids": [
+        15449
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 69,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [
+        "clearwater_park_plan_2013"
+      ],
+      "independent_observation": "The complete ring follows the broad east-west northern main Cormorant basin, an eastern hook separated by a peninsula, and the wider south-central lobe. Cormorant Lake is directly labelled on the original. Long thin northern/northwestern extensions and intricate shore margins extend beyond the selected ring; islands are filled and the northeast/eastern shore is substantially smoothed. Clearwater Lake lies separately southwest, Mawdesley Lake south/southeast, and North Moose Lake farther east outside the selected ring. The park map supplies only the Cormorant-Clearwater adjoining context and not the entire Cormorant extent."
+    }
+  ],
+  "source_group_limit": "Two official provincial cartographic publications from one provincial-government publisher group; underlying hydrographic dataset independence is unverified, and no formal naming registry was checked.",
+  "independent_review_and_source_research_agree": true
+}
