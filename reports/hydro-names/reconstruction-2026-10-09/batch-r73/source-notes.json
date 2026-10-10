@@ -1,0 +1,556 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r73",
+  "sources": [
+    {
+      "source_key": "r51-inegi-sonora-state-2024-2025",
+      "title": "Condensado Estatal Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "year": 2024,
+      "publication_year": 2025,
+      "page": "Single map sheet, PDF p. 1; Mayo upper corridor, Mocúzari, lower coastal plain and El Elote setting.",
+      "supports": "Regional connected Mayo route, Concheño context, distinction from Chínipas–Fuerte, Adolfo Ruiz Cortines storage identity, Navojoa–Etchojoa course and El Elote coastal setting.",
+      "limits": "Scale 1:970,000; generalized state sheet. Exact naming boundaries and modern shoreline or impoundment completeness are not established.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/son/794551162958.pdf"
+    },
+    {
+      "source_key": "r65-inegi-ocampo-2010",
+      "title": "Compendio de información geográfica municipal 2010: Ocampo, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Northern boundary stream and named Concheño connection; distinct south-flowing La Máquina/Ocampo approach.",
+      "limits": "Does not name the initial boundary stream separately or fix the precise upstream limit of Concheño.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08051.pdf"
+    },
+    {
+      "source_key": "r73-inegi-moris-2010",
+      "title": "Compendio de información geográfica municipal 2010: Moris, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Selected eastern Moris turn and connected southern-boundary course into the Uruachi approach.",
+      "limits": "Many main-channel reaches are unlabeled on this sheet; no name was inferred merely from the municipality or hydrography table.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08047.pdf"
+    },
+    {
+      "source_key": "r65-inegi-uruachi-2010",
+      "title": "Compendio de información geográfica municipal 2010: Uruachi, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Route directly labeled Mayo in the northern/western municipality, downstream connection toward Sonora and separation from Oteros.",
+      "limits": "Generalized map does not establish exact Concheño-to-Mayo naming limits.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08066.pdf"
+    },
+    {
+      "source_key": "r73-inegi-alamos-2010",
+      "title": "Compendio de información geográfica municipal 2010: Álamos, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 7, Relieve.",
+      "supports": "Long southward Mayo corridor, northeastern reservoir approach, Adolfo Ruiz Cortines (Mocúzari) identity and selected passage to the western outlet.",
+      "limits": "Historical map does not establish present water extent or inventory all later impoundments.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26003.pdf"
+    },
+    {
+      "source_key": "r73-inegi-navojoa-2010",
+      "title": "Compendio de información geográfica municipal 2010: Navojoa, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Named lower Mayo route through the northeastern and central Navojoa plain, distinct from Canal Principal and nearby tributaries.",
+      "limits": "Generalized river and canal cartography does not fix present channel widths or flow.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26042.pdf"
+    },
+    {
+      "source_key": "r73-inegi-etchojoa-2010",
+      "title": "Compendio de información geográfica municipal 2010: Etchojoa, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Named Mayo bends between the Navojoa and Huatabampo margins and separation from Principal Alto/Principal Bajo and other canals.",
+      "limits": "Municipal map supports continuity rather than exact reach-by-reach modern channel configuration.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26026.pdf"
+    },
+    {
+      "source_key": "r73-inegi-huatabampo-2010",
+      "title": "Compendio de información geográfica municipal 2010: Huatabampo, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Río Mayo course and its El Elote coastal connection, west of Bahía Yavaros and distinct from the adjacent estuarine network.",
+      "limits": "Cartographic coastal connection is supported, but the precise current river mouth, barrier opening and generalized terminal vertex are not surveyed by this evidence.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26033.pdf"
+    },
+    {
+      "source_key": "r73-nluis-56k",
+      "title": "Laughland Lake, 56K, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Environment Canada, Lands Directorate, Environmental Conservation Service; Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "year": 1983,
+      "page": "Single-sheet original map, southwestern source-lake area",
+      "supports": "Actual northern lake setting and southwestward outlet connection; exclusion of the namesake Laughland Lake as the selected beginning.",
+      "limits": "The selected lake and adjoining initial connection have no hydronym established by the inspected pixels; model and map generalization preclude shoreline-exact source placement.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56k.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56l",
+      "title": "Mistake River, 56L, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of the Environment, Lands Directorate, Environmental Management Service; Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "year": 1980,
+      "page": "Single-sheet original map, southeastern upper lake-and-stream connections",
+      "supports": "Northern route continuity and distinction from the western named-river approach.",
+      "limits": "This does not establish a separate name or formal Quoich naming limit for every selected northern feeder/lake.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56l.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56e",
+      "title": "Woodburn Lake, 56E, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of the Environment, Lands Directorate, Environmental Management Service; Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "year": 1980,
+      "page": "Single-sheet original map, northeastern upper chain and southeastern/southern returning Quoich corridor",
+      "supports": "Continuity across the northern and southern passages through this sheet and direct Quoich identity on the southern selected reach.",
+      "limits": "Historical thematic symbols overlay some channels; underlying watercourse and lake connections were inspected beyond the thematic boundaries.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56e.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56f",
+      "title": "Pennington Lake, 56F, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of the Environment, Lands Directorate, Environmental Management Service; Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "year": 1980,
+      "page": "Single-sheet original map, western Quoich corridor and middle-course eastern loop",
+      "supports": "Direct river identity and selected middle-course topology, including the characteristic large loop.",
+      "limits": "No separate names are adopted for the intervening river widenings or nearby lake outlet tributaries.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56f.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56d",
+      "title": "Baker Lake, 56D, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of the Environment, Lands Directorate, Environmental Management Service; Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "year": 1980,
+      "page": "Single-sheet original map, northern and eastern lower Quoich",
+      "supports": "Both-piece continuity and lower Quoich naming correspondence; separation from Baker Lake and Thelon context.",
+      "limits": "Broad lake passages are not treated as aliases of the river; no exact modern channel or shoreline alignment is asserted.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56d.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56c",
+      "title": "Tehery Lake, 56C, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of the Environment, Lands Directorate, Environmental Management Service; Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "year": 1980,
+      "page": "Single-sheet original map, western lower Quoich and St. Clair Falls setting",
+      "supports": "Terminal selected river identity and the fact that the mapped waterway continues beyond the cached endpoint.",
+      "limits": "The modeled endpoint is not used to define the river's ultimate mouth or a tidal/shoreline boundary.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56c.jpg"
+    },
+    {
+      "source_key": "r63-nhn-suriname-rivers-map-2003",
+      "title": "Index of vernacular plant names of Suriname — Figure 1, Map of Suriname and its rivers",
+      "publisher": "Nationaal Herbarium Nederland, Universiteit Leiden branch; repository hosted by Naturalis Biodiversity Center",
+      "attribution": "Charlotte I. E. A. van ’t Klooster, Jan C. Lindeman and Marion J. Jansen-Jacobs; Blumea Supplement 15. Drawing credited to Hendrik Rypkema.",
+      "year": 2003,
+      "page": "Printed p. 3, PDF p. 9, Figure 1",
+      "supports": "Broad Coppename identity west of Saramacca and east of the Nickerie/Corantijn systems.",
+      "limits": "Simplified national river sketch; not evidence for the substantial selected westernmost headwater or individual tributary connections.",
+      "official_url": "https://repository.naturalis.nl/pub/603310/Blumea_supplement_15.pdf"
+    },
+    {
+      "source_key": "r67-naturalis-holthuis-suriname-map",
+      "title": "The Crustacea Decapoda of Suriname (Dutch Guiana) — Map 1, Suriname",
+      "publisher": "Rijksmuseum van Natuurlijke Historie, Leiden; Zoologische Verhandelingen; repository hosted by Naturalis Biodiversity Center",
+      "attribution": "L. B. Holthuis. Historical institutional study with a national river map on the concluding foldout.",
+      "year": 1959,
+      "page": "PDF p. 311, Map 1, full national map and Coppename details",
+      "supports": "Linker versus Rechter Coppename branches, their junction, central Coppename bends by Raleigh Falls and lower trunk toward Boskamp.",
+      "limits": "Historical generalized institutional map; the selected far-western upper extension is omitted and cannot be inferred from the Linker label. No exact modern mouth, river-name limit or formal naming decision.",
+      "official_url": "https://repository.naturalis.nl/pub/317569/ZV1959044001.pdf"
+    },
+    {
+      "source_key": "r67-hydromet-water-quality-2024q1",
+      "title": "Water quality technical report for surface water resources in Suriname — January–March 2024",
+      "publisher": "Suriname Ministry of Public Works, Directorate Research and Services, Sub-Directorate Research and Innovation, Hydraulic Research Division",
+      "attribution": "Goncalves Vanity, Sheonarain Kereshma and Owen Shannon; report finalized May 2024.",
+      "year": 2024,
+      "page": "PDF/printed pp. 26–27, Figure 6 and Table 7",
+      "supports": "Official Coppename River name, mapped northward trunk and the Kaaimanston–Witagron–Boskamp sequence; lower tidal context.",
+      "limits": "Generalized water-quality map; insufficient source detail for the complete initial westernmost approach. Unlabelled small tributary channels do not establish separate hydronyms. Historical sampling and discharge values are not used as current advice.",
+      "official_url": "https://hydromet.sr/wp-content/uploads/2025/06/WQ-FINAL-Jan-Mar-2024_compressed.pdf"
+    },
+    {
+      "source_key": "r73-usgs-norris1957",
+      "title": "Norris Brook Quadrangle, Maine–Somerset County, 15 Minute Series (Topographic)",
+      "publisher": "U.S. Geological Survey",
+      "year_note": "Sheet dated 1957; retained edition identifies a 1965 printing.",
+      "year": 1957,
+      "page": "Single sheet, scale 1:62,500",
+      "supports": "Western upper feeder/Abacotnetic corridor continuing across the adjacent sheet edge; North Branch and Big Bog regional setting.",
+      "limits": "Historical topography, pale raster; no formal hydronym limit assigned to the initial feeder.",
+      "official_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/PDF/ME/62500/ME_Norris%20Brook_460675_1957_62500_geo.pdf"
+    },
+    {
+      "source_key": "r73-usgs-saintjohn1958",
+      "title": "Saint John Pond Quadrangle, Maine–Somerset County, 15 Minute Series (Topographic)",
+      "publisher": "U.S. Geological Survey in cooperation with State of Maine Public Utilities Commission",
+      "year_note": "Sheet dated 1958; retained sheet shows a 1962 printing.",
+      "year": 1958,
+      "page": "Single sheet, scale 1:62,500",
+      "supports": "Actual western Abacotnetic inlet to Little Bog; distinct North Branch downstream; Big Bog setting and separately mapped Fifth St. John Pond/canal and Sweeney approach.",
+      "limits": "Historical map is not evidence of present dam or canal operation.",
+      "official_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/PDF/ME/62500/ME_Saint%20John%20Pond_306748_1958_62500_geo.pdf"
+    },
+    {
+      "source_key": "r73-maine-rivers1982",
+      "title": "Maine Rivers Study, Final Report",
+      "publisher": "State of Maine Department of Conservation and U.S. Department of the Interior, National Park Service, Mid-Atlantic Regional Office; official copy held by Maine State Law and Legislative Reference Library",
+      "year_note": "Title page dated May 1982",
+      "year": 1982,
+      "page": "PDF pages 115 (lower mainstem), 149 (North Branch), 153 (Piscataquis) and 187 (Penobscot basin overview); PDF pagination includes library cover",
+      "supports": "North Branch–Big Bog–Seboomook topology, full selected lower Piscataquis route to Howland, regional branch distinctions, and lower Penobscot through Bucksport and the island setting.",
+      "limits": "Simplified thematic river cartography, not a vertex-level survey or current recreation/regulatory guide.",
+      "official_url": "https://lldc.mainelegislature.org/Open/Rpts/gb1225_m2m34_1982.pdf"
+    },
+    {
+      "source_key": "r73-maine-prc2016",
+      "title": "Penobscot River Corridor and Seboomook Public Lands, Map and Guide",
+      "publisher": "Maine Department of Agriculture, Conservation and Forestry, Bureau of Parks and Lands",
+      "year": 2016,
+      "page": "Two-page guide; cartography on PDF page 2, supporting descriptions on page 1",
+      "supports": "Seboomook and separate South Branch/Canada Falls approach, upper West Branch through Chesuncook and Ripogenus setting, lower West Branch to the Ambajejus/Pemadumcook approach.",
+      "limits": "Does not cover the far upper feeder, the complete lower lake complex, Medway or the coastal mainstem. Other originals provide those extents.",
+      "official_url": "https://www.maine.gov/dacf/parksearch/PropertyGuides/PDF_GUIDE/prc-seboomook-guide.pdf"
+    },
+    {
+      "source_key": "r73-maine-pemadumcook1954",
+      "title": "Pemadumcook Chain of Lakes, lake survey and map",
+      "publisher": "Maine Department of Inland Fisheries and Game; hosted by Maine Department of Inland Fisheries and Wildlife",
+      "year_note": "Surveyed August 1954",
+      "year": 1954,
+      "page": "Two pages; connected-lake map on PDF page 2",
+      "supports": "Distinct Ambajejus, Pemadumcook, North Twin, South Twin and Elbow labels, West Branch inlet, separate Nahamakanta and Jo Mary inlets, and eastern outlet sector.",
+      "limits": "Bathymetric lake survey with generalized shoreline; no claim that every named lake arm is selected or that historical depths are current.",
+      "official_url": "https://www.maine.gov/ifw/docs/lake-survey-maps/penobscot/pemadumcook_chain_of_lakes.pdf"
+    },
+    {
+      "source_key": "r73-maine-rivershed2010",
+      "title": "Penobscot Rivershed with Licensed Discharges and Critical Salmon Habitat Overlay",
+      "publisher": "Maine Department of Environmental Protection",
+      "year_note": "Map marked June 2010; original filename and PDF production identify December 2010",
+      "year": 2010,
+      "page": "Single oversized sheet with Millinocket/Medway and Old Town/Bangor insets",
+      "supports": "Named North and West branches; Quakish/Dolby/Millinocket–Medway connection, East Branch confluence and downstream Penobscot; full selected lower Piscataquis to Howland; lower-trunk community and island setting.",
+      "limits": "Lake polygons are not uniformly prominent and facility labels obscure some main-sheet reaches; the lake survey and state corridor guide provide complementary waterbody geography. Historical facilities and classifications are not current-condition evidence.",
+      "official_url": "https://www.maine.gov/dep/gis/datamaps/lawb_discharge_salmon/Penobscot%20Rivershed_DEC2010_36x48_300dpi.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70836428",
+      "source_keys": [
+        "r51-inegi-sonora-state-2024-2025",
+        "r65-inegi-ocampo-2010",
+        "r73-inegi-moris-2010",
+        "r65-inegi-uruachi-2010",
+        "r73-inegi-alamos-2010",
+        "r73-inegi-navojoa-2010",
+        "r73-inegi-etchojoa-2010",
+        "r73-inegi-huatabampo-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10260
+          ],
+          "finding": "The actual northeastern beginning runs west along the northern Ocampo–Temósachi boundary stream, then southwest along the mapped Concheño course. The readable Ocampo relief map shows this connected approach and its separation from the La Máquina stream that descends south through Ocampo. The initial boundary stream is visible, but no separate hydronym or official source point is assigned to it.",
+          "sources": [
+            "r65-inegi-ocampo-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10260
+          ],
+          "finding": "The selected upper course enters eastern Moris, bends south and southeast, and then turns southwest along the southern municipal margin. The Moris map shows the connected watercourse and its junction setting, while Ocampo cartography distinguishes the unselected southern Ocampo approach. The selection continues into the route labeled Mayo in northern and western Uruachi; it does not follow the separate Oteros system to the east.",
+          "sources": [
+            "r73-inegi-moris-2010",
+            "r65-inegi-ocampo-2010",
+            "r65-inegi-uruachi-2010",
+            "r51-inegi-sonora-state-2024-2025"
+          ]
+        },
+        {
+          "fragments": [
+            10260
+          ],
+          "finding": "The long southward selection through western Uruachi and northern Álamos matches the Mayo valley, with the mapped northern Álamos course continuing past the Los Pescaditos, Maguarichi and Gochico tributary junction settings toward the reservoir. Those tributaries remain separate approaches rather than aliases or additional selected headwaters.",
+          "sources": [
+            "r65-inegi-uruachi-2010",
+            "r73-inegi-alamos-2010",
+            "r51-inegi-sonora-state-2024-2025"
+          ]
+        },
+        {
+          "fragments": [
+            10260
+          ],
+          "finding": "The selected route enters the northeastern Mayo arm of Presa Adolfo Ruiz Cortines (Mocúzari), traverses its mapped southeastern-to-western reservoir corridor and continues west below the dam. The reservoir name is a storage-waterbody identity and is not a name assigned to the upstream river. The unselected northwestern reservoir arm is not substituted for the actual approach.",
+          "sources": [
+            "r73-inegi-alamos-2010",
+            "r51-inegi-sonora-state-2024-2025"
+          ]
+        },
+        {
+          "fragments": [
+            10260
+          ],
+          "finding": "Below the reservoir, the selection follows the western bend and then the southwest-flowing Mayo course toward and through the Navojoa plain. The Navojoa and Etchojoa relief maps label the selected river separately from Canal Principal and the Principal Alto/Principal Bajo irrigation channels. The lower sinuous course continues south through Etchojoa into Huatabampo.",
+          "sources": [
+            "r73-inegi-navojoa-2010",
+            "r73-inegi-etchojoa-2010",
+            "r51-inegi-sonora-state-2024-2025"
+          ]
+        },
+        {
+          "fragments": [
+            10260
+          ],
+          "finding": "In Huatabampo, the selected course bends south and then southwest along the river labeled Río Mayo to the El Elote coastal setting. The primary relief map and Sonora sheet support the natural connection to the Gulf of California coast west of Bahía Yavaros. The selected endpoint does not justify tracing the separate estuarine channels east through Etchoropo/Tecucure and Tecucuri into Yavaros, nor treating the lagoon or estuary names as river aliases.",
+          "sources": [
+            "r73-inegi-huatabampo-2010",
+            "r51-inegi-sonora-state-2024-2025"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80150800",
+      "source_keys": [
+        "r73-nluis-56k",
+        "r73-nluis-56l",
+        "r73-nluis-56e",
+        "r73-nluis-56f",
+        "r73-nluis-56d",
+        "r73-nluis-56c"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2575
+          ],
+          "finding": "The actual northern beginning lies along the northern/western part of an unnamed lake-and-stream setting on the Laughland Lake sheet. The prominent adjoining lake carries a 975-foot elevation but no inspected hydronym. The selected route follows its western water connection and southwestward outlet/rapids toward the western sheet edge. It does not begin in the namesake Laughland Lake farther southeast.",
+          "sources": [
+            "r73-nluis-56k"
+          ]
+        },
+        {
+          "fragments": [
+            2575
+          ],
+          "finding": "On the southeastern Mistake River sheet, the matching route enters from the east through the rapids connection, bends southwest through a lobed lake, then follows narrow lake and channel links south. The mapped connection with the upper Quoich setting is visible. The separately mapped western approach beside Hawk and Bunting lakes is not the selected northern beginning; the sheet title does not name the selected stream.",
+          "sources": [
+            "r73-nluis-56k",
+            "r73-nluis-56l"
+          ]
+        },
+        {
+          "fragments": [
+            2575
+          ],
+          "finding": "The northeastern Woodburn Lake sheet continues the selected chain southeast through successive narrow lakes, channels and rapids toward the eastern sheet edge. This eastern corridor connects directly with the river labelled Quoich River on the neighboring Pennington Lake sheet. The inspected links resolve the source-to-named-river connection without assigning the Quoich name uniformly to every upstream lake or feeder.",
+          "sources": [
+            "r73-nluis-56l",
+            "r73-nluis-56e",
+            "r73-nluis-56f"
+          ]
+        },
+        {
+          "fragments": [
+            2575
+          ],
+          "finding": "On the Pennington Lake sheet, direct Quoich River labels accompany the selected southward upper-middle reach and its large eastward then southward loop. The selection follows the western and southern river corridor beside Pennington Lake, then turns southwest through lake-like widenings; the nearby Pennington Lake label is not transferred to the selected river or treated as a selected source lake.",
+          "sources": [
+            "r73-nluis-56f"
+          ]
+        },
+        {
+          "fragments": [
+            2575
+          ],
+          "finding": "Returning to the southern Woodburn Lake sheet, the selection follows the east-to-west river passage into the major junction setting and then the southwestward corridor explicitly labelled Quoich River. The westward passage, junction shape, elongated widenings and southwest turn agree with the cached route. Northern and western inflows visible around the junction are contextual, not separately selected tributaries.",
+          "sources": [
+            "r73-nluis-56e",
+            "r73-nluis-56f"
+          ]
+        },
+        {
+          "fragments": [
+            2575,
+            2576
+          ],
+          "finding": "The Baker Lake sheet shows the continuous selected Quoich corridor across the modeled-piece join. It proceeds south through rapids and narrow lake widenings, bends east through the prominent lower lake-and-channel corridor, then turns southeast through additional lake passages. Direct Quoich River lettering lies on the selected route. Baker Lake and the neighboring Thelon corridor are west/southwest context rather than selected passages.",
+          "sources": [
+            "r73-nluis-56d"
+          ]
+        },
+        {
+          "fragments": [
+            2576
+          ],
+          "finding": "On the western Tehery Lake sheet, the selection continues down the labelled Quoich corridor through the northern lake widenings, passes the mapped St. Clair Falls setting and ends just downstream, near the head of the broadened lower reach. The map continues the waterway substantially farther south beyond the modeled endpoint. The selection therefore must not be described as extending all the way to Chesterfield Inlet or as fixing the river's ultimate mouth.",
+          "sources": [
+            "r73-nluis-56c"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60105880",
+      "source_keys": [
+        "r63-nhn-suriname-rivers-map-2003",
+        "r67-naturalis-holthuis-suriname-map",
+        "r67-hydromet-water-quality-2024q1"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11391
+          ],
+          "finding": "The selected beginning first bends south from the far-western starting point and then continues east-northeast toward the Linker Coppename corridor. The retained maps do not depict this entire westernmost approach in enough detail to establish its actual connection. Its name and full source correspondence remain unresolved; a nearby named source is not substituted.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map",
+            "r67-hydromet-water-quality-2024q1"
+          ]
+        },
+        {
+          "fragments": [
+            11392,
+            11393
+          ],
+          "finding": "The subsequent southwestern upper approach and northward corridor correspond to the historical map’s labelled Linker Coppename, which joins the separate southeastern Rechter Coppename approach. The representative downstream Coppename name is not asserted uniformly over both named upper branches. The exact Linker/Midden subdivision above the mapped lower corridor is not resolved here.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map"
+          ]
+        },
+        {
+          "fragments": [
+            11395
+          ],
+          "finding": "The short southeastern selected tributary near the upper junction matches the lower Rechter Coppename approach shown separately from Linker. It is only a lower component; it does not represent the whole Rechter headwater network or rename it Coppename throughout.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map"
+          ]
+        },
+        {
+          "fragments": [
+            11393,
+            11394
+          ],
+          "finding": "The trunk’s northward progress and major eastward bend by the Raleigh Falls setting match the Coppename corridor. The contemporary ministry map independently labels the northward receiving river and places Kaaimanston, Witagron and Boskamp along it in the same downstream order.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map",
+            "r67-hydromet-water-quality-2024q1"
+          ]
+        },
+        {
+          "fragments": [
+            11396
+          ],
+          "finding": "A short selected eastern tributary joins the lower trunk in the ministry map’s depicted small-channel setting. The acquired map does not give that selected short piece a readable hydronym; no Tibiti or Coesewijne name is transferred from neighboring or more extensive drainage solely by proximity.",
+          "sources": [
+            "r67-hydromet-water-quality-2024q1"
+          ]
+        },
+        {
+          "fragments": [
+            11394
+          ],
+          "finding": "The selected end is in the lower Coppename approach near and north of the Boskamp setting. The sources support the receiving river’s lower tidal context; the selection is not extended through the entire shared coastal outlet or Atlantic Ocean, and the Saramacca branch is not incorporated as a selected river component.",
+          "sources": [
+            "r67-hydromet-water-quality-2024q1",
+            "r67-naturalis-holthuis-suriname-map"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70442115",
+      "source_keys": [
+        "r73-usgs-norris1957",
+        "r73-usgs-saintjohn1958",
+        "r73-maine-rivers1982",
+        "r73-maine-prc2016",
+        "r73-maine-pemadumcook1954",
+        "r73-maine-rivershed2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9714
+          ],
+          "finding": "The selected beginning approaches Little Bog from the west through the Abacotnetic Stream corridor. The adjoining Norris Brook and Saint John Pond topographic sheets depict that western inlet separately from the northern Sweeney/Carry Brook approach and the eastern Fifth St. John Pond canal connection. The Saint John Pond sheet directly labels Abacotnetic Stream above Little Bog and North Branch Penobscot River below it. The short initial modeled feeder is not declared to have the North Branch hydronym. The modeled continuation through the Big Bog setting and its southwestward then southeastward turn agrees with the North Branch route mapped to Seboomook Lake in the Maine Rivers Study.",
+          "sources": [
+            "r73-usgs-norris1957",
+            "r73-usgs-saintjohn1958",
+            "r73-maine-rivers1982"
+          ]
+        },
+        {
+          "fragments": [
+            9714
+          ],
+          "finding": "At Seboomook the selected North Branch enters the western lake/reservoir sector, while the separately mapped South Branch and Canada Falls approach lies to the southwest. The selection crosses Seboomook eastward, follows the West Branch past Seboomook Dam and Roll Dam, then turns northeast past the separate Lobster Stream junction toward Chesuncook. It follows the long southeastward Chesuncook waterbody corridor to the Ripogenus outlet setting and continues east along the lower West Branch. The 2016 state corridor map depicts these distinctive bends, named waterbodies and connecting reaches; its prose independently describes the Upper West Branch and the lower river below Chesuncook.",
+          "sources": [
+            "r73-maine-prc2016",
+            "r73-maine-rivers1982"
+          ]
+        },
+        {
+          "fragments": [
+            9714
+          ],
+          "finding": "The selected lower West Branch proceeds through the Abol/Debsconeag corridor into the Ambajejus part of the connected Pemadumcook lake system, then through the downstream connected lake/outlet sector. The original fisheries survey labels Ambajejus, Pemadumcook, North Twin, South Twin and Elbow as distinct connected lakes, with the West Branch entering Ambajejus and an outlet at Elbow. The selection uses the West Branch inlet-to-outlet connection; it does not encompass every lake arm or the separate Nahamakanta and Jo Mary approaches. The geographic identity of the lake complex is supported without assigning one lake name to the entire modeled crossing.",
+          "sources": [
+            "r73-maine-prc2016",
+            "r73-maine-pemadumcook1954"
+          ]
+        },
+        {
+          "fragments": [
+            9714,
+            9715,
+            9716
+          ],
+          "finding": "The 2010 state map and its Millinocket inset directly label the West Branch through the Quakish Lake Dam and Dolby Pond setting, its pronounced southern bend, and its continuation through East Millinocket to Medway. These match the end of the long upper piece and the short connecting piece. At Medway the separately mapped East Branch joins from the north; the selected route then follows the named Penobscot southeast toward Mattawamkeag and southwest through the Lincoln/Howland corridor. The East Branch and Mattawamkeag approaches are not separately selected tributary pieces.",
+          "sources": [
+            "r73-maine-rivershed2010",
+            "r73-maine-rivers1982"
+          ]
+        },
+        {
+          "fragments": [
+            9718
+          ],
+          "finding": "The sole tributary piece is the lower Piscataquis, beginning in the lower-river corridor east of Milo and upstream of the Medford bends, continuing east through Medford and its downstream turns, then entering Penobscot at Howland. The regional river sheet and the larger 2010 map show the full selected route and junction. The northern Seboeis Stream joins separately near the lower river and is not the selected western beginning. Piscataquis is a component hydronym, not an alias for Penobscot.",
+          "sources": [
+            "r73-maine-rivers1982",
+            "r73-maine-rivershed2010"
+          ]
+        },
+        {
+          "fragments": [
+            9716,
+            9717
+          ],
+          "finding": "The selected trunk continues south through the Old Town/Milford setting, takes the Penobscot channel toward Veazie and Bangor rather than the separate western Stillwater route, then follows the lower Penobscot past the Orrington/Winterport corridor toward Bucksport. The Maine Rivers Study lower-mainstem sheet and the 2010 map depict the characteristic bends and the adjoining lower-channel/island setting. The short final piece ends in the Bucksport/Prospect reach near the northern Verona Island setting. It is not extended through the entire estuary or Penobscot Bay, and the modeled endpoint is not asserted to be the official river mouth or tidal boundary.",
+          "sources": [
+            "r73-maine-rivers1982",
+            "r73-maine-rivershed2010"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

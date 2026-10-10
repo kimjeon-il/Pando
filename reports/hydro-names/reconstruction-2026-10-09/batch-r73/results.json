@@ -1,0 +1,484 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r73",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r72",
+    "commit": "1852668a1fb1c07ce6089dcc6c69a953a8fd3a2d",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r72/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70836428",
+    "hydro-system:80150800",
+    "hydro-system:60105880",
+    "hydro-system:70442115"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70836428",
+      "category": "river_group",
+      "system_id": "70836428",
+      "baseline_logical_fid": 3211,
+      "geometry_fids": [
+        10260
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -109.801438,
+        26.73607,
+        -108.179167,
+        28.352083
+      ],
+      "rendered_mainstem_length_km": 384.736,
+      "rendered_network_length_km": 384.736,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -109.801438,
+          26.73607,
+          -108.179167,
+          28.352083
+        ]
+      },
+      "candidate_name": "Río Mayo",
+      "candidate_names": [
+        "Río Mayo"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Mayo is directly supported for the receiving upper-to-lower valley and coastal river and is the representative identity of this modeled group. Concheño remains a separately scoped upstream river; the northernmost stream is not assigned a separate hydronym. Adolfo Ruiz Cortines (Mocúzari) is a reservoir, and El Elote denotes the coastal receiving setting. No uniform natural name is asserted for every selected reach.",
+      "geographic_disambiguation": "The selection follows the northern Ocampo boundary approach into Concheño, then the eastern and southern Moris corridor into the Mayo route in western Uruachi. It does not use the south-flowing La Máquina–Ocampo approach as its headwater, the farther-eastern Oteros–Chínipas system, or the separate lower Fuerte. Its coastal endpoint is west of Bahía Yavaros, at the El Elote setting.",
+      "source_keys": [
+        "r51-inegi-sonora-state-2024-2025",
+        "r65-inegi-ocampo-2010",
+        "r73-inegi-moris-2010",
+        "r65-inegi-uruachi-2010",
+        "r73-inegi-alamos-2010",
+        "r73-inegi-navojoa-2010",
+        "r73-inegi-etchojoa-2010",
+        "r73-inegi-huatabampo-2010"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western Chihuahua Sierra Madre uplands through southeastern Sonora, including the Álamos, Navojoa, Etchojoa and Huatabampo corridor, to the Gulf of California.",
+      "candidate_name_role": "bounded_representative_system_identity_with_distinct_upper_river_reservoir_and_coastal_outlet",
+      "completion_scope": "Completed for bounded representative identity, actual selected upper-branch continuity, historical mapped reservoir passage and the river-to-coast connection. Every major section of the one selected mainstem piece is supported by readable primary cartography. Exact upstream naming limits, minor stream names, present reservoir inventory and water extent, and the precise terminal shoreline vertex are outside this conclusion.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río Mayo",
+        "distinct_selected_upstream_route": "Northern Ocampo boundary stream into Concheño, eastern and southern Moris continuation, then Mayo in western Uruachi.",
+        "feeder_scope": "The first northern boundary stream is visibly connected on the Ocampo map but is not given a separate hydronym. The exact upstream extent of Concheño and transition into the Mayo name are not asserted. Absence of a separate initial name is not a missing-route claim.",
+        "river_scope": "Concheño retains its upstream river role. Mayo applies directly to the supported receiving valley and lower coastal river and serves as a representative identity for the whole modeled selection. Municipal names and basin membership were not substituted for channel-name evidence.",
+        "lake_scope": "The historical map-supported selected reservoir is Presa Adolfo Ruiz Cortines, shown with Mocúzari in parentheses. Its connected main Mayo arm and dam outlet are supported; no present-day reservoir inventory, storage state or shoreline is claimed. Reservoir names remain distinct from river names.",
+        "terminal_scope": "Coastal Mayo outlet at the El Elote setting on the Gulf of California (Mar de Cortés), west of Bahía Yavaros. El Elote is a coastal-estuarine context rather than an inland terminal lake or a whole-river alias. Cartography supports the natural coastal connection; a surveyed mouth position, modern barrier opening, current flow and extended traversal of the adjacent estuarine network are not asserted.",
+        "nearby_exclusions": "La Máquina and Ocampo form a separate upper approach; Oteros–Chínipas and the Fuerte are separate eastern drainages. The northern tributaries and northwestern arm of Mocúzari, lower irrigation canals, and the eastward Yavaros estuarine network are not additional selected branches.",
+        "historical_source_scope": "Sonora state cartography is fourth edition 2024, copyright 2025, with planimetry derived from 1:250,000 sixth-edition 2023 mapping. Municipal relief sheets are 2010 cartography based on generalized topographic and INEGI–CONAGUA network sources. These establish geographic identity and connections, not current reservoir operations, the completeness of modern impoundments, water extent or discharge.",
+        "model_limits": "The one modeled mainstem piece and its 384.736 modeled km do not establish an official source, official river length, uniform name, perennial flow or an official hydronym for every constituent stream. No Korean name or formal alias history is established.",
+        "candidate_names_scope": "Only the representative receiving river appears in candidate_names. Concheño, the reservoir and coastal waterbody names remain separately scoped."
+      }
+    },
+    {
+      "aw_id": "hydro-system:80150800",
+      "category": "river_group",
+      "system_id": "80150800",
+      "baseline_logical_fid": 946,
+      "geometry_fids": [
+        2576,
+        2575
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -94.902083,
+        64.191514,
+        -93.55625,
+        66.272917
+      ],
+      "rendered_mainstem_length_km": 384.511,
+      "rendered_network_length_km": 384.511,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -94.902083,
+          64.191514,
+          -93.55625,
+          66.272917
+        ]
+      },
+      "candidate_name": "Quoich River",
+      "candidate_names": [
+        "Quoich River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Quoich River is directly printed on the selected middle and lower corridor. The northern lake chain is connected cartographically but its individual feeder and lake names are not established. Nearby alternative upper approaches and off-route lakes retain separate roles.",
+      "geographic_disambiguation": "The selected northeastern unnamed lake beginning, Quoich's large middle eastern loop, southwestward return, lower eastward bend and endpoint just below St. Clair Falls distinguish this corridor from the western Thelon/Baker drainage, neighboring eastern rivers, namesake map-sheet lakes and the unselected downstream continuation.",
+      "source_keys": [
+        "r73-nluis-56k",
+        "r73-nluis-56l",
+        "r73-nluis-56e",
+        "r73-nluis-56f",
+        "r73-nluis-56d",
+        "r73-nluis-56c"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Kivalliq, Nunavut, Canada; lake country northeast of Baker Lake to the lower Quoich corridor north of Chesterfield Inlet",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Both selected modeled mainstem pieces were compared with six readable official sheets, covering the actual northern beginning, continuous lake-and-stream links, the broad middle-course eastern loop, southwestward return, lower southward and eastward bends, and terminal setting below St. Clair Falls. Generalized small connections and map-to-model offsets remain, but no substantial selected route segment lacks readable source cartography. This completes bounded representative naming research, not formal name-limit or shoreline adjudication.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Quoich River",
+        "distinct_selected_upstream_route": "Unnamed northeastern lake beginning and southwestward outlet links → southeastern Mistake River-sheet lake chain → northeastern Woodburn-sheet lake-and-channel corridor → labelled Quoich River on the Pennington Lake sheet → large eastern loop and southwestward return → lower Quoich lake passages → St. Clair Falls setting and the selected endpoint immediately downstream.",
+        "feeder_scope": "The initial northern lake and stream sequence is geographically corroborated. Its individual components are not assigned a separate hydronym, and no exact official source of the named Quoich is claimed. The western Hawk/Bunting approach differs from the modeled northern beginning.",
+        "lake_scope": "The selected beginning and intervening lake-like widenings remain lake components with no separately adopted name in this finding. No title-derived Laughland Lake, Woodburn Lake, Pennington Lake, Baker Lake or Tehery Lake name is applied to the route merely because the respective sheet covers it.",
+        "contextual_feature_scope": "Hawk and Bunting lakes and other western upper connections are contextual. Pennington Lake lies beside the middle-course turn; Baker Lake and the Thelon corridor are off the selected route. Chesterfield Inlet is regional downstream context, not the modeled endpoint.",
+        "tributary_scope": "The selection contains two modeled mainstem pieces and no separately selected tributary fragment. Nearby tributaries and alternative upper approaches are not aliases or additional selected rivers.",
+        "terminal_scope": "Selected lower Quoich setting just below St. Clair Falls, near the beginning of the broadened lower reach. The source sheet continues the waterway south beyond the selected endpoint. No exact mouth, tidal boundary, current shoreline or final receiving-water junction is assigned.",
+        "local_annotation_scope": "The historical thematic sheets also carry brown local-place-name annotations. They are not adopted here as validated aliases, spelling replacements or proof of formal naming history.",
+        "source_authority_limit": "Official historical Land Use Information Series sheets using Canadian topographic base mapping support printed hydronyms and bounded geographic correspondence. They are not current field surveys or formal naming adjudications.",
+        "model_limits": "Modeled mainstem membership and the modeled length do not establish uniform official naming limits, a definitive river source, or official river length. No Korean form or historical alias chronology is established.",
+        "candidate_names_scope": "Only the representative Quoich River hydronym is listed. Lakes, feeders, falls and receiving waters keep distinct roles."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60105880",
+      "category": "river_group",
+      "system_id": "60105880",
+      "baseline_logical_fid": 3372,
+      "geometry_fids": [
+        11394,
+        11393,
+        11392,
+        11391,
+        11395,
+        11396
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -57.066667,
+        3.797917,
+        -55.877083,
+        5.803163
+      ],
+      "rendered_mainstem_length_km": 384.462,
+      "rendered_network_length_km": 444.396,
+      "geometry_summary": {
+        "fragment_count": 6,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -57.066667,
+          3.797917,
+          -55.885417,
+          5.803163
+        ]
+      },
+      "candidate_name": "Coppename River",
+      "candidate_names": [
+        "Coppename River"
+      ],
+      "research_category": "representative_identity_supported_upper_route_material_hold",
+      "supported_name_scope": "The named downstream Coppename corridor, with a supported Linker Coppename approach and separately scoped lower Rechter Coppename component. The full westernmost initial route has not been corroborated by readable primary source detail.",
+      "geographic_disambiguation": "The actual northward trunk, eastward middle bend by the Raleigh Falls setting and Kaaimanston–Witagron–Boskamp sequence distinguish it from Saramacca to the east and Nickerie/Corantijn to the west. The model uses a western upper approach rather than the longer southeastern Rechter Coppename headwater route.",
+      "source_keys": [
+        "r63-nhn-suriname-rivers-map-2003",
+        "r67-naturalis-holthuis-suriname-map",
+        "r67-hydromet-water-quality-2024q1"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "West-central Suriname, Wilhelmina/Bakhuis-side upper drainage to the Boskamp lower-river setting.",
+      "candidate_name_role": "bounded_downstream_representative_identity_with_upper_route_material_hold",
+      "completion_scope": "Bounded downstream representative identity is supported. This record is material pending, not a completed whole-selection review: the initial westernmost turn and approach before the mapped Linker corridor are a substantial source-correspondence gap, not merely a missing feeder spelling.",
+      "naming_scope_details": {
+        "representative_name": "Coppename River, supported directly by the ministry’s 2024 report for the mapped downstream corridor.",
+        "upper_route_gap": "The selected far-western initial southward turn and east-northeast approach are not sufficiently corroborated by the readable source maps. Neither full headwater identity nor an official source point is assigned.",
+        "upper_branch_scope": "Linker Coppename is supported for the subsequent mapped southwestern approach. Rechter Coppename is a separately named southeastern branch with one short selected lower fragment. Linker/Midden subdivision farther upstream remains unresolved.",
+        "lower_tributary_scope": "One short eastern lower-trunk tributary is visible in the mapped channel setting but unnamed here. It is not called Tibiti or Coesewijne by inference from nearby labels.",
+        "terminal_scope": "Lower Coppename near the Boskamp coastal/estuarine approach. No precise mouth, tidal boundary, full shared Saramacca–Coppename outlet or open-ocean continuation is asserted.",
+        "source_limit": "National maps and lower-river monitoring cartography support the bounded candidate, not every selected headwater connection. Additional primary maps were unavailable or access-restricted; their search excerpts are not evidence.",
+        "candidate_names_scope": "Only the downstream representative river hydronym is listed. Upper branch names and the unresolved feeder remain separate.",
+        "model_limits": "MAIN_RIV membership, role and length do not establish uniform official hydronyms, natural source limits, present flow or official river length. No Korean name or historical alias adjudication."
+      },
+      "follow_up_scope": "Obtain a permitted readable primary source that covers the initial far-western selected route and its connection into the Linker/Midden headwater setting; retain this pending ID for resolution before claiming the full selection reviewed. Resolve the short lower tributary hydronym separately if needed for reach-level application."
+    },
+    {
+      "aw_id": "hydro-system:70442115",
+      "category": "river_group",
+      "system_id": "70442115",
+      "baseline_logical_fid": 3045,
+      "geometry_fids": [
+        9717,
+        9716,
+        9715,
+        9714,
+        9718
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -70.077083,
+        44.56051,
+        -68.360417,
+        46.189583
+      ],
+      "rendered_mainstem_length_km": 382.901,
+      "rendered_network_length_km": 414.021,
+      "geometry_summary": {
+        "fragment_count": 5,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -70.077083,
+          44.56051,
+          -68.360417,
+          46.189583
+        ]
+      },
+      "candidate_name": "Penobscot River",
+      "candidate_names": [
+        "Penobscot River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Original official maps support the selected western approach through Abacotnetic Stream and Little Bog, North Branch to Seboomook, West Branch through its lake and reservoir corridor to Medway, Penobscot south to the Bucksport setting, and lower Piscataquis to Howland.",
+      "geographic_disambiguation": "The upstream selection takes the western inlet approach into Little Bog and the North Branch, rather than the South Branch/Canada Falls approach to Seboomook or the separate Baker Branch/St. John drainage. Downstream of Seboomook it follows the West Branch, not the East Branch approach to Medway. The single selected western tributary is lower Piscataquis, not its entire drainage basin.",
+      "source_keys": [
+        "r73-usgs-norris1957",
+        "r73-usgs-saintjohn1958",
+        "r73-maine-rivers1982",
+        "r73-maine-prc2016",
+        "r73-maine-pemadumcook1954",
+        "r73-maine-rivershed2010"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "North-central and eastern Maine, United States",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "All five selected pieces were considered using the cached geometry, official original map pixels and their actual branch/lake connections. Distinct headwater, lake-chain, mainstem, tributary and terminal settings are supported. Exact source-point naming, every modeled vertex, historical versus modern dam structures, lake-edge positions and the river-to-estuary naming boundary are not adjudicated. No substantial selected route remains dependent on a discovery excerpt or an unavailable publication.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Penobscot River",
+        "headwater_scope": "Western feeder and Abacotnetic Stream approach to Little Bog, followed by North Branch Penobscot River and Big Bog to Seboomook. Abacotnetic and North Branch are kept distinct; no every-reach name is asserted for the short initial feeder.",
+        "mainstem_scope": "West Branch from the Seboomook outlet through the upper and lower river/lake corridor to Medway, followed by Penobscot downstream. Neither North Branch nor West Branch is automatically applied as the name of all mainstem-role pieces.",
+        "lake_scope": "Little Bog, Big Bog, Seboomook, Chesuncook and the Ambajejus/Pemadumcook/Twin/Elbow connected lake setting retain separate waterbody roles. Quakish and Dolby identify lower West Branch impoundment settings. Lake/reservoir names are not river aliases; complete lake outlines are not represented by the selected line.",
+        "tributary_scope": "Only the selected lower Piscataquis extent is included. Its entire headwaters, East/West branches and separately named incoming streams are outside this finding's selected geometry.",
+        "excluded_neighboring_routes": "South Branch/Canada Falls, the Baker Branch/St. John drainage and canal approach, the northern Sweeney/Carry Brook approach, Lobster Stream/Lake, Nahamakanta/Jo Mary approaches, East Branch Penobscot, Mattawamkeag and the western Stillwater route are not transferred to the selected route.",
+        "terminal_scope": "Lower Penobscot channel in the Bucksport/Prospect and northern Verona Island setting; not an official mouth coordinate or a claim that the complete estuary and bay are selected.",
+        "source_authority_limit": "Official state cartography and historical USGS topographic sheets establish printed hydronyms and geographic/topological correspondence. Historical dam, habitat, land-use and regulatory overlays are not evidence of current conditions or legal rights.",
+        "model_limits": "Fragment roles and stage boundaries do not establish official name limits. Modeled length is not official river length. No Korean form, formal naming date, Indigenous-name equivalence or alias history is established.",
+        "candidate_names_scope": "Only the representative Penobscot hydronym is listed; distinct feeders, branches, lakes and tributaries are retained in component scope statements."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:60105880"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 235,
+    "non_pending_records": 227,
+    "source_access_pending": 3,
+    "source_material_pending": 5,
+    "source_any_pending": 8,
+    "scope_holds": 72,
+    "river_groups": 137,
+    "lakes": 98,
+    "unrecorded": 3830,
+    "unrecorded_river_groups": 3318,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r51-inegi-sonora-state-2024-2025",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/son/794551162958.pdf"
+    },
+    {
+      "source_key": "r65-inegi-ocampo-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08051.pdf"
+    },
+    {
+      "source_key": "r73-inegi-moris-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08047.pdf"
+    },
+    {
+      "source_key": "r65-inegi-uruachi-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08066.pdf"
+    },
+    {
+      "source_key": "r73-inegi-alamos-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26003.pdf"
+    },
+    {
+      "source_key": "r73-inegi-navojoa-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26042.pdf"
+    },
+    {
+      "source_key": "r73-inegi-etchojoa-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26026.pdf"
+    },
+    {
+      "source_key": "r73-inegi-huatabampo-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26033.pdf"
+    },
+    {
+      "source_key": "r73-nluis-56k",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56k.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56l",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56l.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56e",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56e.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56f",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56f.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56d",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56d.jpg"
+    },
+    {
+      "source_key": "r73-nluis-56c",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56c.jpg"
+    },
+    {
+      "source_key": "r63-nhn-suriname-rivers-map-2003",
+      "official_url": "https://repository.naturalis.nl/pub/603310/Blumea_supplement_15.pdf"
+    },
+    {
+      "source_key": "r67-naturalis-holthuis-suriname-map",
+      "official_url": "https://repository.naturalis.nl/pub/317569/ZV1959044001.pdf"
+    },
+    {
+      "source_key": "r67-hydromet-water-quality-2024q1",
+      "official_url": "https://hydromet.sr/wp-content/uploads/2025/06/WQ-FINAL-Jan-Mar-2024_compressed.pdf"
+    },
+    {
+      "source_key": "r73-usgs-norris1957",
+      "official_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/PDF/ME/62500/ME_Norris%20Brook_460675_1957_62500_geo.pdf"
+    },
+    {
+      "source_key": "r73-usgs-saintjohn1958",
+      "official_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/PDF/ME/62500/ME_Saint%20John%20Pond_306748_1958_62500_geo.pdf"
+    },
+    {
+      "source_key": "r73-maine-rivers1982",
+      "official_url": "https://lldc.mainelegislature.org/Open/Rpts/gb1225_m2m34_1982.pdf"
+    },
+    {
+      "source_key": "r73-maine-prc2016",
+      "official_url": "https://www.maine.gov/dacf/parksearch/PropertyGuides/PDF_GUIDE/prc-seboomook-guide.pdf"
+    },
+    {
+      "source_key": "r73-maine-pemadumcook1954",
+      "official_url": "https://www.maine.gov/ifw/docs/lake-survey-maps/penobscot/pemadumcook_chain_of_lakes.pdf"
+    },
+    {
+      "source_key": "r73-maine-rivershed2010",
+      "official_url": "https://www.maine.gov/dep/gis/datamaps/lawb_discharge_salmon/Penobscot%20Rivershed_DEC2010_36x48_300dpi.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "1852668a1fb1c07ce6089dcc6c69a953a8fd3a2d",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      91,
+      92,
+      93,
+      94
+    ],
+    "next_unrecorded_id": "hydro-system:70088384",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}
