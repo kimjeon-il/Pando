@@ -1,0 +1,130 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r35",
+  "scope_aw_ids": [
+    "lakes_base:1159106799",
+    "lakes_base:1159108619",
+    "lakes_base:1159109179"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "No new external source requests or original acquisitions in r35. All original-pixel work reused the geological map successfully acquired in r34; the independent reviewer also made zero external requests. The successful HTTP status and acquisition time describe that retained r34 original, not a new retrieval.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": 0,
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "source_group_definition": "One official geological-map publication from one provincial-government publisher group: Government of Manitoba.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All selected source parts and rings were registered to the retained geological GeoPDF using its independently reopened full embedded affine transform, including both rotation terms. Display correspondence does not certify surveyed shores, exact named-water partitions or present conditions.",
+  "observations": [
+    {
+      "source_key": "manitoba_bedrock_geology_of2024_4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Economic Development, Investment, Trade and Natural Resources, Manitoba Geological Survey",
+      "url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf",
+      "original_acquired_at_utc": "2026-10-10T00:02:56.872607+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2024",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The publication imprint explicitly says published by Manitoba Geological Survey, 2024. No month or day of publication is established; PDF modification and HTTP dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r34",
+      "directly_read_water_labels": [
+        "North Moose Lake",
+        "South Moose Lake",
+        "Cross Lake",
+        "Molson Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Talbot Lake",
+        "Mawdesley Lake",
+        "Driftwood Lake",
+        "Bracken Lake",
+        "Davidson Lake",
+        "Sipiwesk Lake",
+        "Duck Lake",
+        "Walker Lake",
+        "Pipestone Lake",
+        "Butterfly Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Direct water labels and full selected-footprint cartographic context for all three targets.",
+      "authority_scope": "Official provincial thematic cartographic usage supports bounded associations. The publication does not establish a formal naming-registry decision, current surveyed shoreline or exact named-water boundary.",
+      "registered_overlay_performed": true,
+      "own_observations": "The original map directly labels North Moose Lake and South Moose Lake within different areas of one selected main part, and Cross Lake and Molson Lake over the corresponding other selected waters. Nearby distinct waters, mapped land and water-label typography distinguish the associations from geology and settlement labels. The main Moose part requires a compound name-scope hold, and its tiny separate part remains unassigned. Cross and Molson support generalized identities with omitted detailed extents.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "The digital topographic base credits the CanVec+ data model, Natural Resources Canada for hydrographic features, and the Manitoba Land Initiative, Manitoba Environment, Climate and Parks."
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159106799",
+      "aw_id": "lakes_base:1159106799",
+      "source_id": "1159106799",
+      "geometry_fids": [
+        15207
+      ],
+      "polygon_part_count": 2,
+      "ring_count": 2,
+      "position_count_including_closure": 257,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "The main 253-position ring joins the broad northern basin directly labelled North Moose Lake with the southern broad basin directly labelled South Moose Lake. The narrow intervening neck and western lobe are included in the generalized outline, but the map shows detailed shorelines, islands and land margins that are filled or cut across. Talbot Lake is separately labelled in the east-central gap beyond the main ring, and Mawdesley Lake, Driftwood Lake, Bracken Lake and Davidson Lake are separately labelled neighbors. The first polygon part is a four-position very narrow triangle at the far southern tip. An independently enlarged original/overlay pair shows it beside the generalized main-ring tip, across a cartographic land/shoreline area; no separate printed name or exact water assignment is established for it. Both parts were reviewed. North Moose and South Moose are distinct component associations, not aliases or one scalar name for this entire MultiPolygon. The tiny part, the eastern arm near the separately labelled Davidson basin, and exact name partitions remain unresolved; the two supported component names are non-exhaustive."
+    },
+    {
+      "observation_id": "lakes_base:1159108619",
+      "aw_id": "lakes_base:1159108619",
+      "source_id": "1159108619",
+      "geometry_fids": [
+        15351
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 118,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "The 118-position ring follows a southwest-to-northeast elongated water with a southwestern basin directly labelled Cross Lake in blue italic water-name type, northern/eastern extension and island-studded central channel. The black upright Cross Lake text with settlement dot is a distinct settlement label and is not the basis for the water identity. Walker Lake lies separately southeast, Sipiwesk Lake and Duck Lake northwest, and Pipestone Lake south beyond the selected ring. Long shoreline lines, narrow arms, islands and peninsulas are smoothed or filled; the southwestern continuation of the named water extends beyond the selected ring. The complete selected generalized footprint supports Cross Lake without certifying the entire detailed lake extent, exact adjoining-water transitions or scalar product application."
+    },
+    {
+      "observation_id": "lakes_base:1159109179",
+      "aw_id": "lakes_base:1159109179",
+      "source_id": "1159109179",
+      "geometry_fids": [
+        15395
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 66,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "The 66-position ring follows the broad east-west basin directly labelled Molson Lake in blue italic water-name type, with a small northern projection toward the separately labelled Hayes River. The western embayment and main northern, eastern and southern basin margins correspond at generalized scale, while the long southwestern arm continues beyond the selected ring and detailed islands, peninsulas, narrow bays and the river transition are simplified. Orange geological linework and black geological/structural markings cross the water and do not define water boundaries. Butterfly Lake is separately labelled northwest. The complete selected generalized footprint supports Molson Lake; complete detailed named-lake coverage and precise shoreline or river/lake boundaries remain unverified."
+    }
+  ],
+  "source_group_limit": "One official provincial cartographic publication from one provincial-government publisher group; underlying hydrographic dataset independence is unverified, and no formal naming registry was checked.",
+  "independent_review_and_source_research_agree": true
+}

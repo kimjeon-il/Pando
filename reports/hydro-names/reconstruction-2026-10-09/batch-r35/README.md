@@ -1,0 +1,19 @@
+# Lake-name reconstruction r35
+
+Three new Manitoba lake inventory features were assessed against the retained official provincial geological map and complete immutable baseline polygons. Source observations identify the actual inspected publications, their cartographic scope and limits. The geometry reference remains Pando v0.13.1 at fd6744f5e72a0c1a107452dbde6d416ab57237db. The previously published [compact correspondence note](https://github.com/kimjeon-il/Pando/blob/1a3b4b3437000b4bcf3913a287316d1ab5f65897/reports/hydro-names/reconstruction-2026-10-09/batch-r30/packed-payload-correspondence.json) records v0.13.2 manifest/hash preservation and the three r29 IDs. No current live binary or renderer equivalence is asserted. No historical verdict is restored.
+
+## Findings
+
+- **1159106799: No single name assigned.** North Moose Lake and South Moose Lake are distinct associations within the main selected part, not aliases or a single whole-feature identity. The main part combines distinct North Moose Lake and South Moose Lake associations, which are non-exhaustive. The eastern arm near Davidson Lake has no established exact name assignment. The narrow four-position southern part has no independently established water-name assignment and falls across a mapped land/shoreline area. Shorelines, islands and narrow connections are generalized; exact named-water partitions and complete detailed named-lake extents are unverified. Exact extent and product-name application are not approved. Category: `compound_feature_name_scope_hold`.
+- **1159108619: Cross Lake.** The complete selected generalized footprint supports Cross Lake as a bounded water identity. The southwestern continuation of the named water extends beyond the selected ring. Islands, peninsulas, lateral bays and narrow shoreline arms are generalized or omitted. Complete detailed named-lake extent and exact adjoining-water transitions are unverified. Exact extent and product-name application are not approved. Category: `supported_generalized_water_identity`.
+- **1159109179: Molson Lake.** The complete selected generalized footprint supports Molson Lake as a bounded water identity. The long southwestern arm extends beyond the selected ring. Islands, peninsulas, narrow bays and the northern Hayes River transition are generalized or omitted. Complete detailed named-lake extent and exact river/lake boundary are unverified. Exact extent and product-name application are not approved. Category: `supported_generalized_water_identity`.
+
+## Scope and continuity
+
+Generalized identity does not establish surveyed shoreline agreement, exact name partitions, formal registry status or product-ready scalar names. Korean names and whole-feature scalar names remain null; automatic and product application are false.
+The index contains 102 distinct targets: 43 river groups and 59 lake features. It preserves 100 non-access-pending records, 2 access-pending records and 28 scope holds. Non-access-pending is an accounting category, not a count of confirmed names. Earlier records and the Richmond/Hastings assessment histories are preserved; the unavailable historical 504-target ledger is not added.
+The exact original inventory and cumulative index recover 3,963 unrecorded targets: 3,412 river groups and 551 lakes. Pending IDs and scope holds remain separately recoverable.
+
+## Public verification
+
+Run `python validate-package.py` for included-file integrity, current-result consistency and cumulative accounting. `recover-remaining-queue.py` uses the exact initial inventory. Public validators do not replay omitted source maps, complete polygons, compressed component bytes or original decoder inputs. Only own factual findings, bibliography, bounded metadata are included; the earlier public payload-correspondence note is linked without duplicating it; original map bodies, crops, full lake coordinates and private-input fingerprints are omitted.

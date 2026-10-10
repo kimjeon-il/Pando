@@ -1,0 +1,280 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v3",
+  "batch": "r35",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three actual logical inventory lake features, not a count of approved scalar names.",
+  "counts": {
+    "compound_feature_name_scope_hold": 1,
+    "supported_generalized_water_identity": 2
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "distinct_target_increment": 3,
+  "existing_inventory_reassessment_targets": 0,
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 441,
+  "lake_baseline_coordinate_count_including_closures": 441,
+  "position_counts_in_target_order": [
+    257,
+    118,
+    66
+  ],
+  "polygon_counts_in_target_order": [
+    2,
+    1,
+    1
+  ],
+  "ring_counts_in_target_order": [
+    2,
+    1,
+    1
+  ],
+  "scope_aw_ids": [
+    "lakes_base:1159106799",
+    "lakes_base:1159108619",
+    "lakes_base:1159109179"
+  ],
+  "current_live_deployment_checked": false,
+  "latest_live_packed_data_correspondence_verified": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159106799",
+      "candidate_name": null,
+      "research_category": "compound_feature_name_scope_hold",
+      "supported_name_scope": "North Moose Lake and South Moose Lake are distinct associations within the main selected part, not aliases or a single whole-feature identity. The main part combines distinct North Moose Lake and South Moose Lake associations, which are non-exhaustive. The eastern arm near Davidson Lake has no established exact name assignment. The narrow four-position southern part has no independently established water-name assignment and falls across a mapped land/shoreline area. Shorelines, islands and narrow connections are generalized; exact named-water partitions and complete detailed named-lake extents are unverified. Exact extent and product-name application are not approved.",
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "limits": [
+        "The main part combines distinct North Moose Lake and South Moose Lake associations, which are non-exhaustive. The eastern arm near Davidson Lake has no established exact name assignment. The narrow four-position southern part has no independently established water-name assignment and falls across a mapped land/shoreline area. Shorelines, islands and narrow connections are generalized; exact named-water partitions and complete detailed named-lake extents are unverified.",
+        "Talbot Lake lies in the east-central gap outside the main ring. A small separately labelled Davidson Lake basin lies east of the southeastern arm, with mapped land between the displayed basin and arm; the exact named extent of the selected arm is not established; Mawdesley, Driftwood and Bracken lakes are also separately labelled neighbors.",
+        "One retained official Manitoba Geological Survey publication supports the associations. One provincial-government publisher group is represented; underlying hydrographic dataset independence and formal naming-registry authority are unverified.",
+        "No Korean form or additional whole-feature alias is certified; registered overlays do not establish surveyed shores or exact name partitions."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "category": "lake",
+      "source_id": "1159106799",
+      "baseline_logical_fid": 3832,
+      "geometry_fids": [
+        15207
+      ],
+      "independent_review_status": "multiple_named_waters_scalar_name_hold",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 2,
+        "separately_labelled_water_names": [
+          "North Moose Lake",
+          "South Moose Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": true,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "North Moose Lake",
+            "scope": "Northern basin of the 253-position main selected part"
+          },
+          {
+            "name": "South Moose Lake",
+            "scope": "Southern broad basin of the 253-position main selected part"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The main part combines distinct North Moose Lake and South Moose Lake associations, which are non-exhaustive. The eastern arm near Davidson Lake has no established exact name assignment. The narrow four-position southern part has no independently established water-name assignment and falls across a mapped land/shoreline area. Shorelines, islands and narrow connections are generalized; exact named-water partitions and complete detailed named-lake extents are unverified.",
+        "supported_component_names_exhaustive": false,
+        "unresolved_named_extents": [
+          "Eastern arm near Davidson Lake; no exact name assignment established"
+        ],
+        "unresolved_selected_parts": [
+          {
+            "part_index": 0,
+            "ring_count": 1,
+            "position_count_including_closure": 4,
+            "assigned_name": null,
+            "limit": "Narrow southern-tip triangle; its exact mapped water/land relation and name assignment are unresolved."
+          }
+        ],
+        "candidate_name_role": "no_single_candidate_for_compound_footprint",
+        "directly_supported_name_forms": [
+          "North Moose Lake",
+          "South Moose Lake"
+        ],
+        "follow_up_scope": "Before assigning any whole-feature scalar name, resolve the North Moose and South Moose named-water partitions, eastern-arm name assignment and the tiny southern part against appropriately authorized detailed evidence. This is a name-scope hold, not an access failure.",
+        "geographic_disambiguation": "Manitoba, Canada, east of The Pas, in the North Moose and South Moose lake region"
+      },
+      "candidate_names": [
+        "North Moose Lake",
+        "South Moose Lake"
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159108619",
+      "candidate_name": "Cross Lake",
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete selected generalized footprint supports Cross Lake as a bounded water identity. The southwestern continuation of the named water extends beyond the selected ring. Islands, peninsulas, lateral bays and narrow shoreline arms are generalized or omitted. Complete detailed named-lake extent and exact adjoining-water transitions are unverified. Exact extent and product-name application are not approved.",
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "limits": [
+        "The southwestern continuation of the named water extends beyond the selected ring. Islands, peninsulas, lateral bays and narrow shoreline arms are generalized or omitted. Complete detailed named-lake extent and exact adjoining-water transitions are unverified.",
+        "The blue italic Cross Lake water label is distinct from the black upright Cross Lake settlement label. Walker Lake, Pipestone Lake, Sipiwesk Lake and Duck Lake are separately labelled neighboring waters outside the selected ring.",
+        "One retained official Manitoba Geological Survey publication supports the associations. One provincial-government publisher group is represented; underlying hydrographic dataset independence and formal naming-registry authority are unverified.",
+        "No Korean form or additional whole-feature alias is certified; registered overlays do not establish surveyed shores or exact name partitions."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "category": "lake",
+      "source_id": "1159108619",
+      "baseline_logical_fid": 3976,
+      "geometry_fids": [
+        15351
+      ],
+      "independent_review_status": "generalized_identity_supported_not_product_name_clearance",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Cross Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Cross Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The southwestern continuation of the named water extends beyond the selected ring. Islands, peninsulas, lateral bays and narrow shoreline arms are generalized or omitted. Complete detailed named-lake extent and exact adjoining-water transitions are unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": [],
+        "candidate_name_role": "bounded_generalized_selected_water_footprint_identity",
+        "directly_supported_name_forms": [
+          "Cross Lake"
+        ],
+        "follow_up_scope": "No additional work is required for this bounded generalized identity. Complete detailed lake coverage, formal-registry verification, exact adjoining-water boundaries, Korean naming and scalar product application require a separate assessment.",
+        "geographic_disambiguation": "Central Manitoba, Canada, at Cross Lake northeast of Lake Winnipeg and southeast of Sipiwesk Lake"
+      },
+      "candidate_names": [
+        "Cross Lake"
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159109179",
+      "candidate_name": "Molson Lake",
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete selected generalized footprint supports Molson Lake as a bounded water identity. The long southwestern arm extends beyond the selected ring. Islands, peninsulas, narrow bays and the northern Hayes River transition are generalized or omitted. Complete detailed named-lake extent and exact river/lake boundary are unverified. Exact extent and product-name application are not approved.",
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "limits": [
+        "The long southwestern arm extends beyond the selected ring. Islands, peninsulas, narrow bays and the northern Hayes River transition are generalized or omitted. Complete detailed named-lake extent and exact river/lake boundary are unverified.",
+        "Hayes River is separately labelled north of the basin and Butterfly Lake northwest. Orange geological linework, black structural markings and geological unit labels are not water-name or shoreline evidence.",
+        "One retained official Manitoba Geological Survey publication supports the associations. One provincial-government publisher group is represented; underlying hydrographic dataset independence and formal naming-registry authority are unverified.",
+        "No Korean form or additional whole-feature alias is certified; registered overlays do not establish surveyed shores or exact name partitions."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "category": "lake",
+      "source_id": "1159109179",
+      "baseline_logical_fid": 4020,
+      "geometry_fids": [
+        15395
+      ],
+      "independent_review_status": "generalized_identity_supported_not_product_name_clearance",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Molson Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Molson Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The long southwestern arm extends beyond the selected ring. Islands, peninsulas, narrow bays and the northern Hayes River transition are generalized or omitted. Complete detailed named-lake extent and exact river/lake boundary are unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": [],
+        "candidate_name_role": "bounded_generalized_selected_water_footprint_identity",
+        "directly_supported_name_forms": [
+          "Molson Lake"
+        ],
+        "follow_up_scope": "No additional work is required for this bounded generalized identity. Complete detailed lake coverage, formal-registry verification, exact adjoining-water boundaries, Korean naming and scalar product application require a separate assessment.",
+        "geographic_disambiguation": "Central Manitoba, Canada, south of Cross Lake and southwest of the Hayes River outlet"
+      },
+      "candidate_names": [
+        "Molson Lake"
+      ]
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "b12061c9f9ad7f3f9c3c8612a499ab16eed1a67a229d155e6c0a9896fe2c6dc2",
+  "publication_contents": "Own factual findings and bibliography, bounded identifier/count/bounds/name-state metadata and included-file checks. Original maps, complete lake coordinate arrays and private-input fingerprints are omitted.",
+  "previous_reconstruction_commit": "7c7031af609bdcacb2deaf228ba083d6c80e098a",
+  "published_payload_correspondence_note_url": "https://github.com/kimjeon-il/Pando/blob/1a3b4b3437000b4bcf3913a287316d1ab5f65897/reports/hydro-names/reconstruction-2026-10-09/batch-r30/packed-payload-correspondence.json",
+  "payload_correspondence_note_scope": "Previously published check of six compressed components and three r29 IDs; no latest live packed bytes or renderer equivalence claim."
+}
