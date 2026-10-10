@@ -12,12 +12,12 @@
   "historicalDisplayStatus": "timeline-staged-not-runtime",
   "historicNameScope": "Names relevant to 1801-present; language and regime exonyms are not automatically converted to dated city renamings.",
   "qualityNotes": [
-    "Tallinn: Reval/German, 1889 (year precision) Russian Ревель, 1918 (year precision) Estonian Tallinn. Municipal Russian language order is dated 1889-11-09 Old Style; exact legal adoption day of Tallinn not established. English Reval persists until editorial 1918 transition.",
-    "Riga: 1889 Baltic-wide Russian municipal-language mandate distinguished from the city-specific 1891 implementation (year precision). Selected German Riga -> Russian Рига from 1891 -> Latvian Rīga on 1918-11-18; Korean 리가 and English Riga unchanged.",
+    "Tallinn: Reval/German to Russian Ревель from shared 1889-11-21 Gregorian imperial municipal-language decree issuance (1889-11-09 Julian), a chosen editorial date, not a separately established legal effective/implementation day. Estonian Tallinn transition stays approximate 1918; English Reval remains until then.",
+    "Riga: German Riga to Russian Рига using the same 1889-11-21 Gregorian decree-issuance threshold as Tallinn. Previously chosen approximate 1891 city-level uptake retained in historicalGeography as usage evidence, not displayTimeline. Latvian Rīga from 1918-11-18; English Riga and Korean 리가 unchanged. Decree issuance is not a verified city-level effective day.",
     "Vilnius: user-authorized editorial Lithuanian Vilnius at 1918-02-16 independence declaration; Polish Wilno from formal Central Lithuania annexation ratification 1922-03-24; Lithuanian Vilnius restored 1939-10-28. 1918 did not immediately end German military occupation; 1920 Polish occupation does not itself trigger a name change; Polish sovereignty was disputed.",
     "Minsk: Russian pre-reform Минскъ before 1919; Belarusian Менск / Russian Минск from approx 1919; Belarusian official change Менск -> Мінск on 1939-07-29; Belarusian primary only from 1990-09-01 language law editorial threshold; Belarusian/Russian dual state names again from 1996-11-27. No 1991 Менск restoration enacted.",
     "Only historically selected names and justified concurrent native names are stored in names[]. Coexisting language-specific forms do not mean each was newly created when selected.",
-    "Dates for 1918 Estonian name and 1891 Russian municipal language are year-granularity selection: they do not assert exact Jan 1 adoption. Korean historical names are PandoEditor conventions, not historical evidence of contemporary Korean usage.",
+    "The 1889-11-21 date is verified calendar conversion of the 1889-11-09 Julian decree issuance; unknown legal effective/municipal implementation dates must not be falsely asserted. Remaining year-only selection points (e.g. 1918 Tallinn and 1919 Minsk) are approximate and must NEVER be interpreted or displayed as Jan 1; exact dates must not be fabricated.",
     "All four GeoNames IDs remain modern PPLC populated places (not administrative areas); metadata country code is not used to infer historic sovereignty.",
     "Staging only: no published place tiles, manifest, map runtime, web main, or app data were changed."
   ],
@@ -83,7 +83,7 @@
       "sourceUrl": "https://www.geonames.org/588409/",
       "sourceCountryCode": "EE",
       "defaultDisplayNameKo": "탈린",
-      "shortDescriptionKo": "1889년 러시아어·1918년 에스토니아어",
+      "shortDescriptionKo": "1889-11-21 러시아어·1918년 에스토니아어",
       "displayTimeline": [
         {
           "fromYear": 1801,
@@ -96,14 +96,14 @@
           "researchNote": "1801년부터 발트 독일인 중심의 도시 행정에서 쓰인 독일어 Reval을 원어 대표명으로 선택한다. 영어 Reval, 한국어 레발은 같은 도시의 지도 표현을 위해 선택했다. 1801년은 조사 범위 시작 연도이며 에스토니아어 Tallinn이 존재하지 않았다는 뜻은 아니다."
         },
         {
-          "fromYear": 1889,
           "nameKo": "레벨",
           "nameNative": "Ревель",
           "nativeLanguage": "ru",
-          "kind": "historicalRussianAdministrativeLanguageSelection",
+          "kind": "historicalRussianAdministrationDecreeEditorialThreshold",
           "sourceUrl": "https://www.tallinn.ee/ru/o-gorodskoy-vlasti",
-          "note": "시정부 러시아어 행정 의무화",
-          "researchNote": "1889년 러시아 정부 명령에 따라 탈린의 시 행정 대내외 문서에 러시아어 사용이 의무화되었다. 당시 러시아어 Ревель를 대표 원어로 선택하며, 한국어 레벨은 편집기 표기다. 시 공식 자료는 율리우스력 11월 9일 명령을 기록하지만 지도 연혁은 연도만 지정한다. 영어 Reval은 1918년까지 유지한다. 별도의 법적 도시 개명일을 뜻하지 않는다."
+          "note": "발트 도시행정 러시아어 의무화 명령",
+          "researchNote": "1889-11-09(율리우스력) / 1889-11-21(그레고리력) 발트 도시 자치기관 러시아어 의무 사용 명령의 발령일을 지도 대표 원어명 전환을 위한 편집 기준일로 선택한다. 별도 시행일은 확인되지 않았고 모든 시청이 이 날 즉시 러시아어로 전면 전환했다는 뜻도 아니다. Reval에서 러시아어 Ревель를 대표 원어로 선택하며 한국어 레벨(편집상 전사), 영어 Reval을 유지한다. 실제 개명일과 구별한다.",
+          "fromDate": "1889-11-21"
         },
         {
           "fromYear": 1918,
@@ -117,18 +117,18 @@
           "researchNote": "1918년 에스토니아 독립과 그해 11월 에스토니아 시정부 복귀를 묶어 원어 Tallinn, 한국어 탈린, 영어 Tallinn을 선택한다. 2월 독립 선언 직후 독일군 점령이 이어졌으며 공식 이름 교체의 확정 일자는 자료상 검증되지 않아 fromYear로만 기록한다. Tallinn은 과거에도 쓰였고 초기에는 Tallinna 표기도 공존했으므로 도시명을 1918년에 처음 만들었다는 뜻은 아니다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-1889-russian-and-1918-estonian-name",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1889-11-21-decree-and-1918-estonian-name",
       "defaultDisplayNameEn": "Tallinn",
       "defaultDisplayNameNative": "Tallinn",
       "defaultNativeLanguage": "et",
       "historicalGeography": {
         "events": [
           {
-            "year": 1889,
             "type": "imperialMunicipalRussianAdministration",
-            "detail": "러시아어 시행정 의무화",
+            "detail": "발트 도시행정 러시아어 의무 명령 발령",
             "sourceUrl": "https://www.tallinn.ee/ru/o-gorodskoy-vlasti",
-            "researchDetail": "탈린시 기록에 따르면 구력 1889-11-09 정부 명령으로 러시아어가 시 기관의 대내외 문서에서 의무화되었다. 정확한 신력 날짜를 도시 연혁의 적용일로 소급하지 않는다."
+            "researchDetail": "1889-11-09 구력 발령을 1889-11-21 신력으로 환산. 발령일을 지도 표기 선택 기준으로 사용할 뿐 별도 시행일은 확인되지 않았다.",
+            "date": "1889-11-21"
           },
           {
             "date": "1918-02-24",
@@ -195,7 +195,7 @@
       "sourceUrl": "https://www.geonames.org/456172/",
       "sourceCountryCode": "LV",
       "defaultDisplayNameKo": "리가",
-      "shortDescriptionKo": "1891년 러시아어·1918년 라트비아어",
+      "shortDescriptionKo": "1889-11-21 러시아어·1918년 라트비아어",
       "displayTimeline": [
         {
           "fromYear": 1801,
@@ -208,13 +208,13 @@
           "researchNote": "1801년부터 독일어 중심의 리가 시 행정 명칭 Riga를 대표 원어로 선택한다. 라트비아어 Rīga도 이전부터 사용됐으며 원어 선택 전환이 도시 자체의 개칭을 의미하지 않는다. 한국어 리가와 영어 Riga는 전체 기간 유지한다. 1801년은 조사 시작 연도다."
         },
         {
-          "fromYear": 1891,
           "nameNative": "Рига",
           "nativeLanguage": "ru",
-          "kind": "historicalRussianAdministrativeLanguageSelection",
-          "sourceUrl": "https://rusneb.ru/catalog/000199_000009_003516290/",
-          "note": "러시아어 시 행정 대표명",
-          "researchNote": "발트 지방 도시 행정의 러시아어 의무화는 1889년 추진됐으나 리가의 독일어→러시아어 실제 행정언어 대체는 1891년으로 기록된다. 리가 시 행정 명의의 1891년 러시아어 예산 출판물도 확인된다. 이에 1889년 대신 리가에 특화된 1891년을 연도 정밀도의 편집상 원어 대표명 변경 기준으로 선택한다. 영어 Riga와 한국어 리가는 유지한다."
+          "kind": "historicalRussianAdministrationDecreeEditorialThreshold",
+          "sourceUrl": "https://www.pdf-archive.com/2017/04/18/rigasche-stadtblatter-1889-ocr-ta/",
+          "note": "발트 도시행정 러시아어 의무화 명령",
+          "researchNote": "1889-11-09(율리우스력) / 1889-11-21(그레고리력) 발트 도시 자치기관 러시아어 의무화 명령의 발령일을 탈린과 일괄 적용하는 대표 원어명 편집 기준으로 삼는다. 같은 해 리가의 Rigasche Stadtblätter에는 이 명령이 소개된다. 1891년 리가시 러시아어 자료 발행은 정착 과정의 추가 증거이지 별도 지도 전환점이 아니다. 법령의 별도 시행일과 리가 행정의 실제 전면 전환일은 미확인이다. 독일어 Riga에서 러시아어 Рига로 대표 원어만 바꾸며 한국어 리가·영어 Riga는 유지한다.",
+          "fromDate": "1889-11-21"
         },
         {
           "fromDate": "1918-11-18",
@@ -226,25 +226,25 @@
           "researchNote": "라트비아의 1918-11-18 독립 선언을 원어 대표명을 라트비아어 Rīga로 선택하는 기준으로 삼는다. 독립전쟁으로 시정 권력이 여러 번 바뀌었지만 임시 점령세력의 언어를 따라 다시 바꾸지 않는다. 라트비아어 Rīga는 훨씬 이전에도 존재했으므로 법적 도시 개명이나 최초 등장일로 해석하지 않는다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-1891-russian-and-1918-latvian-name",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1889-11-21-decree-and-1918-latvian-name",
       "defaultDisplayNameEn": "Riga",
       "defaultDisplayNameNative": "Rīga",
       "defaultNativeLanguage": "lv",
       "historicalGeography": {
         "events": [
           {
-            "year": 1889,
             "type": "balticMunicipalRussification",
-            "detail": "발트 도시행정 러시아화 확대",
-            "sourceUrl": "https://www.riga.lv/en/view-history-municipalities",
-            "researchDetail": "리가 현지 행정언어의 실제 교체연도와 발트 지방 제국 차원의 러시아화 조치 연도를 혼동하지 않는다."
+            "detail": "발트 도시행정 러시아어 의무 명령 발령",
+            "sourceUrl": "https://www.pdf-archive.com/2017/04/18/rigasche-stadtblatter-1889-ocr-ta/",
+            "researchDetail": "1889-11-09 구력(1889-11-21 신력) 정부의 발트 지역 도시 자치행정 러시아어 의무화 명령. 당시 리가에서 나온 Rigasche Stadtblätter의 명령 게재·소개 기록으로 리가에도 적용됨을 확인. 시행일은 별도 미확인.",
+            "date": "1889-11-21"
           },
           {
             "year": 1891,
             "type": "rigaRussianAdministrativeLanguageAdoption",
-            "detail": "리가시 러시아어 행정 정착",
+            "detail": "리가시 러시아어 행정 자료 확인",
             "sourceUrl": "https://rusneb.ru/catalog/000199_000009_003516290/",
-            "researchDetail": "1889년 러시아화 조치 이후 러시아어의 실질적 행정 우세를 1891년 기준으로 선택한다. 구체적인 일 단위 효력 발생일은 확인되지 않았다."
+            "researchDetail": "1891년 리가 시정부의 러시아어 예산 등 문서가 기록되어 1889년 발령 뒤 실제 확산·사용을 뒷받침한다. 1891년은 지명 대표 언어 전환일이 아니라 사료상 확인 시기이므로 지도 displayTimeline에 추가하지 않는다."
           },
           {
             "date": "1918-11-18",
