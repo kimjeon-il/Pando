@@ -13,8 +13,8 @@
   "historicNameScope": "Attested names since 1801, with earlier documented etymology retained only as historical context; dates distinguish evidence precision and editorial naming conventions.",
   "qualityNotes": [
     "All four records are GeoNames feature class P / code PPLC capital settlements; administrative polygons and similarly named country entities are excluded.",
-    "Bratislava's official-name gazette notice effective 1919-03-27 is distinguished from reported February 1919 early administrative use. 1801 Pressburg-based Korean display is an editorial historical convention, not the only official nineteenth-century language name.",
-    "German Pressburg, Hungarian Pozsony and Slovak Prešporok are contemporaneous language/historical forms. Their coexistence is not converted to successive false administrative city renamings.",
+    "Bratislava: 1801 Pozsony/Pressburg ko 포조니, 1849-10-24 Pressburg/Pozsony ko 프레스부르크, 1867-07-28 Pozsony/Pressburg ko 포조니 (preferred-first period-nativeNames, not legally coequal names). English Pressburg throughout pre-1919. Official Bratislava/브라티슬라바 and English Bratislava from 1919-03-27. 1860-10-20 Hungarian administrative restoration is historical event only, not a label switch.",
+    "Pozsony and Pressburg coexist as Hungarian/German names of the same city; priority orders track the selected administrative regime rather than fictional sequential legal renamings. 1919-03-27 is retained as the Bratislava gazette switch.",
     "Chișinău has Romanian Chișinău and Russian Кишинёв. Russian rule, 1918 union, Soviet rule and modern independence remain historical events, not automatic changes in a Korean map label.",
     "Luxembourg the city (GeoNames 2960316) is not Luxembourg the country (2960313) nor city municipal territory (2960317). French, German and Luxembourgish names are stored independently.",
     "Vaduz is a small capital below normal urban population thresholds but is included under the explicit capital exception. The identical native and English name is kept in source, deduplicated only on rendering.",
@@ -28,10 +28,42 @@
       "geonameId": 3060972,
       "names": [
         {
+          "text": "Pozsony",
+          "language": "hu",
+          "usage": "historical",
+          "variantType": "selectedHistoricHungarianOfficialName",
+          "sourceUrl": "https://www.slovensko.sk/sk/lokality/_a9a73232-f853-4d69-9b13-189650e28842"
+        },
+        {
+          "text": "Pressburg",
+          "language": "de",
+          "usage": "historical",
+          "variantType": "selectedHistoricGermanLocalName",
+          "sourceUrl": "https://www.visitbratislava.com/about/three-countries-one-destination/"
+        },
+        {
+          "text": "Pressburg",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "selectedHistoricEnglishExonym",
+          "sourceUrl": "https://www.visitbratislava.com/about/three-countries-one-destination/"
+        },
+        {
+          "text": "포조니",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "selectedHungarianBasedKoreanName"
+        },
+        {
+          "text": "프레스부르크",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "selectedGermanBasedKoreanName"
+        },
+        {
           "text": "Bratislava",
           "language": "sk",
           "usage": "standard",
-          "note": "1919년 이후 슬로바키아어 공식명",
           "sourceUrl": "https://www.slovensko.sk/sk/lokality/_a9a73232-f853-4d69-9b13-189650e28842"
         },
         {
@@ -43,30 +75,6 @@
           "text": "브라티슬라바",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "프레스부르크",
-          "language": "ko",
-          "usage": "historical",
-          "variantType": "koreanRenderingOfGermanPressburg",
-          "note": "19세기 독일어명 기반 편집 표기",
-          "sourceUrl": "https://www.visitbratislava.com/about/three-countries-one-destination/"
-        },
-        {
-          "text": "Pressburg",
-          "language": "de",
-          "usage": "historical",
-          "variantType": "pre1919GermanAdministrativeName",
-          "note": "1919년 이전 독일어 도시명",
-          "sourceUrl": "https://www.visitbratislava.com/about/three-countries-one-destination/"
-        },
-        {
-          "text": "Pozsony",
-          "language": "hu",
-          "usage": "historical",
-          "variantType": "historicalHungarianOfficialAndContemporaryExonym",
-          "note": "19세기 관용·공식 헝가리어명",
-          "sourceUrl": "https://www.slovensko.sk/sk/lokality/_a9a73232-f853-4d69-9b13-189650e28842"
         }
       ],
       "latitude": 48.14816,
@@ -76,26 +84,80 @@
       "sourceUrl": "https://www.geonames.org/3060972/bratislava.html",
       "sourceCountryCode": "SK",
       "defaultDisplayNameKo": "브라티슬라바",
-      "shortDescriptionKo": "1919년 도시 공식명 변경",
+      "shortDescriptionKo": "1919년 브라티슬라바 공식 명칭",
       "displayTimeline": [
         {
-          "nameKo": "프레스부르크",
           "fromYear": 1801,
-          "kind": "koreanEditorialTranscription",
+          "nameKo": "포조니",
+          "nameEn": "Pressburg",
+          "nameNative": "Pozsony",
+          "nativeLanguage": "hu",
+          "nativeNames": [
+            {
+              "text": "Pozsony",
+              "language": "hu"
+            },
+            {
+              "text": "Pressburg",
+              "language": "de"
+            }
+          ],
+          "kind": "historicalHungarianGermanCoexistingNames",
           "sourceUrl": "https://www.visitbratislava.com/about/three-countries-one-destination/",
-          "note": "독일어명 기준 옛 지도 표기",
-          "researchNote": "1801년~1919년 지도는 독일어 Pressburg를 바탕으로 프레스부르크로 표기하는 편집 관례를 채택한다. 19세기 헝가리 행정에서는 Pozsony도 공식적으로 쓰였으므로 하나의 유일한 법정 명칭으로 간주하지 않는다."
+          "note": "헝가리어 우선·독일어 병기",
+          "researchNote": "1801년 헝가리 왕국은 신성 로마 제국의 일반 구성국이 아니었고, 독일어 Pressburg와 헝가리어 Pozsony가 오래 병존했다. 헝가리어 중앙 공식언어 도입은 1844년이므로 1801년 Pozsony 우선은 현지 헝가리 왕국 지명 관행에 따른 편집 선택이며 독일어명이 없었다는 뜻이 아니다. 영어는 전통 관용명 Pressburg 유지."
         },
         {
-          "nameKo": "브라티슬라바",
+          "fromDate": "1849-10-24",
+          "nameKo": "프레스부르크",
+          "nameNative": "Pressburg",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Pressburg",
+              "language": "de"
+            },
+            {
+              "text": "Pozsony",
+              "language": "hu"
+            }
+          ],
+          "kind": "historicalAdministrativeLanguagePriorityChange",
+          "note": "중앙집권 독일어 행정 우선",
+          "researchNote": "1849년 혁명 진압 후 하이나우의 1849-10-24 임시 행정조직 명령을 독일어 우선 대표명 전환의 편집 기준으로 선택. 양 언어는 지역에서 여전히 병존했으며 브라티슬라바시 자체의 법적 명칭 개정일이라는 의미는 아니다. 영어 Pressburg는 그대로 유지한다."
+        },
+        {
+          "fromDate": "1867-07-28",
+          "nameKo": "포조니",
+          "nameNative": "Pozsony",
+          "nativeLanguage": "hu",
+          "nativeNames": [
+            {
+              "text": "Pozsony",
+              "language": "hu"
+            },
+            {
+              "text": "Pressburg",
+              "language": "de"
+            }
+          ],
+          "kind": "historicalAustroHungarianCompromiseEditorialSelection",
+          "note": "대타협 헝가리어 우선 복원",
+          "researchNote": "1860-10-20 칙서에 따른 헝가리어 행정 복원을 역사적 사건으로만 기록하고, 1867-07-28 대타협 관련 헝가리 법률 재가를 안정적인 헝가리 자치정부 복원에 따른 지도 원어 우선순위 변경일로 선택한다. Pressburg도 주민·일부 도시 행정문서에서 계속 사용됐으므로 함께 병기한다. 영어 Pressburg 계속 유지."
+        },
+        {
           "fromDate": "1919-03-27",
+          "nameKo": "브라티슬라바",
+          "nameEn": "Bratislava",
+          "nameNative": "Bratislava",
+          "nativeLanguage": "sk",
           "kind": "officialRenaming",
           "sourceUrl": "https://volksgruppen.orf.at/v2/slovaci/meldungen/stories/2972520/",
-          "note": "1919-03-27 명칭 고시",
-          "researchNote": "슬로바키아 국가 포털에서는 1919년 2월 행정상의 명칭 사용을 기술하고, ORF 2019년 기사는 1919-03-27 관보 고시의 효력을 명시한다. Pando에서는 정확한 공시일을 표시 전환 기준으로 채택하며 두 기록의 차이를 보존한다."
+          "note": "1919년 공식 지명 고시",
+          "researchNote": "1919-03-27 도시명 Bratislava의 고시를 새 지도 대표명의 정확한 편집 기준으로 유지. 1919년 2월 무렵의 초기 행정 사용 기록도 존재하나 이 시점으로 소급하지 않는다. 이전 시대의 Pozsony·Pressburg는 사용된 언어별 이름이었고, 순차적인 법적 도시 개칭이 아니었다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-exact-1919-rename",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1849-and-1867-priority-reversals-and-1919-rename",
       "historicalGeography": {
         "events": [
           {
@@ -112,12 +174,30 @@
             "detail": "Bratislava 명칭 고시",
             "researchDetail": "명칭의 1919년 2월 초기 사용 기록과 3월 27일 관보 고시 효력의 정밀도 차이를 기록한다.",
             "sourceUrl": "https://volksgruppen.orf.at/v2/slovaci/meldungen/stories/2972520/"
+          },
+          {
+            "date": "1849-10-24",
+            "type": "hungarianInterimCentralAdministration",
+            "detail": "합스부르크 중앙집권 행정 강화",
+            "researchDetail": "행정 상급기관의 독일어 사용 우선 조치. 도시 자체의 독일어 개칭일로 취급하지 않는다."
+          },
+          {
+            "date": "1860-10-20",
+            "type": "octoberDiplomaHungarianRestoration",
+            "detail": "헝가리어 행정 부분 복원",
+            "researchDetail": "헝가리어 복원을 기록하되 1867년까지 별도 지명 전환점을 추가하지 않는다."
+          },
+          {
+            "date": "1867-07-28",
+            "type": "austroHungarianCompromiseLawConfirmed",
+            "detail": "대타협 헝가리 자치정부 복원",
+            "researchDetail": "헝가리어·독일어 병기 가운데 헝가리어 Pozsony를 첫 원어명으로 복귀시키는 편집상 기준일."
           }
         ],
         "notes": [
           {
             "detail": "Pressburg·Pozsony는 언어별 명칭",
-            "researchDetail": "독일어 Pressburg, 헝가리어 Pozsony, 슬로바키아어 Prešporok 등은 중첩된 역사적 언어 형태로 단순히 도시가 언어 순서대로 공식 개칭한 것은 아니다.",
+            "researchDetail": "Pozsony(헝가리어 국가행정명)와 Pressburg(독일어 주민·일부 시 행정명)는 장기간 병용됐으며 도시 자체가 1849년·1867년에 법적 개칭된 것은 아니다. 1849~1867년에는 Pressburg를 첫 원어명, 그 전후 1801~1849·1867~1919년에는 Pozsony를 첫 원어명으로 선택한다. 헝가리 왕국의 자치권 상실·복원과 실제 언어 사용은 구분한다.",
             "sourceUrl": "https://www.slovensko.sk/sk/lokality/_a9a73232-f853-4d69-9b13-189650e28842"
           },
           {
@@ -126,7 +206,10 @@
             "sourceUrl": "https://www.geonames.org/3060972/"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Bratislava",
+      "defaultDisplayNameNative": "Bratislava",
+      "defaultNativeLanguage": "sk"
     },
     {
       "geonameId": 618426,
