@@ -15,7 +15,7 @@
     "Tallinn: Reval/German to Russian Ревель from shared 1889-11-21 Gregorian imperial municipal-language decree issuance (1889-11-09 Julian), a chosen editorial date, not a separately established legal effective/implementation day. Estonian Tallinn transition stays approximate 1918; English Reval remains until then.",
     "Riga: German Riga to Russian Рига using the same 1889-11-21 Gregorian decree-issuance threshold as Tallinn. Previously chosen approximate 1891 city-level uptake retained in historicalGeography as usage evidence, not displayTimeline. Latvian Rīga from 1918-11-18; English Riga and Korean 리가 unchanged. Decree issuance is not a verified city-level effective day.",
     "Vilnius: user-authorized editorial Lithuanian Vilnius at 1918-02-16 independence declaration; Polish Wilno from formal Central Lithuania annexation ratification 1922-03-24; Lithuanian Vilnius restored 1939-10-28. 1918 did not immediately end German military occupation; 1920 Polish occupation does not itself trigger a name change; Polish sovereignty was disputed.",
-    "Minsk: native Belarusian Менск and Russian Минск selected concurrently from the 1920-07-31 Belarus SSR declaration (not 1919 creation), which affirmed equal public-language rights for Belarusian, Russian, Polish and Yiddish. Two chosen native forms are not an assertion that only two languages had legal public rights. Official Belarusian Менск→Мінск on 1939-07-29, editorial Belarusian-only from 1990-09-01, and Belarusian/Russian coofficial selection from 1996-11-27. No 1991 restoration of Менск.",
+    "Minsk: imperial Russian Минскъ -> Минск from 1918-10-15 Russian Soviet orthography decree effective date, as an editorial threshold only (German occupation of Minsk makes actual city-level implementation unverified). Belarusian Менск and Russian Минск bilingual selection from 1920-07-31; Belarusian Менск -> Мінск 1939-07-29; Belarusian-only native display from 1990-09-01; Belarusian/Russian display from 1996-11-27. Korean 민스크 and English Minsk unchanged, 1991 Менск restoration not enacted.",
     "Only historically selected names and justified concurrent native names are stored in names[]. Coexisting language-specific forms do not mean each was newly created when selected.",
     "The shared 1889-11-21 Gregorian date is the 1889-11-09 Julian Baltic municipal-language decree issuance, not a separately verified legal effective/municipal implementation date. Tallinn's 1918 Estonian selection is year-granularity only and must NEVER be interpreted as January 1; other tentative name dates must not be fabricated.",
     "All four GeoNames IDs remain modern PPLC populated places (not administrative areas); metadata country code is not used to infer historic sovereignty.",
@@ -486,7 +486,16 @@
           "nativeLanguage": "ru",
           "kind": "historicalImperialRussianPreReformSpelling",
           "sourceUrl": "https://news.mail.ru/society/67208587/",
-          "researchNote": "1801년 조사 시작점에서는 제정 러시아 시기의 구철자 Минскъ를 대표 원어로 선택한다. 1917~1918년 러시아어 정서법 개혁 이후에는 어말 ъ가 폐지되어 Минск가 사용됐으므로 이 구철자가 1920-07-30까지 모든 문서에 유지됐다는 뜻은 아니다. 해당 과도기의 별도 확정 전환일은 보류하고 1920-07-31의 명칭 병기 기준은 문서로 확인된 선언일로 설정한다. 한국어 민스크와 영어 Minsk는 유지한다."
+          "researchNote": "1801년 조사 시작 시점에는 러시아 제국의 구철자 Минскъ를 대표 원어명으로 선택한다. 이는 모든 문헌의 유일한 당시 표기였다는 의미가 아니며 지도 한국어 민스크와 영어 Minsk는 유지한다. 구철자에서 새 철자로의 편집상 전환일은 1918-10-15 러시아 소비에트 정부 정서법 개혁 시행일로 별도 기록한다."
+        },
+        {
+          "fromDate": "1918-10-15",
+          "nameNative": "Минск",
+          "nativeLanguage": "ru",
+          "kind": "russianOrthographyReformEditorialThreshold",
+          "sourceUrl": "https://istmat.org/node/31587",
+          "note": "러시아어 정서법 개혁 시행",
+          "researchNote": "1918-10-10 러시아 소비에트 정부의 '새 정서법 도입에 관한 법령'이 모든 정부 발행물·공식 문서를 1918-10-15부터 새 정서법으로 작성하도록 규정했다. 이에 어말 경음부호 ъ를 제거한 Минск를 지도 러시아어 대표 원어명으로 선택한다. 이는 러시아어 정서법의 시행일을 사용한 편집상 기준이며 실제 민스크의 개명이나 도시 행정의 해당 날짜 적용을 입증하지 않는다. 민스크는 당시 독일군 점령하에 있었으므로 현지 사용 관행과 법령 효력의 지역적 차이를 구분한다. 한국어 민스크·영어 Minsk는 변경하지 않는다."
         },
         {
           "nameNative": "Менск",
@@ -564,7 +573,7 @@
           "researchNote": "1995년 5월 국민투표 이후 1996-11-27 시행된 개정 헌법 제17조가 벨라루스어·러시아어를 국가언어로 규정하므로 두 이름을 공동 원어명으로 다시 선택한다. 1996년은 민스크 도시 개명일이 아니라 두 언어의 동등 공식 지위를 기준으로 한 지도 데이터 병기 복원일이다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-1920-07-31-multilingual-edition-1939-spelling-1990-1996-language-changes",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1918-10-15-russian-orthography-1920-07-31-multilingual-1939-spelling-1990-1996-language-changes",
       "defaultDisplayNameEn": "Minsk",
       "defaultDisplayNameNative": "Мінск",
       "defaultNativeLanguage": "be",
@@ -582,6 +591,13 @@
       ],
       "historicalGeography": {
         "events": [
+          {
+            "date": "1918-10-15",
+            "type": "russianOrthographyReformEffectiveEditorialReference",
+            "detail": "러시아어 새 정서법 적용 기준",
+            "sourceUrl": "https://istmat.org/node/31587",
+            "researchDetail": "1918-10-10 발령된 러시아 소비에트 정부 법령에 1918-10-15부터 정부 발행물·공문서에서 새 정서법을 사용하도록 명시되어 있다. 이는 어말 ъ가 있는 Минскъ에서 Минск로 바꾸는 지도 편집 기준이며 1918년 독일 점령하 민스크 현지 행정의 해당 일자 실제 전환을 증명하지 않는다."
+          },
           {
             "year": 1919,
             "type": "sovietBelarusGovernmentFormation",
@@ -657,7 +673,7 @@
           }
         ]
       },
-      "displayPolicyNote": "1920-07-31 is the declaration adoption and the editor's selected concurrent native-name threshold (Belarusian Менск / Russian Минск), not an attested first name-use date or city rename. Declaration protected Belarusian, Russian, Polish, and Yiddish equally in public dealings, education, and culture; selected two preferred local names do not negate the four-language rights. The 1919 foundation, the 1918 Belarusian People's Republic proclamation under German occupation, and Polish military occupation do not independently constitute a city-name renaming. Official Belarusian Менск→Мінск 1939-07-29; nativeNames monolingual from 1990-09-01 legal editorial boundary; Belarusian/Russian nativeNames restored from 1996-11-27 constitutional provision. The Russian pre-reform Минскъ spelling did not necessarily remain in force until July 1920 after the 1917-18 Russian orthographic reform; no unsupported day-precision spelling transition is invented."
+      "displayPolicyNote": "1920-07-31 is the declaration adoption and the editor's selected concurrent native-name threshold (Belarusian Менск / Russian Минск), not an attested first name-use date or city rename. Declaration protected Belarusian, Russian, Polish, and Yiddish equally in public dealings, education, and culture; selected two preferred local names do not negate the four-language rights. The 1919 foundation, the 1918 Belarusian People's Republic proclamation under German occupation, and Polish military occupation do not independently constitute a city-name renaming. Official Belarusian Менск→Мінск 1939-07-29; nativeNames monolingual from 1990-09-01 legal editorial boundary; Belarusian/Russian nativeNames restored from 1996-11-27 constitutional provision. Russian pre-reform Минскъ changes editorially to Минск from 1918-10-15, the effective date written into the Russian Soviet government's 1918-10-10 orthography decree for government publications/documents. Minsk was German-occupied then, so this editor-selected date is NOT evidence of actual Minsk municipal implementation or an official city rename. Korean 민스크 and English Minsk do not change."
     }
   ]
 }
