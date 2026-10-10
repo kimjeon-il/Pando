@@ -1,0 +1,584 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r100",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r99",
+    "commit": "9ae9509f4dc1de593f0f082861548e2497c64dbf",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r99/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:60026849",
+    "hydro-system:60902237",
+    "hydro-system:70574060",
+    "hydro-system:70890643"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:60026849",
+      "category": "river_group",
+      "system_id": "60026849",
+      "baseline_logical_fid": 3358,
+      "geometry_fids": [
+        11262,
+        11261,
+        11259,
+        11260
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -60.730578,
+        7.459278,
+        -59.489583,
+        8.346856
+      ],
+      "rendered_mainstem_length_km": 270.849,
+      "rendered_network_length_km": 270.849,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -60.730578,
+          7.459278,
+          -59.489583,
+          8.346856
+        ]
+      },
+      "candidate_name": "Barima River",
+      "candidate_names": [
+        "Barima River",
+        "Mora Passage"
+      ],
+      "research_category": "representative_river_identity_supported_initial_route_material_pending",
+      "supported_name_scope": "Barima is directly mapped north of Matthews Ridge and through the major eastward, northward and northwestward corridor to the Kaituma and Aruka receiving setting. Mora Passage is separately named on the selected northern outlet connection. Waini, Kaituma, Aruka and the downstream Barima continuation remain distinct features.",
+      "geographic_disambiguation": "The selection approaches from the western border hills, follows the river north of Matthews Ridge eastward, rounds the broad eastern bend, travels north and northwest past the separate Kaituma and Aruka approaches, and then uses Mora Passage. It does not select the upstream Kaituma shipping route, the Waini trunk behind Shell Beach, or the downstream Barima continuation toward Venezuela.",
+      "source_keys": [
+        "r100-retained-glsc-national2006",
+        "r100-retained-pac-shellbeach2024",
+        "r100-epa-gmi-eia2020"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northwestern Guyana, near the northeastern Venezuela border: upper Barima north of Matthews Ridge, the eastward and northward Barima corridor, and Morawhanna–Mora Passage near the Waini estuary.",
+      "candidate_name_role": "Supported representative river-corridor identity with a distinct selected terminal passage; not synonyms or a uniform full-path name.",
+      "completion_scope": "Every selected fragment was considered. Actual national and regional maps establish the principal Barima corridor and distinct Mora terminal branch. The westernmost headward loop and its full connection to the mapped upper Barima cannot be established from the inspected cartography. This is a source-material gap, not just an unresolved small-channel name.",
+      "material_pending_reason": "The initial westernmost fragment’s southern approach, westward headward curve and full receiving-channel connection are not resolved by the acquired map coverage. Supported Barima and Mora Passage identities elsewhere do not complete source-to-object correspondence for the whole selection.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_river": "Barima River, supported for the long mapped receiving corridor.",
+        "initial_component_name": null,
+        "initial_component_limit": "The full westernmost headward curve and its receiving connection remain materially unresolved, not merely unnamed.",
+        "middle_component": "Upper and middle Barima north of Matthews Ridge and through the eastern turning corridor.",
+        "junction_components": "Kaituma and Aruka are separate tributary approaches. The selected model mainstem continues on Barima through their receiving setting.",
+        "terminal_component": "Mora Passage, a separately named connection toward the Waini estuary. It is not an alias of Barima.",
+        "lake_wetland_scope": "Coastal mangrove/swamp setting is supported regionally. No selected named lake or reservoir crossing is established; Pakera Lake remains outside the selected corridor.",
+        "side_tributary_scope": "All four selected fragments have model mainstem roles and no separate tributary fragment is selected. Nearby mapped tributaries retain separate scope; those model roles do not identify all natural tributaries or assign their names.",
+        "excluded_inferences": [
+          "Do not assign Barima uniformly to Mora Passage or the unestablished initial fragment.",
+          "Do not call the selected end the full Barima mouth or substitute Barima’s unselected downstream continuation.",
+          "Do not treat PAC protected-area shading or EIA project influence boundaries as river-channel boundaries.",
+          "Do not infer legal borders, territorial sovereignty, current navigation or water quality from these historical and project maps."
+        ],
+        "model_limits": "The retained270.849km value is modeled length, not an official length of Barima or Mora Passage. Geometry was used only for viewing and source orientation; no geometry changes or revalidation were undertaken.",
+        "access_limitations": "No new access denial or challenge occurred. All historical OAS/JOG/Guyana agency publication stops and equivalents remain preserved. Material-pending is the only primary pending status."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60902237",
+      "category": "river_group",
+      "system_id": "60902237",
+      "baseline_logical_fid": 3458,
+      "geometry_fids": [
+        13817
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -36.6625,
+        -8.214583,
+        -34.89375,
+        -7.85625
+      ],
+      "rendered_mainstem_length_km": 270.583,
+      "rendered_network_length_km": 270.583,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -36.6625,
+          -8.214583,
+          -34.89375,
+          -7.85625
+        ]
+      },
+      "candidate_name": "Rio Capibaribe",
+      "candidate_names": [
+        "Rio Capibaribe"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "APAC's actual basin map labels Rio Capibaribe on the southwestern upper course and follows the connected river through the complete selection. IBGE regional pixels repeatedly label the same receiving corridor. The SGB detailed sheet labels Rio Capibaribe on both sides of the Poço Fundo impoundment. Recife municipal cartography supports the lower connected river and its branching estuarine setting. Reservoir names are separate component names.",
+      "geographic_disambiguation": "The selected western end lies east of Poção, initially bends south and then north, runs northeast to the Jataúba junction, and turns east through the Poço Fundo and Santa Cruz do Capibaribe setting. It continues through Toritama and the Jucazinho reservoir corridor, east through Salgadinho, northeast to Limoeiro, through Carpina reservoir's northern river approach and east past Paudalho. The lower selection turns southeast at São Lourenço da Mata, rounds the western Recife bend and follows the urban Capibaribe corridor toward its southward inner-estuarine continuation. It does not select the upstream Tapacurá or Goitá reservoir arms or continue northeast through the port outlet to the sea.",
+      "source_keys": [
+        "r100-apac-manual2014",
+        "r100-ibge-pe2015",
+        "r100-sgb-santa-cruz2009",
+        "r100-ibge-recife2022"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Pernambuco, northeastern Brazil: Poção and the Jataúba–Santa Cruz do Capibaribe corridor, Toritama, Cumaru–Surubim, Salgadinho, Limoeiro, Lagoa do Carro–Lagoa de Itaenga, Paudalho, São Lourenço da Mata and Recife.",
+      "candidate_name_role": "Representative river identity for the selected Poção-to-Recife corridor, including impoundments and a southern inner-estuarine approach; not a claim that each water body and every local branch has one uniform name.",
+      "completion_scope": "Completed bounded representative-corridor correspondence for the entire selected single fragment. The APAC basin map supplies whole-route continuity, the IBGE regional sheet supports the middle and lower receiving sequence, the SGB sheet resolves the upper impoundment and tributary inlets, and the Recife municipal sheet resolves the lower branching setting. Urban bend offsets and simplified reservoir traverses are ordinary generalization at this selection's resolution, not evidence for an additional invented connector. This is not a pointwise alignment, surveyed endpoint, definitive local branch-name boundary or assertion of a coast-reaching route.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_receiving_identity": "Rio Capibaribe",
+        "initial_component": "Upper Capibaribe corridor east of Poção, including the initial south-and-north loop.",
+        "initial_endpoint_official_source_name": null,
+        "upper_and_middle_components": "Rio Capibaribe via the Jataúba junction, Poço Fundo, Santa Cruz do Capibaribe, Toritama, Jucazinho, Salgadinho and Limoeiro.",
+        "reservoir_components": [
+          "Poço Fundo",
+          "Jucazinho",
+          "Carpina"
+        ],
+        "reservoir_name_evidence_limit": "Jucazinho and Carpina are expressly linked to the main river by APAC's table and prose. Poço Fundo is a combined locality/map/table association; no direct water-polygon name is claimed for the SGB sheet.",
+        "separate_tributary_reservoirs": [
+          "Tapacurá",
+          "Goitá"
+        ],
+        "separate_nearby_urban_waterbody": "Açude de Apipucos, north of the selected lower-river corridor.",
+        "terminal_component": "Southern inner-estuarine continuation of the Capibaribe corridor in Recife, near the Ilha do Zeca branching setting.",
+        "terminal_local_branch_name": null,
+        "terminal_exact_receiving_waterbody_name": null,
+        "terminal_endpoint_is_open_coast_mouth": false,
+        "alternative_whole_route_name": null,
+        "excluded_inferences": [
+          "Representative Rio Capibaribe identity does not turn reservoir names, tributaries, urban canals or all tidal branches into synonyms.",
+          "Do not infer a uniform current-flow regime from the generalized line or historical cartography.",
+          "Do not assign the western model vertex to a documented natural spring or exact official source.",
+          "Do not equate the southern inner-estuarine endpoint with the northeastern port outlet, the Beberibe confluence or the open Atlantic shoreline.",
+          "The municipal map prints Rio Morno on part of the northeastern estuarine network; that adjacent labeling is not used to name the selected river or resolve other Recife river identities.",
+          "No legal naming date, exact name-transition vertex, Korean name, comprehensive minor-waterbody inventory or modern shoreline is established."
+        ],
+        "model_limits": "The retained 270.583 km is the modeled length of this selection, not an official published Capibaribe length. Existing geometry was used only as a private visual-orientation aid; it was not corrected, revalidated, measured against source lines or tested. All source-to-object claims are bounded corridor/component interpretations.",
+        "access_limitations": "The ANA 2017 reservoir publication denial and separate availability failures remain factual source restrictions. Independent acquired originals cover the bounded correspondence, so they do not create a second pending status or an unresolved required-route gap."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70574060",
+      "category": "river_group",
+      "system_id": "70574060",
+      "baseline_logical_fid": 3082,
+      "geometry_fids": [
+        9796
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -119.822917,
+        38.497917,
+        -118.627083,
+        39.80625
+      ],
+      "rendered_mainstem_length_km": 269.849,
+      "rendered_network_length_km": 269.849,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -119.822917,
+          38.497917,
+          -118.627083,
+          39.80625
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "East Fork Carson River",
+        "Carson River",
+        "Lahontan Reservoir",
+        "Carson Sink"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Mapped labels establish East Fork Carson River in the upper canyon and Carson Valley corridor, Carson River through the central valleys and below Lahontan Reservoir, and Lahontan Reservoir for the selected impoundment transit. Official USFWS prose supplies Carson Sink as the terminal refuge setting. West Fork of Old River, Leter Reservoir and Duck Lake are distinct mapped lower features used for disambiguation, not accepted aliases or full selected-reach names.",
+      "geographic_disambiguation": "The selected southern approach is in Murray Canyon near Falls Meadows, not on Silver King Creek or Wolf Creek. The upper route follows East Fork Carson River north and northwest, then Carson River through Carson Valley and the Carson City–Dayton–Churchill corridor. It crosses Lahontan Reservoir, proceeds east toward Fallon, turns north into the Carson River and West Fork of Old River wetland complex, passes the Duck Lake/Battleground Point surroundings and continues into the Carson Sink flat. The lower generalized path does not unambiguously follow one of the mapped river or wetland channels.",
+      "source_keys": [
+        "r100-usgs-national-map-carson",
+        "r100-fws-fallon-about",
+        "r100-cwsd-lower-carson"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Eastern Sierra Nevada in Alpine County, California, through Carson Valley, Carson City, Dayton and Lahontan Reservoir to the lower Carson wetland and Carson Sink setting near Fallon, Nevada.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Three successfully acquired original federal raster exports cover the complete selection, the initial mountain reach, and the lower river–wetland–sink endpoint. Original crops and separate local orientation overlays were inspected across all initial, middle, reservoir, tributary, lower-flat and terminal areas. This establishes the bounded findings but not full feature-to-channel correspondence: the short western initial approach is offset from an unlabeled canyon tributary, and the lower route crosses the West Fork of Old River/Leter Reservoir wetland complex before reconnecting with the Carson River/Duck Lake setting. Material-pending is the sole primary accounting state. Existing readable map coverage is not misrepresented as sufficient to resolve those segment assignments.",
+      "material_pending_reason": "Actual lower route correspondence remains unresolved across the West Fork of Old River/Leter Reservoir–Carson River wetland and lake-fringe complex. The model does not unambiguously track one mapped channel there. The short initial Murray Canyon approach also lacks a directly mapped hydronym and is offset from the depicted tributary. Regional Carson drainage and terminal sink context cannot substitute for full source-to-object correspondence. A material-pending record is therefore retained despite broad successful cartographic coverage.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Carson River drainage",
+        "representative_system_identity_role": "Supported regional context only; not a completed full-selection identity, accepted scalar name or automatic application.",
+        "initial_headward_component_name": null,
+        "initial_headward_component": "Short generalized eastward approach in the mapped Murray Canyon/Falls Meadows setting; small canyon stream is visible but has no directly mapped creek label in the acquired source. Exact matching of this offset short connector remains limited.",
+        "initial_receiving_river": "East Fork Carson River",
+        "upstream_and_side_components_not_substituted": [
+          "Farther-south East Fork Carson River upstream of Falls Meadows",
+          "Poison Creek",
+          "Bryant Creek",
+          "Silver King Creek",
+          "Wolf Creek",
+          "Silver Creek",
+          "Indian Creek",
+          "West Fork Carson River",
+          "Clear Creek"
+        ],
+        "dominant_selected_river_component": "Carson River",
+        "reservoir_component": "Lahontan Reservoir",
+        "carson_valley_scope": "River-corridor correspondence only. Separately labeled valley sloughs, ditches and the West Fork approach are not alternative full-system names; exact channel threading is not certified.",
+        "lower_branch_name": null,
+        "lower_branch_scope": "The model crosses or passes between West Fork of Old River, Leter Reservoir and Carson River in a marsh/lake-fringe complex. Readable mapping establishes their distinct positions but does not resolve one consistently selected named channel across this modeled segment.",
+        "lower_adjacent_mapped_names": [
+          "West Fork of Old River",
+          "Leter Lake",
+          "Leter Reservoir",
+          "Timber Lake",
+          "Duck Lake"
+        ],
+        "lower_wash_component_name": null,
+        "final_terminal_basin": "Carson Sink",
+        "playa_interior_river_name": null,
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "Do not apply Carson River uniformly to the initial canyon tributary, East Fork, Lahontan Reservoir interior, uncertain lower wetland threading or sink-flat interior.",
+          "Do not turn the Murray Canyon landform label or a blocked-report search excerpt into an established creek hydronym.",
+          "Do not substitute Wolf Creek, Silver King Creek, upper West Fork Carson River or the lower West Fork of Old River merely because they are named in the same drainage.",
+          "Do not infer permanent inundation, current river activity, continuous surface flow, a legal hydronym boundary, or the modeled endpoint as an official river mouth.",
+          "Do not count this record as completed representative identity or completed naming-scope hold.",
+          "No Korean name, formal naming date or authoritative compound hydronym is established."
+        ],
+        "model_limits": "The 269.849 km length is the selected modeled fragment length, not an official Carson River length. Generalized bends, valley/slough routing, reservoir transit and sink-flat continuation are visibly distinct from exact mapped channel alignments. Existing geometry was used only for source viewing and was not edited or revalidated.",
+        "separately_named_corridor_parts": [
+          "East Fork Carson River",
+          "Carson River",
+          "Lahontan Reservoir",
+          "Carson Sink"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Three successfully acquired original federal raster exports cover the complete selection, the initial mountain reach, and the lower river–wetland–sink endpoint. Original crops and separate local orientation overlays were inspected across all initial, middle, reservoir, tributary, lower-flat and terminal areas. This establishes the bounded findings but not full feature-to-channel correspondence: the short western initial approach is offset from an unlabeled canyon tributary, and the lower route crosses the West Fork of Old River/Leter Reservoir wetland complex before reconnecting with the Carson River/Duck Lake setting. Material-pending is the sole primary accounting state. Existing readable map coverage is not misrepresented as sufficient to resolve those segment assignments."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70890643",
+      "category": "river_group",
+      "system_id": "70890643",
+      "baseline_logical_fid": 3265,
+      "geometry_fids": [
+        10433,
+        10432
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -72.786204,
+        18.839583,
+        -71.85625,
+        19.475
+      ],
+      "rendered_mainstem_length_km": 268.707,
+      "rendered_network_length_km": 268.707,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -72.786204,
+          18.839583,
+          -71.85625,
+          19.475
+        ]
+      },
+      "candidate_name": "Rivière de l’Artibonite",
+      "candidate_names": [
+        "Rivière de l’Artibonite"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "The inspected source sheets distinguish Rivière Déo, Rivière Canot, Rivière Guayamouc, Rivière de l’Artibonite and Lac de Péligre along the selected route. Component name-transition lines and the final coastal correspondence are not adjudicated.",
+      "geographic_disambiguation": "The headward selection approaches through Déo and Canot rather than Bouyaha. It follows Guayamouc through Hinche, joins Artibonite in the border-river setting, crosses Péligre and follows the main Artibonite through Mirebalais, La Chapelle, Petite Rivière de l’Artibonite and Pont Sondé. Lower Estère, Salée, canals and floodplain lagoons remain separate.",
+      "source_keys": [
+        "r100-e732-saint-michel_de_latalaye",
+        "r100-e732-debauche",
+        "r100-e732-maissade",
+        "r100-e732-hinche",
+        "r100-e732-thomonde",
+        "r100-e732-belladere",
+        "r100-e732-domond",
+        "r100-e732-la_chapelle",
+        "r100-e732-petite_riviere_de_lartibonite",
+        "r100-e732-saint_marc",
+        "r100-e732-dessalines",
+        "r100-ocha-haiti-reference2023"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central and western Haiti, from the Déo and Saint-Michel de L’Atalaye setting through Canot, Guayamouc, the Péligre reservoir and the lower Artibonite plain.",
+      "candidate_name_role": "Supported name of the lower receiving river. Not a completed representative-identity count because the final modeled coastal leg remains materially unestablished.",
+      "completion_scope": "Eleven independent historical government sheets establish the initial, upper, middle, major-junction, reservoir, dam and lower-plain components. The independent OCHA2023 map establishes terminal context but does not establish the last modeled coastal leg at the needed correspondence level. One primary material-pending status is retained; publication restrictions are factual details and not a second pending category.",
+      "material_pending_reason": "The final modeled coastal leg west of the independently established Robinet/Dauphin lower river remains unestablished at the needed source-to-object level. The available independent OCHA map gives an outlet context, but not sufficient coordinate-bearing correspondence for that leg. The restricted Grande Saline sheet is not used or recovered through another route.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_receiving_identity": "Rivière de l’Artibonite",
+        "initial_headward_component_name": "Rivière Déo",
+        "initial_headward_component": "Selected point and southward river corridor above Saint-Michel; not an established natural source.",
+        "upper_named_component": "Rivière Canot, through Saint-Michel, Débauché and the Maïssade setting.",
+        "middle_named_component": "Rivière Guayamouc, through Hinche and its southward valley.",
+        "river_after_major_junction": "Rivière de l’Artibonite",
+        "lake_components": [
+          "Lac de Péligre"
+        ],
+        "reservoir_component": "Selected passage through the Péligre reservoir and its western dam outlet; distinct from the river components.",
+        "lower_named_component": "Rivière de l’Artibonite through the lower valley and plain.",
+        "terminal_component_name": null,
+        "terminal_component": "Coastal Grande Saline setting; last modeled coastal leg remains unresolved.",
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "Do not apply Artibonite uniformly to Déo, Canot, Guayamouc or Lac de Péligre.",
+          "The selected approach does not follow Bouyaha, upper Artibonite along the border, Macasia, Onde Verte, Fer à Cheval or Boucan Carré upstream.",
+          "Model fragment membership and the split inside the reservoir do not establish a name boundary.",
+          "The nearby Estère drainage, irrigation canals, Rivière Salée and floodplain lagoons do not replace the chosen main-river route.",
+          "No restricted Grande Saline sheet observation is used for the name or correspondence decision.",
+          "No present flow, contemporary shoreline, precise island-side thread, official source or mouth vertex, formal naming date, new coastal breach or Korean name is established."
+        ],
+        "model_limits": "The retained 268.707 km length belongs to this two-fragment generalized selection; it is not an official length of any one river or the whole Artibonite basin. Source orientation was used only to view the existing route, with no geometry changes or revalidation.",
+        "access_limitations": "The E732 Grande Saline sheet is excluded after its printed officials-only use restriction. The independent IOM2012 Artibonite map returned HTTP403 and is stopped in full. The independent OCHA2023 terminal source is lawful contextual evidence but does not close the final source-to-route correspondence gap."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:60026849",
+      "hydro-system:70574060",
+      "hydro-system:70890643"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 343,
+    "non_pending_records": 320,
+    "source_access_pending": 3,
+    "source_material_pending": 20,
+    "source_any_pending": 23,
+    "scope_holds": 109,
+    "river_groups": 245,
+    "lakes": 98,
+    "unrecorded": 3722,
+    "unrecorded_river_groups": 3210,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r100-retained-glsc-national2006",
+      "official_url": "https://wwfeu.awsassets.panda.org/downloads/biodiversity_assessment_survey_of_the_upper_berbice_region_2018.pdf"
+    },
+    {
+      "source_key": "r100-retained-pac-shellbeach2024",
+      "official_url": "https://www.pac.gov.gy/wp-content/uploads/2025/09/FINAL-SBPA-Management-Plan-2024-2028-1.pdf"
+    },
+    {
+      "source_key": "r100-epa-gmi-eia2020",
+      "official_url": "https://epaguyana.org/wp-content/uploads/2022/11/GMI-EIA-Report-September-2020.pdf"
+    },
+    {
+      "source_key": "r100-apac-manual2014",
+      "official_url": "https://progestao.ana.gov.br/progestao-1/acompanhamento-programa/aplicacao-dos-recursos/acompanhamento-das-metas-de-cooperacao-federativa/manuais-de-salas-de-situacao/manual-operativo-da-sala-de-situacao_pe.pdf"
+    },
+    {
+      "source_key": "r100-ibge-pe2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/pe_politico650k_2015.pdf"
+    },
+    {
+      "source_key": "r100-sgb-santa-cruz2009",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/2884a874-43d6-4877-b585-52cb1b721bf4/content"
+    },
+    {
+      "source_key": "r100-ibge-recife2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PE/recife/A0_2611606_MM.pdf"
+    },
+    {
+      "source_key": "r100-usgs-national-map-carson",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r100-fws-fallon-about",
+      "official_url": "https://www.fws.gov/refuge/fallon/about-us"
+    },
+    {
+      "source_key": "r100-cwsd-lower-carson",
+      "official_url": "https://www.cwsd.org/watershed/lower-carson-river/"
+    },
+    {
+      "source_key": "r100-e732-saint-michel_de_latalaye",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/saint-michel_de_latalaye-haiti-tlm50-57743.pdf"
+    },
+    {
+      "source_key": "r100-e732-debauche",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/debauche-haiti-tlm50-57734.pdf"
+    },
+    {
+      "source_key": "r100-e732-maissade",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/maissade-haiti-tlm50-57731.pdf"
+    },
+    {
+      "source_key": "r100-e732-hinche",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/hinche-haiti-tlm50-57732.pdf"
+    },
+    {
+      "source_key": "r100-e732-thomonde",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/thomonde-haiti-tlm50-58733.pdf"
+    },
+    {
+      "source_key": "r100-e732-belladere",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/belladere-haiti-tlm50-58724.pdf"
+    },
+    {
+      "source_key": "r100-e732-domond",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/domond-haiti-tlm50-57721.pdf"
+    },
+    {
+      "source_key": "r100-e732-la_chapelle",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/la_chapelle-haiti-tlm50-57724.pdf"
+    },
+    {
+      "source_key": "r100-e732-petite_riviere_de_lartibonite",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/petite_riviere_de_lartibonite-haiti-tlm50-57733.pdf"
+    },
+    {
+      "source_key": "r100-e732-saint_marc",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/saint_marc-haiti-tlm50-56732.pdf"
+    },
+    {
+      "source_key": "r100-e732-dessalines",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/dessalines-haiti-tlm50-56731.pdf"
+    },
+    {
+      "source_key": "r100-ocha-haiti-reference2023",
+      "official_url": "https://uploads.geobingan.info/attachment/653e45ee9f02487dbb1a8141f3e85389.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "9ae9509f4dc1de593f0f082861548e2497c64dbf",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      200,
+      201,
+      202,
+      203
+    ],
+    "next_unrecorded_id": "hydro-system:80064967",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

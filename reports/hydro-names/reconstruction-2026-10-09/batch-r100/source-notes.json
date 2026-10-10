@@ -1,0 +1,641 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r100",
+  "sources": [
+    {
+      "source_key": "r100-retained-glsc-national2006",
+      "title": "Biodiversity Assessment Survey of the Upper Berbice Region, Guyana, BAT Survey Report No.3, Figure B: Map of Guyana showing the major rivers",
+      "publisher": "WWF-Guianas and Global Wildlife Conservation; national map credited to Guyana Lands and Surveys Commission",
+      "year": 2018,
+      "page": "Printed17 / PDF18",
+      "supports": "Named long Barima corridor north of Matthews Ridge, its eastern turn and lower approach; separation from Barama, Waini and the Kaituma setting.",
+      "limits": "Generalized national map. The western border line and limited headward detail do not establish the entire first fragment. No surveyed source, modern mouth or legal-boundary determination.",
+      "official_url": "https://wwfeu.awsassets.panda.org/downloads/biodiversity_assessment_survey_of_the_upper_berbice_region_2018.pdf"
+    },
+    {
+      "source_key": "r100-retained-pac-shellbeach2024",
+      "title": "Shell Beach Protected Area, Management Plan2024–2028",
+      "authors": "Odacy Davis and Steven Husbands",
+      "publisher": "Protected Areas Commission, Guyana",
+      "year": 2024,
+      "page": "p12 regional map and p13 regional setting",
+      "supports": "Barima’s lower corridor; distinct Kaituma, Aruka, Aruau, Koriabo, Barima tributary and Mora Passage features; adjacent Waini and coastal wetland context.",
+      "limits": "The map does not cover the full western headward fragment. Its protected-area and Indigenous-land shading is not used to adjudicate boundaries, rights or exact hydrographic extents.",
+      "official_url": "https://www.pac.gov.gy/wp-content/uploads/2025/09/FINAL-SBPA-Management-Plan-2024-2028-1.pdf"
+    },
+    {
+      "source_key": "r100-epa-gmi-eia2020",
+      "title": "Environmental Impact Assessment, Guyana Manganese Inc., September2020",
+      "publisher": "Guyana Manganese Inc. environmental assessment hosted by the Environmental Protection Agency, Guyana; project cartography by Enrique Monize",
+      "year": 2020,
+      "page": "p63 Figure2-2; p89 navigation prose; p90 Figure4-2; pp165–167 drainage; pp194–195 Figure8-17; p399 Figure12-10",
+      "supports": "Independent Barima/Eclipse Falls anchor, separate Matthews Ridge tributary waters and Pakera Lake, and explicit Morawhanna–Mora Passage–Waini navigation connection.",
+      "limits": "Project-focused2020 source, not a whole-basin source survey or evidence of current conditions. Its regional western coverage does not settle the first selected fragment. Proposed protected-area depictions are not treated as current legal status.",
+      "official_url": "https://epaguyana.org/wp-content/uploads/2022/11/GMI-EIA-Report-September-2020.pdf"
+    },
+    {
+      "source_key": "r100-apac-manual2014",
+      "title": "Manual de Operação da Sala de Situação, Recife, Outubro de 2014",
+      "publisher": "Agência Pernambucana de Águas e Clima, official ANA Progestão copy",
+      "year": 2014,
+      "supports": "Whole Capibaribe drainage sequence, the initial Poção loop, distinct tributaries, direct main-channel placement of Jucazinho and Carpina, separation of Goitá and Tapacurá reservoirs and Poço Fundo reservoir's municipal association.",
+      "limits": "Basin-wide operational cartography; does not resolve exact urban banks, every reservoir arm or a legal local branch name. The page 57 form contains placeholder dates and volumes; these are not treated as current measurements.",
+      "official_url": "https://progestao.ana.gov.br/progestao-1/acompanhamento-programa/aplicacao-dos-recursos/acompanhamento-das-metas-de-cooperacao-federativa/manuais-de-salas-de-situacao/manual-operativo-da-sala-de-situacao_pe.pdf"
+    },
+    {
+      "source_key": "r100-ibge-pe2015",
+      "title": "Mapa Político do Estado de Pernambuco",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2015,
+      "scale": "1:650,000",
+      "supports": "Repeated Capibaribe labels, continuous selected regional corridor, Jucazinho/Carpina impounded settings and lower tributary distinctions.",
+      "limits": "BCIM 2014-based generalized regional mapping. Reservoir shapes and urban bends are schematic at this scale, and some reservoir polygons lack their component names.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/pe_politico650k_2015.pdf"
+    },
+    {
+      "source_key": "r100-sgb-santa-cruz2009",
+      "title": "Projeto PROALUV: Mapa das Aluviões, Folha Santa Cruz do Capibaribe SB.24-Z-D-VI",
+      "author": "Carlos Eugênio da Silveira Arraes",
+      "publisher": "CPRM – Serviço Geológico do Brasil",
+      "year": 2009,
+      "scale": "1:100,000",
+      "supports": "Actual upper Capibaribe connection through the impoundment beside Poço Fundo; separate Jataúba, Doce ou Mulungu and Barracas approaches.",
+      "limits": "Historical alluvial-resource thematic map based on the 1986 topographic sheet, adjusted to GeoCover 2000 and subsequently updated roads. The printed Poço Fundo label is the locality, not a reservoir-polygon label. The separately printed Jucazinho locality farther north is not mistaken for the downstream reservoir. Alluvial deposits are not additional watercourses.",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/2884a874-43d6-4877-b585-52cb1b721bf4/content"
+    },
+    {
+      "source_key": "r100-ibge-recife2022",
+      "title": "Mapa Municipal: Recife-PE, geocode 2611606",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística",
+      "year": 2022,
+      "supports": "Lower urban Capibaribe corridor, separate Apipucos waterbody, connected southern inner-estuarine continuation and distinction from the northeastward port outlet network.",
+      "limits": "Statistical municipal mapping, not a hydrodynamic or present-day bank survey. The selected generalized line crosses the interiors of mapped bends and terminates before a surveyable outlet claim; a precise terminal branch name or receiving confluence is not established. Adjacent northeastern labels are not used to rename the selected route.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PE/recife/A0_2611606_MM.pdf"
+    },
+    {
+      "source_key": "r100-usgs-national-map-carson",
+      "title": "The National Map USGS Topo: East Fork Carson River, Carson River, Lahontan Reservoir and lower Fallon–Carson Sink corridor",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Bounded river and reservoir correspondence; named side-stream, slough, lake and lower-branch distinctions; flat-interior terminal setting and visible lower-channel correspondence limits.",
+      "limits": "Independent federal cartographic service, distinct from all stopped reports, fact sheets, refuge maps, BLM, state and municipal publications. No source-report map was recovered through this basemap. It does not resolve all lower branch assignments, exact channel alignment, a hydronym for the initial canyon creek or a named channel across the sink interior. Exact-view parameters, originals and derivatives remain private.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r100-fws-fallon-about",
+      "title": "Fallon National Wildlife Refuge: About Us",
+      "publisher": "U.S. Fish and Wildlife Service",
+      "supports": "Fallon National Wildlife Refuge lies within Carson Sink at a Carson River branch terminus.",
+      "limits": "Terminal-region prose only. Does not resolve the selected lower branch, modeled playa-interior channel or exact endpoint.",
+      "official_url": "https://www.fws.gov/refuge/fallon/about-us"
+    },
+    {
+      "source_key": "r100-cwsd-lower-carson",
+      "title": "Lower Carson River Watershed",
+      "publisher": "Carson Water Subconservancy District",
+      "supports": "Lower watershed starts below Lahontan Reservoir, includes irrigation near Fallon, and drains to an internally closed Carson Sink setting.",
+      "limits": "Regional textual context only, not a selected-route map or evidence resolving individual river/canal/wetland threads.",
+      "official_url": "https://www.cwsd.org/watershed/lower-carson-river/"
+    },
+    {
+      "source_key": "r100-e732-saint-michel_de_latalaye",
+      "title": "Saint-Michel de L’Atalaye, Haiti 1:50,000, Series E732, sheet 5774 III, Edition 1-AMS",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Historical government map compiled in 1963; NIMA reprint.",
+      "supports": "Initial Rivière Déo corridor, continuation to Rivière Canot near Saint-Michel and separately entering western and eastern streams.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/saint-michel_de_latalaye-haiti-tlm50-57743.pdf"
+    },
+    {
+      "source_key": "r100-e732-debauche",
+      "title": "Débauché, Haiti 1:50,000, Series E732, sheet 5773 IV, Edition 1-AMS",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Historical government cartography compiled in 1963.",
+      "supports": "Canot through the Débauché reach and southeastward turn; the separate l’Attalaye approach, western lagoon and mountain streams.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/debauche-haiti-tlm50-57734.pdf"
+    },
+    {
+      "source_key": "r100-e732-maissade",
+      "title": "Maïssade, Haiti 1:50,000, Series E732, sheet 5773 I, Edition 2-DMA",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Historical base with later limited revisions; NIMA reprint.",
+      "supports": "Eastward Canot through the Maïssade setting, Puerco and Rio Frio approaches and Bouyaha junction setting.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/maissade-haiti-tlm50-57731.pdf"
+    },
+    {
+      "source_key": "r100-e732-hinche",
+      "title": "Hinche, Haiti 1:50,000, Series E732, sheet 5773 II, Edition 2-DMA",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Historical base with later limited revisions; NIMA reprint.",
+      "supports": "Receiving Guayamouc meanders near Hinche and its eastern continuation; separately mapped Hinquitte and other tributaries.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/hinche-haiti-tlm50-57732.pdf"
+    },
+    {
+      "source_key": "r100-e732-thomonde",
+      "title": "Thomonde, Haiti 1:50,000, Series E732, sheet 5873 III, Edition 2-AMS",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Historical cartography compiled in 1963; Dominican Republic information stated as of 1968.",
+      "supports": "Guayamouc eastward bend and southward valley, Rio Hondo junction and approach to the Artibonite border-river setting.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/thomonde-haiti-tlm50-58733.pdf"
+    },
+    {
+      "source_key": "r100-e732-belladere",
+      "title": "Belladère, Haiti 1:50,000, Series E732, sheet 5872 IV, Edition 2-AMS",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Historical cartography compiled in 1962, with later Dominican Republic information.",
+      "supports": "Guayamouc–Artibonite joining setting, separate Macasia approach, Artibonite reservoir inflow and Lac de Péligre passage.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/belladere-haiti-tlm50-58724.pdf"
+    },
+    {
+      "source_key": "r100-e732-domond",
+      "title": "Domond, Haiti 1:50,000, Series E732, sheet 5772 I, Edition 1-AMS",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Historical cartography compiled in 1962.",
+      "supports": "Western Péligre reservoir, Péligre dam, Artibonite past Domond and Mirebalais, Fer à Cheval and Boucan Carré junction settings.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/domond-haiti-tlm50-57721.pdf"
+    },
+    {
+      "source_key": "r100-e732-la_chapelle",
+      "title": "La Chapelle, Haiti 1:50,000, Series E732, sheet 5772 IV, Edition 2-DMA",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Revised in 1988 from best available sources; later NGA reprint.",
+      "supports": "Artibonite northwestward lower valley past La Chapelle and its distinct joining streams.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/la_chapelle-haiti-tlm50-57724.pdf"
+    },
+    {
+      "source_key": "r100-e732-petite_riviere_de_lartibonite",
+      "title": "Petite Rivière de l’Artibonite, Haiti 1:50,000, Series E732, sheet 5773 III, Edition 2-DMA",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Limited revisions as of 1991.",
+      "supports": "Artibonite through the Verrettes and Petite Rivière de l’Artibonite valley, main-river bends and distinct canals.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/petite_riviere_de_lartibonite-haiti-tlm50-57733.pdf"
+    },
+    {
+      "source_key": "r100-e732-saint_marc",
+      "title": "Saint-Marc, Haiti 1:50,000, Series E732, sheet 5673 II, Edition 3-DMA",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Historical base with limited revisions in 1988; NGA reprint.",
+      "supports": "Main Artibonite bend through the Pont Sondé setting, distinct floodplain waters and irrigation channels.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/saint_marc-haiti-tlm50-56732.pdf"
+    },
+    {
+      "source_key": "r100-e732-dessalines",
+      "title": "Dessalines, Haiti 1:50,000, Series E732, sheet 5673 I, Edition 3-DMA",
+      "publisher": "U.S. Army Map Service or Defense Mapping Agency as credited on the individual sheet; NGA/NIMA archive copy preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Limited revisions as of 1991.",
+      "supports": "Lower Artibonite through Villard, Bocozel, Pothenot, Rossignol, Robinet and Dauphin; separately mapped Estère channels, canals and floodplain lagoons.",
+      "limits": "Historical primary cartography supports the bounded channel and junction interpretation, not present discharge, contemporary banks, precise island-side threads, surveyed natural source or mouth, or a legal name-transition boundary. This source is independent of the restricted Grande Saline sheet; no restricted-sheet fact is attributed here.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/haiti/dessalines-haiti-tlm50-56731.pdf"
+    },
+    {
+      "source_key": "r100-ocha-haiti-reference2023",
+      "title": "Haïti, carte de référence, commune Grande Saline, HT0543, August 2023, printed page 74",
+      "publisher": "United Nations OCHA Haïti; archive copy of the national commune-map atlas",
+      "year_note": "Production date August 2023. Grande Saline is PDF page 76, printed page 74.",
+      "supports": "Independently authored lower-river context from the Bocozelle/Pothenot and Robinet/Dauphin setting to the coastal outlet at Grande Saline, with separate northern Estère/Desdunes drainage and southern Rivière Salée setting.",
+      "limits": "Hydrographic and administrative data credited to CNIGS; locality and road data to OpenStreetMap. This is not a copy, edition or extraction of the restricted E732 Grande Saline sheet. Its contextual map has no coordinate grid or embedded georeference, and no sufficient independent terminal registration was established. It is not used to claim that the final modeled coastal leg has been matched. OCHA explicitly disclaims official UN acceptance of names and delimitations.",
+      "official_url": "https://uploads.geobingan.info/attachment/653e45ee9f02487dbb1a8141f3e85389.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60026849",
+      "source_keys": [
+        "r100-retained-glsc-national2006",
+        "r100-retained-pac-shellbeach2024",
+        "r100-epa-gmi-eia2020"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11259
+          ],
+          "finding": "The initial southern-to-northern headward curve and western loop lie at the western edge of the depicted upper Barima drainage. The GLSC national map shows the receiving Barima near its boundary line, but does not resolve the complete selected initial curve. The detailed EIA project map does not extend far enough west to close this gap. No exact source, unnamed feeder identity or continuous source-to-Barima connection is asserted.",
+          "sources": [
+            "r100-retained-glsc-national2006",
+            "r100-epa-gmi-eia2020"
+          ]
+        },
+        {
+          "fragments": [
+            11260
+          ],
+          "finding": "After the initial fragment, the long eastward selection follows the labeled Barima corridor north of Matthews Ridge. The national map distinctly separates Barama to the south and the Kaituma drainage to the north. EIA regional mapping corroborates Barima at the Eclipse Falls and Arakaka setting. The fragment’s model-stage status does not establish a naming transition.",
+          "sources": [
+            "r100-retained-glsc-national2006",
+            "r100-epa-gmi-eia2020"
+          ]
+        },
+        {
+          "fragments": [
+            11260,
+            11261
+          ],
+          "finding": "The selected course continues east of the Matthews Ridge district, bends southeast and then turns north along the broad eastern Barima corridor. PAC cartography depicts the southern Barima approach, the Red Hill setting and a separately drawn side branch labeled Barima tributary. The latter is not a substitute for the selected main corridor.",
+          "sources": [
+            "r100-retained-glsc-national2006",
+            "r100-retained-pac-shellbeach2024"
+          ]
+        },
+        {
+          "fragments": [
+            11261
+          ],
+          "finding": "The long northward route is the Barima approach to the lower junction area. Kaituma approaches from the west/southwest and joins near the northern fragment break; its Port Kaituma course is not selected. The route then proceeds northwest toward the separate Aruka connection. PAC distinguishes Aruka, Aruau and Koriabo on that western drainage from the Barima main corridor.",
+          "sources": [
+            "r100-retained-glsc-national2006",
+            "r100-retained-pac-shellbeach2024",
+            "r100-epa-gmi-eia2020"
+          ]
+        },
+        {
+          "fragments": [
+            11262
+          ],
+          "finding": "The lower selection continues through the Kaituma–Aruka receiving setting to Morawhanna. It then follows the northward Mora Passage connection toward the Waini estuary. The PAC map labels Mora Passage, and the EIA navigation description expressly distinguishes this passage from Barima at Morawhanna. The unselected Barima continuation runs separately toward the northwest.",
+          "sources": [
+            "r100-retained-glsc-national2006",
+            "r100-retained-pac-shellbeach2024",
+            "r100-epa-gmi-eia2020"
+          ]
+        },
+        {
+          "fragments": [
+            11262
+          ],
+          "finding": "The final selected tip lies in the Mora Passage coastal-outlet setting. It is not treated as Barima’s complete river mouth, the entire Waini estuary, a precise modern shoreline or an offshore extension. The selected terminal connection is supported at the regional map scale; current tidal flow, navigation depth and dredging condition are not established.",
+          "sources": [
+            "r100-retained-glsc-national2006",
+            "r100-retained-pac-shellbeach2024",
+            "r100-epa-gmi-eia2020"
+          ]
+        },
+        {
+          "fragments": [
+            11259,
+            11260,
+            11261,
+            11262
+          ],
+          "finding": "No major lake or reservoir transit is depicted on the selected main corridor in the inspected cartography. PAC describes mangroves and swamp forests in the coastal region, but does not prove every selected wetland crossing or water permanence. The EIA’s Pakera Lake and mine-water facilities are in the Matthews Ridge tributary setting, not names assigned to the selected Barima route.",
+          "sources": [
+            "r100-retained-glsc-national2006",
+            "r100-retained-pac-shellbeach2024",
+            "r100-epa-gmi-eia2020"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60902237",
+      "source_keys": [
+        "r100-apac-manual2014",
+        "r100-ibge-pe2015",
+        "r100-sgb-santa-cruz2009",
+        "r100-ibge-recife2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13817
+          ],
+          "finding": "The APAC map shows the selected initial southward loop east of Poção and its northward return into the northeast-flowing channel labeled Rio Capibaribe. The model's western vertex is not identified as the river's exact natural source. IBGE's regional sheet independently labels the upper northeastern course Capibaribe; the separate Jataúba channel approaches from the northwest near the turn into the long eastern course.",
+          "sources": [
+            "r100-apac-manual2014",
+            "r100-ibge-pe2015"
+          ]
+        },
+        {
+          "fragments": [
+            13817
+          ],
+          "finding": "The detailed SGB sheet shows the selected southern Rio Capibaribe approach entering the western/southwestern side of the impoundment beside Poço Fundo and emerging east into a channel again labeled Rio Capibaribe. Rch. Jataúba approaches farther west; Rch. Doce ou Mulungu feeds a separate northern reservoir arm, and Rch. das Barracas joins below the eastern outlet. These tributary courses are not substituted for the selected mainstem. The map's Poço Fundo text labels the nearby locality, while the separate APAC reservoir table identifies Poço Fundo reservoir in Santa Cruz do Capibaribe; their combined scope supports the component association without pretending that the SGB water polygon itself bears that printed reservoir label.",
+          "sources": [
+            "r100-sgb-santa-cruz2009",
+            "r100-apac-manual2014"
+          ]
+        },
+        {
+          "fragments": [
+            13817
+          ],
+          "finding": "East of that outlet the selected river passes the Santa Cruz do Capibaribe setting, bends south and then east near Toritama, and continues toward the Frei Miguelinho–Cumaru/Surubim corridor. Regional pixels repeatedly label this channel Rio Capibaribe. The southern Tabocas approach is separately depicted; no Tabocas/Engenheiro Gercino Pontes reservoir traverse is assigned to the selection.",
+          "sources": [
+            "r100-ibge-pe2015",
+            "r100-apac-manual2014",
+            "r100-sgb-santa-cruz2009"
+          ]
+        },
+        {
+          "fragments": [
+            13817
+          ],
+          "finding": "The long eastern selection passes through the main impounded Capibaribe corridor around Couro d'Antas and continues through Chéus toward Salgadinho. IBGE draws the broad water passage and its southern side arms. APAC explicitly places Jucazinho on Rio Capibaribe in Cumaru/Surubim and distinguishes the upper river upstream from the middle river below it. This supports the Jucazinho passage, not the selection of every reservoir arm or a precise present-day waterline.",
+          "sources": [
+            "r100-ibge-pe2015",
+            "r100-apac-manual2014"
+          ]
+        },
+        {
+          "fragments": [
+            13817
+          ],
+          "finding": "The selected middle river continues east through Salgadinho, turns northeast through the Passira–Limoeiro receiving corridor and enters the reservoir setting between Limoeiro, Lagoa do Carro and Lagoa de Itaenga. It follows the northern river-to-reservoir approach and emerges east toward Paudalho. The southern Cotunguba contribution and reservoir arm are distinct. APAC identifies Carpina as a Capibaribe reservoir at Lagoa de Itaenga/Lagoa do Carro and as the division between the middle and lower river.",
+          "sources": [
+            "r100-ibge-pe2015",
+            "r100-apac-manual2014"
+          ]
+        },
+        {
+          "fragments": [
+            13817
+          ],
+          "finding": "Below Carpina, the selection continues east past Paudalho and turns south toward São Lourenço da Mata. APAC and IBGE show the southern Goitá and Tapacurá tributaries joining the lower receiving river. Tapacurá's large reservoir and the Goitá reservoir are on those separate tributaries; neither is a selected mainstem lake passage. The southern Rio Duas Unas and Jaboatão systems on the regional map likewise are not replacement names for the selected river.",
+          "sources": [
+            "r100-ibge-pe2015",
+            "r100-apac-manual2014"
+          ]
+        },
+        {
+          "fragments": [
+            13817
+          ],
+          "finding": "The detailed Recife municipal map shows the lower Capibaribe entering from São Lourenço da Mata, making the western bend by the Mata da Várzea setting and then turning northeast through the Caxangá urban corridor. The selected line simplifies those bends and cuts across their interiors. Açude de Apipucos is a separate northern water body beside the lower river, not a selected reservoir transit.",
+          "sources": [
+            "r100-ibge-recife2022",
+            "r100-apac-manual2014"
+          ]
+        },
+        {
+          "fragments": [
+            13817
+          ],
+          "finding": "The final selection proceeds southeast and south within Recife's connected Capibaribe/inner-estuarine branching setting. The municipal sheet shows the river's southern continuation beside the Ilha do Zeca area as distinct from the east/northeast-running outlet network around central Recife and the port. At this generalized resolution the selected southward approach corresponds to that southern continuation, with lateral offsets across the mapped bends; it does not require an additional interbasin connector. The final vertex is not assigned an exact bank, a named tributary confluence, the port mouth or an Atlantic shoreline. No local name such as a particular canal, Rio Tejipió, Rio Pina or a legally defined arm is applied to that vertex.",
+          "sources": [
+            "r100-ibge-recife2022"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70574060",
+      "source_keys": [
+        "r100-usgs-national-map-carson",
+        "r100-fws-fallon-about",
+        "r100-cwsd-lower-carson"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "The selected southern start is a short eastward approach through the mapped Murray Canyon setting to East Fork Carson River near Falls Meadows, upstream of Dumonts Meadows. The detailed map depicts a small western tributary in the canyon, but does not label its creek hydronym. The modeled initial line is laterally offset from that small channel. Murray Canyon is a landform label and is not promoted to a creek name. The selection does not begin on the farther-south East Fork source or on Wolf Creek.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "After the initial approach, the selected corridor follows the explicitly labeled East Fork Carson River northeast and north past Dumonts Meadows and the Poison Creek junction, then through the Jones Canyon and Bryant Creek surroundings. Poison Creek, its Poison Lake headward drainage, and Bryant Creek are separate side approaches; they do not name the complete selected upper reach.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "The line follows East Fork Carson River through Silver King Valley and turns northwest through the Bagley Valley and Railroad Canyon setting. The eastern Silver King Creek joins the selected East Fork corridor, while Wolf Creek approaches separately from the southwest farther downstream. The route follows neither Silver King Creek nor the long Wolf Creek valley as its initial mainstem.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "The selection continues along the East Fork north of the Wolf Creek junction toward the Silver Creek junction and the Markleeville region, then north through the mountainous California–Nevada border corridor. Silver Creek and the nearby reservoir-associated Indian Creek drainage are separate components. The model does not traverse Heenan Lake, Indian Creek Reservoir or Mud Lake.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "In Carson Valley, the selected path occupies the East Fork Carson River corridor among a visibly complex network of sloughs and ditches, then the downstream Carson River corridor northward toward Carson City. The western West Fork Carson River approach and separately labeled Brockliss Slough, Cottonwood Slough and other valley channels must not be treated as synonyms. The retained generalized line does not establish exact river-versus-slough threading through every valley bend.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "Past the Clear Creek junction and eastern Carson City setting, the selected corridor follows the repeatedly labeled Carson River northeast into the Dayton Valley region, then east past the low hills and through the Churchill Valley corridor. Bends are strongly generalized but the main river corridor is directly mapped. The separate Washoe Lake and Walker Lake basins are not selected receiving waters.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "The selected Carson River reaches the southern arm of the explicitly labeled Lahontan Reservoir. It traverses the reservoir interior northward through its major southern basin, western bend and northern neck before returning to the mapped Carson River below the northern outlet. Lahontan Reservoir is a distinct impoundment component; its interior is not represented as a continuously exposed natural river channel.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "Below Lahontan Reservoir, the selection follows the lower Carson River corridor east toward Fallon, passing south of Soda Lake. The federal map shows numerous canals and irrigated valley channels surrounding this corridor. The CWSD description independently places the lower watershed below the reservoir and describes irrigation use and eventual closed-basin drainage; that prose does not resolve the selected individual canal or river thread.",
+          "sources": [
+            "r100-usgs-national-map-carson",
+            "r100-cwsd-lower-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "At Fallon the selected line turns north along the Carson River corridor east of the Lovelock Highway and northwest of Oles Pond and S Line Reservoir. Detailed cartography distinguishes the river from T Line Canal, S Line Canal and multiple drains. These artificial waterways are not adopted as names for the selected model merely because some generalized segments pass nearby.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "Farther north, the detailed map distinctly labels Carson River and West Fork of Old River, with Leter Lake, Leter Reservoir and Timber Lake in the surrounding wetland complex. The model continues diagonally through this marsh and lake-fringe setting, crossing or lying between the West Fork of Old River/Leter Reservoir corridor and the separately mapped Carson River farther east. It does not consistently follow one mapped channel. This is a substantive unresolved source-to-route correspondence segment, not a supported whole-reach assignment to either named branch.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "The selection then passes the lower Carson River and Duck Lake/Battleground Point surroundings within the mapped Fallon National Wildlife Refuge mosaic. It crosses the wetland and lake-fringe setting rather than tracing all of the depicted Carson River bends. Duck Lake is a separate mapped waterbody; the selection is not represented as a precise transit through its open-water polygon, or as an established river channel around every side of it.",
+          "sources": [
+            "r100-usgs-national-map-carson"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "North of the mapped lower river and wetland fringe, the final modeled extension crosses a broad stippled flat and ends inside it. Readable original map coverage includes the whole extension and endpoint, with no continuous river channel depicted under much of that line. The independently read USFWS page places Fallon National Wildlife Refuge at a Carson River branch terminus within Carson Sink, supporting the terminal-basin context. It does not establish that the modeled tip is an official mouth or that a named river continues across every part of the flat.",
+          "sources": [
+            "r100-usgs-national-map-carson",
+            "r100-fws-fallon-about"
+          ]
+        },
+        {
+          "fragments": [
+            9796
+          ],
+          "finding": "No selected wash name or continuous natural channel through the sink flat is established. The map and official prose support the Carson drainage setting, distinct river, reservoir, wetland and terminal-flat components, and the exclusions above. They do not remove the unresolved lower branch/lake-fringe correspondence or justify promoting Carson River to a uniform name for the full 269.849 km modeled fragment.",
+          "sources": [
+            "r100-usgs-national-map-carson",
+            "r100-fws-fallon-about",
+            "r100-cwsd-lower-carson"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70890643",
+      "source_keys": [
+        "r100-e732-saint-michel_de_latalaye",
+        "r100-e732-debauche",
+        "r100-e732-maissade",
+        "r100-e732-hinche",
+        "r100-e732-thomonde",
+        "r100-e732-belladere",
+        "r100-e732-domond",
+        "r100-e732-la_chapelle",
+        "r100-e732-petite_riviere_de_lartibonite",
+        "r100-e732-saint_marc",
+        "r100-e732-dessalines",
+        "r100-ocha-haiti-reference2023"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10432
+          ],
+          "finding": "The initial selected reach lies in the Rivière Déo corridor north of Saint-Michel de L’Atalaye. It descends through the Bas de Sault, Trou Dauphin, Jumeaux and Savane Marc setting, then continues onto the reach labeled Rivière Canot by Saint-Michel. This is a selected point along a river, not an established natural source. The western streams and the separately mapped l’Attalaye to the east are not substituted for the selected approach.",
+          "sources": [
+            "r100-e732-saint-michel_de_latalaye"
+          ]
+        },
+        {
+          "fragments": [
+            10432
+          ],
+          "finding": "Canot continues south onto the Débauché sheet, passes the Débauché/Usine Etagild setting and turns southeast through the confined valley toward the Maïssade sheet. The mapped l’Attalaye approach joins from the east. Grand Lagon and the western mountain drainage lie outside the selected mainstem; no selected lagoon transit is established here.",
+          "sources": [
+            "r100-e732-saint-michel_de_latalaye",
+            "r100-e732-debauche"
+          ]
+        },
+        {
+          "fragments": [
+            10432
+          ],
+          "finding": "The Maïssade sheet labels the selected eastward course Rivière Canot. It shows the Puerco approach from the north and Rio Frio from the south near Maïssade, then the Bouyaha approach from the north farther downstream. The receiving river appears as Guayamouc across the Hinche sheet. The selection follows the Canot approach rather than Bouyaha upstream. Exact legal naming-transition limits are not assigned.",
+          "sources": [
+            "r100-e732-maissade",
+            "r100-e732-hinche"
+          ]
+        },
+        {
+          "fragments": [
+            10432
+          ],
+          "finding": "Guayamouc continues through the large meanders north of and beside Hinche and turns east onto the Thomonde sheet. The source distinguishes the separate Hinquitte approach at Hinche. Farther east the selected Guayamouc turns south through the broad valley and passes the separately mapped Rio Hondo junction; it is not the upstream Rio Hondo or Thomonde river.",
+          "sources": [
+            "r100-e732-hinche",
+            "r100-e732-thomonde"
+          ]
+        },
+        {
+          "fragments": [
+            10432
+          ],
+          "finding": "At the northern Belladère sheet the selected Guayamouc approach joins the Artibonite course coming from the east in the international-border setting. The selected line continues south on Artibonite, passing the separately entering Rivière de Macasia. The upper Artibonite border course and the Macasia headwaters are not the selected headward route.",
+          "sources": [
+            "r100-e732-thomonde",
+            "r100-e732-belladere"
+          ]
+        },
+        {
+          "fragments": [
+            10432,
+            10433
+          ],
+          "finding": "The selection enters and traverses the mapped Lac de Péligre reservoir, bends around its broad southern basin and returns along its western arm toward the dam on the Domond sheet. Rivière Onde Verte and the eastern reservoir approaches remain separate. The modeled fragment split lies within the reservoir setting; it is not evidence of a natural river-name boundary. The reservoir is a distinct named waterbody component, not a reach to be named uniformly Artibonite.",
+          "sources": [
+            "r100-e732-belladere",
+            "r100-e732-domond"
+          ]
+        },
+        {
+          "fragments": [
+            10433
+          ],
+          "finding": "The selected route passes the Péligre dam and follows the Artibonite through Domond, bends south to the Mirebalais setting and then west and northwest. Rivière de Fer à Cheval enters from the southeast near Mirebalais, and the Boucan Carré drainage enters from the north farther downstream. Those tributary headwaters are not selected. The simplified line cuts across several map-scale meander interiors without selecting a different valley.",
+          "sources": [
+            "r100-e732-domond"
+          ]
+        },
+        {
+          "fragments": [
+            10433
+          ],
+          "finding": "Artibonite continues northwest past La Chapelle, then north and northwest through the Verrettes and Petite Rivière de l’Artibonite setting. The mapped main river and its valley match the selected course; the adjacent canals, Ravine Fond-Fer and other hillside approaches remain distinct. There is no additional selected large lake or reservoir in this stretch.",
+          "sources": [
+            "r100-e732-la_chapelle",
+            "r100-e732-petite_riviere_de_lartibonite"
+          ]
+        },
+        {
+          "fragments": [
+            10433
+          ],
+          "finding": "On the Saint-Marc and Dessalines sheets the selected line follows the Artibonite through Pont Sondé and the lower plain, then north through the Villard/Gadeau setting and west through Bocozel, Pothenot, Rossignol, Robinet and Dauphin. The river’s named main channel is distinct from the irrigation-canal network. Nearby mapped Lagon Pothenot, Lagon Chauvet and Lagon Zérine are separate floodplain waterbodies; the simplified selected line does not establish a whole-lagoon passage. The northern Estère drainage is not substituted for the selected river.",
+          "sources": [
+            "r100-e732-saint_marc",
+            "r100-e732-dessalines"
+          ]
+        },
+        {
+          "fragments": [
+            10433
+          ],
+          "finding": "The independent OCHA Grande Saline map shows the connected coastal lower-river setting west of Pothenot through Robinet and Dauphin, with a coastal outlet at Grande Saline and separate northern and southern waterways. It provides terminal context but does not establish the last modeled coastal leg at the needed source-to-object level. No specific current outlet thread, later coastal opening, channel-migration history or exact receiving-water endpoint is assigned.",
+          "sources": [
+            "r100-ocha-haiti-reference2023"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
