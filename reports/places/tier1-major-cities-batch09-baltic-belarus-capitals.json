@@ -15,11 +15,11 @@
     "Tallinn: Reval/German to Russian Ревель from shared 1889-11-21 Gregorian imperial municipal-language decree issuance (1889-11-09 Julian), a chosen editorial date, not a separately established legal effective/implementation day. Estonian Tallinn transition stays approximate 1918; English Reval remains until then.",
     "Riga: German Riga to Russian Рига using the same 1889-11-21 Gregorian decree-issuance threshold as Tallinn. Previously chosen approximate 1891 city-level uptake retained in historicalGeography as usage evidence, not displayTimeline. Latvian Rīga from 1918-11-18; English Riga and Korean 리가 unchanged. Decree issuance is not a verified city-level effective day.",
     "Vilnius: user-authorized editorial Lithuanian Vilnius at 1918-02-16 independence declaration; Polish Wilno from formal Central Lithuania annexation ratification 1922-03-24; Lithuanian Vilnius restored 1939-10-28. 1918 did not immediately end German military occupation; 1920 Polish occupation does not itself trigger a name change; Polish sovereignty was disputed.",
-    "Minsk: Russian pre-reform Минскъ before 1919; Belarusian Менск / Russian Минск from approx 1919; Belarusian official change Менск -> Мінск on 1939-07-29; Belarusian primary only from 1990-09-01 language law editorial threshold; Belarusian/Russian dual state names again from 1996-11-27. No 1991 Менск restoration enacted.",
+    "Minsk is deferred from this approval because its World War I / Russian Civil War naming and governing-regime transitions need further historical review. Restored its prior one-entry baseline names and metadata; the provisional five-entry timeline remains in Git history at d1a167a3 (later decree-date update 626e7f14), not approved city-name data.",
     "Only historically selected names and justified concurrent native names are stored in names[]. Coexisting language-specific forms do not mean each was newly created when selected.",
-    "The 1889-11-21 date is verified calendar conversion of the 1889-11-09 Julian decree issuance; unknown legal effective/municipal implementation dates must not be falsely asserted. Remaining year-only selection points (e.g. 1918 Tallinn and 1919 Minsk) are approximate and must NEVER be interpreted or displayed as Jan 1; exact dates must not be fabricated.",
+    "The shared 1889-11-21 Gregorian date is the 1889-11-09 Julian Baltic municipal-language decree issuance, not a separately verified legal effective/municipal implementation date. Tallinn's 1918 Estonian selection is year-granularity only and must NEVER be interpreted as January 1; other tentative name dates must not be fabricated.",
     "All four GeoNames IDs remain modern PPLC populated places (not administrative areas); metadata country code is not used to infer historic sovereignty.",
-    "Staging only: no published place tiles, manifest, map runtime, web main, or app data were changed."
+    "Staging-only scope approved for Tallinn (588409), Riga (456172), Vilnius (593116). Minsk (625144) explicitly withheld; published place tiles, map runtime, web main, and app data are unchanged."
   ],
   "records": [
     {
@@ -430,33 +430,9 @@
       "geonameId": 625144,
       "names": [
         {
-          "text": "Минскъ",
-          "language": "ru",
-          "script": "Cyrl",
-          "usage": "historical",
-          "variantType": "selectedImperialRussianPreReformSpelling"
-        },
-        {
-          "text": "Менск",
-          "language": "be",
-          "script": "Cyrl",
-          "usage": "historical",
-          "variantType": "selectedPre1939BelarusianOfficialName",
-          "sourceUrl": "https://news.mail.ru/society/67208587/"
-        },
-        {
           "text": "Мінск",
           "language": "be",
-          "script": "Cyrl",
-          "usage": "standard",
-          "sourceUrl": "https://news.mail.ru/society/67208587/"
-        },
-        {
-          "text": "Минск",
-          "language": "ru",
-          "script": "Cyrl",
-          "usage": "standard",
-          "sourceUrl": "https://constitution.by/1994/5/"
+          "usage": "standard"
         },
         {
           "text": "Minsk",
@@ -467,6 +443,12 @@
           "text": "민스크",
           "language": "ko",
           "usage": "standard"
+        },
+        {
+          "text": "Минск",
+          "language": "ru",
+          "usage": "standard",
+          "sourceUrl": "https://constitution.by/1994/5/"
         }
       ],
       "latitude": 53.90019,
@@ -476,162 +458,16 @@
       "sourceUrl": "https://www.geonames.org/625144/",
       "sourceCountryCode": "BY",
       "defaultDisplayNameKo": "민스크",
-      "shortDescriptionKo": "1939년 철자 개정·1996년 언어 병기",
+      "shortDescriptionKo": "벨라루스어·러시아어 이름 병존",
       "displayTimeline": [
         {
-          "fromYear": 1801,
           "nameKo": "민스크",
-          "nameEn": "Minsk",
-          "nameNative": "Минскъ",
-          "nativeLanguage": "ru",
-          "kind": "historicalImperialRussianPreReformSpelling",
-          "sourceUrl": "https://news.mail.ru/society/67208587/",
-          "researchNote": "1801년부터 제정 러시아 시대의 구철자 Минскъ를 지도 대표 원어로 선택한다. 1917~1918년 러시아어 철자 개혁으로 마지막 경음 부호 ъ가 폐지됐다. 영어 Minsk와 한국어 민스크는 시기별 동일하게 유지하며, 1801년은 조사 시작 연도일 뿐 최초 작명 시기가 아니다."
-        },
-        {
-          "fromYear": 1919,
-          "nameNative": "Менск",
-          "nativeLanguage": "be",
-          "nativeNames": [
-            {
-              "text": "Менск",
-              "language": "be",
-              "script": "Cyrl"
-            },
-            {
-              "text": "Минск",
-              "language": "ru",
-              "script": "Cyrl"
-            }
-          ],
-          "kind": "historicalBelarusianRussianAdministrativeNames",
-          "sourceUrl": "https://news.mail.ru/society/67208587/",
-          "note": "벨라루스 SSR 원어명 병용",
-          "researchNote": "1919년 벨라루스 SSR 성립 시기부터 벨라루스어 Менск와 러시아어 Минск를 행정상의 동시 원어명으로 선택한다. 벨라루스어 Менск는 그보다 오래된 이름이며 러시아어와 벨라루스어의 공식 지위를 단순히 1:1로 같다고 단정하지 않는다. 정확한 최초 병기일은 확인되지 않아 연도 단위 기준이다. 1919년 혁명·전쟁 과정의 단기 정권 교체에 따른 원어 전환은 추적하지 않는다."
-        },
-        {
-          "fromDate": "1939-07-29",
-          "nameNative": "Мінск",
-          "nativeLanguage": "be",
-          "nativeNames": [
-            {
-              "text": "Мінск",
-              "language": "be",
-              "script": "Cyrl"
-            },
-            {
-              "text": "Минск",
-              "language": "ru",
-              "script": "Cyrl"
-            }
-          ],
-          "kind": "officialBelarusianOrthographyNameChange",
-          "sourceUrl": "https://news.mail.ru/society/67208587/",
-          "note": "Менск→Мінск 공식 철자 변경",
-          "researchNote": "1939-07-29 벨라루스 SSR 최고회의가 공식 벨라루스어 표기를 Менск에서 Мінск로 변경했다. 러시아어 Минск는 그대로다. 이는 벨라루스어 지명 철자/공식 표기의 실질적 변경이며 두 언어 표기를 같은 키릴 철자로 통일했다는 주장은 아니다."
-        },
-        {
-          "fromDate": "1990-09-01",
-          "nativeNames": [
-            {
-              "text": "Мінск",
-              "language": "be",
-              "script": "Cyrl"
-            }
-          ],
-          "kind": "belarusianSoleStateLanguageEditorialSelection",
-          "sourceUrl": "https://studfile.net/preview/2890693/",
-          "note": "벨라루스어 단독 국가언어 기준",
-          "researchNote": "1990-01-26 벨라루스 SSR 언어법의 시행 기준일 1990-09-01부터 지도 공동 원어명 중 러시아어를 제외하고 벨라루스어 Мінск만 선택한다. 러시아어 실제 사용이나 행정적 의사소통이 사라졌다는 뜻은 아니다. 국가언어 제도의 편집상 기준이 도시 자체 이름 변경은 아니다."
-        },
-        {
-          "fromDate": "1996-11-27",
-          "nativeNames": [
-            {
-              "text": "Мінск",
-              "language": "be",
-              "script": "Cyrl"
-            },
-            {
-              "text": "Минск",
-              "language": "ru",
-              "script": "Cyrl"
-            }
-          ],
-          "kind": "belarusianRussianCoOfficialNativeLanguages",
-          "sourceUrl": "https://constitution.by/",
-          "note": "벨라루스어·러시아어 국가언어",
-          "researchNote": "1995년 5월 국민투표 이후 1996-11-27 시행된 개정 헌법 제17조가 벨라루스어·러시아어를 국가언어로 규정하므로 두 이름을 공동 원어명으로 다시 선택한다. 1996년은 민스크 도시 개명일이 아니라 두 언어의 동등 공식 지위를 기준으로 한 지도 데이터 병기 복원일이다."
+          "fromYear": 1801,
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/625144/"
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-1919-bilingual-1939-spelling-1990-monolingual-1996-bilingual",
-      "defaultDisplayNameEn": "Minsk",
-      "defaultDisplayNameNative": "Мінск",
-      "defaultNativeLanguage": "be",
-      "defaultNativeNames": [
-        {
-          "text": "Мінск",
-          "language": "be",
-          "script": "Cyrl"
-        },
-        {
-          "text": "Минск",
-          "language": "ru",
-          "script": "Cyrl"
-        }
-      ],
-      "historicalGeography": {
-        "events": [
-          {
-            "year": 1919,
-            "type": "sovietBelarusGovernmentFormation",
-            "detail": "벨라루스 SSR 초기 정부 수립",
-            "sourceUrl": "https://news.mail.ru/society/67208587/"
-          },
-          {
-            "date": "1939-07-29",
-            "type": "minskBelarusianOfficialNameSpelling",
-            "detail": "Менск→Мінск 공식 표기 변경",
-            "sourceUrl": "https://news.mail.ru/society/67208587/"
-          },
-          {
-            "date": "1990-01-26",
-            "type": "belarusSSRLanguageLawPassed",
-            "detail": "벨라루스어 국가언어법 제정",
-            "sourceUrl": "https://be.wikisource.org/wiki/Закон_Рэспублікі_Беларусь_«Аб_мовах_у_Рэспубліцы_Беларусь»"
-          },
-          {
-            "date": "1990-09-01",
-            "type": "belarusSSRLanguageLawEffective",
-            "detail": "벨라루스어 국가언어법 시행",
-            "sourceUrl": "https://studfile.net/preview/2890693/"
-          },
-          {
-            "date": "1995-05-14",
-            "type": "belarusReferendumOnOfficialLanguages",
-            "detail": "러시아어 지위 국민투표",
-            "sourceUrl": "https://constitution.by/"
-          },
-          {
-            "date": "1996-11-27",
-            "type": "belarusConstitutionBilingualEffective",
-            "detail": "헌법상 벨라루스어·러시아어 동등",
-            "sourceUrl": "https://constitution.by/"
-          }
-        ],
-        "notes": [
-          {
-            "detail": "1991년 Менск 복원안은 미채택",
-            "sourceUrl": "https://news.mail.ru/society/67208587/",
-            "researchDetail": "1991년 시 차원의 Менск 복원 시도가 최종 승인되지 않았으므로 1939년 이후 현행 벨라루스어 Мінск를 계속 사용한다."
-          },
-          {
-            "detail": "국가언어 지위와 사용 언어 구별",
-            "sourceUrl": "https://constitution.by/",
-            "researchDetail": "1990년 벨라루스어 단독 국가언어 편집 기준과 1996년 동등 공식 언어 기준은 1990년대 실생활/행정의 러시아어 사용 여부를 직접 증명하지 않는다."
-          }
-        ]
-      }
+      "historicalDisplayCoverage": "reviewed-since-1801"
     }
   ]
 }
