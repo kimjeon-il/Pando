@@ -1,0 +1,420 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r96",
+  "sources": [
+    {
+      "source_key": "r96-dma-tpc-k27d",
+      "title": "Tactical Pilotage Chart K-27D, Netherlands Antilles, Venezuela, Edition 4, scale 1:500,000",
+      "publisher": "U.S. Defense Mapping Agency Aerospace Center; original government chart preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled February 1973; revised February 1990 with the revision explicitly limited to aeronautical information; printed May 1995. These dates were read on the original imprint.",
+      "supports": "Selected upper and lower Tamanaco, Embalse Playa de Piedra, receiving Unare connection, north-running lower Unare, neighboring tributary distinctions and regional coastal-lagoon setting.",
+      "limits": "Historical regional chart, not a modern hydrological survey. It does not depict a continuous channel along the final selected diagonal toward Laguna de Píritu. No minor outlet alias, exact shoreline, current flow or formal source-point claim follows.",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_k-27d.jpg"
+    },
+    {
+      "source_key": "r96-dma-jog-nc20-5",
+      "title": "Joint Operations Graphic (Air), NC 20-5 Puerto La Cruz, Venezuela, Series 1501 AIR, Edition 2, scale 1:250,000",
+      "publisher": "U.S. Defense Mapping Agency Aerospace Center; original government chart preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled 1969, revised March 1992, as read on the original imprint.",
+      "supports": "Direct Río Unare and Laguna de Píritu labels; distinct mapped Unare coastal opening; marsh and lagoon edge at the selected terminal; evidence that the retained diagonal cannot be treated as a fully matched channel.",
+      "limits": "Historical cartography establishes mapped geography, not present-day hydrodynamic connectivity. It does not supply a named or continuous watercourse along the selected lagoonward diagonal.",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-224388568-nc20-5.jpg"
+    },
+    {
+      "source_key": "r96-nrcan-banks-island-map",
+      "title": "Canada Base Map - Transportation, CBMT3978: central and northern Banks Island, Thomsen valley and Desert River coast",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Geographic coverage; separately labeled Thomsen and Desert river components; Nangmagvik Lake and Castel Bay distinction; initial southern and northern transfer correspondence gaps.",
+      "limits": "An independently maintained CanVec-based cartographic publication, not a CGN/gazetteer record or stopped Arctic report. Composite feature dates and exact banks are not established. The maps show unresolved actual connections; pixel coverage alone is not full correspondence.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r96-parks-thomsen-guide",
+      "title": "Aulavik National Park of Canada: Thomsen River / Rivière Thomsen, scale 1:185,000",
+      "publisher": "Parks Canada / Government of Canada",
+      "supports": "Independent readable Thomsen labels, central receiving-junction sequence, the Thomsen route to Castel Bay, and separation from the Desert River/Nangmagvik Lake coastal corridor.",
+      "limits": "The sheet begins near the southern park boundary and does not resolve the selected southern headward loop. File metadata contains 2020 creation and 2025 modification dates; no single feature-survey date or official edition year is inferred. Suggested travel facilities and routes are not adopted as present safety or access advice.",
+      "official_url": "https://pcweb2.azureedge.net/-/media/pn-np/nt/aulavik/2025-images/08_26-maps-page-addition/ANP-185K-ThomsenRiverGuide33x11.pdf"
+    },
+    {
+      "source_key": "r96-parks-thomsen-paddling",
+      "title": "Paddling, Aulavik National Park",
+      "publisher": "Parks Canada / Government of Canada",
+      "supports": "Direct agency naming and provenance of the independent guide map; description of a north-flowing river through the park and Castel Bay destination.",
+      "limits": "Page prose alone does not establish the selected headward route or the northern transfer. No current trip recommendation, navigability guarantee or permit guidance is adopted.",
+      "official_url": "https://www.parks.canada.ca/pn-np/nt/aulavik/activ/pagayer-paddling"
+    },
+    {
+      "source_key": "r96-usgs-national-map-silva-mimbres",
+      "title": "The National Map USGS Topo: Silva Creek, San Vicente Arroyo, Deming and the New Mexico–Chihuahua border corridor",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Selected creek and arroyo identities, receiving Mimbres corridor, Deming transition into a long desert-plain extension, tributary distinctions and border approach.",
+      "limits": "Independently maintained composite service rather than any stopped USGS report. No single source-sheet edition, exact name-transition vertex, official source, current flow state or surveyed continuous channel across the plain is established. River labeling at regional scale is not applied uniformly to separately named headwater reaches.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r96-inegi-juarez-geology",
+      "title": "Carta Geológica 1:250 000, Cd. Juárez H13-1",
+      "publisher": "Instituto Nacional de Estadística, Geografía e Informática (INEGI), Dirección General de Geografía",
+      "supports": "Full Mexican selected-route geography, hills and transport crossings, the directly labeled El Barreal terminal plain, and separation from western lakes and adjacent valleys.",
+      "limits": "Historical geological sheet with primary topographic base. A source edition date is not asserted. Geologic polygons and sparse local drainage symbols do not prove a modern continuous surface-river connection. Private approximate graticule orientation is not surveyed registration.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/tematicas/Geologia_hist/1_250_000/702825675530.pdf"
+    },
+    {
+      "source_key": "r69-inegi-ascension-2010",
+      "title": "Compendio de información geográfica municipal 2010: Ascensión, Chihuahua",
+      "publisher": "INEGI",
+      "year": 2010,
+      "supports": "Alluvial, saline/floodable and dune plain context and distinction from Laguna de Guzmán and Laguna Santa María.",
+      "limits": "Generalized municipal cartography. This sheet does not itself label the terminal plain El Barreal or establish a continuous named river through the selection.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08005.pdf"
+    },
+    {
+      "source_key": "r78-conagua-conejos-2024-prose",
+      "title": "Actualización de la disponibilidad media anual de agua en el acuífero Conejos-Médanos (0823), estado de Chihuahua",
+      "publisher": "Comisión Nacional del Agua (CONAGUA)",
+      "year": 2024,
+      "supports": "Localized intermittent closed-basin drainage and El Barreal lacustrine-bed context.",
+      "limits": "Regional prose, not selected-path cartography. It does not establish a Mimbres-to-Barreal channel or transfer aquifer/administrative basin names to the selected modeled line.",
+      "official_url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/chihuahua/DR_0823.pdf"
+    },
+    {
+      "source_key": "r96-nrcan-canada-base-map-taku",
+      "title": "Canada Base Map – Transportation (CBMT3978): Nahlin, Inklin, lower Nakina and upper Taku corridors",
+      "publisher": "Natural Resources Canada",
+      "supports": "Connected Canadian route, river-name transitions, lower Nakina tributary identity and the distinct unnamed initial feeder.",
+      "limits": "Independently maintained CanVec-derived federal basemap, not a Canadian gazetteer/CGN lookup or a stopped provincial publication. Labels do not supply a name for the initial feeder or every small wetland pool and channel. Exact-view exports, original rasters and separate orientation materials remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r96-usgs-national-map-taku",
+      "title": "The National Map USGS Topo: Taku River and the head of Taku Inlet",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Representative downstream receiving identity, continuity through the border and bounded terminal scope.",
+      "limits": "Independent federal basemap, distinct from all stopped Alaska reports, NPS/ADFG publications, BLM drainage map and USFWS Becharof map. Canadian detail differs from Alaska detail, and network labels may extend over open-water areas. It does not establish exact braided channels, a precise mouth line or complete inlet selection. Source originals and exact-view URLs remain private.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60007816",
+      "source_keys": [
+        "r96-dma-tpc-k27d",
+        "r96-dma-jog-nc20-5"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10824
+          ],
+          "finding": "The selected headward end lies on the mapped Río Tamanaco south of the mountain front and west of San José de Guaribe. The chart follows this named channel south past the San Antonio de Tamanaco vicinity. This establishes the selected upper component, not the official river-source point.",
+          "sources": [
+            "r96-dma-tpc-k27d"
+          ]
+        },
+        {
+          "fragments": [
+            10824
+          ],
+          "finding": "The south-running corridor enters the northern arm of the water body explicitly labeled Embalse Playa de Piedra, traverses the reservoir setting and continues from its southern outlet on the mapped Tamanaco. The northeastern Zamurito approach and other reservoir arms remain distinct. The reservoir is retained as a reservoir component rather than renamed as an ordinary Unare reach.",
+          "sources": [
+            "r96-dma-tpc-k27d"
+          ]
+        },
+        {
+          "fragments": [
+            10824
+          ],
+          "finding": "Below the reservoir the selected corridor turns east and passes north of Tucupido, following repeated Río Tamanaco labels through the eastern bends. The separate Embalse de Tucupido lies south of the selected route. Quebrada Honda approaches the Zaraza setting farther south and is not the selected eastward Tamanaco corridor.",
+          "sources": [
+            "r96-dma-tpc-k27d"
+          ]
+        },
+        {
+          "fragments": [
+            10824
+          ],
+          "finding": "The lower Tamanaco bends northeast and east into the Unare corridor north of Zaraza and south of San José de Unare. The chart shows the receiving Unare arriving independently from the Zaraza direction. The selection follows Tamanaco to this junction and then the north-running lower Unare; it does not include that upper Unare approach.",
+          "sources": [
+            "r96-dma-tpc-k27d"
+          ]
+        },
+        {
+          "fragments": [
+            10824
+          ],
+          "finding": "The lower selection follows the meandering Unare past San José de Unare and Onoto, then through the west-bank Guaribe receiving vicinity. Farther north it passes Clarines near the separate Guanape approach. The named river, confluences and northward sequence are visible throughout; the model is a generalized corridor rather than a claim about every meander or floodplain channel.",
+          "sources": [
+            "r96-dma-tpc-k27d"
+          ]
+        },
+        {
+          "fragments": [
+            10824
+          ],
+          "finding": "The coastal original shows Río Unare continuing toward La Cerca between Laguna de Unare on the west and Laguna de Píritu on the east. The selection follows the lower river north of the Guaramaco/San Antonio vicinity, then its last straight segment cuts away northeast toward the marshy western edge of Laguna de Píritu. Both maps show the river curving north separately from this diagonal. Neither depicts a continuous channel along the full diagonal, so that actual selected connection remains material-pending.",
+          "sources": [
+            "r96-dma-tpc-k27d",
+            "r96-dma-jog-nc20-5"
+          ]
+        },
+        {
+          "fragments": [
+            10824
+          ],
+          "finding": "The endpoint belongs to the western Píritu lagoon/marsh setting at this cartographic scale, not to the mapped Unare opening on the Caribbean shoreline. The source supports the identities of the nearby river and lagoon but does not establish a name or actual flowing connection for the diagonal terminal segment. The better-mapped river mouth must not replace the retained endpoint.",
+          "sources": [
+            "r96-dma-jog-nc20-5"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80013873",
+      "source_keys": [
+        "r96-nrcan-banks-island-map",
+        "r96-parks-thomsen-guide",
+        "r96-parks-thomsen-paddling"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2299
+          ],
+          "component_scope": "Initial southern stream/lake approach and broad elbow",
+          "finding": "The western selected beginning lies among small mapped channels and lakes. The line runs south, turns east across the southern lake country and then returns north on an eastern stream-and-lake corridor. The detailed original map does not establish a continuously corresponding watercourse through the complete southern elbow and its transitions: portions of the selection cross intervening land and diverge from the visible local channels. Neither an official source point nor a complete initial feeder identity is established. Individual southern lake names remain null.",
+          "sources": [
+            "r96-nrcan-banks-island-map"
+          ]
+        },
+        {
+          "fragments": [
+            2299
+          ],
+          "component_scope": "Southern approach into the central receiving valley",
+          "finding": "Farther north, the southern selected approach reaches the river corridor independently labeled Thomsen River. The source also shows a separate upper-Thomsen lake approach farther west; that western approach is not substituted for the selected southern loop. The selected northern continuation through the southern park-boundary setting agrees with both the federal base map and the river guide. This supported junction and continuation do not resolve the preceding headward gap.",
+          "sources": [
+            "r96-nrcan-banks-island-map",
+            "r96-parks-thomsen-guide"
+          ]
+        },
+        {
+          "fragments": [
+            2299
+          ],
+          "component_scope": "Central Thomsen River and main northwestward bend",
+          "finding": "The long central selection follows the mapped Thomsen valley north past the Green Cabin and Dissection Creek settings, makes the large northwestward bend near the separate White Sand Creek junction, and continues north along repeated Thomsen River labels. The model generalizes the braided river and large meanders. Nearby Shoran Lake, Lemming Lake and Twin Lakes are separately mapped waterbodies rather than selected through-lakes.",
+          "sources": [
+            "r96-nrcan-banks-island-map",
+            "r96-parks-thomsen-guide"
+          ]
+        },
+        {
+          "fragments": [
+            2299
+          ],
+          "component_scope": "Able Creek and Muskox River junction surroundings",
+          "finding": "The central-to-lower selected route stays on the north-running Thomsen corridor past the separate Able Creek and Muskox River approaches from the west. Both cartographic publications show this receiving-river sequence. The selection does not include independent upstream fragments of those western tributaries.",
+          "sources": [
+            "r96-nrcan-banks-island-map",
+            "r96-parks-thomsen-guide"
+          ]
+        },
+        {
+          "fragments": [
+            2299
+          ],
+          "component_scope": "Unresolved northern transfer out of Thomsen valley",
+          "finding": "North of the Muskox junction setting, the modeled line departs northwest of the distinctly mapped Thomsen River. It crosses a landscape of hills, minor streams and small lakes toward the southern Desert River corridor, while the mapped Thomsen continues northeast toward its Castel Bay mouth. Neither detailed publication shows a continuous watercourse matching the entire selected transfer. The separate river-guide map reinforces the separation of the two corridors. This is a material route-correspondence gap, not evidence that Desert River is a lower name for Thomsen River.",
+          "sources": [
+            "r96-nrcan-banks-island-map",
+            "r96-parks-thomsen-guide"
+          ]
+        },
+        {
+          "fragments": [
+            2299
+          ],
+          "component_scope": "Desert River, Nangmagvik Lake setting and coastal terminal",
+          "finding": "The northern tail corresponds to the channel labeled Desert River beside the east side of the separately named Nangmagvik Lake setting. It continues north to that river's coastal opening west of Castel Bay. The source shows the long main coastal channel adjacent to the lake; the finding does not assert that the model traverses the named lake's western lobes. This endpoint is separate from the mapped Thomsen mouth into the southern part of Castel Bay. Its identification does not supply the missing connection from the central Thomsen valley.",
+          "sources": [
+            "r96-nrcan-banks-island-map",
+            "r96-parks-thomsen-guide"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70780917",
+      "source_keys": [
+        "r96-usgs-national-map-silva-mimbres",
+        "r96-inegi-juarez-geology",
+        "r69-inegi-ascension-2010",
+        "r78-conagua-conejos-2024-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9940
+          ],
+          "component_scope": "Silva Creek and Silver City",
+          "finding": "The selected northern approach lies on the explicitly labeled Silva Creek northwest of Silver City and follows it southeast through the town. The separate Pinos Altos Creek branch approaches from the northeast. Below their town setting the selected channel is labeled San Vicente Arroyo. The generalized model does not follow every small urban bend and its first point is not established as an official source.",
+          "sources": [
+            "r96-usgs-national-map-silva-mimbres"
+          ]
+        },
+        {
+          "fragments": [
+            9940
+          ],
+          "component_scope": "San Vicente Arroyo and the receiving Mimbres corridor",
+          "finding": "The selected route continues southeast along the repeatedly labeled San Vicente Arroyo below Silver Acres and the Rio de Arenas junction, past the Cameron Creek and Oak Grove Creek junction surroundings west of Grant County Airport. It proceeds through the Grant–Luna County transition into the receiving corridor labeled Mimbres River northwest of Deming. Those side tributaries and the northeastern upper Mimbres approach remain separate. No exact naming-transition vertex is asserted.",
+          "sources": [
+            "r96-usgs-national-map-silva-mimbres"
+          ]
+        },
+        {
+          "fragments": [
+            9940
+          ],
+          "component_scope": "Deming river reach and eastern termination of mapped channel",
+          "finding": "The selection follows the Mimbres River corridor along northern Deming, then east across the Interstate 10/US 70 setting north of the municipal airport. The original map shows the river becoming intermittent and petering out east of the city. The modeled line continues east through a road-grid/plain setting beyond that depicted channel; Mimbres River is not extended as a verified hydronym over the entire continuation.",
+          "sources": [
+            "r96-usgs-national-map-silva-mimbres"
+          ]
+        },
+        {
+          "fragments": [
+            9940
+          ],
+          "component_scope": "Eastern Luna County desert-plain extension",
+          "finding": "The long modeled continuation runs east of the Florida Mountains, turns south through road grids and broad desert ground, and passes west of Black Hills, Eagle Nest and Camel Mountain. It crosses State Highway 9 near Coyote Hill and then the international boundary. Detailed original mapping shows scattered small depressions and intermittent drainage, without a single mapped continuous named river following the complete extension.",
+          "sources": [
+            "r96-usgs-national-map-silva-mimbres"
+          ]
+        },
+        {
+          "fragments": [
+            9940
+          ],
+          "component_scope": "Northern Chihuahua border and plain crossing",
+          "finding": "South of the border, the selection passes west of Cerro El Venado and east of Llano Los Acebuches. It continues southeast across the low plain east of Cerro La Rosina and Laguna El Álamo, crosses the east–west highway near San Martín and Nuevo Cuauhtémoc, and traverses the plain east of Cerro La Cruz and El Salado. The municipal relief map distinguishes alluvial, saline/floodable and dune country here. Neither the regional map nor the more detailed geological sheet establishes this entire passage as a single river channel.",
+          "sources": [
+            "r96-inegi-juarez-geology",
+            "r69-inegi-ascension-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9940
+          ],
+          "component_scope": "El Barreal terminal plain",
+          "finding": "The lower selected route runs through the plain east of Sierra El Máurico and El Mezquite, near the San Antonio surroundings, then crosses the railroad corridor east of the Sierra San Blas/Cerros Bayos setting and ends within the directly labeled El Barreal plain east of La Morita. Laguna Santa María lies in a distinct western valley. The selected endpoint is inside the broad mapped plain, not an exact present lake shore, surveyed river mouth or connection to the Río Bravo.",
+          "sources": [
+            "r96-inegi-juarez-geology",
+            "r69-inegi-ascension-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9940
+          ],
+          "component_scope": "Regional drainage interpretation",
+          "finding": "Previously acquired CONAGUA Conejos–Médanos hydrology and geomorphology prose describes localized intermittent drainage in small closed basins and identifies the western/southwestern lacustrine plain with the bed of Laguna El Barreal. This supports the terminal-plain setting; it does not establish a continuous Mimbres-to-Barreal surface channel, perennial flow or the exact modeled connectors.",
+          "sources": [
+            "r78-conagua-conejos-2024-prose"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70018943",
+      "source_keys": [
+        "r96-nrcan-canada-base-map-taku",
+        "r96-usgs-national-map-taku"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8972
+          ],
+          "finding": "The eastern enlargement shows a mapped wetland/stream headward setting on the selected southwestern tip, a short eastward connection and a north-flowing valley. This southern feeder joins the separately labeled Nahlin River arriving from the east. No feeder name is printed on the inspected map. The separate Megatushon Creek valley farther west is not selected. The initial component remains unnamed, and the first modeled vertex is not asserted to be an official source.",
+          "sources": [
+            "r96-nrcan-canada-base-map-taku"
+          ]
+        },
+        {
+          "fragments": [
+            8972
+          ],
+          "finding": "Below the initial junction, the selected corridor follows the repeatedly labeled Nahlin River northwest through the upper valley and around its northern westward bend. Nearby mapped lakes lie beside the selected river or on separate connecting streams. The route does not transit the separately named Gun Lake or Tedideech Lake and is not a selected lake-chain route.",
+          "sources": [
+            "r96-nrcan-canada-base-map-taku"
+          ]
+        },
+        {
+          "fragments": [
+            8972
+          ],
+          "finding": "The westward upper route turns south and reaches the junction where Dudidontu River approaches from the southeast. It remains on Nahlin River after that junction. Dudidontu is a separate unselected approach, not the name of the eastern selected headwater.",
+          "sources": [
+            "r96-nrcan-canada-base-map-taku"
+          ]
+        },
+        {
+          "fragments": [
+            8972,
+            8973
+          ],
+          "finding": "The connected lower Nahlin reaches the Sheslay River approaching from the south. Below this junction the source labels the westward receiving river Inklin River. The fragment boundary lies along that connected route and does not by itself establish a name change. The upper Sheslay is not selected.",
+          "sources": [
+            "r96-nrcan-canada-base-map-taku"
+          ]
+        },
+        {
+          "fragments": [
+            8973,
+            8974
+          ],
+          "finding": "The selection follows Inklin River west through its long valley, around its southern bend and then northwest to its junction with Nakina River. Sutlahine River and King Salmon Lake occur on a separate southern approach and are excluded. Original map labels and the connected valley support the Inklin component through both selected fragments.",
+          "sources": [
+            "r96-nrcan-canada-base-map-taku"
+          ]
+        },
+        {
+          "fragments": [
+            8976
+          ],
+          "finding": "The sole tributary fragment follows a short lower Nakina River reach south-southeast to the Inklin junction. The Canadian original shows the Nakina label upstream on the same continuous watercourse and the selected reach ending at the junction where Taku River begins. The selected northern start is downstream of the separately mapped Sloko junction; neither Sloko nor the entire Nakina headwater system is included.",
+          "sources": [
+            "r96-nrcan-canada-base-map-taku"
+          ]
+        },
+        {
+          "fragments": [
+            8974
+          ],
+          "finding": "Below the Nakina–Inklin junction, the selection follows Taku River southwest through its broad braided valley. Both original federal maps support the upper connection; repeated Taku River labels in the USGS original identify the continuing lower corridor. The route receives Tulsequah River from the northwest but does not enter that separate tributary.",
+          "sources": [
+            "r96-nrcan-canada-base-map-taku",
+            "r96-usgs-national-map-taku"
+          ]
+        },
+        {
+          "fragments": [
+            8974,
+            8975
+          ],
+          "finding": "The lower route crosses the British Columbia–Alaska boundary and follows Taku River south and west below the separate Sittakanay River approach. It reaches the broad river–inlet transition at the head of Taku Inlet. The generalized terminal tip lies near the eastern mouth-margin setting north of Taku Lodge, rather than providing an exact center-channel or shoreline endpoint. The wider inlet to the south is not selected.",
+          "sources": [
+            "r96-usgs-national-map-taku"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
