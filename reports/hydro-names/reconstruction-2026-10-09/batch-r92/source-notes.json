@@ -1,0 +1,288 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r92",
+  "sources": [
+    {
+      "source_key": "r92-ign-coig-250k",
+      "title": "Cartas topográficas 1:250 000: Río Pelque, Río Coig (Coyle) and Ría Coig corridor",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Selected headward and receiving identities, downstream route, neighboring drainage exclusions and inner-versus-outer estuary distinction.",
+      "limits": "Mosaic sheet dates are not asserted. Black no-data blocks occur; the material Pelque gap is covered by the 100k source, while the whole-corridor raster covers the inner estuary obscured in the separate context response. No precise bank, tidal-limit or modern road-alignment claim is made.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r92-ign-pelque-100k",
+      "title": "Cartas topográficas 1:100 000: middle and lower Río Pelque to Río Coig",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Uninterrupted northern Pelque route through El Tero and Bajos Viejos, distinction from Barrancas Blancas and Deus o Fabre, and lower Pelque/Coig relationship.",
+      "limits": "Topographic sheet date is not asserted. Correspondence is at generalized river-valley scale; exact wet-channel position and hydronym-transition point remain unassigned.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r92-ssrh-santa-cruz-basins-2025",
+      "title": "Cuencas Hidrográficas: Provincia de Santa Cruz",
+      "publisher": "Argentina, Ministerio de Economía, Secretaría de Obras Públicas, Subsecretaría de Recursos Hídricos",
+      "year": 2025,
+      "supports": "Río Coig o Coyle system identity, Río Pelque subbasin, distinct Camusu Aike and Brazo Sur contributions, and separation from the Santa Cruz and Gallegos systems.",
+      "limits": "Province-scale basin map supplements the detailed IGN rasters. It does not establish exact first named vertices, small feeder identity or surveyed estuarine limits.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/santa_cruz_proy.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; East Greenland interior, Prinsen af Wales Bjerge–Kangerdlugssuaq region, original graticule and Inland Ice legend.",
+      "supports": "Eastern ice-interior setting, transition toward the southeastern glaciated mountain-margin and fjord-head setting, regional geographic disambiguation, and distinction between ice/cartographic symbols and river evidence.",
+      "limits": "Historical regional geological map, not a river survey. It does not establish a full-route natural-river identity, exact named terminal feature or present ice/land/water boundary.",
+      "reuse_limit": "GEUS custom terms restrict redistribution and new maps based on the data. Originals, local source crops and any comparison material remain private. Only independently written factual findings and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Pages 64–65, Glaciology.",
+      "supports": "Distinction between the continental Inland Ice and local ice caps/glaciers; the meaning of surface, thickness and bedrock contours; general glacier-margin and fjord context.",
+      "limits": "Does not name this selection or prove hydrological continuity. Figure 46 is a different West Greenland locality north-northeast of Søndre Strømfjord, and Figure 47 contains general historical/model diagrams. Historical mass-balance or ice-front information is not asserted as current.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r92-canada-basemap-magpie",
+      "title": "Canada Base Map: Magpie Ouest, Lac Magpie and lower Magpie river corridor",
+      "publisher": "Natural Resources Canada, Government of Canada",
+      "supports": "Representative receiving-system identity, distinct Magpie Ouest and Lac Magpie components, correspondence over the complete selected route, and neighboring-drainage and terminal-setting disambiguation.",
+      "limits": "This is the separately allowed federal cartographic service, not a Canadian geographical-name record or a stopped Québec publication. The raster is a composite basemap; source compilation dates and legal naming status are not asserted. The first small western approach is not separately named. Original rasters and local orientation material remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r92-ign-las-calas-gran-salitral",
+      "title": "IGN Cartas Topográficas 1:250,000: southern Mendoza, La Humada upland, Bañados del Potrol and Gran Salitral",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Headward R. Las Calas label; location of the long upland connector; salt-flat/Bañados del Potrol approach; Gran Salitral ending and exclusion of the separate eastern Salado–Chadileuvú course.",
+      "limits": "Historical composite topography does not establish present discharge or a single continuously connected natural river across the full modeled path. No official common hydronym or contemporary hydrological survey was acquired. Original raster images, crops and complete geometry remain local.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61606963",
+      "source_keys": [
+        "r92-ign-coig-250k",
+        "r92-ign-pelque-100k",
+        "r92-ssrh-santa-cruz-basins-2025"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14663
+          ],
+          "finding": "The northwestern start occupies the short feeder and lake-edge setting around Laguna Sarmiento and Estancia La Franka. The selection heads southeast to the directly labeled Río Pelque. The map distinguishes the Río Bote corridor to the west and the Cordón de los Escarchados to the east. The coarse initial line is not evidence of an exact official source or a literal channel across Laguna Sarmiento.",
+          "sources": [
+            "r92-ign-coig-250k",
+            "r92-ssrh-santa-cruz-basins-2025"
+          ]
+        },
+        {
+          "fragments": [
+            14663
+          ],
+          "finding": "The selected Pelque descends south, turns east at Estancia El Tero, and follows the east-southeast valley through Bajos Viejos. The 100k map supplies uninterrupted channel and valley evidence across the interval absent from the 250k mosaic. It distinguishes the southern Arroyo Barrancas Blancas approach and the northeastern Cañadón Deus o Fabre approach from the selected northern Pelque course.",
+          "sources": [
+            "r92-ign-pelque-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14663
+          ],
+          "finding": "The lower Pelque passes the Barrancas Blancas and Estancia Río Pelque setting and enters the Coig near El Chiripá. The selection turns east through the Río Coig (Coyle) corridor by Esperanza. It does not continue west along Coig toward its different headwaters, despite the modeled mainstem including Pelque. The provincial map independently places Río Pelque in the Coig/Coyle hydrographic system.",
+          "sources": [
+            "r92-ign-pelque-100k",
+            "r92-ign-coig-250k",
+            "r92-ssrh-santa-cruz-basins-2025"
+          ]
+        },
+        {
+          "fragments": [
+            14663
+          ],
+          "finding": "Downstream of Esperanza, the route bends southeast and south along the repeatedly labeled Coig valley. Cañadón Camusu Aike approaches from the east near the Las Vegas setting, while the Brazo Sur del Río Coig approaches from the west near Las Horquetas. Neither approach is an additional selected tributary fragment. The route continues around Barda Blanca and the broad La Carina bend before turning northeast.",
+          "sources": [
+            "r92-ign-coig-250k",
+            "r92-ssrh-santa-cruz-basins-2025"
+          ]
+        },
+        {
+          "fragments": [
+            14663
+          ],
+          "finding": "The northeastern lower reach follows Coig through Moy Aike Chico and Moy Aike Grande, then the mapped RN 3 crossing near Coig Aike. The selected terminal vertex is in the widening inner head of Ría Coig just beyond that crossing. The official estuary-context raster shows Ría Coig continuing northeast to Puerto Coig and the outer mouth beside Punta Monte and Punta Sur, opening to Bahía Grande/Mar Argentino. The selected line does not extend to that outer sea-mouth setting.",
+          "sources": [
+            "r92-ign-coig-250k"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90090469",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8869
+          ],
+          "component_scope": "Northwestern opening, south-southeastward descent and shallow western bend",
+          "finding": "The route opens toward the south-southeast, descends into a shallow bend and briefly recovers east-northeast before turning east. The original sheet and graticule place this opening and western interior course on the eastern continental Inland Ice, inland of the mountain margin. No natural-river name or independently mapped river trace corresponding to this opening is established.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8869
+          ],
+          "component_scope": "Long eastward middle and southeastward steps",
+          "finding": "The selected line continues mostly eastward with a gradual southward trend and two larger southeastward steps before resuming its stepped eastward course. This spans the ice-interior approach toward the glaciated East Greenland mountain belt. The inventory line’s straight and stair-stepped intervals are part of the modeled geometry. Blue ice-surface contours and gray sub-ice bedrock contours on the original map are different feature classes and do not corroborate surface or subglacial river courses.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8869
+          ],
+          "component_scope": "Eastern arch, southeastward limb and actual ending",
+          "finding": "A short eastward interval arches slightly north before the route resumes a stepped southeastward descent to its actual endpoint. The original regional and fjord-head pixels place this final part in the glaciated mountain-margin and Kangerdlugssuaq fjord-head setting, with exposed rocks, ice corridors and fjord water distinguished on the sheet. This is not the same setting as the northwestern ice-interior beginning. The sources do not establish an exact named endpoint, glacier front, shoreline crossing or natural-river mouth, and no nearby glacier or fjord name is assigned to the selected route.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8869
+          ],
+          "component_scope": "Complete selected mainstem and feature-class limit",
+          "finding": "One mainstem geometry is selected, with no tributary geometry. The internal MultiLineString parts were considered together as the complete pinned route, not as separately named tributaries. Neither original establishes a continuously named natural river along the complete ice-interior-to-margin selection. The legend distinguishes ice-surface contours, dashed ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments; none supplies river identity. The aeromagnetic-lineament convention is stated to apply south of 68°N and is not local river evidence for this selection.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70243334",
+      "source_keys": [
+        "r92-canada-basemap-magpie"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9317
+          ],
+          "finding": "The initial selected reach follows the small western lake-and-stream setting west of the mapped Bright Sand chain, bends north and then east/southeast, and connects with the labeled Rivière Magpie Ouest below that chain. The inspected northern enlargement supplies actual waterway context for this approach. No distinct name for its small initial lakes or stream is established; this is not an assertion that the modeled starting vertex is the official source of Magpie Ouest.",
+          "sources": [
+            "r92-canada-basemap-magpie"
+          ]
+        },
+        {
+          "fragments": [
+            9317
+          ],
+          "finding": "The long southeastward and southward upper corridor corresponds to repeated Rivière Magpie Ouest labels. The original map distinguishes the adjacent Rivière Manitou drainage to the west and the separate northern Rivière Magpie corridor to the east. Those neighboring watercourses are not substituted for the selected route.",
+          "sources": [
+            "r92-canada-basemap-magpie"
+          ]
+        },
+        {
+          "fragments": [
+            9317,
+            9318
+          ],
+          "finding": "At the eastward lower bend of Magpie Ouest, the selection reaches the western shore of Lac Magpie and turns south through the lake. Original pixels show that western inlet and the connected lake, rather than an assumed river-to-river junction or a straight connection across an unreviewed gap. The fragment split lies within the same continuous mapped lake corridor. The lake and northern Magpie approach above the western junction are not selected.",
+          "sources": [
+            "r92-canada-basemap-magpie"
+          ]
+        },
+        {
+          "fragments": [
+            9318
+          ],
+          "finding": "The southern fragment continues through the lower part of Lac Magpie and leaves its southern end along the repeatedly labeled Rivière Magpie. The corridor turns southeast and then south through the coastal hinterland; Lac de la Mine and the neighboring western drainage remain distinct from the selected lake-to-river route.",
+          "sources": [
+            "r92-canada-basemap-magpie"
+          ]
+        },
+        {
+          "fragments": [
+            9318
+          ],
+          "finding": "The terminal selected route reaches the mapped coastal outlet at Magpie on the north shore of the Gulf of St. Lawrence, west of the separate Rivière-Saint-Jean setting. The selection ends at that coastal river outlet and does not continue offshore or through the neighboring Saint-Jean mouth.",
+          "sources": [
+            "r92-canada-basemap-magpie"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61533241",
+      "source_keys": [
+        "r92-ign-las-calas-gran-salitral"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14504
+          ],
+          "component_scope": "Headward Las Calas corridor",
+          "finding": "The actual western opening lies by El Chacayal. The nearby original cyan hydronym reads R. Las Calas, confirmed in an enlarged rotated crop of the original raster. The channel continues toward El Azufre and Agua Nueva. The selected generalized route shares this headward setting but has lateral simplifications and then takes an eastward approach toward Jagüel del Moro. No exact official source is assigned, and the river label is not propagated over the remaining selection.",
+          "sources": [
+            "r92-ign-las-calas-gran-salitral"
+          ]
+        },
+        {
+          "fragments": [
+            14504
+          ],
+          "component_scope": "Long La Humada upland connector",
+          "finding": "The selected eastward and southeastward interval passes south of La Humada and across the mapped upland near La Esperanza, La Leona, San Guillermo and El Centinela. The original middle map shows terrain, roads, settlements and separate short drainage features, but supplies neither a continuous watercourse trace following this entire connector nor a hydronym linking Las Calas to the lower lowland. The Chical-Co drainage is farther south. A modeled downslope line or possible dry/palaeodrainage cannot itself establish a current connected river.",
+          "sources": [
+            "r92-ign-las-calas-gran-salitral"
+          ]
+        },
+        {
+          "fragments": [
+            14504
+          ],
+          "component_scope": "Barranca descent and salt-flat approach",
+          "finding": "South of Algarrobo del Águila the selection descends from the western barrancas and bends south along the western lowland. It crosses the mapped Playa del Camión and Salitral Blanco salt-flat setting before turning southeast into Bañados del Potrol. This is not a uniform single drawn channel, and nearby salt-flat names are not river-name alternatives.",
+          "sources": [
+            "r92-ign-las-calas-gran-salitral"
+          ]
+        },
+        {
+          "fragments": [
+            14504
+          ],
+          "component_scope": "Potrol wetland and Gran Salitral ending",
+          "finding": "The southern selected reach lies within the labeled Bañados del Potrol setting and reaches the northern saline surface of Salina Grande o Gran Salitral. The original overview and its terminal crop cover the black no-data strips present in the larger southern response. The map distinguishes this western wetland/salt-basin approach from Río Salado or Chadileuvú and the Arroyo Las Barrancas approach farther east. It does not establish present continuous flow, a surveyed shoreline, or a through-connection to the Colorado.",
+          "sources": [
+            "r92-ign-las-calas-gran-salitral"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
