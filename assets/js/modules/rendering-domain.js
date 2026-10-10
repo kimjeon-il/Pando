@@ -366,7 +366,8 @@ export function createRenderingDomain({
     all.select('text').each(function(label) {
       const rows = resolvedLayout.userLabelRows?.get(String(label.id)) || [{ language: 'ko', text: label.name }];
       const text = labels.d3.select(this);
-      const spans = text.selectAll('tspan').data(rows, row => row.language);
+      // Multiple official native names share the 'native' language switch, so key by row position.
+       const spans = text.selectAll('tspan').data(rows, (_row, index) => index);
       spans.exit().remove();
       spans.enter().append('tspan');
       text.selectAll('tspan')
