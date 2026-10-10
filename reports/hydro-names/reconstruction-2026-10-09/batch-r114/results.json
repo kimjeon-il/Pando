@@ -1,0 +1,622 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r114",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r113",
+    "commit": "cff833d48d5c82afa0936536d5ad90408225811b",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r113/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70925697",
+    "hydro-system:70835547",
+    "hydro-system:70601999",
+    "hydro-system:70784507"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70925697",
+      "category": "river_group",
+      "system_id": "70925697",
+      "original_queue_rank": 256,
+      "baseline_logical_fid": 3282,
+      "geometry_fids": [
+        10559,
+        10560
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -99.683333,
+        16.683336,
+        -99.14375,
+        17.597917
+      ],
+      "rendered_mainstem_length_km": 239.904,
+      "rendered_network_length_km": 239.904,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -99.683333,
+          16.683336,
+          -99.14375,
+          17.597917
+        ]
+      },
+      "candidate_name": "Río Papagayo",
+      "candidate_names": [
+        "Río Papagayo"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Papagayo represents the connected selected system. Huacapa, Azul and Omitlán terminology remains component-specific; the western Papagayo approach is a separate joining branch, not the selected headward leg. Impoundments and the coastal lagoon setting are not river aliases.",
+      "source_keys": [
+        "r114-inegi-guerrero-2024",
+        "r114-inegi-chilpancingo-2010",
+        "r114-inegi-mochitlan-2010",
+        "r114-inegi-quechultenango-2010",
+        "r114-inegi-escudero-2010",
+        "r114-inegi-acapulco-2010",
+        "r114-dof-rh20-2017",
+        "r114-guerrero-huacapa-2024"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "geographic_disambiguation": "Six acquired original INEGI maps collectively cover both selected FIDs from the mountain opening west of Chilpancingo through the Huacapa/Azul corridor, the westward Omitlán approach and lower Papagayo to its Pacific terminal. Bounded official prose corroborates the system relationship. No material component or connector source gap remains at ordinary generalized corridor scale.",
+      "region": "Guerrero, Mexico, western Chilpancingo headward setting through Huacapa/Azul/Omitlán and the lower Papagayo to the Pacific.",
+      "completion_scope": "Both selected mainstem features are covered by six original INEGI maps, including the opening, Cerrito Rico setting, full Huacapa/Azul corridor, westward Omitlán approach, Papagayo joining sector and actual Pacific terminal beside Barra Vieja.",
+      "naming_scope_details": {
+        "representative_system_identity": "Río Papagayo",
+        "initial_exact_component_name": null,
+        "separately_named_corridor_parts": [
+          "Huacapa",
+          "Azul",
+          "Omitlán",
+          "Papagayo"
+        ],
+        "source_specific_name_difference": "The 2010 Juan R. Escudero map labels the east–west joining corridor Azul; the 2017 technical prose describes its downstream continuation as Omitlán. No exact naming boundary is adjudicated.",
+        "impoundment_context": [
+          "Cerrito Rico",
+          "General Ambrosio Figueroa (La Venta)"
+        ],
+        "excluded_waterbody_aliases": [
+          "Juan Catalán Bervera (El Molino) is not treated as a Cerrito Rico alias.",
+          "Laguna de Tres Palos is separate from the selected river-mouth corridor."
+        ],
+        "receiving_waterbody_name": "Pacific Ocean",
+        "terminal_limit": "River-mouth setting beside Barra Vieja; the small rendered offshore extension is not a surveyed mouth position.",
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "name_scope_limits": "No exact source spring, reach-name transition, present shoreline, flow permanence or current hydraulic state is established. The 2010 Juan R. Escudero map labels the east–west joining corridor Azul whereas the 2017 technical prose calls its downstream continuation Omitlán; this naming-scope difference is retained, not silently adjudicated. The exact opening feeder has no assigned hydronym."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70835547",
+      "category": "river_group",
+      "system_id": "70835547",
+      "original_queue_rank": 257,
+      "baseline_logical_fid": 3209,
+      "geometry_fids": [
+        10258
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -105.064583,
+        25.995833,
+        -103.810417,
+        26.860417
+      ],
+      "rendered_mainstem_length_km": 238.937,
+      "rendered_network_length_km": 238.937,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -105.064583,
+          25.995833,
+          -103.810417,
+          26.860417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "candidate_name_role": "whole_route_name_unestablished",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "A connected La Escondida/Presa Villa Hidalgo–Cerro Gordo–Jaral Grande/La India–La Vega–Laguna de Palomas route is geographically supported. The sources do not establish one whole-route hydronym, and the differently labeled stream, reservoir and terminal-lake components retain separate scope.",
+      "geographic_disambiguation": "Northern Durango route from the Indé/Hidalgo border uplands through Villa Hidalgo, San Fermín, western/northern Mapimí and northwestern Tlahualilo into Laguna de Palomas in southern Chihuahua. It is separate from the southern La Cadena/Nazas corridors and does not cross Ing. Benjamín Ortega Cantero reservoir.",
+      "source_keys": [
+        "r114-inegi-hidalgo",
+        "r114-inegi-inde",
+        "r114-inegi-mapimi",
+        "r114-inegi-tlahualilo",
+        "r114-inegi-jimenez",
+        "r114-sct-durango-2012",
+        "r114-inegi-chihuahua-2020",
+        "r114-dof-revolucion1029"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Durango and southern Chihuahua, Mexico; Bolsón de Mapimí / Laguna de Palomas drainage.",
+      "completion_scope": "All of mainstem FID10258 was read against the successful primary original maps at ordinary generalized component/corridor scale, including the headward opening, Villa Hidalgo reservoir, entire long eastward/northeastward middle route, La India–La Vega joining sector and actual Palomas terminal. No genuine source/connector coverage remains missing; naming scope remains unresolved.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The selection combines an initially unnamed headward opening, separately labeled upper and middle channels, a reservoir passage, the La India approach and a La Vega terminal reach. No inspected primary source establishes one whole-route hydronym; basin membership alone is insufficient.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "initial_headmost_reach_name": null,
+        "initial_headward_component_name": "La Escondida",
+        "selected_reservoirs": [
+          "Presa Villa Hidalgo"
+        ],
+        "selected_reservoir_scope": "Presa Villa Hidalgo passage supported; the separate Ing. Benjamín Ortega Cantero reservoir is excluded. Small El Tapón/Los Tildíos waterbody polygons are not promoted to proven exact crossings.",
+        "receiving_waterbody_name": "Laguna de Palomas",
+        "terminal_limit": "Southern portion of the Laguna de Palomas lake/wetland complex at generalized map scale. Nearby Laguna de los Patos remains distinct.",
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "excluded_inferences": [
+          "No headwater or lake/reservoir passage inherits a downstream representative name.",
+          "No official river length, legal naming boundary, formal hydronym registry, present flow or exact shore/mouth is established.",
+          "No search excerpt, failed San Fermín acquisition or unseen catalogue map is substantive evidence."
+        ],
+        "source_availability_limits": [
+          {
+            "publication": "ACUERDO por el que se da a conocer el resultado de los estudios técnicos de aguas nacionales subterráneas del acuífero San Fermín, clave 1015, Estado de Durango (18 November 2014), DOF codigo 5368485",
+            "url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5368485",
+            "observed_outcome": "The web reader returned Cache miss. No HTTP status, document body or map pixels were provided.",
+            "outcome_layer": "Web-reader availability outcome; origin HTTP response unobserved.",
+            "scope": "Missing publication content and equivalent HTML, PDF, mirror, figure and acquisition routes paused. No original-file or alternate-route request followed.",
+            "earlier_lawful_prose": null,
+            "material_effect": "Optional supporting prose; independently acquired original maps cover the selected corridor. Discovery excerpts are excluded."
+          },
+          {
+            "publication": "Condensado Estatal Durango, edition 2025, INEGI catalogue record UPC 794551162798",
+            "url": "https://en.www.inegi.org.mx/app/biblioteca/ficha.html?upc=794551162798",
+            "observed_outcome": "The web reader returned a dynamic catalogue shell without the substantive catalogue fields, linked original or map body. No HTTP error or denial was exposed.",
+            "outcome_layer": "Web-reader content availability limitation, not an observed origin denial.",
+            "scope": "Unobtained catalogue/map content from this 2025 publication remains paused; no repeat catalogue, original map, equivalent viewer or mirror acquisition followed. The independently published SCT Durango 2012 sheet is a distinct source.",
+            "earlier_lawful_prose": null,
+            "material_effect": "None. The unavailable catalogue content is not evidence and the selected route is covered by other original maps."
+          }
+        ],
+        "access_and_availability_summary": "Seven original cartographic PDFs acquired with HTTP200 and visually inspected; one successful bounded official prose source. Optional San Fermín and Durango2025 catalogue availability limits leave no material map gap. Existing publication stops and reproduced-map restrictions remain preserved.",
+        "mapped_component_labels": [
+          "La Escondida",
+          "Villa Hidalgo",
+          "Arroyo Cerro Gordo",
+          "Jaral Grande",
+          "Gpe. Victoria",
+          "La India",
+          "La Vega"
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70601999",
+      "category": "river_group",
+      "system_id": "70601999",
+      "original_queue_rank": 258,
+      "baseline_logical_fid": 3090,
+      "geometry_fids": [
+        9822
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -119.239583,
+        38.160417,
+        -118.70625,
+        39.160417
+      ],
+      "rendered_mainstem_length_km": 237.668,
+      "rendered_network_length_km": 237.668,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -119.239583,
+          38.160417,
+          -118.70625,
+          39.160417
+        ]
+      },
+      "candidate_name": "Walker River",
+      "candidate_names": [
+        "Walker River"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Walker River is supported as representative system identity, with distinct creek, fork, reservoir and terminal-lake component names retained. No whole-feature scalar name is assigned.",
+      "geographic_disambiguation": "The selection begins on the Clearwater Creek side of the Bodie Hills, rather than following the complete Sierra Nevada West Walker headwaters. It passes into Virginia Creek, Bridgeport Valley and Bridgeport Reservoir, follows East Walker River into Mason Valley, then Walker River through Weber Reservoir to Walker Lake. The entire Walker basin and its other upstream forks are outside the selected extent.",
+      "source_keys": [
+        "r114-usgs-topo-walker",
+        "r114-usgs-science-walker-basin"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Mono County, California, and the East Walker–Mason Valley–Walker Lake corridor of western Nevada.",
+      "completion_scope": "All of retained FID9822 was read at ordinary component/corridor scale against six overlapping original USGSTopo raster views, including the headward Clearwater/Virginia joining sequence, Bridgeport Reservoir, the entire East Walker course, West Walker confluence, Mason Valley/northern bend, Weber Reservoir, lower Walker valley and Walker Lake terminal setting. Two private local original-image crops clarified headward and terminal labels. The independent USGS basin overview supplies bounded corroborating prose. No tests, geometric revalidation, full source geometry or product changes were performed.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Walker River",
+        "initial_headward_component_name": "Clearwater Creek",
+        "exact_source_point_name": null,
+        "selected_reservoirs": [
+          "Bridgeport Reservoir",
+          "Weber Reservoir"
+        ],
+        "receiving_waterbody_name": "Walker Lake",
+        "terminal_limit": "Mapped Walker River delta/plain and northern Walker Lake, with modeled continuation into the lake interior. No exact current mouth or wetted connector is asserted.",
+        "separately_named_corridor_parts": [
+          "Clearwater Creek",
+          "Virginia Creek",
+          "East Walker River",
+          "Bridgeport Reservoir",
+          "Walker River",
+          "Weber Reservoir",
+          "Walker Lake"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "excluded_inferences": [
+          "No uniform scalar hydronym for every creek, fork, impoundment or terminal-lake passage.",
+          "No formal registry decision, precise natural source, name-transition vertex, present-day shoreline or river-mouth position.",
+          "No official river-length measurement, flow condition, full West Walker course or complete drainage-basin assignment.",
+          "No historical stopped report, unsuccessful webpage or search excerpt used as substantive correspondence evidence."
+        ],
+        "model_limits": "Selected retained geometry supplied orientation only. The original cartography has generalized bends, impoundment river labels, irrigation networks and a exposed near-shore terminal interval. These are recorded without requiring precise bank, vertex or mouth-point agreement.",
+        "source_availability_limits": [
+          {
+            "source_key": "r114-usgs-flood-chronology-walker-stopped",
+            "title": "USGS Nevada Flood Chronology: Walker River Basin — Basin Description",
+            "publisher": "U.S. Geological Survey, Nevada Water Science Center",
+            "official_url": "https://nevada.usgs.gov/crfld/Walker/basindesc.htm",
+            "observed_outcome": "Web reader returned (403) Forbidden. No page body was acquired by the open request.",
+            "observation_layer": "Web reader reported HTTP403; no separate local origin response was observed.",
+            "restriction_scope": "Entire named Basin Description publication and equivalent copies, formats, cached content, mirrors and acquisition routes stopped. No retry or alternative route. This is not a restriction on other independent USGS publications or USGSTopo.",
+            "earlier_lawful_prose": null,
+            "evidence_use": "None. Search-result extracts were not used as substantive evidence.",
+            "material_gap_created": false
+          }
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70784507",
+      "category": "river_group",
+      "system_id": "70784507",
+      "original_queue_rank": 259,
+      "baseline_logical_fid": 3154,
+      "geometry_fids": [
+        9943
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -82.904167,
+        30.889583,
+        -81.511923,
+        31.31875
+      ],
+      "rendered_mainstem_length_km": 237.493,
+      "rendered_network_length_km": 237.493,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -82.904167,
+          30.889583,
+          -81.511923,
+          31.31875
+        ]
+      },
+      "candidate_name": "Satilla River",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "automatic_application": false,
+      "product_application": false,
+      "source_keys": [
+        "r114-usgs-topo-georgia",
+        "r114-usgs-pearson-2017",
+        "r114-georgia-satilla-plan-2002",
+        "r114-usgs-sandy-bottom-2017-unavailable"
+      ],
+      "formal_registry_verified": false,
+      "candidate_names": [
+        "Satilla River"
+      ],
+      "candidate_name_role": "limited_middle_lower_identity_with_unresolved_headward_connection",
+      "supported_name_scope": "Satilla River is supported for the selected middle/lower and actual terminal channel only. A representative identity for the complete selected system remains unestablished because the initial approach and Little Red Bluff–Stump connector are unresolved.",
+      "geographic_disambiguation": "Original cartography supports the selected Red Bluff Creek approach to the Satilla River, the Satilla corridor through the Waycross and Brantley/Camden settings, and the actual terminal within its lower estuarine channel west of Saint Andrew Sound. The selected head lies southwest of Pearson near Little Red Bluff Creek and then makes a southern detour into Stump Creek. The original maps do not establish the complete initial approach or the Little Red Bluff-to-Stump connection. This remains a material connector question, not a completed naming-scope hold.",
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The complete initial approach southwest of Pearson and the selected Little Red Bluff Creek–Stump Creek connector are not established by the acquired original maps.",
+      "naming_scope_hold_reason": null,
+      "completion_scope": "Original national composite maps, Pearson 2017 cartography and the Georgia Satilla plan support the Stump/Red Bluff approach, whole Satilla middle/lower corridor and actual selected estuarine terminal. The two initial material connections remain unestablished.",
+      "region": "Southern Georgia, United States, from southwest of Pearson through the Satilla corridor to the lower estuarine channel west of Saint Andrew Sound.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "limited_middle_lower_candidate": "Satilla River",
+        "initial_headward_component_name": null,
+        "component_scope_limits": [
+          "Satilla River is a bounded middle/lower candidate. It is not assigned to the selected initial channel, Little Red Bluff Creek, Stump Creek or Red Bluff Creek merely because those waters lie in the Satilla drainage.",
+          "The selected westward head is near Pearson, not the natural Satilla headward reach farther northwest described in regional prose. Basin membership and that upstream river narrative do not establish this selected initial course.",
+          "The Little Red Bluff Creek name is visibly attached to a mapped west-to-east channel south of Pearson. The selected southern detour toward Stump Creek cannot be silently replaced by that mapped eastward route.",
+          "The selected endpoint remains within the broad lower Satilla River channel west of Saint Andrew Sound. It is not extended to the Atlantic Ocean or transferred to the separate coastal Little Satilla River or Cumberland River.",
+          "No uniform scalar hydronym, legal name boundary, exact official source or mouth, comprehensive tributary inventory, contemporary flow condition, or cause of model/map disagreement is established."
+        ],
+        "unresolved_components": [
+          {
+            "fid": 9943,
+            "component": "Initial approach southwest of Pearson",
+            "gap": "The selected beginning is in the County Road 34/243 and Johnson Settlement Road setting, south of the mapped western Little Red Bluff Creek reach. Original detailed cartography shows named Little Red Bluff Creek to the north, wetland symbols and several separate intermittent tributary traces to the south. It does not establish the full selected west/south approach as one connected channel into the named creek. No exact first-point coincidence is demanded; the issue is the channel connection across this headward setting."
+          },
+          {
+            "fid": 9943,
+            "component": "Little Red Bluff Creek–Stump Creek connector",
+            "gap": "After the highway crossing south of Pearson, the selected route approaches the Little Red Bluff Creek/Park Road setting, then turns southeast across the Henry Field Road country into Stump Creek. The composite original maps show Little Red Bluff Creek continuing east and a separate southern tributary running southwest from Park Road, while Stump Creek has a distinct headward trace near Henry Field Road. They do not draw or establish the intervening southeast connection used by the selected route. The Pearson 2017 original likewise depicts Little Red Bluff Creek continuing east; its southern sheet edge does not cover the whole disputed connection. The separate Sandy Bottom 2017 sheet was not acquired after a catalogue availability failure."
+          }
+        ],
+        "terminal_waterbody_name": "Satilla River estuarine channel",
+        "terminal_limit": "The selected end is west of Saint Andrew Sound, before the farther-east outlet. It is not extended to the Atlantic Ocean.",
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70835547"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70784507"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 399,
+    "non_pending_records": 355,
+    "source_access_pending": 3,
+    "source_material_pending": 41,
+    "source_any_pending": 44,
+    "scope_holds": 116,
+    "river_groups": 301,
+    "lakes": 98,
+    "unrecorded": 3666,
+    "unrecorded_river_groups": 3154,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r114-inegi-guerrero-2024",
+      "official_url": "https://inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/gro/794551162811.pdf"
+    },
+    {
+      "source_key": "r114-inegi-chilpancingo-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/12/12029.pdf"
+    },
+    {
+      "source_key": "r114-inegi-mochitlan-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/12/12044.pdf"
+    },
+    {
+      "source_key": "r114-inegi-quechultenango-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/12/12051.pdf"
+    },
+    {
+      "source_key": "r114-inegi-escudero-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/12/12039.pdf"
+    },
+    {
+      "source_key": "r114-inegi-acapulco-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/12/12001.pdf"
+    },
+    {
+      "source_key": "r114-dof-rh20-2017",
+      "official_url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5496053"
+    },
+    {
+      "source_key": "r114-guerrero-huacapa-2024",
+      "official_url": "https://www.guerrero.gob.mx/2024/10/gobierno-del-estado-supervisa-zonas-afectadas-previo-a-los-trabajos-de-reconstruccion-del-encauzamiento-huacapa-en-chilpancingo/"
+    },
+    {
+      "source_key": "r114-inegi-hidalgo",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10010.pdf"
+    },
+    {
+      "source_key": "r114-inegi-inde",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10011.pdf"
+    },
+    {
+      "source_key": "r114-inegi-mapimi",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10013.pdf"
+    },
+    {
+      "source_key": "r114-inegi-tlahualilo",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10036.pdf"
+    },
+    {
+      "source_key": "r114-inegi-jimenez",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08036.pdf"
+    },
+    {
+      "source_key": "r114-sct-durango-2012",
+      "official_url": "https://antares.inegi.org.mx/analisis/red_hidro/documentosSeg/ATLAS_SCT_10.pdf"
+    },
+    {
+      "source_key": "r114-inegi-chihuahua-2020",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/chih/889463836902.pdf"
+    },
+    {
+      "source_key": "r114-dof-revolucion1029",
+      "official_url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5413426"
+    },
+    {
+      "source_key": "r114-usgs-topo-walker",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r114-usgs-science-walker-basin",
+      "official_url": "https://www.usgs.gov/centers/nevada-water-science-center/science/science-walker-river-basin"
+    },
+    {
+      "source_key": "r114-usgs-flood-chronology-walker-stopped",
+      "official_url": "https://nevada.usgs.gov/crfld/Walker/basindesc.htm"
+    },
+    {
+      "source_key": "r114-usgs-topo-georgia",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r114-usgs-pearson-2017",
+      "official_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/PDF/GA/GA_Pearson_20170731_TM_geo.pdf"
+    },
+    {
+      "source_key": "r114-georgia-satilla-plan-2002",
+      "official_url": "https://epd.georgia.gov/document/publication/satilla-river-basin-management-planpdf/download"
+    },
+    {
+      "source_key": "r114-usgs-sandy-bottom-2017-unavailable",
+      "official_url": "https://store.usgs.gov/product/750979"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "cff833d48d5c82afa0936536d5ad90408225811b",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      256,
+      257,
+      258,
+      259
+    ],
+    "next_unrecorded_id": "hydro-system:60125754",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}
