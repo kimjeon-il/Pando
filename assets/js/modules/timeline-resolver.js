@@ -61,7 +61,7 @@ export function resolveWorld(identities, records, geometries, month) {
     row.rootId = ancestors.at(-1) ?? row.id;
     Object.freeze(row);
   }
-  return Object.freeze({ month: point.canonical, entities: Object.freeze(rows),
+  return Object.freeze({ month: cursor.canonical, entities: Object.freeze(rows),
     byId: Object.freeze({ get: id => byId.get(id) }) });
 }
 
