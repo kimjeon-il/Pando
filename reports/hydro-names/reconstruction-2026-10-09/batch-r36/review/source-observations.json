@@ -1,0 +1,130 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r36",
+  "scope_aw_ids": [
+    "lakes_base:1159107747",
+    "lakes_base:1159108359",
+    "lakes_base:1159109353"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "No new external source requests or original acquisitions in r36. All original-pixel work reused the geological map successfully acquired in r34; the independent reviewer also made zero external requests. The successful HTTP status and acquisition time describe that retained r34 original, not a new retrieval.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": 0,
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "source_group_definition": "One official geological-map publication from one provincial-government publisher group: Government of Manitoba.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All selected source parts and rings were registered to the retained geological GeoPDF using its independently reopened full embedded affine transform, including both rotation terms. Display correspondence does not certify surveyed shores, exact named-water partitions or present conditions.",
+  "observations": [
+    {
+      "source_key": "manitoba_bedrock_geology_of2024_4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Economic Development, Investment, Trade and Natural Resources, Manitoba Geological Survey",
+      "url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf",
+      "original_acquired_at_utc": "2026-10-10T00:02:56.872607+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2024",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The publication imprint explicitly says published by Manitoba Geological Survey, 2024. No month or day of publication is established; PDF modification and HTTP dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r34",
+      "directly_read_water_labels": [
+        "High Hill Lake",
+        "Silsby Lake",
+        "Utik Lake",
+        "Oxford Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Cuddle Lake",
+        "Utik River",
+        "Bigstone Lake",
+        "Goulet Lake",
+        "Bear Lake",
+        "Bigstone River",
+        "Semple Lake",
+        "Windy Lake",
+        "Michikinabish Lake",
+        "Rat Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Direct water labels and full selected-footprint cartographic context for all three targets.",
+      "authority_scope": "Official provincial thematic cartographic usage supports bounded associations. The publication does not establish a formal naming-registry decision, current surveyed shoreline or exact named-water boundary.",
+      "registered_overlay_performed": true,
+      "own_observations": "The original map directly labels High Hill Lake and Silsby Lake within different areas of one selected ring, and Utik Lake and Oxford Lake over corresponding selected waters. Nearby distinct waters, mapped land and water-label typography distinguish the associations from geology and settlement labels. The first ring requires a compound name-scope hold with its southern-tip named extent unresolved near Cuddle Lake. Utik and Oxford support bounded generalized identities with material detailed extent limits.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "The digital topographic base credits the CanVec+ data model, Natural Resources Canada for hydrographic features, and the Manitoba Land Initiative, Manitoba Environment, Climate and Parks."
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159107747",
+      "aw_id": "lakes_base:1159107747",
+      "source_id": "1159107747",
+      "geometry_fids": [
+        15293
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 30,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "The one 30-position ring spans the northeastern water labelled High Hill Lake and the central water labelled Silsby Lake. Their distinct mapped water associations cannot be treated as aliases or a single scalar identity. The narrow southern selected tip crosses mapped land north of the narrow, separately labelled Cuddle Lake basin; label overlap is not sufficient to assign that tip to Cuddle Lake. Much of Cuddle Lake and the eastern Utik River water continuation lie outside the selected ring. A compound name-scope hold is warranted, with non-exhaustive component associations and unresolved southern-tip named extent. Islands, peninsulas, shorelines, narrow connections and named-water boundaries remain generalized or unverified."
+    },
+    {
+      "observation_id": "lakes_base:1159108359",
+      "aw_id": "lakes_base:1159108359",
+      "source_id": "1159108359",
+      "geometry_fids": [
+        15332
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 33,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "The complete one-ring 33-position selected footprint matches the northeast-to-southwest orientation and broad basins of the water labelled Utik Lake. Its detailed far-west narrow extension lies outside the ring, and the coarse northeast and northwest edges include mapped land and omit bays, while detailed islands and shores are generalized. Cuddle Lake, Silsby Lake, Goulet Lake and Bear Lake are separately labelled neighboring waters; Bigstone River is separately labelled southeast. The bounded generalized identity Utik Lake is supported, without exact lake extent or product-name clearance."
+    },
+    {
+      "observation_id": "lakes_base:1159109353",
+      "aw_id": "lakes_base:1159109353",
+      "source_id": "1159109353",
+      "geometry_fids": [
+        15410
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 50,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "The full one-ring 50-position selected footprint follows the Oxford Lake main basin, northeast arm by Oxford House and two southwestern lobes. The blue italic Oxford Lake water label is distinct from the black Oxford House settlement label. The far-west narrow arm lies outside the selected ring. The southwest ring crosses generalized mapped-land margins, with the lower selected lobe ending north of the separate Windy Lake basin; its exact lake-versus-Hayes River transition is unverified. Semple Lake to the north, Windy Lake and Michikinabish Lake to the south are separately labelled waters. Oxford Lake is supported as a bounded generalized identity; complete detailed named extent, islands, narrow bays and precise river transitions remain unverified."
+    }
+  ],
+  "source_group_limit": "One official provincial cartographic publication from one provincial-government publisher group; underlying hydrographic dataset independence is unverified, and no formal naming registry was checked.",
+  "independent_review_and_source_research_agree": true
+}

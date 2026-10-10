@@ -1,0 +1,366 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "batch": "r36",
+  "reviewed_at_utc": "2026-10-10T00:38:27.754670Z",
+  "scope_aw_ids": [
+    "lakes_base:1159107747",
+    "lakes_base:1159108359",
+    "lakes_base:1159109353"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Independent original-map pixel inspection, complete source and baseline-rendered ring plots, registered outline and filled overlays, publication imprint and enlarged first-target southern-tip, second-target northeast and third-target southwest views. All 113 ordered positions across three single-ring Polygons were independently compared with the source, decoded geometries and summaries. The embedded GeoPDF affine was independently reopened and all registrations recomputed, including both rotation terms. The retained successful original acquisition receipt was verified against original bytes. Every selected position falls within an inspected original crop. Initial observations were recorded independently before comparison with separate research findings. Complete outlines, orientation, separate neighboring waters, mapped land, water-label typography and material omitted extensions were considered together; neither bounds nor label overlap alone established identity. The production decoder was not independently replayed by this reviewer.",
+  "prior_distinct_targets": 102,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 105,
+  "duplicate_targets": 0,
+  "counted_unit": "Distinct logical inventory lake target IDs; repeated map labels do not increase the target count.",
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "current_batch_follow_up_required_targets": 1,
+  "current_batch_scope_hold_targets": 1,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803",
+    "lakes_base:1159108469",
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087",
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201",
+    "hydro-system:50738894",
+    "hydro-system:50691388",
+    "hydro-system:50443984",
+    "hydro-system:50442438",
+    "hydro-system:50442579",
+    "hydro-system:50487926",
+    "hydro-system:50503092",
+    "lakes_base:1159111345",
+    "lakes_base:1159107899",
+    "lakes_base:1159108505",
+    "lakes_base:1159106799"
+  ],
+  "new_pending_access_ids": [],
+  "new_scope_hold_ids": [
+    "lakes_base:1159107747"
+  ],
+  "pending_access_reassessment_performed": false,
+  "prior_target_source_or_geometry_reaudit_performed": false,
+  "automatic_application": false,
+  "product_application": false,
+  "scalar_product_name_approvals": 0,
+  "geometry_modified": false,
+  "topology_repaired": false,
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "private_original_packed_decoder_independently_replayed": false,
+  "source_worker_comparison_completed": true,
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159107747",
+      "source_id": "1159107747",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 30,
+      "category": "lake",
+      "baseline_logical_fid": 3918,
+      "geometry_fids": [
+        15293
+      ],
+      "fragment_count": 1,
+      "candidate_name": null,
+      "candidate_names": [
+        "High Hill Lake",
+        "Silsby Lake"
+      ],
+      "research_category": "compound_feature_name_scope_hold",
+      "review_status": "multiple_named_waters_scalar_name_hold",
+      "candidate_name_role": "no_single_candidate_for_compound_footprint",
+      "directly_supported_name_forms": [
+        "High Hill Lake",
+        "Silsby Lake"
+      ],
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Before assigning any whole-feature scalar name, resolve the High Hill and Silsby named-water partitions and southern-tip extent near Cuddle Lake against appropriately authorized detailed evidence. This is a name-scope hold, not an access failure.",
+      "supported_name_scope": "High Hill Lake and Silsby Lake are distinct associations within one selected ring, not aliases or a single whole-feature identity. The single selected ring combines High Hill Lake and Silsby Lake associations, which are non-exhaustive. Its southern tip crosses mapped land north of the separately labelled Cuddle Lake basin, and no exact named-water assignment is established for that tip. Detailed eastern continuations, shorelines, islands and narrow connections are generalized or omitted. Exact named-water partitions and complete detailed named-lake extents remain unverified. Exact extent and product-name application are not approved.",
+      "source_observation_id": "lakes_base:1159107747",
+      "limits": [
+        "The single selected ring combines High Hill Lake and Silsby Lake associations, which are non-exhaustive. Its southern tip crosses mapped land north of the separately labelled Cuddle Lake basin, and no exact named-water assignment is established for that tip. Detailed eastern continuations, shorelines, islands and narrow connections are generalized or omitted. Exact named-water partitions and complete detailed named-lake extents remain unverified.",
+        "Cuddle Lake is separately labelled along the narrow southern basin. Its label overlaps the selected southern-tip margin, but label overlap alone does not establish a third component association. Utik River is separately labelled east; Utik Lake and Bigstone Lake are separate southern neighboring waters.",
+        "One retained official Manitoba Geological Survey publication supports the associations. One provincial-government publisher group is represented; underlying hydrographic dataset independence and formal naming-registry authority are unverified.",
+        "No Korean form or additional whole-feature alias is certified; registered overlays do not establish surveyed shores or exact name partitions."
+      ],
+      "geographic_disambiguation": "East-central Manitoba, Canada, north of Utik Lake in the High Hill and Silsby lake region",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "High Hill Lake",
+          "Silsby Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": true,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "High Hill Lake",
+            "scope": "Northeastern basin of the single 30-position selected ring"
+          },
+          {
+            "name": "Silsby Lake",
+            "scope": "Central basin of the single 30-position selected ring"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The single selected ring combines High Hill Lake and Silsby Lake associations, which are non-exhaustive. Its southern tip crosses mapped land north of the separately labelled Cuddle Lake basin, and no exact named-water assignment is established for that tip. Detailed eastern continuations, shorelines, islands and narrow connections are generalized or omitted. Exact named-water partitions and complete detailed named-lake extents remain unverified.",
+        "supported_component_names_exhaustive": false,
+        "unresolved_named_extents": [
+          "Southern tip near Cuddle Lake; no exact name assignment established"
+        ],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high",
+        "whole_selected_single_name": "not_supported_compound_scope",
+        "exact_named_extent": "unverified",
+        "basis": "Readable original-map water labels plus complete selected footprint and surrounding distinct-water context; confidence is not product clearance."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159108359",
+      "source_id": "1159108359",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 33,
+      "category": "lake",
+      "baseline_logical_fid": 3957,
+      "geometry_fids": [
+        15332
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Utik Lake",
+      "candidate_names": [
+        "Utik Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "generalized_identity_supported_not_product_name_clearance",
+      "candidate_name_role": "bounded_generalized_selected_water_footprint_identity",
+      "directly_supported_name_forms": [
+        "Utik Lake"
+      ],
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No additional work is required for this bounded generalized identity. Complete detailed lake coverage, formal-registry verification, exact adjoining-water boundaries, Korean naming and scalar product application require a separate assessment.",
+      "supported_name_scope": "The complete selected generalized footprint supports Utik Lake as a bounded water identity. The far-west narrow continuation and southern water strips extend outside the selected ring. The coarse northeast and northwest margins include mapped land and omit bays; islands, peninsulas and detailed shores are generalized. Complete detailed named-lake extent and exact adjoining-water transitions remain unverified. Exact extent and product-name application are not approved.",
+      "source_observation_id": "lakes_base:1159108359",
+      "limits": [
+        "The far-west narrow continuation and southern water strips extend outside the selected ring. The coarse northeast and northwest margins include mapped land and omit bays; islands, peninsulas and detailed shores are generalized. Complete detailed named-lake extent and exact adjoining-water transitions remain unverified.",
+        "Cuddle Lake, Silsby Lake and Goulet Lake lie north and Bear Lake south of the selected footprint. Bigstone Lake and Bigstone River lie east and southeast. These are separate water labels, not Utik Lake aliases.",
+        "One retained official Manitoba Geological Survey publication supports the associations. One provincial-government publisher group is represented; underlying hydrographic dataset independence and formal naming-registry authority are unverified.",
+        "No Korean form or additional whole-feature alias is certified; registered overlays do not establish surveyed shores or exact name partitions."
+      ],
+      "geographic_disambiguation": "East-central Manitoba, Canada, north of Bear Lake and southwest of Silsby Lake",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Utik Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Utik Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The far-west narrow continuation and southern water strips extend outside the selected ring. The coarse northeast and northwest margins include mapped land and omit bays; islands, peninsulas and detailed shores are generalized. Complete detailed named-lake extent and exact adjoining-water transitions remain unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high",
+        "whole_selected_single_name": "supported_at_generalized_scale",
+        "exact_named_extent": "unverified",
+        "basis": "Readable original-map water labels plus complete selected footprint and surrounding distinct-water context; confidence is not product clearance."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159109353",
+      "source_id": "1159109353",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 50,
+      "category": "lake",
+      "baseline_logical_fid": 4035,
+      "geometry_fids": [
+        15410
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Oxford Lake",
+      "candidate_names": [
+        "Oxford Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "generalized_identity_supported_not_product_name_clearance",
+      "candidate_name_role": "bounded_generalized_selected_water_footprint_identity",
+      "directly_supported_name_forms": [
+        "Oxford Lake"
+      ],
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No additional work is required for this bounded generalized identity. Complete detailed lake coverage, formal-registry verification, exact adjoining-water boundaries, Korean naming and scalar product application require a separate assessment.",
+      "supported_name_scope": "The complete selected generalized footprint supports Oxford Lake as a bounded water identity. The far-west narrow arm extends outside the selected ring. Southwest margins cross generalized mapped land, and the lower selected lobe ends north of the separate Windy Lake basin. Islands, peninsulas, narrow bays and exact Hayes River/lake transitions are generalized or unverified. Complete detailed named-lake extent is not established. Exact extent and product-name application are not approved.",
+      "source_observation_id": "lakes_base:1159109353",
+      "limits": [
+        "The far-west narrow arm extends outside the selected ring. Southwest margins cross generalized mapped land, and the lower selected lobe ends north of the separate Windy Lake basin. Islands, peninsulas, narrow bays and exact Hayes River/lake transitions are generalized or unverified. Complete detailed named-lake extent is not established.",
+        "The blue italic Oxford Lake water label is distinct from the black Oxford House settlement label. Semple Lake lies north; Windy Lake, Michikinabish Lake and Rat Lake are separately labelled southern waters. Geological colors, linework and symbols do not define water-name boundaries.",
+        "One retained official Manitoba Geological Survey publication supports the associations. One provincial-government publisher group is represented; underlying hydrographic dataset independence and formal naming-registry authority are unverified.",
+        "No Korean form or additional whole-feature alias is certified; registered overlays do not establish surveyed shores or exact name partitions."
+      ],
+      "geographic_disambiguation": "East-central Manitoba, Canada, at Oxford Lake southwest of Oxford House and south of Semple Lake",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Oxford Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Oxford Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The far-west narrow arm extends outside the selected ring. Southwest margins cross generalized mapped land, and the lower selected lobe ends north of the separate Windy Lake basin. Islands, peninsulas, narrow bays and exact Hayes River/lake transitions are generalized or unverified. Complete detailed named-lake extent is not established.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high",
+        "whole_selected_single_name": "supported_at_generalized_scale",
+        "exact_named_extent": "unverified",
+        "basis": "Readable original-map water labels plus complete selected footprint and surrounding distinct-water context; confidence is not product clearance."
+      }
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-10T00:38:27.754670Z",
+    "available_source_inspection_completed": true,
+    "full_feature_correspondence_review_completed": true,
+    "original_source_material_included": false,
+    "full_selected_geometry_included": false,
+    "historical_results_recomputed_by_public_validator": false
+  },
+  "included_evidence_limit": "Public factual observations and bibliography are consolidated in source-observations.json. Checks validate included records, bounded geometry summaries, arithmetic and included-file integrity. Omitted original PDFs, map pixels, complete polygons, registration and visual judgments are not replayed."
+}
