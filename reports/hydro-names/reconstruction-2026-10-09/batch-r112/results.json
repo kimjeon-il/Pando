@@ -1,0 +1,537 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r112",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r111",
+    "commit": "8e0b473c1bb3e8fe1869bc0de6f8649d89885f50",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r111/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:70020683",
+    "hydro-system:80068731"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61514286",
+      "category": "river_group",
+      "system_id": "61514286",
+      "original_queue_rank": 248,
+      "baseline_logical_fid": 3582,
+      "geometry_fids": [
+        14452,
+        14453,
+        14454,
+        14455
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -72.201026,
+        -35.595833,
+        -70.40823,
+        -34.972917
+      ],
+      "rendered_mainstem_length_km": 245.726,
+      "rendered_network_length_km": 245.726,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 4,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -72.201026,
+          -35.595833,
+          -70.40823,
+          -34.972917
+        ]
+      },
+      "candidate_name": "Río Mataquito",
+      "candidate_names": [
+        "Río Mataquito"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "candidate_name_role": "limited_receiving_identity_with_unresolved_headward_connection",
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_hold_reason": null,
+      "source_keys": [
+        "CL2009",
+        "CL2022"
+      ],
+      "supported_name_scope": "The observed middle and downstream corridor supports the Colorado–Lontué–Mataquito sequence. It does not establish a single hydronym for the selected headward branch and border-aligned connector. Neither the lower Mataquito label nor basin membership supplies the missing connection. The separate Patos/Mondaca arm and Teno/Planchón arm are not renamed or included as selected mainstem passages.",
+      "geographic_disambiguation": "The selected lower river matches Mataquito to the Pacific, and the mapped middle course follows the Colorado–Lontué corridor. The separate Patos/Mondaca and Teno/Planchón arms are distinguished. The initial branch and border-aligned headward connector remain unresolved, so the object retains one material-pending status with no applied name.",
+      "region": "Central Chile, Andean Colorado–Lontué corridor and lower Mataquito to the Pacific.",
+      "completion_scope": "All four selected fragments and their full stored course were read. Original primary maps cover the regional headward setting, middle corridor and actual lower terminal, but do not resolve the selected border-aligned passage as a surface-water connection at ordinary corridor scale. This is one material-pending status, not a completed name-scope hold or an additional access-pending count.",
+      "material_pending_reason": "The relationship between the selected initial branch, the entire border-aligned northward passage and the first Colorado-side departure is unresolved. Regional cartography establishes the receiving drainage but does not independently establish this selected headward connection.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "limited_receiving_river_candidate": "Río Mataquito",
+        "observed_middle_lower_sequence": [
+          "Río Colorado",
+          "Río Lontué",
+          "Río Mataquito"
+        ],
+        "initial_headward_component_name": null,
+        "primary_unresolved_connector_fid": 14453,
+        "unresolved_headward_fids": [
+          14452,
+          14453,
+          14454
+        ],
+        "lake_reservoir_and_branch_context": {
+          "source_keys": [
+            "CL2022"
+          ],
+          "observations": [
+            "The plan places Embalse El Planchón/Lagunas de Teno on the separate Malo–Teno arm, outside the selected corridor.",
+            "Laguna de Mondaca belongs to the separate southern arm; no selected crossing is established.",
+            "The plan describes no Lontué regulation infrastructure in 2022; Gran Lontué is a proposal, not a demonstrated existing selected reservoir."
+          ],
+          "temporal_limit": "Historical publication conditions only; no current reservoir-operation or present construction claim is made."
+        },
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:61509423",
+      "category": "river_group",
+      "system_id": "61509423",
+      "original_queue_rank": 249,
+      "baseline_logical_fid": 3575,
+      "geometry_fids": [
+        14443
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -65.064583,
+        -34.427083,
+        -63.60625,
+        -33.191667
+      ],
+      "rendered_mainstem_length_km": 245.138,
+      "rendered_network_length_km": 245.138,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -65.064583,
+          -34.427083,
+          -63.60625,
+          -33.191667
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "candidate_name_role": "unestablished_pending_material",
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_hold_reason": null,
+      "source_keys": [
+        "ign-topo250k-r112",
+        "ign-topo500k-r112",
+        "ign-geoservices",
+        "indec-adesur1998",
+        "quinodoz2016-prose",
+        "unrc-suco2022"
+      ],
+      "supported_name_scope": "No whole-feature or completed representative identity is established. Arroyo La Cruz, Zelegua/Zelegüa and Laguna La Amarga remain bounded component observations.",
+      "geographic_disambiguation": "The selected head begins on the Arroyo La Cruz corridor near Paso de la Cruz southwest of Achiras. It then leaves the mapped La Cruz course, crosses toward the Zelegua corridor, passes through plains north of Washington and around Vicuña Mackenna, and continues through the La Cautiva–La Amarga wetland country to Laguna La Amarga west of Serrano. The actual La Cruz-to-Zelegua connector is not established by the acquired primary maps. Regional Cortaderas–Ají prose does not supply that missing connection or name the complete modeled route.",
+      "region": "Southern Comechingones foothills and San Luis–Córdoba plains, Argentina, toward Laguna La Amarga west of Serrano.",
+      "completion_scope": "Original maps cover the headward, plains, wetland and terminal geographic setting. The La Cruz–Zelegua transition and long middle connection remain unestablished, so the review is incomplete for material source correspondence.",
+      "material_pending_reason": "The selected La Cruz–Zelegua transition and the long middle plains connection toward Vicuña Mackenna are not established by the acquired original cartography or actually read primary prose.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "component_scope_limits": [
+          "Arroyo La Cruz is supported for the initial mapped corridor only.",
+          "Zelegua is the spelling read on the IGN maps; Zelegüa is used in the independently read hydrological article. These are bounded component/context observations, not a whole-feature name.",
+          "Arroyo Ají is a regional receiving-corridor hypothesis supported by primary prose about Cortaderas and Zelegüa, but no representative-system identity is accepted for the complete selected feature.",
+          "Laguna La Amarga identifies the terminal lake setting, not a river name applicable upstream.",
+          "Neither the Suco lake, adjacent Las Cortaderas headwater, Chaján, Achiras–del Gato, Santa Catalina nor the Río Quinto trunk is substituted for the selected initial route. No full-route river hydronym or current continuous hydraulic operation is established."
+        ],
+        "unresolved_components": [
+          {
+            "fid": 14443,
+            "component": "Headward La Cruz–Zelegua transition",
+            "gap": "At San Carlos/La Maragata the selected route turns south away from the separately mapped La Cruz course and reaches the Zelegua corridor farther south. Both the historical 1:250,000 sheets and the newer 1:500,000 mosaic cover this country but do not show the intervening connection. A bounded 1:100,000 view returned blank coverage. This is an unresolved material connector, not merely an unnamed reach."
+          },
+          {
+            "fid": 14443,
+            "component": "Middle plains route toward Vicuña Mackenna",
+            "gap": "The original maps show the complete surrounding plains and settlement/transport geography, but the long selected southeast/eastward line across the La Blanca–San Juan–El Toro–La Larga country is not drawn as a continuous stream. Primary prose describes the Cortaderas–Ají regional system and later canalization, but the unseen research figures and regional prose cannot establish that this particular modeled line is its connected route. No precise bank or vertex match is being demanded."
+          }
+        ],
+        "terminal_lake_context": "Laguna La Amarga",
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:70020683",
+      "category": "river_group",
+      "system_id": "70020683",
+      "original_queue_rank": 250,
+      "baseline_logical_fid": 2914,
+      "geometry_fids": [
+        8987
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -66.815683,
+        56.877083,
+        -65.245833,
+        58.462573
+      ],
+      "rendered_mainstem_length_km": 244.945,
+      "rendered_network_length_km": 244.945,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -66.815683,
+          56.877083,
+          -65.245833,
+          58.462573
+        ]
+      },
+      "candidate_name": "Rivière Qurlutuq",
+      "candidate_names": [
+        "Rivière Qurlutuq"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "candidate_name_role": "supported_representative_system_identity",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_hold_reason": null,
+      "source_keys": [
+        "r112-rg201505-qurlutuq-head",
+        "r112-rg201501-qurlutuq-middle",
+        "r112-rg201304-qurlutuq-terminal",
+        "r112-bg201811-qurlutuq-overview",
+        "r112-ark2011-pyramides"
+      ],
+      "supported_name_scope": "Representative identity of the selected connected river-and-lake system, supported by the named mapped Qurlutuq trunk. Lac Cholmondely, Lac Qamanialuup and Lac Tasirpak remain separately named lake components; no claim that every selected channel, tributary or lake shares one river hydronym.",
+      "geographic_disambiguation": "Three original Québec 1:250,000 maps collectively show the selected system from the Lac Cholmondely setting, westward lake/channel connections and the northward Qurlutuq trunk, through Lac Qamanialuup and Lac Tasirpak, into the lower river and its actual Ungava coastal outlet. The independent geological overview and park report add bounded context. Their respective overprint and scale limitations are not mistaken for complete connector evidence. No material component remains geographically uncovered after the three-sheet reading.",
+      "region": "Northern Québec, Canada, from Lac Cholmondely through the Qurlutuq river-and-lake corridor to Baie d’Ungava.",
+      "completion_scope": "Complete bounded generalized headward-to-terminal correspondence and supported representative system identity. No product/name application.",
+      "material_pending_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Rivière Qurlutuq",
+        "initial_headward_component_name": "Lac Cholmondely setting",
+        "selected_named_lake_components": [
+          "Lac Cholmondely",
+          "Lac Qamanialuup",
+          "Lac Tasirpak"
+        ],
+        "individual_interlake_channel_names": null,
+        "receiving_waterbody_name": "Baie d’Ungava",
+        "terminal_limit": "Actual generalized coastal outlet on the southeast side of Baie d’Ungava; no surveyed mouth vertex or present tidal boundary asserted.",
+        "regional_associations_are_exact_reach_assignments": false,
+        "uniform_name_for_all_components": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:80068731",
+      "category": "river_group",
+      "system_id": "80068731",
+      "original_queue_rank": 251,
+      "baseline_logical_fid": 909,
+      "geometry_fids": [
+        2519
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -102.454167,
+        66.122917,
+        -101.80625,
+        67.727094
+      ],
+      "rendered_mainstem_length_km": 244.178,
+      "rendered_network_length_km": 244.178,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -102.454167,
+          66.122917,
+          -101.80625,
+          67.727094
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "candidate_name_role": "unestablished_pending_material",
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_hold_reason": null,
+      "source_keys": [
+        "r112-aafc-nluis-index",
+        "r112-aafc-nluis-66k",
+        "r112-aafc-nluis-66l",
+        "r112-aafc-nluis-66m",
+        "r112-aafc-nluis-66n",
+        "r112-eccc-ahiak-management-plan-2019",
+        "r112-nrcan-cbmt3978-inherited-current-stop"
+      ],
+      "supported_name_scope": null,
+      "geographic_disambiguation": "Perry, Armark, Pitok and other regional names in search results or management-plan prose do not establish this selected mainstem. Gazetteer/API search results surfaced incidentally are excluded and were not opened.",
+      "completion_scope": "The selected FID and all 48 internal pieces were oriented, but none is claimed to have completed original-map correspondence. All material connectors and the actual terminal remain open.",
+      "material_pending_reason": "No original cartography was acquired for the selected route. Regional management-plan prose and the NLUIS index cannot establish the headward feature, intervening lake/stream links, middle corridor or actual coastal terminal.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0,
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true
+      },
+      "region": "Mainland Nunavut, Canada; selected inland-to-coastal corridor west of the Queen Maud Gulf regional setting. Exact natural river and receiving inlet remain unestablished."
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61514286",
+      "hydro-system:61509423",
+      "hydro-system:80068731"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 391,
+    "non_pending_records": 351,
+    "source_access_pending": 3,
+    "source_material_pending": 37,
+    "source_any_pending": 40,
+    "scope_holds": 115,
+    "river_groups": 293,
+    "lakes": 98,
+    "unrecorded": 3674,
+    "unrecorded_river_groups": 3162,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "CL2009",
+      "official_url": "https://planesynormas.mma.gob.cl/archivos/2016/proyectos/AGIES_DGA_CQA5072.pdf"
+    },
+    {
+      "source_key": "CL2022",
+      "official_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/bitstreams/87ec2e74-ca94-4ba6-bb20-0b603d2066cf/download"
+    },
+    {
+      "source_key": "ign-topo250k-r112",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-topo500k-r112",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-geoservices",
+      "official_url": "https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/ServiciosOGC"
+    },
+    {
+      "source_key": "indec-adesur1998",
+      "official_url": "https://biblioteca.indec.gob.ar/bases/minde/2mi426_4.pdf"
+    },
+    {
+      "source_key": "quinodoz2016-prose",
+      "official_url": "https://ri.conicet.gov.ar/bitstream/handle/11336/18362/CONICET_Digital_Nro.22246.pdf?isAllowed=y&sequence=1"
+    },
+    {
+      "source_key": "unrc-suco2022",
+      "official_url": "https://www.ayv.unrc.edu.ar/2022/12/12/la-fav-presento-el-plan-basico-del-consorcio-de-conservacion-de-suelos-arroyo-seco/"
+    },
+    {
+      "source_key": "r112-rg201505-qurlutuq-head",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG201505/RG201505PLAN.pdf"
+    },
+    {
+      "source_key": "r112-rg201501-qurlutuq-middle",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG201501/RG201501PLAN.pdf"
+    },
+    {
+      "source_key": "r112-rg201304-qurlutuq-terminal",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG201304/RG201304PLAN.pdf"
+    },
+    {
+      "source_key": "r112-bg201811-qurlutuq-overview",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/EXAMINE/BG201811/BG201811PLAN001.pdf"
+    },
+    {
+      "source_key": "r112-ark2011-pyramides",
+      "official_url": "https://cdn-contenu.quebec.ca/cdn-contenu/parcs/documents/RA_Etat-connaissances_Ulittaniujalik.pdf"
+    },
+    {
+      "source_key": "r112-aafc-nluis-index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "source_key": "r112-aafc-nluis-66k",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66k.jpg"
+    },
+    {
+      "source_key": "r112-aafc-nluis-66l",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66l.jpg"
+    },
+    {
+      "source_key": "r112-aafc-nluis-66m",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66m.jpg"
+    },
+    {
+      "source_key": "r112-aafc-nluis-66n",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66n.jpg"
+    },
+    {
+      "source_key": "r112-eccc-ahiak-management-plan-2019",
+      "official_url": "https://publications.gc.ca/collections/collection_2020/eccc/CW66-592-2019-eng.pdf"
+    },
+    {
+      "source_key": "r112-nrcan-cbmt3978-inherited-current-stop",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "8e0b473c1bb3e8fe1869bc0de6f8649d89885f50",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      248,
+      249,
+      250,
+      251
+    ],
+    "next_unrecorded_id": "hydro-system:80015064",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

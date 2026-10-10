@@ -1,0 +1,760 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r112",
+  "sources": [
+    {
+      "source_key": "CL2009",
+      "title": "Análisis de impacto económico y social de anteproyecto de normas secundarias de calidad – Cuenca Río Mataquito",
+      "authors_publisher": "Ministerio de Obras Públicas, Dirección General de Aguas; prepared by DSS Ambiente",
+      "publication_date": "2009-12",
+      "publication_number": "S.I.T. Nº 170",
+      "material_actually_read": "Original PDF downloaded successfully after successful web text reading. Figure 2-1, printed page 13/PDF page 15, was visually inspected. Bounded basin prose on printed pages 12–13 was read.",
+      "cartography": "Figure 2-1 reproduces the SINIA basin map, visibly carrying ©Copyright-2005-CONAMA. Map reading, not the extracted label list, supports the observations.",
+      "limits": "Regional map only. The adjacent prose contains visibly inconsistent Tránsito/Carmen references and a northeast-direction statement; these were not used to establish the selected route. Hydrological prose attributed to the 2004 diagnosis is not treated as a new independent primary survey. No full headward-connector identification is claimed.",
+      "rights": "The visible CONAMA copyright notice is retained. Original maps, crops and PDF remain private; no redistribution permission is inferred.",
+      "official_url": "https://planesynormas.mma.gob.cl/archivos/2016/proyectos/AGIES_DGA_CQA5072.pdf"
+    },
+    {
+      "source_key": "CL2022",
+      "title": "Plan Estratégico de Gestión Hídrica en la Cuenca del Río Mataquito. Informe Final",
+      "authors_publisher": "Ministerio de Obras Públicas, Dirección General de Aguas; UTP Hidrogestión S.A.–NTT DATA Chile S.A.",
+      "publication_date": "2022-02",
+      "publication_number": "S.I.T. Nº 476; ADM6010v1.pdf",
+      "catalogue_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/items/d58f8ff5-50b9-4f56-8a4e-b32f008f98b5",
+      "persistent_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/handle/20.500.12140/208354",
+      "material_actually_read": "Successful original PDF acquisition and local visual inspection of Figure 2-1 (page28), Figure 2-6 (page34), Figure 2-7 (page35), Figure 2-24 (page66), and Figure 5-2 (page 154). Bounded supporting prose on pages 27–28, 34–37, 63–66, 70–71, 77–78 and 154 was read.",
+      "cartography": "Figure 2-1 and Figure 2-7 are the plan's original cartographic compilations from Mapoteca DGA 2021a; Figure 2-24 cites DGA 2021. Figure 2-6 is schematic; Figure 5-2 depicts the study's modeled network and is used only with the geographic maps, not as independent proof of natural continuity.",
+      "limits": "Distinct 2022 plan, not a re-acquisition of the stopped Vialidad portal, Loa 2014 figures, Codelco 2023 report, or unidentified historical MOP publication. Distinct documents do not demonstrate independent underlying hydrographic surveys. The maps do not resolve the selected border-aligned connection. This source does not establish registry status or current infrastructure conditions.",
+      "rights": "Official hosting is not a public-domain or redistribution determination. Only own factual observations and bibliography are prepared for public use; originals and working figures remain private.",
+      "official_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/bitstreams/87ec2e74-ca94-4ba6-bb20-0b603d2066cf/download"
+    },
+    {
+      "source_key": "ign-topo250k-r112",
+      "title": "Cartas topográficas 1:250.000, mosaico: Achiras–Chaján–Vicuña Mackenna–La Amarga corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Composite historical sheets; individual sheet dates not established.",
+      "material_read": "One overview and four overlapping original bounded map views, covering head, middle, lower and terminal geography.",
+      "limits": "Whole corridor was visually inspected; mapped landform coverage does not by itself prove the headward and middle hydrological connectors. One small terminal-adjacent white patch is covered geographically by the distinct 1:500,000 mosaic. Source images and overlays stay private."
+    },
+    {
+      "source_key": "ign-topo500k-r112",
+      "title": "Mosaico cartas 1:500.000, febrero 2026 service layer",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Service layer identifies febrero_2026; constituent sheet revision dates not established.",
+      "material_read": "One original bounded overview across the complete selected corridor.",
+      "limits": "Generalized regional cartography. It closes the small terminal-adjacent image gap, but not the substantive La Cruz–Zelegua connection or the middle stream alignment."
+    },
+    {
+      "source_key": "ign-geoservices",
+      "title": "Geoservicios",
+      "publisher": "Instituto Geográfico Nacional",
+      "official_url": "https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/ServiciosOGC",
+      "material_read": "Official description and published service links, plus normally returned service capabilities.",
+      "limits": "Service documentation establishes provenance, not river identity. The vector-layer overview acquired before the Argenmap denial was unlabeled and did not resolve the missing connectors; no further vector-service requests were made afterward."
+    },
+    {
+      "source_key": "indec-adesur1998",
+      "title": "Los municipios de ADESUR: estadísticas básicas",
+      "publisher": "Instituto Nacional de Estadística y Censos and Universidad Nacional de Río Cuarto, PRINEM",
+      "year": 1998,
+      "official_url": "https://biblioteca.indec.gob.ar/bases/minde/2mi426_4.pdf",
+      "pages": "Printed/PDF pp.41–42, Hidrografía; original cover and publication information also read.",
+      "material_read": "Original PDF acquired after a completed reader-size limitation; relevant prose read and p.42 visually inspected.",
+      "supports": "Regional Cortaderas–Ají and canalized drainage context.",
+      "limits": "Historical regional prose; not original map evidence for the modeled connectors or present operations.",
+      "use_notice": "Publication states partial reproduction is permitted with source acknowledgment. No source pages are redistributed."
+    },
+    {
+      "source_key": "quinodoz2016-prose",
+      "title": "Assessing interactions between groundwater and surface water in a Pampean stream",
+      "authors": [
+        "F. Becher Quinodoz",
+        "M. Blarasin",
+        "H. Panarello",
+        "E. Ducos"
+      ],
+      "publisher": "IWA Publishing, Hydrology Research; institutional repository CONICET",
+      "year": 2016,
+      "doi": "https://doi.org/10.2166/nh.2016.100",
+      "official_url": "https://ri.conicet.gov.ar/bitstream/handle/11336/18362/CONICET_Digital_Nro.22246.pdf?isAllowed=y&sequence=1",
+      "edition": "Uncorrected proof",
+      "pages": "PDF pp.1–6; relevant drainage statement on p.5.",
+      "material_read": "Successful web text reader only. First requested map screenshot failed; no figures were visually acquired.",
+      "supports": "Ají begins at Cortaderas–Zelegüa confluence with some Suco-lagoon contribution; study concerns its middle/lower basin.",
+      "limits": "The article does not establish the selected headward connector. Parsed coordinates/name lists and unseen figures are not geographic correspondence evidence.",
+      "use_notice": "Copyright IWA Publishing 2016 appears in the proof."
+    },
+    {
+      "source_key": "unrc-suco2022",
+      "title": "La FAV presentó el plan básico del Consorcio de Conservación de Suelos Arroyo Seco.",
+      "publisher": "Facultad de Agronomía y Veterinaria, Universidad Nacional de Río Cuarto",
+      "date": "2022-12-12",
+      "official_url": "https://www.ayv.unrc.edu.ar/2022/12/12/la-fav-presento-el-plan-basico-del-consorcio-de-conservacion-de-suelos-arroyo-seco/",
+      "material_read": "Original faculty report.",
+      "supports": "Body describes Arroyo Suco, its start south of Achiras and joining Ají at Vicuña Mackenna, with substantial rural-road/channel influence.",
+      "limits": "The page title says Seco while its body repeatedly says Suco; neither is assigned to the whole selected feature. Prose is contextual rather than direct map coverage.",
+      "use_notice": "Site footer says all rights reserved."
+    },
+    {
+      "source_key": "r112-rg201505-qurlutuq-head",
+      "title": "Géologie de la région du lac Brisson (SNRC 24A), RG 2015-05, carte RG 2015-05-C001",
+      "publisher": "Gouvernement du Québec, Ministère de l’Énergie et des Ressources naturelles, Direction générale de Géologie Québec",
+      "year": 2016,
+      "type": "Primary original cartography",
+      "scale": "1:250,000",
+      "inspection": "Original report, linked directory and original map PDF each acquired normally with HTTP200. The map overview, northwestern headward corridor and source/rights credits were visually read.",
+      "supports": "Lac Cholmondely headward setting, westward linked waterbody/channel passage, receiving northward Qurlutuq corridor and overlap into the middle map.",
+      "limitations": "Geological map with BDTA 250k topographic base. Used at generalized corridor scale, without extracting source vectors or testing exact banks, lake axes or source vertices. Formal hydronym boundaries and current flow are not established.",
+      "authors": "Isabelle Lafrance, Daniel Bandyayera, Benoit Charette, Carl Bilodeau et Jean David",
+      "sheet_or_map_code": "RG 2015-05-C001",
+      "rights_and_public_boundary": "The map carries Government of Québec copyright and a notice that it has no legal effect. Source reports link a licence, but no redistribution permission is inferred. Only own bounded factual observations and ordinary citations are public-ready; original PDFs, map pixels, crops and orientation overlays remain private.",
+      "independence": "A separately issued provincial cartographic publication, distinct from the blocked CBMT service, excluded naming records, paused diffusion.mern route and BG2020-07 missing map. Shared underlying cartographic data are possible and not presented as independent hydrographic surveys.",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG201505/RG201505PLAN.pdf"
+    },
+    {
+      "source_key": "r112-rg201501-qurlutuq-middle",
+      "title": "Géologie de la région du lac Henrietta (SNRC 24H), RG 2015-01, carte",
+      "publisher": "Gouvernement du Québec, Ministère de l’Énergie et des Ressources naturelles, Direction générale de Géologie Québec",
+      "year": 2015,
+      "type": "Primary original cartography",
+      "scale": "1:250,000",
+      "inspection": "Original report, linked directory and original map PDF each acquired normally with HTTP200. Western corridor, overlapping southern trunk, Qamanialuup reach, northwest bend, Tasirpak passage and northern continuation were visually read.",
+      "supports": "Continuous mapped upper/middle Qurlutuq corridor, Lac Qamanialuup passage, material channel and tributary junctions, northwest continuation through Lac Tasirpak and outlet to the lower map.",
+      "limitations": "Repeated river labels identify the connected trunk; named lakes remain lake components. The nearby western lake/river chains are not substituted for the selected eastward-bending route. No exact legal name-transition point is inferred.",
+      "authors": "Isabelle Lafrance, Daniel Bandyayera et Carl Bilodeau",
+      "rights_and_public_boundary": "The map carries Government of Québec copyright and a notice that it has no legal effect. Source reports link a licence, but no redistribution permission is inferred. Only own bounded factual observations and ordinary citations are public-ready; original PDFs, map pixels, crops and orientation overlays remain private.",
+      "independence": "A separately issued provincial cartographic publication, distinct from the blocked CBMT service, excluded naming records, paused diffusion.mern route and BG2020-07 missing map. Shared underlying cartographic data are possible and not presented as independent hydrographic surveys.",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG201501/RG201501PLAN.pdf"
+    },
+    {
+      "source_key": "r112-rg201304-qurlutuq-terminal",
+      "title": "Géologie de la région de Kuujjuaq et de la baie d’Ungava (SNRC 24J, 24K), RG 2013-04, carte RG 2013-04-C001",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles, Direction générale de Géologie Québec",
+      "year": 2013,
+      "type": "Primary original cartography",
+      "scale": "1:250,000",
+      "inspection": "Original report, linked directory and original map PDF each acquired normally with HTTP200. Southeastern lower-river corridor, its actual coastal inlet and the adjoining Ungava waterbody were visually read, together with map credits.",
+      "supports": "Lower Qurlutuq continuation, its northern bends and widened waters, and coastal outlet into Baie d’Ungava.",
+      "limitations": "Generalized coastal setting and channel continuity are established. The selected rendered end is not a surveyed mouth vertex or claim about current tidal extent. Adjacent Guesnier, Tuttutuuq, Ralleau and George settings are not substituted for this river.",
+      "authors": "Martin Simard, Isabelle Lafrance, Hanafi Hammouche et Claire Legouix",
+      "sheet_or_map_code": "RG 2013-04-C001",
+      "rights_and_public_boundary": "The map carries Government of Québec copyright and a notice that it has no legal effect. Source reports link a licence, but no redistribution permission is inferred. Only own bounded factual observations and ordinary citations are public-ready; original PDFs, map pixels, crops and orientation overlays remain private.",
+      "independence": "A separately issued provincial cartographic publication, distinct from the blocked CBMT service, excluded naming records, paused diffusion.mern route and BG2020-07 missing map. Shared underlying cartographic data are possible and not presented as independent hydrographic surveys.",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG201304/RG201304PLAN.pdf"
+    },
+    {
+      "source_key": "r112-bg201811-qurlutuq-overview",
+      "title": "Domaine lithotectonique de George, sud-est de la Province de Churchill, Nunavik, Québec, Canada : synthèse de la géologie, BG 2018-11, plan 001",
+      "publisher": "Gouvernement du Québec, Ministère de l’Énergie et des Ressources naturelles",
+      "year": 2018,
+      "type": "Primary original cartography",
+      "scale": "1:360,000",
+      "inspection": "Original map acquired with HTTP200. Full overview and overlapping headward, middle, lower and terminal original-pixel views were read. A private approximate orientation overlay aided reading only.",
+      "supports": "Whole-corridor context, repeated Rivière Qurlutuq labels, broad connected lakes and Ungava orientation.",
+      "limitations": "Its BDGA 1M base and heavy geological overprint alone do not resolve all small connectors or actual coastal geometry. Those limitations were filled by the three separately acquired 1:250,000 source maps; this overview was not overread.",
+      "authors": "Isabelle Lafrance et Benoit Charette; geological compilation identified as 2017; map copyright fourth quarter 2018",
+      "sheet_or_map_code": "BG 2018-11-C01",
+      "rights_and_public_boundary": "The map carries Government of Québec copyright and a notice that it has no legal effect. Source reports link a licence, but no redistribution permission is inferred. Only own bounded factual observations and ordinary citations are public-ready; original PDFs, map pixels, crops and orientation overlays remain private.",
+      "independence": "A separately issued provincial cartographic publication, distinct from the blocked CBMT service, excluded naming records, paused diffusion.mern route and BG2020-07 missing map. Shared underlying cartographic data are possible and not presented as independent hydrographic surveys.",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/EXAMINE/BG201811/BG201811PLAN001.pdf"
+    },
+    {
+      "source_key": "r112-ark2011-pyramides",
+      "title": "Projet de parc national des Monts-Pyramides. État des connaissances. Septembre 2011",
+      "publisher": "Administration régionale Kativik, Service des ressources renouvelables, de l’environnement, du territoire et des parcs, Section des parcs, Kuujjuaq, Québec",
+      "year": 2011,
+      "isbn": "978-0-9738056-4-2",
+      "type": "Primary park-study report and original drainage map",
+      "inspection": "Original PDF acquired with HTTP200. Cover and bibliography, printed pages56 and63 hydrographic prose, and Carte3.3 at PDF page79 were read; source map pixels were visually inspected.",
+      "supports": "Bounded regional context: Qurlutuq and Lagrevé drain independently toward Ungava, west of the George catchment. Carte3.3 distinguishes the adjacent basin areas.",
+      "limitations": "The map is a low-resolution embedded original raster and covers the park-study area rather than the entire selected route. Its basin tint is not exact reach correspondence and does not establish the headward connector or coastal end. It is supporting context only.",
+      "rights": "© Administration régionale Kativik, 2011. Original and cropped source images remain private.",
+      "official_url": "https://cdn-contenu.quebec.ca/cdn-contenu/parcs/documents/RA_Etat-connaissances_Ulittaniujalik.pdf"
+    },
+    {
+      "source_key": "r112-aafc-nluis-index",
+      "title": "Northern Land Use Information Series (NLUIS): Northern Land Use, map index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquired_scope": "Web-reader index text read successfully. It lists sheets 66K Armark Lake, 66L MacAlpine Lake, 66M Perry River and 66N Ogden Bay. The index dates the series to 1972–1986 and gives a 1:250,000 scale. No individual sheet edition or local map content was established by the index.",
+      "supports": "Bibliographic identification of the attempted original sheets only.",
+      "limits": "An index title or nominal sheet coverage is not selected-route map correspondence. A later direct index request had no retained conclusive outcome; it was not repeated and is not evidence."
+    },
+    {
+      "source_key": "r112-aafc-nluis-66k",
+      "title": "Northern Land Use Information Series, Armark Lake, sheet 66K, 1:250,000",
+      "publisher": "Agriculture Canada / Environment Canada / Indian and Northern Affairs Canada; official scan hosted by Agriculture and Agri-Food Canada",
+      "year": null,
+      "edition": "Individual sheet date and edition not observed; series index states 1972–1986",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66k.jpg",
+      "acquired_scope": "No map pixels acquired. One request through the successfully read official index returned Cache miss.",
+      "supports": "No substantive cartographic evidence.",
+      "limits": "No sheet labels, local lake connections, river course, terminal setting or printed source-use notice was visually read. The failed map is not treated as evidence."
+    },
+    {
+      "source_key": "r112-aafc-nluis-66l",
+      "title": "Northern Land Use Information Series, MacAlpine Lake, sheet 66L, 1:250,000",
+      "publisher": "Agriculture Canada / Environment Canada / Indian and Northern Affairs Canada; official scan hosted by Agriculture and Agri-Food Canada",
+      "year": null,
+      "edition": "Individual sheet date and edition not observed; series index states 1972–1986",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66l.jpg",
+      "acquired_scope": "No map pixels acquired. One request through the successfully read official index returned Cache miss.",
+      "supports": "No substantive cartographic evidence.",
+      "limits": "No sheet labels, local lake connections, river course, terminal setting or printed source-use notice was visually read. The failed map is not treated as evidence."
+    },
+    {
+      "source_key": "r112-aafc-nluis-66m",
+      "title": "Northern Land Use Information Series, Perry River, sheet 66M, 1:250,000",
+      "publisher": "Agriculture Canada / Environment Canada / Indian and Northern Affairs Canada; official scan hosted by Agriculture and Agri-Food Canada",
+      "year": null,
+      "edition": "Individual sheet date and edition not observed; series index states 1972–1986",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66m.jpg",
+      "acquired_scope": "No map pixels acquired. One request through the successfully read official index returned Cache miss.",
+      "supports": "No substantive cartographic evidence.",
+      "limits": "No sheet labels, local lake connections, river course, terminal setting or printed source-use notice was visually read. The failed map is not treated as evidence."
+    },
+    {
+      "source_key": "r112-aafc-nluis-66n",
+      "title": "Northern Land Use Information Series, Ogden Bay, sheet 66N, 1:250,000",
+      "publisher": "Agriculture Canada / Environment Canada / Indian and Northern Affairs Canada; official scan hosted by Agriculture and Agri-Food Canada",
+      "year": null,
+      "edition": "Individual sheet date and edition not observed; series index states 1972–1986",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66n.jpg",
+      "acquired_scope": "No map pixels acquired. One request through the successfully read official index returned Cache miss.",
+      "supports": "No substantive cartographic evidence.",
+      "limits": "No sheet labels, local lake connections, river course, terminal setting or printed source-use notice was visually read. The failed map is not treated as evidence."
+    },
+    {
+      "source_key": "r112-eccc-ahiak-management-plan-2019",
+      "title": "Ahiak (Queen Maud Gulf) Migratory Bird Sanctuary Management Plan [Proposed], 2019",
+      "publisher": "Environment and Climate Change Canada, Canadian Wildlife Service Northern Region",
+      "year": 2019,
+      "catalogue_number": "CW66-592/2019E-PDF",
+      "official_url": "https://publications.gc.ca/collections/collection_2020/eccc/CW66-592-2019-eng.pdf",
+      "page": "Printed pages 9–10, section 1.1.5 Hydrology; Figure 1 on printed page 7 was not acquired",
+      "acquired_scope": "Original PDF opened successfully in the web text reader. Bibliographic and reproduction-notice prose and section 1.1.5 were read. The later screenshot request for Figure 1 at PDF page index 24 returned Cache miss.",
+      "supports": "Regional prose says sanctuary rivers drain toward Queen Maud Gulf, lists several distinct rivers and describes broadly north–south courses with upper lake chains.",
+      "limits": "Regional prose does not identify this selected mainstem or establish any of its individual lake/stream connectors. Figure 1 and its place names were not visually read. The source is not a naming adjudication or current-law determination.",
+      "reuse_limit": "Publication notice requires prior permission for commercial reproduction; no original pages, maps, crops, overlays or extensive extracts are republished."
+    },
+    {
+      "source_key": "r112-nrcan-cbmt3978-inherited-current-stop",
+      "title": "BaseMaps/CBMT3978 (MapServer)",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "acquired_scope": "Not requested for hydro-system:80068731. A new service-wide stop from another target in this batch was received before this target had a service turn.",
+      "supports": "No cartographic evidence for this target.",
+      "limits": "On the separate Quebec target, export metadata returned HTTP 200 but the returned PNG original request failed with transport/tunnel 403 Forbidden. No origin image-server HTTP status or new original pixels were obtained. The service/publication and equivalent retrieval routes remain stopped without retry."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61514286",
+      "source_keys": [
+        "CL2009",
+        "CL2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14452
+          ],
+          "component_scope": "Selected initial southeastern headward branch",
+          "finding": "The 2022 overview places this setting beside the southeastern Colorado drainage and international boundary. It does not securely distinguish the selected initial branch.",
+          "correspondence": "Regional setting read; initial branch connection unresolved.",
+          "sources": [
+            "CL2022"
+          ],
+          "selected_geometry_context": "The short first fragment runs north, then bends east-northeast into the explicitly border-aligned second fragment. No lake polygon or hydronym is supplied in the selected object."
+        },
+        {
+          "fragments": [
+            14453
+          ],
+          "component_scope": "Entire border-aligned headward connector",
+          "finding": "The original overview distinguishes border and blue drainage. Their adjacency does not establish the selected northward passage as a continuous watercourse.",
+          "correspondence": "Material connector gap remains; no precise-bank or vertex-match requirement is imposed.",
+          "sources": [
+            "CL2022"
+          ],
+          "selected_geometry_context": "The retained metadata expressly marks this full fragment border_aligned=true, flags=1. Its selected line continues north before turning northwest into FID14454."
+        },
+        {
+          "fragments": [
+            14454
+          ],
+          "component_scope": "Eastern Colorado approach, Colorado–Lontué junction and whole Lontué middle corridor",
+          "finding": "Maps distinguish Colorado from the southern Patos/Mondaca arm, then trace Lontué northwest toward the Teno confluence. Upeo enters separately. The first border departure remains dependent on the unresolved connector.",
+          "correspondence": "Middle corridor and material junctions supported; uppermost connection qualified.",
+          "sources": [
+            "CL2009",
+            "CL2022"
+          ],
+          "selected_geometry_context": "From the border the selected course turns west, northwest, then west through the Andean interior before following a long northwest valley course to the vicinity of the Teno junction."
+        },
+        {
+          "fragments": [
+            14455
+          ],
+          "component_scope": "Entire lower Mataquito and actual Pacific terminal",
+          "finding": "Original maps show Mataquito from the Teno–Lontué confluence through Hualañé and Licantén to its Pacific coastal outlet, matching the selected lower corridor.",
+          "correspondence": "Complete lower corridor and terminal setting read at generalized scale.",
+          "sources": [
+            "CL2009",
+            "CL2022"
+          ],
+          "selected_geometry_context": "The final fragment proceeds west-southwest through the broad lower valley, makes its pronounced northward bend, resumes west past the lower settlements and reaches the coast. The retained terminal is sea."
+        }
+      ],
+      "remaining_material_gap": {
+        "fids": [
+          14452,
+          14453,
+          14454
+        ],
+        "primary_fid": 14453,
+        "description": "The relationship between the selected initial branch, the entire border-aligned northward passage and the first Colorado-side departure is unresolved. Regional cartography establishes the receiving drainage but does not independently establish this selected headward connection.",
+        "not_a_gap": "No further source is required merely to prove exact banks, vertices, a fixed mouth point, every tributary name or an official scalar hydronym. The middle and lower corridor, major branch alternatives and actual sea-terminal setting were read.",
+        "needed_evidence": "An allowed primary map or direct primary description that resolves the actual selected headward passage and its joining of the Colorado corridor at ordinary generalized component scale."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61509423",
+      "source_keys": [
+        "ign-topo250k-r112",
+        "ign-topo500k-r112",
+        "ign-geoservices",
+        "indec-adesur1998",
+        "quinodoz2016-prose",
+        "unrc-suco2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14443
+          ],
+          "component_scope": "Initial headward setting",
+          "finding": "Selected head lies among the southern Comechingones foothills west/southwest of Achiras. The route follows the mapped Arroyo La Cruz past Paso de la Cruz and Estación Achiras before the unresolved southerly transition near San Carlos/La Maragata. The mapped Achiras/Las Lajas drainage to the northeast is distinct.",
+          "correspondence": "Original cartography read; initial correspondence supported, connector unresolved.",
+          "sources": [
+            "ign-topo250k-r112",
+            "ign-topo500k-r112"
+          ]
+        },
+        {
+          "fragments": [
+            14443
+          ],
+          "component_scope": "Zelegua approach and Route 8 crossing",
+          "finding": "Farther south the selected route returns to the mapped Zelegua drainage east of Las Cortaderas and crosses the Route 8/rail corridor east of Chaján, around San Lucas/La Unión. The nearby Las Cortaderas and Chaján courses remain distinct upstream components. The selected route does not cross Laguna Suco to the east.",
+          "correspondence": "Original maps read; corridor correspondence with local generalized offsets, no uniform upstream naming claim.",
+          "sources": [
+            "ign-topo250k-r112",
+            "ign-topo500k-r112"
+          ]
+        },
+        {
+          "fragments": [
+            14443
+          ],
+          "component_scope": "Middle plains and Vicuña Mackenna",
+          "finding": "The selected route traverses open plains north of Washington, west of Coronel Moldes and Tosquitas, then passes the Vicuña Mackenna/General Soler setting and approaches La Cautiva. Mapped landforms, settlements and transport routes locate the whole corridor; the maps do not draw its long middle connection. The INDEC/UNRC volume describes Las Cortaderas becoming Ají and a canalized continuation near Route 7 toward the Santa Catalina–del Gato/Devoto system. That contextual description does not prove the selected line.",
+          "correspondence": "Original geographic context complete; selected hydrological connector correspondence unresolved.",
+          "sources": [
+            "ign-topo250k-r112",
+            "ign-topo500k-r112",
+            "indec-adesur1998"
+          ]
+        },
+        {
+          "fragments": [
+            14443
+          ],
+          "component_scope": "Lower wetland corridor",
+          "finding": "After the General Soler/La Cautiva crossing, the modeled line continues southeast through widespread marsh/depression terrain south and west of General Levalle, past the Caracoche, El Diamante, Las Tres Marías, La Querencia and La Blanqueada settings. It does not follow the Río Quinto main trunk, which enters the La Amarga wetlands from the west. The wetland setting is visible across the acquired 1:250,000 sheets and continuous 1:500,000 view.",
+          "correspondence": "Bounded landscape and terminal-approach correspondence read; no common hydronym or modern channel operation inferred.",
+          "sources": [
+            "ign-topo250k-r112",
+            "ign-topo500k-r112"
+          ]
+        },
+        {
+          "fragments": [
+            14443
+          ],
+          "component_scope": "Actual terminal",
+          "finding": "The final southward leg passes west of Santa Ana and ends within the northern part of the narrow Laguna La Amarga setting west of Serrano. Laguna La Cotorra lies separately to the southwest. The 1:250,000 composite contains a white cartographic patch immediately upstream of the terminal lake; the independently acquired 1:500,000 mosaic supplies continuous geographic coverage there. The lake name is retained as terminal geography only.",
+          "correspondence": "Original terminal cartography read at two scales; endorheic class is retained model metadata, not proof of modern hydraulic isolation.",
+          "sources": [
+            "ign-topo250k-r112",
+            "ign-topo500k-r112"
+          ]
+        },
+        {
+          "fragments": [
+            14443
+          ],
+          "component_scope": "Lake/reservoir/branch scope",
+          "finding": "No selected reservoir passage was established. Laguna Suco and the Río Quinto reservoir system are outside the selected mainstem. The terminal lake/wetland passage is not renamed Arroyo Ají or Arroyo La Cruz. UNRC primary prose places the Suco basin as a separate contributor joining Ají near Vicuña Mackenna.",
+          "correspondence": "Cartography plus bounded primary prose; not an inventory of every water body.",
+          "sources": [
+            "ign-topo250k-r112",
+            "ign-topo500k-r112",
+            "unrc-suco2022",
+            "quinodoz2016-prose"
+          ]
+        }
+      ],
+      "remaining_material_gaps": [
+        {
+          "fid": 14443,
+          "component": "Headward La Cruz–Zelegua transition",
+          "gap": "At San Carlos/La Maragata the selected route turns south away from the separately mapped La Cruz course and reaches the Zelegua corridor farther south. Both the historical 1:250,000 sheets and the newer 1:500,000 mosaic cover this country but do not show the intervening connection. A bounded 1:100,000 view returned blank coverage. This is an unresolved material connector, not merely an unnamed reach."
+        },
+        {
+          "fid": 14443,
+          "component": "Middle plains route toward Vicuña Mackenna",
+          "gap": "The original maps show the complete surrounding plains and settlement/transport geography, but the long selected southeast/eastward line across the La Blanca–San Juan–El Toro–La Larga country is not drawn as a continuous stream. Primary prose describes the Cortaderas–Ají regional system and later canalization, but the unseen research figures and regional prose cannot establish that this particular modeled line is its connected route. No precise bank or vertex match is being demanded."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70020683",
+      "source_keys": [
+        "r112-rg201505-qurlutuq-head",
+        "r112-rg201501-qurlutuq-middle",
+        "r112-rg201304-qurlutuq-terminal",
+        "r112-bg201811-qurlutuq-overview",
+        "r112-ark2011-pyramides"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8987
+          ],
+          "component_scope": "Lac Cholmondely headward setting and westward connection",
+          "finding": "The eastern selected beginning belongs to the mapped Lac Cholmondely setting. The original Brisson map shows its westward watercourse and linked broadened waters leading into the north-trending corridor labeled Rivière Qurlutuq. The complete initial westward leg, the turn north and overlap into the Henrietta map are read as a connected lake-and-channel system.",
+          "correspondence": "Supported at ordinary generalized component/corridor scale.",
+          "sources": [
+            "r112-rg201505-qurlutuq-head",
+            "r112-bg201811-qurlutuq-overview"
+          ],
+          "name_limit": "The named lake is retained as a lake component. Names for individual intervening narrow channels are unestablished, and the river label is not automatically assigned to every lake or feeder."
+        },
+        {
+          "fragments": [
+            8987
+          ],
+          "component_scope": "Upper Qurlutuq trunk and Lac Qamanialuup passage",
+          "finding": "Overlapping original maps follow the northward trunk through narrow and widened waters into the Qamanialuup lake setting. The mapped channel continuity, eastward bend and subsequent northwestern turn correspond to the selected middle route. Nearby western lake chains and lateral tributaries remain distinguishable from the selected passage.",
+          "correspondence": "Complete material lake and channel connections supported.",
+          "sources": [
+            "r112-rg201505-qurlutuq-head",
+            "r112-rg201501-qurlutuq-middle"
+          ],
+          "name_limit": "Repeated Rivière Qurlutuq labels support the receiving trunk identity. Lac Qamanialuup is separately labeled; no uniform scalar hydronym or legal transition vertex is inferred."
+        },
+        {
+          "fragments": [
+            8987
+          ],
+          "component_scope": "Northwest middle river, Lac Tasirpak and outlet",
+          "finding": "The original Henrietta map follows the northwest-running river into the elongated Lac Tasirpak and out through its northern channel. Both ends of the selected lake passage and the continuation toward the lower map are visible. The connected broad waters are differentiated from the adjacent Lac Monceaux and western lake corridors.",
+          "correspondence": "Complete lake inlet, selected crossing, outlet and lower-route overlap supported.",
+          "sources": [
+            "r112-rg201501-qurlutuq-middle",
+            "r112-bg201811-qurlutuq-overview"
+          ],
+          "name_limit": "Tasirpak remains a lake name; repeated river labels resume on the connected Qurlutuq channel corridor."
+        },
+        {
+          "fragments": [
+            8987
+          ],
+          "component_scope": "Lower Qurlutuq river and actual Ungava coastal terminal",
+          "finding": "The Kuujjuaq–Ungava map continues the selected lower corridor north and northwest through its bends and widened channel sections to the coastal inlet on the southeast side of Baie d’Ungava. The actual terminal water connection is visible on this map rather than inferred from the geological overview’s overprinted coast. Adjacent river valleys and offshore waters provide geographic disambiguation.",
+          "correspondence": "Supported through the actual generalized coastal terminal with no material missing connector.",
+          "sources": [
+            "r112-rg201304-qurlutuq-terminal",
+            "r112-bg201811-qurlutuq-overview"
+          ],
+          "name_limit": "The receiving sea/bay is not a river name. Neither a surveyed mouth vertex nor present tidal boundary is asserted."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80068731",
+      "source_keys": [
+        "r112-aafc-nluis-index",
+        "r112-aafc-nluis-66k",
+        "r112-aafc-nluis-66l",
+        "r112-aafc-nluis-66m",
+        "r112-aafc-nluis-66n",
+        "r112-eccc-ahiak-management-plan-2019",
+        "r112-nrcan-cbmt3978-inherited-current-stop"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2519
+          ],
+          "component_scope": "Headward opening and eastward feeder",
+          "finding": "The selected geometry begins in the southern part of the corridor and runs predominantly eastward before turning north. No source identifies the opening feature or its connection into the next component.",
+          "correspondence": "unresolved: no original cartographic component reading",
+          "sources": [
+            "r112-aafc-nluis-66l",
+            "r112-aafc-nluis-66k"
+          ],
+          "limits": "Description of the selected geometry is orientation only. The actual natural watercourse, intervening lake passages, stream connectors, branch choices and naming extent have not been established by source cartography."
+        },
+        {
+          "fragments": [
+            2519
+          ],
+          "component_scope": "Upper northward reach and northwestward connector",
+          "finding": "The selected geometry turns north and then northwest through several differently oriented pieces. Whether these pieces follow named rivers, unnamed streams or lake passages remains unverified.",
+          "correspondence": "unresolved: no original cartographic component reading",
+          "sources": [
+            "r112-aafc-nluis-66k",
+            "r112-aafc-nluis-66l"
+          ],
+          "limits": "Description of the selected geometry is orientation only. The actual natural watercourse, intervening lake passages, stream connectors, branch choices and naming extent have not been established by source cartography."
+        },
+        {
+          "fragments": [
+            2519
+          ],
+          "component_scope": "Upper-middle northward and westward sequence",
+          "finding": "The geometry contains a long northward interval followed by a westward step and a renewed northern turn. No intervening lake, outlet or material connection has been established.",
+          "correspondence": "unresolved: no original cartographic component reading",
+          "sources": [
+            "r112-aafc-nluis-66l",
+            "r112-aafc-nluis-66k"
+          ],
+          "limits": "Description of the selected geometry is orientation only. The actual natural watercourse, intervening lake passages, stream connectors, branch choices and naming extent have not been established by source cartography."
+        },
+        {
+          "fragments": [
+            2519
+          ],
+          "component_scope": "Middle curving northward continuation",
+          "finding": "The selected middle course curves north and northeast before continuing north. No observed cartography connects these pieces to the upper or lower natural river corridor.",
+          "correspondence": "unresolved: no original cartographic component reading",
+          "sources": [
+            "r112-aafc-nluis-66l",
+            "r112-aafc-nluis-66k",
+            "r112-aafc-nluis-66m",
+            "r112-aafc-nluis-66n"
+          ],
+          "limits": "Description of the selected geometry is orientation only. The actual natural watercourse, intervening lake passages, stream connectors, branch choices and naming extent have not been established by source cartography."
+        },
+        {
+          "fragments": [
+            2519
+          ],
+          "component_scope": "Lower northward course and western bends",
+          "finding": "The lower selected geometry includes northwestward bends and a northward continuation. Actual lakes, junctions and reach-name assignment remain unverified.",
+          "correspondence": "unresolved: no original cartographic component reading",
+          "sources": [
+            "r112-aafc-nluis-66n",
+            "r112-aafc-nluis-66m"
+          ],
+          "limits": "Description of the selected geometry is orientation only. The actual natural watercourse, intervening lake passages, stream connectors, branch choices and naming extent have not been established by source cartography."
+        },
+        {
+          "fragments": [
+            2519
+          ],
+          "component_scope": "Final eastward turn and actual terminal setting",
+          "finding": "The selected final course turns east and then northeast. Retained model metadata classifies the terminal as sea, but no original map has established the actual receiving coastal inlet, branch or terminal waterbody setting.",
+          "correspondence": "unresolved: no original cartographic component reading",
+          "sources": [
+            "r112-aafc-nluis-66m",
+            "r112-aafc-nluis-66n",
+            "r112-eccc-ahiak-management-plan-2019"
+          ],
+          "limits": "Description of the selected geometry is orientation only. The actual natural watercourse, intervening lake passages, stream connectors, branch choices and naming extent have not been established by source cartography."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61514286",
+      "publication": "Mondaca Volcano lahar of December 3, 1762, Maule Region (35°28’S): one of the largest volcanic disasters in Chilean history",
+      "official_url": "https://andeangeology.cl/index.php/revista1/article/view/V48n3-3361/html",
+      "observed_outcome": "The web reader returned Internal Error: URL not accessible via this tool. No HTTP status or security/authorization reason was supplied.",
+      "restriction_scope": "This failed reader route was not retried. One sequential normal request to the already identified official SciELO original followed; its actual 403 below establishes the subsequent publication-wide stop.",
+      "earlier_lawful_prose_exception": "None used; search discovery and snippets are not correspondence evidence.",
+      "outcome_layer": "Tool/reader technical failure; not an observed origin HTTP denial.",
+      "bibliographic_detail": "José Antonio Naranjo, Francisco Hevia and Edmundo Polanco, 2021; Andean Geology 48(3), 514–528"
+    },
+    {
+      "aw_id": "hydro-system:61514286",
+      "publication": "Mondaca Volcano lahar of December 3, 1762, Maule Region (35°28’S): one of the largest volcanic disasters in Chilean history",
+      "official_url": "https://www.scielo.cl/pdf/andgeol/v48n3/0718-7106-andgeol-48-03-0514.pdf",
+      "observed_outcome": "The single original-file request returned HTTP 403; curl reported error 22. No PDF body was acquired.",
+      "restriction_scope": "Whole article and all equivalent copies, formats, figures, screenshots and acquisition routes are stopped. No further acquisition followed.",
+      "earlier_lawful_prose_exception": "None. No article content or map was used.",
+      "outcome_layer": "HTTP response reported by original-file acquisition, not a PDF parsing or size limit.",
+      "bibliographic_detail": "José Antonio Naranjo, Francisco Hevia and Edmundo Polanco, 2021; Andean Geology 48(3), 514–528"
+    },
+    {
+      "aw_id": "hydro-system:61514286",
+      "publication": "Carta geomorfológica 3569-III/3572-IV Malargüe. Provincia de Mendoza",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/4933",
+      "observed_outcome": "The web reader returned 400 Timeout fetching. No source body or original map was acquired.",
+      "restriction_scope": "This publication and equivalent missing map content remain paused for availability. No repeat, mirror, screenshot, alternative original or cache request was made.",
+      "earlier_lawful_prose_exception": "None. Catalogue discovery metadata is bibliographic only, not map evidence.",
+      "outcome_layer": "Reader fetch-timeout/availability result; origin HTTP status not established.",
+      "bibliographic_detail": "Mario Adolfo Rosas, 2025; Servicio Geológico Minero Argentino, Instituto de Geología y Recursos Minerales; 1:250,000"
+    },
+    {
+      "aw_id": "hydro-system:61509423",
+      "publication": "Estudio de Impacto Ambiental, Parque Eólico Achiras, Provincia de Córdoba, May 2016",
+      "official_url": "https://www.idbinvest.org/sites/default/files/2018-03/2016-05_eia_parque_eolico_achiras.pdf",
+      "observed_outcome": "Web reader returned 400 Content length is too large:35653098. After that completed technical limit, the single normal original-file fallback returned HTTP403 Forbidden.",
+      "restriction_scope": "Entire EIA and equivalent copies, figures, formats and routes stopped. No retry.",
+      "earlier_lawful_prose_exception": "None acquired. Search excerpts excluded.",
+      "outcome_layer": "Initial reader/format-size limitation, followed by HTTP403 response to the original-file acquisition; origin/intermediary identity not independently established.",
+      "material_effect": "Optional potential corroboration unavailable; the actual headward connector remains unresolved in independent map evidence."
+    },
+    {
+      "aw_id": "hydro-system:61509423",
+      "publication": "IGN Argenmap base map",
+      "official_url": "https://wms.ign.gob.ar/geoserver/wms",
+      "observed_outcome": "One original bounded GetMap request returned HTTP403 Forbidden.",
+      "restriction_scope": "Argenmap base-map publication and equivalent viewer, tile, WMTS and other acquisition routes stopped. No further wms.ign requests. Distinct historical topographic raster mosaics at imagenes.ign.gob.ar had succeeded and were treated separately.",
+      "earlier_lawful_prose_exception": "Official Geoservicios documentation and earlier vector-service metadata/overview were acquired before the denial; no Argenmap pixels acquired.",
+      "outcome_layer": "HTTP response to original service request; origin/intermediary identity not independently established.",
+      "material_effect": "Did not resolve actual selected connectors."
+    },
+    {
+      "aw_id": "hydro-system:61509423",
+      "publication": "Assessing interactions between groundwater and surface water in a Pampean stream,2016 proof, Figure1",
+      "official_url": "https://ri.conicet.gov.ar/bitstream/handle/11336/18362/CONICET_Digital_Nro.22246.pdf?isAllowed=y&sequence=1",
+      "observed_outcome": "Article opened in the web text reader. First map screenshot at PDF page2 returned Cache miss, without HTTP status.",
+      "restriction_scope": "Further visual acquisition of this article and equivalent missing figures paused. No original-file or alternate figure acquisition.",
+      "earlier_lawful_prose_exception": "Only actually read article prose remains usable. Unseen figures and parsed map labels are not cartographic observations.",
+      "outcome_layer": "Web screenshot/cache availability limitation, not an observed access denial.",
+      "material_effect": "No research-figure correspondence claim made."
+    },
+    {
+      "aw_id": "hydro-system:70020683",
+      "publication": "BaseMaps/CBMT3978 (MapServer)",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "observed_outcome": "The bounded export response completed with HTTP200 and returned an original-image URL. The ensuing original PNG acquisition failed with URLError: Tunnel connection failed: 403 Forbidden. No original image pixels were acquired.",
+      "restriction_scope": "Entire CBMT cartographic publication/service and equivalent acquisition routes stopped after the image denial; no retry, reader/cache route, alternate export or equivalent distribution requested.",
+      "earlier_lawful_prose_exception": {
+        "status": "none_substantive_for_this_target",
+        "scope": "Successful export metadata provides no geographic or naming evidence. Earlier other-object rasters are not asserted as coverage for this object."
+      },
+      "outcome_layer": "Export metadata: observed HTTP200. PNG: local transport/proxy tunnel denial; origin image-server HTTP status not observed."
+    },
+    {
+      "aw_id": "hydro-system:70020683",
+      "publication": "Domaine lithotectonique de Baleine, sud-est de la Province de Churchill, Nunavik, Québec, Canada : synthèse de la géologie, BG 2020-07; complementary-files directory",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/EXAMINE/BG202007/",
+      "observed_outcome": "The article landing page opened normally in the web reader and its original HTML was acquired with HTTP200. The subsequent linked complementary-files directory returned web-reader Cache miss. No original map from BG 2020-07 was acquired.",
+      "restriction_scope": "Missing complementary map acquisition for this publication remains paused across original, alternate, mirrored and equivalent routes. No retry followed. This is not an HTTP denial or an agency-wide stop.",
+      "earlier_lawful_prose_exception": {
+        "status": "earlier_landing_prose_available_but_not_substantive_hydro_evidence",
+        "scope": "Only the actually read landing article preceded the directory failure. It establishes publication identity and geological-study context, not selected-route correspondence. No absent map or search snippet is evidence."
+      },
+      "outcome_layer": "Web-reader cache/availability outcome; no HTTP status or authorization/security reason reported for the directory failure.",
+      "authors": "Isabelle Lafrance, Marc-Antoine Vanier, Benoit Charette",
+      "landing_url": "https://gq.mines.gouv.qc.ca/bulletins-geologiques/churchill/baleine/"
+    },
+    {
+      "aw_id": "hydro-system:80068731",
+      "publication": "Northern Land Use Information Series, Armark Lake, sheet 66K, 1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66k.jpg",
+      "observed_outcome": "The web reader returned Cache miss. No HTTP status, authorization reason or source pixels were provided.",
+      "restriction_scope": "Further acquisition of the missing sheet map and equivalent copies, formats, crops or acquisition routes is paused. No retry or alternative original/mirror route was used.",
+      "earlier_lawful_prose_exception": "The separately read NLUIS index supplies only sheet title and series metadata, not map observations.",
+      "outcome_layer": "web-reader availability failure; origin HTTP outcome not observed"
+    },
+    {
+      "aw_id": "hydro-system:80068731",
+      "publication": "Northern Land Use Information Series, MacAlpine Lake, sheet 66L, 1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66l.jpg",
+      "observed_outcome": "The web reader returned Cache miss. No HTTP status, authorization reason or source pixels were provided.",
+      "restriction_scope": "Further acquisition of the missing sheet map and equivalent copies, formats, crops or acquisition routes is paused. No retry or alternative original/mirror route was used.",
+      "earlier_lawful_prose_exception": "The separately read NLUIS index supplies only sheet title and series metadata, not map observations.",
+      "outcome_layer": "web-reader availability failure; origin HTTP outcome not observed"
+    },
+    {
+      "aw_id": "hydro-system:80068731",
+      "publication": "Northern Land Use Information Series, Perry River, sheet 66M, 1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66m.jpg",
+      "observed_outcome": "The web reader returned Cache miss. No HTTP status, authorization reason or source pixels were provided.",
+      "restriction_scope": "Further acquisition of the missing sheet map and equivalent copies, formats, crops or acquisition routes is paused. No retry or alternative original/mirror route was used.",
+      "earlier_lawful_prose_exception": "The separately read NLUIS index supplies only sheet title and series metadata, not map observations.",
+      "outcome_layer": "web-reader availability failure; origin HTTP outcome not observed"
+    },
+    {
+      "aw_id": "hydro-system:80068731",
+      "publication": "Northern Land Use Information Series, Ogden Bay, sheet 66N, 1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66n.jpg",
+      "observed_outcome": "The web reader returned Cache miss. No HTTP status, authorization reason or source pixels were provided.",
+      "restriction_scope": "Further acquisition of the missing sheet map and equivalent copies, formats, crops or acquisition routes is paused. No retry or alternative original/mirror route was used.",
+      "earlier_lawful_prose_exception": "The separately read NLUIS index supplies only sheet title and series metadata, not map observations.",
+      "outcome_layer": "web-reader availability failure; origin HTTP outcome not observed"
+    },
+    {
+      "aw_id": "hydro-system:80068731",
+      "publication": "Ahiak (Queen Maud Gulf) Migratory Bird Sanctuary Management Plan [Proposed], 2019",
+      "official_url": "https://publications.gc.ca/collections/collection_2020/eccc/CW66-592-2019-eng.pdf",
+      "observed_outcome": "The PDF opened successfully in the web text reader. The first requested map screenshot, Figure 1 on printed page 7 (PDF page index 24), returned Cache miss; no HTTP status or denial was reported.",
+      "restriction_scope": "Further acquisition of the missing map and equivalent map material is paused. No original-file, alternate screenshot, mirror or other visual retrieval followed.",
+      "earlier_lawful_prose_exception": "Actually read section 1.1.5 on printed pages 9–10 remains limited regional context. It does not name or map this selected route. Bibliographic and reproduction-notice text was also read.",
+      "outcome_layer": "successful PDF text reading followed by web-screenshot availability failure"
+    },
+    {
+      "aw_id": "hydro-system:80068731",
+      "publication": "BaseMaps/CBMT3978 (MapServer)",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "observed_outcome": "For a separate Quebec target in this batch, export metadata returned HTTP 200, followed by transport/tunnel 403 Forbidden when the returned original PNG was requested. Origin image-server HTTP status was not observed and no new original pixels were acquired. This Nunavut target made no CBMT request.",
+      "restriction_scope": "Service/publication and all equivalent acquisition routes stopped, with no retry. This restriction was communicated by the batch coordinator before the Nunavut target could use the service.",
+      "earlier_lawful_prose_exception": "No CBMT content used for the present selected route.",
+      "outcome_layer": "transport/tunnel denial on returned original image; not an observed origin-server HTTP denial"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:61514286",
+      "publication": "Plan Estratégico de Gestión Hídrica en la Cuenca del Río Mataquito. Informe Final, S.I.T. Nº 476, 2022",
+      "official_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/bitstreams/87ec2e74-ca94-4ba6-bb20-0b603d2066cf/download",
+      "observed_outcome": "Web PDF reader returned 400 Content length is too large: 12737445. The subsequent single sequential normal original-file request succeeded, and local text and map inspection succeeded.",
+      "restriction_scope": "Failed reader route only, not a publication-wide access stop. The successful original is used. No retry of the failed reader route.",
+      "earlier_lawful_prose_exception": "The official catalogue was already read successfully.",
+      "outcome_layer": "Reader content-length limit; no observed HTTP access denial or security prohibition."
+    },
+    {
+      "aw_id": "hydro-system:61509423",
+      "publication": "Los municipios de ADESUR: estadísticas básicas,1998",
+      "official_url": "https://biblioteca.indec.gob.ar/bases/minde/2mi426_4.pdf",
+      "observed_outcome": "Web reader returned400 Content length is too large:30224719. The single sequential normal original download then succeeded, HTTP200 application/pdf,30224719 bytes.",
+      "restriction_scope": "Failed reader route not repeated. The normally acquired original was read locally.",
+      "earlier_lawful_prose_exception": "Original-file prose was read after successful fallback.",
+      "outcome_layer": "Resolved technical reader-size limitation; no denial.",
+      "material_effect": "No outstanding publication availability stop."
+    },
+    {
+      "aw_id": "hydro-system:61509423",
+      "publication": "IGN Mosaico cartas1:100.000, bounded Achiras–La Maragata view",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "HTTP200 image/png returned a visually blank image for the bounded requested area.",
+      "restriction_scope": "No smaller-area or alternative route retry for this blank coverage. Other already acquired scales remain distinct cartographic material.",
+      "earlier_lawful_prose_exception": "Not applicable.",
+      "outcome_layer": "Cartographic coverage limitation, not an access denial.",
+      "material_effect": "No1:100,000 source coverage is claimed for the headward connector."
+    }
+  ]
+}
