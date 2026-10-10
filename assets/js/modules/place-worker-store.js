@@ -113,7 +113,7 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
       if (await sha256Hex(bytes) !== row.sha256) throw new Error('Invalid place tile hash');
       context.throwIfCancelled();
       const records=decodePlaceTile(bytes);
-      const decodedBytes=records.reduce((total,record) => total+512+Object.values(record).reduce((sum,value)=>sum+(typeof value === 'string' ? value.length*2 : 0),0)+JSON.stringify(record.nameTimeline).length*2,0);
+      const decodedBytes=records.reduce((total,record) => total+512+Object.values(record).reduce((sum,value)=>sum+(typeof value === 'string' ? value.length*2 : 0),0)+record.nameNativeExtras.reduce((sum,name)=>sum+name.length*2,0)+JSON.stringify(record.nameTimeline).length*2,0);
       context.throwIfCancelled(); return put(`tile:${key}`,records,decodedBytes);
     })();
     inflight.set(key,{task,context});
