@@ -1,0 +1,670 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r109",
+  "sources": [
+    {
+      "source_key": "r109-usgs-topo-skagit",
+      "title": "USGS The National Map, USGSTopo: Skagit and Sauk corridors and the Skagit delta",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "acquired_scope": "Service description and two successful original raster views: full selection and the complete southern tributary corridor. Original pixels and necessary private local enlargements were read.",
+      "supports": "Washington Skagit corridor, Ross Lake–Diablo Lake–Gorge Lake sequence, downstream Skagit valley, Sloan Creek/North Fork Sauk/Sauk branch, Skagit junction and North Fork Skagit outlet to Skagit Bay.",
+      "limits": "Composite cartography, distinct from stopped USGS reports or other prohibited publication figures. Canadian hydrography is less fully labeled and is supplemented by independent Canadian cartography. The service description states a September 4, 2026 refresh; this is not a survey date for each feature. No exact legal naming boundary, current channel condition, formal registry decision or pointwise geometric fit is inferred. Original imagery, derivatives and dynamic view parameters are not public deliverables."
+    },
+    {
+      "source_key": "r109-nrcan-cbmt-skaist",
+      "title": "Canada Base Map – Transportation (CBMT3978): Skaist–Skagit headward corridors and the Ross Lake approach",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "acquired_scope": "Two successful original raster views: the Canadian headward corridor through the border/Ross Lake setting and a focused opening view. The focused export metadata and its returned original image were retrieved sequentially.",
+      "supports": "Connected Captain Grant Creek-side headward feeder setting, Skaist River corridor and its joining with the Skagit near Highway 3, then southbound Skagit to Ross Lake and the international border.",
+      "limits": "Independent federal cartography, not CGN/geogratis naming records, BC Fisheries SK108, or a recovery route for stopped report maps. Local headwater labels are bounded component context; no exact name-transition vertex, surveyed natural source, hydrologic condition or single map-compilation date is established. Original imagery, derivatives and dynamic view parameters remain private."
+    },
+    {
+      "source_key": "r109-usgs-national-map-edisto",
+      "title": "USGS The National Map, USGSTopo independently maintained composite cartographic service",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "source_kind": "Original raster cartography",
+      "supports": "The actual selected South Fork opening and tributary setting; Aiken–Denmark–Bamberg wetland corridor; Branchville North/South Fork junction; main Edisto, Four Hole Swamp junction and Givhans bend; downstream tidal Edisto/South Edisto setting.",
+      "limits": "A composite cartographic service, not a stopped report or a route to recover its maps. No single compilation edition, legal naming status, pointwise channel fit or exact terminal mouth is asserted. Original rasters and view-specific request details remain private.",
+      "observed_outcome": "Three sequential bounded exports returned HTTP200 image/png and were visually read."
+    },
+    {
+      "source_key": "r109-scdnr-edisto-boating-prose",
+      "title": "Boating Guide to the Edisto River Basin of South Carolina",
+      "official_url": "https://www.dnr.sc.gov/water/river/pdf/edistoboatingguide.pdf",
+      "source_kind": "Earlier lawfully read original publication prose only",
+      "supports": "South Fork origin near Johnston and meeting with North Fork near Branchville; main river’s Four Hole Swamp/Givhans relationship; lower tidal and coastal setting; free-flowing characterization.",
+      "limits": "Only previously read prose is used. Failed map screenshot is not cartographic evidence; the availability limit and exception are stated separately."
+    },
+    {
+      "source_key": "r109-noaa-coastpilot4-ch7-edisto",
+      "title": "NOAA U.S. Coast Pilot 4, Chapter 7, Charleston Harbor to Savannah River, 4 October 2026",
+      "official_url": "https://nauticalcharts.noaa.gov/publications/coast-pilot/files/cp4/CPB4_C07_WEB.pdf",
+      "source_kind": "Directly read original federal prose",
+      "supports": "Edisto above the Dawho junction and South Edisto below it; South Edisto drains into St. Helena Sound west of Bay Point. North Edisto is a distinct coastal arm with Dawho and Wadmalaw connections.",
+      "limits": "Used for broad named coastal relationships, not navigation or present-day channel conditions. Historical depth and hazard details are not used."
+    },
+    {
+      "source_key": "r109-scdnr-charleston-south-edisto2026",
+      "title": "SCDNR Recreational Shellfish Harvest, Charleston–South Edisto, September 2026",
+      "official_url": "https://www.dnr.sc.gov/marine/shellfish/RegionMaps/CharlestonSouth.pdf",
+      "source_kind": "Original one-page state coastal map, downloaded and visually read",
+      "supports": "Distinguishes North Edisto and South Edisto on opposite sides of Edisto Island, the Dawho connection and South Edisto/St. Helena Sound relationship.",
+      "limits": "Western map edge omits parts of the inland route. Printed warning says data change frequently and the map is not for navigation or surveying. Used for geographic context only; source images are not redistributed.",
+      "observed_outcome": "HTTP200 application/pdf; actual printed date September2026. Search excerpt’s September2025 date is not used."
+    },
+    {
+      "source_key": "r109-guayas-hgg",
+      "title": "Cuenca del Guayas – Hidrogeología, HGG01",
+      "publisher": "INAMHI, Subproceso de Estudios e Investigaciones Hidrológicas",
+      "official_url": "https://www.inamhi.gob.ec/wp-content/plugins/download-monitor/download.php?force=0&id=282",
+      "publication_date": "November 2013 printed on sheet; library catalogue calls the item 2003",
+      "source_kind": "primary institutional thematic map",
+      "supports": [
+        "Guayas basin setting",
+        "western impoundment and broad drainage landscape"
+      ],
+      "limits": [
+        "river-name assignment to the selected components",
+        "continuous correspondence of all feeder connectors"
+      ],
+      "source_independence": "Separate dated thematic hydrogeological publication. It credits IGM base cartography and INAMHI thematic work; it is not a retrieval of the stopped multiscale basemap service.",
+      "use_notice": "No restricted-distribution notice observed on the inspected sheet. Original and derivative map images remain private.",
+      "source_observation": "Downloaded original PDF successfully, HTTP200/application/pdf; entire sheet visually inspected. Work scale1:50,000; printed scale1:850,000."
+    },
+    {
+      "source_key": "r109-guayas-pdot",
+      "title": "Plan de Desarrollo y Ordenamiento Territorial de la Provincia del Guayas 2021–2023",
+      "publisher": "Prefectura del Guayas, Dirección Provincial de Planificación Institucional",
+      "official_url": "https://guayas.gob.ec/wp-content/uploads/2022/02/PDOT.pdf",
+      "publication_date": "2021–2023 edition, verified from cover",
+      "source_kind": "primary provincial planning publication",
+      "supports": [
+        "Guayas receiving system",
+        "Daule and Babahoyo as major tributaries",
+        "separation of adjacent coastal systems from the Guayas network"
+      ],
+      "limits": [
+        "individual headwater correspondence",
+        "a name for every selected path"
+      ],
+      "source_independence": "Provincial planning synthesis and its own presented map, credited to the2015 irrigation/drainage plan; distinct from OAS TDPS and the stopped basemap catalogue/service.",
+      "use_notice": "No limited-distribution notice observed in inspected front matter or water section. No source images redistributed.",
+      "source_observation": "Reader size-limit response followed by one sequential original download, HTTP200/application/pdf. Cover, printed pp37–45 and Map14 inspected."
+    },
+    {
+      "source_key": "r109-guayas-tapia",
+      "title": "Modelización hidrológica de un área experimental en la cuenca del Río Guayas en la producción de caudales y sedimentos, chapter3",
+      "publisher": "Juan Carlos Tapia Aldas; Universidad Nacional de La Plata",
+      "official_url": "https://sedici.unlp.edu.ar/bitstream/handle/10915/23364/Cap%C3%ADtulo_3_-_Caracterizaci%C3%B3n_de_la_cuenca_del_R%C3%ADo_Guayas.pdf?isAllowed=y&sequence=7",
+      "publication_date": "2012",
+      "source_kind": "original thesis chapter with credited reproductions of institutional cartography",
+      "supports": [
+        "regional named drainage context for Catarama/Babahoyo, Quevedo/Vinces, Daule and Guayas",
+        "coastal channel setting"
+      ],
+      "limits": [
+        "all selected upper feeders",
+        "continuous lower selected branch of the Vinces chain",
+        "current reservoir/channel conditions"
+      ],
+      "source_independence": "Distinct2012 Ecuador thesis, not the stopped Tapia2018 Atacama article. Fig6 is an inspected reproduction, not a claim that the original annual report or its original map was successfully acquired.",
+      "use_notice": "Repository states CC BY-NC-SA2.5 Argentina except where otherwise noted. Reproduced source credits preserved; only factual synthesis is public. No source map redistribution.",
+      "doi": "https://doi.org/10.35537/10915/23364",
+      "source_observation": "Chapter3 opened and original downloaded normally. Figures5 and6, entire maps and private detail views, visually inspected. Fig6 is titled Cuenca Hidrográfica del río Guayas(130), credits INAMHI-CNRH, and prints2007; thesis cites the Anuario Hidrológico INAMHI2006."
+    },
+    {
+      "source_key": "r109-guayas-celecmap",
+      "title": "Mapa de Cuencas Hidrográficas, CSL-165600-1-HI-02, MT A-1 and MT A-2",
+      "publisher": "CELEC EP Transelectric / Consorcio CESEL-CTOTAL",
+      "official_url": "https://www.celec.gob.ec/transelectric/images/stories/noticias/2020WEB/PDF2020/DocumentosINTERECUPER2020/CARTOGRAFIA/CSL-165600-1-HI-02_Mapa%20de%20Cuencas%20Hidrogr%C3%A1ficas.pdf",
+      "publication_date": "November2019 printed on sheets",
+      "source_kind": "primary project thematic cartography, Estudio de Impacto Ambiental de una Línea de Transmisión en500kV entre Ecuador–Perú",
+      "supports": [
+        "selected southeastern Chimbo–Yaguachi feeder corridor",
+        "lower Babahoyo and Daule junction geography",
+        "Guayas channel at Guayaquil"
+      ],
+      "limits": [
+        "the northern or eastern headwater chains",
+        "the whole terminal estuary by itself"
+      ],
+      "source_independence": "Dated project thematic map with its own compilation and explicit credit to IGM1:50,000 sheets. Not a request for the stopped multiscale basemap or an equivalent service rendering.",
+      "use_notice": "No limited-distribution or officials-only notice observed on inspected sheets. Original maps and all rendered details remain private.",
+      "source_observation": "Five-page original PDF opened and downloaded HTTP200/application/pdf. SheetsMT A-1 andMT A-2 visually inspected, including legends, compilation credits and date."
+    },
+    {
+      "source_key": "r109-guayas-daule",
+      "title": "Operación del Embalse Daule Peripa en el Invierno, Año2012",
+      "publisher": "CELEC EP Hidronación",
+      "official_url": "https://www.celec.gob.ec/hidronacion/wp-content/uploads/2023/02/informeoperacionembalseinvierno2012v_.pdf",
+      "publication_date": "2012 report, hosted under a2023 upload path",
+      "source_kind": "primary operator report; prose read",
+      "supports": [
+        "Daule-Peripa regulating the Daule basin",
+        "Daule, Vinces and Babahoyo feeding the Guayas system",
+        "Daule valley continuity through Pichincha, Balzar, Santa Lucía and Guayaquil"
+      ],
+      "limits": [
+        "the selected upper feeder into the reservoir",
+        "precise impoundment centreline"
+      ],
+      "source_independence": null,
+      "use_notice": "No restricted-distribution notice observed in read text; no report images redistributed.",
+      "source_observation": "Readable original PDF text, pp1–2; report map pixels were not used."
+    },
+    {
+      "source_key": "r109-guayas-baba",
+      "title": "Embalse de la hidroeléctrica Baba mitiga inundaciones en su área de influencia directa en la provincia de Los Ríos23-abril-2023",
+      "publisher": "CELEC EP, Electroguayas / Hidronación",
+      "official_url": "https://www.celec.gob.ec/electroguayas/noticias/embalse-de-la-hidroelectrica-baba-mitiga-inundaciones-en-su-area-de-influencia-directa-en-la-provincia-de-los-rios-23-abril-2023/",
+      "publication_date": "Page date8May2023; title references23April2023",
+      "source_kind": "primary operator notice",
+      "supports": [
+        "Baba reservoir receives Baba/Toachi inflows and releases toward Quevedo"
+      ],
+      "limits": [
+        "which selected headward feeder is Mapalí, Baba, Toachi or another named stream",
+        "the selected small eastern feeder north of Quevedo"
+      ],
+      "source_independence": null,
+      "use_notice": "Page footer all rights reserved. Short factual paraphrase only; no source images.",
+      "source_observation": "Original page opened and its body read."
+    },
+    {
+      "source_key": "r109-arctic-cbmt",
+      "title": "BaseMaps/CBMT3978 (MapServer)",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "source_kind": "primary federal cartographic service, bounded raster exports",
+      "supports": [
+        "complete generalized headward-to-terminal geographic correspondence",
+        "lake/channel connections",
+        "broad braided coastal terminal setting"
+      ],
+      "limits": [
+        "one hydronym applying to the complete selected line",
+        "name of every reach",
+        "current official naming decision",
+        "exact banks or surveyed mouth vertices"
+      ],
+      "source_independence": "Independent public national cartographic publication, not a CGN/geogratis naming-record request or a recovery route for stopped Nunavut, PCSP or NRCan report figures. It is independent evidence relative to the selected HydroRIVERS-derived line; no assertion of wholly independent underlying hydrographic datasets.",
+      "source_observation": "Successful original federal raster views cover the headward loop, overlapping lake-linked middle, and braided inlet-head terminal; no whole-route hydronym was readable."
+    },
+    {
+      "source_key": "r109-arctic-arc403",
+      "title": "Canadian Sailing Directions, ARC 403: Western Arctic, 2023/09",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202309-41198116.pdf",
+      "source_kind": "primary hydrographic descriptive publication",
+      "supports": [
+        "regional identification and broad character of Richard Collinson Inlet head"
+      ],
+      "limits": [
+        "river hydronym",
+        "complete selected inland route",
+        "current exact shoreline or navigational conditions"
+      ],
+      "source_independence": "Distinct ARC403 publication; it is not the stopped ARC401 and is not a CGN naming-record query.",
+      "use_notice": "Commercial reproduction requires prior written permission. Only original factual paraphrases and bibliography are used; no publication pages or extracts redistributed.",
+      "source_observation": "Successfully opened PDF text. Chapter 10, printed page 10-4, paragraphs 51–56; paragraph 53 describes the inlet-head braided stream. Copyright/reproduction notice inspected."
+    },
+    {
+      "source_key": "r109-arctic-collignon2002",
+      "title": "Les toponymes inuit, mémoire du territoire : étude de l’Histoire des Inuinnait",
+      "publisher": "Département d’anthropologie de l’Université Laval",
+      "official_url": "https://www.erudit.org/fr/revues/as/2002-v26-n2-3-as554/007048ar.pdf",
+      "source_kind": "primary field-research article",
+      "supports": [
+        "spelling as a regional research lead only"
+      ],
+      "limits": [
+        "visual assignment of that name to this selected route",
+        "whole-route hydronym",
+        "reachwise naming boundaries"
+      ],
+      "source_independence": "Author’s 1991–1992 primary field-research study, published in 2002, distinct from the stopped 2010 national topographic sheet. No material from that stopped sheet was recovered through this article.",
+      "use_notice": "All rights reserved; original factual notes and bibliographic information only.",
+      "doi": "https://doi.org/10.7202/007048ar",
+      "source_observation": "The article describes the author’s 1991–1992 field collection. Its parsed Figure 5 text on printed page 56 includes Tunun'ngum Kuugaa and Tununiq, but the visual screenshot failed with cache miss."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70310822",
+      "source_keys": [
+        "r109-usgs-topo-skagit",
+        "r109-nrcan-cbmt-skaist"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9414
+          ],
+          "component_scope": "mainstem",
+          "finding": "The northeastern opening follows an eastern feeder into the Captain Grant Creek-side corridor, around its northward elbow into the Skaist River drainage. The Skaist corridor continues southwest to Highway 3 and joins the Skagit. The selected route then turns south through the upper Skagit valley into Ross Lake across the international border, continues through Ross, Diablo and Gorge lake settings, and follows the Skagit downstream toward Newhalem. The Canadian original resolves the headward junction sequence rather than relying on a nearby basin label.",
+          "limits": "Initial small feeder and exact Captain Grant/Skaist/Skagit naming transitions are not assigned vertex boundaries. Reservoir centerlines are component context, not proof that a river name is a scalar label for the impoundments. Ordinary generalized river/lake rendering does not prevent component correspondence.",
+          "sources": [
+            "r109-nrcan-cbmt-skaist",
+            "r109-usgs-topo-skagit"
+          ]
+        },
+        {
+          "fragments": [
+            9415
+          ],
+          "component_scope": "mainstem",
+          "finding": "The southwestward Skagit valley from the Newhalem surroundings through the Marblemount/Cascade River joining setting to the Rockport/Sauk joining setting is continuously visible in the original cartography and corresponds to this complete middle feature.",
+          "limits": "Cascade River is adjoining context, not an additional selected branch or alias. Feature-break locations do not adjudicate name changes.",
+          "sources": [
+            "r109-usgs-topo-skagit"
+          ]
+        },
+        {
+          "fragments": [
+            9416
+          ],
+          "component_scope": "mainstem",
+          "finding": "From the Sauk junction the selection follows the Skagit west through the Concrete and lower-valley settings, past Sedro-Woolley/Burlington and Mount Vernon, then turns onto the mapped North Fork Skagit River branch to its Skagit Bay outlet. The chosen western delta outlet is distinguished from the more southerly South Fork Skagit branch.",
+          "limits": "The selected terminal supports a coastal North Fork Skagit outlet context. No contemporary shoreline intersection, surveyed mouth vertex, tidal condition or exhaustive distributary inventory is assigned.",
+          "sources": [
+            "r109-usgs-topo-skagit"
+          ]
+        },
+        {
+          "fragments": [
+            9417
+          ],
+          "component_scope": "tributary",
+          "finding": "The southeastern headward approach follows the Sloan Creek-side corridor north and northwest into North Fork Sauk River, then the Sauk past its South Fork and White Chuck joining settings and toward the Darrington/lower Sauk corridor. All of the selected upper tributary feature is covered by the full-area and focused original views.",
+          "limits": "The initial small feeder, exact Sloan Creek/North Fork Sauk/Sauk name-change vertices and natural source are not individually adjudicated. North Fork Skykomish and other adjacent drainages are not substituted for the connected selected branch.",
+          "sources": [
+            "r109-usgs-topo-skagit"
+          ]
+        },
+        {
+          "fragments": [
+            9418
+          ],
+          "component_scope": "tributary",
+          "finding": "This is the northward lower Sauk continuation of fid 9417, through the Suiattle joining setting to the Sauk–Skagit junction near Rockport. The map shows the trunk and joining context continuously.",
+          "limits": "The two tributary feature IDs are successive modeled pieces of one Sauk-side branch, not evidence of two independent natural tributaries. Suiattle is a separate adjoining tributary and is not itself selected in full.",
+          "sources": [
+            "r109-usgs-topo-skagit"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70751278",
+      "source_keys": [
+        "r109-usgs-national-map-edisto",
+        "r109-scdnr-edisto-boating-prose",
+        "r109-noaa-coastpilot4-ch7-edisto",
+        "r109-scdnr-charleston-south-edisto2026"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9896
+          ],
+          "component_scope": "South Fork opening and inland wetland corridor",
+          "finding": "The selected headward route is South Fork Edisto southeast of Johnston, through the Aiken–Denmark–Bamberg swamp corridor. McTier and Shaw creeks are adjoining tributaries rather than the selected main headward route.",
+          "sources": [
+            "r109-usgs-national-map-edisto",
+            "r109-scdnr-edisto-boating-prose"
+          ]
+        },
+        {
+          "fragments": [
+            9896
+          ],
+          "component_scope": "Branchville confluence and combined Edisto",
+          "finding": "The selected South Fork meets North Fork near Branchville and continues as Edisto. Four Hole Swamp joins farther downstream above the Givhans southward bend.",
+          "sources": [
+            "r109-usgs-national-map-edisto",
+            "r109-scdnr-edisto-boating-prose"
+          ]
+        },
+        {
+          "fragments": [
+            9896
+          ],
+          "component_scope": "Tidal South Edisto and neighboring coastal arms",
+          "finding": "The selected lower setting lies on the South Edisto side west of Edisto Island, toward St. Helena Sound. North Edisto and Dawho form a distinct connected eastern coastal arm and are not substituted for the selected southward continuation.",
+          "sources": [
+            "r109-usgs-national-map-edisto",
+            "r109-noaa-coastpilot4-ch7-edisto",
+            "r109-scdnr-charleston-south-edisto2026"
+          ]
+        },
+        {
+          "fragments": [
+            9896
+          ],
+          "component_scope": "Whole route and terminal limit",
+          "finding": "All of the generalized corridor is covered with no material connector remaining. The strongly generalized displayed seaward extension is not an exact channel trace or surveyed natural river mouth.",
+          "sources": [
+            "r109-usgs-national-map-edisto",
+            "r109-noaa-coastpilot4-ch7-edisto"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60557376",
+      "source_keys": [
+        "r109-guayas-hgg",
+        "r109-guayas-pdot",
+        "r109-guayas-tapia",
+        "r109-guayas-celecmap",
+        "r109-guayas-daule",
+        "r109-guayas-baba"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13723
+          ],
+          "component_scope": "Eastern Andean headward path into the northeastern Babahoyo drainage",
+          "finding": "The regional map places the path in the east-west headwater network above Moraspungo/Quinsaloma and the Zapotal approach. Several nearby tributaries cannot be separated continuously at the acquired map resolution.",
+          "correspondence": "partial; material correspondence pending",
+          "sources": [
+            "r109-guayas-tapia",
+            "r109-guayas-hgg"
+          ],
+          "material_gap": "The initial eastern feeder and its connection into the downstream selected trunk are not continuously established; this is not just uncertainty about an exact name boundary."
+        },
+        {
+          "fragments": [
+            13724
+          ],
+          "component_scope": "Southward Ventanas–Catarama/Caracol corridor",
+          "finding": "The selected long southward course corresponds regionally to the mapped corridor from the Ventanas area through the Catarama/Caracol reach toward Babahoyo.",
+          "correspondence": "supported generalized corridor; no legal name-boundary assignment",
+          "sources": [
+            "r109-guayas-tapia",
+            "r109-guayas-pdot"
+          ]
+        },
+        {
+          "fragments": [
+            13725
+          ],
+          "component_scope": "Babahoyo downstream bend",
+          "finding": "The southwestward continuation below Babahoyo is represented on the regional drainage map and belongs to the Babahoyo receiving branch.",
+          "correspondence": "supported generalized corridor",
+          "sources": [
+            "r109-guayas-tapia",
+            "r109-guayas-pdot"
+          ]
+        },
+        {
+          "fragments": [
+            13726
+          ],
+          "component_scope": "Lower Babahoyo, Guayaquil junction and Guayas terminal reach",
+          "finding": "CELEC cartography resolves the broad lower Babahoyo/Daule/Guayas setting. The regional map continues the Guayas channel southward past Guayaquil and Santay toward the selected lower-estuarine ending.",
+          "correspondence": "supported receiving corridor and broad terminal setting",
+          "sources": [
+            "r109-guayas-celecmap",
+            "r109-guayas-tapia",
+            "r109-guayas-pdot"
+          ],
+          "limits": "The selected ending is an internal model terminal in the broad Guayas estuarine channel; it is not established as the actual ocean mouth. Exact channel edges and tidal limits are outside this finding."
+        },
+        {
+          "fragments": [
+            13727
+          ],
+          "component_scope": "Southeastern feeder through Chimbo–Yaguachi",
+          "finding": "The two adjacent CELEC sheets show the eastern Chimbo course passing south of Milagro and turning northwest through Yaguachi toward the Babahoyo junction, matching the selected generalized feeder.",
+          "correspondence": "supported generalized component corridor",
+          "sources": [
+            "r109-guayas-celecmap"
+          ]
+        },
+        {
+          "fragments": [
+            13728
+          ],
+          "component_scope": "Short eastern feeder immediately north of Quevedo",
+          "finding": "The regional map shows eastern drainage reaching the Quevedo corridor around the Valencia/La Esperanza area, but the short selected feeder cannot be securely distinguished from adjoining branches.",
+          "correspondence": "material correspondence pending",
+          "sources": [
+            "r109-guayas-tapia"
+          ],
+          "material_gap": "Independent legible branch-specific coverage is needed for the whole small feeder and junction. No Toachi or San Pablo name is assigned from proximity."
+        },
+        {
+          "fragments": [
+            13729
+          ],
+          "component_scope": "Northwestern eastward headwater and return bend",
+          "finding": "The regional map shows several eastern-draining coastal-hill tributaries above the Daule reservoir, including the Río de Oro vicinity. Its acquired pixels do not securely establish the selected whole eastward path and subsequent northward return connection.",
+          "correspondence": "partial; material correspondence pending",
+          "sources": [
+            "r109-guayas-tapia",
+            "r109-guayas-hgg"
+          ],
+          "material_gap": "Actual selected headward branch and its joining course remain unestablished; Río de Oro is only a geographically plausible lead, not an accepted component attribution."
+        },
+        {
+          "fragments": [
+            13730
+          ],
+          "component_scope": "Western impoundment passage and downstream Daule approach",
+          "finding": "HGG01 shows the large western impoundment landscape; the operator report establishes Daule-Peripa and downstream Daule continuity. The selected whole through-reservoir route was not independently resolved.",
+          "correspondence": "reservoir setting supported; connector material pending",
+          "sources": [
+            "r109-guayas-hgg",
+            "r109-guayas-daule",
+            "r109-guayas-tapia"
+          ],
+          "material_gap": "Needs legible independent coverage connecting the selected upper arm through the reservoir to the downstream Daule course, without assuming the modeled line proves flow."
+        },
+        {
+          "fragments": [
+            13731
+          ],
+          "component_scope": "Middle and lower Daule to Guayaquil",
+          "finding": "Regional cartography and operator prose support the Daule corridor through the Balzar/Santa Lucía/Daule valley. CELEC maps resolve its lower approach and junction in the Guayaquil setting.",
+          "correspondence": "supported generalized corridor",
+          "sources": [
+            "r109-guayas-tapia",
+            "r109-guayas-daule",
+            "r109-guayas-celecmap"
+          ]
+        },
+        {
+          "fragments": [
+            13732
+          ],
+          "component_scope": "Northeastern headward bend and Baba-side chain",
+          "finding": "The northern regional map contains a dense feeder network south of Santo Domingo. The operator notice establishes a Baba/Toachi reservoir-to-Quevedo relationship, but does not select this particular upper bend or every connector.",
+          "correspondence": "partial; material correspondence pending",
+          "sources": [
+            "r109-guayas-tapia",
+            "r109-guayas-baba"
+          ],
+          "material_gap": "The eastern headward feeder, northwest turn and onward connection through the Baba-side system need continuous source correspondence. No claim that the entire feature is Baba is made."
+        },
+        {
+          "fragments": [
+            13733
+          ],
+          "component_scope": "North-of-Quevedo middle corridor",
+          "finding": "The regional map supports the north-south receiving corridor toward Quevedo, while operator prose independently links Baba outflow with Quevedo. This does not establish every upstream feeder.",
+          "correspondence": "supported generalized middle corridor",
+          "sources": [
+            "r109-guayas-tapia",
+            "r109-guayas-baba"
+          ]
+        },
+        {
+          "fragments": [
+            13734
+          ],
+          "component_scope": "Quevedo–Vinces chain and selected lower eastern turn",
+          "finding": "The regional map supports Quevedo, Mocache and Vinces along the central chain. The selected lower continuation and eastward connection within the divided lowland drainage are not continuously distinguishable on the acquired map.",
+          "correspondence": "upper/middle corridor supported; lower branch material pending",
+          "sources": [
+            "r109-guayas-tapia",
+            "r109-guayas-pdot"
+          ],
+          "material_gap": "Needs branch-specific correspondence below Vinces through the selected return toward Babahoyo; basin membership alone does not establish that connector."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80019045",
+      "source_keys": [
+        "r109-arctic-cbmt",
+        "r109-arctic-arc403",
+        "r109-arctic-collignon2002"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2306
+          ],
+          "component_scope": "headward stream and western loop",
+          "finding": "The independent raster shows a terrain of narrow stream valleys and small lakes. The selected generalized path can be followed through the same valley/channel network around the inland uplands, including the broad westward turn and subsequent northward passage. Local simplified vertices and stream-bank positions differ, but no genuinely missing corridor connector was found.",
+          "correspondence": "supported at ordinary generalized corridor scale",
+          "sources": [
+            "r109-arctic-cbmt"
+          ],
+          "name_limit": "No readable hydronym establishes a name for this upstream feeder or whole loop."
+        },
+        {
+          "fragments": [
+            2306
+          ],
+          "component_scope": "northward lake-linked reach and northeast middle corridor",
+          "finding": "Overlapping source views show the elongated northward water corridor, the connecting small-lake/channel landscape around the eastward bend, and the larger northeast valley continuing downstream. The middle turn is represented by mapped connected waterways, not merely by the proximity of a regional name label. No uncovered connector remains between the overlapping views.",
+          "correspondence": "supported at ordinary generalized corridor scale",
+          "sources": [
+            "r109-arctic-cbmt"
+          ]
+        },
+        {
+          "fragments": [
+            2306
+          ],
+          "component_scope": "lower river and inlet-head terminal",
+          "finding": "The selected lower corridor corresponds to the mapped river entering a broad braided, marshy inlet-head tract and continuing along its northwestern side toward open water. Source cartography displays several terminal channels. The generalized endpoint belongs to this coastal setting; no exact branch, bank, surveyed mouth point, tidal limit or current flow state is claimed. ARC 403 chapter 10, printed page 10-4, paragraph 53 independently describes a broad braided stream entering the swampy head of Richard Collinson Inlet.",
+          "correspondence": "supported at ordinary generalized corridor scale",
+          "sources": [
+            "r109-arctic-cbmt",
+            "r109-arctic-arc403"
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70751278",
+      "publication": "Edisto River Basin Plan 2023",
+      "official_url": "https://des.sc.gov/sites/des/files/DNR/Hydrology/pdfs/basin-planning/Edisto%20River%20Basin%20Plan_2023_Reduced.pdf",
+      "observed_outcome": "The direct reader open returned HTTP403 Forbidden. Entire publication and publication-equivalent versions are stopped across all routes. No substantive evidence or search-snippet content was used.",
+      "restriction_scope": "Whole publication and equivalents; no department-wide restriction inferred.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:70751278",
+      "publication": "Boating Guide to the Edisto River Basin of South Carolina",
+      "official_url": "https://www.dnr.sc.gov/water/river/pdf/edistoboatingguide.pdf",
+      "observed_outcome": "The PDF reader opened normally and its prose was read. The first map screenshot returned Cache miss; no original map pixels or PDF bytes were acquired, and no alternative map request was made.",
+      "restriction_scope": "Failed map acquisition remains paused. This is an availability outcome, not HTTP401/403 or an access challenge.",
+      "earlier_lawful_prose_exception": "Only the prose directly read before the screenshot failure is retained, particularly the South Fork, main Edisto and coastal descriptions. It is not treated as original map observation."
+    },
+    {
+      "aw_id": "hydro-system:60557376",
+      "publication": "Mapa base Oficial del Ecuador",
+      "official_url": "https://www.datosabiertos.gob.ec/dataset/mapa-base-oficial-del-ecuador",
+      "observed_outcome": "HTTP403 Forbidden returned by web reader.",
+      "restriction_scope": "The identified official multiscale basemap publication and equivalents remain stopped across routes, including its linked mapabase service. No WMS or alternative retrieval was attempted.",
+      "origin_http_status": 403
+    },
+    {
+      "aw_id": "hydro-system:60557376",
+      "publication": "Universidad Central del Ecuador repository item25000/17173; exact thesis title unestablished",
+      "official_url": "https://www.dspace.uce.edu.ec/handle/25000/17173",
+      "observed_outcome": "Web tool reported URL not accessible; no HTTP status or reason provided.",
+      "restriction_scope": "Bounded availability stop; no PDF or alternate route used. Search excerpt not evidence.",
+      "origin_http_status": null
+    },
+    {
+      "aw_id": "hydro-system:60557376",
+      "publication": "Anuario Hidrológico2006, INAMHI, catalogue download target",
+      "official_url": "https://www.inamhi.gob.ec/wp-content/plugins/download-monitor/download.php?force=0&id=3222",
+      "observed_outcome": "Web reader cache miss; no HTTP status reported.",
+      "restriction_scope": "Original annual-report acquisition paused without retry. No original annual PDF claimed. The separate2012 thesis chapter had already been downloaded before this attempt; its reproduced Fig6 is identified as a reproduction.",
+      "origin_http_status": null
+    },
+    {
+      "aw_id": "hydro-system:60557376",
+      "publication": "Tapia Aldas2012 thesis, chapter5: Resultados",
+      "official_url": "https://sedici.unlp.edu.ar/bitstream/handle/10915/23364/Cap%C3%ADtulo_5_-_Resultados.pdf?isAllowed=y&sequence=9",
+      "observed_outcome": "Web reader returned400 Timeout fetching.",
+      "restriction_scope": "Further acquisition of this thesis/equivalent missing chapter content paused; no retry or mirror. Earlier normally acquired chapter3 remains the bounded retained material.",
+      "origin_http_status": null
+    },
+    {
+      "aw_id": "hydro-system:60557376",
+      "publication": "IGM Listado de Cartas Reservadas, escala1:50,000",
+      "official_url": "https://www.geoportaligm.gob.ec/portal/wp-content/uploads/2013/03/Listado-50000.xls",
+      "observed_outcome": "Reader400 Unsupported content-type: application/vnd.ms-excel.",
+      "restriction_scope": "Technical availability stop on this list reader. No alternative list download or sheet acquisition followed. No denial is inferred.",
+      "origin_http_status": null
+    },
+    {
+      "aw_id": "hydro-system:80019045",
+      "publication": "BaseMaps/CBMT3978 (MapServer), service metadata response",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer?f=pjson",
+      "observed_outcome": "Web tool Internal Error: URL is not accessible via this tool. No HTTP status or security/authorization reason reported.",
+      "restriction_scope": "Availability stop on this exact technical metadata acquisition. It was not retried. Independently authorized bounded map exports succeeded afterward; no denial on the cartographic service was observed.",
+      "origin_http_status": null
+    },
+    {
+      "aw_id": "hydro-system:80019045",
+      "publication": "Tunun'ngum Kuugaa, Northwest Territories, Canadian topographic maps 88-A/11, edition 02 version 00, 2010, catalogue landing page",
+      "official_url": "https://publications.gc.ca/pub?id=375442&sl=0",
+      "observed_outcome": "Web tool cache miss; HTTP status not reported.",
+      "restriction_scope": "Catalogue landing-page availability stop. No name or cartographic correspondence inferred from its discovery snippet.",
+      "origin_http_status": null
+    },
+    {
+      "aw_id": "hydro-system:80019045",
+      "publication": "Tunun'ngum Kuugaa, Northwest Territories, Canadian topographic maps 88-A/11, edition 02 version 00, 2010",
+      "official_url": "https://publications.gc.ca/collections/collection_2011/rncan-nrcan/M116-2-088A11.pdf",
+      "observed_outcome": "The original map was not acquired. A transport-layer error reported Tunnel connection failed:403 Forbidden; the origin-server HTTP response was not observed.",
+      "restriction_scope": "Whole publication and equivalent originals, mirrors, reader/cache routes, figures, reproductions and alternate formats remain stopped. No retry or alternate route was used.",
+      "origin_http_status": null,
+      "role_in_remaining_work": "Optional hydronym-placement evidence, not required to see the complete generalized geographic corridor already covered by independent CBMT cartography."
+    },
+    {
+      "aw_id": "hydro-system:80019045",
+      "publication": "Les toponymes inuit, mémoire du territoire : étude de l’Histoire des Inuinnait, Béatrice Collignon, 2002",
+      "official_url": "https://www.erudit.org/fr/revues/as/2002-v26-n2-3-as554/007048ar.pdf",
+      "observed_outcome": "Original PDF opened successfully in web text reader, including text describing its field study and Figure 5. Subsequent Figure 5 screenshot returned cache miss, without HTTP status.",
+      "restriction_scope": "Visual acquisition of Figure 5 stopped; no retry or alternate route. Successfully read prose remains usable within its limitations, but the parsed name list is not treated as a map observation.",
+      "origin_http_status": null,
+      "use_notice": "Copyright retained by Anthropologie et Sociétés, Université Laval, 2002; no article images or extensive extracts redistributed."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "IGM historical1:50,000 sheet archive and use notice",
+      "official_url": "https://www.geoportaligm.gob.ec/portal/wp-content/uploads/2013/03/LEE-ME.pdf",
+      "observation": "The catalogue and use notice were read; no individual sheet image was acquired because edition/equivalence with the stopped multiscale basemap was not established.",
+      "use_limit": "The notice restricts transfer and redistribution of original data, requires source credit, describes noncommercial use and separate commercial arrangements, and applies special procedures to reserved or border material. No original map or derivative image is published here."
+    }
+  ]
+}
