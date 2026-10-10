@@ -1,0 +1,213 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r50",
+  "sources": [
+    {
+      "source_key": "gnwt_oilgas_2023_figures_2_4_5",
+      "title": "Northwest Territories Oil and Gas Annual Report 2023",
+      "year": 2023,
+      "page": "PDF/printed pp. 12, 14, 15; Figures 2, 4, 5",
+      "limits": "Reused acquired original. Relevant map imprints are March 2024 within the 2023 annual report. Regional delta/central-valley maps support lower course and outlet context; they do not cover the full eastern feeder or establish every reach name.",
+      "official_url": "https://www.iti.gov.nt.ca/sites/iti/files/1432-0-GNWT-ITI-OilGas-AR2023_ENGLISH.pdf"
+    },
+    {
+      "source_key": "kokelj_2001_gwichin_sahtu_hydrology",
+      "title": "Hydrologic Overview of the Gwich’in and Sahtu Settlement Areas",
+      "author": "Shawne A. Kokelj; Water Resources Division, Indian and Northern Affairs Canada",
+      "year": 2001,
+      "page": "Printed pp. 1-4, 6, 13; Figure 1, Table 1; PDF pp. 5-8, 10, 17",
+      "limits": "Cover says December 2001 despite the 2004 URL filename. Figure 1 provides regional map correspondence; Table 1 gives named station coordinates. Historical station names/positions support identity, not present station operation or exact rendered name boundaries.",
+      "official_url": "https://www.gov.nt.ca/sites/ecc/files/hydrologic_overview_of_the_gwichin_and_sahtu_settlement_areas_2004.pdf"
+    },
+    {
+      "source_key": "gnwt_north_slave_highway_distances_2023",
+      "title": "Measured Highway Distances: North Slave Region",
+      "author": "NWT Centre for Geomatics",
+      "year": 2023,
+      "page": "One-sheet map, dated 2023-05-08; Doc ID MXD-741-2",
+      "limits": "Official illustrative transportation map with readable hydrographic base labels. Dense lake detail and large region wording obscure some local transitions; the map itself warns that exact feature boundaries may differ. Used for named corridor/lake context, not exact alignment.",
+      "official_url": "https://www.geomatics.gov.nt.ca/sites/geomatics/files/resources/measured_highway_distances_-_north_slave_region.pdf"
+    },
+    {
+      "source_key": "gnwt_stantec_coppermine_lockhart_2015",
+      "title": "Status and Trends of Water Chemistry and Flow in the Coppermine and Lockhart River Basins: Final Report",
+      "author": "Stantec Consulting Ltd., prepared for Government of the Northwest Territories",
+      "year": 2015,
+      "page": "Figures 1-1 and 1-2, PDF pp. 13-14; cover dated 2015-03-31",
+      "limits": "Officially hosted commissioned report. Acasta/Wopmay/Camsell and Hottah/Clut labels are contextual base-map features outside the report’s principal Coppermine study area. Regional illustrative mapping is sufficient to distinguish the feeder/lake chain, not precise headwater naming.",
+      "official_url": "https://www.gov.nt.ca/sites/ecc/files/coppermine_lockhart_status_and_trends_report_-_final_march_2015_web.pdf"
+    },
+    {
+      "source_key": "ILEC_TDPS_2005_P137",
+      "title": "Managing Lakes and their Basins for Sustainable Use: A Report for Lake Basin Managers and Stakeholders",
+      "author": "International Lake Environment Committee Foundation (ILEC)",
+      "year": 2005,
+      "page": "Printed 137; PDF page 155 of 166",
+      "limits": "Regional basin map; map states boundaries and locations are approximate. It distinguishes connected lakes and named rivers but does not define every river-name transition. Rights page: ILEC copyright 2005, educational/non-profit reproduction with acknowledgment, commercial use requires written permission. No source pixels or source fingerprints authorized for public inclusion.",
+      "host_role": "World Bank official repository; ILEC authored and copyrighted publication",
+      "distinct_publication_basis": "Independent ILEC title, copyright and dated cartographic identifier; no OAS reproduction credit on map. Stopped OAS figures were not acquired or compared.",
+      "official_url": "https://documents1.worldbank.org/curated/en/125691468337219397/pdf/639200PUB0Lake00Box0361531B0PUBLIC0.pdf"
+    },
+    {
+      "source_key": "DMA_JOG_SD19_10",
+      "title": "Azangaro, Peru; Bolivia, Joint Operations Graphic (Air), SD 19-10, Edition 1",
+      "author": "U.S. Defense Mapping Agency",
+      "year": 1996,
+      "page": "Single sheet; 1:250,000; compiled December 1994, copyright 1996",
+      "limits": "Historical map. Visible Río Grande, Río Crucero and Río Azángaro labels support different northern reaches. Relief and generalization limit precise modern channel matching. Sheet bears U.S. government copyright notice; keep original and crops private.",
+      "host_role": "University of Texas Perry-Castañeda Library preserves official DMA cartography",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-224300691-sd19-10.jpg"
+    },
+    {
+      "source_key": "DMA_JOG_SD19_14",
+      "title": "Puno, Peru; Bolivia, Joint Operations Graphic (Air), SD 19-14, Edition 2",
+      "author": "U.S. Defense Mapping Agency Hydrographic/Topographic Center",
+      "year": 1993,
+      "page": "Single sheet; 1:250,000; compiled June 1993; later reprint",
+      "limits": "Río Azángaro and Río Ramis reach labels, Ramis mouth near Taraco, Huancané vicinity and broad Lago Titicaca outline. It does not turn the modeled lines through open lake water into rivers. Historical sheet; original and crops stay private.",
+      "host_role": "University of Texas Perry-Castañeda Library preserves official DMA cartography",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-224300691-sd19-14.jpg"
+    },
+    {
+      "source_key": "DMA_JOG_SE19_3",
+      "title": "La Paz, Bolivia; Peru, Joint Operations Graphic (Air), SE 19-3, Edition 2",
+      "author": "U.S. Defense Mapping Agency Hydrographic/Topographic Center",
+      "year": 1994,
+      "page": "Single sheet; 1:250,000; compiled October 1993, copyright 1994; later reprint",
+      "limits": "Shows Lago Titicaca, Tiquina passage, Lago de Huiñaymarca and Golfo de Taraco. Western sheet boundary at 69°W excludes part of the modeled southern lake/outlet sequence; ILEC provides regional continuity, not high-resolution coverage of that missing strip. Historical sheet; original and crops stay private.",
+      "host_role": "University of Texas Perry-Castañeda Library preserves official DMA cartography",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-224571173-se19-3.jpg"
+    },
+    {
+      "source_key": "DMA_IGM_JOG_SE19_15",
+      "title": "Salinas de Garci-Mendoza, Bolivia; Chile, Joint Operations Graphic (Air), SE 19-15, Edition 2",
+      "author": "U.S. Defense Mapping Agency, in cooperation with Instituto Geográfico Militar of Bolivia",
+      "year": 1996,
+      "page": "Single sheet; 1:250,000; compiled March 1995; features/copyright 1996; later reprint",
+      "limits": "Direct Río Laca Jahuira labels follow the channel east of Salar de Coipasa through the Challacota vicinity. It supports the southwest terminal reach, not the northern rivers or the whole selected group. Historical sheet; original and crops stay private.",
+      "host_role": "University of Texas Perry-Castañeda Library preserves official DMA/IGM cartography",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-224571173-se19-15.jpg"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; northern interior graticule and Inland Ice legend",
+      "supports": "Full-route Inland Ice setting, inland northwestern endpoint and distinction between ice/bedrock contours and named waterways.",
+      "limits": "Regional geological mapping, not a river gazetteer or contemporary hydrological survey. It supports the geographical scope conclusion, not proof of water flow, hydrological connectivity or a formal river name. The 1995 sheet is not a current ice-margin survey.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. Original map, local crops and other source derivatives remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "p. 4 geographical subdivisions; p. 10 fig. 1 overview; pp. 64–65 Glaciology and fig. 47",
+      "supports": "The Inland Ice is Greenland’s continental ice sheet. Its mapped surface contours, ice-thickness isopachs and sub-ice bedrock contours have glaciological meanings; the account distinguishes interior accumulation from marginal melting and calving.",
+      "limits": "The regional figures and glaciology description supply feature-class context, not a named course matching the modeled river. No present-day ice dimensions or current melt-rate estimates are asserted from this historical source.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80044492",
+      "source_keys": [
+        "gnwt_oilgas_2023_figures_2_4_5",
+        "kokelj_2001_gwichin_sahtu_hydrology",
+        "gnwt_north_slave_highway_distances_2023",
+        "gnwt_stantec_coppermine_lockhart_2015"
+      ],
+      "correspondence": [
+        "The actual highlighted path was read in full, including all three selected modeled mainstem fragments, against the available maps; the full 117-fragment group plot was used for surrounding collection context. No assumption was made that the historical candidate or MAIN_RIV membership establishes a shared name.",
+        "Fragment 2369 begins in the east, runs south, bends west, then returns north into the southeastern Great Bear Lake entrance. The 2015 regional figures and 2023 North Slave map place this route in the Acasta/Wopmay feeder corridor and the Camsell lake chain. Readable separate labels include Acasta, Wopmay, Camsell, Hottah Lake and Clut Lake. These are geographic corridor associations, not exact assignments to every modeled reach or to the uppermost endpoint.",
+        "The Camsell River at outlet of Clut Lake station (10JA002) is separately named and located at 65.6067 N, 117.7653 W in Table 1 of the 2001 hydrologic report. Its map position and lake-outlet context agree with the eastern selected corridor before Great Bear Lake. The report explicitly treats Camsell as a Great Bear Lake tributary.",
+        "Fragment 2370 and the eastern part of 2371 form a generalized passage across Great Bear Lake, from its eastern side toward the southwestern outlet. The North Slave map labels the eastern lake arm McTavish Arm. These near-straight lake passages are not evidence that Mackenzie River is the lake or arm name.",
+        "The southwestern outlet connects to the separately named Great Bear River. The 2001 report maps this connection and lists outlet station 10JC003 at 65.1347 N, 123.5181 W. The retained GNWT central-valley map shows the lake/outlet, Deline, and the westward connection toward the Mackenzie near Tulita.",
+        "The western and northwestern part of fragment 2371 follows the directly mapped Mackenzie corridor past Norman Wells, Fort Good Hope and the Arctic Red River/Tsiigehtchic vicinity to the delta. Table 1 independently names Mackenzie River at Norman Wells (10KA001) and at Arctic Red River (10LC014) at positions corresponding to that selected course. The 2023 delta map distinguishes the main lower corridor, Peel River and Arctic Red River context; no specific distributary name is inferred for the generalized coastal endpoint.",
+        "The modeled mainstem therefore follows Great Bear drainage rather than the entire ordinary Mackenzie course upstream toward Great Slave Lake. The wider selected group includes that southern continuation and many other feeders. The modeled mainstem/tributary classification is not a name boundary and does not license one scalar name for the collection."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61280216",
+      "source_keys": [
+        "ILEC_TDPS_2005_P137",
+        "DMA_JOG_SD19_10",
+        "DMA_JOG_SD19_14",
+        "DMA_JOG_SE19_3",
+        "DMA_IGM_JOG_SE19_15"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13922
+          ],
+          "finding": "The northern arc begins near the Rinconada/Ananea headwater area, bends northwest past the Crucero vicinity and then south near San Antón. DMA SD19-10 labels upper-channel Río Grande and the long downstream arc Río Crucero; the single model fragment crosses naming scopes."
+        },
+        {
+          "fragments": [
+            13923
+          ],
+          "finding": "The southward channel passes Azángaro and continues toward the junction north of Titicaca. DMA SD19-10 and SD19-14 label this corridor Río Azángaro."
+        },
+        {
+          "fragments": [
+            13924
+          ],
+          "finding": "The initial eastward/bending reach corresponds to Río Ramis near Achaya/Taraco and its north-Titicaca mouth. The much longer southeast diagonal then runs across Lago Titicaca rather than a separately named continuous river."
+        },
+        {
+          "fragments": [
+            13925,
+            13926,
+            13927
+          ],
+          "finding": "These three short modeled pieces continue through the southern Titicaca/Lago Menor setting. The La Paz sheet shows Tiquina and Lago de Huiñaymarca; the regional ILEC map separates the lake from its southern river outlet. Detailed JOG coverage is partial west of 69°W, so these are bounded lake-routing correspondence findings, not river-name assignments."
+        },
+        {
+          "fragments": [
+            13928
+          ],
+          "finding": "This piece lies across the southern lake/outlet transition near Desaguadero. Do not assume that every subpart bears Río Desaguadero or that a model-fragment boundary is a toponym boundary."
+        },
+        {
+          "fragments": [
+            13929
+          ],
+          "finding": "The long southern piece matches the Desaguadero corridor southwest and east toward the Uru Uru/Poopó sector, then a near-meridional modeled lake crossing and finally a westward terminal channel. ILEC labels Desaguadero and Laca Jahuira separately; DMA/IGM SE19-15 directly labels the terminal Río Laca Jahuira near Challacota/east Coipasa. This one fragment itself cannot receive a uniform river name."
+        },
+        {
+          "fragments": [
+            13930,
+            13931
+          ],
+          "finding": "The two tributary-role pieces were inspected in the coordinate plots against the northern lake setting. They approach Titicaca separately in the Huancané area and include modeled lakeward/lake connections. Names identified on the modeled mainstem are not propagated to them."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90041329",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": {
+        "object_scope": "The actual cached sole mainstem fragment was inspected in full, rather than treating the group bounding box or the modeled length as identity evidence.",
+        "displayed_mainstem_length_km": 980.17,
+        "displayed_length_limit": "This is the retained model display length, not an independently established natural-river length.",
+        "full_path_finding": "The southern interior leg, the northward bend, the long westward interior reach and the northwestern end all correspond geographically to the Inland Ice on the readable official map. The source graticule, ice shading and ice legend were used for the comparison.",
+        "map_interpretation": "The blue surface contours, dashed ice-thickness isopachs and grey sub-ice bedrock contours on the geological map are not named river courses. None was treated as a matching watercourse.",
+        "name_limit": "Neither the map nor the accompanying glaciology account establishes this complete modeled line as one named surface river, one named subglacial river, or a glacier. No coastal name is transferred to it.",
+        "conclusion": "The geographical and feature-class scope review is complete. Keep the name fields null; a formal river identity would require different positive evidence, not inference from the presence of a modeled mainstem.",
+        "tributary_scope": "There is one displayed mainstem fragment and no claim about the names of all tributaries or other drainage features."
+      }
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
