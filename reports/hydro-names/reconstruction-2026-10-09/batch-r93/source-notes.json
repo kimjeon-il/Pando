@@ -1,0 +1,297 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r93",
+  "sources": [
+    {
+      "source_key": "r93-canada-basemap-exploits",
+      "title": "Canada Base Map: Lloyds River, King George IV Lake, Lloyds Lake, Beothuk Lake and Exploits River corridor",
+      "publisher": "Natural Resources Canada, Government of Canada",
+      "supports": "Representative Exploits receiving-system identity, distinct Lloyds River and lake components, complete bounded corridor correspondence, and neighboring-route and terminal-setting disambiguation.",
+      "limits": "The raster is a composite federal basemap. Its source compilation dates, legal naming status, exact wetland channel alignment and official river source points are not established. The initial small southwestern approach remains unnamed. Original rasters and orientation material remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r93-canada-basemap-aguanish",
+      "title": "Canada Base Map: Aguanish Nord-Ouest, Aguanish Nord and lower Aguanish river corridor",
+      "publisher": "Natural Resources Canada, Government of Canada",
+      "supports": "Representative receiving-system identity, distinctions between the northwest and north branches and named lake components, complete bounded route correspondence, the receiving junction, neighboring-drainage disambiguation and the lower-river terminal setting.",
+      "limits": "This is the independently allowed federal cartographic service, not a Canadian geographical-name record or a stopped Québec publication. The composite basemap does not establish a single compilation date or legal naming status. Separate names for the small initial approach are not established. Original rasters, request parameters and orientation material remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r93-usgs-nationalmap-amite",
+      "title": "The National Map, USGSTopo: East Fork Amite, Amite, Maurepas–Pontchartrain and western Rigolets approach",
+      "publisher": "U.S. Geological Survey",
+      "supports": "Complete four-fragment correspondence, distinct upper East Fork and main Amite identities, both lake crossings, the selected Pass Manchac channel, the open-lake nature of the sole modeled tributary, and the bounded terminal setting.",
+      "limits": "Composite cartographic service, independently allowed and distinct from stopped USGS reports and other Louisiana publications. Label placement varies by scale and is not itself proof of a watercourse through open lake water. Exact banks, navigation and authoritative naming history are not established.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r13-louisiana-celcp2011",
+      "title": "Louisiana Coastal and Estuarine Land Conservation Program Plan, May 2011",
+      "publisher": "Louisiana Department of Natural Resources; retained official NOAA-hosted publication",
+      "supports": "Limited regional prose: the Amite has headwaters in Mississippi; Maurepas, Pontchartrain and Borgne are part of a shallow coastal receiving basin supplied by several rivers and connected to marine-water pathways.",
+      "limits": "Regional basin context only. The prose does not name every selected segment or prove that the modeled route reaches Borgne, the Sound or the Gulf. No new request for this publication was made.",
+      "official_url": "https://coast.noaa.gov/data/czm/landconservation/media/celcpplanlafinal.pdf"
+    },
+    {
+      "source_key": "r93-usgs-national-map-kuparuk",
+      "title": "The National Map, USGS Topo: upper Kuparuk, middle coastal-plain corridor and Gwydyr Bay terminal",
+      "publisher": "U.S. Geological Survey",
+      "supports": "Representative Kuparuk River identity; mapped upper and lower named corridors; neighboring Itkillik, Toolik and Sakonowyak disambiguation; unnamed headward approach; Gwydyr Bay terminal; direct evidence that the middle modeled departure cannot yet be treated as a fully matched named route.",
+      "limits": "The separately operated National Map service is not any stopped Alaska USGS report, BLM drainage map, ADFG publication or NPS brochure. No exact official source point, exhaustive tributary inventory, legal naming status or cause of model/map disagreement is established. The map is composite cartography and its underlying compilation dates are not asserted.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70287892",
+      "source_keys": [
+        "r93-canada-basemap-exploits"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9402
+          ],
+          "finding": "The southwestern end lies in a small marsh-and-stream approach southwest of Andrews Pond and west of Finger Pond. It turns north and then east into the wetland connection directly labeled Lloyds River. The final enlargement distinguishes this northern/eastern connection from the more southerly Princess Lake route; no distinct name is established for the initial small approach.",
+          "sources": [
+            "r93-canada-basemap-exploits"
+          ]
+        },
+        {
+          "fragments": [
+            9402
+          ],
+          "finding": "The route enters King George IV Lake from its southwestern wetland approach, crosses the eastern part of the lake and continues northeast along the labeled Lloyds River corridor through Lloyds Lake. Victoria River and Victoria Lake lie separately to the southeast and are not the selected route.",
+          "sources": [
+            "r93-canada-basemap-exploits"
+          ]
+        },
+        {
+          "fragments": [
+            9402,
+            9403
+          ],
+          "finding": "The northeastern Lloyds corridor enters the southwestern end of the lake repeatedly labeled Beothuk Lake. The selection runs along that long lake toward Millertown; the first fragment split is within the lake corridor. The adjacent Star Lake and Shanadithit Brook approaches are not substituted for the selected Lloyds entrance.",
+          "sources": [
+            "r93-canada-basemap-exploits"
+          ]
+        },
+        {
+          "fragments": [
+            9403,
+            9404
+          ],
+          "finding": "From the eastern end of Beothuk Lake near Millertown, the route follows repeatedly labeled Exploits River northeast toward Badger. It passes the Noel Pauls Brook junction and then turns east along the Exploits corridor toward Grand Falls–Windsor; those tributary names are not applied to the receiving river.",
+          "sources": [
+            "r93-canada-basemap-exploits"
+          ]
+        },
+        {
+          "fragments": [
+            9404
+          ],
+          "finding": "The lower selection follows Exploits River through the Grand Falls–Windsor and Bishop’s Falls settings, then continues northeast to its endpoint southwest of Rattling Brook. The mapped broad inlet toward Norris Arm and Botwood supplies terminal context; the modeled route does not continue north through that inlet.",
+          "sources": [
+            "r93-canada-basemap-exploits"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70246648",
+      "source_keys": [
+        "r93-canada-basemap-aguanish"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9334
+          ],
+          "finding": "The selected northwestern end follows an unnamed small lake-and-stream chain southwest of Lac Duboys, initially eastward and then northward into the southeastern part of that mapped lake. The northern enlargement shows the actual intervening water bodies and connecting waterways. It does not establish a separate name for the initial approach or identify the modeled starting vertex as the official source of any named river.",
+          "sources": [
+            "r93-canada-basemap-aguanish"
+          ]
+        },
+        {
+          "fragments": [
+            9334
+          ],
+          "finding": "After the Lac Duboys setting, the selection turns east through the corridor labeled Rivière Aguanish Nord-Ouest and the elongated Lac Uatnakantuk. The large lakes farther north are outside the selected route; their proximity is not used to replace the observed river-and-lake connection.",
+          "sources": [
+            "r93-canada-basemap-aguanish"
+          ]
+        },
+        {
+          "fragments": [
+            9334
+          ],
+          "finding": "The upper corridor continues southeast and south along repeated Aguanish Nord-Ouest labels, through the Lac Harvey setting, before turning east into and along Lac aux Deux Loutres. The map distinguishes Aguanish Nord approaching the lake from the north; that northern approach is not selected.",
+          "sources": [
+            "r93-canada-basemap-aguanish"
+          ]
+        },
+        {
+          "fragments": [
+            9334
+          ],
+          "finding": "From the eastern end of Lac aux Deux Loutres the selection turns south through Lac Padoue and the repeatedly labeled Rivière Aguanish Nord. It reaches the mapped junction with Rivière Aguanish arriving from the west. This named north-branch segment is not assigned the Aguanish Nord-Ouest name, and the western upper Aguanish approach remains unselected.",
+          "sources": [
+            "r93-canada-basemap-aguanish"
+          ]
+        },
+        {
+          "fragments": [
+            9334
+          ],
+          "finding": "Below the receiving junction, the route follows repeated Rivière Aguanish labels southeast through the inland valley and then turns south. The source shows the river continuing through the same succession of bends and narrow waterway corridors; neighboring lakes and their tributaries are not substituted for this river route.",
+          "sources": [
+            "r93-canada-basemap-aguanish"
+          ]
+        },
+        {
+          "fragments": [
+            9334,
+            9335
+          ],
+          "finding": "Both selected fragments occupy the same continuous mapped lower Aguanish corridor across their split. The lower part bends southwest toward the Aguanish coastal setting, east of the separate Nabisipi drainage and outlet.",
+          "sources": [
+            "r93-canada-basemap-aguanish"
+          ]
+        },
+        {
+          "fragments": [
+            9335
+          ],
+          "finding": "The selected terminal tip lies in the lower Aguanish river-mouth setting immediately inland of the coastal road and shore. The source connects this lower river to the coastal outlet at Aguanish. The schematic terminal bend is not treated as an exact shoreline, bank or offshore endpoint.",
+          "sources": [
+            "r93-canada-basemap-aguanish"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70799781",
+      "source_keys": [
+        "r93-usgs-nationalmap-amite",
+        "r13-louisiana-celcp2011"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9978
+          ],
+          "finding": "The northern headward route north and south of Highway 570 follows the repeatedly labeled East Fork Amite River west of McComb. Its southwestward continuation reaches the fork junction near the Mississippi–Louisiana boundary. The separately mapped western fork and Tangipahoa River corridor are not the selected headward branch.",
+          "sources": [
+            "r93-usgs-nationalmap-amite"
+          ]
+        },
+        {
+          "fragments": [
+            9978
+          ],
+          "finding": "Below the fork junction the route follows the labeled Amite River south through the broad meandering valley and past the Denham Springs setting, then southeast and east along the lower Amite. The lower enlargement shows the Amite entering the western side of Lake Maurepas; the route is not substituted with the nearby Tickfaw or Blind River approach.",
+          "sources": [
+            "r93-usgs-nationalmap-amite"
+          ]
+        },
+        {
+          "fragments": [
+            9978,
+            9979
+          ],
+          "finding": "The modeled route crosses open Lake Maurepas and exits east through the southern channel explicitly labeled Pass Manchac on the detailed map. North Pass is separately visible to the north and is not selected. The fragment split occurs along this inter-lake connection, and the route then enters Lake Pontchartrain.",
+          "sources": [
+            "r93-usgs-nationalmap-amite"
+          ]
+        },
+        {
+          "fragments": [
+            9979,
+            9980
+          ],
+          "finding": "The long straight and stepped eastern sections are within open Lake Pontchartrain. They cross the Lake Pontchartrain Causeway and continue toward the lake's eastern outlet setting. These are modeled lake links, not evidence that the Amite River name continues as a distinct channel across the lake.",
+          "sources": [
+            "r93-usgs-nationalmap-amite"
+          ]
+        },
+        {
+          "fragments": [
+            9981
+          ],
+          "finding": "The sole short modeled tributary, southeast of the causeway's northern approach near Mandeville, lies entirely within Lake Pontchartrain on the inspected full-route pixels. Its northern end does not meet a landward river or bayou mouth. It is therefore retained as a lake-internal modeled branch with no separate river or tributary name established, rather than being assigned the nearby Tchefuncte River or Bayou Castine identity.",
+          "sources": [
+            "r93-usgs-nationalmap-amite"
+          ]
+        },
+        {
+          "fragments": [
+            9980
+          ],
+          "finding": "The terminal enlargement places the last selected point at the Lake Pontchartrain approach to The Rigolets, near Pike Fort and lakeward of the US 90 bridge. The full Rigolets channel continues east beyond the selected endpoint. Lake Saint Catherine is separately mapped to the south; neither that lake nor Lake Borgne is traversed by the selection.",
+          "sources": [
+            "r93-usgs-nationalmap-amite"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80032711",
+      "source_keys": [
+        "r93-usgs-national-map-kuparuk"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2332
+          ],
+          "finding": "The headward enlargement places the first short westward selected reach on an unnamed small approach just north of the mapped, labeled east-to-west Kuparuk River bend. It reaches the north-running upper Kuparuk corridor. Neither the small initial approach nor the first modeled vertex is established as an official named source. Toolik Lake lies to the west and is not traversed by the selected headward line.",
+          "sources": [
+            "r93-usgs-national-map-kuparuk"
+          ]
+        },
+        {
+          "fragments": [
+            2332
+          ],
+          "finding": "From the upper river bend, the selected route runs north across the Dalton Highway and then northwest along repeated Kuparuk River labels. The maps distinguish Itkillik River to the west and Toolik River to the east, rather than substituting either neighboring drainage for this upper corridor.",
+          "sources": [
+            "r93-usgs-national-map-kuparuk"
+          ]
+        },
+        {
+          "fragments": [
+            2332
+          ],
+          "finding": "In the middle reach, roughly within the 69.2–69.6 degrees north interval, the selected line departs west of the clearly labeled, braided Kuparuk channel and passes along or near separate small western streams and lakes. The detailed original shows the named Kuparuk channel remaining east of much of that modeled departure. It does not establish a continuous mapped connection along the entire selected departure and its transitions. This is a material correspondence gap, not merely an unreadable or missing stream name.",
+          "sources": [
+            "r93-usgs-national-map-kuparuk"
+          ]
+        },
+        {
+          "fragments": [
+            2332
+          ],
+          "finding": "Beyond the western middle departure, the east/northeast and north-running lower selected corridor corresponds to repeated Kuparuk River labels. The separate Toolik corridor approaches from the east, while the Sakonowyak drainage remains west of the lower Kuparuk. This supports a receiving-system identity without resolving the preceding western interval.",
+          "sources": [
+            "r93-usgs-national-map-kuparuk"
+          ]
+        },
+        {
+          "fragments": [
+            2332
+          ],
+          "finding": "The terminal enlargement shows the labeled lower Kuparuk dividing into a coastal delta with several small channels and islands at Gwydyr Bay. The selected northern tail generalizes the western side of that delta approach and extends beyond the mapped coast into the bay. Gwydyr Bay, rather than a further named freshwater river reach, is therefore the terminal component. No distinct official name is established for the individual selected delta arm.",
+          "sources": [
+            "r93-usgs-national-map-kuparuk"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
