@@ -1,0 +1,588 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r113",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r112",
+    "commit": "ec4b932ac3c8513cea022db37a72f0b26ee34aa5",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r112/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:61135391"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:80015064",
+      "category": "river_group",
+      "system_id": "80015064",
+      "original_queue_rank": 252,
+      "baseline_logical_fid": 820,
+      "geometry_fids": [
+        2301
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -124.040598,
+        72.204167,
+        -121.564583,
+        73.594387
+      ],
+      "rendered_mainstem_length_km": 244.096,
+      "rendered_network_length_km": 244.096,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -124.040598,
+          72.204167,
+          -121.564583,
+          73.594387
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "candidate_name_role": "unestablished_pending_material",
+      "research_category": "river_group_source_material_pending",
+      "source_keys": [
+        "r113-aafc-nluis-index",
+        "r113-eccc-banks1-page",
+        "r113-aafc-nluis-98d_c",
+        "r113-aafc-nluis-98a",
+        "r113-eccc-banks1-map",
+        "r113-gsc-cgm35-catalogue",
+        "r113-nature-capillaries-2024",
+        "r113-cbmt-inherited-stop"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_hold_reason": null,
+      "supported_name_scope": null,
+      "geographic_disambiguation": "The selected geometry is oriented in western Banks Island. Bernard River is a regional lead only. Incidentally surfaced CGN/gazetteer search results were excluded and not opened or used, including their registry status and coordinates.",
+      "completion_scope": "Every component of the sole selected FID2301 remains open for original-map correspondence. No lake passage, named upstream tributary or receiving coastal branch is inferred from the model.",
+      "material_pending_reason": "No original cartography was successfully observed for the selected route. Available sanctuary prose is regional and the NLUIS index is bibliographic; neither establishes the selected full corridor, lake/stream connections or actual coastal terminal.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0,
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true
+      },
+      "region": "Western Banks Island, Arctic Canada; exact selected river and coastal receiving branch remain unestablished."
+    },
+    {
+      "aw_id": "hydro-system:61520170",
+      "category": "river_group",
+      "system_id": "61520170",
+      "original_queue_rank": 253,
+      "baseline_logical_fid": 3592,
+      "geometry_fids": [
+        14479
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -63.572917,
+        -35.81875,
+        -62.435417,
+        -34.454167
+      ],
+      "rendered_mainstem_length_km": 243.002,
+      "rendered_network_length_km": 243.002,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -63.572917,
+          -35.81875,
+          -62.435417,
+          -34.454167
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "candidate_name_role": "unestablished_pending_material",
+      "research_category": "river_group_source_material_pending",
+      "source_keys": [
+        "ign-topo250k-r113",
+        "ign-topo500k-r113",
+        "ina-flood2017",
+        "gba-plan-salado",
+        "ada-a4-prose",
+        "villegas-emergency2017"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_hold_reason": null,
+      "supported_name_scope": "No completed representative or whole-route hydronym is established. Regional Quinto, Cuero de Zorro, Hinojo and canal names are not assigned to this selected line.",
+      "geographic_disambiguation": "The selected mainstem begins west of Serrano, follows a southeastward plains route through the Coronel Charlone and General Villegas settings, passes west of Tres Algarrobos and east of Colonia Seré, then crosses the Francisco de Vitoria country and ends in an unnamed mapped lake north/northeast of Berutti. Original IGN cartography covers the full surrounding corridor and terminal; however, it does not establish the long upper/middle modeled connections as a connected watercourse. Original INA flood maps show discontinuous inundated basins, not proof of this complete connected route. No representative hydronym is established.",
+      "completion_scope": "Original cartography covers the complete selected landscape and actual terminal lake, but material headward, middle and inter-lake connections remain unestablished. Historical event-inundation maps do not supply a continuous connected route.",
+      "material_pending_reason": "The Serrano–Coronel Charlone and Charlone–General Villegas connections, followed by material lower inter-lake links toward Berutti, remain unsupported.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "component_scope_limits": [
+          "No named source watercourse was established for the selected head west of Serrano. Nearby Laguna La Amarga is separate mapped geography and is not made the source merely by proximity.",
+          "Río Quinto, canal La Dulce, Vidania, Cuero de Zorro, Hinojo–Las Tunas and Jauretche–Mercante–República de Italia are names of regional systems or canals in official prose. Their mere regional association does not name this particular selected line.",
+          "The selected endpoint is north of the Berutti railway corridor, within an unlabeled lake on both IGN views. It is not assigned the name of the Hinojo–Las Tunas complex farther south.",
+          "No whole-route scalar name, formal gazetteer status, uniform river continuity or modern operating drainage configuration is inferred. Model endorheic class is retained metadata, not proof of present hydraulic isolation."
+        ],
+        "unresolved_components": [
+          {
+            "fid": 14479,
+            "component": "Serrano–Coronel Charlone headward connection",
+            "gap": "The original maps locate the selected head east of Laguna La Amarga and west of Serrano, then the route turns through Los Ceibos toward the Coronel Charlone/Fernando Martí settlement and transport crossing. A watercourse joining those settings along this selected headward route is not drawn or otherwise established. The separate La Amarga/Quinto association cannot supply that connector."
+          },
+          {
+            "fid": 14479,
+            "component": "Charlone–General Villegas middle connection",
+            "gap": "The modeled route passes the Gronda and San Bernardo settings, bends east across the Santa Elena–San José country and reaches the western/southwestern side of General Villegas. Original topography and independent event-inundation mapping show plains and separate depressions but do not establish this long selected hydrological connection."
+          },
+          {
+            "fid": 14479,
+            "component": "General Villegas–Colonia Seré and lower inter-lake links",
+            "gap": "The maps locate local marshes and elongate lakes along the San Justo/La Fe–Pradere–Colonia Seré–Francisco de Vitoria–Berutti corridor. Some selected stretches correspond to those wetland/lake settings, but the inter-basin transfers, including long eastward turns, are not established by the acquired sources. This is a component/connector evidence gap, not a demand for exact banks or every model vertex to fit."
+          }
+        ],
+        "terminal_lake_name": null,
+        "terminal_setting": "Unnamed mapped lake north/northeast of Berutti, north of the railway and separate from Hinojo–Las Tunas farther south.",
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      },
+      "region": "Argentina, Córdoba–Buenos Aires plains from west of Serrano through General Villegas and Colonia Seré to north/northeast of Berutti."
+    },
+    {
+      "aw_id": "hydro-system:70156165",
+      "category": "river_group",
+      "system_id": "70156165",
+      "original_queue_rank": 254,
+      "baseline_logical_fid": 2968,
+      "geometry_fids": [
+        9232,
+        9233
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -126.960508,
+        52.235417,
+        -124.875,
+        52.93125
+      ],
+      "rendered_mainstem_length_km": 241.814,
+      "rendered_network_length_km": 241.814,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -126.960508,
+          52.235417,
+          -124.875,
+          52.93125
+        ]
+      },
+      "candidate_name": "Dean River",
+      "candidate_names": [
+        "Dean River"
+      ],
+      "candidate_name_role": "limited_receiving_identity_with_unresolved_headward_connection",
+      "research_category": "river_group_source_material_pending",
+      "source_keys": [
+        "r113-bc-rescue-map",
+        "r113-bc-structure-093c",
+        "r113-bc-fishing-2025-27",
+        "r113-dean-guardian-2023",
+        "r113-bc-parks-dean-corridor",
+        "r113-bc-parks-dean-conservancy",
+        "r113-bcgs-bella-coola-2003"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_hold_reason": null,
+      "supported_name_scope": "Dean River is supported for the mapped receiving trunk and middle/lower corridor, with separate Nimpo, Anahim and Abuntlet lake passages. The initial feeder name remains null. No whole-feature scalar, official name boundary or uniform naming of tributaries/lakes is established.",
+      "geographic_disambiguation": "Original provincial cartography and an independent field-program report identify the selected receiving corridor as the Dean River system through plateau lakes, the Tweedsmuir mountain crossing and Dean Channel outlet. The model-selected eastern feeder is not completely mapped in acquired sources, so the entire selected object is not counted as a completed representative identity or scope hold.",
+      "completion_scope": "Bounded partial geographic review; single material-pending status. Upper lake chain, middle junctions and actual coastal terminal retained as supported observations; initial feeder unresolved.",
+      "material_pending_reason": "The complete initial eastern feeder and its southward connection into the mapped upper receiving channel remain unsupported by original cartography. The provincial maps omit this small component and the independently identified Satah Mountain093C/07 original map returned HTTP403.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "limited_receiving_river_candidate": "Dean River",
+        "initial_headward_component_name": null,
+        "initial_feeder_fid": 9232,
+        "selected_named_lake_components": [
+          "Nimpo Lake",
+          "Anahim Lake",
+          "Abuntlet Lake"
+        ],
+        "separate_lateral_systems": [
+          "Itasyuko River and Sigutlat Lake",
+          "Takia River",
+          "Crag Creek"
+        ],
+        "receiving_waterbody_name": "Dean Channel",
+        "terminal_limit": "Generalized mouth near Kimsquit is mapped; no surveyed mouth vertex or precise tidal boundary asserted.",
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      },
+      "region": "British Columbia, Canada, eastern plateau feeder through Nimpo–Anahim–Abuntlet lakes, the Dean corridor and Dean Channel."
+    },
+    {
+      "aw_id": "hydro-system:61135391",
+      "category": "river_group",
+      "system_id": "61135391",
+      "original_queue_rank": 255,
+      "baseline_logical_fid": 3481,
+      "geometry_fids": [
+        13884
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -40.395833,
+        -13.472917,
+        -38.917133,
+        -13.16875
+      ],
+      "rendered_mainstem_length_km": 239.935,
+      "rendered_network_length_km": 239.935,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -40.395833,
+          -13.472917,
+          -38.917133,
+          -13.16875
+        ]
+      },
+      "candidate_name": "Rio Jiquiriçá",
+      "candidate_names": [
+        "Rio Jiquiriçá"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "source_keys": [
+        "SEI_MARACAS",
+        "SEI_PLANALTINO",
+        "SEI_IRAJUBA",
+        "SEI_SANTAINES",
+        "SEI_UBAIRA",
+        "SEI_LAJE",
+        "SEI_VALENCA",
+        "PTDRSS2017",
+        "INEMA_CBH"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_hold_reason": null,
+      "supported_name_scope": "Representative system identity from the selected upper Maracás corridor through the Jiquiriçá/Jequiriçá trunk to the Atlantic mouth. This is not a claim that every initial feeder, intermittent connector, tributary, Açude do Mocó waterbody or estuarine passage uniformly has one hydronym. Unknown individual names remain null.",
+      "geographic_disambiguation": "Seven distinct original SEI 1:100,000 municipal maps collectively provide continuous generalized corridor coverage from the selected headward setting east of Maracás, through the Planaltino bend, Açude do Mocó/Irajuba, Santa Inês, Ubaíra/Jiquiriçá, Mutuípe/Laje and the coastal/estuarine terminal north of Guaibim. The cartography and its relevant boundary tables were actually read; the 2017 territorial plan supplies bounded corroborating headwater/estuary prose. No genuine component or connector source gap remains. Optional stopped publications do not create an additional access-pending status.",
+      "completion_scope": "Seven overlapping original SEI municipal maps cover every selected component and material connection, including the headward setting, Mocó impoundment and actual Atlantic estuary. Bounded territorial-plan prose corroborates the regional headwater and estuary setting.",
+      "material_pending_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Rio Jiquiriçá",
+        "observed_source_spelling_variant": "Rio Jequiriçá",
+        "name_scope_limits": "Repeated mapped Jiquiriçá and Jequiriçá labels and bounded primary prose support representative identity. The spelling variation is recorded rather than formally adjudicated. Separately named tributaries and the Mocó impoundment are not collapsed into a whole-feature scalar name. Formal registry standing and Korean rendering are unverified.",
+        "initial_exact_component_name": null,
+        "selected_impoundment": "Açude do Mocó",
+        "separate_tributary_context": [
+          "Borracha",
+          "Geléia",
+          "Xenxém",
+          "Ribeirão or Jiquiriçá Mirim",
+          "Cariri",
+          "Riachão"
+        ],
+        "receiving_waterbody_name": "Atlantic Ocean",
+        "terminal_setting": "Estuarine outlet north of Guaibim and distinct from the Rio Una/Valença–Tinharé outlet farther south.",
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      },
+      "region": "Bahia, Brazil, from east of Maracás through the Jiquiriçá valley to the Atlantic coast north of Guaibim."
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:80015064",
+      "hydro-system:61520170",
+      "hydro-system:70156165"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 395,
+    "non_pending_records": 352,
+    "source_access_pending": 3,
+    "source_material_pending": 40,
+    "source_any_pending": 43,
+    "scope_holds": 115,
+    "river_groups": 297,
+    "lakes": 98,
+    "unrecorded": 3670,
+    "unrecorded_river_groups": 3158,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r113-aafc-nluis-index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "source_key": "r113-eccc-banks1-page",
+      "official_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/banks-island-number-1.html"
+    },
+    {
+      "source_key": "r113-aafc-nluis-98d_c",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98d_c.jpg"
+    },
+    {
+      "source_key": "r113-aafc-nluis-98a",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98a.jpg"
+    },
+    {
+      "source_key": "r113-eccc-banks1-map",
+      "official_url": "https://www.canada.ca/content/canadasite/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/banks-island-number-1/_jcr_content/par/mwsadaptiveimage_421121137/image.img.jpg/1533923086627.jpg"
+    },
+    {
+      "source_key": "r113-gsc-cgm35-catalogue",
+      "official_url": "https://publications.gc.ca/site/eng/445930/publication.html"
+    },
+    {
+      "source_key": "r113-nature-capillaries-2024",
+      "official_url": "https://www.nature.com/articles/s44221-024-00276-9"
+    },
+    {
+      "source_key": "r113-cbmt-inherited-stop",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "ign-topo250k-r113",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-topo500k-r113",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ina-flood2017",
+      "official_url": "https://www.ina.gov.ar/alerta/pdf/informe_nw_2017.pdf"
+    },
+    {
+      "source_key": "gba-plan-salado",
+      "official_url": "https://www.gba.gob.ar/node/21778"
+    },
+    {
+      "source_key": "ada-a4-prose",
+      "official_url": "https://ada.gba.gov.ar/wp-content/uploads/2024/10/informe-A4-final.pdf"
+    },
+    {
+      "source_key": "villegas-emergency2017",
+      "official_url": "https://sibom.slyt.gba.gob.ar/bulletins/313/contents/1155905/download_annex?annex_id=794"
+    },
+    {
+      "source_key": "r113-bc-rescue-map",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/natural-resource-use/resource-roads/local-road-safety-information/cariboo-chilcotin/dccv12-rescue_map.pdf"
+    },
+    {
+      "source_key": "r113-bc-structure-093c",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/natural-resource-use/resource-roads/local-road-safety-information/stuart-nechako/stuart-nechako_fsr_structure_location_map_093c.pdf"
+    },
+    {
+      "source_key": "r113-bc-fishing-2025-27",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/2025-2027_freshwater_fishing_regulations_synopsis.pdf"
+    },
+    {
+      "source_key": "r113-dean-guardian-2023",
+      "official_url": "https://a100.gov.bc.ca/pub/acat/documents/r63004/2023DeanRiverGuardianSummary_1711485244875_A36E2C4913.pdf"
+    },
+    {
+      "source_key": "r113-bc-parks-dean-corridor",
+      "official_url": "https://bcparks.ca/dean-river-corridor-conservancy/"
+    },
+    {
+      "source_key": "r113-bc-parks-dean-conservancy",
+      "official_url": "https://bcparks.ca/dean-river-conservancy/"
+    },
+    {
+      "source_key": "r113-bcgs-bella-coola-2003",
+      "official_url": "https://cmscontent.nrs.gov.bc.ca/geoscience/PublicationCatalogue/Paper/BCGS_P2003-01-06_Diakow.pdf"
+    },
+    {
+      "source_key": "SEI_MARACAS",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2920502.pdf"
+    },
+    {
+      "source_key": "SEI_PLANALTINO",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2924900.pdf"
+    },
+    {
+      "source_key": "SEI_IRAJUBA",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2914208.pdf"
+    },
+    {
+      "source_key": "SEI_SANTAINES",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2927903.pdf"
+    },
+    {
+      "source_key": "SEI_UBAIRA",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2932101.pdf"
+    },
+    {
+      "source_key": "SEI_LAJE",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2918803.pdf"
+    },
+    {
+      "source_key": "SEI_VALENCA",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2932903.pdf"
+    },
+    {
+      "source_key": "PTDRSS2017",
+      "official_url": "https://www.ba.gov.br/seplan/sites/site-seplan/files/2025-07/Plano%20Territorial%20de%20Desenvolvimento%20do%20Vale%20do%20Jiquiri%C3%A7%C3%A1.pdf"
+    },
+    {
+      "source_key": "INEMA_CBH",
+      "official_url": "https://www.ba.gov.br/inema/gestao-2/comites-de-bacias/comites/cbh-reconcavo-sul"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "ec4b932ac3c8513cea022db37a72f0b26ee34aa5",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      252,
+      253,
+      254,
+      255
+    ],
+    "next_unrecorded_id": "hydro-system:70925697",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}
