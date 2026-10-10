@@ -1,0 +1,365 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r59",
+  "sources": [
+    {
+      "source_key": "r59-tpwd-strategic-planning-river-map",
+      "title": "TPWD Strategic Planning Regions",
+      "publisher": "Texas Parks and Wildlife Department",
+      "attribution": "Map compiled by the Texas Parks and Wildlife Department GIS Lab; PDF author metadata names Cynthia R. Banks, TPWD GIS Lab.",
+      "page": "Single sheet; Guadalupe / San Antonio planning region",
+      "supports": "Labeled Guadalupe route, characteristic upper and middle turns, lower coastal continuation and distinction from adjacent drainages.",
+      "limits": "Generalized statewide planning cartography; not a detailed feeder, impoundment or terminal-distributary naming map. Compilation year is not asserted.",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/media/pwd_mp_e0100_1070m_34.pdf"
+    },
+    {
+      "source_key": "r59-tpwd-kerr-figure12-2001",
+      "title": "Ecologically Significant River & Stream Segments of Region J (Plateau): Johnson Creek, Figure 12",
+      "authors": "Albert El-Hage and Dan W. Moulton",
+      "publisher": "Texas Parks and Wildlife Department",
+      "attribution": "TPWD Region J report, May 2001; Figure 12 base map source: TxDOT county files; printed scale 1 inch = 8 miles.",
+      "year": 2001,
+      "page": "Printed p. 17, PDF p. 1, Figure 12",
+      "supports": "Separate North Fork, South Fork and Johnson Creek approaches; Hunt, Ingram, Kerrville and Center Point channel sequence.",
+      "limits": "Ecological segment emphasis is not a hydronym boundary. The westernmost modeled feeder lies beyond the distinctly highlighted North Fork reach and remains unassigned.",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/pwd_rp_t3200_1059d/media/johnson.pdf"
+    },
+    {
+      "source_key": "r59-tpwd-north-fork-2001",
+      "title": "Ecologically Significant River & Stream Segments of Region J (Plateau): North Fork Guadalupe River",
+      "authors": "Albert El-Hage and Dan W. Moulton",
+      "publisher": "Texas Parks and Wildlife Department",
+      "attribution": "TPWD Region J report, May 2001.",
+      "year": 2001,
+      "page": "Printed p. 24, first paragraph",
+      "supports": "North Fork's eastward course in western Kerr County and its junction with the South Fork at Hunt.",
+      "limits": "A named stream description, not evidence that every initial modeled feeder is North Fork or that its endpoint is the named spring.",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/pwd_rp_t3200_1059d/media/n_guadalupe.pdf"
+    },
+    {
+      "source_key": "r59-tpwd-waterways-guadalupe",
+      "title": "An Analysis of Texas Waterways: Guadalupe River",
+      "publisher": "Texas Parks and Wildlife Department",
+      "attribution": "TPWD, A Report on the Physical Characteristics of Rivers, Streams, and Bayous in Texas, PWD RP T3200-1047.",
+      "supports": "Independent river-course descriptions, reservoir distinction and the Comal tributary at New Braunfels.",
+      "limits": "The page explicitly leaves some long reaches unmapped. Its recreational conditions, distances and facility statements are not used as current safety or access advice.",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/pwd_rp_t3200_1047/17_c_tx_guadalupe.phtml"
+    },
+    {
+      "source_key": "r59-gbra-guadalupe-basin-poster",
+      "title": "Guadalupe River Basin",
+      "publisher": "Guadalupe-Blanco River Authority",
+      "attribution": "Guadalupe-Blanco River Authority; sheet imprint PC/EDU-2014.06-3000-Cap.",
+      "page": "Single sheet; main whole-basin map and eco-region descriptions",
+      "supports": "Continuous upper-to-coast route, North and South Fork distinction, Canyon Reservoir, the Seguin–Gonzales–Cuero–Victoria sequence, separate tributaries and receiving estuary.",
+      "limits": "Educational regional map; generalized channel and bay outlines. It does not settle exact source, reservoir-transition vertices, detailed tidal-channel choice or contemporary flow and shorelines.",
+      "official_url": "https://www.gbra.org/wp-content/uploads/2022/01/Guadalupe-River-Basin-Poster.pdf"
+    },
+    {
+      "source_key": "r59-twdb-guadalupe-basin",
+      "title": "River Basins: Guadalupe River Basin",
+      "publisher": "Texas Water Development Board",
+      "attribution": "Official TWDB river-basin overview.",
+      "supports": "Guadalupe naming from the Kerr County fork confluence and its destination in San Antonio Bay; separate tributary names.",
+      "limits": "Basin-level prose, not full-path mapping or a terminal-distributary gazetteer. Historical etymology and water-management claims are not evaluated.",
+      "official_url": "https://www.twdb.texas.gov/surfacewater/rivers/river_basins/guadalupe/index.asp"
+    },
+    {
+      "source_key": "r59-noaa-altamaha-basin",
+      "title": "Supporting Fisheries Research and Restoration in Georgia’s Largest Watershed",
+      "publisher": "NOAA Fisheries, Office of Habitat Conservation",
+      "attribution": "NOAA Fisheries, published September 9, 2025; embedded Altamaha River basin, dams and accessible-habitat map.",
+      "year": 2025,
+      "page": "Article and basin map",
+      "supports": "Connected Oconee-side upper corridor, Sinclair setting, separate Ocmulgee contribution, confluence and Altamaha coastal trunk.",
+      "limits": "Regional network cartography; small feeder names, hydronym transition vertices, reservoir boundaries and terminal channels are not individually resolved.",
+      "official_url": "https://www.fisheries.noaa.gov/feature-story/supporting-fisheries-research-and-restoration-georgias-largest-watershed"
+    },
+    {
+      "source_key": "r59-gwinnett-mulberry-map",
+      "title": "Proposed City of Mulberry, Georgia",
+      "publisher": "Gwinnett County official website; Georgia General Assembly Legislative and Congressional Reapportionment Office",
+      "attribution": "Map plan Mulberry-City-2024, client HD104; Georgia General Assembly Legislative and Congressional Reapportionment Office, with Caliper base-map credit.",
+      "year": 2024,
+      "page": "Single-sheet map, Little Mulberry River corridor",
+      "supports": "Little Mulberry feeder context and separation from Apalachee drainage at the headward end of the selected corridor.",
+      "limits": "Municipal proposal map with hydrographic base, not a hydronym decision or surveyed river-source map. Does not cover the entire route to the Middle Oconee.",
+      "official_url": "https://www.gwinnettcounty.com/documents/d/gwinnett-county/mulberry-city-2024-map-full-detail-pdf"
+    },
+    {
+      "source_key": "r59-epa-oconee-mercury-text",
+      "title": "Total Maximum Daily Load for Total Mercury, Oconee River, Georgia",
+      "publisher": "U.S. Environmental Protection Agency Region 4; hosted by Georgia EPD",
+      "attribution": "EPA Region 4, Water Management Division, February 28, 2002.",
+      "year": 2002,
+      "page": "PDF p. 5, printed preliminary p. iv; printed p. 5",
+      "supports": "Explicitly identifies Oconee River below the North/Middle Oconee confluence and continuing through Barnett Shoals to Lake Oconee.",
+      "limits": "Used for textual reach distinctions only; the report’s map was not visually read and supplies no geometric proof here.",
+      "official_url": "https://epd.georgia.gov/document/publication/epa-oconee-river-basin-hg-tmdl-report-2002/download"
+    },
+    {
+      "source_key": "r59-gadnr-altamaha-guide",
+      "title": "Guide to Fishing the Altamaha River",
+      "publisher": "Georgia Department of Natural Resources, Wildlife Resources Division, Fisheries Management Section",
+      "attribution": "Georgia DNR Wildlife Resources Division; brochure printed August 2008.",
+      "year": 2008,
+      "page": "Two-page brochure, river map on second page",
+      "supports": "Altamaha identity and lower trunk correspondence from the upper river through Ohoopee, Jesup and Fort Barrington toward the Darien tidal setting.",
+      "limits": "Recreational schematic, not a surveyed shoreline or exact distributary-name boundary; old access and facilities information was not treated as current.",
+      "official_url": "https://gadnr.org/sites/default/files/wrd/pdf/river-prospects/altamaha_guide.pdf"
+    },
+    {
+      "source_key": "r59-epd-altamaha-plan-text",
+      "title": "Altamaha River Basin Management Plan 2003",
+      "publisher": "Georgia Department of Natural Resources, Environmental Protection Division",
+      "attribution": "Georgia DNR Environmental Protection Division; title page dated 2003, official catalogue lists the plan under 2004.",
+      "year": 2003,
+      "page": "Section 2.1.1, printed pp. 2-1 and 2-3",
+      "supports": "Oconee–Ocmulgee formation of Altamaha and downstream branching marshland leading to Altamaha Sound.",
+      "limits": "Textual regional context only; no precise terminal channel or map-to-coordinate boundary inferred.",
+      "official_url": "https://epd.georgia.gov/document/publication/altamaha-river-basin-management-planpdf/download"
+    },
+    {
+      "source_key": "r59-ogs-northern-2021",
+      "title": "Index to Maps, Bedrock Geology, 1991–2020, Northern Sheet",
+      "publisher": "Ontario Geological Survey, Ministry of Energy, Northern Development and Mines, Government of Ontario",
+      "attribution": "Ontario Geological Survey 2021. Index map compilation and editing: Publication Services Unit, Ontario Geological Survey. Map outlines compilation and cartographic production: J. Rose. © Queen’s Printer for Ontario, 2021. Printed scale 1:1,000,000.",
+      "year": 2021,
+      "page": "Single sheet; whole regional context, western lake belt, southern approach, central Winisk/Asheweig corridors, lower river and coast, title and credits.",
+      "supports": "Representative Winisk system identity from connected route shape and direct river labels; lake and tributary distinctions; complete regional drainage context and estuarine approach.",
+      "limits": "A geological-map index with generalized hydrographic base, not a gazetteer, surveyed hydronym boundary or current shoreline product. Initial small southern feeder and fine lake transitions are unresolved. Red geological-sheet outlines and black graticules are not hydronym boundaries. The imprint notes limited editorial review and potential positional discrepancies; the specific hydrographic-base provider is not established.",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; northern Inland Ice, northern graticule, Victoria Fjord and adjoining ice margin, Inland Ice legend",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description, pp. 64–65 Glaciology, and map-label register including Victoria Fjord",
+      "supports": "Explains ice-contour classes and locates the mapped Victoria Fjord label, without establishing a natural river identity for the modeled path.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70821017",
+      "source_keys": [
+        "r59-tpwd-strategic-planning-river-map",
+        "r59-tpwd-kerr-figure12-2001",
+        "r59-tpwd-north-fork-2001",
+        "r59-tpwd-waterways-guadalupe",
+        "r59-gbra-guadalupe-basin-poster",
+        "r59-twdb-guadalupe-basin"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10241
+          ],
+          "finding": "The western approach follows the broadly eastward North Fork corridor toward Hunt. TPWD Figure 12 and the GBRA poster distinguish this route from the South Fork arriving from the southwest and Johnson Creek arriving from the north. The short headmost feeder is not individually named, and the modeled start is not asserted to be a named spring or surveyed source.",
+          "sources": [
+            "r59-tpwd-kerr-figure12-2001",
+            "r59-tpwd-north-fork-2001",
+            "r59-gbra-guadalupe-basin-poster"
+          ]
+        },
+        {
+          "fragments": [
+            10241
+          ],
+          "finding": "Beyond Hunt, the line continues east through the Ingram and Kerrville corridor, bends southeast toward Center Point and continues east through Kendall County. The Kerr County map resolves the upper sequence, while the statewide map and basin poster carry the same channel onward. The separate Johnson Creek and South Fork labels are not transferred downstream as aliases.",
+          "sources": [
+            "r59-tpwd-kerr-figure12-2001",
+            "r59-tpwd-strategic-planning-river-map",
+            "r59-gbra-guadalupe-basin-poster"
+          ]
+        },
+        {
+          "fragments": [
+            10241
+          ],
+          "finding": "The winding eastward Hill Country reach passes through the Canyon Reservoir setting and turns south toward New Braunfels before bending east again toward Seguin. The poster and TPWD river map reproduce this distinctive turn. TPWD's waterways account independently separates the reservoir, downstream Guadalupe and Comal tributary; an impoundment passage is not treated as a river-name synonym.",
+          "sources": [
+            "r59-gbra-guadalupe-basin-poster",
+            "r59-tpwd-strategic-planning-river-map",
+            "r59-tpwd-waterways-guadalupe"
+          ]
+        },
+        {
+          "fragments": [
+            10241
+          ],
+          "finding": "The eastward continuation past Seguin reaches Gonzales, turns predominantly south toward Cuero and then southeast through the Victoria corridor. These successive bends match the labeled Guadalupe on both regional maps. San Marcos, Coleto Creek and the San Antonio River remain separately mapped contributing waterways, rather than alternative names for the selected trunk.",
+          "sources": [
+            "r59-gbra-guadalupe-basin-poster",
+            "r59-tpwd-strategic-planning-river-map",
+            "r59-tpwd-waterways-guadalupe"
+          ]
+        },
+        {
+          "fragments": [
+            10241,
+            10242
+          ],
+          "finding": "The last southeastward continuation and short second fragment occupy the Guadalupe coastal approach at the head of the San Antonio Bay system. The GBRA poster depicts the lower river, its separate San Antonio tributary and estuarine continuation; TWDB independently states the receiving bay. Map scale does not resolve every terminal distributary or establish the modeled endpoint as a precise contemporary river mouth.",
+          "sources": [
+            "r59-gbra-guadalupe-basin-poster",
+            "r59-tpwd-strategic-planning-river-map",
+            "r59-twdb-guadalupe-basin"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70777275",
+      "source_keys": [
+        "r59-noaa-altamaha-basin",
+        "r59-gwinnett-mulberry-map",
+        "r59-epa-oconee-mercury-text",
+        "r59-gadnr-altamaha-guide",
+        "r59-epd-altamaha-plan-text"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9931
+          ],
+          "finding": "The headward eastward extension occupies the Little Mulberry feeder setting. The county original depicts Little Mulberry River separately from the Apalachee drainage, including its eastward passage toward Barrow County. This supports upper contributing-stream context, not an Altamaha name for the headwater endpoint or an exact mapped name-transition vertex.",
+          "sources": [
+            "r59-gwinnett-mulberry-map",
+            "r59-noaa-altamaha-basin"
+          ]
+        },
+        {
+          "fragments": [
+            9931
+          ],
+          "finding": "The path then turns south through the upper Oconee corridor and reservoir chain. EPA text explicitly distinguishes Oconee River below the North and Middle Oconee confluence from the reach continuing to Lake Oconee; NOAA places Sinclair on this eastern trunk. Upper feeders and Lake Oconee/Sinclair remain separate features.",
+          "sources": [
+            "r59-epa-oconee-mercury-text",
+            "r59-noaa-altamaha-basin"
+          ]
+        },
+        {
+          "fragments": [
+            9931,
+            9932,
+            9934,
+            9935
+          ],
+          "finding": "Below the reservoir corridor, the selected mainstem follows the south-southeast Oconee side to the two-river junction. The two western contributing pieces match the separately mapped Ocmulgee corridor and its broad lower eastward bend. NOAA text identifies their confluence as the start of Altamaha River.",
+          "sources": [
+            "r59-noaa-altamaha-basin"
+          ]
+        },
+        {
+          "fragments": [
+            9933
+          ],
+          "finding": "From that junction the lower selected piece proceeds east and then southeast. The DNR original river guide follows the same trunk past the Ohoopee junction and the Jesup/Jaycee Landing setting toward Fort Barrington. Ohoopee and the surrounding creeks are separate tributaries, not aliases of this group.",
+          "sources": [
+            "r59-gadnr-altamaha-guide",
+            "r59-noaa-altamaha-basin"
+          ]
+        },
+        {
+          "fragments": [
+            9933
+          ],
+          "finding": "The final approach enters the branching tidal setting near Darien. The DNR guide separates Darien and Champney landing/channel context; the EPD description places the terminal waters in Altamaha Sound. The simplified model endpoint is not assigned an exact distributary, estuarine boundary or surveyed ocean-mouth vertex.",
+          "sources": [
+            "r59-gadnr-altamaha-guide",
+            "r59-epd-altamaha-plan-text"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70082321",
+      "source_keys": [
+        "r59-ogs-northern-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9132
+          ],
+          "finding": "The modeled southern start lies in the lake country southwest of Winisk Lake. Its northward approach, westward bend and subsequent northeast continuation reach the Winisk lake corridor shown on the original map. The map labels Fishbasket and Mameigwess in this upper setting, but its scale does not resolve the initial small feeder or authorize assigning one river name or exact lake entry/exit points to the entire modeled piece.",
+          "sources": [
+            "r59-ogs-northern-2021"
+          ]
+        },
+        {
+          "fragments": [
+            9136,
+            9137
+          ],
+          "finding": "The long western contribution corresponds to the eastward Wunnummin lake-chain approach and the adjoining complex of channels and lakes toward Winisk. The original separately depicts Wunnummin, Chipai, Wapikopa, Kanuchuan and Winisk lakes; their mapped spatial arrangement and connecting channels distinguish this contribution from the more northerly Asheweig drainage. Lake names are preserved as waterbody context, not treated as aliases for all selected connecting lines.",
+          "sources": [
+            "r59-ogs-northern-2021"
+          ]
+        },
+        {
+          "fragments": [
+            9132,
+            9133
+          ],
+          "finding": "The selected junction near the northern Winisk Lake corridor continues north along the map’s directly labeled Winisk River. The subsequent eastern bulge and return north agree with the mapped trunk. The separately drawn and labeled Winiskisti Channel east of the upper trunk is not adopted as the name of the whole selection; model-fragment boundaries are not name boundaries.",
+          "sources": [
+            "r59-ogs-northern-2021"
+          ]
+        },
+        {
+          "fragments": [
+            9138
+          ],
+          "finding": "The short western contribution follows the lower north-turning tributary corridor below the mapped Asheweig/Frog junction and into Winisk. The map’s connected Asheweig course and the intervening Muzhikoba Creek confluence distinguish it from the Winisk trunk. Asheweig is retained as contributing-river context, without extending that name to the full group or forcing names onto every small incoming stream.",
+          "sources": [
+            "r59-ogs-northern-2021"
+          ]
+        },
+        {
+          "fragments": [
+            9134,
+            9135
+          ],
+          "finding": "The named Winisk trunk continues north, makes the pronounced eastward turn, and then bends northeast into a widened estuarine channel at Hudson Bay. The original shows the same lower-river bend sequence, the separate Mishamattawa approach, and the coastal setting between Wabuk Point and Flagstaff Point. The modeled final point is within this estuarine mouth area; the regional sheet does not fix the exact contemporary shoreline, tidal limit or terminal channel vertex.",
+          "sources": [
+            "r59-ogs-northern-2021"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90001200",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete single selected fragment was inspected from its southern interior endpoint through the long nearly straight northern leg, the short northwestward upper-margin sequence and final northern extension. No additional tributary fragment is present.",
+        "The long southern and middle route lies on mapped Inland Ice. Its northern approach reaches the ice-margin and Victoria Fjord setting. The original map graticule and ice/land/fjord arrangement, supported by the accompanying map-label register, distinguish this from neighboring fjords; proximity to the label is not treated as river-name evidence.",
+        "The original does not establish the entire path as a named surface river, subglacial river or glacier. A line continuing into a fjord cannot inherit the fjord name as a river identity, and the exact terminal natural-feature boundary remains unassigned.",
+        "Surface, ice-thickness and sub-ice bedrock contours describe the ice and terrain, not named river channels. Historical mapping supplies regional context without proving present flow, connectivity or current ice-front position."
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
