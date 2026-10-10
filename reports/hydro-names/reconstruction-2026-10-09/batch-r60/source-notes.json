@@ -1,0 +1,323 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r60",
+  "sources": [
+    {
+      "source_key": "ibge_maranhao_political_map",
+      "title": "Maranhão (mapas estaduais, político)",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year": null,
+      "page": "Single-sheet map, PDF page 1",
+      "supports": "Direct Pindaré and Zutiua labels, complete regional course shapes, tributary distinction, surrounding town sequence and inland lower-network setting.",
+      "limits": "Generalized educational political map, not a surveyed hydronym-boundary product. Dense lower-river place labels obscure some fine network detail. Exact source, junction, floodplain-channel and tidal boundaries are not resolved. No publication year is asserted from file metadata. Original map and derivatives remain private.",
+      "official_url": "https://geoftp.ibge.gov.br/produtos_educacionais/mapas_tematicos/mapas_do_brasil/mapas_estaduais/politico/maranhao.pdf"
+    },
+    {
+      "source_key": "sema_progestao_2025_report_2026",
+      "title": "Relatório Progestão 2025 – 3º Ciclo, 3º Período de Certificação, Maranhão; Annex 02, Relatório Progestão III – Centro de Desastres Ambientais/CPDAm",
+      "author": "Governo do Estado do Maranhão, Secretaria de Estado do Meio Ambiente e Recursos Naturais (SEMA), Sala de Situação/CPDAm; hosted by Agência Nacional de Águas e Saneamento Básico (ANA)",
+      "year": 2026,
+      "page": "Cover dated 15 April 2026; Annex 02 Figure 35, printed p. 61, PDF p. 82",
+      "supports": "Lower-corridor station names and their regional spatial sequence from Alto Alegre do Pindaré through Pindaré-Mirim and Monção toward Cajari.",
+      "limits": "The partial station inventory has names, identifiers and locations but no separate river-name column. It supplements cartographic route correspondence and is not used to assign every station to the Pindaré or to define headwater and mouth limits. Original table and coordinate values remain private.",
+      "official_url": "https://progestao.ana.gov.br/progestao-1/certificacao/certificacoes-2013-a-2018/certificacao-2025/certificacao-das-metas-federativas-2025/relatorios-progestao-2025/ma_relatorio_progestao_3operiodo_2025.pdf/%40%40download/file/MA_Relatorio_Progestao_3oPeriodo_2025.pdf"
+    },
+    {
+      "source_key": "ports_northeast_basin_2014",
+      "title": "Bacia do Nordeste: Bacia do Pindaré; Bacia do Mearim",
+      "author": "Brazilian federal government, Ministério de Portos e Aeroportos",
+      "year": 2014,
+      "page": "Unpaginated Pindaré and Mearim sections; published 12 November 2014, modified 17 January 2023",
+      "supports": "Pindaré's tributary relationship to Mearim, the Pindaré-Mirim-to-Mearim lower-river extent and Zutiua as a separate named watercourse in the Pindaré basin.",
+      "limits": "Historical waterway information supports geographic relationships only. Its navigation statements, distances and operational conditions are not asserted as current conditions or exact lengths of the selected geometry.",
+      "official_url": "https://www.gov.br/portos-e-aeroportos/pt-br/assuntos/conteudo/portos-e-transporte-aquaviario/bacia-nordeste/"
+    },
+    {
+      "source_key": "r60-qc-assinica-knowledge",
+      "title": "État des connaissances du projet de parc national Assinica",
+      "publisher": "Gouvernement du Québec, Ministère des Forêts, de la Faune et des Parcs, Direction des parcs nationaux",
+      "attribution": "July 2015; project lead Geneviève Brunet; cartography André Lafrenière. Carte 18, L’hydrographie, produced by Direction des parcs nationaux, October 2014, using provincial territorial mapping.",
+      "year": 2015,
+      "page": "Carte 18, printed p. 59 (PDF p. 77); hydrographic descriptions, printed pp. 55–56 and 61–62.",
+      "supports": "Upper Assinica contributing setting, named lake sequence, Assinica–Broadback junction, Evans–Giffard passage and separation of adjoining basins.",
+      "limits": "Regional mapping supports corridor correspondence, not exact model-to-name transition vertices. Gazetteer-derived historical name discussion, naming dates and listed conventional river length were not used.",
+      "official_url": "https://cdn-contenu.quebec.ca/cdn-contenu/parcs/documents/RA_Etat-connaissances_Assinica.pdf"
+    },
+    {
+      "source_key": "r60-qc-lower-broadback-map",
+      "title": "Réserve de territoire aux fins d’aire protégée du Bassin-Aval-de-la-Broadback",
+      "publisher": "Gouvernement du Québec, Ministère de l’Environnement et de la Lutte contre les changements climatiques, Direction des aires protégées",
+      "attribution": "April 2021; provincial topographic and administrative database (BDTA) credited on map.",
+      "year": 2021,
+      "page": "Single-sheet map",
+      "supports": "Distinct lower Broadback corridor between Rupert and Nottaway and its western coastal approach.",
+      "limits": "Protected-area context map, not a surveyed mouth boundary or a full upper-basin map. Protection status was not independently updated.",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-territoires/eeyou-istchee-baie-james/carte-bassin-aval-broadback-en.pdf"
+    },
+    {
+      "source_key": "r60-qc-lower-broadback-page",
+      "title": "Réserve de territoire aux fins d’aire protégée du Bassin-Aval-de-la-Broadback: official description",
+      "publisher": "Gouvernement du Québec, Ministère de l’Environnement, de la Lutte contre les changements climatiques, de la Faune et des Parcs",
+      "year": null,
+      "supports": "Places the reserve in the Waskaganish Plain and Rupert Bay coastal area.",
+      "limits": "Used for regional coastal context only, not cartographic proof.",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-territoires/eeyou-istchee-baie-james/bassin-aval-broadback-en.htm"
+    },
+    {
+      "source_key": "r60-blm-npra-geopdf-2019",
+      "title": "National Petroleum Reserve in Alaska",
+      "publisher": "U.S. Department of the Interior, Bureau of Land Management",
+      "attribution": "BLM Alaska; map date September 16, 2019. Sheet states NAD 1983 UTM Zone 4N and describes the map as a graphic display compiled from multiple sources.",
+      "year": 2019,
+      "page": "Single sheet; complete river corridor and readable enlargements of source, Awuna, middle reach, lower reach and delta",
+      "supports": "Whole-group route, Awuna versus upper Colville distinction, Thunder Creek approach, main downstream turns, Umiat, Nuiqsut and the multiple-channel delta.",
+      "limits": "Regional cartography does not establish precise hydronym-transition vertices or a contemporary shoreline. Administrative and infrastructure layers are not treated as current.",
+      "official_url": "https://www.blm.gov/sites/blm.gov/files/documents/files/Maps_GeoPDF_National_Petroleum_Reserve_Alaska.pdf"
+    },
+    {
+      "source_key": "r60-blm-special-areas-2023",
+      "title": "National Petroleum Reserve in Alaska: Special Areas",
+      "publisher": "U.S. Department of the Interior, Bureau of Land Management, Alaska",
+      "attribution": "BLM GIS 2019 data; printed September 1, 2023.",
+      "year": 2023,
+      "page": "Single sheet",
+      "supports": "Independent map layout distinguishing Awuna, upper Colville and neighboring drainages and carrying the Colville corridor toward Nuiqsut and Harrison Bay.",
+      "limits": "Generalized administrative map; special-area outlines are not river-name boundaries. No claim about present legal designation or land access is made.",
+      "official_url": "https://www.blm.gov/sites/default/files/docs/2023-09/BLM-NPR-A_SpecialAreas-map-11X17.pdf"
+    },
+    {
+      "source_key": "r60-blm-water-resources-ofr96",
+      "title": "Water Resources of the Colville River Special Area, National Petroleum Reserve-Alaska",
+      "authors": "Jon Kostohrys, Kristine Kosnik and Ethan Scott",
+      "publisher": "U.S. Department of the Interior, Bureau of Land Management, Alaska State Office",
+      "attribution": "BLM-Alaska Open File Report 96, December 2003; BLM/AK/ST-009+7200+930.",
+      "year": 2003,
+      "page": "Printed pp. 1, 9 and 29-31",
+      "supports": "Awuna and Lookout are distinct waterways; the Special Area study corridor excludes portions of the headwaters and delta, so its administrative scope cannot define the full river group.",
+      "limits": "Historical hydrological study and named sampling sites do not establish current flow, channel conditions or complete river-name boundaries. Its absent embedded maps are unnecessary to the completed independent-map correspondence.",
+      "official_url": "https://www.blm.gov/sites/default/files/documents/files/Library_Alaska_OpenFileReport96.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; northern Inland Ice, graticule, Victoria Fjord regional setting and Inland Ice legend",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description, pp. 64–65 Glaciology, and map-label register including Victoria Fjord",
+      "supports": "Explains ice-contour classes and locates the mapped Victoria Fjord label, without establishing a natural river identity for the modeled path.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60619480",
+      "source_keys": [
+        "ibge_maranhao_political_map",
+        "sema_progestao_2025_report_2026",
+        "ports_northeast_basin_2014"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13766
+          ],
+          "finding": "The southern modeled start lies west of Amarante do Maranhão and follows the long north-running corridor directly labeled Rio Pindaré on IBGE's map. Its slight westward bow and subsequent northeast turn agree with the mapped upper river. The Tocantins to the west, Açailândia tributary farther northwest and Grajaú drainage to the east remain distinct. The map does not establish the exact natural spring or initial named vertex.",
+          "sources": [
+            "ibge_maranhao_political_map"
+          ]
+        },
+        {
+          "fragments": [
+            13766,
+            13767
+          ],
+          "finding": "The route turns northeast past the Buriticupu setting and continues toward Alto Alegre do Pindaré, following the same distinctive course and sequence of surrounding towns shown by IBGE. This route differs from the separate northward Zutiua corridor farther east. Fragment boundaries do not establish natural hydronym transitions.",
+          "sources": [
+            "ibge_maranhao_political_map"
+          ]
+        },
+        {
+          "fragments": [
+            13768
+          ],
+          "finding": "The lower mainstem first runs generally east from Alto Alegre do Pindaré, then turns northeast through the Pindaré-Mirim/Santa Inês setting and continues by Monção. IBGE depicts this connected sequence. SEMA's station inventory independently places Alto Alegre do Pindaré, Tufilândia, Pindaré-Mirim, Monção and Cajari stations along the corresponding lower regional corridor. These are station-location corroboration, not a river-name field assigning every station or intervening line to Pindaré.",
+          "sources": [
+            "ibge_maranhao_political_map",
+            "sema_progestao_2025_report_2026"
+          ]
+        },
+        {
+          "fragments": [
+            13769
+          ],
+          "finding": "The long eastern contribution begins east of the upper Pindaré, trends northeast past the western side of the Arame setting and then north past Santa Luzia before meeting the mainstem near Pindaré-Mirim. This matches IBGE's separately labeled Rio Zutiua corridor. It is contributing-river context and is not renamed Pindaré or confused with the farther-east Grajaú; the exact beginning of its hydronym is unassigned.",
+          "sources": [
+            "ibge_maranhao_political_map"
+          ]
+        },
+        {
+          "fragments": [
+            13768
+          ],
+          "finding": "The final northeast continuation reaches the inland lower Pindaré–Mearim junction setting north of the Vitória do Mearim/Arari corridor, rather than extending to the Atlantic coast. IBGE shows the lower network in this setting. The federal waterway account identifies Pindaré as a Mearim tributary and defines its lower section from Pindaré-Mirim to the Mearim. Generalized mapping and overlapping place labels do not fix the exact terminal confluence vertex, tidal boundary or individual floodplain channels.",
+          "sources": [
+            "ibge_maranhao_political_map",
+            "ports_northeast_basin_2014"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70207424",
+      "source_keys": [
+        "r60-qc-assinica-knowledge",
+        "r60-qc-lower-broadback-map",
+        "r60-qc-lower-broadback-page"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9265
+          ],
+          "finding": "The eastern endpoint and its long southwest approach occupy the eastern Assinica secondary-drainage setting on the provincial hydrography map. The selected route proceeds toward the Opataca lake corridor instead of following the upper Broadback branch by Frotet and Labeau. The small initial feeder is not named by this review.",
+          "sources": [
+            "r60-qc-assinica-knowledge"
+          ]
+        },
+        {
+          "fragments": [
+            9265
+          ],
+          "finding": "The modeled upper route matches the Opataca–Cachisca–Comencho–Assinica lake-chain setting. The original map distinguishes each lake, and the report describes Opataca draining to Cachisca, Cachisca to Comencho, and Comencho north into Assinica. These are separate lake names within the modeled route, not aliases of Rivière Broadback.",
+          "sources": [
+            "r60-qc-assinica-knowledge"
+          ]
+        },
+        {
+          "fragments": [
+            9265,
+            9266
+          ],
+          "finding": "From Lac Assinica, the path makes the westward and then northward approach of Rivière Assinica to its junction with Broadback. The original map and hydrographic account distinguish the Assinica tributary from the west-trending Broadback trunk. The modeled mainstem label does not erase this name transition.",
+          "sources": [
+            "r60-qc-assinica-knowledge"
+          ]
+        },
+        {
+          "fragments": [
+            9266,
+            9267
+          ],
+          "finding": "After the Assinica junction, the selected route runs west along Broadback, enters the Evans lake setting, turns north and northeast through the Giffard passage, and then bends west again. The hydrography map depicts this distinctive sequence separately from the Théodat and Coigne contributing basins and from Nemiscau in the Rupert drainage. Evans and Giffard retain their separate waterbody scope.",
+          "sources": [
+            "r60-qc-assinica-knowledge"
+          ]
+        },
+        {
+          "fragments": [
+            9267
+          ],
+          "finding": "The lower selected piece corresponds to the sinuous westward Rivière Broadback shown on the 2021 reserve map between the separately labeled Rupert river to the north and Nottaway to the south. Its terminal approach is in the Rupert Bay coastal setting identified by the official reserve page. No exact surveyed river-mouth vertex, tidal channel or estuary boundary is assigned.",
+          "sources": [
+            "r60-qc-lower-broadback-map",
+            "r60-qc-lower-broadback-page"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80032455",
+      "source_keys": [
+        "r60-blm-npra-geopdf-2019",
+        "r60-blm-special-areas-2023",
+        "r60-blm-water-resources-ofr96"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2327
+          ],
+          "finding": "The northern western approach follows the eastward Awuna corridor north of Lookout Ridge, then passes the Lookout River junction before meeting Colville. Both maps distinguish Awuna from the southern Colville approach. The report independently identifies separate Awuna sites above Lookout and near its mouth. The model's mainstem role does not make Awuna a Colville synonym.",
+          "sources": [
+            "r60-blm-npra-geopdf-2019",
+            "r60-blm-special-areas-2023",
+            "r60-blm-water-resources-ofr96"
+          ]
+        },
+        {
+          "fragments": [
+            2330,
+            2331
+          ],
+          "finding": "The long western non-mainstem corridor begins in the Thunder Creek approach, turns north and then east onto upper Colville, and continues past the Nuka, Kiligwa, Kuna and Ipnavik tributary settings toward the Awuna junction. The short adjoining fragment continues the same Colville corridor; it is not a separately named tributary merely because of its modeled role.",
+          "sources": [
+            "r60-blm-npra-geopdf-2019",
+            "r60-blm-special-areas-2023"
+          ]
+        },
+        {
+          "fragments": [
+            2328
+          ],
+          "finding": "After the Awuna junction, the eastward trunk follows labeled Colville along the reserve's southern margin, bends southeast near the Killik approach, then turns northeast toward Umiat. These successive turns match the actual modeled path. Separate tributary labels on the maps are not extended over the trunk.",
+          "sources": [
+            "r60-blm-npra-geopdf-2019",
+            "r60-blm-special-areas-2023"
+          ]
+        },
+        {
+          "fragments": [
+            2328,
+            2329
+          ],
+          "finding": "The Umiat reach continues northeast and then predominantly north across the coastal plain, beside the mapped Kogosukruk and Kikiakrorak contributing corridors. It remains west of the separate Itkillik River until their lower-river setting. The observed bend sequence, rather than the bounding box alone, supports Colville correspondence.",
+          "sources": [
+            "r60-blm-npra-geopdf-2019",
+            "r60-blm-special-areas-2023"
+          ]
+        },
+        {
+          "fragments": [
+            2329
+          ],
+          "finding": "The final northward continuation reaches the western Colville delta setting by Nuiqsut and Harrison Bay. The detailed map shows multiple named channels there, so the group candidate does not assign every delta channel or a precise contemporary mouth. The report explicitly distinguishes the delta from its more restricted Special Area study corridor.",
+          "sources": [
+            "r60-blm-npra-geopdf-2019",
+            "r60-blm-special-areas-2023",
+            "r60-blm-water-resources-ofr96"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90001718",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete single selected fragment was inspected: a long nearly northward interior leg, a short north-northeast section, an eastward bend with a southward dip, then a final northern extension. No additional tributary fragment is present.",
+        "The long southern and middle route crosses mapped Inland Ice. The northern bends approach the ice-margin and inner Victoria Fjord regional setting, identified from the original graticule and surrounding ice, land and fjord configuration; the exact terminal natural-feature boundary is not assigned.",
+        "The readable original does not establish a natural river name for the full modeled route. Nearby fjord or glacier labels cannot supply a uniform river identity, nor does this scope hold mean every nearby marginal stream is unnamed.",
+        "The ice-surface contours, ice-thickness isopachs and sub-ice bedrock contours are terrain information rather than named river channels. Historical mapping does not establish present-day ice margins, subglacial connectivity or flow along the modeled line."
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
