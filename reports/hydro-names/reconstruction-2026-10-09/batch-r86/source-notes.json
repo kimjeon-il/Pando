@@ -1,0 +1,346 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r86",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; southern Inland Ice, southeastern glaciated margin and Skjoldungen / Saqqisikuik regional context; graticule and Inland Ice legend.",
+      "supports": "Complete regional extent comparison, substantial ice-interior route, eastern glaciated coastal setting and separation of ice symbols from river evidence.",
+      "limits": "Regional historical geological cartography, not a river gazetteer, contemporary ice-margin survey or direct hydrological observation. The source scale does not establish an exact terminal glacier, fjord, shoreline crossing or river identity.",
+      "reuse_limit": "GEUS custom terms restrict redistribution and new maps based on the data. Original map pixels and all local crops or derived maps remain private; only independently written factual findings and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Pages 64–65, Glaciology.",
+      "supports": "Distinguishes the Inland Ice from local glaciers and explains surface contours, ice-thickness isopachs and sub-ice bedrock contours; supplies context for keeping an ice-related modeled path separate from an established river identity.",
+      "limits": "General glaciology cannot name this particular modeled line. The page 64 photograph is west Greenland context, not a photograph of the selected route. The page 65 schematic reconstructions, historical ice figures and melt estimates are not present-day or route-specific measurements.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r86-usgs-topo-pascagoula",
+      "title": "The National Map, USGS Topo map service: Leaf–Chickasawhay–Pascagoula corridor, headwater and western delta views",
+      "publisher": "U.S. Geological Survey",
+      "supports": "Complete selected-course correspondence, distinct upper feeder and rivers, Leaf–Chickasawhay confluence, Pascagoula receiving name, West Pascagoula distributary and truncated delta endpoint.",
+      "limits": "Base editions vary and are not asserted. Correspondence is regional cartographic identification, not present-day hydraulic or bank surveying. Originals, crops and private orientation views remain local.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r86-usgs-merrill-station",
+      "title": "USGS Station 02479000, Pascagoula River at Merrill, MS",
+      "publisher": "U.S. Geological Survey, National Water Conditions station information",
+      "supports": "Named Pascagoula receiving river directly below the confluence of Leaf and Chickasawhay near Merrill.",
+      "limits": "Historical station description used only for the named junction; no current discharge, station operation or entire-path identity inferred from the point alone.",
+      "official_url": "https://water.usgs.gov/nwc/NWC/sw/man/S02479000.html"
+    },
+    {
+      "source_key": "r86-mdeq-pascagoula-basin",
+      "title": "Pascagoula River Basin",
+      "publisher": "Mississippi Department of Environmental Quality",
+      "supports": "Regional grouping of Pascagoula, Leaf and Chickasawhay as major rivers of the Pascagoula basin and coastal receiving context.",
+      "limits": "General basin narrative, not evidence for every selected branch or a reason to extend the modeled endpoint to the Gulf.",
+      "official_url": "https://www.mdeq.ms.gov/water/surface-water/watershed-management/basin-management-approach/basin-listing/pascagoula-river/"
+    },
+    {
+      "source_key": "r86-ibge-nova-modica-2022",
+      "title": "Nova Módica - MG, Mapa Municipal, code 3144904, territorial edition 2022; imprint IBGE 2023",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências",
+      "supports": "Actual selected initial feeder, its receiving Cibrão connection, nearby settlements, and separation from adjacent southern and western drainages.",
+      "limits": "Municipal territorial-reference map with hydrographic base. Its administrative purpose and generalized selected geometry do not establish a spring, exact fork vertex or present-day channel survey. Original and crops remain local.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/MG/nova_modica/A0_3144904_MM.pdf"
+    },
+    {
+      "source_key": "r86-ibge-minas-politico-2015",
+      "title": "Mapa Político do Estado de Minas Gerais, 2015, scale 1:1,300,000",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "supports": "Regional connection of the Cibrão drainage to Cotaxé, northeastern borderward course and distinctions from Rio do Norte, Peixe Branco and Cricaré-side tributaries.",
+      "limits": "Regional scale resolves the generalized course and branch topology, not small-channel detail or exact name transitions.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/mg_politico1300k_2015_v3.pdf"
+    },
+    {
+      "source_key": "r86-agerh-sao-mateus-map",
+      "title": "Comitê de Bacia Hidrográfica Afluentes Capixabas do Rio São Mateus; Decreto Nº 2.619-R de 10 de Novembro de 2010; scale 1:850,000",
+      "authors": "Responsável técnico credited on sheet: Luiz Henrique Muniz de Aquino",
+      "publisher": "Agência Estadual de Recursos Hídricos do Espírito Santo (AGERH)",
+      "supports": "Named Cotaxé / northern-arm course, separate Cricaré / southern-arm course, lower receiving São Mateus, northward coastal turn and exclusion of Itaúnas.",
+      "limits": "The sheet title cites the committee decree; it does not supply a separate map creation date. The catalogue update is 23 February 2016. Regional map is not a current shoreline or precise source survey.",
+      "official_url": "https://agerh.es.gov.br/media/Mapas/CBHs/S%C3%83O%20MATEUS.pdf"
+    },
+    {
+      "source_key": "r86-cerh-mg-enquadramento-2023",
+      "title": "Deliberação Normativa CERH-MG Nº 85, de 15 de dezembro de 2023; Diário do Executivo, 29 December 2023, p. 39, Annex I",
+      "publisher": "Governo de Minas Gerais, Conselho Estadual de Recursos Hídricos (CERH-MG)",
+      "supports": "Independent official names and confluence descriptions for Rio Cibrão, Ribeirão São Jorge and Ribeirão São Pedro in the selected upper drainage.",
+      "limits": "Used for geographical names and confluence descriptions only, not current legal advice or a cartographic substitute. No copied coordinate table is included in this finding.",
+      "official_url": "https://sistemas.meioambiente.mg.gov.br/licenciamento/uploads/Lfx5Vlk9ShROsaBk0WY15vx7oKeVEYKC.pdf"
+    },
+    {
+      "source_key": "r86-agerh-cbh-sao-mateus",
+      "title": "CBH São Mateus",
+      "publisher": "Agência Estadual de Recursos Hídricos do Espírito Santo (AGERH)",
+      "supports": "São Mateus receiving identity formed by Cotaxé and Cricaré, and Atlantic outlet in Conceição da Barra.",
+      "limits": "General source narrative is not applied to the selected start; it cannot replace the actual São Jorge–Cibrão route shown by detailed cartography.",
+      "official_url": "https://agerh.es.gov.br/cbh-sao-mateus"
+    },
+    {
+      "source_key": "r86-agerh-monitoring-sao-mateus",
+      "title": "Bacia Hidrográfica: São Mateus, IQA monitoring station listing",
+      "publisher": "Agência Estadual de Recursos Hídricos do Espírito Santo (AGERH)",
+      "supports": "Cotaxé / Braço Norte at Itapeba and the Nova Venécia–Boa Esperança road, and Rio São Mateus at BR-101 and São Mateus port.",
+      "limits": "Station descriptions corroborate the mapped course; isolated locations alone are not used to infer whole-feature identity. Current water-quality conditions are not evaluated.",
+      "official_url": "https://servicos.agerh.es.gov.br/iqa/action_pesquisa_bacia.php?Bacia=S%C3%A3o+Mateus"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90104635",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8879
+          ],
+          "component_scope": "Northern beginning and long upper-middle ice-interior course",
+          "finding": "The actual selected northern beginning first curves southwest and then follows a long, nearly north–south modeled line close to the 39°W meridian. Original sheet pixels and the full graticule place this upper and middle route inside the mapped Inland Ice, well inland of the southeastern coastal rock-and-fjord belt. The line shape is a property of the retained model, not evidence of an observed surface or subglacial river.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8879
+          ],
+          "component_scope": "Western middle offset, southern interior bend and southward continuation",
+          "finding": "Below the long upper-middle leg the selection steps slightly west, continues south, and then makes a southeastern correction before another southward segment. The readable regional map places this whole interval within the ice-sheet and glaciated-margin setting. The blue contour system and dashed ice-thickness lines encountered there do not establish a corresponding named river channel.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8879,
+            8880
+          ],
+          "component_scope": "Sharp eastward turn, lower marginal corridor and short final fragment",
+          "finding": "At the southern end the retained line turns sharply east and follows a short, slightly irregular corridor. The first fragment contains most of this eastward run; the second fragment continues it eastward into the glaciated transition beside the northern Sermilik setting. The southern enlargement distinguishes that ice-margin and fjord country from the long interior route and from the Tasiilaq/Ammasalik settlement farther south. At this regional scale the terminal ice-front versus water boundary is not resolved precisely, and no exact terminal glacier, stream or fjord reach is assigned to the modeled vertex. The presence of a nearby fjord name does not name the complete selected river group.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8879,
+            8880
+          ],
+          "component_scope": "Map-symbol interpretation and whole-route naming limit",
+          "finding": "The original Inland Ice legend distinguishes surface contours, dashed ice-thickness isopachs, contours of bedrock below the ice and aeromagnetic lineaments shown south of 68°N. The descriptive bulletin separately explains the continental Inland Ice and local ice caps and glaciers, and identifies the mapped ice and bedrock contour classes. These symbols and the surrounding coastal names supply regional feature-class context, not natural-flow connectivity or a formal river hydronym for this modeled selection. No current ice margin or present flow is asserted from the historical sources.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90124239",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8912
+          ],
+          "component_scope": "Northern beginning and long western leg",
+          "finding": "The actual cached mainstem begins at the northern interior end, runs southwest and then almost south through a long western leg. The retained geological map, read with its graticule, places this route inside the southern Inland Ice rather than on a labeled open-country river. The sparse straight and stair-stepped model geometry is not an observed ice-surface or subglacial channel.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8912
+          ],
+          "component_scope": "Broad southern bend and northeastward return",
+          "finding": "The route curves east across its broad southern minimum and then turns northeast over a long diagonal before bending east again. The map shows Inland Ice across the long southern and interior return reaches, transitioning eastward toward the southeastern marginal glacier and rock belt. Ice-surface contours, ice-thickness isopachs and bedrock contours are present; none is evidence of a river tracing the modeled line.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8912,
+            8913
+          ],
+          "component_scope": "Eastern continuation and actual terminal region",
+          "finding": "The second selected mainstem fragment continues from the eastern end of the first, makes a short eastward/northeastward jog, and then turns south-southeast to the actual ending. Regional map comparison places this terminal approach in the southeastern glaciated coastal zone southwest of the Skjoldungen / Saqqisikuik label. Readable source pixels distinguish Inland Ice and narrow marginal ice tongues from colored exposed-rock terrain and adjacent fjord/sea corridors. This regional correspondence does not establish that the final modeled vertices follow a named stream, a particular glacier centerline, or a defined marine channel; the endpoint is not moved to a nearby label.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8912,
+            8913
+          ],
+          "component_scope": "Whole-route name and feature-class conclusion",
+          "finding": "No natural-river hydronym is established for the complete selected ice-interior-to-margin route. A name appearing near the coast cannot identify the substantial modeled interior path. The source positively supports a feature-class/name-scope hold, while leaving any precise glacier, fjord or marginal-stream identity unassigned. The mapped ice margin is historical and is not asserted to be its present position.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70795933",
+      "source_keys": [
+        "r86-usgs-topo-pascagoula",
+        "r86-usgs-merrill-station",
+        "r86-mdeq-pascagoula-basin"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9966
+          ],
+          "finding": "The selection starts on a small feeder in the Jones Creek drainage south of Forest, joining the mapped Leaf River in the Norris/Fikestown vicinity. The named upper Leaf approach from the east is distinct; the model must not be described as beginning at the formal source of Leaf River. Its coarse first cells do not warrant a precise tiny-fork name boundary.",
+          "sources": [
+            "r86-usgs-topo-pascagoula"
+          ]
+        },
+        {
+          "fragments": [
+            9966,
+            9967
+          ],
+          "finding": "The receiving mainstem follows the repeatedly labeled Leaf River through the Scott/Smith County course, Taylorsville surroundings and the valley into Hattiesburg, then east and southeast through the Perry County corridor to the confluence near Merrill. Tallahala Creek, Okatoma Creek and other neighboring labeled valleys are separate and are not whole-path synonyms.",
+          "sources": [
+            "r86-usgs-topo-pascagoula"
+          ]
+        },
+        {
+          "fragments": [
+            9969,
+            9970
+          ],
+          "finding": "Both selected tributary fragments belong to the continuous middle/lower Chickasawhay course, beginning north of Waynesboro, passing the Waynesboro setting, continuing south through Greene County and turning southwest to the Leaf junction. Their headward endpoint is already within that river corridor; unselected Chunky/Okatibbee and other farther-upstream waters are not inserted into the selection.",
+          "sources": [
+            "r86-usgs-topo-pascagoula"
+          ]
+        },
+        {
+          "fragments": [
+            9968
+          ],
+          "finding": "Below the Leaf–Chickasawhay junction, repeated map labels identify the Pascagoula River. The official Merrill station description independently places its station immediately downstream of that named confluence. The broad river corridor continues south through George and Jackson Counties.",
+          "sources": [
+            "r86-usgs-topo-pascagoula",
+            "r86-usgs-merrill-station"
+          ]
+        },
+        {
+          "fragments": [
+            9968
+          ],
+          "finding": "The terminal portion chooses the West Pascagoula distributary past the Martin Bluff and I-10 setting, then enters the broad western estuarine channel/marsh complex near Big Lake and the Bayou Chemise/Pigeon Bayou surroundings north of US 90. It stops before the complete mapped opening into Pascagoula Bay. Eastern Pascagoula, Escatawpa and the many delta bayous are not substituted for this selected western route. Exact allocation of the last generalized cell to a narrow bayou, channel bank or marsh edge is not claimed.",
+          "sources": [
+            "r86-usgs-topo-pascagoula"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61271300",
+      "source_keys": [
+        "r86-ibge-nova-modica-2022",
+        "r86-ibge-minas-politico-2015",
+        "r86-agerh-sao-mateus-map",
+        "r86-cerh-mg-enquadramento-2023",
+        "r86-agerh-cbh-sao-mateus",
+        "r86-agerh-monitoring-sao-mateus"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13917
+          ],
+          "finding": "The beginning lies on the northward São Jorge drainage near Campo dos Henriques. The Nova Módica sheet prints Ribeirão São Jorge on the connected channel; the selected route passes the Nova Módica and São Brás surroundings before meeting Rio Cibrão. It is not the southern São Félix / Cricaré drainage. The first modeled cell is an interior selected start, not a demonstrated natural spring.",
+          "sources": [
+            "r86-ibge-nova-modica-2022"
+          ]
+        },
+        {
+          "fragments": [
+            13917
+          ],
+          "finding": "The official state gazette distinguishes Rio Cibrão’s junction with Ribeirão São Jorge and the nearby Ribeirão São Pedro approach from Pescador. These independently named junctions agree with the selected northward-to-eastward bend. The selection then follows Cibrão east rather than returning west along Cibrão’s separate headward branch.",
+          "sources": [
+            "r86-ibge-nova-modica-2022",
+            "r86-cerh-mg-enquadramento-2023",
+            "r86-ibge-minas-politico-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13917
+          ],
+          "finding": "The eastward Cibrão corridor connects with the river mapped as Rio Cotaxé ou Braço Norte do Rio São Mateus. The course proceeds northeast along the Ataléia-side border setting, reaches its northern bend, and follows the Cotaxé east and southeast. Rio do Norte from Ataléia and Rio Peixe Branco from the south remain distinct tributary approaches.",
+          "sources": [
+            "r86-ibge-minas-politico-2015",
+            "r86-agerh-sao-mateus-map"
+          ]
+        },
+        {
+          "fragments": [
+            13917
+          ],
+          "finding": "The selected northern arm continues past the Itapeba setting, then south and east toward Boa Esperança and the receiving confluence. AGERH explicitly names its Itapeba and Boa Esperança–Nova Venécia road monitoring sites Rio Cotaxé ou Braço Norte do Rio São Mateus. The map separates this course from Rio Quinze de Novembro, Santa Joana, Santana and the southern Cricaré arm.",
+          "sources": [
+            "r86-agerh-sao-mateus-map",
+            "r86-agerh-monitoring-sao-mateus"
+          ]
+        },
+        {
+          "fragments": [
+            13918
+          ],
+          "finding": "The downstream fragment begins at the northern/southern-arm receiving setting and follows the mapped Rio São Mateus through the BR-101 and São Mateus port vicinity. AGERH’s two lower monitoring sites independently use Rio São Mateus.",
+          "sources": [
+            "r86-agerh-sao-mateus-map",
+            "r86-agerh-monitoring-sao-mateus",
+            "r86-agerh-cbh-sao-mateus"
+          ]
+        },
+        {
+          "fragments": [
+            13918
+          ],
+          "finding": "The final reach turns north along the coast toward Conceição da Barra, consistent with the basin map and the official Atlantic-outlet description. The endpoint is treated as a generalized near-mouth setting, without an exact contemporary mouth or tidal-limit claim. The distinct Itaúnas basin to the north is excluded.",
+          "sources": [
+            "r86-agerh-sao-mateus-map",
+            "r86-agerh-cbh-sao-mateus"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

@@ -1,0 +1,420 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r86",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r85",
+    "commit": "3e2acb6508c286e29a8186f512ca35a4d6bdffb0",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r85/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:90104635",
+    "hydro-system:90124239",
+    "hydro-system:70795933",
+    "hydro-system:61271300"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:90104635",
+      "category": "river_group",
+      "system_id": "90104635",
+      "baseline_logical_fid": 2864,
+      "geometry_fids": [
+        8880,
+        8879
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -39.202083,
+        66.347917,
+        -38.142974,
+        68.833333
+      ],
+      "rendered_mainstem_length_km": 315.459,
+      "rendered_network_length_km": 315.459,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -39.202083,
+          66.347917,
+          -38.142974,
+          68.833333
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The retained official sheet supports a completed feature-class and naming-scope hold. It does not establish a continuously named natural river along the two selected mainstem fragments, and it does not prove that all marginal or subglacial watercourses are unnamed.",
+      "geographic_disambiguation": "This is the more westerly modeled corridor near the 39°W meridian, spanning approximately 68.8–66.4°N. The beginning curves southwest, straightens into a very long near-southward ice-interior course, steps slightly west in the middle, then bends southeast near the southern interior. After another southward leg it turns sharply east into a short, slightly irregular marginal corridor. The second selected mainstem fragment is only the last eastward extension. The eastern ending lies in the glaciated transition beside the northern Sermilik coastal setting, north of Tasiilaq/Ammasalik; the regional sheet does not resolve an exact glacier-front, ice-free-water or shoreline boundary for the terminal vertex. This selected route begins farther south and lies west of the separately recorded neighboring hydro-system:90104636 interior corridor. That neighbor was orientation only and was not substituted for this selection. Neither the coastal fjord label nor an inferred outlet-glacier name is treated as the selected river identity.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southeastern Greenland Inland Ice and glaciated margin beside the northern Sermilik coastal setting, north of Tasiilaq/Ammasalik.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded correspondence for both selected mainstem fragments using the actual cached route, its plotted shape, the retained original geological sheet, readable graticule and Inland Ice legend, fresh local southeastern and southern-ending source renders, and the retained descriptive bulletin. The long upper and middle route, southern bend, eastward marginal section and short final fragment were all inspected. The resulting hold concerns feature class and whole-route name scope; it is not an incomplete acquisition or inaccessible-source result. Positive natural-river identity evidence would be needed before later assignment. Exact modern glacier-front, water/ice and shoreline positions remain outside this regional historical-map determination.",
+      "naming_scope_details": {
+        "representative_receiving_system": null,
+        "selected_mainstem_sequence": "Southwest-curving northern ice-interior beginning → long near-southward Inland Ice course → small western middle offsets → southeastern correction and further southward course → sharp eastward marginal turn → short final eastward fragment beside the northern Sermilik coastal setting.",
+        "tributary_scope": "No separately selected tributary fragment is present.",
+        "nearby_name_scope": "Sermilik and Tasiilaq/Ammasalik are map-supported geographic context. They are not proposed river names, aliases or names for the modeled whole route. No outlet-glacier name is proposed.",
+        "name_evidence_limit": "No direct whole-route natural-river hydronym or representative natural receiving-river identity is established by the inspected official originals. This is not a universal claim that all natural watercourses in the area lack names.",
+        "displayed_mainstem_length_km": 315.459,
+        "length_limit": "Modeled inventory display length, not an official or measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false,
+        "model_limits": "Fragment stages, coordinate sequences and the displayed length describe the model. They do not independently establish a river, a hydrological connection, a formal naming boundary or a present-day ice/ocean interface."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90124239",
+      "category": "river_group",
+      "system_id": "90124239",
+      "baseline_logical_fid": 2883,
+      "geometry_fids": [
+        8913,
+        8912
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -45.19375,
+        62.389583,
+        -42.602366,
+        63.491667
+      ],
+      "rendered_mainstem_length_km": 315.247,
+      "rendered_network_length_km": 315.247,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -45.19375,
+          62.389583,
+          -42.602366,
+          63.491667
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The retained official map supports a completed feature-class and river-name-scope hold. It places the substantial western and southern modeled route in the Inland Ice and its northeastern continuation toward the southeastern glaciated coastal zone. No source establishes one named natural river corresponding to this full modeled selection. This is not a claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "This distinct southern Greenland selection starts in the northern interior, trends southwest, and turns into a long almost southward western leg. It then makes a broad low-latitude eastward bend, reverses northeast along an extended diagonal, turns east again, and ends after a short south-southeastward coastal-margin approach. The western leg and broad southern return lie within the mapped southern Inland Ice. The eastern continuation approaches the narrow glacial, exposed-rock and fjord/sea mosaic southwest of Skjoldungen / Saqqisikuik, rather than the more northerly Køge Bugt region or the southern Kap Farvel coast. Skjoldungen / Saqqisikuik is a regional locator only. No exact terminal glacier, fjord, island, marginal stream or shoreline crossing is assigned.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Greenland Inland Ice and the southeastern glaciated coastal zone southwest of the mapped Skjoldungen / Saqqisikuik setting.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded correspondence and feature-class/name-scope assessment for both selected mainstem fragments. Readable original regional map pixels and the graticule cover the entire western interior, broad southern bend, northeastern return and eastern terminal setting. Positive natural-river identity evidence would be needed before a later name assignment. The regional scale does not resolve an exact terminal natural feature, but no additional source acquisition is pending for this completed scope hold.",
+      "naming_scope_details": {
+        "representative_receiving_system": null,
+        "selected_mainstem_sequence": "Northern Inland Ice beginning → southwestward and southward western interior leg → broad eastward southern bend → northeastward interior-to-margin return → eastern glaciated coastal zone → short south-southeastward terminal approach.",
+        "feature_class_scope": "Substantial modeled ice-sheet-interior route with a southeastern coastal-margin continuation. No continuous natural river, glacier or fjord is established for the full selection.",
+        "terminal_scope": "Regional ice-margin, exposed-rock and fjord/sea setting only; exact terminal feature and shoreline relation remain unassigned at the source scale.",
+        "nearby_name_scope": "Skjoldungen / Saqqisikuik is geographic context, not a river candidate or an assigned endpoint. Køge Bugt and Kap Farvel are broader alternatives distinguished from the selected region, not name candidates.",
+        "ice_symbol_scope": "The original legend distinguishes surface contours, dashed isopachs of ice thickness, contours of bedrock below the Inland Ice and aeromagnetic lineaments over the Inland Ice south of 68°N. Their color or linework cannot be interpreted as mapped rivers.",
+        "displayed_mainstem_length_km": 315.247,
+        "length_limit": "Modeled display length for this inventory selection, not a measured or official natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false,
+        "name_evidence_limit": "The geological map and descriptive glaciology bulletin support geographic and feature-class context, not a hydronym registry or present-day surface/subglacial flow determination."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70795933",
+      "category": "river_group",
+      "system_id": "70795933",
+      "baseline_logical_fid": 3161,
+      "geometry_fids": [
+        9968,
+        9967,
+        9970,
+        9966,
+        9969
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -89.45625,
+        30.393281,
+        -88.535417,
+        32.308333
+      ],
+      "rendered_mainstem_length_km": 315.23,
+      "rendered_network_length_km": 444.105,
+      "geometry_summary": {
+        "fragment_count": 5,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -89.45625,
+          30.393281,
+          -88.572917,
+          32.308333
+        ]
+      },
+      "candidate_name": "Pascagoula River",
+      "candidate_names": [
+        "Pascagoula River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The mapped Leaf and Chickasawhay courses join the Pascagoula near Merrill. The lower selection takes the West Pascagoula distributary; these component distinctions are preserved.",
+      "geographic_disambiguation": "The modeled mainstem begins in the Jones Creek headward drainage south of Forest, joins Leaf River near the Norris/Fikestown surroundings, continues south past Taylorsville and Hattiesburg, then east and southeast to the Leaf–Chickasawhay junction near Merrill. The selected eastern tributary is a middle-to-lower Chickasawhay corridor north of Waynesboro through the lower southward and southwestward course, not its complete headwaters. Below Merrill the selected Pascagoula corridor runs south into the delta, choosing West Pascagoula rather than the eastern Pascagoula/Escatawpa approach. Its generalized terminus is in the western estuarine channel/marsh setting north of US 90 near Gautier, not the open Mississippi Sound or the full mapped mouth in Pascagoula Bay.",
+      "source_keys": [
+        "r86-usgs-topo-pascagoula",
+        "r86-usgs-merrill-station",
+        "r86-mdeq-pascagoula-basin"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southeastern Mississippi, United States: Bienville National Forest / Scott County through the Leaf valley, the selected Chickasawhay branch, Merrill and the Pascagoula delta near Gautier.",
+      "candidate_name_role": "Representative receiving-river system identity; Jones Creek, Leaf River, Chickasawhay River and the selected West Pascagoula distributary retain their distinct component names.",
+      "completion_scope": "Completed bounded correspondence of all three mainstem and both tributary fragments with original readable USGS cartography, including detailed initial feeder and delta-terminal views. Separate upstream and distributary names do not prevent a clear representative receiving-system identity. No substantial unviewed reach remains. The terminal is recorded as a generalized lower-delta setting, not a surveyed mouth or exact local channel endpoint.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Pascagoula River",
+        "headward_component": "Small Jones Creek-side feeder into Leaf River, not the full formal Leaf headwater.",
+        "main_upstream_component": "Leaf River",
+        "selected_tributary_component": "Middle and lower Chickasawhay River only.",
+        "terminal_component": "West Pascagoula distributary and bounded inner-estuary channel/marsh setting north of US 90 near Gautier.",
+        "excluded_inferences": [
+          "No assertion that the complete 315.230 km modeled mainstem is named Pascagoula.",
+          "No assertion that all Pascagoula basin tributaries or every delta branch is present.",
+          "No open-sea endpoint, precise present shoreline, formal source, tidal limit or exact name-transition vertex is established."
+        ],
+        "model_limits": "The modeled length is not an official river measurement; coarse geometry simplifies feeder junctions, floodplain bends and delta channels."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61271300",
+      "category": "river_group",
+      "system_id": "61271300",
+      "baseline_logical_fid": 3509,
+      "geometry_fids": [
+        13918,
+        13917
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -41.55625,
+        -18.71875,
+        -39.73475,
+        -18.10625
+      ],
+      "rendered_mainstem_length_km": 315.177,
+      "rendered_network_length_km": 315.177,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -41.55625,
+          -18.71875,
+          -39.73475,
+          -18.10625
+        ]
+      },
+      "candidate_name": "Rio São Mateus",
+      "candidate_names": [
+        "Rio São Mateus"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio São Mateus applies directly to the lower receiving river after the northern and southern arms meet. Cotaxé / Braço Norte do Rio São Mateus, Cibrão and Ribeirão São Jorge are separately identified selected upstream reaches, not whole-selection synonyms. Cricaré / Braço Sul is the separate southern approach, not the selected headward arm.",
+      "geographic_disambiguation": "The selection begins in the Ribeirão São Jorge corridor near Campo dos Henriques in Nova Módica, continues north through the Nova Módica and São Brás surroundings, and enters Rio Cibrão east of Pescador. It follows the eastward Cibrão into Cotaxé, turns northeast along the northern-arm valley toward the Minas Gerais–Espírito Santo boundary, and then bends east and southeast through the Cotaxé / Itapeba side north of Ecoporanga and past the Boa Esperança–Nova Venécia road setting. After the Cricaré junction it continues east through the São Mateus/BR-101/port corridor and turns north along the coastal reach to the Conceição da Barra near-mouth setting. It does not follow the conventional upper Cotaxé source, the Cricaré source near São Félix de Minas, the southern São Francisco approach, or the separate northern Itaúnas drainage. Pando is project context, not this feature’s location.",
+      "source_keys": [
+        "r86-ibge-nova-modica-2022",
+        "r86-ibge-minas-politico-2015",
+        "r86-agerh-sao-mateus-map",
+        "r86-cerh-mg-enquadramento-2023",
+        "r86-agerh-cbh-sao-mateus",
+        "r86-agerh-monitoring-sao-mateus"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Eastern Minas Gerais and northern Espírito Santo, Brazil: Nova Módica, the Cibrão–Cotaxé corridor, São Mateus and the Atlantic near-mouth setting at Conceição da Barra.",
+      "candidate_name_role": "bounded_representative_receiving_river_identity_with_named_upstream_branches_distinguished",
+      "completion_scope": "Completed bounded geographical correspondence across both selected mainstem fragments. Detailed official municipal map pixels cover the initial São Jorge corridor and Cibrão entry; retained IBGE state-map pixels establish the Cibrão–Cotaxé connection and borderward course; acquired AGERH basin-map pixels cover the northern arm, receiving junction, lower São Mateus and coastal turn. Official confluence descriptions and monitoring locations corroborate the component naming. No substantial unviewed corridor or unsupported inter-basin connector remains. Exact source, name-transition vertices, present-day channel position and shoreline crossing are not asserted.",
+      "naming_scope_details": {
+        "upper_component": "Ribeirão São Jorge near Campo dos Henriques and Nova Módica, continuing toward São Brás and into Rio Cibrão; the selected headward start is not a formal-source determination.",
+        "middle_component": "Rio Cibrão (the regional IBGE sheet uses Ribeirão Cibrão in its upper-drainage labeling), followed by Rio Cotaxé / Braço Norte do Rio São Mateus.",
+        "terminal_component": "Receiving Rio São Mateus downstream of the Cricaré/Cotaxé meeting, with the northward coastal reach in the Conceição da Barra near-mouth setting.",
+        "excluded_source_routes": "The conventional upper Cotaxé source and the separate Cricaré / Braço Sul source are not substituted for the selected São Jorge–Cibrão headward route.",
+        "displayed_mainstem_length_km": 315.177,
+        "model_limits": "Displayed modeled-path length is not an official river measurement. Generalized cells simplify short bends, tributary junctions and coastal channels. No new vector geometry, exact spring, present-day hydrological condition, exact name-boundary vertex, shoreline survey or Korean name is established."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90104635",
+      "hydro-system:90124239"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 287,
+    "non_pending_records": 277,
+    "source_access_pending": 3,
+    "source_material_pending": 7,
+    "source_any_pending": 10,
+    "scope_holds": 92,
+    "river_groups": 189,
+    "lakes": 98,
+    "unrecorded": 3778,
+    "unrecorded_river_groups": 3266,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r86-usgs-topo-pascagoula",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r86-usgs-merrill-station",
+      "official_url": "https://water.usgs.gov/nwc/NWC/sw/man/S02479000.html"
+    },
+    {
+      "source_key": "r86-mdeq-pascagoula-basin",
+      "official_url": "https://www.mdeq.ms.gov/water/surface-water/watershed-management/basin-management-approach/basin-listing/pascagoula-river/"
+    },
+    {
+      "source_key": "r86-ibge-nova-modica-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/MG/nova_modica/A0_3144904_MM.pdf"
+    },
+    {
+      "source_key": "r86-ibge-minas-politico-2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/mg_politico1300k_2015_v3.pdf"
+    },
+    {
+      "source_key": "r86-agerh-sao-mateus-map",
+      "official_url": "https://agerh.es.gov.br/media/Mapas/CBHs/S%C3%83O%20MATEUS.pdf"
+    },
+    {
+      "source_key": "r86-cerh-mg-enquadramento-2023",
+      "official_url": "https://sistemas.meioambiente.mg.gov.br/licenciamento/uploads/Lfx5Vlk9ShROsaBk0WY15vx7oKeVEYKC.pdf"
+    },
+    {
+      "source_key": "r86-agerh-cbh-sao-mateus",
+      "official_url": "https://agerh.es.gov.br/cbh-sao-mateus"
+    },
+    {
+      "source_key": "r86-agerh-monitoring-sao-mateus",
+      "official_url": "https://servicos.agerh.es.gov.br/iqa/action_pesquisa_bacia.php?Bacia=S%C3%A3o+Mateus"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "3e2acb6508c286e29a8186f512ca35a4d6bdffb0",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      143,
+      144,
+      145,
+      146
+    ],
+    "next_unrecorded_id": "hydro-system:60012573",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}
