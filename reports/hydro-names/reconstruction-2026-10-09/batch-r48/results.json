@@ -1,0 +1,227 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r48",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r47",
+    "commit": "567afff2baa8aecf0b3ff5881478c818db2b2256",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r47/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "lakes_base:1159111861",
+    "lakes_base:1159111847",
+    "lakes_base:1159110201"
+  ],
+  "distinct_increment": 3,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "category": "lake",
+      "aw_id": "lakes_base:1159111861",
+      "source_id": "1159111861",
+      "baseline_logical_fid": 4205,
+      "geometry_fids": [
+        15580
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -119.185823,
+        59.641818,
+        -118.456536,
+        59.849051
+      ],
+      "geometry_summary": {
+        "type": "Polygon",
+        "parts": 1,
+        "rings": 1,
+        "positions_including_closure": 85
+      },
+      "candidate_name": "Bistcho Lake",
+      "candidate_names": [
+        "Bistcho Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "Bistcho Lake is supported for the selected generalized water footprint. Detailed shores and connected drainage limits are not established by this regional report map.",
+      "geographic_disambiguation": "Alberta, Canada; south of the Northwest Territories boundary and east of the British Columbia boundary, near 59.75°N, 118.8°W.",
+      "source_keys": [
+        "gnwt_bison_216_2012"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "category": "lake",
+      "aw_id": "lakes_base:1159111847",
+      "source_id": "1159111847",
+      "baseline_logical_fid": 4204,
+      "geometry_fids": [
+        15579
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -118.018081,
+        60.844296,
+        -117.393735,
+        61.028862
+      ],
+      "geometry_summary": {
+        "type": "Polygon",
+        "parts": 1,
+        "rings": 1,
+        "positions_including_closure": 39
+      },
+      "candidate_name": "Kakisa Lake",
+      "candidate_names": [
+        "Kakisa Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "Kakisa Lake is supported for the selected generalized water footprint. Detailed shores and connecting-water limits are not established by this regional report map.",
+      "geographic_disambiguation": "Northwest Territories, Canada; near the community of Kakisa, north of Tathlina Lake and southwest of Great Slave Lake, near 60.94°N, 117.7°W.",
+      "source_keys": [
+        "gnwt_bison_216_2012"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "category": "lake",
+      "aw_id": "lakes_base:1159110201",
+      "source_id": "1159110201",
+      "baseline_logical_fid": 4098,
+      "geometry_fids": [
+        15473
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -91.024302,
+        49.753833,
+        -90.874176,
+        49.834194
+      ],
+      "geometry_summary": {
+        "type": "Polygon",
+        "parts": 1,
+        "rings": 1,
+        "positions_including_closure": 19
+      },
+      "candidate_name": "Bell Lake",
+      "candidate_names": [
+        "Bell Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "Bell Lake is supported for the selected generalized water footprint. Detailed bays, shores, and connecting-water boundaries toward Sturgeon and Shikag lakes remain unverified.",
+      "geographic_disambiguation": "Northwestern Ontario, Canada; near 49.8°N, 90.95°W, south of Sturgeon Lake and northwest of Shikag Lake.",
+      "source_keys": [
+        "ogs_west_central_2021"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_generalized_identities": 3,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 141,
+    "non_pending_records": 137,
+    "source_access_pending": 2,
+    "source_material_pending": 2,
+    "source_any_pending": 4,
+    "scope_holds": 42,
+    "river_groups": 43,
+    "lakes": 98,
+    "unrecorded": 3924,
+    "unrecorded_river_groups": 3412,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "review_file": "independent-review.json",
+  "sources": [
+    {
+      "source_key": "gnwt_bison_216_2012",
+      "official_url": "https://www.gov.nt.ca/ecc/sites/ecc/files/216_manuscript.pdf"
+    },
+    {
+      "source_key": "ogs_west_central_2021",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-WestCentral.pdf"
+    }
+  ],
+  "request_accounting": {
+    "new_external_requests": 0,
+    "new_original_acquisitions": 0,
+    "retained_originals_inspected": 2
+  },
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false
+}

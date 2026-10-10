@@ -1,0 +1,107 @@
+{
+  "schema": "hydro-independent-lake-review-compact-v1",
+  "batch": "r48",
+  "reviewed_at_utc": "2026-10-10T04:08:27.605610+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159111861",
+    "lakes_base:1159111847",
+    "lakes_base:1159110201"
+  ],
+  "sources": [
+    {
+      "source_key": "gnwt_bison_216_2012",
+      "title": "Bison Control Area Program Annual Report of Survey Activities November 2006–April 2007",
+      "publisher": "Environment and Natural Resources, Government of the Northwest Territories",
+      "publication_year": 2012,
+      "series": "Manuscript Report No. 216",
+      "page": "Printed p.6 / PDF p.11, Figure 2",
+      "official_url": "https://www.gov.nt.ca/ecc/sites/ecc/files/216_manuscript.pdf",
+      "authority_limit": "Regional surveillance cartography; no formal naming-registry or exact shoreline verification."
+    },
+    {
+      "source_key": "ogs_west_central_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991–2020, West-Central Sheet",
+      "publisher": "Ontario Geological Survey",
+      "publication_year": 2021,
+      "page": "Single sheet, PDF p.1",
+      "printed_scale": "1:1,000,000",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-WestCentral.pdf",
+      "authority_limit": "Official thematic cartography with disclosed positional limitations; no formal naming-registry verification."
+    }
+  ],
+  "review_basis": "Independently read retained original-map pixels and compared each whole selected generalized object with its labeled water and surrounding waters before reconciling source wording. Pinned geometry was reused.",
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159111861",
+      "candidate_name": "Bistcho Lake",
+      "candidate_names": [
+        "Bistcho Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "gnwt_bison_216_2012"
+      ],
+      "independent_observation": "The selected broad body, western inlet and southeastern lobe match the mapped Bistcho Lake south of the territorial boundary in Alberta and north of Zama City. The whole generalized object is supported, rather than borrowing a label from neighboring water. Detailed shores and drainage limits remain unverified.",
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_scope_inspection": true,
+      "full_feature_correspondence_review_completed": true,
+      "source_access_pending": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null
+    },
+    {
+      "aw_id": "lakes_base:1159111847",
+      "candidate_name": "Kakisa Lake",
+      "candidate_names": [
+        "Kakisa Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "gnwt_bison_216_2012"
+      ],
+      "independent_observation": "The complete northwest–southeast body matches Kakisa Lake beside the settlement of Kakisa. Separate Tathlina Lake lies south and Great Slave Lake lies northeast, excluding either name transfer. The generalized footprint is supported; fine shores and connecting-water limits remain unverified.",
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_scope_inspection": true,
+      "full_feature_correspondence_review_completed": true,
+      "source_access_pending": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null
+    },
+    {
+      "aw_id": "lakes_base:1159110201",
+      "candidate_name": "Bell Lake",
+      "candidate_names": [
+        "Bell Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "ogs_west_central_2021"
+      ],
+      "independent_observation": "The whole generalized outline encloses the labeled Bell Lake broad basin and southern arm envelope. Sturgeon Lake to the north and the main Shikag Lake basin to the southeast are outside; no second named basin is demonstrated within the target. Coarse edges cross land and simplify bays. Detailed shores and connector naming boundaries remain unverified.",
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_scope_inspection": true,
+      "full_feature_correspondence_review_completed": true,
+      "source_access_pending": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null
+    }
+  ],
+  "limits": [
+    "Support is for generalized water identity only; exact shores, complete named-water boundaries and Korean names are unverified.",
+    "Only factual extracts are included; original maps and complete geometry are omitted."
+  ],
+  "automatic_application": false,
+  "product_application": false
+}
