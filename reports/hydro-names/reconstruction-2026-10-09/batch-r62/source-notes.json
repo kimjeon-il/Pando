@@ -1,0 +1,365 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r62",
+  "sources": [
+    {
+      "source_key": "inegi_fresnillo_2010",
+      "title": "Compendio de información geográfica municipal 2010: Fresnillo, Zacatecas",
+      "author": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 3, hydrology table; PDF p. 6, Relieve",
+      "supports": "San Francisco and Río Aguanaval as separately labeled upper corridors, the intervening reservoir shape and upper tributary setting.",
+      "limits": "Municipal coverage and generalized topographic sources do not establish an exact first named vertex, reservoir boundary or present flow. Historical permanence classifications are not current observations.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/32/32010.pdf"
+    },
+    {
+      "source_key": "inegi_zacatecas_2022",
+      "title": "Aspectos geográficos de Zacatecas. Compendio 2022",
+      "author": "INEGI",
+      "year": 2024,
+      "page": "Printed pp. 33–34, Maps 10–11 (PDF pp. 40–41)",
+      "supports": "San Francisco, Leobardo Reynoso, El Cazadero, Río Grande settlement, northward Aguanaval and its basin relationship.",
+      "limits": "State map at 1:2,500,000, citing INEGI topographic and INEGI–CONAGUA hydrographic sources. It cannot resolve every headwater, impoundment or hydronym transition and ends at state coverage.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463913368.pdf"
+    },
+    {
+      "source_key": "inegi_durango_2022_retained",
+      "title": "Aspectos geográficos de Durango. Compendio 2022",
+      "author": "INEGI",
+      "year": 2024,
+      "page": "Printed p. 36, Map 11 (PDF p. 43)",
+      "supports": "Middle Aguanaval bends, separate Santiago–Santa Clara joining route and distinction from Arroyo de Cuencamé and Nazas.",
+      "limits": "Generalized 1:3,000,000 state map; it provides correspondence within its coverage rather than precise junction/name boundaries or the entire Viesca terminal route.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463913276.pdf"
+    },
+    {
+      "source_key": "inegi_coahuila_2022",
+      "title": "Aspectos geográficos de Coahuila de Zaragoza. Compendio 2022",
+      "author": "INEGI",
+      "year": 2024,
+      "page": "Printed pp. 39–40, Maps 10–11 (PDF pp. 46–47), and hydrology table 1.7",
+      "supports": "Aguanaval labels and middle/lower course, northward canal-symbol connection, eastern continuation, and distinct Nazas and terminal-basin geography.",
+      "limits": "Generalized 1:3,000,000 map. Canal symbology establishes cartographic feature distinction, not its engineering name, current operation or exact hydronym boundaries.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463912989.pdf"
+    },
+    {
+      "source_key": "inegi_viesca_2010",
+      "title": "Compendio de información geográfica municipal 2010: Viesca, Coahuila de Zaragoza",
+      "author": "INEGI",
+      "year": 2010,
+      "page": "PDF p. 3, hydrology table; PDF pp. 5–6, Localidades e Infraestructura para el Transporte and Relieve",
+      "supports": "Viesca settlement and terminal lowland, Arroyo La Barranca in the eastern receiving network, branching/rectilinear drainage and distinct Aguanaval versus Laguna de Viesca subbasin context.",
+      "limits": "The generalized municipal sheet does not identify every drainage line as natural or artificial, assign the full selected terminal continuation one name or demonstrate contemporary lake water and flow.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/05/05036.pdf"
+    },
+    {
+      "source_key": "r62-utah-west-desert-2001",
+      "title": "Utah State Water Plan — West Desert Basin",
+      "publisher": "Utah Department of Natural Resources, Division of Water Resources / Utah Board of Water Resources",
+      "year": 2001,
+      "page": "Figure 3-1, Location and Topographic Map, printed p. 3-4 (PDF p. 24); hydrology description, printed pp. 5-8–5-9 (PDF pp. 57–58).",
+      "supports": "Regional sequence from Hamlin and Snake valleys through the desert to the western lake; distinction of basins and evaporation-basin context; intermittent runoff and ponding.",
+      "limits": "Generalized regional map and historical planning description, not a detailed channel-name survey or present water-extent observation.",
+      "official_url": "https://water.utah.gov/wp-content/uploads/2019/SWP/WestDesert/WestDes2001.pdf"
+    },
+    {
+      "source_key": "r62-utah-area19-hamlin",
+      "title": "Area 19 — Hamlin Valley, Water Rights Policies",
+      "publisher": "Utah Division of Water Rights",
+      "year": null,
+      "page": "Geographic Description section",
+      "supports": "Hamlin Valley Wash name, surrounding valley setting and northern opening into Snake Valley.",
+      "limits": "Only geographic description used; no legal-policy conclusions. Does not map exact selected-channel name boundaries.",
+      "official_url": "https://www.waterrights.utah.gov/wrinfo/policy/wrareas/area19.asp"
+    },
+    {
+      "source_key": "r62-ugs-snake-monitoring-2021",
+      "title": "Snake Valley Hydrologic Monitoring: Ten-Year Report, Open-File Report 732",
+      "authors": "Peter Goodwin, Paul Inkenbrandt, Diane Menuz, Hugh Hurlow and Drew Dittmer",
+      "publisher": "Utah Geological Survey",
+      "year": 2021,
+      "page": "Figure 1, printed p. 5 (PDF p. 10); Geography and Climate, printed p. 4.",
+      "supports": "Snake Valley geography, distinct local streams and discharge areas; separation of surface-water features from regional groundwater context.",
+      "limits": "Regional monitoring map does not name all washes or supply a continuous river label for the modeled route.",
+      "official_url": "https://ugspub.nr.utah.gov/publications/open_file_reports/ofr-732.pdf"
+    },
+    {
+      "source_key": "r56-ugs-gunnison-cub-2023",
+      "title": "Great Salt Lake’s Gunnison and Cub Islands Come into Focus",
+      "authors": "Donald L. Clark and Bonnie K. Baxter",
+      "publisher": "Utah Geological Survey, Survey Notes 55(1)",
+      "year": 2023,
+      "page": "Overview map, printed p. 4 (PDF p. 6)",
+      "supports": "Western Great Salt Lake, Gunnison Bay, Lakeside, causeway and evaporation-pond setting; separate eastern Bear River inflow.",
+      "limits": "Historical-average and 2022-low water extents, not current water levels or channel connectivity. The prior Bear River object’s identity is not transferred.",
+      "official_url": "https://ugspub.nr.utah.gov/publications/survey_notes/snt55-1.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; east-central Inland Ice and Scoresby Sund inland margin, graticule and Inland Ice legend",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology",
+      "supports": "Explains ice-contour classes and regional glaciological context without establishing a natural river identity for the modeled line.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r62-cehq-region08-annual-lowflow",
+      "title": "Débits spécifiques d’étiage annuels — Région hydrographique 08",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011. Cartography: Marie-Lise Paquin and Éric Levasseur; approved by Joëlle Bérubé. BDGA 1:1,000,000 base; map scale 1:1,750,000; NAD83 Québec Lambert projection.",
+      "year": 2011,
+      "page": "Single-sheet regional map",
+      "supports": "Harricana trunk, distinct lower Turgeon contribution, adjoining river systems, Amos/lake setting and northern coastal approach.",
+      "limits": "Regional cartography does not fix exact lake or estuary transition vertices. Low-flow values were not used.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_08_specifique_annuel.pdf"
+    },
+    {
+      "source_key": "r62-obvaj-harricana-portrait",
+      "title": "Portrait de l’Harricana du Plan directeur de l’eau — Section B",
+      "publisher": "Organisme de bassin versant Abitibi-Jamésie (OBVAJ)",
+      "attribution": "Hydrography map: June 2012, updated February 2013; conception and cartography credited to Malick Mbaye; NAD1983 MTM10. The combined report contains subsequent material, so the year here describes the relevant mapped section rather than all later contents.",
+      "year": 2012,
+      "page": "PDF p. 9, Bassin versant de l’Harricana — Hydrographie; PDF p. 17, Organisation territoriale; PDF p. 34, Activités économiques, southern and Amos detail panels; hydrological description printed pp. 1–2.",
+      "supports": "Southern headward and lake sequence, distinction from other source-lake branches, Amos/Obalski context, Turgeon tributary status and adjacent basin distinction.",
+      "limits": "The mapped management area does not cover the complete northern river or the Ontario mouth. Hydronym boundary vertices and present-day water-quality or regulatory status were not inferred.",
+      "official_url": "https://obvaj.org/wp-content/uploads/2016/12/3-Bassin-versant-de-la-rivi%C3%A8re-Harricana.pdf"
+    },
+    {
+      "source_key": "r62-qc-harricana-nord-conservation",
+      "title": "Réserve aquatique projetée de la rivière Harricana Nord — Plan de conservation",
+      "publisher": "Gouvernement du Québec, Ministère du Développement durable, de l’Environnement et des Parcs",
+      "attribution": "Cover states modified 20 March 2008.",
+      "year": 2008,
+      "page": "Printed pp. 1–2 (PDF pp. 3–4); Annexes on PDF p. 16 inspected as small thumbnails only.",
+      "supports": "Independent provincial statement that the Harricana crosses the Ontario boundary before reaching James Bay, and that the northern reserve corridor ends at the provincial boundary upstream of the mouth.",
+      "limits": "Used for geographic prose only. No present-day reserve status, exact tidal boundary or enlarged-map correspondence is asserted.",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/aquatique/harricana-nord/PSC_Harricana_Nord.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70846951",
+      "source_keys": [
+        "inegi_fresnillo_2010",
+        "inegi_zacatecas_2022",
+        "inegi_durango_2022_retained",
+        "inegi_coahuila_2022",
+        "inegi_viesca_2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10363
+          ],
+          "scope": "Western headwater approach and southern reservoir bend",
+          "finding": "The selected upper approach runs east and southeast through the mapped San Francisco drainage toward Presa Gobernador Leobardo Reynoso (Trujillo), then turns east and north into the Aguanaval corridor west of Fresnillo. The municipal relief sheet separates San Francisco from Río Aguanaval; the state watercourse map identifies the reservoir between them. The extreme starting feeder and precise name/reservoir transition vertices are not assigned. The reservoir passage is not treated as a continuous natural river channel.",
+          "sources": [
+            "inegi_fresnillo_2010",
+            "inegi_zacatecas_2022"
+          ]
+        },
+        {
+          "fragments": [
+            10363
+          ],
+          "scope": "Northward Zacatecas corridor",
+          "finding": "The route's northward reach, westward bend through the El Cazadero setting, passage by Río Grande and subsequent north/northeast continuation agree with the state map's Aguanaval course. Its accompanying basin sheet places this corridor in the Aguanaval drainage, distinct from the closed eastern El Salado units. Río Grande is used here as a mapped settlement anchor; it is not adopted as an alias solely from the adjacent town label.",
+          "sources": [
+            "inegi_zacatecas_2022"
+          ]
+        },
+        {
+          "fragments": [
+            10363
+          ],
+          "scope": "Eastern Durango and southwestern Coahuila middle course",
+          "finding": "The broad eastern bulge, west/northwest turn and northward confined course follow the river repeatedly labeled Aguanaval on the adjoining Durango and Coahuila sheets. Durango's map shows the Santiago–Santa Clara tributary approaching separately from the southwest, and distinguishes Arroyo de Cuencamé and Nazas farther west. These river shapes and junction relationships support Aguanaval for the long middle corridor without assigning the joining tributary's name to the selected line.",
+          "sources": [
+            "inegi_durango_2022_retained",
+            "inegi_coahuila_2022"
+          ]
+        },
+        {
+          "fragments": [
+            10363
+          ],
+          "scope": "Lower northward connector and eastern receiving corridor",
+          "finding": "South and east of Torreón, the selected route leaves the north/east-trending named Aguanaval approach and follows a further northward connector before bending east. The Coahuila watercourse map marks that connector with the dot-bearing canal symbol from its legend, distinguishing it from the ordinary river symbol. Viesca's relief sheet shows the corresponding eastern drainage network and a separate Arroyo La Barranca label. The evidence does not establish every connector or receiving-channel vertex as naturally and uniformly named Aguanaval, nor justify transferring La Barranca to the entire lower reach.",
+          "sources": [
+            "inegi_coahuila_2022",
+            "inegi_viesca_2010"
+          ]
+        },
+        {
+          "fragments": [
+            10363
+          ],
+          "scope": "Viesca terminal lowland and feature-class limit",
+          "finding": "The final east/southeast continuation reaches the lowland northeast of Viesca, where the municipal map depicts several branching and rectilinear drainage lines. Its hydrology table distinguishes the Aguanaval subbasins from the Laguna de Viesca subbasin. These sources support terminal-basin context, not an exact natural mouth, a presently inundated lake or uninterrupted flow along the model. The separate Nazas course toward the San Pedro/Mayrán setting is shown farther north on the state map.",
+          "sources": [
+            "inegi_viesca_2010",
+            "inegi_coahuila_2022"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70531479",
+      "source_keys": [
+        "r62-utah-west-desert-2001",
+        "r62-utah-area19-hamlin",
+        "r62-ugs-snake-monitoring-2021",
+        "r56-ugs-gunnison-cub-2023"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9763
+          ],
+          "scope": "Southern Hamlin Valley approach",
+          "finding": "The southern hook and succeeding northwestward leg occupy the Hamlin Valley setting along the Utah–Nevada border before approaching southern Snake Valley. The state location map distinguishes Hamlin from Pine Valley farther east. The separate Area 19 description names Hamlin Valley Wash and says the valley opens northward into Snake Valley. This supports local drainage context, without naming the initial feeder or every selected southern segment.",
+          "sources": [
+            "r62-utah-west-desert-2001",
+            "r62-utah-area19-hamlin"
+          ]
+        },
+        {
+          "fragments": [
+            9763
+          ],
+          "scope": "Snake Valley passage",
+          "finding": "The route turns northeast and then north through the Garrison–Eskdale latitude belt into Snake Valley, between the Snake Range and Confusion Range settings. The UGS map depicts Lake Creek, Snake Creek, Baker Creek, Warm Creek, springs and groundwater-discharge areas separately. Their positions support the basin correspondence; none supplies a continuous name for the selected valley-floor line. In particular, Snake Valley is not evidence for a river named Snake River.",
+          "sources": [
+            "r62-ugs-snake-monitoring-2021"
+          ]
+        },
+        {
+          "fragments": [
+            9763
+          ],
+          "scope": "Northern valley to southern desert",
+          "finding": "The selected line continues north, then northeast toward the Callao–Fish Springs regional setting and onto the southern Great Salt Lake Desert. The basin map places Callao at the northern Snake Valley margin and distinguishes the Fish Springs Range and refuge to the east. The selection does not thereby become Fish Springs or a tributary named for that refuge.",
+          "sources": [
+            "r62-utah-west-desert-2001"
+          ]
+        },
+        {
+          "fragments": [
+            9763,
+            9764,
+            9765
+          ],
+          "scope": "Long desert and western lake approach",
+          "finding": "Beyond the valley, the route makes its extended northward and eastward desert bends and continues toward the western lake margin near the Lakeside setting. The state map distinguishes the Great Salt Lake Desert, Newfoundland Evaporation Basin and Great Salt Lake. Its hydrology discussion describes temporary ponding and no perennial stream reaching the lake from this basin. The modeled continuity therefore does not establish a single present flowing river; neither small fragment joins nor the long desert continuation establish named-channel boundaries.",
+          "sources": [
+            "r62-utah-west-desert-2001"
+          ]
+        },
+        {
+          "fragments": [
+            9765
+          ],
+          "scope": "Terminal lake continuation",
+          "finding": "The northernmost piece proceeds toward the Lakeside/railroad-causeway setting and then north and northeast into western Gunnison Bay. The retained UGS overview separates the lake, evaporation ponds, causeway, islands and surrounding mountains. It supports terminal-waterbody context, not an onward river hydronym. Its contrasting historical-average and 2022-low shorelines also preclude treating the selected line as a fixed current shoreline or river mouth. Bear River is separately shown entering the lake from the east.",
+          "sources": [
+            "r56-ugs-gunnison-cub-2023"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90076388",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete single selected fragment was inspected: an initially southward interior leg, a southeastward low bend, a long undulating east-northeast middle section, a stepped southeastern descent, and a final east-northeast approach. No additional tributary fragment is present.",
+        "The long western and central corridor crosses mapped Inland Ice. The eastern approach reaches the more broken ice-margin and land/fjord setting inland of the Scoresby Sund region. The original graticule and regional ice/land pattern support this feature-class distinction without assigning a precise terminal glacier, stream or fjord.",
+        "No natural river name is established for the complete modeled line by the readable original. A nearby glacier, land or fjord label is not evidence that the whole interior-to-margin path is a uniformly named river, nor that it represents known subglacial connectivity.",
+        "The mapped ice-surface contours, thickness isopachs and bedrock contours describe ice and terrain rather than named river channels. Historical mapping does not establish a current ice-front position, present flow direction or an active surface-water connection along this model path."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70217717",
+      "source_keys": [
+        "r62-cehq-region08-annual-lowflow",
+        "r62-obvaj-harricana-portrait",
+        "r62-qc-harricana-nord-conservation"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9303
+          ],
+          "finding": "The southeastern start descends through the Senneville–Blouin setting, then turns west toward the Harricana outlet corridor. OBVAJ’s hydrography and detailed southern sheet distinguish this selected approach from the Bourlamaque and Milky contributions. The model does not trace all of the Mourier–Lemoine–De Montigny source-lake chain.",
+          "sources": [
+            "r62-obvaj-harricana-portrait"
+          ]
+        },
+        {
+          "fragments": [
+            9303
+          ],
+          "finding": "The route then passes through the Malartic and La Motte lake corridor and the Figuery setting before continuing through Amos. These separate lake waterbodies interrupt any simple whole-line river-name interpretation, while their sequence strongly identifies the Harricana route.",
+          "sources": [
+            "r62-obvaj-harricana-portrait",
+            "r62-cehq-region08-annual-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            9303,
+            9304
+          ],
+          "finding": "North of Amos, the selected trunk continues past the Obalski setting and along the north-to-northwest Harricana course. The CEHQ sheet shows this corridor separately from the Bell–Nottaway drainage to the east and the Abitibi drainage to the west. It remains on the main Harricana corridor at the western branch junction.",
+          "sources": [
+            "r62-obvaj-harricana-portrait",
+            "r62-cehq-region08-annual-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            9305,
+            9306,
+            9307
+          ],
+          "finding": "All three non-mainstem pieces form a single contributing approach: the western piece runs north, the middle piece turns east, and the short eastern piece reaches the Harricana. Their connected shape and position match the lower Rivière Turgeon on the CEHQ map. Turgeon is a tributary name, not an alias of Harricana; the selection does not include its complete upstream basin.",
+          "sources": [
+            "r62-cehq-region08-annual-lowflow",
+            "r62-obvaj-harricana-portrait"
+          ]
+        },
+        {
+          "fragments": [
+            9304
+          ],
+          "finding": "Beyond the branch junction, the northern piece continues northwest along the lower Harricana toward the southern James Bay coastal setting and across the provincial boundary. The provincial conservation plan independently describes the river crossing into Ontario before reaching James Bay. The selection is treated as a terminal river-mouth approach, without assigning a surveyed mouth, tidal limit or the wider estuary to this line.",
+          "sources": [
+            "r62-cehq-region08-annual-lowflow",
+            "r62-qc-harricana-nord-conservation"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
