@@ -1,0 +1,869 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r104",
+  "sources": [
+    {
+      "source_key": "r104-inegi-orizaba-hydro",
+      "title": "Carta Hidrológica de Aguas Subterráneas, Orizaba E1406, 1:250 000",
+      "publisher": "INEGI",
+      "supports": "Amapa approach, western Miguel Alemán reservoir setting, lower Tonto and Tuxtepec junction setting; Santo Domingo northern corridor.",
+      "limits": "Hydrogeological thematic overlay and generalized base obscure some small stream distinctions. Aquifer-flow arrows are not surface-river flow evidence. Exact initial feeder identity and submerged-channel alignment are not established.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/tematicas/Hidro_sub_hist/1_250_000/794551151778_geo.pdf"
+    },
+    {
+      "source_key": "r104-inegi-oaxaca-topo",
+      "title": "Información topográfica, Oaxaca de Juárez E1409, 1:250 000, sixth edition 2023",
+      "publisher": "INEGI",
+      "supports": "Río Grande approach through Cuicatlán; southern Cajonos tributary corridor and northward Cajonos valley near Yatzona, Yovego and Ayotzintepec.",
+      "limits": "Names printed along individual reaches are not extended to every upstream feeder. Eastern sheet-edge coverage alone cannot establish the complete Lalana headwater connector.",
+      "official_url": "https://inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154366_geo.pdf"
+    },
+    {
+      "source_key": "r104-inegi-minatitlan-geology",
+      "title": "Carta Geológica, Minatitlán E15-7, 1:250 000, first edition 1984, second printing 1999",
+      "publisher": "INEGI, Dirección General de Geografía",
+      "supports": "Mapped Lalana and Trinidad valleys, their joining setting and San Juan continuation; western Tesechoacán approach.",
+      "limits": "Historical thematic colors and structural linework obscure small headward channels and some labels. Reproduction requires prior written authorization; no source image or derivative is for publication.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/tematicas/Geologia_hist/1_250_000/702825674731.pdf"
+    },
+    {
+      "source_key": "r104-inegi-coatzacoalcos-hydro",
+      "title": "Carta Hidrológica de Aguas Subterráneas, Coatzacoalcos E1501-04, 1:250 000",
+      "publisher": "INEGI",
+      "supports": "Lower named Papaloapan corridor, distinct Tesechoacán and San Juan branches, Catemaco lake/outlet setting and lagoon-rich Alvarado terminal approach.",
+      "limits": "Regional hydrogeological map with a generalized topographic base, not a present shoreline or hydraulic survey. Lake-water and floodplain connectors are interpreted at corridor scale only.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/tematicas/Hidro_sub_hist/1_250_000/794551151839_geo.pdf"
+    },
+    {
+      "source_key": "r104-inegi-oaxaca-state",
+      "title": "Condensado Estatal Oaxaca, 1:625 000, first edition 2020",
+      "publisher": "INEGI",
+      "supports": "Regional continuity and separation of Cajonos, Lalana, Trinidad/Puxmetacán surroundings, Santo Domingo, reservoirs and lower coastal receivers.",
+      "limits": "Too generalized to settle all first-feeder choices or exact naming transitions. Base derived from 1:250 000 series III; road update 2017 and statistical boundaries 2018. Printed reproduction restriction retained.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/oax/889463837022.pdf"
+    },
+    {
+      "source_key": "r104-inegi-oaxaca-hydrology-prose",
+      "title": "Síntesis de Información geográfica del estado de Oaxaca, 2004, chapter 6 Hidrología",
+      "publisher": "INEGI",
+      "supports": "Explains Grande/Salado–Santo Domingo, the Tonto and reservoir relationships, and Cajonos as an upstream component of Tesechoacán.",
+      "limits": "Regional prose corroborates named relationships but does not identify all selected feeder fragments. No source length, flow statistic or initial-source statement is assigned to the model.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/2104/702825224394/702825224394_12.pdf"
+    },
+    {
+      "source_key": "r104-inegi-tierra-blanca-prose",
+      "title": "Compendio de información geográfica municipal 2010: Tierra Blanca, Veracruz de Ignacio de la Llave",
+      "publisher": "INEGI",
+      "supports": "Independently lists Amapa as a watercourse and distinguishes the Amapa and Blanco subbasins.",
+      "limits": "Municipal prose is corroboration only, not evidence fixing the selected initial stream or every joining reach.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30174.pdf"
+    },
+    {
+      "source_key": "r104-itajai-synthesis2010",
+      "title": "Plano de Recursos Hídricos da Bacia do Itajaí, Caderno Síntese, 2010",
+      "publisher": "Comitê do Itajaí / Fundação Agência de Água do Vale do Itajaí",
+      "supports": "Full selected basin structure, major arms, headwater settings, trunk and Atlantic outlet.",
+      "limits": "Regional 1:1,000,000 cartography; no exact small-reach naming boundary or contemporary water level.",
+      "official_url": "https://www.aguas.sc.gov.br/base-documental-rio-itajai/noticias-rio-itajai/item/download/173_162158b668453a53c5b010ac0aa1f41f"
+    },
+    {
+      "source_key": "r104-ibge-sc2015",
+      "title": "Mapa Político do Estado de Santa Catarina, 2015, scale 1:550,000",
+      "publisher": "IBGE",
+      "supports": "Named river sequence, western and northern components, settlements, junctions and outlet.",
+      "limits": "Based on BCIM 2014. Reproduction rights reserved; source pixels remain private. Not a current survey.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/sc_politico550k_2015.pdf"
+    },
+    {
+      "source_key": "r104-ibge-rio-do-campo2010",
+      "title": "Rio do Campo, Mapa Municipal Estatístico, 2010",
+      "publisher": "IBGE",
+      "supports": "Initial Tomazoni feeder, upper river connection, Rio Verde junction surroundings and distinction from the Rio do Campo branch.",
+      "limits": "Historical composite at printed scale 1:250,000, with cartographic integration/completeness caveat and old boundaries to disregard. Alto Rio Azul locality labels do not establish a universal river name.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/sc/rio_do_campo_v2.pdf"
+    },
+    {
+      "source_key": "r104-ibge-papanduva2010",
+      "title": "Papanduva, Mapa Municipal Estatístico, 2010 collection",
+      "publisher": "IBGE",
+      "supports": "Bonito opening, Iraputã continuation, Itajaí do Norte junction and separation from adjacent drainage.",
+      "limits": "Municipal statistical map using historical systematic mapping. Does not establish current water levels or the precise initial reach-name transition south of the divide.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/sc/papanduva_v2.pdf"
+    },
+    {
+      "source_key": "r104-cerh69-2022",
+      "title": "Resolução CERH/SC nº 69, de 24 de março de 2022, annexed named watercourse reaches",
+      "publisher": "Conselho Estadual de Recursos Hídricos, Santa Catarina",
+      "supports": "Independent official distinction of Bonito, Iraputã, Itajaí do Norte/Hercílio, Itajaí do Oeste and Itajaí-Açu.",
+      "limits": "Regulatory reach descriptions are not pointwise model assignments. No water-quality classification or compliance conclusion is made.",
+      "official_url": "https://www.aguas.sc.gov.br/jsmallfib_top/mvs/conselho/resolucao/Resolucao_CERH_n_69_2022_Aprova_enquadramento_Itajai.pdf"
+    },
+    {
+      "source_key": "r104-itajai-region",
+      "title": "Região Hidrográfica: RH 7, Vale do Itajaí",
+      "publisher": "SIRHESC / Comitê do Itajaí",
+      "supports": "Upper, middle and lower Itajaí-Açu segmentation; Hercílio synonym; Atlantic destination.",
+      "limits": "Prose context, not independent fine-scale map evidence.",
+      "official_url": "https://www.aguas.sc.gov.br/a-bacia-rio-itajai/regiao-hidrografica-rio-itajai"
+    },
+    {
+      "source_key": "r104-itajai-basin",
+      "title": "Bacia Hidrográfica do Rio Itajaí",
+      "publisher": "SIRHESC / Comitê do Itajaí",
+      "supports": "Formation of Itajaí-Açu from Itajaí do Oeste and Itajaí do Sul at Rio do Sul.",
+      "limits": "Basin membership alone does not name every selected component.",
+      "official_url": "https://www.aguas.sc.gov.br/a-bacia-rio-itajai/bacia-hidrografica-rio-itajai"
+    },
+    {
+      "source_key": "r104-taio-oeste",
+      "title": "Barragem Oeste, published 18 April 2013",
+      "publisher": "Município de Taió, Portal Municipal de Turismo",
+      "supports": "Places Oeste dam on Itajaí do Oeste and describes temporary artificial lake formation during storage.",
+      "limits": "Historical descriptive text; no current footprint, capacity update or operation assessment.",
+      "official_url": "https://turismo.taio.sc.gov.br/post-12559/"
+    },
+    {
+      "source_key": "r104-mpi-norte",
+      "title": "Audiência Pública garante ações de segurança... Barragem Norte, 8 October 2023",
+      "publisher": "Ministério dos Povos Indígenas",
+      "supports": "Locates Barragem Norte on Itajaí do Norte in José Boiteux.",
+      "limits": "Used only for dam/watercourse location; no historical event details, present conditions or map copied.",
+      "official_url": "https://www.gov.br/povosindigenas/pt-br/assuntos/notas-oficiais/2023/10/audiencia-publica-garante-acoes-de-seguranca-para-povo-xokleng-diante-de-fechamento-de-barragem-em-santa-catarina"
+    },
+    {
+      "source_key": "r104-udesc-lapolli2013",
+      "title": "O plano diretor e o plano de gerenciamento de enchentes do município de Rio do Sul – SC: a construção de um território seguro?, 2013",
+      "publisher": "Aderbal Vicente Lapolli, UDESC",
+      "supports": "Explicit Bonito → Iraputã → Itajaí do Norte/Hercílio hierarchy, consistent with inspected original cartography.",
+      "limits": "This passage cites committee research and is corroborative, not independent map acquisition; no figure or PDF original retrieved.",
+      "official_url": "https://www.faed.udesc.br/arquivos/id_submenu/872/aderbal_vicente_lapolli.pdf"
+    },
+    {
+      "source_key": "r104-inegi-chetumal",
+      "title": "Información topográfica 1:250 000, E1604-07 Chetumal, sixth edition 2023",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Mexico",
+      "supports": "Explicit Río Azul and Río Hondo corridor labels, frontier course, settlements, separate wetland/lake settings and lower river toward Chetumal Bay.",
+      "limits": "The foreign interior is blank. Full Guatemalan headward and Belize-side branch correspondence cannot be inferred from a sheet edge or national boundary. Generalized corridor reading only.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154519_geo.pdf"
+    },
+    {
+      "source_key": "r104-inegi-quintana-roo",
+      "title": "Aspectos geográficos de Quintana Roo, Compendio 2022, published 2024",
+      "publisher": "INEGI, Mexico",
+      "supports": "Regional distinction between Río Azul, Río Hondo, neighboring watercourses and separate named waterbodies; Hondo’s Belize-border setting southwest of Chetumal Bay.",
+      "limits": "Regional context cannot establish the unresolved head or side connections. Its INEGI-CONAGUA map attribution is not a stopped CONAGUA report, and none was recovered.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463913986.pdf"
+    },
+    {
+      "source_key": "r104-usac-flores",
+      "title": "Municipio de Flores, Departamento de Petén: Diagnóstico socioeconómico, potencialidades productivas y propuestas de inversión, informe general, 2017",
+      "publisher": "Universidad de San Carlos de Guatemala, Facultad de Ciencias Económicas",
+      "supports": "A primary university report separately identifies Río Tikal and Río Azul in the municipality and provides its own map based on IGN cartography.",
+      "limits": "The schematic map lacks a graticule and adequate intermediate reference detail for the long selected approach. It is regional context, not full headward correspondence, and is not represented as direct inspection of the underlying IGN base.",
+      "official_url": "https://biblioteca.usac.edu.gt/EPS/03/03_0945_v1.pdf"
+    },
+    {
+      "source_key": "r104-belize-orange-walk-south",
+      "title": "Orange Walk South polling-area descriptions, areas 63 and 64",
+      "publisher": "Elections and Boundaries Department, Government of Belize",
+      "supports": "Blue Creek follows the international-boundary approach and meets the separate Rio Bravo at the Hondo junction; the downstream continuation is Rio Hondo.",
+      "limits": "Textual topology only. No map or precise correspondence to the modeled southern excursion or middle-river side features is claimed; the boundary descriptions are not used as legal boundary advice.",
+      "official_url": "https://elections.gov.bz/wp-content/uploads/2023/12/Orange-Walk-South.pdf"
+    },
+    {
+      "source_key": "r104-ingemmet-arequipa-critical-zones",
+      "title": "Región Arequipa: Zonas críticas por peligros geológicos, Mapa N° 01",
+      "publisher": "INGEMMET, Dirección de Geología Ambiental y Riesgo Geológico",
+      "year": 2015,
+      "page": "One sheet; printed digital version 2015, scale 1:350,000, UTM WGS 84 zone 19 south.",
+      "supports": "Complete regional corridor and separately labelled feeder, trunk, tributary, structure and terminal surroundings.",
+      "limits": "Regional generalization and locally dense symbol overprinting. Lower Río Chilca and joining Río Sihuas spellings are preserved as source observations. No exact shoreline, dam passage, source or name boundary is established.",
+      "official_url": "https://portal.ingemmet.gob.pe/documents/73138/1003201/MAPA_ZONAS_CRITICAS_AREQUIPA_2014-2.pdf"
+    },
+    {
+      "source_key": "r104-arma-arequipa-catalogue",
+      "title": "Catálogo de la información básica y temática de la Región Arequipa",
+      "publisher": "Gobierno Regional de Arequipa, Autoridad Regional Ambiental",
+      "page": "Printed/PDF pages 6–7; front matter pages 1–4 also read.",
+      "supports": "Direct regional river-system compound Quilca-Vitor-Chili and independent settlement/topographic context for the selected corridor.",
+      "limits": "The base map is small-scale and less discriminating than INGEMMET. Its table length, other upstream name list and confluence wording are not substituted for selected-path facts. Catalogue publication year not established.",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-arequipa/archivos/public/docs/49.pdf"
+    },
+    {
+      "source_key": "r104-quilca-chili-padh-2016",
+      "title": "Plan de aprovechamiento de la disponibilidad hídrica en el ámbito del Consejo de Recursos Hídricos de la Cuenca Quilca-Chili 2016–2017",
+      "publisher": "Consejo de Recursos Hídricos de Cuenca Quilca-Chili, Grupo Técnico de Trabajo de Aprovechamiento de las Disponibilidades Hídricas",
+      "year": 2016,
+      "page": "Printed/PDF pages 10–15 for reservoir and transfer distinctions; additional actually read Chili, Yura, Vítor and Siguas sections used for context only.",
+      "supports": "Chalhuanca, Pillones, Blanco/El Frayle, Sumbay and Aguada Blanca roles and the distinction from Alto Colca transfers.",
+      "limits": "Text-only supporting context. Not treated as cartographic proof of exact selected positions or current operations; concise paraphrase only.",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-arequipa/archivos/public/docs/plan_de_aprovechamiento_quilca_chili_2016-2017.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70895492",
+      "source_keys": [
+        "r104-inegi-orizaba-hydro",
+        "r104-inegi-oaxaca-topo",
+        "r104-inegi-minatitlan-geology",
+        "r104-inegi-coatzacoalcos-hydro",
+        "r104-inegi-oaxaca-state",
+        "r104-inegi-oaxaca-hydrology-prose",
+        "r104-inegi-tierra-blanca-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10440
+          ],
+          "role": "mainstem",
+          "component_scope": "Omealca–Tierra Blanca Amapa approach",
+          "finding": "The initial selection is southeast of Omealca in the Paso Amapa–Junta de Moreno setting, then continues past the Tierra Blanca surroundings along the mapped Amapa corridor toward its lower junction. El Azufre, Moreno and Amapa appear as distinct local labels; their exact assignment to the first selected feeder and transition is unresolved.",
+          "sources": [
+            "r104-inegi-orizaba-hydro",
+            "r104-inegi-tierra-blanca-prose"
+          ],
+          "limits": "Initial feeder and local naming transition remain material pending."
+        },
+        {
+          "fragments": [
+            10441
+          ],
+          "role": "mainstem",
+          "component_scope": "Lower Tonto approach to Tuxtepec",
+          "finding": "The selected continuation occupies the river corridor east of Temascal and west of Tres Valles, descending toward San Juan Bautista Tuxtepec and the Papaloapan junction. Regional prose confirms the Tonto relationship. This does not make the upstream Amapa portion, western reservoir feeder or downstream Papaloapan one uniform Tonto-named river.",
+          "sources": [
+            "r104-inegi-orizaba-hydro",
+            "r104-inegi-oaxaca-hydrology-prose",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Lower receiving-corridor correspondence supported; no exact transition vertex."
+        },
+        {
+          "fragments": [
+            10442
+          ],
+          "role": "mainstem",
+          "component_scope": "Papaloapan lower trunk and lagoon approach",
+          "finding": "The route continues through the Tuxtepec–Tlacojalpan–Chacaltianguis–Cosamaloapan/Carlos A. Carrillo corridor, then north through Amatitlán and Tlacotalpan. Repeated Papaloapan labels follow this receiving trunk. Its last westward limb reaches the Papaloapan–Laguna Alvarado setting southeast of Alvarado. It does not extend through the coastal entrance to the Gulf.",
+          "sources": [
+            "r104-inegi-orizaba-hydro",
+            "r104-inegi-coatzacoalcos-hydro",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Receiving identity supported; endpoint is a modeled limit, not an independently surveyed mouth."
+        },
+        {
+          "fragments": [
+            10443
+          ],
+          "role": "tributary",
+          "component_scope": "Southern mountain approach to Cajonos",
+          "finding": "The selected southwestern opening crosses the mountain-drainage setting east of the Cuajimoloyas surroundings, bends through the Albarradas/Tierra Caliente vicinity and continues north past the Cajonos settlements toward the Yatzona area. The sheet distinguishes small named feeders from the Cajonos trunk. The first feeder choice and naming transition are not completely resolved.",
+          "sources": [
+            "r104-inegi-oaxaca-topo"
+          ],
+          "limits": "Southern first-feeder/name-transition material gap; Cajonos name not transferred over every initial cell."
+        },
+        {
+          "fragments": [
+            10444
+          ],
+          "role": "tributary",
+          "component_scope": "Cajonos middle valley",
+          "finding": "The continuation follows the northward Cajonos mountain valley through the San Francisco Yovego–Ayotzintepec surroundings, then bends east toward the lowland approach. Local joining streams, including the separate Valle Nacional corridor farther west, are distinguished. The existing stage break is not treated as an official river-name boundary.",
+          "sources": [
+            "r104-inegi-oaxaca-topo",
+            "r104-inegi-minatitlan-geology",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Cajonos corridor supported; no exact boundary between upstream and lower river names claimed."
+        },
+        {
+          "fragments": [
+            10445
+          ],
+          "role": "tributary",
+          "component_scope": "Tesechoacán lower branch",
+          "finding": "From the southern sheet boundary, the selected branch follows the Playa Vicente–Villa Azueta–Tesechoacán corridor northward to the Papaloapan joining setting near Boca del Río. The original coastal sheet labels the Tesechoacán separately from Papaloapan and San Juan; the Oaxaca prose explains the upstream Cajonos relationship.",
+          "sources": [
+            "r104-inegi-minatitlan-geology",
+            "r104-inegi-coatzacoalcos-hydro",
+            "r104-inegi-oaxaca-state",
+            "r104-inegi-oaxaca-hydrology-prose"
+          ],
+          "limits": "Lower branch supported; Tesechoacán is not an alias for every upstream Cajonos feeder."
+        },
+        {
+          "fragments": [
+            10446
+          ],
+          "role": "tributary",
+          "component_scope": "Southern Lalana headward and mountain-to-lowland approach",
+          "finding": "The selected opening lies near the Totontepec–Metepec eastern mountain setting. It turns northeast through the Santiago Choápam/San Juan Lalana surroundings into the large valley labeled Lalana on the Minatitlán sheet. The thematic original and state map do not establish every small initial connector or exact local naming transition.",
+          "sources": [
+            "r104-inegi-oaxaca-topo",
+            "r104-inegi-minatitlan-geology",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Material headward correspondence remains incomplete; no guessed tributary label for the first reach."
+        },
+        {
+          "fragments": [
+            10447
+          ],
+          "role": "tributary",
+          "component_scope": "Lalana lower valley",
+          "finding": "This continuation follows the mapped Lalana valley northeast through the lowlands toward the joining setting with the Trinidad approach south of San Juan Evangelista. It is the western incoming limb, separate from the eastern Trinidad limb. Neither the stage break nor a nearby settlement is used as a river-name boundary.",
+          "sources": [
+            "r104-inegi-minatitlan-geology",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Lower Lalana joining corridor supported at generalized scale."
+        },
+        {
+          "fragments": [
+            10448
+          ],
+          "role": "tributary",
+          "component_scope": "San Juan middle receiver",
+          "finding": "The joined route continues north through the San Juan Evangelista and Juan Rodríguez Clara region toward the Hueyapan/San Andrés Garcero joining setting. The original names the receiving San Juan course separately from the Lalana and Trinidad incoming arms.",
+          "sources": [
+            "r104-inegi-minatitlan-geology",
+            "r104-inegi-coatzacoalcos-hydro",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "San Juan middle receiver supported; upstream arms retain their own scope."
+        },
+        {
+          "fragments": [
+            10449
+          ],
+          "role": "tributary",
+          "component_scope": "San Juan lower branch",
+          "finding": "Below the eastern Catemaco/Hueyapan approach, the selected limb continues northwest through San Andrés Garcero, El Tesoro and the lower wetland plain toward Tlacotalpan, where it joins the Papaloapan setting. The mapped San Juan branch is distinct from the western Tesechoacán.",
+          "sources": [
+            "r104-inegi-coatzacoalcos-hydro",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Lower San Juan corridor supported; adjacent lakes are not all part of the selected line."
+        },
+        {
+          "fragments": [
+            10450
+          ],
+          "role": "tributary",
+          "component_scope": "Trinidad upper selected limb",
+          "finding": "The short southeastern opening lies in the La Trinidad–María Lombardo de Caso surroundings and enters the northeast-trending valley labeled Trinidad on the historical original. Its small headward part is not sufficiently legible to assign a continuous local name or establish every connector. Puxmetacán is shown farther upstream in regional context and is not automatically assigned to this selected opening.",
+          "sources": [
+            "r104-inegi-minatitlan-geology",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Short headward connector remains material pending."
+        },
+        {
+          "fragments": [
+            10451
+          ],
+          "role": "tributary",
+          "component_scope": "Trinidad lower incoming arm",
+          "finding": "The longer continuation follows the mapped Trinidad lowland valley northward to the confluence with the Lalana approach. The two incoming valleys and the subsequent San Juan receiving course are separately visible. This coverage does not resolve the preceding short opening in feature10450.",
+          "sources": [
+            "r104-inegi-minatitlan-geology",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Lower Trinidad joining corridor supported."
+        },
+        {
+          "fragments": [
+            10452
+          ],
+          "role": "tributary",
+          "component_scope": "Río Grande Cuicatlán–Quiotepec approach",
+          "finding": "The western opening follows the Río Grande valley north past the San Juan Bautista Cuicatlán setting toward Quiotepec. The adjacent Río Salado enters from a different direction; its name is not substituted for the selected upper limb.",
+          "sources": [
+            "r104-inegi-oaxaca-topo",
+            "r104-inegi-oaxaca-hydrology-prose"
+          ],
+          "limits": "Río Grande component supported; modeled beginning is not the river’s natural source."
+        },
+        {
+          "fragments": [
+            10453
+          ],
+          "role": "tributary",
+          "component_scope": "Santo Domingo and Cerro de Oro route",
+          "finding": "The selected continuation turns east through the Santo Domingo canyon/valley, approaches the Miguel de la Madrid Hurtado reservoir, and continues toward the Tuxtepec/Papaloapan junction. The actual reservoir is distinguished from the neighboring Miguel Alemán basin. The source supports the named system relation; it does not trace a present surface channel through the inundated passage.",
+          "sources": [
+            "r104-inegi-orizaba-hydro",
+            "r104-inegi-oaxaca-topo",
+            "r104-inegi-oaxaca-state",
+            "r104-inegi-oaxaca-hydrology-prose"
+          ],
+          "limits": "Broad Santo Domingo/reservoir corridor supported; submerged-path and outlet details are not surveyed correspondence."
+        },
+        {
+          "fragments": [
+            10454
+          ],
+          "role": "tributary",
+          "component_scope": "Catemaco lake, outlet and eastern joining branch",
+          "finding": "The eastern opening occupies the southeast Catemaco catchment, then crosses the mapped Laguna de Catemaco setting and continues from the western outlet through the Río Grande de Catemaco/Hueyapan corridor toward San Juan. Cuezalapan is a separate local feeder label on the lake’s eastern side; it is not extended across the lake or the entire branch.",
+          "sources": [
+            "r104-inegi-coatzacoalcos-hydro",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Lake/outlet/receiver sequence supported; exact initial feeder assignment and lake centerline are not asserted."
+        },
+        {
+          "fragments": [
+            10455
+          ],
+          "role": "tributary",
+          "component_scope": "Western Miguel Alemán feeder",
+          "finding": "The western selected opening runs from the Petlapa/San Francisco surroundings toward the drowned-valley setting near San José Independencia and into Miguel Alemán. The source distinguishes water surfaces, mountainous feeder terrain and nearby settlement names, but does not clearly resolve the entire initial feeder as one named current channel.",
+          "sources": [
+            "r104-inegi-orizaba-hydro",
+            "r104-inegi-oaxaca-state"
+          ],
+          "limits": "Material reservoir-feeder correspondence remains incomplete; Petlapa retained as contextual label, not full-feature assignment."
+        },
+        {
+          "fragments": [
+            10456
+          ],
+          "role": "tributary",
+          "component_scope": "Miguel Alemán reservoir to lower Tonto joining setting",
+          "finding": "The continuation crosses the Miguel Alemán reservoir setting toward Temascal, then approaches the lower Tonto/Amapa joining corridor. Waterbody, dam and downstream drainage are distinguishable. A modeled line across open water is not a current river centerline, and the acquisition does not independently resolve every modeled reservoir-to-channel connector.",
+          "sources": [
+            "r104-inegi-orizaba-hydro",
+            "r104-inegi-oaxaca-state",
+            "r104-inegi-oaxaca-hydrology-prose"
+          ],
+          "limits": "Reservoir/outlet context supported; connector detail remains coupled to the unresolved western feeder scope."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61407619",
+      "source_keys": [
+        "r104-itajai-synthesis2010",
+        "r104-ibge-sc2015",
+        "r104-ibge-rio-do-campo2010",
+        "r104-ibge-papanduva2010",
+        "r104-cerh69-2022",
+        "r104-itajai-region",
+        "r104-itajai-basin",
+        "r104-taio-oeste",
+        "r104-mpi-norte",
+        "r104-udesc-lapolli2013"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13986
+          ],
+          "component_scope": "Initial headward feeder south of the Espigão divide",
+          "finding": "The municipal original shows the selected opening in the Arroio Tomazoni feeder corridor, approaching the upper river near Alto Rio Azul. Its mapped downstream connection continues through the Rio Verde junction surroundings and the upper Rio do Oeste valley west of the Rio do Campo urban area. Rio Preto is labeled on the upstream neighboring continuation; Alto Rio Azul also occurs as a school/locality label. No universal Rio Azul name or exact Preto/Azul/Oeste name-change point is asserted. The connected feeder is established, rather than inferred from the bounding box.",
+          "sources": [
+            "r104-ibge-rio-do-campo2010",
+            "r104-ibge-papanduva2010",
+            "r104-itajai-synthesis2010"
+          ]
+        },
+        {
+          "fragments": [
+            13986
+          ],
+          "component_scope": "Western river and Taió impoundment corridor",
+          "finding": "The selected north–south headward limb joins the western river corridor and turns southeast through the Taió area. The state original names the downstream river Rio Itajaí do Oeste and shows the adjoining Ribeirão da Vargem, Rio Taió and Ribeirão Grande as distinct waterways. The municipality places Barragem Oeste on Itajaí do Oeste and describes its flood-storage lake as temporary. The dam name is not a replacement river name, and no present water level, reservoir shoreline or gate state is inferred.",
+          "sources": [
+            "r104-ibge-sc2015",
+            "r104-ibge-rio-do-campo2010",
+            "r104-itajai-synthesis2010",
+            "r104-taio-oeste"
+          ]
+        },
+        {
+          "fragments": [
+            13986
+          ],
+          "component_scope": "Rio do Oeste–Laurentino and Rio do Sul approach",
+          "finding": "The selected western arm follows Itajaí do Oeste through the Rio do Oeste and Laurentino surroundings into Rio do Sul. This is separate from the southern Itajaí do Sul approach and from the neighboring Trombudo system. The municipal and regional crossing sequence, river bends and destination establish the selected western approach at the map scale used.",
+          "sources": [
+            "r104-ibge-sc2015",
+            "r104-itajai-synthesis2010",
+            "r104-ibge-rio-do-campo2010"
+          ]
+        },
+        {
+          "fragments": [
+            13986,
+            13987
+          ],
+          "component_scope": "Rio do Sul name transition",
+          "finding": "The basin committee explicitly identifies the union of Itajaí do Oeste and Itajaí do Sul at Rio do Sul as the formation of Itajaí-Açu. The source maps show that junction at the selected transition from the western approach to the northeastward trunk. The unselected Itajaí do Sul is not reclassified as a selected tributary, and the Itajaí-Açu name is not back-propagated into the full western arm.",
+          "sources": [
+            "r104-itajai-basin",
+            "r104-itajai-synthesis2010",
+            "r104-ibge-sc2015"
+          ]
+        },
+        {
+          "fragments": [
+            13987
+          ],
+          "component_scope": "Upper Itajaí-Açu through Lontras",
+          "finding": "The middle selected mainstem feature follows the named upper Itajaí-Açu from the Rio do Sul setting northeast through Lontras to the Ibirama-area confluence. The original state map shows the continuous river along this corridor; committee prose distinguishes the upper reach and the transition near Salto dos Pilões upstream of the Itajaí do Norte mouth. No separate lake connector or unnamed interbasin transfer is required.",
+          "sources": [
+            "r104-ibge-sc2015",
+            "r104-itajai-synthesis2010",
+            "r104-itajai-region"
+          ]
+        },
+        {
+          "fragments": [
+            13989
+          ],
+          "component_scope": "Northern opening: Bonito and Iraputã",
+          "finding": "The first selected tributary feature opens north of the Espigão divide in the Rio Bonito corridor. The Papanduva original resolves the north-flowing channel through the Nova Cultura surroundings and its continuation into Rio Iraputã, which meets Itajaí do Norte. The official 2022 annex independently distinguishes Bonito, Iraputã and Itajaí do Norte/Hercílio reaches. The university-hosted research description explicitly gives the same feeder hierarchy. Nearby Rio Sangão, Rio Canoinhas and Rio do Campo are not substituted for this arm.",
+          "sources": [
+            "r104-ibge-papanduva2010",
+            "r104-ibge-sc2015",
+            "r104-cerh69-2022",
+            "r104-udesc-lapolli2013"
+          ]
+        },
+        {
+          "fragments": [
+            13989
+          ],
+          "component_scope": "Northern middle corridor and Barragem Norte setting",
+          "finding": "After the northern bend, the selected arm follows the Itajaí do Norte/Hercílio corridor southeast through the Moema and upper José Boiteux surroundings toward Ibirama. State and basin originals show this distinct diagonal arm, its lateral tributary junctions and continuous downstream route. The federal ministry independently locates Barragem Norte on Itajaí do Norte in José Boiteux. Its impoundment setting belongs to this northern arm and is distinct from Barragem Oeste and the unselected southern dam corridor. No present inundation boundary or operational condition is asserted.",
+          "sources": [
+            "r104-ibge-sc2015",
+            "r104-itajai-synthesis2010",
+            "r104-mpi-norte"
+          ]
+        },
+        {
+          "fragments": [
+            13990
+          ],
+          "component_scope": "Second selected tributary feature: lower Hercílio and its mouth",
+          "finding": "The short second tributary feature is the lower continuation of the same northern arm, through the Ibirama surroundings to the Itajaí-Açu junction. It is not an independently named tributary merely because the model stores a separate feature. The state original shows the joining geometry and the nearby Krauel approach from Presidente Getúlio as a different branch. The full lower connector and its receiving trunk are established at generalized map scale.",
+          "sources": [
+            "r104-ibge-sc2015",
+            "r104-itajai-synthesis2010",
+            "r104-cerh69-2022"
+          ]
+        },
+        {
+          "fragments": [
+            13988
+          ],
+          "component_scope": "Middle valley after the Ibirama junction",
+          "finding": "The final mainstem feature continues along Itajaí-Açu through Apiúna and Ascurra to Indaial and Blumenau. The source map distinguishes the Benedito confluence at Indaial from the selected upstream Hercílio junction and from the Ribeirão Neisse and Ribeirão Encano approaches farther south. The valley bend sequence and these ordered junctions establish the selected trunk rather than only a regional name match.",
+          "sources": [
+            "r104-ibge-sc2015",
+            "r104-itajai-synthesis2010",
+            "r104-itajai-region"
+          ]
+        },
+        {
+          "fragments": [
+            13988
+          ],
+          "component_scope": "Lower valley, estuary and selected termination",
+          "finding": "Downstream of Blumenau the selected river passes Gaspar and Ilhota, receives the Luís Alves and lower Itajaí-Mirim systems in the coastal setting, and reaches the Atlantic outlet between Itajaí and Navegantes. Both regional map originals show the outlet and the neighboring Itajaí-Mirim course separately. The selected final straight extension is treated as generalized outlet representation, not a surveyed mouth coordinate, harbor channel or offshore river reach. No name is assigned from an adjacent coastal river such as Camboriú.",
+          "sources": [
+            "r104-ibge-sc2015",
+            "r104-itajai-synthesis2010",
+            "r104-itajai-region"
+          ]
+        },
+        {
+          "fragments": [
+            13986,
+            13987,
+            13988,
+            13989,
+            13990
+          ],
+          "component_scope": "Whole-network naming boundary",
+          "finding": "Three selected mainstem features and two selected tributary features are accounted for. Together they represent the Itajaí-Açu system through its western and northern contributing arms; the name of the outlet trunk does not rename Arroio Tomazoni, Bonito, Iraputã or Itajaí do Norte/Hercílio. Different named components are compatible with the supported representative identity because their bounded connections are established.",
+          "sources": [
+            "r104-ibge-sc2015",
+            "r104-itajai-synthesis2010",
+            "r104-ibge-rio-do-campo2010",
+            "r104-ibge-papanduva2010"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70898394",
+      "source_keys": [
+        "r104-inegi-chetumal",
+        "r104-inegi-quintana-roo",
+        "r104-usac-flores",
+        "r104-belize-orange-walk-south"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10512
+          ],
+          "component_scope": "Guatemalan headward route and approach to the international river",
+          "finding": "The complete long headward feature was read. It starts in northern Petén, runs north, bends northeast and continues to the frontier river setting. The university municipal map separately depicts Río Tikal and Río Azul, but lacks a graticule and sufficiently detailed surrounding landmarks to establish the full selected approach, branch choices and connection to the frontier. INEGI shows the northern frontier setting beside Arroyo Negro, Pioneros del Río Xnohá and the Río Azul corridor, but leaves Guatemala outside its mapped national coverage. Neither Río Tikal nor the university map’s Río Azul label is therefore assigned to this complete feature. The initial and intervening Guatemalan correspondence remains material pending.",
+          "sources": [
+            "r104-usac-flores",
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10513
+          ],
+          "component_scope": "Northern Río Azul border bend",
+          "finding": "The eastward and then southeastward bend occupies the generalized frontier corridor labeled Río Azul on the original Chetumal sheet. The source distinguishes the separate northern Arroyo Ixno-Há and the Arroyo Negro/wetland approach farther west. Río Azul supports this bounded border component; it does not name the complete Guatemalan head or the downstream Hondo corridor.",
+          "sources": [
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10514
+          ],
+          "component_scope": "Short central Río Azul connecting feature",
+          "finding": "The small connecting feature lies within the same mapped Río Azul border corridor between its northern bend and the southeastward approach. No separate hydronym is established for this short component, and its generalized shape is not treated as a surveyed channel trace.",
+          "sources": [
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10515
+          ],
+          "component_scope": "Río Azul approach toward La Unión",
+          "finding": "The southeastward feature continues through the border-river setting west of La Unión and the Estero Franco/Cenotes Cuates surroundings. INEGI retains the river and Mexican-bank context; Belizean interior linework is blank. The Belize election description separately calls the frontier approach Blue Creek and describes its junction with Rio Bravo and Rio Hondo. This supports the bounded Blue Creek/Río Azul approach without extending that name across all selected reaches.",
+          "sources": [
+            "r104-inegi-chetumal",
+            "r104-belize-orange-walk-south"
+          ]
+        },
+        {
+          "fragments": [
+            10516
+          ],
+          "component_scope": "Southern turn and Blue Creek–Río Bravo–Hondo junction vicinity",
+          "finding": "This short feature turns southeast into the Belize-side vicinity and back northwest before the northbound continuation. The election description establishes the Blue Creek/Rio Bravo/Rio Hondo confluence and the separate upstream Rio Bravo approach. INEGI does not depict the Belize-side waterways needed to determine whether the complete selected excursion follows a junction channel, a side arm, or an intervening connector. This is an unresolved bounded correspondence interval, not evidence that Rio Bravo names the selected upstream route.",
+          "sources": [
+            "r104-inegi-chetumal",
+            "r104-belize-orange-walk-south"
+          ]
+        },
+        {
+          "fragments": [
+            10517
+          ],
+          "component_scope": "Upper Río Hondo northbound corridor",
+          "finding": "The northbound feature corresponds at generalized corridor scale to the river explicitly labeled Río Hondo, passing the La Unión and Laguna Tablas surroundings toward José Narciso Rovirosa and San Francisco Botes. Laguna Tablas and the inland wetland/cenote features are distinct neighboring components, not a named-lake passage along the selection. Fine bank and meander positions are outside this research scope.",
+          "sources": [
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10518
+          ],
+          "component_scope": "Short eastward side excursion in the upper Hondo corridor",
+          "finding": "The very short east-and-back feature was inspected separately. The original establishes the nearby Hondo corridor, but the excursion extends toward the otherwise blank Belize side. No acquired source identifies a separate named branch or establishes the actual water connection represented by this feature. Its naming and branch correspondence remain unresolved.",
+          "sources": [
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10519
+          ],
+          "component_scope": "Hondo continuation toward Cocoyol",
+          "finding": "This northbound interval remains in the general Hondo valley beside the San Francisco Botes, Cocoyol and La Fogata surroundings. INEGI distinguishes the river from the Mexican road and adjacent inundation-prone areas. The supported result is Hondo corridor identity, not exact assignment of every generalized segment to a particular channel or bank.",
+          "sources": [
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10520
+          ],
+          "component_scope": "Second eastward side excursion",
+          "finding": "This separate short feature runs east and back near the Cocoyol-side part of the corridor. The Hondo receiving context is supported, but the Belize-side excursion lacks independently acquired branch/wetland mapping. No separate river, lagoon, lake or canal name is assigned to it, and correspondence is not marked complete.",
+          "sources": [
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10521
+          ],
+          "component_scope": "Middle Hondo and Mexican-bank settlements",
+          "finding": "The northward and northeastward continuation occupies the mapped Hondo border valley past Cacao, San Lázaro, Pucté and the Javier Rojo Gómez/Pedro Joaquín Coldwell surroundings. The source separately depicts irrigation-area channels and terrain subject to inundation on the Mexican side. Those channels are not substituted for the river or promoted to aliases for the selection.",
+          "sources": [
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10522
+          ],
+          "component_scope": "Lower Hondo northward reach",
+          "finding": "The lower northward feature passes the Álvaro Obregón, Allende, Ramonal, Palmar and Sacxán settings before reaching the Juan Sarabia turn. The source explicitly labels Río Hondo near Sacxán and Juan Sarabia, and shows nearby Arroyo Ucum entering the lower-river setting. The selection follows the generalized receiving corridor; the Ucum approach and the lakes farther northeast remain separate.",
+          "sources": [
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10523
+          ],
+          "component_scope": "Juan Sarabia/lower-river turn",
+          "finding": "This small turning feature was read separately at the lower Hondo bend near Juan Sarabia and the western side of the Laguna Milagros setting. The national map supports the Hondo corridor but not a distinct hydronym for this short turn. No claim is made that the selected bend traverses the named lake or begins at a surveyed confluence point.",
+          "sources": [
+            "r104-inegi-chetumal"
+          ]
+        },
+        {
+          "fragments": [
+            10524
+          ],
+          "component_scope": "Terminal Hondo, neighboring lakes and Chetumal Bay",
+          "finding": "The final eastward feature continues along the lower border-river corridor south of the Laguna Milagros and Laguna Negra surroundings, past the Subteniente López area and toward the Chetumal shore. INEGI separates the river, neighboring lakes and Bahía de Chetumal; the state compendium independently identifies the Hondo as the principal river southwest of that bay on the Belize border. This supports the receiving river and bay-mouth setting. The exact modeled endpoint and cross-bay or nearshore continuation are not treated as an official river-mouth coordinate, and neither lake name is an alias for the river.",
+          "sources": [
+            "r104-inegi-chetumal",
+            "r104-inegi-quintana-roo"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61232079",
+      "source_keys": [
+        "r104-ingemmet-arequipa-critical-zones",
+        "r104-arma-arequipa-catalogue",
+        "r104-quilca-chili-padh-2016"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Initial western feeder",
+          "finding": "The headward selection follows the drainage labelled Q. Calapusa on the original regional sheet. It bends southeast and then east/northeast toward the Chalhuanca/Capillune infrastructure setting. The nearby Río Aycata/Acomayo drainage continues separately to the west and is not substituted for this selected beginning. No exact spring or name for every short opening segment is assigned.",
+          "sources": [
+            "r104-ingemmet-arequipa-critical-zones"
+          ]
+        },
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Chalhuanca/Capillune surroundings and Sumbay entry",
+          "finding": "The upper eastward bend passes the western side of the mapped Chalhuanca/Capillune setting and turns south along the connected drainage toward Río Sumbay. This regional map establishes the feeder-to-trunk sequence, but its structure symbol does not establish a precise reservoir-shoreline crossing. The selected initial limb is not the separate eastern approach from Imata/Pillones.",
+          "sources": [
+            "r104-ingemmet-arequipa-critical-zones"
+          ]
+        },
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Sumbay middle-upper corridor",
+          "finding": "South of the upper bend, the selection agrees with the labelled Río Sumbay corridor, including its road/rail-crossing setting and subsequent southward canyon. The feeder joining from the Pillones/Imata side remains separate from the selected headward limb. Cartographic roads, railway and transmission lines are not treated as river segments.",
+          "sources": [
+            "r104-ingemmet-arequipa-critical-zones"
+          ]
+        },
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Blanco junction and Aguada Blanca",
+          "finding": "The source map shows the selected southward trunk passing the junction with the eastern Río Blanco branch from El Frayle. It continues to Aguada Blanca and turns west/southwest below that structure. The selection follows the Sumbay-side approach, not the eastern El Frayle reservoir branch. No exact dam-wall or inundation boundary is inferred.",
+          "sources": [
+            "r104-ingemmet-arequipa-critical-zones"
+          ]
+        },
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Chili canyon and Arequipa",
+          "finding": "Below Aguada Blanca, the route enters the canyon leading southwest to Charcani and the Arequipa urban corridor. The sheet’s indexed entries 114–116 identify Río Chili in the Cayma/Alto Selva Alegre setting, and entry 119 identifies the Chili/Charcani setting. Those source entries clarify the river beneath dense hazard symbols; the independently viewed regional base map locates Cayma, Tiabaya and Uchumayo in the same corridor. The selection then bends west through the Tiabaya–Uchumayo surroundings.",
+          "sources": [
+            "r104-ingemmet-arequipa-critical-zones",
+            "r104-arma-arequipa-catalogue"
+          ]
+        },
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Yura joining corridor and transition toward Vítor",
+          "finding": "West of the Arequipa/Uchumayo corridor, the model bends northwest and then southwest around the northern La Joya surroundings. The source distinguishes the northward Yura-side drainage from the selected east-to-west trunk and places the lower bend in the Vítor valley; indexed entry 90 identifies the Río Vitor bank there. Exact official Chili/Vítor transition coordinates are not established.",
+          "sources": [
+            "r104-ingemmet-arequipa-critical-zones",
+            "r104-arma-arequipa-catalogue"
+          ]
+        },
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Vítor valley and lower westward limb",
+          "finding": "The selected route passes the Vítor settlement/transport crossing and follows the explicitly labelled Río Vitor southward. It then turns west across the lower valley, receiving smaller mapped quebrada corridors, while the separate Siguas/Sihuas drainage descends from the north. None of the adjacent La Joya irrigation lines, tailings structures or transport lines is substituted for the selected natural trunk.",
+          "sources": [
+            "r104-ingemmet-arequipa-critical-zones"
+          ]
+        },
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Siguas junction and terminal coast",
+          "finding": "The western lower limb meets the northward branch labelled Río Sihuas on this sheet, then turns southwest toward Quilca (Pueblo Nuevo) and the Pacific coastline. The same lower reach is printed Río Chilca on INGEMMET, whereas the regional catalogue identifies the representative system as Quilca-Vitor-Chili. These sources support the coastal system and connected route; the differing lower spelling is preserved without claiming a formal Chilca/Quilca alias equivalence. The endpoint is the regional outlet setting, not a surveyed shoreline or tidal boundary.",
+          "sources": [
+            "r104-ingemmet-arequipa-critical-zones",
+            "r104-arma-arequipa-catalogue"
+          ]
+        },
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Reservoir and transfer distinctions from the water plan",
+          "finding": "The plan places Chalhuanca on a right-bank tributary of Sumbay, Pillones off the Sumbay main channel, and El Frayle on Río Blanco. Aguada Blanca lies on Chili below the Blanco–Sumbay junction. Alto Colca water reaches Sumbay through transfer infrastructure. These descriptions supplement the map; they do not add unselected reservoirs, canals or rivers to the object.",
+          "sources": [
+            "r104-quilca-chili-padh-2016"
+          ]
+        },
+        {
+          "fragments": [
+            13904
+          ],
+          "component_scope": "Whole-object naming scope",
+          "finding": "The official catalogue’s river table gives Quilca-Vitor-Chili as a regional principal-river identity. The selected corridor supplies the required geographic and network correspondence rather than relying on that name alone. Calapusa, Sumbay, component reservoirs and joining tributaries remain separately scoped; their names are not added as whole-object synonyms.",
+          "sources": [
+            "r104-ingemmet-arequipa-critical-zones",
+            "r104-arma-arequipa-catalogue"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
