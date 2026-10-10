@@ -16,7 +16,7 @@
     "Serbian Cyrillic Београд and Latin Beograd are both local spellings; Turkish/German Belgrad is a language variant, not an automatic Korean official rename upon 1867 changes.",
     "Sofia's Sredets/Serdica name history predates 1801; the verified 1879-04-03 capital selection did not rename the city.",
     "Zagreb was administratively unified on 1850-09-07; earlier Gradec/Kaptol existed. Do not treat the unification as a newly founded settlement or a renamed city.",
-    "Zagreb: Croatian Latin-script Zagreb is the selected native form and Korean 자그레브 remains constant from 1801. English Agram, used as a 1911 Encyclopaedia Britannica headword, is selected through 1918-10-28; switch English to Zagreb at Croatian Parliament's 1918-10-29 severance from Austria-Hungary (editorial boundary, not a legal English renaming). German/Hungarian exonyms are retained in historical geography context, not as unused names[] aliases. Ljubljana German Laibach remains a separate historic name pending its own timeline finalization.",
+    "Zagreb: Croatian Latin-script Zagreb is the selected native form and Korean 자그레브 remains constant from 1801. English Agram, used as a 1911 Encyclopaedia Britannica headword, is selected through 1918-10-28; switch English to Zagreb at Croatian Parliament's 1918-10-29 severance from Austria-Hungary (editorial boundary, not a legal English renaming). German/Hungarian exonyms are retained in historical geography context, not as unused names[] aliases. Ljubljana uses German Laibach (native/ko/en) from 1801, Slovene Ljubljana (native/ko) from 1883-01-01, and English Ljubljana from 1918-10-29; dates are administrative/editorial map-name boundaries, not city legal renamings.",
     "Ljubljana's 1809–1813 capital status in the Napoleonic Illyrian Provinces and 1821 Congress do not imply a city rename.",
     "Current country code is GeoNames metadata only; historical borders/polities must come from separately verified map relations.",
     "English and native may share exactly the same spelling (Zagreb, Ljubljana). Preserve each independently; renderer deduplicates displayed rows.",
@@ -269,6 +269,26 @@
       "geonameId": 3196359,
       "names": [
         {
+          "text": "Laibach",
+          "language": "de",
+          "usage": "historical",
+          "variantType": "selectedOldGermanAdministrativeName",
+          "sourceUrl": "https://www.ljubljana.si/assets/Uploads/publication/18706/castrumleibach-e.pdf"
+        },
+        {
+          "text": "Laibach",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "selectedFormerEnglishExonym",
+          "sourceUrl": "https://en.wikisource.org/wiki/1911_Encyclop%C3%A6dia_Britannica/Laibach"
+        },
+        {
+          "text": "라이바흐",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "selectedGermanBasedKoreanName"
+        },
+        {
           "text": "Ljubljana",
           "language": "sl",
           "usage": "standard"
@@ -282,15 +302,6 @@
           "text": "류블랴나",
           "language": "ko",
           "usage": "standard"
-        },
-        {
-          "text": "Laibach",
-          "language": "de",
-          "usage": "historical",
-          "variantType": "historicalGermanName",
-          "sourceUrl": "https://www.ljubljana.si/assets/Uploads/publication/18706/castrumleibach-e.pdf",
-          "note": "독일어 역사적 지명",
-          "researchNote": "중세부터 사용된 독일어 지명으로 슬로베니아어 Ljubljana와 여러 시기에 병용"
         }
       ],
       "latitude": 46.05108,
@@ -300,16 +311,38 @@
       "sourceUrl": "https://www.geonames.org/3196359/ljubljana.html",
       "sourceCountryCode": "SI",
       "defaultDisplayNameKo": "류블랴나",
-      "shortDescriptionKo": "1809~1813년 일리리아주 수도",
+      "shortDescriptionKo": "1883년 시 행정 슬로베니아어 전환",
       "displayTimeline": [
         {
           "fromYear": 1801,
+          "nameKo": "라이바흐",
+          "nameEn": "Laibach",
+          "nameNative": "Laibach",
+          "nativeLanguage": "de",
+          "kind": "historicalAdministrativeLanguageSelection",
+          "sourceUrl": "https://www.ljubljana.si/assets/Uploads/publication/18706/castrumleibach-e.pdf",
+          "note": "독일어 Laibach 기준",
+          "researchNote": "1801년은 조사 시작 연도. 합스부르크 시대 시 행정의 독일어 지명 Laibach를 원어 및 한국어로 선택하고, 당대 영어 관용명도 Laibach로 둔다. 슬로베니아어 Ljubljana의 병존과 나폴레옹 시기 일리리아주 통치를 별도 개칭으로 취급하지 않는다."
+        },
+        {
+          "fromDate": "1883-01-01",
           "nameKo": "류블랴나",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://www.ljubljana.si/assets/Uploads/publication/18706/castrumleibach-e.pdf"
+          "nameNative": "Ljubljana",
+          "nativeLanguage": "sl",
+          "kind": "municipalSloveneAdministrativeLanguageEditorialTransition",
+          "sourceUrl": "https://www.ljubljana.si/sl/mestna-obcina/o-ljubljani/zgodovina-ljubljane/ljubljana-v-18-in-19-stoletju",
+          "note": "슬로베니아어 시 행정 시행",
+          "researchNote": "1882-05-31 류블랴나 시의회의 슬로베니아어 공식 시 행정 사용 결의가 1883-01-01 시행된 것을 현지 원어·한국어명 전환의 편집상 기준으로 선택. 독일어 Laibach가 사라지거나 도시가 개칭된 것은 아니다. 영어명 Laibach는 1918년까지 유지한다."
+        },
+        {
+          "fromDate": "1918-10-29",
+          "nameEn": "Ljubljana",
+          "kind": "editorialEnglishNameSelection",
+          "note": "합스부르크 관계 단절 기준",
+          "researchNote": "1918-10-29 슬로벤인·크로아트인·세르브인 국가 출범 및 합스부르크 왕조와의 관계 단절을 영어 지도 대표형 Laibach→Ljubljana의 편집상 전환점으로 채택한다. 영어권 모든 문헌의 동시 개칭·전환이라는 뜻은 아니다. 원어명 Ljubljana 및 한국어 류블랴나는 그대로 유지한다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-contextual-names",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1883-native-and-1918-english-transitions",
       "historicalGeography": {
         "events": [
           {
@@ -326,13 +359,32 @@
             "detail": "1821년 국제 외교회의 개최",
             "sourceUrl": "https://www.ljubljana.si/sl/mestna-obcina/o-ljubljani/zgodovina-ljubljane/ljubljana-v-18-in-19-stoletju",
             "researchDetail": "신성동맹 군주·외교회의 개최; 독일어 명칭 Laibach가 역사적으로 사용됨"
+          },
+          {
+            "date": "1882-05-31",
+            "type": "ljubljanaCouncilApprovesSloveneAdministration",
+            "detail": "시의회 슬로베니아어 행정 결의",
+            "sourceUrl": "https://www.ljubljana.si/sl/mestna-obcina/o-ljubljani/zgodovina-ljubljane/ljubljana-v-18-in-19-stoletju",
+            "researchDetail": "1883-01-01 대외 행정업무 적용의 선행 결의. 도시명 자체의 개칭이 아니다."
+          },
+          {
+            "date": "1883-01-01",
+            "type": "ljubljanaSloveneMunicipalAdministration",
+            "detail": "슬로베니아어 시 행정 시행",
+            "sourceUrl": "https://www.ljubljana.si/sl/mestna-obcina/o-ljubljani/zgodovina-ljubljane/ljubljana-v-18-in-19-stoletju"
+          },
+          {
+            "date": "1918-10-29",
+            "type": "stateOfSlovenesCroatsSerbsEstablished",
+            "detail": "합스부르크 관계 단절",
+            "researchDetail": "영어 지도 대표명 전환의 편집 기준. 실제 영어 이름의 법정 변경일은 아니다."
           }
         ],
         "notes": [
           {
             "detail": "Laibach·Ljubljana 병용",
             "sourceUrl": "https://www.ljubljana.si/assets/Uploads/publication/18706/castrumleibach-e.pdf",
-            "researchDetail": "독일어 Laibach와 슬로베니아어 Ljubljana는 근대 이전부터 언어별로 병용됨. 1918년 전후의 국가·행정 변화만으로 도시 공식 개칭 날짜를 추론하지 않음."
+            "researchDetail": "독일어 Laibach와 슬로베니아어 Ljubljana는 장기간 병용됐다. 1883년 현지 시정부 언어 전환으로 지도 원어 대표명을 Ljubljana로 선택하고, 영어의 Laibach→Ljubljana는 1918년 10월 29일을 별도의 편집상 경계로 설정한다."
           },
           {
             "detail": "PPLC 취락과 ADM1 구분",
@@ -340,7 +392,10 @@
             "researchDetail": "현재 도시 PPLC와 Ljubljana ADM1 등 행정구역 별개"
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Ljubljana",
+      "defaultDisplayNameNative": "Ljubljana",
+      "defaultNativeLanguage": "sl"
     }
   ]
 }
