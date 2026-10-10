@@ -55,3 +55,18 @@ test('PLAC v3 round-trips native extras and dated three-name transitions', () =>
     if (fieldIndex === 7 || fieldIndex === 8) assert.throws(() => decodePlaceTile(malformed));
   }
 });
+
+
+test('Web PLAC v3 bytes match the shared Nicosia hex vector used by the Qt decoder', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const file = new URL('../../contracts/places/v3.json', import.meta.url);
+  const contract = JSON.parse(await readFile(file, 'utf8'));
+  assert.equal(contract.wire.version, 3);
+  assert.equal(contract.wire.recordBytes, 72);
+  const fixture = contract.fixtures[0];
+  const hex = Buffer.from(new Uint8Array(encodePlaceTile([fixture.input]))).toString('hex');
+  assert.equal(hex, fixture.tileHex);
+  const rows = decodePlaceTile(Buffer.from(hex, 'hex'));
+  assert.equal(rows[0].nameNative, 'Λευκωσία');
+  assert.deepEqual(rows[0].nameNativeExtras, ['Lefkoşa']);
+});
