@@ -1,0 +1,95 @@
+{
+  "schema": "hydro-independent-lake-review-compact-v1",
+  "batch": "r47",
+  "reviewed_at_utc": "2026-10-10T03:56:15.868613+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159109385",
+    "lakes_base:1159112899",
+    "lakes_base:1159110179"
+  ],
+  "sources": [
+    {
+      "source_key": "ogs_east_central_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991–2020, East-Central Sheet",
+      "publisher": "Ontario Geological Survey",
+      "publication_year": "2021",
+      "printed_scale": "1:1,000,000",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-EastCentral.pdf",
+      "authority_limit": "Official thematic cartographic usage; no formal naming-registry or independent hydrographic dataset verification."
+    },
+    {
+      "source_key": "ogs_west_central_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991–2020, West-Central Sheet",
+      "publisher": "Ontario Geological Survey",
+      "publication_year": "2021",
+      "printed_scale": "1:1,000,000",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-WestCentral.pdf",
+      "authority_limit": "Official thematic cartographic usage; no formal naming-registry or independent hydrographic dataset verification."
+    }
+  ],
+  "review_basis": "Whole selected generalized objects were compared with readable official original map pixels, surrounding water bodies and printed labels. The three current findings were independently reviewed.",
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159109385",
+      "candidate_name": "Lake Temagami",
+      "candidate_names": [
+        "Lake Temagami"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "ogs_east_central_2021"
+      ],
+      "independent_observation": "The complete generalized ring follows the connected branching water of Lake Temagami from the northern arms through the central basin to the southern arm. The split lake label is west of much of the selected ring; its placement alone is not identity evidence. Pale-cyan water and connected shores supply the association. Coarse edges cross land, omit large side bays and simplify channel transitions. Lady Evelyn Lake, Anima Nipissing Lake and Red Cedar Lake are surrounding context outside the selected body. Exact shores, connecting-water limits and the complete detailed extent of the named lake remain unverified.",
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_scope_inspection": true,
+      "full_feature_correspondence_review_completed": true,
+      "source_access_pending": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false
+    },
+    {
+      "aw_id": "lakes_base:1159112899",
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "source_keys": [
+        "ogs_east_central_2021"
+      ],
+      "independent_observation": "The complete north-south ring is readable against mapped water from its narrow northern reach through the branching middle to the southern reach. The original does not attach a lake name to this water. ONAPING is a township label; Onaping River is contextual drainage wording and does not establish an Onaping Lake identity. Coarse edges bridge white land between near-white cyan water areas, and blue drainage lines can enclose land. Whole selected water identity and lake/river extent remain unresolved. This is a completed unnamed identity/extent hold: geographic coverage and resolution permit full inspection, so neither access nor source-material pending is added.",
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_scope_inspection": true,
+      "full_feature_correspondence_review_completed": true,
+      "source_access_pending": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true
+    },
+    {
+      "aw_id": "lakes_base:1159110179",
+      "candidate_name": "Sturgeon Lake",
+      "candidate_names": [
+        "Sturgeon Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "ogs_west_central_2021"
+      ],
+      "independent_observation": "The complete west-southwest to east-northeast ring follows the broad Sturgeon Lake water and its connected arms. Generalized margins include land and omit shore indentations, islands and side bays. Bell Lake lies south beyond connecting drainage; Lake of Bays and Shikag Lake are separate surrounding context. The selected footprint supports a generalized Sturgeon Lake association, with exact shore, southeastern connector and full detailed named-lake limits unverified.",
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_scope_inspection": true,
+      "full_feature_correspondence_review_completed": true,
+      "source_access_pending": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false
+    }
+  ],
+  "limits": [
+    "Support is for generalized identity, not exact shoreline or named-water boundaries; no formal registry or Korean-name verification.",
+    "OGS sheets are related cartography, not proven independent hydrographic datasets.",
+    "Only factual extracts are included; omitted original maps and complete geometry are not publicly replayable."
+  ],
+  "automatic_application": false,
+  "product_application": false
+}

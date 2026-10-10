@@ -1,0 +1,26 @@
+{
+  "schema": "hydro-compact-delta-manifest-v1",
+  "batch": "r47",
+  "previous_commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+  "continuity_base_commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+  "repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r47",
+  "new_unique_ids": [
+    "lakes_base:1159109385",
+    "lakes_base:1159112899",
+    "lakes_base:1159110179"
+  ],
+  "file_count_including_self": 3,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "results.json": {
+      "bytes": 8396,
+      "sha256": "0cdab7c1fc38bea4f4f32b8fd99a9225eef0c23cb80fc4982ca9200283d87684"
+    },
+    "independent-review.json": {
+      "bytes": 5592,
+      "sha256": "014e11f940cc0985fe45e65c4ae8b23e7d6b804e285b5ea2fcba1725d3757f0b"
+    }
+  },
+  "automatic_application": false,
+  "product_changes": false
+}
