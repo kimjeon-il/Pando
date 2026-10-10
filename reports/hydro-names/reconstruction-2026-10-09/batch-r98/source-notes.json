@@ -1,0 +1,462 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r98",
+  "sources": [
+    {
+      "source_key": "r98-jog-sb17-7-piura",
+      "title": "Joint Operations Graphic (Air), SB 17-7 Piura, Peru, Series 1501 AIR, Edition 2, scale 1:250,000",
+      "publisher": "U.S. Army Topographic Command / Defense Mapping Agency Aerospace Center; original government chart preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Original imprint: compiled 1970; revised by DMAAC November 1993; map information as of 1981; air information current through 6 July 1994.",
+      "supports": "Chignia/San Martín and receiving Piura labels; upper tributary distinctions; Piura/Catacaos corridor; lower-branch and irrigation-network distinctions; historical Piura/Sechura coastal labels.",
+      "limits": "Historical chart, not present-day flow evidence. It does not establish continuous correspondence along the modeled lower-plain straight segment, or a separate name for the first small feeder. Original pixels and local orientation material remain private.",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-224300691-sb17-07.jpg"
+    },
+    {
+      "source_key": "r98-jog-sb17-3-sullana",
+      "title": "Joint Operations Graphic (Air), SB 17-3 Sullana, Peru; Ecuador, Series 1501 AIR, Edition 2, scale 1:250,000",
+      "publisher": "U.S. Defense Mapping Agency Aerospace Center; original government chart preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Original imprint: compiled September 1974; revised February 1995; map information as of 1965; air information current through 16 February 1995.",
+      "supports": "Piura identity and continuous Tambogrande–Ocoto–La Loma northern bend, distinct from Chira and northern reservoirs.",
+      "limits": "Historical regional cartography; it does not resolve the lower plain south of its sheet or determine present-day channel threads.",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-224300691-sb17-03.jpg"
+    },
+    {
+      "source_key": "r98-ana-piura-2015",
+      "title": "Evaluación de Recursos Hídricos Superficiales en la Cuenca del Río Piura, Tomo I, October 2015",
+      "publisher": "Peru, Ministerio de Agricultura y Riego, Autoridad Nacional del Agua, Dirección de Conservación y Planeamiento de Recursos Hídricos and Autoridad Administrativa del Agua Jequetepeque–Zarumilla; original hosted by CENEPRED SIGRID",
+      "supports": "Regional receiving-system hierarchy; Chignia/San Martín distinction from Huarmaca/Chalpa and Pusmalca; Canchaque-to-Piura naming account; separate lower branches; distinction between the selected western route and the eastern lake/estuary narrative.",
+      "limits": "The embedded basin figures are low-resolution regional maps. They independently show the branch separation but do not establish an exact continuous channel along the modeled intermediate lower-plain line. This Piura-only study is distinct from all stopped ANA publications. The downloaded file also includes the middle/lower-valley study section used for the lower-river prose; source extent and page references are retained.",
+      "official_url": "https://sigrid.cenepred.gob.pe/sigridv3/storage/biblioteca/9277_evaluacion-de-recursos-hidricos-superficiales-en-la-cuenca-del-rio-piura-tomo-i.pdf"
+    },
+    {
+      "source_key": "r98-inegi-chetumal-e1604-07",
+      "title": "Información topográfica 1:250 000, E1604-07 Chetumal, sixth edition 2023",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Mexico",
+      "supports": "Chacambacab and flood-prone terrain; the local Río Escondido near Payo Obispo and Huatusco; southern Arroyo el Tigrito approach; Bacalar, Chile Verde, Raudales and Guerrero lake/channel/marsh settings.",
+      "limits": "The sheet exposes land and wetland intervals without a continuously corresponding channel. Local Río Escondido is not extended onto the whole selection, or conflated with another southern Escondido-labeled reach. Regional lakes are not treated as river aliases.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154519_geo.pdf"
+    },
+    {
+      "source_key": "r98-inegi-felipe-carrillo-e1601",
+      "title": "Información topográfica 1:250 000, E1601 Felipe Carrillo Puerto, sixth edition 2023",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Mexico",
+      "supports": "Arroyo el Tigrito, Lago Noh-Bec, the distinct Lago la Chochoba and Chacchoben surroundings, and the road/intervening-land interval between Noh-Bec and Limones.",
+      "limits": "A continuous selected watercourse from Lago Noh-Bec east to Highway 307 and south to Limones is not drawn. Cartographic coverage does not resolve that material connection gap.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154496_geo.pdf"
+    },
+    {
+      "source_key": "r98-inegi-quintana-roo-compendium",
+      "title": "Aspectos geográficos de Quintana Roo, Compendio 2022, published 2024",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Mexico",
+      "supports": "Agency naming of Río Escondido and Arroyo el Tigrito as watercourses, and Bacalar, Noh-Bec, Chile Verde and Guerrero as distinct waterbodies; regional separation from Río Hondo and the Espíritu Santo coast.",
+      "limits": "Regional context only. Does not establish the initial, central, northern or terminal modeled connections. Its INEGI-CONAGUA national map attribution is not any stopped CONAGUA aquifer report. No stopped publication was retrieved.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463913986.pdf"
+    },
+    {
+      "source_key": "r98-igm-chile-hydrocourses",
+      "title": "SIIE_v3 Quebradas ríos, public natural-watercourse feature layer",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "supports": "Mapped initial feeder and Pastos Largos corridor, tributary distinctions, Vicuña and western Salado identity, and the absence of a demonstrated continuous line across the salar in this particular natural-watercourse layer.",
+      "limits": "Rendered official-feature layer with requested styling, not a scanned official map sheet. Styling changes neither source features nor names. Blank map areas are not proof of absent water, and the natural-channel layer does not inventory all artificial drains or establish flow permanence. No source vector geometry was downloaded, uploaded or changed.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r98-igm-chile-waterbodies",
+      "title": "SIIE_v3 Cuerpos de agua, public waterbody feature layer",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "supports": "Selected transit across the southern and western Pedernales footprint, in conjunction with independently named regional cartography.",
+      "limits": "The raster itself does not print a hydronym or establish water permanence, internal channels, contemporary extent or hydraulic outlet continuity. It is not a stopped DGA/Loa/CIREN report or map reproduction.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r98-griem-pedernales",
+      "title": "Sector 6-03: Salar de Pedernales–La Ola–El Salvador",
+      "publisher": "Dr. Wolfgang Griem, Museo Virtual / Atacama virtual",
+      "supports": "Salar de Pedernales identification; La Ola, Leoncito, Juncal reservoir, Potrerillos and Río de la Sal regional distinctions.",
+      "limits": "Independently authored primary cartography, explicitly non-official. It is not a hydrologic connectivity survey and does not resolve the modeled northwestern salt-flat exit. The image is retained privately and is not republished.",
+      "official_url": "https://www.geovirtual2.cl/museoinfo/carta-pedernales-ola-salvador-01.htm"
+    },
+    {
+      "source_key": "r98-arclim-coast",
+      "title": "Informe Proyecto ARCLIM, Zonas Costeras",
+      "publisher": "Ministerio del Medio Ambiente, Chile, ARCLIM project",
+      "supports": "The Salado outlet's southern Bahía Chañaral destination and a coastal environment whose shoreline has changed over the report's study period.",
+      "limits": "Figure40's caption says Caldera even though the preceding prose points to it for Chañaral and its grid is in the Chañaral latitude setting. This inconsistent caption is not treated as precise endpoint evidence. The coastal conclusion relies on the unambiguous prose; exact model-tip and modern shoreline correspondence remain unproved.",
+      "official_url": "https://arclim.mma.gob.cl/media/informes_consolidados/14_Zonas_Costeras_B.pdf"
+    },
+    {
+      "source_key": "r98-tapia2018-text",
+      "title": "Sources, enrichment, and redistribution of As, Cd, Cu, Li, Mo, and Sb in the Northern Atacama Region, Chile: Implications for arid watersheds affected by mining",
+      "publisher": "Tapia et al., Journal of Geochemical Exploration 185 (2018), 33–51; Universidad de Chile repository",
+      "supports": "Separate natural Salado and endorheic Pedernales basins, historical artificial drainage, and the distinction between a natural basin connection and human alteration.",
+      "limits": "Text-only scope. No original PDF or figure pixels acquired. The later HTML response is conservatively stopped without retry, screenshots, equivalent figure recovery or mirror retrieval. Historical descriptions do not establish present drain operation or exact selected-route correspondence.",
+      "official_url": "https://repositorio.uchile.cl/bitstream/handle/2250/169280/Sources_enrichment.pdf?isAllowed=y&sequence=1"
+    },
+    {
+      "source_key": "r98-usgs-national-map-tar-pamlico",
+      "title": "The National Map USGS Topo: Tar River, Tar River Reservoir and upper Pamlico River corridor",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Full selected-route correspondence, directly mapped component names, reservoir transit, tributary exclusions and terminal upper-Pamlico identity.",
+      "limits": "Independently maintained federal basemap, distinct from stopped USGS reports and state/municipal publications. It does not establish a single source edition, exact legal name-change boundary or precise modeled channel alignment. Original rasters, exact-view URLs, parameters and orientation copies remain private.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r98-ncdwr-tar-pamlico-2014-summary",
+      "title": "Tar-Pamlico River Basinwide Water Resources Management Plan, 2014 Summary, revised April 10, 2015",
+      "publisher": "North Carolina Division of Water Resources",
+      "supports": "Independent state description of Tar River becoming Pamlico near Washington and the combined basin identity.",
+      "limits": "Used only for acquired prose about the naming transition and system, not as map-pixel evidence, a current water-quality assessment, exact legal boundary or measurement of this selected route.",
+      "official_url": "https://www.deq.nc.gov/water-quality/planning/bpu/tar-pamlico/tar-pam-plans/2014-plan/tar-summary2014/download"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60761631",
+      "source_keys": [
+        "r98-jog-sb17-7-piura",
+        "r98-jog-sb17-3-sullana",
+        "r98-ana-piura-2015"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13802
+          ],
+          "finding": "The eastern selected tip lies in a small west-running valley in the Santa María/Lanchipudua vicinity. The original JOG depicts the connecting blue watercourse toward the north-running southern trunk. A letter-perfect independent name for the initial short feeder is not established, and the selected tip is not asserted to be an official source.",
+          "sources": [
+            "r98-jog-sb17-7-piura"
+          ]
+        },
+        {
+          "fragments": [
+            13802
+          ],
+          "finding": "The selected southern trunk runs north past La Huaca, Hualcas and Hornopampa toward Serrán. The JOG directly prints Río Chignia along this corridor. The ANA study identifies Chignia or San Martín as a distinct southern tributary of the Huarmaca receiving system; its separate Paratón–Cashapite–Chalpa/Overal source narrative must not replace this selected southern route.",
+          "sources": [
+            "r98-jog-sb17-7-piura",
+            "r98-ana-piura-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13802
+          ],
+          "finding": "The route passes the Serrán receiving vicinity, with Pusmalca and other eastern watercourses approaching separately, then continues north past Palo Blanco and Salitral to the Bigote junction. The JOG prints Río San Martín in this selected reach. ANA describes the receiving river below the Huarmaca/Pusmalca/Pata junctions as Canchaque, becoming Piura at Bigote. Those source-specific placements are preserved; an exact vertex of name transition or uniform upstream Piura name is not inferred.",
+          "sources": [
+            "r98-jog-sb17-7-piura",
+            "r98-ana-piura-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13802
+          ],
+          "finding": "Below the Bigote junction the route follows the repeatedly labeled Río Piura northwest past Buenos Aires, the Corrales/Morropón approach and La Matanza, then west around the Vicús setting and north past Chulucanas. The Bigote, Corrales, Charanal and other side approaches remain separate. The continuous receiving corridor is visible, although individual bends are generalized.",
+          "sources": [
+            "r98-jog-sb17-7-piura",
+            "r98-ana-piura-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13802
+          ],
+          "finding": "The selected northern arc follows Río Piura past the Tambogrande receiving setting and turns west through the Ocoto, Santa Laura and La Loma vicinity before turning south. The original Sullana sheet directly labels this connected river. The Río Chira through Sullana, Poechos reservoir and San Lorenzo reservoir lie outside the selection.",
+          "sources": [
+            "r98-jog-sb17-3-sullana",
+            "r98-ana-piura-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13802
+          ],
+          "finding": "South of the northern bend, the route follows the Piura valley through Piura/Castilla and Catacaos toward La Arena. The river corridor and surrounding settlement sequence are visible on the JOG and the ANA original maps. The selected path does not imply a passage through Poechos or San Lorenzo, or establish a separately named reservoir component at Los Ejidos.",
+          "sources": [
+            "r98-jog-sb17-7-piura",
+            "r98-ana-piura-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13802
+          ],
+          "finding": "Below La Arena, the retained line continues nearly straight south and then southwest toward the Sinchao/Bernal/San Cristo side of the plain. The JOG shows an irrigation/drainage network and separately named lower branches; the ANA basin mapping also separates a western branch toward Vice/Bellavista and an eastern branch past Sinchao. The retained intermediate line crosses the space between these branches instead of continuously matching either. No primary source inspected establishes one continuous actual channel along this selected segment.",
+          "sources": [
+            "r98-jog-sb17-7-piura",
+            "r98-ana-piura-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13802
+          ],
+          "finding": "Near San Cristo and farther west, the selection returns to the coastal-branch setting approaching Sechura. JOG labels Río Piura on the lower western approach and Río Sechura on the coastal reach. The map separately depicts Río Viejo/Río Seco branches and the eastern Ramón/Ñapique lagoon complex. The selected coastal tip is near the Chullachy shoreline setting, south of the drawn inlet; an exact surveyed river-mouth connection is not established.",
+          "sources": [
+            "r98-jog-sb17-7-piura"
+          ]
+        },
+        {
+          "fragments": [
+            13802
+          ],
+          "finding": "The ANA narrative sends the principal lower Piura toward Laguna Ramón and Ñapique, with flood connections onward to Las Salinas and Virrilá. Those named lakes and estuarine reaches are not traversed by the retained western Sechura-side selection, and their better-described connection cannot be substituted to complete the chosen route.",
+          "sources": [
+            "r98-ana-piura-2015",
+            "r98-jog-sb17-7-piura"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70895720",
+      "source_keys": [
+        "r98-inegi-chetumal-e1604-07",
+        "r98-inegi-felipe-carrillo-e1601",
+        "r98-inegi-quintana-roo-compendium"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10457
+          ],
+          "component_scope": "Southwestern headward approach and Chacambacab",
+          "finding": "The initial selection starts on a short intermittent-channel setting north of Tomás Aznar Barbachano (La Moza), then takes a broad southward and eastward bend toward Chacambacab. Parts of that bend cross mapped land away from the drawn local channel. The line passes the Chacambacab waterbody setting and continues north into a long area marked as terrain subject to inundation. Neither one initial river name nor a continuously corresponding channel through the complete approach is established.",
+          "sources": [
+            "r98-inegi-chetumal-e1604-07"
+          ]
+        },
+        {
+          "fragments": [
+            10457
+          ],
+          "component_scope": "Western inundation corridor and local Río Escondido",
+          "finding": "The selected northward interval crosses the inundation-prone corridor near El Cedral, El Sibal and La Ceiba. Near Payo Obispo it turns east onto the intermittent-channel corridor explicitly labeled Río Escondido, passes Huatusco and the separate settlement also named Río Escondido, and reaches the David Gustavo Gutiérrez Ruiz surroundings. The blue hydronym establishes only this local channel correspondence; the black settlement label is not itself naming evidence.",
+          "sources": [
+            "r98-inegi-chetumal-e1604-07"
+          ]
+        },
+        {
+          "fragments": [
+            10457
+          ],
+          "component_scope": "Unresolved central connector toward Arroyo el Tigrito",
+          "finding": "East of the Río Escondido/David Gustavo Gutiérrez Ruiz setting, the retained line crosses the El Paraíso surroundings and broad inundation terrain before meeting the northeastern Arroyo el Tigrito corridor near Blanca Flor. The original shows separate channels, flood-prone areas and intervening land; it does not establish a continuous mapped watercourse through the complete modeled transfer. Nearby Laguna la Virtud and El Zudi are separate mapped features and are not substituted for the selected interval.",
+          "sources": [
+            "r98-inegi-chetumal-e1604-07"
+          ]
+        },
+        {
+          "fragments": [
+            10457
+          ],
+          "component_scope": "Arroyo el Tigrito and Lago Noh-Bec",
+          "finding": "The northeastward section corresponds to the channel labeled A. el Tigrito past the Kuchumatán–Maya Balam surroundings and north across the sheet boundary. The northern original repeats the label along the approach east of Manuel Ávila Camacho, past the Ernesto Flowers setting, and into the southern arm of Lago Noh-Bec. The selected line then crosses part of the lake toward the Noh-Bec settlement side. This supports a bounded Arroyo el Tigrito component and a distinct lake passage.",
+          "sources": [
+            "r98-inegi-chetumal-e1604-07",
+            "r98-inegi-felipe-carrillo-e1601"
+          ]
+        },
+        {
+          "fragments": [
+            10457
+          ],
+          "component_scope": "Material northern connection gap: Noh-Bec to Limones",
+          "finding": "After reaching the eastern Noh-Bec lakeshore setting, the selected line runs east along the Noh-Bec–Los Siete Hermanos road toward Highway 307 and then south along its corridor to Limones. Readable original mapping shows roads and intervening land, with Lago la Chochoba separately west of the highway, rather than a continuous watercourse corresponding to this complete interval. Lago Chacchoben and lago el Crik lie farther west and are not the selected connecting lakes. No hydrological or river-name continuity from Noh-Bec into the Bacalar corridor is established.",
+          "sources": [
+            "r98-inegi-felipe-carrillo-e1601",
+            "r98-inegi-chetumal-e1604-07"
+          ]
+        },
+        {
+          "fragments": [
+            10457
+          ],
+          "component_scope": "Eastern lake corridor: Bacalar, Chile Verde and Raudales",
+          "finding": "South of Limones the retained route enters the northern lake/wetland setting near El Cafetal and Sabinitas Dos, beside the separately labeled Laguna Villalobos. It follows the long northern Bacalar waterbody setting past San Martín and Iván Díaz Guadalupe, then turns across the lake/wetland boundary toward the separately labeled Laguna Chile Verde. It continues southwest past La Península, El Jordán/El Potrillo and Villa de Leyva and south along the narrow Raudales corridor toward Laguna Guerrero. These are separate lake and channel components; their names do not define one whole-route river.",
+          "sources": [
+            "r98-inegi-chetumal-e1604-07"
+          ]
+        },
+        {
+          "fragments": [
+            10457
+          ],
+          "component_scope": "Laguna Guerrero and terminal marsh loop",
+          "finding": "The selection reaches the Raudales–Laguna Guerrero setting, turns northeast along the lagoon-side channel, and makes a further loop across marsh north of Punta Verde. The original distinguishes the lagoon, swamp, channels, inundation-prone terrain and nearby Laguna Agua Salada. It does not supply a single river name for the loop or establish every marsh-crossing segment as one mapped channel. The modeled endpoint is not adopted as a surveyed river mouth or as a direct Río Hondo or Bahía del Espíritu Santo outlet.",
+          "sources": [
+            "r98-inegi-chetumal-e1604-07"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61398344",
+      "source_keys": [
+        "r98-igm-chile-hydrocourses",
+        "r98-igm-chile-waterbodies",
+        "r98-griem-pedernales",
+        "r98-arclim-coast",
+        "r98-tapia2018-text"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13983
+          ],
+          "finding": "The southern selected start follows an unnamed eastward stream into the northward drainage labeled Q. Pastos Largos in the IGM feature layer. The map continues that feeder beyond the selected starting point, so the model vertex is not an established natural source. The separate Q. Cerros Bravos to the west is not substituted for it.",
+          "sources": [
+            "r98-igm-chile-hydrocourses"
+          ]
+        },
+        {
+          "fragments": [
+            13983
+          ],
+          "finding": "The northward arm follows the Pastos Largos receiving corridor past the separate eastern Q. de Los Arroyos and Q. de los Chullos approaches. It continues toward the La Ola/Juncalito setting. Griem's independently authored map separately names Río La Ola, Río Leoncito and the Juncal reservoir setting; these regional names do not demonstrate that every selected section has one of those names. No selected Juncal reservoir crossing is established.",
+          "sources": [
+            "r98-igm-chile-hydrocourses",
+            "r98-griem-pedernales"
+          ]
+        },
+        {
+          "fragments": [
+            13983
+          ],
+          "finding": "North of the mountain-junction setting, the retained route runs northwest into the mapped southern Pedernales footprint, then north through its western interior. The IGM waterbody polygon and Griem's separately named Salar de Pedernales map establish the salt-flat setting. A generic waterbody fill does not establish permanent open water, a river channel across the playa, or an exact modern shoreline.",
+          "sources": [
+            "r98-igm-chile-waterbodies",
+            "r98-griem-pedernales"
+          ]
+        },
+        {
+          "fragments": [
+            13983
+          ],
+          "finding": "The model exits the northwestern salt-flat setting and turns west onto the stream labeled Q. Vicuña, joining a channel labeled Río Salado. The IGM natural-watercourse layer does not draw a continuous channel across the long salar-interior passage to that exit. Tapia et al.'s actually read prose distinguishes naturally endorheic Pedernales from the separate Salado headwaters and describes a historical artificial outlet. That historical fact does not establish the retained line as the exact drain, prove its present operation, or prove a continuous upstream-to-coast hydraulic route.",
+          "sources": [
+            "r98-igm-chile-hydrocourses",
+            "r98-igm-chile-waterbodies",
+            "r98-tapia2018-text"
+          ]
+        },
+        {
+          "fragments": [
+            13983
+          ],
+          "finding": "West of the Vicuña receiving junction, the selected course follows the mapped Salado corridor through its southwestward and westward bends. Q. Agua Amarga and Q. El Asiento remain separate approaches. Griem uses Río de la Sal on part of the eastern receiving setting; this locally varying label is not treated as an alias for the whole model, nor is it used to rename the salar crossing.",
+          "sources": [
+            "r98-igm-chile-hydrocourses",
+            "r98-griem-pedernales"
+          ]
+        },
+        {
+          "fragments": [
+            13983
+          ],
+          "finding": "The middle western selection follows the IGM-labeled Río Salado, passes the separate northern Q. de Las Salinas contribution and continues toward the large Q. Chañaral Alto contribution from the south. Neither tributary's upstream course is selected. The retained line generalizes bends and locally runs alongside rather than exactly on the rendered watercourse; it is not an individual-channel or bank survey.",
+          "sources": [
+            "r98-igm-chile-hydrocourses"
+          ]
+        },
+        {
+          "fragments": [
+            13983
+          ],
+          "finding": "The lower selection continues west along the receiving drainage toward Chañaral. Q. Saladito and Q. Las Ánimas are mapped separately and are not substituted for the lower main corridor. The final modeled tip extends beyond the ending of the IGM natural-watercourse feature. ARCLIM's actual prose independently places the Salado outlet in southern Bahía Chañaral. This supports the coastal destination, not an exact surveyed outlet or contemporary shoreline vertex.",
+          "sources": [
+            "r98-igm-chile-hydrocourses",
+            "r98-arclim-coast"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70680602",
+      "source_keys": [
+        "r98-usgs-national-map-tar-pamlico",
+        "r98-ncdwr-tar-pamlico-2014-summary"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9864
+          ],
+          "finding": "The selected northwestern start lies on the channel labeled Tar River in Person County, upstream of Denny Store and Catilina. It initially runs south, turns east in the settlement setting and continues southeast across the county line. The mapped Tar River extends beyond the selected starting vertex, so this is a selected headward reach rather than a determination of the official river source. No differently named initial tributary is required.",
+          "sources": [
+            "r98-usgs-national-map-tar-pamlico"
+          ]
+        },
+        {
+          "fragments": [
+            9864
+          ],
+          "finding": "Near and south of Berea, the selected Tar River remains distinct from Shelton Creek and from North Fork Tar River approaching from the northeast. The source shows those tributary connections and labels the continuing selected stream Tar River. The selection does not ascend the North Fork or Shelton Creek.",
+          "sources": [
+            "r98-usgs-national-map-tar-pamlico"
+          ]
+        },
+        {
+          "fragments": [
+            9864
+          ],
+          "finding": "The selected upper-middle route follows Tar River eastward through the southern Granville/Vance setting and then southeast toward Louisburg. The main corridor and named tributary mouths distinguish it from nearby Tabbs Creek, Lynch Creek and the separate Falls Lake drainage farther southwest.",
+          "sources": [
+            "r98-usgs-national-map-tar-pamlico"
+          ]
+        },
+        {
+          "fragments": [
+            9864
+          ],
+          "finding": "From Louisburg the selection follows the Tar south and southeast through the repeated bends toward the southern approach to Rocky Mount. It passes through the mapped Tar River Reservoir along the main southern/eastern arm, then leaves its northeastern outlet. The reservoir is separately labeled; the Sapony Creek arm to the northwest is not substituted for the selected Tar route.",
+          "sources": [
+            "r98-usgs-national-map-tar-pamlico"
+          ]
+        },
+        {
+          "fragments": [
+            9864
+          ],
+          "finding": "Below Tar River Reservoir, the selection follows the Tar northeast through the Rocky Mount corridor and then east through the broad meander belt toward Tarboro. The map repeatedly prints Tar River along this connection. Nearby Stony Creek, Swift Creek and Fishing Creek remain side tributaries rather than alternative mainstem identities.",
+          "sources": [
+            "r98-usgs-national-map-tar-pamlico"
+          ]
+        },
+        {
+          "fragments": [
+            9864
+          ],
+          "finding": "At Tarboro the selection turns south, then southeast through the Tar River valley toward Greenville. It continues through the Greenville river corridor and then east along the larger lower-Tar meanders. Town Creek, Conetoe Creek and the other separate tributary approaches are not selected as the mainstem.",
+          "sources": [
+            "r98-usgs-national-map-tar-pamlico"
+          ]
+        },
+        {
+          "fragments": [
+            9864,
+            9865
+          ],
+          "finding": "The lower selection continues past Grimesland on the river printed Tar River, reaches the broad confluence with Tranters Creek from the north, and proceeds southeast into the Washington riverfront setting labeled Pamlico River. The short second fragment continues in this upper-Pamlico setting. The fragment division is a model boundary and is not asserted to coincide exactly with the name transition.",
+          "sources": [
+            "r98-usgs-national-map-tar-pamlico"
+          ]
+        },
+        {
+          "fragments": [
+            9865
+          ],
+          "finding": "The terminal tip lies in the broad upper Pamlico River off Washington, near the mapped Castle waterfront setting. It is within river water, not a coastal outlet; the selection excludes the long downstream Pamlico estuary and Pamlico Sound. The state summary independently describes the Tar becoming Pamlico near Washington, consistent with the inspected map labels.",
+          "sources": [
+            "r98-usgs-national-map-tar-pamlico",
+            "r98-ncdwr-tar-pamlico-2014-summary"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
