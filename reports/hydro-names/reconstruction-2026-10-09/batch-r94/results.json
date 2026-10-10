@@ -1,0 +1,503 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r94",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r93",
+    "commit": "a10365978bc907b9e4e6198b63387e10730670ac",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r93/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70933658",
+    "hydro-system:70890114",
+    "hydro-system:90097237",
+    "hydro-system:60727324"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70933658",
+      "category": "river_group",
+      "system_id": "70933658",
+      "baseline_logical_fid": 3286,
+      "geometry_fids": [
+        10571,
+        10570
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -87.21875,
+        15.14375,
+        -85.627083,
+        15.947966
+      ],
+      "rendered_mainstem_length_km": 285.496,
+      "rendered_network_length_km": 285.496,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -87.21875,
+          15.14375,
+          -85.627083,
+          15.947966
+        ]
+      },
+      "candidate_name": "Río Aguán",
+      "candidate_names": [
+        "Río Aguán"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Original map labels distinguish Quebrada Jalegua on the southbound Puentecita approach, Río Jalegua on its westward continuation by northern Yoro, and Río Aguán downstream of their junction. A separate name is not established for the very short initial feeder setting immediately west of Puentecita. The terminal selection remains on lower Aguán, immediately inland of its coastal mouth.",
+      "geographic_disambiguation": "The selection begins near Puentecita, runs south and then southwest through the Jalegua corridor, bends west along the northern side of Yoro, joins the Aguán arriving from the south, and turns north through the confined Aguán valley. It then turns east through Arenal and Olanchito, passes the Mame junction, and continues northeast through Sabá and the Aguán Paso Tocoa setting. Below Corocito it follows the Aguán floodplain eastward, turns north through the lower coastal plain, and then northwest toward the mouth between Barra de Aguán and Santa Rosa de Aguán. The separately mapped Yaguala, Agalteca, Mame, Sonaguera, Bonito and Chapagua waterways are not substituted for the selected main river.",
+      "source_keys": [
+        "r94-e752-rio-aguan",
+        "r94-e752-yoro",
+        "r94-e752-jimia",
+        "r94-e752-arenal",
+        "r94-e752-olanchito",
+        "r94-e752-san-francisco",
+        "r94-e752-sonaguera",
+        "r94-e752-saba",
+        "r94-e752-ilanga",
+        "r94-e752-corocito",
+        "r94-e752-bonito-oriental",
+        "r94-e752-santa-rosa"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Honduras, from the Puentecita and Yoro setting northeast along the Aguán valley to Santa Rosa de Aguán on the Caribbean coast.",
+      "candidate_name_role": "Representative receiving-river identity for the selected Puentecita–Jalegua approach and Aguán route to the Caribbean coast.",
+      "completion_scope": "Completed bounded generalized river-corridor correspondence for the complete two-fragment selection using twelve independently acquired historical 1:50,000 government sheets. The initial feeder setting, Jalegua reaches, Aguán receiving junction, northward and eastward upper valley, fragment split, middle and lower meander corridor, all intervening sheet transitions, coastal turn and terminal mouth setting were inspected in original map pixels. Separate local orientation overlays were compared with those pixels. This establishes the selected river and junction sequence, not point-by-point centerline alignment, present channel positions, exact naming boundaries, an official source point or a current shoreline.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_receiving_identity": "Río Aguán",
+        "initial_headward_component_name": null,
+        "initial_headward_component": "Very short feeder setting immediately west of Puentecita; connected stream corridor is mapped but a separate local name is not established.",
+        "upper_named_component": "Quebrada Jalegua on the southbound approach below Puentecita.",
+        "intermediate_named_component": "Río Jalegua on the southwestward and westward continuation past Chalmeca and northern Yoro.",
+        "lake_components": [],
+        "lower_river_component": "Río Aguán below the receiving junction west of Yoro, including both modeled fragments and the coastal lower river.",
+        "terminal_component": "Lower Río Aguán immediately inland of the mouth between Barra de Aguán and Santa Rosa de Aguán, opening to the Caribbean Sea.",
+        "excluded_inferences": [
+          "Do not apply Río Aguán uniformly to the initial feeder, Quebrada Jalegua or Río Jalegua.",
+          "The model selects a Jalegua headward approach, not the separate southern upper Aguán corridor.",
+          "Quebrada Jalegüita and Río Jalegua are separate source labels; they are not treated as spelling variants of the same selected reach.",
+          "No named lake or reservoir passage is established as a distinct selected component. Nearby floodplain and coastal lagoons remain separate.",
+          "The map sequence does not establish an exact present-day transition from Quebrada Jalegua to Río Jalegua, an official source coordinate, every minor name, a legal naming date or a Korean name."
+        ],
+        "model_limits": "The 285.496 km rendered length belongs to this selected two-fragment modeled route, not an official measurement of Río Aguán proper. The line generalizes narrow headwater connections, meanders, floodplain channels and the river-mouth approach. The historical sources do not establish present flow, current banks or current shoreline. No geometry change is proposed."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70890114",
+      "category": "river_group",
+      "system_id": "70890114",
+      "baseline_logical_fid": 3264,
+      "geometry_fids": [
+        10431
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -89.504167,
+        18.764583,
+        -87.672919,
+        19.41875
+      ],
+      "rendered_mainstem_length_km": 285.399,
+      "rendered_network_length_km": 285.399,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -89.504167,
+          18.764583,
+          -87.672919,
+          19.41875
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The southwestern original sheet labels a limited intermittent watercourse A. el Hormiguero. Inland map labels establish locality and lake surroundings, including Río Verde as a settlement and Lago Sac-Ayin. The eastern original establishes the Bahía del Espíritu Santo coastal setting. None supplies a name for the complete selected route.",
+      "geographic_disambiguation": "The selection begins in inundation-prone terrain southwest of La Huasteca and enters the local Arroyo el Hormiguero setting west of that locality. It continues northeast toward the Tepeyac–Bel-Há and X-Panzil surroundings, then across the southern edge of the adjacent sheet to the Río Verde locality and inland flood-prone terrain. Farther east it passes the Monte Olivo and Valle Hermoso surroundings, turns north through the Lago Sac-Ayin/Timul setting, and bends east across the Chancah Derrepente–San Andrés surroundings. It then turns south in the Lago Kaam–Lago X-Hazil area before swinging northeast and east through extensive coastal swamp. The last bend runs southeast to a point still within marsh west of Bahía del Espíritu Santo, in the broader Boca de Xoquene–Los Tres Reyes coastal setting. This is separate from Río Hondo, Río Escondido, Arroyo Ucum and the Bahía de Chetumal setting farther south.",
+      "source_keys": [
+        "r94-inegi-chetumal-e1604-07",
+        "r94-inegi-felipe-carrillo-e1601",
+        "r94-inegi-bahia-ascension-e1602-05",
+        "r94-inegi-quintana-roo-compendium"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Eastern Campeche and central-southern Quintana Roo, Yucatán Peninsula, Mexico; southwestern arroyo and inland inundation terrain through the Felipe Carrillo Puerto hinterland to coastal marsh west of Bahía del Espíritu Santo.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded geographic and naming-scope review of the full retained selection against three acquired original INEGI topographic sheets. Five overlapping original route crops cover the southwestern start, western and central inland intervals, northern loop, eastern swamp and terminal setting. Original pixels were inspected separately from orientation overlays, together with relevant labels and map legends. The compendium supplies supplementary regional context. The unresolved issue is actual whole-route hydrological/name continuity, not an unseen or unreadable geographic interval. No continuous river, current discharge, exact banks, official source or precise mouth is asserted.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "Readable primary mapping covers the full selection but does not establish hydrological or naming continuity across its long inland and coastal-marsh connectors. Only a limited headward arroyo correspondence and separate lake/coastal settings are supported. A completed scope hold is appropriate; a representative name for one coherent whole river system would overstate the evidence.",
+      "naming_scope_details": {
+        "representative_receiving_river_identity": null,
+        "initial_headward_component_name": null,
+        "local_headward_hydronym": "Arroyo el Hormiguero, labeled A. el Hormiguero on the original Chetumal sheet; limited southwestern correspondence only.",
+        "middle_component_name": null,
+        "middle_component": "Long modeled inland connector across flood-prone terrain, lake surroundings and land intervals; no continuous named watercourse established.",
+        "terminal_river_name": null,
+        "terminal_component": "Marsh west of Bahía del Espíritu Santo; separate channels and wetland forms are visible but no single selected river identity is established.",
+        "excluded_inferences": [
+          "Do not extend Arroyo el Hormiguero over all 285.399 km.",
+          "Do not treat Río Verde settlement, a lake label, a hydrological-basin label or Bahía del Espíritu Santo as a whole-route river name.",
+          "Do not assert that a modeled drainage line proves present continuous surface flow, an underground river connection or a palaeochannel.",
+          "Do not infer that all local features are officially unnamed; only the current evidence and whole-route naming scope are unresolved.",
+          "Do not substitute the southern Hondo, Escondido or Ucum systems or the northern Bahía de la Ascensión for the selected setting."
+        ],
+        "model_limits": "285.399 km is the retained modeled display length, not an official length of a named river. The path generalizes terrain, water bodies and coastal wetlands. No geometry alteration or geometric revalidation was performed."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90097237",
+      "category": "river_group",
+      "system_id": "90097237",
+      "baseline_logical_fid": 2859,
+      "geometry_fids": [
+        8874
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -37.027083,
+        67.384869,
+        -33.502083,
+        68.929167
+      ],
+      "rendered_mainstem_length_km": 284.431,
+      "rendered_network_length_km": 284.431,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -37.027083,
+          67.384869,
+          -33.502083,
+          68.929167
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The retained official originals support a completed geographic and feature-class review with a whole-route natural-river naming hold. They do not establish a named natural river matching the complete selection. This is not a claim that every local marginal watercourse is unnamed.",
+      "geographic_disambiguation": "The actual route opens at its northwestern end and follows a nearly north-south descent before a southeastward turn. It then runs eastward with descending steps and short nearly level intervals. A conspicuous south-southeastward middle limb, including a long straight diagonal and a short north-south interval, leads to a second turn east. The final limb is long and predominantly eastward, with several southward steps and a short final southward tip. The original map graticule places the opening and much of the middle course on the eastern Inland Ice, west and southwest of the Prinsen af Wales Bjerge region. The later southern descent approaches the irregular glaciated mountain margin. The final eastward limb traverses the marginal glacier-and-exposed-rock setting south-southwest of Kap Edvard Holm. It is substantially farther south than Kangerdlugssuaq fjord and is not assigned that fjord as its endpoint. Original regional and terminal pixels distinguish ice corridors, exposed geological units and coastal water, but this historical small-scale comparison does not establish an exact final ice/rock/water boundary, named glacier, fjord or natural-river mouth. No selected vertex was moved to fit a nearby feature.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "East Greenland Inland Ice and its southeastern glaciated margin, west and southwest of Kangerdlugssuaq; the actual southeastern ending is in marginal mountain country south-southwest of Kap Edvard Holm.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded source-object correspondence for the complete single selected mainstem, including the northwestern descent, eastward stepped upper-middle section, long south-southeastward middle limb and actual eastward terminal limb. The selected plot and complete cached coordinate sequence were read against original retained map pixels, readable graticule, regional and terminal enlargements, the Inland Ice legend and bulletin pages 64–65. This establishes geographic and naming scope, not an acquisition gap. A later positive natural-river assignment would require evidence spanning the selected route. Exact contemporary ice fronts, coastlines and hydrological connectivity are outside this historical regional review.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The complete retained-source review establishes an ice-interior-to-glaciated-margin modeled selection but no natural-river identity spanning it. Assigning a nearby fjord, mountain, cape or inferred glacier name would exceed the evidence.",
+      "naming_scope_details": {
+        "representative_receiving_system": null,
+        "selected_mainstem_sequence": "Northwestern nearly southward opening → southeastward turn → stepped eastward upper-middle course → long south-southeastward middle limb → turn east → long stepped eastward terminal limb → short southward terminal tip.",
+        "tributary_scope": "No tributary geometry is selected. Internal coordinate parts do not establish additional natural tributaries.",
+        "feature_class_scope": "Eastern continental Inland Ice followed by an approach to and passage into glaciated mountain-margin country. The retained sources do not establish one continuous natural river or one named glacier for the whole route.",
+        "terminal_scope": "Glaciated East Greenland marginal mountain setting south-southwest of Kap Edvard Holm. Exact final ice/rock/water relation and named terminal feature remain unassigned.",
+        "nearby_name_scope": "Prinsen af Wales Bjerge, Kangerdlugssuaq, Kap Edvard Holm, Scoresby Sund and Denmark Strait are geographic orientation only, not river candidates, receiving-river assignments or endpoint names.",
+        "ice_symbol_scope": "Ice-surface contours, ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments are distinct from natural-river evidence.",
+        "displayed_mainstem_length_km": 284.431,
+        "length_limit": "Modeled inventory display length, not an official or measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false,
+        "name_evidence_limit": "Historical regional geological mapping and descriptive glaciology support setting and naming limits. They are not a river gazetteer, modern ice-front survey or direct observation of surface or subglacial water connectivity."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60727324",
+      "category": "river_group",
+      "system_id": "60727324",
+      "baseline_logical_fid": 3441,
+      "geometry_fids": [
+        13798
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -38.239583,
+        -6.4875,
+        -37.127083,
+        -4.93141
+      ],
+      "rendered_mainstem_length_km": 283.702,
+      "rendered_network_length_km": 283.702,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -38.239583,
+          -6.4875,
+          -37.127083,
+          -4.93141
+        ]
+      },
+      "candidate_name": "Rio Apodi",
+      "candidate_names": [
+        "Rio Apodi"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Original regional map pixels repeatedly label the selected receiving corridor Rio Apodi. The southern approach is separately labeled Rio São Brás. The crossed reservoir is labeled Barragem Santa Cruz do Apodi on the SGB sheet. Lagoa do Apodi is a separate water body beside Apodi town, west of the selected main river corridor.",
+      "geographic_disambiguation": "The selection begins southeast of Tenente Ananias, turns northwest past the town, and then north and northeast by Marcelino Vieira. It continues through the Pau dos Ferros setting, bends northeast through the Taboleiro Grande–Itaú corridor, crosses the large reservoir south of Apodi, and follows the river east of Apodi through Felipe Guerra, Governador Dix-Sept Rosado and Mossoró. Its lower northeastern course reaches the estuary between Grossos and Areia Branca. The city lagoon, eastern Umari drainage and separate coastal channels are not substituted for the selected route.",
+      "source_keys": [
+        "r94-ibge-rn-pb-2015",
+        "r94-ibge-tenente-2007",
+        "r94-ibge-apodi-2022",
+        "r94-sgb-apodi-alluvium-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western Rio Grande do Norte, northeastern Brazil, from the Tenente Ananias setting through Pau dos Ferros and Apodi to Mossoró and the Grossos–Areia Branca estuary.",
+      "candidate_name_role": "Representative receiving-river identity for the selected São Brás approach, upper Apodi corridor, reservoir passage and lower river to the coast.",
+      "completion_scope": "Completed bounded representative-system correspondence for the whole selected route. The original regional map covers its complete extent; the Tenente Ananias map resolves the southern approach, and the Apodi municipal and SGB sheets resolve the impoundment and lagoon distinction. Original pixels were inspected separately from private visual-orientation overlays. This establishes the generalized waterway sequence, named components and terminal setting, not exact banks, every minor channel, an official source point or precise name-transition vertices.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_receiving_identity": "Rio Apodi",
+        "initial_named_component": "Rio São Brás in the São Brás de Cima–Tenente Ananias approach.",
+        "initial_endpoint_official_source_name": null,
+        "upper_to_receiving_name_transition": null,
+        "upper_to_receiving_name_transition_note": "The regional sheet labels the receiving corridor Rio Apodi near Marcelino Vieira and farther north. An exact transition from the separately mapped São Brás component is not assigned.",
+        "reservoir_components": [
+          "Barragem Santa Cruz do Apodi"
+        ],
+        "lake_components_traversed": [],
+        "separate_nearby_lake": "Lagoa do Apodi; the selected main river passes to its east, rather than following its long western body.",
+        "lower_river_component": "Rio Apodi through Governador Dix-Sept Rosado and Mossoró.",
+        "terminal_component": "Grossos–Areia Branca estuary and coastal outlet.",
+        "terminal_local_channel_name": null,
+        "alternative_whole_route_name": null,
+        "excluded_inferences": [
+          "Do not apply Rio Apodi uniformly to the initial São Brás approach or use the reservoir and lagoon names as river aliases.",
+          "No separately selected tributary fragment exists. Nearby named tributaries are disambiguation context, not additional whole-route names.",
+          "The southern endpoint is not established as an official river source, and the entire selected route is not assigned one continuous official hydronym.",
+          "No minor-waterbody inventory, exact name boundary, perennial-flow assertion, legal naming date or Korean name is established."
+        ],
+        "model_limits": "The retained 283.702 km is the length of this modeled route, not an official length of Apodi or São Brás. Its generalized line simplifies meanders, reservoir water and tidal channels. No geometry correction is proposed."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70890114",
+      "hydro-system:90097237"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 319,
+    "non_pending_records": 307,
+    "source_access_pending": 3,
+    "source_material_pending": 9,
+    "source_any_pending": 12,
+    "scope_holds": 104,
+    "river_groups": 221,
+    "lakes": 98,
+    "unrecorded": 3746,
+    "unrecorded_river_groups": 3234,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r94-e752-rio-aguan",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/rio_aguan-honduras-50k-2761i-1991.pdf"
+    },
+    {
+      "source_key": "r94-e752-yoro",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/yoro-honduras-50k-2761ii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-jimia",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/jimia-honduras-50k-2762ii-1967.pdf"
+    },
+    {
+      "source_key": "r94-e752-arenal",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/arenal-honduras-50k-2862iii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-olanchito",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/olanchito-honduras-50k-2862ii-1981.pdf"
+    },
+    {
+      "source_key": "r94-e752-san-francisco",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_francisco-honduras-50k-2962iii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-sonaguera",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/sonaguera-honduras-50k-2962iv-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-saba",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/saba-honduras-50k-2962i-1980.pdf"
+    },
+    {
+      "source_key": "r94-e752-ilanga",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/ilanga-honduras-50k-2963ii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-corocito",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/corocito-honduras-50k-3063iii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-bonito-oriental",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/bonito_oriental-honduras-50k-3063ii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-santa-rosa",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/santa_rosa_de_aquan-honduras-50k-3063i-1986.pdf"
+    },
+    {
+      "source_key": "r94-inegi-chetumal-e1604-07",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154519_geo.pdf"
+    },
+    {
+      "source_key": "r94-inegi-felipe-carrillo-e1601",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154496_geo.pdf"
+    },
+    {
+      "source_key": "r94-inegi-bahia-ascension-e1602-05",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154502_geo.pdf"
+    },
+    {
+      "source_key": "r94-inegi-quintana-roo-compendium",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463913986.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r94-ibge-rn-pb-2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/pb_rn_politico500k_2015.pdf"
+    },
+    {
+      "source_key": "r94-ibge-tenente-2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/rn/tenente_ananias.pdf"
+    },
+    {
+      "source_key": "r94-ibge-apodi-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/RN/apodi/A0_2401008_MM.pdf"
+    },
+    {
+      "source_key": "r94-sgb-apodi-alluvium-2009",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/66bc0dcc-7eb1-41c5-8512-325f151dfbb7/content"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "a10365978bc907b9e4e6198b63387e10730670ac",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      175,
+      176,
+      177,
+      178
+    ],
+    "next_unrecorded_id": "hydro-system:80285365",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

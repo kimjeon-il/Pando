@@ -1,0 +1,518 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r94",
+  "sources": [
+    {
+      "source_key": "r94-e752-rio-aguan",
+      "title": "Río Aguán, Honduras 1:50,000, Series E752, sheet 2761 I, Edition 3-NIMA",
+      "publisher": "Instituto Geográfico Nacional, Honduras, with the National Imagery and Mapping Agency; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Field classification 1991; the acquired sheet is Edition 3-NIMA.",
+      "supports": "Puentecita headward stream network, Quebrada Jalegua and Río Jalegua connection, and the northbound Aguán valley.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/rio_aguan-honduras-50k-2761i-1991.pdf"
+    },
+    {
+      "source_key": "r94-e752-yoro",
+      "title": "Yoro, Honduras 1:50,000, Series E752, sheet 2761 II, Edition 2-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Revised in 1986.",
+      "supports": "Westbound Río Jalegua along northern Yoro, its Aguán junction, and the distinct upper Aguán approach from the south.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/yoro-honduras-50k-2761ii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-jimia",
+      "title": "Jimiá, Honduras 1:50,000, Series E752, sheet 2762 II, Edition 1-TPC",
+      "publisher": "U.S. Army Topographic Command, in cooperation with Honduras Instituto Geográfico Nacional and the Inter-American Geodetic Survey; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled and field-classified in 1967 from 1960 aerial photography; printed 1971 and later reprinted.",
+      "supports": "Aguán valley north of the Río Aguán sheet and its eastward exit toward Arenal.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/jimia-honduras-50k-2762ii-1967.pdf"
+    },
+    {
+      "source_key": "r94-e752-arenal",
+      "title": "Arenal, Honduras 1:50,000, Series E752, sheet 2862 III, Edition 2-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Revised in 1986.",
+      "supports": "Eastward Aguán valley through the Arenal and Santa Cruz setting.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/arenal-honduras-50k-2862iii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-olanchito",
+      "title": "Olanchito, Honduras 1:50,000, Series E752, sheet 2862 II, Edition 2-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1981.",
+      "supports": "Aguán through El Cayo and south of Olanchito, distinguished from Yaguala, Agalteca and other joining rivers.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/olanchito-honduras-50k-2862ii-1981.pdf"
+    },
+    {
+      "source_key": "r94-e752-san-francisco",
+      "title": "San Francisco, Honduras 1:50,000, Series E752, sheet 2962 III, Edition 2-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Revised in 1986.",
+      "supports": "Selected fragment split, Río Mame junction and Aguán continuation past Campo Nuevo.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_francisco-honduras-50k-2962iii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-sonaguera",
+      "title": "Sonaguera, Honduras 1:50,000, Series E752, sheet 2962 IV, Edition 2-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Revised in 1986.",
+      "supports": "Aguán along the southern sheet edge, east through La Tarrosa and Quilimaco toward Sabá.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/sonaguera-honduras-50k-2962iv-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-saba",
+      "title": "Sabá, Honduras 1:50,000, Series E752, sheet 2962 I, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1980.",
+      "supports": "Northeastward Aguán from Sabá through the Prieta, Masicales and Guapinol setting.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/saba-honduras-50k-2962i-1980.pdf"
+    },
+    {
+      "source_key": "r94-e752-ilanga",
+      "title": "Ilanga, Honduras 1:50,000, Series E752, sheet 2963 II, Edition 2-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Revised in 1986.",
+      "supports": "Short intervening Aguán reach at Aguán Paso Tocoa and La Lima between the Sabá and Corocito sheets.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/ilanga-honduras-50k-2963ii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-corocito",
+      "title": "Corocito, Honduras 1:50,000, Series E752, sheet 3063 III, Edition 2-DMA",
+      "publisher": "Honduras Instituto Geográfico Nacional and U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled in 1986.",
+      "supports": "Lower Aguán meander corridor through Quebrada de Arena and west of Corocito.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/corocito-honduras-50k-3063iii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-bonito-oriental",
+      "title": "Bonito Oriental, Honduras 1:50,000, Series E752, sheet 3063 II, Edition 2-DMA",
+      "publisher": "Honduras Instituto Geográfico Nacional and U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled in 1986.",
+      "supports": "Short lower Aguán passage along the northern sheet edge, including the Río Bonito joining setting.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/bonito_oriental-honduras-50k-3063ii-1986.pdf"
+    },
+    {
+      "source_key": "r94-e752-santa-rosa",
+      "title": "Santa Rosa de Aguán, Honduras 1:50,000, Series E752, sheet 3063 I, Edition 2-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Revised in 1986.",
+      "supports": "Eastward lower Aguán, northward coastal turn, northwestward final reach and mouth setting between Barra de Aguán and Santa Rosa de Aguán.",
+      "limits": "Historical government cartography, used for generalized river-corridor and name-component correspondence. It does not establish contemporary channel positions, exact banks, a legal naming date or every minor stream name.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/santa_rosa_de_aquan-honduras-50k-3063i-1986.pdf"
+    },
+    {
+      "source_key": "r94-inegi-chetumal-e1604-07",
+      "title": "Información topográfica 1:250 000, E1604-07 Chetumal, sixth edition 2023",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Mexico",
+      "supports": "Initial flood-prone terrain; local A. el Hormiguero label; nearby La Huasteca, Tepeyac, Bel-Há and X-Panzil settings; distinction from separately drawn eastern short arroyos.",
+      "limits": "The local arroyo label does not establish a river continuing northeast across the entire selected route. This is a topographic sheet, not a stopped CONAGUA aquifer report.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154519_geo.pdf"
+    },
+    {
+      "source_key": "r94-inegi-felipe-carrillo-e1601",
+      "title": "Información topográfica 1:250 000, E1601 Felipe Carrillo Puerto, sixth edition 2023",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Mexico",
+      "supports": "Inland flood-prone terrain, separate lake and channel features, Río Verde locality, Valle Hermoso and Lago Sac-Ayin/Timul settings, northern loop and eastern turn.",
+      "limits": "Readable mapping supplies no continuously drawn named river over the long modeled inland connector. Río Verde is presented here as a settlement label, not a selected watercourse hydronym.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154496_geo.pdf"
+    },
+    {
+      "source_key": "r94-inegi-bahia-ascension-e1602-05",
+      "title": "Información topográfica 1:250 000, E1602-05 Bahía de la Ascensión, sixth edition 2023",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Mexico",
+      "supports": "Coastal swamp and inundation symbols, limited channels, Bahía del Espíritu Santo, Boca de Xoquene, Los Tres Reyes and the inland terminal setting.",
+      "limits": "The map does not establish one named river crossing the selected coastal marsh or identify the modeled endpoint as an exact mouth. Bahía de la Ascensión is the sheet title; the selected ending is by the separate Bahía del Espíritu Santo.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154502_geo.pdf"
+    },
+    {
+      "source_key": "r94-inegi-quintana-roo-compendium",
+      "title": "Aspectos geográficos de Quintana Roo, Compendio 2022, published 2024",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Mexico",
+      "supports": "Regional distinction between inland Cuencas Cerradas and the Bahías La Ascensión y Espíritu Santo subbasin; contextual distinction from the southern Río Hondo, Escondido and Ucum systems.",
+      "limits": "Regional-scale context only, not a route-level continuity proof. Mapa 10 attributes its compilation to INEGI topographic/hydrological datasets and an INEGI-CONAGUA 2007 national hydrographic map; this distinct INEGI compendium is not any stopped CONAGUA aquifer publication. Its regional basin names are not river-name candidates.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463913986.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; East Greenland Inland Ice and southeastern margin, original graticule and Inland Ice legend.",
+      "supports": "Eastern Inland Ice setting, transition toward the southeastern glaciated margin, the terminal region south-southwest of Kap Edvard Holm, geographic disambiguation and cartographic feature-class limits.",
+      "limits": "Historical 1:2 500 000 geological map, not a river survey. It establishes no full-route natural-river identity, exact named endpoint or current ice/land/water boundary.",
+      "reuse_limit": "GEUS custom terms restrict redistribution and new maps based on the data. Originals and local source crops remain private. Only independently written factual findings and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Pages 64–65, Glaciology.",
+      "supports": "Distinction between the continental Inland Ice and local ice caps/glaciers, meaning of the surface/thickness/bedrock contours, and general glacier-margin and fjord context.",
+      "limits": "Does not name this selection or prove hydrological continuity. Figure 46 depicts a different West Greenland locality; Figure 47 presents general historical/model diagrams. Historical numerical ice and mass-balance claims are not asserted as current.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r94-ibge-rn-pb-2015",
+      "title": "Mapa Político dos Estados de Rio Grande do Norte e Paraíba",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2015,
+      "scale": "1:500,000",
+      "supports": "Representative Rio Apodi identity, whole-route corridor continuity, Rio São Brás distinction, neighboring drainages and the Grossos–Areia Branca outlet.",
+      "limits": "Based on BCIM 2014 and strongly generalized. It omits the large reservoir outline shown by the two detailed originals; that omission is not treated as evidence that the route remains entirely free-flowing.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/pb_rn_politico500k_2015.pdf"
+    },
+    {
+      "source_key": "r94-ibge-tenente-2007",
+      "title": "Mapa Municipal Estatístico: Tenente Ananias-RN",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística",
+      "edition": "31 October 2007",
+      "year": 2007,
+      "scale": "1:100,000",
+      "supports": "Actual southern waterway connection and Rio São Brás label around Tenente Ananias.",
+      "limits": "Historical composite systematic mapping with thematic overlays and incompletely integrated updates. It does not establish an official source or exact downstream name-transition point.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/rn/tenente_ananias.pdf"
+    },
+    {
+      "source_key": "r94-ibge-apodi-2022",
+      "title": "Mapa Municipal: Apodi-RN, geocode 2401008",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística",
+      "year": 2022,
+      "supports": "The selected Apodi inlet and main reservoir passage, downstream route east of Apodi, and the separately labeled Lagoa do Apodi.",
+      "limits": "The large reservoir outline is shown without its name in the inspected map; its name is supplied by the independently acquired SGB original. Generalized cartography does not establish present-day water levels.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/RN/apodi/A0_2401008_MM.pdf"
+    },
+    {
+      "source_key": "r94-sgb-apodi-alluvium-2009",
+      "title": "Projeto PROALUV: Mapa das Aluviões, Folha Apodi SB.24-X-C-VI",
+      "author": "Sara Maria P. Benvenutti",
+      "publisher": "CPRM – Serviço Geológico do Brasil, Ministério de Minas e Energia",
+      "year": 2009,
+      "scale": "1:100,000",
+      "supports": "Direct Barragem Santa Cruz do Apodi label, its inlet/outlet configuration, and independent distinction from Lagoa do Apodi.",
+      "limits": "A 2009 thematic map using updated historical topographic cartography, not a current inundation survey. Alluvial deposits are not interpreted as separate rivers.",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/66bc0dcc-7eb1-41c5-8512-325f151dfbb7/content"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70933658",
+      "source_keys": [
+        "r94-e752-rio-aguan",
+        "r94-e752-yoro",
+        "r94-e752-jimia",
+        "r94-e752-arenal",
+        "r94-e752-olanchito",
+        "r94-e752-san-francisco",
+        "r94-e752-sonaguera",
+        "r94-e752-saba",
+        "r94-e752-ilanga",
+        "r94-e752-corocito",
+        "r94-e752-bonito-oriental",
+        "r94-e752-santa-rosa"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10570
+          ],
+          "finding": "The starting vertex lies in the small feeder setting immediately west of Puentecita. The original sheet shows the short connecting stream network and its southward continuation into the corridor labeled Quebrada Jalegua. The initial tiny feeder has no separately established name; the modeled vertex is not asserted to be the official source of Jalegua or Aguán.",
+          "sources": [
+            "r94-e752-rio-aguan"
+          ]
+        },
+        {
+          "fragments": [
+            10570
+          ],
+          "finding": "The route continues south through Quebrada Jalegua, then bends southwest and west along Río Jalegua through the Chalmeca and northern Yoro setting. The map separately shows Quebrada Jalegüita, Quebrada Honda and Río Machigua as joining waterways; their names are not transferred to the selected Jalegua route.",
+          "sources": [
+            "r94-e752-rio-aguan",
+            "r94-e752-yoro"
+          ]
+        },
+        {
+          "fragments": [
+            10570
+          ],
+          "finding": "West of Yoro, Río Jalegua joins the named Aguán arriving from the south. The selected route turns north along Aguán past the Molunga, La Laguna Mansa, Río Abajo, San Isidro and San José setting. It does not continue upstream along the separate southern Aguán branch.",
+          "sources": [
+            "r94-e752-yoro",
+            "r94-e752-rio-aguan"
+          ]
+        },
+        {
+          "fragments": [
+            10570
+          ],
+          "finding": "Aguán continues through the southern Jimiá sheet, turns northeast and east, and emerges into the broad valley on the Arenal sheet. The selected eastward corridor follows repeated Aguán labels past Arenal and Santa Cruz toward Olanchito. The modeled bends simplify the mapped confined valley and floodplain channel without selecting a different named branch.",
+          "sources": [
+            "r94-e752-jimia",
+            "r94-e752-arenal"
+          ]
+        },
+        {
+          "fragments": [
+            10570,
+            10571
+          ],
+          "finding": "The route follows Aguán past El Cayo and south of Olanchito, distinct from the Yaguala and Agalteca approaches. On the San Francisco sheet both selected fragments occupy the same Aguán corridor across their split; the route passes the Río Mame junction and continues past Campo Nuevo. The model split is not a natural name boundary.",
+          "sources": [
+            "r94-e752-olanchito",
+            "r94-e752-san-francisco"
+          ]
+        },
+        {
+          "fragments": [
+            10571
+          ],
+          "finding": "Below Campo Nuevo the selection follows Aguán along the southern Sonaguera sheet toward Sabá, then northeast through the Prieta, Masicales and Guapinol setting. The Ilanga sheet resolves the short intervening Aguán Paso Tocoa and La Lima reach before the Corocito sheet. Tributaries and floodplain canals are visibly separate.",
+          "sources": [
+            "r94-e752-sonaguera",
+            "r94-e752-saba",
+            "r94-e752-ilanga"
+          ]
+        },
+        {
+          "fragments": [
+            10571
+          ],
+          "finding": "The lower selection follows the Aguán floodplain through Quebrada de Arena and west of Corocito, then east across the northern Bonito Oriental sheet into the Santa Rosa de Aguán sheet. The sources show the continuous named river and its large meanders. Nearby lagoons and the Río Bonito tributary remain separate features; the simplified line is not used to assign their names to the river.",
+          "sources": [
+            "r94-e752-corocito",
+            "r94-e752-bonito-oriental",
+            "r94-e752-santa-rosa"
+          ]
+        },
+        {
+          "fragments": [
+            10571
+          ],
+          "finding": "On the coastal plain the Aguán corridor turns north, then northwest toward Santa Rosa de Aguán. The selected tip lies on the lower river immediately inland of its mapped mouth between Barra de Aguán and Santa Rosa de Aguán. It is not the separate Río Chapagua outlet farther west, the Laguna El Lirio/Crique El Lirio network, or offshore Caribbean water. No exact contemporary shoreline endpoint is asserted.",
+          "sources": [
+            "r94-e752-santa-rosa"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70890114",
+      "source_keys": [
+        "r94-inegi-chetumal-e1604-07",
+        "r94-inegi-felipe-carrillo-e1601",
+        "r94-inegi-bahia-ascension-e1602-05",
+        "r94-inegi-quintana-roo-compendium"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10431
+          ],
+          "component_scope": "Southwestern approach and local Arroyo el Hormiguero",
+          "finding": "The starting selection lies in mapped terrain subject to inundation southwest of La Huasteca. Part of its northeastern approach shares the intermittent-channel setting labeled A. el Hormiguero. The modeled route subsequently continues through the Tepeyac–Bel-Há and X-Panzil surroundings, beyond the scope established by that local hydronym. The original distinguishes nearby independent short arroyos; their names are not assigned to the selected connector.",
+          "sources": [
+            "r94-inegi-chetumal-e1604-07"
+          ]
+        },
+        {
+          "fragments": [
+            10431
+          ],
+          "component_scope": "Western inland connector",
+          "finding": "Across the Chetumal/Felipe Carrillo Puerto sheet boundary the actual selection passes the Río Verde settlement setting and extensive inundation-prone terrain. Readable original mapping does not show a single continuous channel tracking the entire modeled interval. Río Verde is a locality label here and cannot supply a river name merely because the selection passes it.",
+          "sources": [
+            "r94-inegi-chetumal-e1604-07",
+            "r94-inegi-felipe-carrillo-e1601"
+          ]
+        },
+        {
+          "fragments": [
+            10431
+          ],
+          "component_scope": "Central wetlands and northward bend",
+          "finding": "The central selection crosses the Monte Olivo–Valle Hermoso surroundings, then runs toward the Lago Sac-Ayin and Timul setting. The original maps show broad flood-prone areas and separate lakes, minor channels and dry intervening terrain. Local lake names are geographic anchors; a continuous named river linking all these features is not established.",
+          "sources": [
+            "r94-inegi-felipe-carrillo-e1601"
+          ]
+        },
+        {
+          "fragments": [
+            10431
+          ],
+          "component_scope": "Northern loop and eastern approach",
+          "finding": "The selected northern loop bends across the Chancah Derrepente–San Andrés surroundings and then south through the Lago Kaam–Lago X-Hazil area. These intervals are readable on the original sheet but are not represented as one continuous river corresponding to the modeled loop. No lake name is extended over the intervening land or treated as a whole-system alias.",
+          "sources": [
+            "r94-inegi-felipe-carrillo-e1601"
+          ]
+        },
+        {
+          "fragments": [
+            10431
+          ],
+          "component_scope": "Coastal swamp and ending",
+          "finding": "The eastern selection bends northeast and east across extensive terrain marked as swamp and land subject to inundation, then turns southeast to a terminal point within marsh west of Bahía del Espíritu Santo. Original bay-context pixels distinguish Boca de Xoquene and Los Tres Reyes along the bay side. They do not name one watercourse matching the entire selected marsh crossing or establish the terminal vertex as a surveyed river mouth.",
+          "sources": [
+            "r94-inegi-bahia-ascension-e1602-05"
+          ]
+        },
+        {
+          "fragments": [
+            10431
+          ],
+          "component_scope": "Regional hydrological distinction",
+          "finding": "The INEGI compendium distinguishes an inland Cuencas Cerradas basin from the coastal Bahías La Ascensión y Espíritu Santo subbasin. Its regional map and tables reinforce that inland flood-prone and coastal settings must not automatically be merged into a single named surface river. They do not establish the precise position of a basin boundary along this selection.",
+          "sources": [
+            "r94-inegi-quintana-roo-compendium"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90097237",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8874
+          ],
+          "component_scope": "Northwestern descent and stepped eastward upper-middle course",
+          "finding": "The route first descends nearly south, turns southeast, and then follows a stepped eastward course with short level intervals. Comparison with the original graticule places this opening and upper-middle course on the eastern continental Inland Ice, inland of the mountain margin. No corresponding named natural river is established.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8874
+          ],
+          "component_scope": "Long south-southeastward middle limb and lower turn east",
+          "finding": "A marked south-southeastward descent, with a long straight diagonal and a short nearly north-south interval, carries the selection toward the glaciated margin before the line turns east again. Its straight and stair-stepped intervals belong to the modeled inventory geometry. The original map distinguishes the ice-interior contours from the irregular marginal glacier and exposed-rock pattern; those contours do not independently map a river along the selection.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8874
+          ],
+          "component_scope": "Long eastward terminal limb and actual southeastern ending",
+          "finding": "The final limb continues predominantly eastward with successive small southward steps, long nearly level intervals and a short final southward tip. The regional and terminal crops place this part in the glaciated mountain-margin setting south-southwest of Kap Edvard Holm, rather than at Kangerdlugssuaq fjord. The sheet shows glacier corridors interspersed with exposed geological units toward the coast. It supplies no named natural-river correspondence for this limb and does not warrant assigning an exact named terminal feature or present-day river mouth.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8874
+          ],
+          "component_scope": "Whole selected mainstem and cartographic feature class",
+          "finding": "One mainstem and no tributary geometry are selected; internal MultiLineString parts were considered together. Neither original establishes one continuously named natural river across the complete ice-interior-to-margin selection. The legend identifies blue surface contours, dashed ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments. These are not river traces. The lineament convention applies only south of 68°N and is relevant to interpreting symbols in the southern part, not to proving a river.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60727324",
+      "source_keys": [
+        "r94-ibge-rn-pb-2015",
+        "r94-ibge-tenente-2007",
+        "r94-ibge-apodi-2022",
+        "r94-sgb-apodi-alluvium-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13798
+          ],
+          "finding": "The southern end lies in the São Brás de Cima–Tenente Ananias drainage. The detailed municipal map shows the northwest-running waterway past Tenente Ananias labeled Rio São Brás. Its subsequent northward connection is visible; the modeled endpoint is not identified as the official source of São Brás or Apodi.",
+          "sources": [
+            "r94-ibge-tenente-2007",
+            "r94-ibge-rn-pb-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13798
+          ],
+          "finding": "After the northwestern bend, the selected route runs north and northeast through the Marcelino Vieira setting, bends northwest toward Pau dos Ferros and continues north. The regional sheet places Rio Apodi labels on this receiving corridor. It separately depicts the western Encanto approach and eastern Rio Pilões drainage.",
+          "sources": [
+            "r94-ibge-rn-pb-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13798
+          ],
+          "finding": "The route turns northeast past São Francisco do Oeste and Taboleiro Grande, follows the Rio Apodi corridor south of Itaú, and enters the large impounded southwestern arm. The municipal map shows the actual river-to-reservoir connection; the SGB sheet distinguishes this from the southern Riacho das Marrecas approach.",
+          "sources": [
+            "r94-ibge-rn-pb-2015",
+            "r94-ibge-apodi-2022",
+            "r94-sgb-apodi-alluvium-2009"
+          ]
+        },
+        {
+          "fragments": [
+            13798
+          ],
+          "finding": "The selection crosses the main impoundment northeastward and northward to its eastern outlet setting. Readable SGB pixels label the water body Barragem Santa Cruz do Apodi. The western Riacho Mansidão arm and other side arms are not separate selected branches, and the reservoir name is not a river alias.",
+          "sources": [
+            "r94-ibge-apodi-2022",
+            "r94-sgb-apodi-alluvium-2009"
+          ]
+        },
+        {
+          "fragments": [
+            13798
+          ],
+          "finding": "Below the impoundment, the line continues north past Santa Rosa and bends northwest toward the eastern side of Apodi before turning northeast. Both detailed maps distinguish Lagoa do Apodi extending west from the town from the selected river corridor to the east and southeast. The selection does not traverse the lagoon's long western body.",
+          "sources": [
+            "r94-ibge-apodi-2022",
+            "r94-sgb-apodi-alluvium-2009"
+          ]
+        },
+        {
+          "fragments": [
+            13798
+          ],
+          "finding": "The middle and lower selection follows the repeatedly labeled Rio Apodi northeast past Felipe Guerra and Governador Dix-Sept Rosado, then through Mossoró. The regional map distinguishes the approaching Umari, Carmo and other side drainages from that continuous selected corridor.",
+          "sources": [
+            "r94-ibge-rn-pb-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13798
+          ],
+          "finding": "Downstream of Mossoró, the selected northeastern line enters the mapped estuary, bends through the Grossos setting and runs north beside Areia Branca to the coastal outlet. The terminal setting is supported, while individual tidal-channel names and an exact modern shoreline intersection are not established.",
+          "sources": [
+            "r94-ibge-rn-pb-2015"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
