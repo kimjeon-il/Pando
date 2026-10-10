@@ -1,0 +1,71 @@
+{
+  "schema": "hydro-partial-research-notes-v1",
+  "batch": "r49",
+  "status": "partial_lake_research_paused_for_river_first_order",
+  "previous_research_commit": "f2041b5ef6ed9f336eaf1cc11673b6a25a930f5f",
+  "inventory_record_increment": 0,
+  "selected_ids_remain_unrecorded": true,
+  "source": {
+    "title": "Plan d’affectation du territoire public de la Côte-Nord — Carte 2 : Droits, statuts et activités usuelles — Partie nord",
+    "publisher": "Ministère des Ressources naturelles et de la Faune, Direction générale de la Côte-Nord, Gouvernement du Québec",
+    "publication_year": 2012,
+    "date_basis": "Visible map imprint: Dépôt légal, Bibliothèque et Archives nationales du Québec, 1er trimestre 2012. Hidden extracted text also contains 2011; the visible imprint was read directly.",
+    "page": "Single sheet, PDF page 1",
+    "scale": "1:500,000",
+    "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Cote-Nord/CA_02_droits-statuts-activites-nord-PATP_CN_MERN.pdf.pdf?1592922714=",
+    "credits": "Visible sheet credits MRNF production, Government of Québec copyright, and 2004 MRNF BDTA250k topographic/administrative data. Themes cite multiple 2011 source organizations.",
+    "observation": "Inspected regional views show water outlines but no readable name for any of the three selected target waters. Nearby visible labels Lac Ternay and Lac Opiscotéo refer to different waters and were not transferred to the selected objects. This observation is not a completed whole-footprint/name-scope determination.",
+    "limitation": "Whole-object correspondence and all components were not fully assessed before the user stopped lake inspection. In particular, the two small eastern components of 1159109885 remain unassessed. No completed-scope or material-pending classification was finalized."
+  },
+  "selected_objects": [
+    {
+      "aw_id": "lakes_base:1159109299",
+      "candidate_name": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "full_feature_correspondence_review_completed": false,
+      "research_state": "paused_partial_not_completed",
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109661",
+      "candidate_name": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "full_feature_correspondence_review_completed": false,
+      "research_state": "paused_partial_not_completed",
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109885",
+      "candidate_name": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "full_feature_correspondence_review_completed": false,
+      "research_state": "paused_partial_not_completed",
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "counts_unchanged": {
+    "recorded_targets": 141,
+    "non_pending_records": 137,
+    "source_access_pending": 2,
+    "source_material_pending": 2,
+    "source_any_pending": 4,
+    "scope_holds": 42,
+    "river_groups": 43,
+    "lakes": 98,
+    "unrecorded": 3924,
+    "unrecorded_river_groups": 3412,
+    "unrecorded_lakes": 512
+  },
+  "public_scope": "Factual partial observations and public source bibliography only. Original maps, images and private evidence are omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
