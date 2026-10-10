@@ -1,0 +1,154 @@
+{
+  "schema": "hydro-original-source-observations-v3",
+  "batch": "r46",
+  "scope_aw_ids": [
+    "lakes_base:1159112329",
+    "lakes_base:1159108445",
+    "lakes_base:1159112319"
+  ],
+  "new_external_requests": 2,
+  "new_external_requests_scope": "One bounded official URL lookup and one original-body request acquired the distinct OGS East-Central companion after publication-identity and access-policy preflight. All later map, inset and geometry review used local bytes.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": null,
+  "new_original_source_acquisitions_this_batch": 1,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "source_group_definition": "One Ontario Geological Survey thematic map-index publication, including its Timmins inset. The inset is not an independent publication or dataset.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "The actual original main and Timmins-inset controls were separately fitted with centered six-parameter Ontario Lambert Conformal Conic affines, retaining both cross terms and explicit MediaBox/CropBox offsets. All 134 main-sheet positions and 35 repeated inset positions agree within 0.000001 PDF point with the source registration. Maximum original-control residual is below 0.001 PDF point. Eight detail/context arrays and two imprint/credit arrays match fresh renders. This measures affine and byte consistency, not shoreline or name-boundary accuracy. No manual shoreline fitting was used.",
+  "observations": [
+    {
+      "source_key": "ogs_index_bedrock_east_central_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991\u20132020, East-Central Sheet",
+      "publisher": "Ontario Geological Survey, Ontario Ministry of Energy, Northern Development and Mines",
+      "url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-EastCentral.pdf",
+      "original_acquired_at_utc": "2026-10-10T03:32:38.746493+00:00",
+      "original_requested_at_utc": "2026-10-10T03:32:31.805351+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": true,
+      "reused_original": false,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2021",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The printed suggested citation and copyright establish 2021, with year precision. The title period 1991\u20132020 describes the indexed mapping, not the publication date. HTTP and PDF metadata dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": true,
+      "review_reused_original_acquired_in_prior_batch": false,
+      "original_acquisition_batch": "r46",
+      "directly_read_water_labels": [
+        "Kesagami Lake",
+        "Missinaibi Lake",
+        "Night Hawk Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Opimiskau Bay",
+        "Newnham Bay",
+        "Piyagoskogau Lake",
+        "Natogami Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Main-sheet complete-footprint and wider contexts support three generalized lake identities; the same original Timmins inset clarifies the third basin and connecting water.",
+      "authority_scope": "Official provincial thematic cartographic usage, not a formal naming-registry decision or exact shoreline/name-partition certification.",
+      "registered_overlay_performed": true,
+      "own_observations": "Original main-sheet pixels and all 56 independently registered positions show pale-cyan water bounded by blue shores. Kesagami Lake labels the main basin; Opimiskau Bay is the western lobe and Newnham Bay the long southern arm. The ring follows this whole generalized topology and remains outside separately labelled Piyagoskogau Lake and Natogami Lake. Straight edges include some white land and exclude detailed bay water. One generalized research identity is supported with shoreline and connector limits. Original main-sheet pixels and all 43 independently registered positions show the connected multiarm Missinaibi Lake water. Missinaibi and Lake are printed across white land between pale-cyan arms. The complete ring follows both long arms and their junction while crossing land and omitting smaller branches. Red map-index lines and grey township borders are contextual overlays. Wider context separates the selected lake from connecting rivers and distant labelled lakes. One generalized research identity is supported; precise shore and connector limits are unverified. Original main-sheet pixels, the independently registered Timmins inset and all 35 ordered ring positions associate the broad main basin and narrow western southern arm with the printed Night Hawk Lake name. Original RGB samples distinguish pale-cyan water from white land; the extensive southeast white area is land. The coarse northern extension crosses mapped land beside the northward water connection, and western/southern edges include land and omit small shore features. Main-sheet red/pink index overprint is clarified by the inset from the same original. One generalized identity is supported with material shoreline and channel-transition limits.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "Index-map compilation and editing are credited to OGS Publication Services Unit; map-outline compilation and cartographic production to J. Rose. The credit block warns of base-map and survey-index discrepancies.",
+      "printed_bibliographic_citation_year": "2021",
+      "printed_copyright_year": "2021",
+      "hydrographic_base_provider": null,
+      "hydrographic_base_provider_note": "No separately named hydrographic dataset provider is identified in the inspected printed sources-and-credits block."
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159112329",
+      "aw_id": "lakes_base:1159112329",
+      "source_id": "1159112329",
+      "geometry_fids": [
+        15614
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 56,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_whole_feature_identity": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_east_central_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original main-sheet pixels and all 56 independently registered positions show pale-cyan water bounded by blue shores. Kesagami Lake labels the main basin; Opimiskau Bay is the western lobe and Newnham Bay the long southern arm. The ring follows this whole generalized topology and remains outside separately labelled Piyagoskogau Lake and Natogami Lake. Straight edges include some white land and exclude detailed bay water. One generalized research identity is supported with shoreline and connector limits."
+    },
+    {
+      "observation_id": "lakes_base:1159108445",
+      "aw_id": "lakes_base:1159108445",
+      "source_id": "1159108445",
+      "geometry_fids": [
+        15338
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 43,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_whole_feature_identity": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_east_central_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original main-sheet pixels and all 43 independently registered positions show the connected multiarm Missinaibi Lake water. Missinaibi and Lake are printed across white land between pale-cyan arms. The complete ring follows both long arms and their junction while crossing land and omitting smaller branches. Red map-index lines and grey township borders are contextual overlays. Wider context separates the selected lake from connecting rivers and distant labelled lakes. One generalized research identity is supported; precise shore and connector limits are unverified."
+    },
+    {
+      "observation_id": "lakes_base:1159112319",
+      "aw_id": "lakes_base:1159112319",
+      "source_id": "1159112319",
+      "geometry_fids": [
+        15613
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 35,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "geographic_map_coverage_available": true,
+      "source_resolution_sufficient_for_whole_feature_identity": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_east_central_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original main-sheet pixels, the independently registered Timmins inset and all 35 ordered ring positions associate the broad main basin and narrow western southern arm with the printed Night Hawk Lake name. Original RGB samples distinguish pale-cyan water from white land; the extensive southeast white area is land. The coarse northern extension crosses mapped land beside the northward water connection, and western/southern edges include land and omit small shore features. Main-sheet red/pink index overprint is clarified by the inset from the same original. One generalized identity is supported with material shoreline and channel-transition limits."
+    }
+  ],
+  "source_group_limit": "Official cartographic usage supports three generalized identities with stated extent limits. No independent hydrographic dataset comparison, formal registry status or exact named extent is established.",
+  "independent_review_and_source_research_agree": true,
+  "request_accounting": {
+    "search_tool_calls": 1,
+    "search_queries": 1,
+    "explicit_web_open_requests": 0,
+    "original_body_requests": 1,
+    "new_original_bodies_acquired": 1,
+    "new_source_access_denials": 0,
+    "new_source_availability_failures": 0,
+    "stopped_resource_requests": 0,
+    "additional_source_acquisitions_planned": false
+  }
+}
