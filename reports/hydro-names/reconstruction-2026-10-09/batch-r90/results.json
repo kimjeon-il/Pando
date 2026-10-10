@@ -1,0 +1,419 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r90",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r89",
+    "commit": "b27fc197f800b03fbe446a22293cc9822d617571",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r89/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70914193",
+    "hydro-system:70854092",
+    "hydro-system:70961492",
+    "hydro-system:80075320"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70914193",
+      "category": "river_group",
+      "system_id": "70914193",
+      "baseline_logical_fid": 3281,
+      "geometry_fids": [
+        10558,
+        10556,
+        10557,
+        10555
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -89.385417,
+        16.44375,
+        -88.261277,
+        17.65625
+      ],
+      "rendered_mainstem_length_km": 297.551,
+      "rendered_network_length_km": 297.551,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -89.385417,
+          16.44375,
+          -88.261277,
+          17.65625
+        ]
+      },
+      "candidate_name": "Belize River",
+      "candidate_names": [
+        "Belize River",
+        "Mopan River"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The Guatemalan headward route is the Mopan corridor west of the separate Chiquibul drainage. The western Belizean continuation is lower Mopan; the receiving river downstream of its junction with Macal is Belize River.",
+      "geographic_disambiguation": "The selected head begins southeast of the Dolores setting and initially heads west, then runs north through the upper Mopan corridor toward the El Naranjo and Salpet surroundings. It turns through the Vuelta Grande–La Pólvora and Cidabenque sector toward Arenal and the Melchor de Mencos–Benque Viejo border crossing. It does not follow the separate Chiquibul headwaters farther east or the Macal and reservoir corridor in Belize. A straight northbound fragment lies along the international-boundary alignment, whereas the atlas depicts the Mopan meandering east of that line within Belize toward San José Succotz and Bullet Tree Falls. The next fragment leads east to the Mopan–Macal junction near San Ignacio and Santa Elena. The long downstream fragment follows the Belize valley past the Central Farm and Spanish Lookout surroundings, north of Belmopan, then through the lower valley and the Burrell Boom–Ladyville approach to the coastal setting north of Belize City. The selected northern lower-valley bend remains within the Belize receiving corridor; Crooked Tree lagoons and their feeders are separate adjoining components.",
+      "source_keys": [
+        "r90-fcd-binational-watershed-atlas"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Eastern Petén, Guatemala, and the Cayo and Belize districts of Belize, through the Mopan–Belize corridor toward the Caribbean coast north of Belize City.",
+      "candidate_name_role": "Belize River is the supported representative receiving-system candidate; Mopan River identifies the selected Guatemalan and western Belizean approach. Whole-selection naming is held because one modeled fragment follows a straight boundary-aligned connector rather than the mapped Mopan channel.",
+      "completion_scope": "All four selected mainstem fragments were inspected against the original publisher-hosted primary watershed atlas: overview and drainage-network maps, Mopan map, upper and lower Belize maps, Crooked Tree context and coastal map. The receiving identity is supported. A roughly 10.6 km boundary-aligned modeled connector is not supported as the natural Mopan course, so this is a completed correspondence review with a geometry/name-scope hold, not an unviewed-interval hold. The successful cartography is first-party conservation-management research, not a national survey map; attempted government-map corroboration was unavailable and is not claimed.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Belize River",
+        "headward_component": "Upper Mopan corridor in eastern Petén, including a small southern headward approach whose exact source name is not resolved.",
+        "upstream_named_component": "Mopan River / Rio Mopan; separate Chiquibul and Macal headwaters are not selected.",
+        "terminal_component": "Belize River lower valley and near-mouth coastal approach north of Belize City.",
+        "excluded_inferences": [
+          "Different upper and lower river names are not the reason for the hold.",
+          "Do not identify the boundary-aligned connector as a natural Mopan reach merely because its endpoints connect the modeled system.",
+          "Do not extend the name Belize over every upper Mopan reach or insert the separate Chiquibul or Macal headwater routes.",
+          "No official surveyed source point, formal naming decision, precise contemporary mouth or exhaustive creek nomenclature is established."
+        ],
+        "model_limits": "The modeled 297.551 km is not an official river-length measurement. Coarse routing simplifies bends and junctions, but the full straight boundary fragment is a material mismatch rather than a claim of ordinary bend-level agreement."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70854092",
+      "category": "river_group",
+      "system_id": "70854092",
+      "baseline_logical_fid": 3233,
+      "geometry_fids": [
+        10375
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -107.414583,
+        24.252083,
+        -105.647917,
+        24.983333
+      ],
+      "rendered_mainstem_length_km": 297.094,
+      "rendered_network_length_km": 297.094,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -107.414583,
+          24.252083,
+          -105.647917,
+          24.983333
+        ]
+      },
+      "candidate_name": "Río San Lorenzo",
+      "candidate_names": [
+        "Río San Lorenzo"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río de las Vueltas and Río de los Remedios are upstream component names. San Lorenzo is supported for the receiving corridor through and below José López Portillo (El Comedero). The farthest small headward feeder is left unnamed.",
+      "geographic_disambiguation": "The selection starts west of Santiago Papasquiaro, on a small south-flowing feeder east of the mapped Santa Lucía drainage. It joins the Río de las Vueltas corridor, enters eastern Otáez, follows Río de los Remedios south and then west along the Otáez–San Dimas side, and turns northwest through southern Tamazula. The separate northern San Gregorio approach joins this receiving corridor but is not the selected headward course. The selection continues through El Comedero and the named lower San Lorenzo, ending in the Gulf of California mouth setting northwest of Estero Soyatita and Bahía La Guadalupana. The northern Tamazula–Sanalona–Culiacán drainage and Ensenada Pabellones are separate from the selected course.",
+      "source_keys": [
+        "r90-inegi-santiago-2010",
+        "r90-inegi-otaez-2010",
+        "r90-inegi-tamazula-2010",
+        "r90-inegi-cosala-2010",
+        "r90-inegi-culiacan-2010"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Sierra Madre Occidental in Durango to the central Sinaloa coastal plain, Mexico.",
+      "candidate_name_role": "Representative receiving-system identity; the selected headward approach uses differently named upstream components.",
+      "completion_scope": "Completed bounded correspondence across the entire selected generalized mainstem against readable original official map pixels, using adjoining municipal sheets and detailed local enlargements. No substantial interval remains uncovered. This establishes a representative receiving identity rather than one uniform upstream name or surveyed channel alignment.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Río San Lorenzo",
+        "headward_component": "Small unnamed feeder and the mapped Río de las Vueltas approach.",
+        "upstream_named_component": "Río de los Remedios.",
+        "reservoir_component": "José López Portillo (El Comedero).",
+        "terminal_component": "Lower Río San Lorenzo and its Gulf of California near-mouth setting.",
+        "excluded_inferences": [
+          "Do not extend San Lorenzo uniformly over the differently named or unlabeled upper components.",
+          "Do not replace the selected Remedios approach with the separate northern San Gregorio course.",
+          "No newly accepted designation, Korean form, exact source point, current shoreline, or precise name-transition coordinate is established."
+        ],
+        "model_limits": "The 297.094 km value is a rendered model length, not an official river-length measurement. Generalization simplifies bends, reservoir passages and junctions."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70961492",
+      "category": "river_group",
+      "system_id": "70961492",
+      "baseline_logical_fid": 3303,
+      "geometry_fids": [
+        10651,
+        10656,
+        10650,
+        10654,
+        10655,
+        10653,
+        10652
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -84.90625,
+        13.302083,
+        -83.559621,
+        14.141667
+      ],
+      "rendered_mainstem_length_km": 296.755,
+      "rendered_network_length_km": 544.072,
+      "geometry_summary": {
+        "fragment_count": 7,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -84.90625,
+          13.302083,
+          -83.559621,
+          14.141667
+        ]
+      },
+      "candidate_name": "Río Prinzapolka",
+      "candidate_names": [
+        "Río Prinzapolka"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The northern modeled mainstem follows Uli, labeled Ulil in the 2014 basin atlas and Río Ulí on the DMA Siuna sheet, then the mapped Prinzapolka. One tributary starts on Caño Siuna before reaching the lower Yaoya route. The other selected tributary approach joins Bambana from the southwest before following the Bambana to Prinzapolka; its initial feeder retains unnamed scope.",
+      "geographic_disambiguation": "The selected mainstem begins on the narrow north–south Uli corridor west of Bonanza, continues south west of Siuna, receives the separate Wani approach, and turns into the broad southern Prinzapolka arc. It then turns north toward the Yaoya junction and runs east through the Caribbean lowlands. Tributary fragment 10654 begins at the Siuna/La Luz side, descends the Caño Siuna corridor and joins the Yaoya route farther southeast; it is not the atlas's separate, more northerly upper Yaoya course. Tributary fragment 10655 begins northeast of Siuna on the southwestern feeder into Bambana, approaches the river west of Rosita and then follows Bambana southeast; the atlas's emphasized northern Bambana approach is not substituted for that selected feeder. Fragment 10656 continues Bambana to its junction with the lower Prinzapolka. The last mainstem fragment reaches the Prinzapolka coastal mouth setting on the Caribbean Sea. Kukalaya–Layasiksa lies separately to the north, and Makantaka/Río Grande de Matagalpa drainage lies to the south.",
+      "source_keys": [
+        "r90-ineter-ana-pfafstetter-atlas",
+        "r90-dma-siuna-3257iii"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Caribbean Nicaragua, from the uplands west of Bonanza and the Siuna–Rosita river country to the Caribbean coast at Prinzapolka.",
+      "candidate_name_role": "Representative receiving-river identity for the selected Uli approach, lower Prinzapolka and connected Yaoya and Bambana tributary routes.",
+      "completion_scope": "Completed bounded correspondence review of all four mainstem and three tributary fragments against original official cartography. The basin atlas covers the full system, its receiving junctions and coast; the larger-scale Siuna sheet independently resolves the selected Uli passage, Wani junction, start of the named Prinzapolka and Caño Siuna approach. The atlas omits a short farthest tip of the southwestern Bambana feeder and minor detail between its thin-channel depiction and the Siuna sheet edge. These short-scale omissions do not leave a substantial unviewed interval or competing receiving system. No exhaustive feeder naming or surveyed source/transition point is claimed.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Río Prinzapolka",
+        "headward_component": "Selected northern Uli approach; the 2014 atlas prints Ulil and the detailed Siuna sheet prints Río Ulí.",
+        "first_tributary_component": "Caño Siuna approach into lower Yaoya, not the separate northern upper Yaoya.",
+        "second_tributary_component": "Southwestern feeder into Bambana, followed by middle and lower Bambana; the initial feeder is not assigned a separate name.",
+        "terminal_component": "Lower Prinzapolka at its Caribbean coastal mouth setting.",
+        "excluded_inferences": [
+          "Do not rename Uli, Caño Siuna, Yaoya or Bambana uniformly Prinzapolka.",
+          "Do not replace the actual selected tributary approaches with the atlas's more prominently drawn upper Yaoya or northern Bambana routes.",
+          "Do not claim a surveyed source, exact local name-transition point, present-day coastline, or exhaustive fine-channel correspondence.",
+          "No historical naming origin, new official-name acceptance, or Korean display form is established."
+        ],
+        "model_limits": "The 296.755 km mainstem and 544.072 km network figures describe the pinned generalized selection and are not official river lengths. The atlas is 1:1,000,000, so fine headwater details, small bends and short tip omissions are retained as scale limits."
+      }
+    },
+    {
+      "aw_id": "hydro-system:80075320",
+      "category": "river_group",
+      "system_id": "80075320",
+      "baseline_logical_fid": 915,
+      "geometry_fids": [
+        2525
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -112.822917,
+        66.597917,
+        -108.714583,
+        67.416144
+      ],
+      "rendered_mainstem_length_km": 296.68,
+      "rendered_network_length_km": 296.68,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -112.822917,
+          66.597917,
+          -108.714583,
+          67.416144
+        ]
+      },
+      "candidate_name": "Hood River",
+      "candidate_names": [
+        "Hood River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The official map repeatedly labels Hood River across the west-to-east receiving corridor and near the coastal mouth. Small initial lakes and their short connecting channels retain narrower waterbody scope.",
+      "geographic_disambiguation": "The selected western end starts on a short north-to-south lake-and-stream approach south of the separate Tree River country, then turns east through connected lakes and repeatedly labeled Hood River reaches. It stays on Hood past the southern Wright River junction, continues north of the separate Booth River approach, and turns north in the Wilberforce Hills setting. After the lower James River junction it follows Hood to the southern shore of Arctic Sound, west of the inner southern part of Paae Bay. The northern James River and southern Booth River headward courses are not selected tributary fragments.",
+      "source_keys": [
+        "r90-nrcan-hood-river-map"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Kitikmeot, Nunavut, Canada: the Hood River lake country and eastward valley, turning north through the Wilberforce Hills setting to Arctic Sound.",
+      "candidate_name_role": "Representative receiving-river identity from the selected western lake-and-stream approach to the Arctic Sound mouth.",
+      "completion_scope": "Completed bounded correspondence of the single full selected fragment using four original official raster views: whole-extent context and overlapping western, middle and eastern enlargements. Readable watercourses, lakes, repeated river labels, neighboring drainages and the near-mouth setting cover the entire path. Generalized bank and meander shortcuts are not surveyed shoreline claims.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Hood River",
+        "headward_component": "Western connected small-lake and channel approach entering the repeatedly labeled Hood corridor; initial minor feeders are not uniformly named.",
+        "terminal_component": "Lower Hood River to the Arctic Sound near-mouth setting.",
+        "excluded_inferences": [
+          "Do not assign Hood to all individual lakes, or insert unselected Wright, Booth or James headwater courses.",
+          "No exact official source, exhaustive tributary inventory, historical naming origin or present surveyed coastline is established."
+        ],
+        "model_limits": "The 296.680 km modeled mainstem length is not an official river-length measurement. Generalization simplifies lakes, islands, meanders and junctions."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70914193"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 303,
+    "non_pending_records": 292,
+    "source_access_pending": 3,
+    "source_material_pending": 8,
+    "source_any_pending": 11,
+    "scope_holds": 98,
+    "river_groups": 205,
+    "lakes": 98,
+    "unrecorded": 3762,
+    "unrecorded_river_groups": 3250,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r90-fcd-binational-watershed-atlas",
+      "official_url": "https://fcdbelize.org/a-bi-national-watershed-atlas-from-the-maya-mountains-to-the-caribbean-sea/"
+    },
+    {
+      "source_key": "r90-inegi-santiago-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10032.pdf"
+    },
+    {
+      "source_key": "r90-inegi-otaez-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10019.pdf"
+    },
+    {
+      "source_key": "r90-inegi-tamazula-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10034.pdf"
+    },
+    {
+      "source_key": "r90-inegi-cosala-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25005.pdf"
+    },
+    {
+      "source_key": "r90-inegi-culiacan-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25006.pdf"
+    },
+    {
+      "source_key": "r90-ineter-ana-pfafstetter-atlas",
+      "official_url": "https://cira.unan.edu.ni/wp-content/uploads/2016/07/Album-Cuencas-Nic-Revisado_ANA.pdf"
+    },
+    {
+      "source_key": "r90-dma-siuna-3257iii",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/nicaragua/siuna-nicaragua-50k-3257iii-1976.pdf"
+    },
+    {
+      "source_key": "r90-nrcan-hood-river-map",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "b27fc197f800b03fbe446a22293cc9822d617571",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      159,
+      160,
+      161,
+      162
+    ],
+    "next_unrecorded_id": "hydro-system:90060803",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}
