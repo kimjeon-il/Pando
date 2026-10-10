@@ -1,0 +1,396 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "batch": "r42",
+  "reviewed_at_utc": "2026-10-10T02:26:29.271527+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159110041",
+    "lakes_base:1159108693",
+    "lakes_base:1159108673"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Independent original map pixels, complete source and baseline-rendered ring plots, independently registered outlines, wider context, imprints and credits. All 113 ordered positions across three single-ring Polygons were compared with freshly reopened complete source geometry, decoded geometry and exact original inventory/core/detail joins. Each original primary viewport, projected coordinate system and full-precision GPTS/LPTS controls was reopened. Full six-parameter affines retain both cross terms and explicitly apply original MediaBox/CropBox offsets. Eight Northern and 105 West-Central ordered-position registrations were independently recomputed; all six original detail/context pixel arrays and four credit/imprint arrays match fresh PDF renders. Maximum control residuals are below 0.001 PDF point, measuring affine consistency rather than shoreline accuracy. First pixel observations were recorded before comparison with source-research conclusions. All three full-feature correspondence reviews are complete at bounded naming-scope assessment, yielding three holds. The production decoder was not independently replayed by this reviewer.",
+  "prior_distinct_targets": 120,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 123,
+  "duplicate_targets": 0,
+  "counted_unit": "Distinct logical inventory lake target IDs; repeated map labels do not increase the target count.",
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "current_batch_follow_up_required_targets": 3,
+  "current_batch_scope_hold_targets": 3,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803",
+    "lakes_base:1159108469",
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087",
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201",
+    "hydro-system:50738894",
+    "hydro-system:50691388",
+    "hydro-system:50443984",
+    "hydro-system:50442438",
+    "hydro-system:50442579",
+    "hydro-system:50487926",
+    "hydro-system:50503092",
+    "lakes_base:1159111345",
+    "lakes_base:1159107899",
+    "lakes_base:1159108505",
+    "lakes_base:1159106799",
+    "lakes_base:1159107747",
+    "lakes_base:1159109455",
+    "lakes_base:1159109439",
+    "lakes_base:1159109395",
+    "lakes_base:1159112221",
+    "lakes_base:1159112237",
+    "lakes_base:1159109819",
+    "lakes_base:1159109421"
+  ],
+  "new_pending_access_ids": [],
+  "new_scope_hold_ids": [
+    "lakes_base:1159110041",
+    "lakes_base:1159108693",
+    "lakes_base:1159108673"
+  ],
+  "pending_access_reassessment_performed": false,
+  "prior_target_source_or_geometry_reaudit_performed": false,
+  "automatic_application": false,
+  "product_application": false,
+  "scalar_product_name_approvals": 0,
+  "geometry_modified": false,
+  "topology_repaired": false,
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "private_original_packed_decoder_independently_replayed": false,
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159110041",
+      "source_id": "1159110041",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 8,
+      "category": "lake",
+      "baseline_logical_fid": 4086,
+      "geometry_fids": [
+        15461
+      ],
+      "fragment_count": 1,
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "review_status": "unresolved_water_identity_and_extent_scalar_name_hold",
+      "candidate_name_role": "no_named_candidate_established_for_selected_water",
+      "directly_supported_name_forms": [],
+      "source_keys": [],
+      "context_source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Resolve the selected water identity and exact relation to nearby labelled waters before scalar naming.",
+      "supported_name_scope": "No name is established for the complete selected southwestern widening. Its eight-position outline covers only part of mapped water, crosses land at its northern margin and northeastern tip, and omits southern water and a narrow northeastern continuation. Muskrat Dam Lake is labelled on larger water farther northeast; a connection and nearby split Severn and River text do not establish that lake name or a whole-selected lake identity. This is a completed source-scope assessment with scalar naming held; no product name is approved.",
+      "source_observation_id": "lakes_base:1159110041",
+      "limits": [
+        "No name is established for the complete selected southwestern widening. Its eight-position outline covers only part of mapped water, crosses land at its northern margin and northeastern tip, and omits southern water and a narrow northeastern continuation. Muskrat Dam Lake is labelled on larger water farther northeast; a connection and nearby split Severn and River text do not establish that lake name or a whole-selected lake identity.",
+        "Official thematic cartography supports only the stated scope observations and component associations. The underlying hydrographic dataset and formal naming-registry authority are not independently verified.",
+        "No Korean form, additional alias, exact name partition or geometry repair is certified; surrounding labels remain contextual."
+      ],
+      "geographic_disambiguation": "Northern Ontario, Canada, at the small southwestern water widening southwest of the labelled Muskrat Dam Lake body",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "No name is established for the complete selected southwestern widening. Its eight-position outline covers only part of mapped water, crosses land at its northern margin and northeastern tip, and omits southern water and a narrow northeastern continuation. Muskrat Dam Lake is labelled on larger water farther northeast; a connection and nearby split Severn and River text do not establish that lake name or a whole-selected lake identity.",
+        "supported_component_names_exhaustive": false,
+        "unresolved_named_extents": [
+          "Whole selected southwestern widening: selected-water name and exact relation to adjacent named waters are unverified"
+        ],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "no_selected_water_label_established",
+        "local_named_water_association": "unresolved",
+        "whole_selected_single_name": "unresolved_identity_and_extent",
+        "exact_named_extent": "unverified",
+        "basis": "Original Northern Sheet pixels show the complete eight-position outline on the southwestern widening of connected pale-cyan water. Severn and River text is split around this area, while Muskrat Dam Lake is printed over the northeastern larger water beyond a narrow continuation. Windigo labels a tributary farther south. No selected-water lake label is established; none of these contextual names is assigned to the whole ring. Readable hydrography supports an identity/extent scope hold, not material or access pending."
+      },
+      "source_material_pending": false,
+      "complete_geometry_inspection_performed": true,
+      "complete_source_map_coverage_available": true
+    },
+    {
+      "aw_id": "lakes_base:1159108693",
+      "source_id": "1159108693",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 53,
+      "category": "lake",
+      "baseline_logical_fid": 3981,
+      "geometry_fids": [
+        15356
+      ],
+      "fragment_count": 1,
+      "candidate_name": null,
+      "candidate_names": [
+        "Cat Lake",
+        "Kapikik Lake"
+      ],
+      "research_category": "compound_feature_name_scope_hold",
+      "review_status": "multiple_named_waters_scalar_name_hold",
+      "candidate_name_role": "component_name_associations_not_whole_feature_aliases",
+      "directly_supported_name_forms": [
+        "Cat Lake",
+        "Kapikik Lake"
+      ],
+      "source_keys": [
+        "ogs_index_bedrock_west_central_2021"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Resolve the labelled component boundaries and connecting-water scope before any subdivision or scalar naming.",
+      "supported_name_scope": "The complete generalized ring combines selected Cat Lake water, including the long eastern branch, with selected Kapikik Lake water in its southern lobe. Narrow connected reaches are absorbed, the coarse eastern and western margins cross mapped land between bays, the southeastern termination extends onto land, and fine shores and islands are omitted. Exact boundaries between the two labelled waters and the full detailed extent of either lake are unverified. This is a completed source-scope assessment with scalar naming held; no product name is approved.",
+      "source_observation_id": "lakes_base:1159108693",
+      "limits": [
+        "The complete generalized ring combines selected Cat Lake water, including the long eastern branch, with selected Kapikik Lake water in its southern lobe. Narrow connected reaches are absorbed, the coarse eastern and western margins cross mapped land between bays, the southeastern termination extends onto land, and fine shores and islands are omitted. Exact boundaries between the two labelled waters and the full detailed extent of either lake are unverified.",
+        "Official thematic cartography supports only the stated scope observations and component associations. The underlying hydrographic dataset and formal naming-registry authority are not independently verified.",
+        "No Korean form, additional alias, exact name partition or geometry repair is certified; surrounding labels remain contextual."
+      ],
+      "geographic_disambiguation": "Northern Ontario, Canada, in the connected Cat Lake and Kapikik Lake waters south of Whitestone Lake",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Cat Lake",
+          "Kapikik Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": true,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Cat Lake",
+            "scope": "Northern and east-reaching selected portions; exact detailed extent and southern transition unverified"
+          },
+          {
+            "name": "Kapikik Lake",
+            "scope": "Southern selected lobe; exact detailed extent and northern transition unverified"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete generalized ring combines selected Cat Lake water, including the long eastern branch, with selected Kapikik Lake water in its southern lobe. Narrow connected reaches are absorbed, the coarse eastern and western margins cross mapped land between bays, the southeastern termination extends onto land, and fine shores and islands are omitted. Exact boundaries between the two labelled waters and the full detailed extent of either lake are unverified.",
+        "supported_component_names_exhaustive": false,
+        "unresolved_named_extents": [
+          "Exact Cat Lake/Kapikik Lake partition and connecting-water extents are unverified"
+        ],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high_for_bounded_components",
+        "whole_selected_single_name": "unsupported_compound_feature",
+        "exact_named_extent": "unverified",
+        "basis": "Original West-Central pixels and all 53 registered positions show the broad Cat Lake body and eastern branch connected through a narrower southern stretch to the selected lobe carrying Kapikik Lake. The southern named association is substantial. Whitestone Lake farther north and Zionz Lake farther south are contextual. Cat Lake and Kapikik Lake are separate printed water names, not aliases; a single scalar name would conceal the compound scope. Coarse edges cross mapped land and omit fine water features."
+      },
+      "source_material_pending": false,
+      "complete_geometry_inspection_performed": true,
+      "complete_source_map_coverage_available": true
+    },
+    {
+      "aw_id": "lakes_base:1159108673",
+      "source_id": "1159108673",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 52,
+      "category": "lake",
+      "baseline_logical_fid": 3980,
+      "geometry_fids": [
+        15355
+      ],
+      "fragment_count": 1,
+      "candidate_name": null,
+      "candidate_names": [
+        "Zionz Lake",
+        "Fawcett Lake",
+        "Gull Lake"
+      ],
+      "research_category": "compound_feature_name_scope_hold",
+      "review_status": "multiple_named_waters_scalar_name_hold",
+      "candidate_name_role": "component_name_associations_not_whole_feature_aliases",
+      "directly_supported_name_forms": [
+        "Zionz Lake",
+        "Fawcett Lake",
+        "Gull Lake"
+      ],
+      "source_keys": [
+        "ogs_index_bedrock_west_central_2021"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Resolve the labelled component boundaries and connecting-water scope before any subdivision or scalar naming.",
+      "supported_name_scope": "The complete generalized ring spans selected Zionz Lake water in the northern lobe, Fawcett Lake water in the east-central lobe, and only part of the western/southern Gull Lake area. The western triangular tips and broad straight margins cross mapped land; connecting reaches are absorbed and southeastern water is omitted. This is not the whole detailed extent of any of the three named lakes. Exact partitions, connecting-water names and exhaustiveness are unverified. This is a completed source-scope assessment with scalar naming held; no product name is approved.",
+      "source_observation_id": "lakes_base:1159108673",
+      "limits": [
+        "The complete generalized ring spans selected Zionz Lake water in the northern lobe, Fawcett Lake water in the east-central lobe, and only part of the western/southern Gull Lake area. The western triangular tips and broad straight margins cross mapped land; connecting reaches are absorbed and southeastern water is omitted. This is not the whole detailed extent of any of the three named lakes. Exact partitions, connecting-water names and exhaustiveness are unverified.",
+        "Official thematic cartography supports only the stated scope observations and component associations. The underlying hydrographic dataset and formal naming-registry authority are not independently verified.",
+        "No Korean form, additional alias, exact name partition or geometry repair is certified; surrounding labels remain contextual."
+      ],
+      "geographic_disambiguation": "Northern Ontario, Canada, in Zionz Lake, Fawcett Lake and selected western Gull-area waters north of the Cat River continuation",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Zionz Lake",
+          "Fawcett Lake",
+          "Gull Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": true,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Zionz Lake",
+            "scope": "Northern selected lobe; exact detailed extent unverified"
+          },
+          {
+            "name": "Fawcett Lake",
+            "scope": "East-central selected lobe; exact detailed extent unverified"
+          },
+          {
+            "name": "Gull Lake",
+            "scope": "Partial western/southern selected-water association only; entire named lake not included or verified"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete generalized ring spans selected Zionz Lake water in the northern lobe, Fawcett Lake water in the east-central lobe, and only part of the western/southern Gull Lake area. The western triangular tips and broad straight margins cross mapped land; connecting reaches are absorbed and southeastern water is omitted. This is not the whole detailed extent of any of the three named lakes. Exact partitions, connecting-water names and exhaustiveness are unverified.",
+        "supported_component_names_exhaustive": false,
+        "unresolved_named_extents": [
+          "Exact Zionz/Fawcett/Gull partitions, partial Gull extent and connecting-water identities are unverified"
+        ],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high_for_bounded_components",
+        "whole_selected_single_name": "unsupported_compound_feature",
+        "exact_named_extent": "unverified",
+        "basis": "Original West-Central pixels and all 52 registered positions show Zionz Lake in the northern lobe and Fawcett Lake beside the east-central lobe. Western and southern selected portions overlap only part of water associated with Gull Lake; no whole-Gull inclusion is asserted. Narrow reaches connect these areas, and coarse westward tips overshoot mapped water onto land. Kapikik Lake to the north and Cat River/Bamaji Lake farther southeast are contextual. The three printed lake names are component associations, not aliases or exact geometric partitions."
+      },
+      "source_material_pending": false,
+      "complete_geometry_inspection_performed": true,
+      "complete_source_map_coverage_available": true
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-10T02:26:29.271527+00:00",
+    "available_source_inspection_completed": true,
+    "full_feature_correspondence_review_completed": true,
+    "original_source_material_included": false,
+    "full_selected_geometry_included": false,
+    "historical_results_recomputed_by_public_validator": false,
+    "full_feature_correspondence_review_completed_count": 3,
+    "source_material_pending_count": 0
+  },
+  "included_evidence_limit": "Public factual observations and bibliography are consolidated in source-observations.json. Checks validate included records, bounded geometry summaries, arithmetic and included-file integrity. Omitted original PDFs, map pixels, complete polygons, registration and visual judgments are not replayed.",
+  "independent_source_comparison_completed": true,
+  "current_batch_source_material_pending_targets": 0,
+  "new_pending_material_ids": [],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285"
+  ]
+}
