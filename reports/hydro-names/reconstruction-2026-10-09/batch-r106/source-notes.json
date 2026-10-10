@@ -1,0 +1,539 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r106",
+  "sources": [
+    {
+      "source_key": "r106-nrcan-cbmt-olomane",
+      "title": "Canada Base Map – Transportation (CBMT3978): Olomane river corridor and neighboring waterways",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Connected initial feeder and lake passage, repeated Olomane labels, whole mainstem correspondence, Olomane Ouest/Wabouchagamou separation, neighboring-lake disambiguation, and coastal termination.",
+      "limits": "Independent cartographic service, not a CGN/geogratis geographical-name record, stopped Québec report or equivalent recovery. Composite scale-dependent cartography does not establish formal naming dates, exact name limits, current shorelines, active channel positions or a surveyed source/mouth. Exact export parameters and map pixels remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r106-hudon-olomane2016",
+      "title": "Rivière Olomane, édition 2016",
+      "publisher": "Christian Hudon; Cartes Plein Air, with revisions acknowledged to Charles Leduc and Louis Pelletier",
+      "supports": "Independent first-hand Olomane route identification, Penipatauakat component, terminal setting at Unamen Shipu/La Romaine, distinction from Rivière Romaine, and the fact that the optional Fonteneau approach crosses a basin divide by portage.",
+      "limits": "Volunteer 2016 expedition cartography over attributed Canadian topographic sheets; not independent modern hydrography or present navigation advice. Its distribution notice permits free distribution with content preserved; no source map, page, crop, quotation or derivative is included in the public finding. Present route safety, prices, timetables and access conditions are outside scope.",
+      "official_url": "https://assets.cartespleinair.org/maps/riviere-olomane-christian-hudon-2016-f2034260c29a.pdf"
+    },
+    {
+      "source_key": "r106-nrcan-cbmt-kellett",
+      "title": "Canada Base Map – Transportation (CBMT3978): upper Kellett, Cameron Lake and southern Pelly Bay surroundings",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Complete bounded geographic coverage, visible Kellett River and Cameron Lake labels, opening feeder connection, river junctions, neighboring lake settings, separate Arrowsmith mouth and generalized coastal termination.",
+      "limits": "Live undated composite cartography from CanVec; feature-specific survey dates, current channels and precise shorelines were not established. Exact export parameters, source imagery and selection overlays stay private. Service metadata identifies the Open Government Licence – Canada and Crown attribution; no restricted-publication recovery was attempted.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r106-nluis-walker-56j",
+      "title": "Northern Land Use Information Series, Walker Lake, 56 J",
+      "publisher": "Environment Canada, Lands Directorate; thematic cartography by Agriculture Canada; printed by Energy, Mines and Resources Canada",
+      "year": 1983,
+      "page": "Single sheet, scale 1:250,000; NTS 56 J base, Edition 1.",
+      "supports": "Initial eastern feeder connection to the north–south Kellett lake chain, upstream side branches and the upper Kellett label.",
+      "limits": "Historical topographic base and interim thematic information. Wildlife and land-use overlays were distinguished from hydrography and not used as present-day evidence. Copyright is printed; no source image or crop is republished.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56j.jpg"
+    },
+    {
+      "source_key": "r106-nluis-arrowsmith-56o",
+      "title": "Northern Land Use Information Series, Arrowsmith River, 56 O",
+      "publisher": "Environment Canada, Lands Directorate; thematic cartography by Agriculture Canada; printed by Energy, Mines and Resources Canada",
+      "year": 1983,
+      "page": "Single sheet, scale 1:250,000; NTS 56 O base, Edition 1.",
+      "supports": "Middle Kellett geography along the eastern sheet edge, and separation from the Arrowsmith River–Frost Lake system to the west.",
+      "limits": "The eastern border clips portions of the selected corridor; adjoining Ellice Hills and live-map views supply those intervals. The sheet title Arrowsmith River is not treated as the selected river’s identity.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56o.jpg"
+    },
+    {
+      "source_key": "r106-nluis-ellice-56p",
+      "title": "Northern Land Use Information Series, Ellice Hills, 56 P",
+      "publisher": "Environment Canada, Lands Directorate; thematic cartography by Agriculture Canada; printed by Energy, Mines and Resources Canada",
+      "year": 1983,
+      "page": "Single sheet, scale 1:250,000; NTS 56 P base, Edition 1 (1980).",
+      "supports": "Adjoining middle Kellett route, the separate Atorquait River and Avalikuarjuk approach, and their distinction from eastward Committee Bay drainage.",
+      "limits": "Historical cartography and thematic overlays; exact river threads and current conditions are not asserted. The 1980 date belongs to the base-map edition and 1983 to thematic production.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56p.jpg"
+    },
+    {
+      "source_key": "r106-nluis-pelly-57a",
+      "title": "Northern Land Use Information Series, Pelly Bay, 57 A",
+      "publisher": "Environment Canada, Lands Directorate; thematic cartography by Agriculture Canada; printed by Energy, Mines and Resources Canada",
+      "year": 1983,
+      "page": "Single sheet, scale 1:250,000; NTS 57 A base, Edition 1.",
+      "supports": "Northern sheet overlap, broad lake setting now labelled Cameron on the live map, Avalikuarjuk junction, Kellett lower route and Pelly Bay, with separate Arrowsmith and Barrow Lake settings.",
+      "limits": "Historical map; not the stopped Nunavut Coastal Resource Inventory or Nunavut Atlas Ogden Bay figure. It does not establish the current official status or exact modern position of names and shores.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_57a.jpg"
+    },
+    {
+      "source_key": "r106-kellett-field-journal-2018",
+      "title": "The Kellett River to the Arctic Ocean: Paddling in the land of the Netsilik",
+      "publisher": "Trip participant writing as crush59 on The Kellett River",
+      "year": 2018,
+      "supports": "Supplemental firsthand geographic description of Kellett travel, Atorquait confluence, Cameron Lake, Avalikuarjuk and Pelly Bay.",
+      "limits": "No map or photograph from this account was downloaded or used. Its modern use of a river name is not formal naming evidence. Historical commentary, opinions, travel logistics and current safety advice are outside this finding.",
+      "official_url": "https://kellettriver.home.blog/2018/12/31/kellett-river/"
+    },
+    {
+      "source_key": "r106-nrcan-cbmt-eagle",
+      "title": "Canada Base Map – Transportation (CBMT3978), southeastern Labrador Eagle River corridor",
+      "publisher": "Natural Resources Canada",
+      "supports": "Actual Crooks Lake approach, connected western lake chain, southern lake turn, explicitly labeled northern Eagle River branch, common junction, downstream valley and terminal distinction from White Bear and Paradise rivers.",
+      "limits": "Scale-dependent generalized cartography; not an official gazetteer decision, a present-day water-level survey or an exact name-boundary determination. The ordinary service URL is public bibliography; private rendering URLs, source images and local orientations are omitted from public deliverables.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r106-dfo-anderson-eagle-1985",
+      "title": "The Rivers of Labrador, Canadian Special Publication of Fisheries and Aquatic Sciences 81",
+      "authors": "T. C. Anderson",
+      "publisher": "Department of Fisheries and Oceans, Ottawa",
+      "year": 1985,
+      "page": "Eagle River chapter, printed pp. 133–135; Figure 43 on printed p. 134; explanation of figures on printed p. viii.",
+      "supports": "Primary Eagle system identity, western Crooks Lake and lake/steadies drainage, differentiated northern tributaries, northeast downstream corridor, Owl Brook context, and discharge to Sandwich Bay beside Separation Point.",
+      "limits": "Historical generalized fisheries cartography and prose. Its historical stream numbering, source lengths, accessibility assessments and lake names are not mechanically transferred to the modeled features or treated as current operational/biological conditions.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    },
+    {
+      "source_key": "r106-nrcan-cbmt-kaleet-bromley",
+      "title": "Canada Base Map – Transportation (CBMT3978): Ian Calder–Bromley, Montresor, Kaleet and Sherman Basin surroundings",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "All selected geographic intervals; direct Kaleet and Montresor labels; Bromley and Ian Calder lake settings; distinct neighboring McNaughton; Sherman Basin and Trefoil Bay; source-visible limits of the two unestablished connections.",
+      "limits": "Independent public cartography, distinct from excluded Canadian naming records, Gjoa Haven coastal inventory, PCSP2014 and all stopped publications. No source vector geometry fetched. Readable area coverage does not establish the uncertain cross-connection or terminal branch, flow direction, legal hydronym boundaries or surveyed endpoints. Exact export requests and source pixels remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r106-eccc-ahiak2019",
+      "title": "Ahiak (Queen Maud Gulf) Migratory Bird Sanctuary Management Plan, 2019",
+      "publisher": "Environment and Climate Change Canada, Canadian Wildlife Service",
+      "supports": "Regional northbound river/lake-chain setting and the inclusion of Kaleet among sanctuary rivers.",
+      "limits": "Prose corroboration only, not full route proof. Its legal-description discussion is not adopted as current law or a naming adjudication. The publication restricts commercial reproduction without permission; no pages, images, extracts or derivative maps are republished. Distinct management publication, not the excluded Gjoa Haven inventory or CGN naming records.",
+      "official_url": "https://publications.gc.ca/collections/collection_2020/eccc/CW66-592-2019-eng.pdf"
+    },
+    {
+      "source_key": "r106-alisauskas-boyd1994",
+      "title": "Previously Unrecorded Colonies of Ross’ and Lesser Snow Geese in the Queen Maud Gulf Bird Sanctuary, Arctic47(1), 1994, pp.69–73",
+      "authors": "Ray T. Alisauskas and Hugh Boyd",
+      "publisher": "Arctic Institute of North America",
+      "supports": "Independent broad position of Kaleet River along the sanctuary’s eastern margin toward Sherman Basin, distinct from McNaughton and other western rivers.",
+      "limits": "Small-scale historical field-study cartography. Does not establish the selected southern hook or actual terminal branch, current legal naming or current channels. No source figure is reproduced.",
+      "official_url": "https://pubs.aina.ucalgary.ca/arctic/Arctic47-1-69.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70246192",
+      "source_keys": [
+        "r106-nrcan-cbmt-olomane",
+        "r106-hudon-olomane2016"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9330
+          ],
+          "component_scope": "Initial eastern feeder and Bastille lake setting",
+          "finding": "The selected opening lies in the small stream-and-lake network east of the southern Bastille setting. The upper original resolves its westward connection through the eastern lake arm into the southern Bastille waterbody/outlet setting, followed by the southward valley. The generalized line crosses lake interiors and does not imply a surveyed channel there. The initial short feeder is not separately named in this finding, and Lac Bastille is not propagated as the name of the river group.",
+          "sources": [
+            "r106-nrcan-cbmt-olomane"
+          ]
+        },
+        {
+          "fragments": [
+            9330
+          ],
+          "component_scope": "Upper lake chain and southeastward Olomane",
+          "finding": "The path continues south through the elongated upper lake-and-river corridor, including the Penipatauakat setting, then turns southeast and east through a widened, islanded river valley. Repeated Olomane labels on the original federal map follow this route. The separately mapped lakes to the east and southwest remain neighboring components rather than substituted mainstem passages. The 2016 canoe map independently identifies Penipatauakat on the Olomane route.",
+          "sources": [
+            "r106-nrcan-cbmt-olomane",
+            "r106-hudon-olomane2016"
+          ]
+        },
+        {
+          "fragments": [
+            9330
+          ],
+          "component_scope": "Upper bend and middle north-south valley",
+          "finding": "Below the eastward upper reach, the selection follows the south-turning Olomane valley, passing west of Lac Philpot and Lac Lorens. It continues through the long, meandering middle corridor west of Lac Montcevelles. The original shows the actual valley connections, successive wider and narrow reaches, and the separate eastern lake drainage; basin membership alone is not used to infer a connection.",
+          "sources": [
+            "r106-nrcan-cbmt-olomane"
+          ]
+        },
+        {
+          "fragments": [
+            9330
+          ],
+          "component_scope": "Olomane Ouest joining setting and lower part of first feature",
+          "finding": "Rivière Olomane Ouest is a separately labeled western arm approaching the selected trunk in the middle valley. The modeled mainstem continues from the northern Olomane corridor rather than taking that western arm. Farther downstream it follows the angular eastward and southeastward valley turn, remaining east of Lac Goyelle toward the model-stage junction.",
+          "sources": [
+            "r106-nrcan-cbmt-olomane"
+          ]
+        },
+        {
+          "fragments": [
+            9330,
+            9331
+          ],
+          "component_scope": "Mainstem feature junction",
+          "finding": "The end of 9330 and beginning of 9331 lie in the same connected Olomane corridor east of the Goyelle lake setting. Original middle and lower views overlap across this joining setting and show the uninterrupted downstream river continuation and nearby feeder entries. The model feature break is not treated as a change of hydronym, a newly named river or an independently surveyed confluence position.",
+          "sources": [
+            "r106-nrcan-cbmt-olomane"
+          ]
+        },
+        {
+          "fragments": [
+            9331
+          ],
+          "component_scope": "Lower inland valley and surrounding lake systems",
+          "finding": "The second feature runs generally south through the elongated Olomane valley. Lac Goyelle, Lac Cauchy and the Washicoutai waterway lie separately to the west, while several large lake axes lie to the east. The selected line stays in the river corridor instead of traversing those adjacent lake axes. Original pixels resolve the whole intervening channel sequence.",
+          "sources": [
+            "r106-nrcan-cbmt-olomane"
+          ]
+        },
+        {
+          "fragments": [
+            9331
+          ],
+          "component_scope": "Wabouchagamou junction and large lower bend",
+          "finding": "The river then turns southeast and east, receives the separately labeled Rivière Wabouchagamou from the eastern lake corridor, and turns south before bending west and southwest. The selected feature follows the downstream Olomane turn rather than the Wabouchagamou approach. The original also distinguishes the western D’Aune/Grenolle lake-and-stream contribution below that bend.",
+          "sources": [
+            "r106-nrcan-cbmt-olomane"
+          ]
+        },
+        {
+          "fragments": [
+            9331
+          ],
+          "component_scope": "Lower terminal and receiving coast",
+          "finding": "The selected final portion continues southwest and then south in the lower Olomane valley, reaching the river mouth approach by La Romaine/Unamen Shipu. The original lower view shows the continuing coastal opening and labels the Gulf of St. Lawrence. The retained endpoint is not asserted to be a surveyed river-mouth boundary or extended into open gulf waters. The canoe source independently places Olomane at Unamen Shipu and its terminal sheet depicts the community and river opening.",
+          "sources": [
+            "r106-nrcan-cbmt-olomane",
+            "r106-hudon-olomane2016"
+          ]
+        },
+        {
+          "fragments": [
+            9330,
+            9331
+          ],
+          "component_scope": "Complete representative-system decision",
+          "finding": "Both selected mainstem features belong to the connected Olomane system and all material selected components and connectors are accounted for. The early feeder and lake crossings retain their bounded component roles; no claim is made that every point carries the same formal hydronym. Ordinary map generalization and unassigned fine-scale name boundaries do not create a missing river branch or connector.",
+          "sources": [
+            "r106-nrcan-cbmt-olomane",
+            "r106-hudon-olomane2016"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80058006",
+      "source_keys": [
+        "r106-nrcan-cbmt-kellett",
+        "r106-nluis-walker-56j",
+        "r106-nluis-arrowsmith-56o",
+        "r106-nluis-ellice-56p",
+        "r106-nluis-pelly-57a",
+        "r106-kellett-field-journal-2018"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Opening unnamed lake and feeder connection",
+          "finding": "The selected opening lies in a small eastern lake-and-stream complex beside the long north–south upper Kellett lake chain. The detailed federal view shows that this eastern complex connects westward by a winding stream and intervening small pools to the western chain. The Walker Lake original independently shows that connected drainage at the southern end of the chain. The modeled westward corner is a shortcut across this local setting, not the actual stream bend. No separate hydronym is assigned to the opening twig or its small lakes.",
+          "sources": [
+            "r106-nrcan-cbmt-kellett",
+            "r106-nluis-walker-56j"
+          ]
+        },
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Upper north–south lake chain",
+          "finding": "The route proceeds north through the long, irregular linked-waterbody corridor labelled Kellett River, with short narrows, side streams, pools and mapped rapid symbols. The chosen western approach is separable from the parallel lake-and-stream country farther east. Larger lakes and tributary arms beside the route are not all selected transits. The source correspondence concerns the connected upper Kellett component, not a claim that every modeled segment is exposed river.",
+          "sources": [
+            "r106-nrcan-cbmt-kellett",
+            "r106-nluis-walker-56j"
+          ]
+        },
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Northern upper junction and northeast turn",
+          "finding": "The upper route reaches a larger joining setting near the northern edge of the Walker Lake sheet, then turns northeast along the Kellett corridor. Side approaches from the west and east are visible, including the eastern lake-fed branch. The selected line follows the western headward approach and downstream trunk; it does not establish a different name for each branch on which the live basemap repeats Kellett labels.",
+          "sources": [
+            "r106-nrcan-cbmt-kellett",
+            "r106-nluis-walker-56j",
+            "r106-nluis-arrowsmith-56o",
+            "r106-nluis-ellice-56p"
+          ]
+        },
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Middle bends and widening river",
+          "finding": "The corridor continues generally north, with a broad easterly bulge followed by a westward bend and another northward reach. Original maps distinguish the connected Kellett course, its local side tributaries and wetland-adjacent pools from neighboring parallel valleys. The middle course widens into several bar- and island-rich stretches before turning northeast. These are source-observed river settings rather than precise centerline assignments.",
+          "sources": [
+            "r106-nrcan-cbmt-kellett",
+            "r106-nluis-arrowsmith-56o",
+            "r106-nluis-ellice-56p"
+          ]
+        },
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Separation from Arrowsmith and Frost Lake",
+          "finding": "The Arrowsmith River sheet identifies a separate western river and Frost Lake system. The selected middle Kellett occupies the eastern part of that sheet and the adjoining western edge of Ellice Hills. It does not follow the Arrowsmith course or traverse Frost Lake. This distinction also holds at the coast, where Arrowsmith has its own outlet west of the selected Kellett terminal region.",
+          "sources": [
+            "r106-nluis-arrowsmith-56o",
+            "r106-nluis-ellice-56p",
+            "r106-nluis-pelly-57a",
+            "r106-nrcan-cbmt-kellett"
+          ]
+        },
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Atorquait approach and Cameron Lake entry",
+          "finding": "The northern middle Kellett broadens into a braided and bar-rich setting and bends east toward Cameron Lake. A substantial separate southern river approach joins this corridor; the Ellice Hills original labels it Atorquait River and carries it across the shared sheet boundary. The selected route takes the western Kellett approach and downstream lake corridor, not the upstream Atorquait branch.",
+          "sources": [
+            "r106-nrcan-cbmt-kellett",
+            "r106-nluis-ellice-56p",
+            "r106-nluis-pelly-57a"
+          ]
+        },
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Cameron Lake and Avalikuarjuk junction",
+          "finding": "The federal live map explicitly labels Cameron Lake on the north-trending enlargement at the eastern side of the selected bend. The route passes through that lake setting and reaches the narrower outlet before turning northwest. The Pelly Bay original shows the matching enlargement and the distinct Avalikuarjuk tributary meeting the Kellett beside the northern outlet setting. Iqalutsiarvik and other nearby lakes remain adjacent components rather than whole-system aliases.",
+          "sources": [
+            "r106-nrcan-cbmt-kellett",
+            "r106-nluis-pelly-57a"
+          ]
+        },
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Lower northwest corridor",
+          "finding": "Below Cameron Lake the connected Kellett course proceeds northwest through a confined, locally widening valley, passing south of the Barrow Lake/Parke Hills region and receiving shorter tributaries. The original Pelly Bay sheet repeatedly labels this lower watercourse Kellett River and keeps the Barrow Lake drainage separate. The live view also distinguishes the neighboring Naliuq, Isuqtuarjuk and Imiq lake surroundings.",
+          "sources": [
+            "r106-nrcan-cbmt-kellett",
+            "r106-nluis-pelly-57a"
+          ]
+        },
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Coastal outlet and actual modeled terminal setting",
+          "finding": "The cartographic Kellett reaches the eastern side of southern Pelly Bay through a sinuous lower reach and a broad depositional mouth setting. Arrowsmith enters separately from the west near De Stael Point; Kugaaruk and the Barrow Lake drainage lie farther northeast. The selected final line simplifies the lower bend and extends toward adjoining bay shore north of the mapped Kellett mouth, beside the Isuqtuq Lake surroundings. Its endpoint is therefore treated as a generalized coastal setting, not as a surveyed river-mouth point, an Isuqtuq outlet claim, a distinct coastal tributary or proof of a direct channel along the final straight segment.",
+          "sources": [
+            "r106-nrcan-cbmt-kellett",
+            "r106-nluis-pelly-57a"
+          ]
+        },
+        {
+          "fragments": [
+            2500
+          ],
+          "component_scope": "Independent field-account context",
+          "finding": "A participant’s 2018 Kellett trip account describes the southern small-lake/creek headward sequence, the Atorquait confluence, Cameron Lake, Avalikuarjuk joining setting and arrival at Pelly Bay. This firsthand prose is corroborative context only. It is not substituted for the acquired federal map correspondence or used for current travel safety, water levels, official naming status or the unpaddled opening segment.",
+          "sources": [
+            "r106-kellett-field-journal-2018"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70130187",
+      "source_keys": [
+        "r106-nrcan-cbmt-eagle",
+        "r106-dfo-anderson-eagle-1985"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9194
+          ],
+          "role": "mainstem",
+          "component_scope": "Actual northwestern headward hook and Crooks Lake passage",
+          "finding": "The selected start lies in the small stream-and-pond corridor north of Crooks Lake. Federal cartography shows its southward approach, the intervening waterway and lake connections, and the long north–south Crooks Lake passage. The route exits the southern lake end and turns east into the lower lake-and-stream country. Nearby hill drainage and northern waterways remain distinct.",
+          "sources": [
+            "r106-nrcan-cbmt-eagle"
+          ],
+          "limits": "No claim that the first selected point is the official source, and no standalone hydronym is assigned to every small initial reach."
+        },
+        {
+          "fragments": [
+            9194
+          ],
+          "role": "mainstem",
+          "component_scope": "Eastward western lake chain and southern turn",
+          "finding": "East of Crooks Lake, the selected course follows the connected lowland waterways and broad lake passages across the western plateau, then bends southeast into the large southern waterbody labeled Nekanakau on the federal map. It turns northeast from that lake into the widening channel and steadies leading toward the joining setting. The historical DFO map independently places Crooks Lake and the western lake complex within the Eagle drainage.",
+          "sources": [
+            "r106-nrcan-cbmt-eagle",
+            "r106-dfo-anderson-eagle-1985"
+          ],
+          "limits": "The lake labels are not aliases for every connecting stream. No formal crosswalk between all historical lake labels and the present map is asserted; that is unnecessary for this connected corridor identity."
+        },
+        {
+          "fragments": [
+            9196
+          ],
+          "role": "tributary",
+          "component_scope": "Complete selected northern joining branch",
+          "finding": "The short selected branch begins on the mapped northern waterway explicitly labeled Eagle River, southeast of the broader Parke Lake surroundings. Its southeastward lake-and-channel course and later eastward bend connect directly to the selected common junction. This is a distinct northern approach from the longer Crooks Lake route chosen as the modeled mainstem.",
+          "sources": [
+            "r106-nrcan-cbmt-eagle"
+          ],
+          "limits": "The modeled tributary role is not a naming hierarchy. The map label is supported for this northern corridor without extending it to all southwestern lake passages."
+        },
+        {
+          "fragments": [
+            9194,
+            9195,
+            9196
+          ],
+          "role": "junction",
+          "component_scope": "Three-feature junction and downstream continuation",
+          "finding": "Federal mapping shows the southwestern lake outlet and northern Eagle branch meeting in the same broad joining-waterway setting, with the connected continuation departing northeast. Both original federal views overlap here. The DFO system map corroborates the western lake complex, a separate large northern tributary system and the single downstream Eagle trunk.",
+          "sources": [
+            "r106-nrcan-cbmt-eagle",
+            "r106-dfo-anderson-eagle-1985"
+          ],
+          "limits": "No exact formal naming-transition vertex is inferred. DFO tributary numbering is not substituted for names or assumed to be identical to the model feature classification."
+        },
+        {
+          "fragments": [
+            9195
+          ],
+          "role": "mainstem",
+          "component_scope": "Middle and lower northeast valley",
+          "finding": "From the joining setting, the selected course follows the mapped east-northeast reach, its northward bend, the intervening valley turns and the long northeastern continuation through the rolling lower terrain. Successive tributary mouths, rapids and widened channel sections supply continuous corridor context. DFO Figure 43 and its accompanying description independently identify this connected downstream corridor as Eagle River and distinguish Owl Brook as a tributary.",
+          "sources": [
+            "r106-nrcan-cbmt-eagle",
+            "r106-dfo-anderson-eagle-1985"
+          ],
+          "limits": "Historical fish-barrier observations and quoted source lengths are not treated as present-day conditions or transferred to the modeled length."
+        },
+        {
+          "fragments": [
+            9195
+          ],
+          "role": "mainstem",
+          "component_scope": "Lower inlet and Sandwich Bay terminal",
+          "finding": "The selected final northward reach enters the broad lower river/inlet adjoining Sandwich Bay, immediately beside the Separation Point setting. The federal map distinguishes the separate White Bear River outlet to the west and Paradise River farther east; the selected route does not switch into either. Anderson’s primary account explicitly places Eagle River’s discharge at Sandwich Bay near Separation Point.",
+          "sources": [
+            "r106-nrcan-cbmt-eagle",
+            "r106-dfo-anderson-eagle-1985"
+          ],
+          "limits": "The generalized final segment extends within the estuarine receiving-water setting. It is not used to fix the legal or hydrographic river-mouth boundary, and normal shoreline/channel generalization is not a material connector gap."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80072439",
+      "source_keys": [
+        "r106-nrcan-cbmt-kaleet-bromley",
+        "r106-eccc-ahiak2019",
+        "r106-alisauskas-boyd1994"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2524
+          ],
+          "component_scope": "Initial southern lake chain",
+          "finding": "The opening lies among elongated lakes and narrow connecting channels south of Ian Calder Lake. Original southern pixels locate the sequence and its northward approach to that larger lake complex. Individual small lakes and the feeder have no hydronym assigned here; the modeled starting vertex is not adopted as an official source.",
+          "sources": [
+            "r106-nrcan-cbmt-kaleet-bromley"
+          ]
+        },
+        {
+          "fragments": [
+            2524
+          ],
+          "component_scope": "Ian Calder southwestern lake passage and Montresor hook",
+          "finding": "The original map labels Ian Calder Lake east of the northern part of the southern hook. The selected route traverses its southwestern water complex and turns into a channel repeatedly labeled Montresor River, then proceeds south toward Bromley Lake. The eastward Montresor branch and the larger eastern lake waters are distinct surrounding components; no exact naming transition is claimed.",
+          "sources": [
+            "r106-nrcan-cbmt-kaleet-bromley"
+          ]
+        },
+        {
+          "fragments": [
+            2524
+          ],
+          "component_scope": "Bromley Lake passage",
+          "finding": "The selected westbound segment crosses the mapped, explicitly labeled Bromley Lake. Its western shore has small-water and stream approaches. The lake name is retained as a component name, not a river-system alias.",
+          "sources": [
+            "r106-nrcan-cbmt-kaleet-bromley"
+          ]
+        },
+        {
+          "fragments": [
+            2524
+          ],
+          "component_scope": "Unestablished western connection to Kaleet",
+          "finding": "The detailed source distinguishes the smaller lakes west of Bromley from the elongated Kaleet widening farther west. The selected connecting passage crosses intervening mapped land and ridge intervals for which no continuous waterway is established. Nearby streams and wetland symbols do not by themselves prove the required link. This is a substantive connection gap, independent of the straightness of a modeled lake crossing.",
+          "sources": [
+            "r106-nrcan-cbmt-kaleet-bromley"
+          ]
+        },
+        {
+          "fragments": [
+            2524
+          ],
+          "component_scope": "Western and middle Kaleet trunk",
+          "finding": "Beyond the western connection, successive elongated widenings, narrower channels, wetland margins and the northeastward middle valley are directly and repeatedly labeled Kaleet River. The generalized selected corridor follows that sequence. Separate incoming streams remain unnamed, and the separately labeled McNaughton River to the west is not substituted for this trunk.",
+          "sources": [
+            "r106-nrcan-cbmt-kaleet-bromley"
+          ]
+        },
+        {
+          "fragments": [
+            2524
+          ],
+          "component_scope": "Northern Kaleet junctions and lower valley",
+          "finding": "The selection continues along the northern Kaleet corridor through broader lake-like reaches and the lower meandering valley. Original pixels distinguish the adjacent eastern streams and their junctions. Minor bend and bank offsets are not treated as naming or connection failures.",
+          "sources": [
+            "r106-nrcan-cbmt-kaleet-bromley"
+          ]
+        },
+        {
+          "fragments": [
+            2524
+          ],
+          "component_scope": "Terminal branch and Sherman Basin",
+          "finding": "The source prints Kaleet River on the broad lower channel and Sherman Basin on the receiving coastal waters, with Trefoil Bay farther northeast. The selected terminal continues toward the southwestern basin shore across land separating it from the mapped northeastward river bend. The receiving-water setting is established, but a real channel corresponding to that selected terminal continuation is not.",
+          "sources": [
+            "r106-nrcan-cbmt-kaleet-bromley"
+          ]
+        },
+        {
+          "fragments": [
+            2524
+          ],
+          "component_scope": "Independent regional context",
+          "finding": "The retained original Arctic field-study map independently places Kaleet along the eastern sanctuary margin toward Sherman Basin and separates the McNaughton, Simpson and Perry rivers farther west. ECCC hydrology prose describes the regional northbound rivers, lake chains and lower alluvial reaches. Neither regional source resolves the selected southern cross-connection or terminal branch.",
+          "sources": [
+            "r106-alisauskas-boyd1994",
+            "r106-eccc-ahiak2019"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
