@@ -23,9 +23,35 @@ test('codec rejects truncation, wrong version, corrupt offsets and excess record
   assert.throws(() => encodePlaceTile(Array(PLACE_LIMITS.tileRecords + 1).fill(raw)));
 });
 
-test('v2 encoder rejects names exceeding the decoder string bound', () => {
+test('v3 encoder rejects names exceeding the decoder string bound', () => {
   const timeline = Array.from({ length: 16 }, (_, index) => ({
     fromYear: 1801 + index, ko: '가'.repeat(256), en: 'A'.repeat(256), native: 'Б'.repeat(256),
   }));
   assert.throws(() => encodePlaceTile([{ ...raw, nameTimeline: timeline }]), /string byte budget/);
+});
+
+
+test('PLAC v3 round-trips native extras and dated three-name transitions', () => {
+  const input = { ...raw, name: '니코시아', nameEn: 'Nicosia',
+    nameNative: 'Λευκωσία', nameNativeExtras: ['Lefkoşa'],
+    nameTimeline: [
+      { fromYear: 1801, ko: '레프코샤', native: 'لفقوشه' },
+      { fromDate: '1878-07-05', native: 'لفقوشه', nativeExtras: ['Nicosia', 'Λευκωσία'] },
+      { fromDate: '1914-11-05', native: 'Nicosia', nativeExtras: ['Λευκωσία', 'لفقوشه'] },
+      { fromYear: 1930, native: 'Nicosia', nativeExtras: ['Λευκωσία', 'Lefkoşa'] },
+      { fromDate: '1960-08-16', native: 'Λευκωσία', nativeExtras: ['Lefkoşa'] },
+    ] };
+  const bytes = encodePlaceTile([input]), header = new DataView(bytes);
+  assert.equal(header.getUint16(4, true), 3);
+  assert.equal(header.getUint16(6, true), 72);
+  assert.deepEqual(decodePlaceTile(bytes), [normalizePlace(input)]);
+  assert.ok(Object.isFrozen(normalizePlace(input).nameNativeExtras));
+  assert.ok(Object.isFrozen(normalizePlace(input).nameTimeline[1].nativeExtras));
+  for (const [fieldIndex, textValue] of [[7, '{bad'], [8, '{bad']]) {
+    const malformed = bytes.slice(0), view = new DataView(malformed);
+    const poolStart = 32 + 72, poolOff = view.getUint32(32 + 36 + fieldIndex * 4, true);
+    const offset = poolStart + poolOff + 4;
+    new Uint8Array(malformed)[offset] = textValue.charCodeAt(0);
+    if (fieldIndex === 7 || fieldIndex === 8) assert.throws(() => decodePlaceTile(malformed));
+  }
 });
