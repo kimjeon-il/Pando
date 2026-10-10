@@ -1,0 +1,653 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r115",
+  "sources": [
+    {
+      "source_key": "r115-ign-plan",
+      "title": "Plan IGN, layer GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2, Géoplateforme WMS-Raster",
+      "publisher": "Institut national de l'information géographique et forestière (IGN), France",
+      "official_url": "https://data.geopf.fr/wms-r/wms",
+      "metadata_url": "https://cartes.gouv.fr/rechercher-une-donnee/dataset/IGNF_PLAN-IGN",
+      "accessed_utc_date": "2026-10-10",
+      "material_read": "Successful original capabilities XML and four sequential original PNG views: headward, middle, reservoir, and lower-terminal. Every response reported HTTP 200. All four map views were visually read; local orientation overlays were used privately only.",
+      "supports": "Continuous local channel correspondence across all four selected FIDs; the Crique Neptune approach, distinct western tributary, modern reservoir and shared junction, dam outlet, full lower corridor, and actual coastal terminal setting.",
+      "limits": "An automatically generated, multi-scale composite cartographic service, as described by its own metadata; no single fixed source edition or formal hydronym-registry status established. Historical river labels are independently corroborated by the ORSTOM and IRD maps. Exact-view URLs, export parameters, original map images and orientation derivatives remain private.",
+      "independence": "Independent IGN France base cartography. Not the stopped 2013 Guiana Map9, not Argentine IGN Argenmap, and not a name-record API or full vector dataset. Its acquisition turn was coordinated before the first service request."
+    },
+    {
+      "source_key": "r115-orstom-hydrologie",
+      "title": "Hydrologie, planche 9, Atlas des Départements d'Outre-Mer: La Guyane",
+      "authors": [
+        "Michel Hoepffner",
+        "Jean Rodier"
+      ],
+      "publisher": "Centre d'Études de Géographie Tropicale (CNRS) and Office de la Recherche Scientifique et Technique Outre-Mer (ORSTOM); original hosted by IRD Horizon",
+      "publication_year": 1979,
+      "bibliographic_details": "Notice signed 1976; cartographic plate bears Bordeaux 1978 credit; atlas colophon copyright 1979 and ISBN 2-222-02501-X. Regional map scale 1:1,000,000.",
+      "official_url": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/divers17-01/42152.pdf",
+      "material_read": "Original seven-page PDF acquired with HTTP 200. Notice section 3, Le Sinnamary, and general estuary prose read; regional original cartographic plate on PDF page 3 visually inspected, including Sinnamary, Courcibo, their junction and the Atlantic terminal. Colophon and source credits read.",
+      "supports": "Independent Sinnamary and Courcibo labels, separate eastern/western corridors, left-bank branch relationship, northward river course, Petit Saut regional setting and west-deflected coastal estuary.",
+      "limits": "Historical pre-reservoir regional map; unsuitable on its own for the detailed selected headward feeder, present impoundment or exact coastal endpoint. Original prose lengths are not substituted for retained rendered lengths. This 1978/1979 Hydrologie planche 9 is a distinct publication from the stopped ZM_2013_9.jpg map.",
+      "use_notice": "Printed CNRS/ORSTOM copyright credits retained. No redistribution permission inferred; original PDF, map and crops remain private."
+    },
+    {
+      "source_key": "r115-ird-merona-2005",
+      "title": "Le fleuve, le barrage et les poissons: Le barrage de Petit-Saut sur le Sinnamary en Guyane française (1989-2002)",
+      "authors": [
+        "Bernard de Mérona"
+      ],
+      "publisher": "IRD Éditions, Paris",
+      "publication_year": 2005,
+      "isbn": "2-7099-1581-2",
+      "official_url": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/divers11-10/010034333.pdf",
+      "material_read": "Original 145-page PDF acquired with HTTP 200. Bounded physical-geography prose on printed pages 29-30, reservoir filling/description on page 76, Figure 4 (Le bassin du Sinnamary, color section; PDF page 67), Figure 18 (lower Sinnamary, printed page 66; PDF page 74), and Figure 27 (Petit-Saut reservoir, printed page 76; PDF page 84) visually read. Title, author, publisher, year, ISBN and copyright page read.",
+      "supports": "Independent river/system identity; Courcibo and Crique Tigre as distinct left-bank tributaries; basin route and named rapids; separate western Rivière Kourcibo and eastern Fleuve Sinnamary reservoir inlets; common Petit-Saut dam outlet; named lower river and west-curving Atlantic estuary.",
+      "limits": "Research cartography and bounded original scientific prose, not a formal name registry or current navigation chart. Basin overview is generalized and not used to assign exact geographic vertices. No unseen figures or discovery snippets substitute for map observations.",
+      "use_notice": "Copyright IRD Éditions 2005. The printed notice restricts reproduction while recognizing private-copy and short-analysis/quotation exceptions. Only own factual observations and ordinary citations are prepared for public use; no original pages, maps, crops or overlays are distributed."
+    },
+    {
+      "source_key": "r115-deal-petit-saut-map",
+      "title": "Arrêté réglementant la pêche sur le plan d'eau du barrage de Petit-Saut et ses abords, Annex I: Carte de la zone réglementée",
+      "publisher": "Préfet de la région Guyane; DEAL Guyane, Service Milieux Naturels, Biodiversité, Sites et Paysages",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/2017-02-13-ap_peche_petit_saut_signe.pdf",
+      "bibliographic_details": "Four-page official PDF, filename dated 2017-02-13. The Annex I map is explicitly dated September 2016 and credits DEAL Guyane, with SCAN 100 © IGN 2014 base cartography. An exact signed decree date/number is not inferred from the blank signature-date line.",
+      "material_read": "Original PDF acquired with HTTP 200. Title/description on page 1, signature page 3 and full original Annex I map on page 4 visually inspected. The original is scanned; absent extracted text was not treated as absent map content.",
+      "supports": "Contemporary impoundment footprint; common northern Petit-Saut dam outlet; western Saut Lucifer/Courcibo-arm setting and eastern Saut Tacari Tanté/Sinnamary-arm setting; separation of side arms around the selected passage.",
+      "limits": "Reservoir/regulatory-area map only, not whole-basin naming proof or current legal/navigational advice. No legal conclusion from the decree is used. The map's table of positions is not published as selected geometry.",
+      "use_notice": "Visible source and SCAN 100 © IGN 2014 credits preserved. Official hosting does not establish redistribution permission."
+    },
+    {
+      "source_key": "r115-ign-service-documentation",
+      "title": "FME, API Géoplateforme tutorial",
+      "publisher": "cartes.gouv.fr / IGN",
+      "official_url": "https://cartes.gouv.fr/aide/fr/guides-utilisateur/utiliser-les-services-de-la-geoplateforme/tutoriels-api/fme/",
+      "document_modified_date": "2026-08-31",
+      "material_read": "Official web page opened normally; service URL and explanation of freely accessible WMS-Raster services read.",
+      "supports": "Technical discovery and official provenance of the WMS endpoint only.",
+      "limits": "No river-name or geographic correspondence is inferred from this technical page."
+    },
+    {
+      "title": "Northern Land Use Information Series (NLUIS): Northern Land Use, map index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "acquisition": "Web reader body opened normally; subsequent normal original HTML acquisition HTTP 200. Requests completed sequentially, and the shared-index turn was released afterward.",
+      "use": "Series bibliography and exact linked original identities only. Not map correspondence evidence.",
+      "bibliography": "Index describes the 1:250,000 series published by Agriculture Canada, Environment Canada, and Indian and Northern Affairs Canada between 1972 and 1986; page modified 2023-07-04.",
+      "source_key": "r115-nluis-index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "title": "Bell River, Yukon Territory–Northwest Territories, 116P, Land Use Information Series, 1976 edition",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment; Indian and Northern Affairs",
+      "scale": "1:250,000",
+      "acquisition": "One normal original JPEG acquisition returned HTTP 200; original pixels read locally.",
+      "base_map_credit": "Surveys and Mapping Branch, Department of Mines and Technical Surveys, 1959; air photographs 1951 and 1954. NLUIS sheet states base-map reproduction material supplied by the Surveys and Mapping Branch, Department of Energy, Mines and Resources, with minor modifications by the Department of the Environment.",
+      "evidence_scope": "Selected Vunta/Fish Creek headward corridors, Fish–Rat junction, lake-setting disambiguation, and western Rat River reach.",
+      "limits": "Historical thematic topographic map; not a current legal hydronym registry or a precise bank/source/mouth survey.",
+      "source_key": "r115-nluis-bell-river-116p-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_116p.jpg"
+    },
+    {
+      "title": "Fort McPherson, Northwest Territories, District of Mackenzie, 106M, Land Use Information Series, 1976 edition",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment; Indian and Northern Affairs",
+      "scale": "1:250,000",
+      "acquisition": "One normal original JPEG acquisition returned HTTP 200; original pixels read locally.",
+      "base_map_credit": "Surveys and Mapping Branch, Department of Mines and Technical Surveys, 1959; air photographs 1950 and 1954. NLUIS base modified and produced by the Department of the Environment in 1976.",
+      "evidence_scope": "Rat River middle/lower valley and northward delta-edge channel through the northern sheet boundary.",
+      "limits": "Generalized historical map with thematic overlays; no current flow-regime or exact formal-name extent asserted.",
+      "source_key": "r115-nluis-fort-mcpherson-106m-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_106m.jpg"
+    },
+    {
+      "title": "Aklavik, Northwest Territories, District of Mackenzie, 107B, Land Use Information Series, 1976 edition",
+      "publisher": "Department of the Environment; Indian and Northern Affairs",
+      "scale": "1:250,000",
+      "acquisition": "One normal original JPEG acquisition returned HTTP 200; original pixels read locally.",
+      "base_map_credit": "Base compiled 1959–60 by the Surveys and Mapping Branch, Department of Mines and Technical Surveys, from air photographs 1950–52 and large-scale maps; field survey 1955; printed 1962. Sheet carries 1976 NLUIS edition.",
+      "evidence_scope": "Northern delta-edge corridor, West Channel junctions, Nikoluk channel and actual southern Shallow Bay outlet.",
+      "limits": "Historical channel network and generalized junction correspondence; not a claim of present bank position, current bifurcation discharge direction or registry status.",
+      "source_key": "r115-nluis-aklavik-107b-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107b.jpg"
+    },
+    {
+      "source_key": "r115-nluis-66j",
+      "title": "Northern Land Use Information Series, Joe Lake, sheet 66J, 1:250,000 (1980)",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Management Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66j.jpg",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Original JPEG acquired and its original pixels, map frame, relevant channel/lake details and marginalia inspected privately. Selected Joe Lake opening, upper McNaughton-labeled river/lake corridor, and northeast-trending inland chain to the northern/eastern sheet margin.",
+      "acquisition_outcome": "HTTP200 image/jpeg; readable original acquired.",
+      "supports": "Selected Joe Lake opening, upper McNaughton-labeled river/lake corridor, and northeast-trending inland chain to the northern/eastern sheet margin.",
+      "limits": "Historical reconnaissance/planning map, not a current registry or flow survey. Readable area coverage is not by itself proof of the unresolved selected connectors. Original scans, crops and orientation overlays are not public deliverables.",
+      "use_notice": "The introduction calls these interim maps because information can be incomplete or based on preliminary/reconnaissance surveys, and notes approximate thematic boundaries. Information is stated current to November1979; production marginalia give1980. No redistribution permission is inferred from official hosting."
+    },
+    {
+      "source_key": "r115-nluis-66o",
+      "title": "Northern Land Use Information Series, McLoughlin Bay, sheet 66O, 1:250,000 (1980)",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Management Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66o.jpg",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Original JPEG acquired and its original pixels, map frame, relevant channel/lake details and marginalia inspected privately. McNaughton Lake, its surrounding channel/lake network, separately labeled western McNaughton River and the selected eastern lower-stream/coastal setting.",
+      "acquisition_outcome": "Readable original JPEG acquired; original request HTTP status was not retained.",
+      "supports": "McNaughton Lake, its surrounding channel/lake network, separately labeled western McNaughton River and the selected eastern lower-stream/coastal setting.",
+      "limits": "Historical reconnaissance/planning map, not a current registry or flow survey. Readable area coverage is not by itself proof of the unresolved selected connectors. Original scans, crops and orientation overlays are not public deliverables.",
+      "use_notice": "The introduction calls these interim maps because information can be incomplete or based on preliminary/reconnaissance surveys, and notes approximate thematic boundaries. Information is stated current to November1979; production marginalia give1980. No redistribution permission is inferred from official hosting."
+    },
+    {
+      "source_key": "r115-nluis-66i",
+      "title": "Northern Land Use Information Series, Montresor River, sheet 66I, 1:250,000 (1980)",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Management Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66i.jpg",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Original JPEG acquired and its original pixels, map frame, relevant channel/lake details and marginalia inspected privately. Northwest corner beside the selected transition across the 66J/66I/66O/66P sheet edges; the separately mapped Kaleet corridor supplies neighboring-drainage disambiguation.",
+      "acquisition_outcome": "HTTP200 image/jpeg; readable original acquired.",
+      "supports": "Northwest corner beside the selected transition across the 66J/66I/66O/66P sheet edges; the separately mapped Kaleet corridor supplies neighboring-drainage disambiguation.",
+      "limits": "Historical reconnaissance/planning map, not a current registry or flow survey. Readable area coverage is not by itself proof of the unresolved selected connectors. Original scans, crops and orientation overlays are not public deliverables.",
+      "use_notice": "The introduction calls these interim maps because information can be incomplete or based on preliminary/reconnaissance surveys, and notes approximate thematic boundaries. Information is stated current to November1979; production marginalia give1980. No redistribution permission is inferred from official hosting."
+    },
+    {
+      "source_key": "r115-nluis-66p",
+      "title": "Northern Land Use Information Series, Sherman Basin, sheet 66P, 1:250,000 (1980)",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Management Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66p.jpg",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Original JPEG acquired and its original pixels, map frame, relevant channel/lake details and marginalia inspected privately. Western-margin inland lake/stream chain north of the 67th parallel and east of the McNaughton corridor; the separately mapped Kaleet route is not transferred to the selection.",
+      "acquisition_outcome": "HTTP200 image/jpeg; readable original acquired.",
+      "supports": "Western-margin inland lake/stream chain north of the 67th parallel and east of the McNaughton corridor; the separately mapped Kaleet route is not transferred to the selection.",
+      "limits": "Historical reconnaissance/planning map, not a current registry or flow survey. Readable area coverage is not by itself proof of the unresolved selected connectors. Original scans, crops and orientation overlays are not public deliverables.",
+      "use_notice": "The introduction calls these interim maps because information can be incomplete or based on preliminary/reconnaissance surveys, and notes approximate thematic boundaries. Information is stated current to November1979; production marginalia give1980. No redistribution permission is inferred from official hosting."
+    },
+    {
+      "source_key": "r115-cgm194-missing",
+      "title": "Reconnaissance surficial geology, Joe Lake, Nunavut, NTS66-J south half; Canadian Geoscience Map194, preliminary version (2014)",
+      "official_url": "https://publications.aws.tpsgc-pwgsc.cloud-nuage.canada.ca/site/eng/9.858880/publication.html?wbdisable=true",
+      "observed_outcome": "Catalogue prose opened in the web reader. The subsequent normal original HTML acquisition, intended to identify the exact linked map URL, returned HTTP502 Bad Gateway. No original map acquired.",
+      "observation_layer": "HTTP502 reported by the normal URL acquisition; no401/403, challenge or origin access denial inferred.",
+      "restriction_scope": "Further missing map/publication content and equivalent copies, formats, catalogue/original/mirror routes paused for availability. No retry or equivalent retrieval followed.",
+      "earlier_lawful_prose": "Earlier catalogue abstract and bibliographic metadata were actually read. They concern regional surficial geology and do not establish this selected hydro-route.",
+      "evidence_use": "Catalogue identity only, not cartographic correspondence."
+    },
+    {
+      "source_key": "r115-cgm442-reader-limitation",
+      "title": "Reconnaissance surficial geology, Joe Lake north, Nunavut, NTS66-J north; Canadian Geoscience Map442 (2022)",
+      "official_url": "https://publications.gc.ca/site/eng/9.906645/publication.html",
+      "observed_outcome": "The catalogue web-reader open returned Internal Error with no exposed body, HTTP status or security/authorization reason. No original HTML or map acquisition followed.",
+      "observation_layer": "Web-reader technical catalogue-route failure; origin outcome unobserved.",
+      "restriction_scope": "The failed reader route was not repeated. This status-free technical result is not promoted to a publication-wide denial. A separate normal original-route possibility was left unattempted; no exact map URL was guessed.",
+      "earlier_lawful_prose": null,
+      "evidence_use": "None. Search-discovery metadata and unseen map are not substantive evidence."
+    },
+    {
+      "source_key": "r115-cgm313-missing",
+      "title": "Surficial geology, King William Island and Adelaide Peninsula, Nunavut, NTS66-O and P,67-A and D, and parts of57-B and57-C; Canadian Geoscience Map313, second edition (2024)",
+      "official_url": "https://publications.gc.ca/collections/collection_2025/rncan-nrcan/m183-1/M183-1-313-2024-eng.pdf",
+      "catalogue_url": "https://publications.gc.ca/site/eng/9.940556/publication.html",
+      "observed_outcome": "Catalogue opened normally. The linked PDF web reader returned400 Content length is too large:18765731. The sole sequential normal request to that exact official original link returned HTTP200, content-type text/html; charset=utf-8,19365 bytes, an archived-information HTML page rather than the PDF. No original map pixels acquired.",
+      "observation_layer": "Initial tool size limit, followed by a normal HTTP200 wrong-content availability outcome; no access denial inferred.",
+      "restriction_scope": "Missing original map/publication content and equivalent copies, editions used as replacement map content, formats, reader/cache/mirror and acquisition routes paused. No retry or further fallback followed.",
+      "earlier_lawful_prose": "Only the earlier catalogue abstract and edition/bibliographic description were read. These do not supply selected-route hydrographic evidence.",
+      "evidence_use": "Catalogue identity only; no unseen figure or parsed map label used."
+    },
+    {
+      "source_key": "r115-usgs-topo-kokolik",
+      "title": "The National Map, USGSTopo MapServer: Iligluruk Creek–Kokolik River–Kasegaluk Lagoon corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Six successful sequential original raster views cover the full selected corridor, headward joining sequence, upper middle, northern bend, lower coastal plain and lagoon terminal. Original pixels and private local crops were inspected.",
+      "supports": "All selected headward, confluence, middle, lower and coastal-terminal components of FID2347.",
+      "use_notice": "Online composite cartography; no standalone sheet marginalia or source-use notice panel was supplied in these bounded original raster views. Official hosting is not treated as permission to redistribute the originals or derivatives.",
+      "limits": "Independent cartographic service, not a route to stopped USGS report figures. The accessed rendering date is not a field-survey, registry or shoreline-observation date. Original rasters, private crops/overlays and dynamic view requests are not public deliverables. No additional primary prose was used."
+    },
+    {
+      "source_key": "r115-usgs-kokolik-station-unavailable",
+      "title": "Kokolik R NR Point Lay AK — USGS-694539162310000, Water Data for the Nation",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://waterdata.usgs.gov/monitoring-location/USGS-694539162310000",
+      "observed_outcome": "The web reader returned Cache miss. No page body, HTTP status or authorization reason was supplied by the open request.",
+      "observation_layer": "Web-reader availability failure; origin-server HTTP status unobserved.",
+      "restriction_scope": "Missing content of this station page/publication and equivalent copies, formats, cached content and acquisition routes remains paused. No retry, alternate monitoring-location URL, API or other equivalent route was requested. This does not stop independent USGSTopo cartography or unrelated USGS publications.",
+      "earlier_lawful_prose": null,
+      "evidence_use": "None. Search-result excerpts were discovery only and are not substantive evidence.",
+      "material_gap_created": false
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60125754",
+      "source_keys": [
+        "r115-ign-plan",
+        "r115-orstom-hydrologie",
+        "r115-ird-merona-2005",
+        "r115-deal-petit-saut-map",
+        "r115-ign-service-documentation"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11502
+          ],
+          "component_scope": "Complete hooked headward approach and Crique Neptune connection",
+          "finding": "The selected beginning lies on a wooded west-side feeder that runs generally southeast, then east through the map's Crique Neptune setting. It joins the northward river corridor near the southern bend of the selected line. The original map shows the connected blue channel through the full selected hook; the natural Sinnamary corridor also continues south beyond this junction, outside the selected geometry. Nearby Crique Sirène, Crique Triton, Crique des Treize Sabres and Crique Parasol labels belong to distinct adjacent branches and are not transferred to the selected headward line.",
+          "sources": [
+            "r115-ign-plan",
+            "r115-ird-merona-2005",
+            "r115-orstom-hydrologie"
+          ],
+          "correspondence": "Full selected headward approach and its river connection read on original local map pixels. Broader river identity is corroborated independently. The whole initial feeder hydronym is unassigned."
+        },
+        {
+          "fragments": [
+            11502
+          ],
+          "component_scope": "Upper and middle Sinnamary corridor to the reservoir",
+          "finding": "After the Neptune approach, the selected route follows the continuous northward eastern river corridor, passing the separate Crique Parasol, Crique Misette and Crique Noire settings. Farther north it follows the eastern side of the paired Sinnamary/Courcibo drainage, then bends northwest through the Saut Takari Tanté approach into the long eastern arm of Petit-Saut. The source maps distinguish this corridor from the western Courcibo and from the separate Kourou drainage to the east. The historical maps and IRD physical-geography prose identify Sinnamary as the north-flowing river; the modern IGN map supplies the connected local channel and impoundment geography.",
+          "sources": [
+            "r115-ign-plan",
+            "r115-ird-merona-2005",
+            "r115-orstom-hydrologie",
+            "r115-deal-petit-saut-map"
+          ],
+          "correspondence": "Full remaining FID 11502 corridor, including entry into the eastern reservoir arm, covered at ordinary geographic scale."
+        },
+        {
+          "fragments": [
+            11504
+          ],
+          "component_scope": "Western tributary headward route and Courcibo middle corridor",
+          "finding": "The selected western tributary begins separately just east of the mainstem's initial feeder and runs north along its own mapped wooded channel. It bends west, then continues north before making a northeastward middle bend and returning to a northward course through the western corridor. The original map shows continuous channel correspondence through the entire selected feature, including the Crique Coeur de Chauffe and Crique Alphonsin junction settings. The historical Hydrologie plate and IRD basin map label the western river Courcibo, distinguish it from Sinnamary, and place it west of the latter through this corridor. The complete initial minor-feeder name is not independently assigned.",
+          "sources": [
+            "r115-ign-plan",
+            "r115-orstom-hydrologie",
+            "r115-ird-merona-2005"
+          ],
+          "correspondence": "Every selected part of FID 11504 read; continuity into FID 11505 is supported without naming neighboring tributaries after Courcibo."
+        },
+        {
+          "fragments": [
+            11505
+          ],
+          "component_scope": "Courcibo reservoir arm and material junction with Sinnamary",
+          "finding": "FID 11505 continues from the western channel into the narrow southern/western reservoir arm, then runs northeast through the drowned Courcibo valley to the modeled junction with the eastern Sinnamary arm. The IGN original shows this full passage inside the dendritic Petit-Saut waterbody. IRD Figure 27 separately labels the western inlet Rivière Kourcibo and the eastern inlet Fleuve Sinnamary; the historical Hydrologie plate shows the pre-impoundment left-bank relationship. The modern DEAL annex confirms the western Saut Lucifer arm, eastern Saut Tacari Tanté arm and common northern dam outlet. The selected tributary's terminal is a confluence setting within the reservoir, not an Atlantic outlet.",
+          "sources": [
+            "r115-ign-plan",
+            "r115-ird-merona-2005",
+            "r115-orstom-hydrologie",
+            "r115-deal-petit-saut-map"
+          ],
+          "correspondence": "Full FID 11505 and its material reservoir connection covered. Historical river naming and current impounded geography remain separate observations."
+        },
+        {
+          "fragments": [
+            11502,
+            11503,
+            11505
+          ],
+          "component_scope": "Shared reservoir junction, main reservoir passage and Petit-Saut outlet",
+          "finding": "The selected eastern mainstem and western tributary meet in the interior of the mapped Petit-Saut reservoir. FID 11503 continues north through its central trunk, passes the wider western Crique Tigre arm setting, reaches the northern dam at Petit-Saut, and resumes a confined river below the dam. Original contemporary IGN and DEAL maps show the common waterbody and outlet, and IRD Figure 27 names the reservoir inlet/outlet relationships. Exact old thalwegs, islands and reservoir-bank points are not required or assigned.",
+          "sources": [
+            "r115-ign-plan",
+            "r115-deal-petit-saut-map",
+            "r115-ird-merona-2005"
+          ],
+          "correspondence": "Material shared junction, reservoir connector and dam/outlet all inspected on original cartography."
+        },
+        {
+          "fragments": [
+            11503
+          ],
+          "component_scope": "Lower Sinnamary from the dam through the town",
+          "finding": "Below Petit-Saut, the selected line follows the mapped river north through the Crique Grégoire and Crique Verte settings, bends northeast through the Crique Chapeau and Crique Vénus sector, then continues north beside the lower river's creek junctions and developed land to Sinnamary town and its road crossings. The original IGN view preserves the continuous valley and channel throughout. IRD Figure 18 independently maps Petit-Saut, Kerenroch, Vénus, Roche Bravo, Pointe Combi, Sinnamary town and the Atlantic estuary along this same lower river. Some selected straight segments cut across individual bends at this generalized rendering scale; no substitute neighboring river is inferred.",
+          "sources": [
+            "r115-ign-plan",
+            "r115-ird-merona-2005",
+            "r115-orstom-hydrologie"
+          ],
+          "correspondence": "Full lower river from dam outlet to the coastal town covered by original map views and independent named cartography."
+        },
+        {
+          "fragments": [
+            11503
+          ],
+          "component_scope": "Actual selected coastal terminal and mapped natural estuary",
+          "finding": "North of Sinnamary town the mapped estuary turns northwest and west through the coastal vegetation belt toward the Atlantic. The selected route follows the estuarine approach and then has a short straight northward terminal extension across mapped coastal vegetation east of the natural entrance. The original map covers both the actual selected endpoint setting and the river's separate west-curving mouth. IRD Figure 18 and the historical Hydrologie plate also show the west-deflected Sinnamary estuary. Thus the receiving coastal system is supported, while the final rendered extension is not asserted to be a mapped natural water channel or an exact present-day ocean mouth.",
+          "sources": [
+            "r115-ign-plan",
+            "r115-ird-merona-2005",
+            "r115-orstom-hydrologie"
+          ],
+          "correspondence": "Actual selected terminal setting read directly, rather than replacing it with a farther or different source-map endpoint. Local render generalization retained as a scope limitation, not an unviewed interval."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80053184",
+      "source_keys": [
+        "r115-nluis-index",
+        "r115-nluis-bell-river-116p-1976",
+        "r115-nluis-fort-mcpherson-106m-1976",
+        "r115-nluis-aklavik-107b-1976"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2495
+          ],
+          "component_scope": "Headward White Mountains canyon and Vunta Creek/Fish Creek junction",
+          "finding": "The western headward canyon aligns at generalized scale with the east-running Vunta Creek shown on 116P. The mapped tributary joins the larger Fish Creek valley, which bends east and then south toward Rat River. The selected headward setting and the material Vunta/Fish link were read in original pixels; exact source vertices and formal upstream name limits are not claimed.",
+          "sources": [
+            "r115-nluis-bell-river-116p-1976"
+          ],
+          "correspondence": "complete at generalized corridor scale"
+        },
+        {
+          "fragments": [
+            2495
+          ],
+          "component_scope": "Fish Creek southward reach and confluence with Rat River",
+          "finding": "The original 116P map shows Fish Creek descending the mountain valley and joining the east-running Rat River. The selected route takes the eastern Rat River arm from that confluence. The named southwestern headward lakes of Rat River remain off the selected route; there is no selected passage through Summit Lake or Twin Lakes.",
+          "sources": [
+            "r115-nluis-bell-river-116p-1976"
+          ],
+          "correspondence": "complete at generalized corridor scale"
+        },
+        {
+          "fragments": [
+            2495
+          ],
+          "component_scope": "Rat River middle valley, southward bend and delta-margin junction",
+          "finding": "116P and adjoining 106M show the continuous Rat River corridor eastward from Fish Creek, then southeast across the foothills, around the marked southern bend, and north through the conspicuous lower-valley loop before reaching the delta margin. The adjoining sheets supply actual channel pixels across the sheet boundary and the lower junction, rather than only a regional Rat River label.",
+          "sources": [
+            "r115-nluis-bell-river-116p-1976",
+            "r115-nluis-fort-mcpherson-106m-1976"
+          ],
+          "correspondence": "complete at generalized corridor scale"
+        },
+        {
+          "fragments": [
+            2495
+          ],
+          "component_scope": "Northward western-delta edge watercourse and junction with West Channel",
+          "finding": "The selected line continues along the narrow mapped watercourse nearest the Richardson Mountains/delta margin, rather than automatically taking the larger eastern delta channel. 106M and 107B show this northward connection continuously across their common edge, past intervening western tributary mouths and lakes, into the broad West Channel system north of Aklavik. The narrow edge watercourse is left unnamed in this finding because its full name scope was not established from the original sheet.",
+          "sources": [
+            "r115-nluis-fort-mcpherson-106m-1976",
+            "r115-nluis-aklavik-107b-1976"
+          ],
+          "correspondence": "complete at generalized corridor scale"
+        },
+        {
+          "fragments": [
+            2495
+          ],
+          "component_scope": "Selected cross-delta West Channel reach and Nikoluk branch",
+          "finding": "107B original pixels show the material junction into the broad West Channel, the selected east/southeast-reaching bend through it, and the subsequent north-running channel connection. The northern channel is labelled Nikoluk on the original map. This actual channel-and-junction reading establishes physical correspondence; it does not assert the modeled traversal direction is the direction of flow through every delta reach.",
+          "sources": [
+            "r115-nluis-aklavik-107b-1976"
+          ],
+          "correspondence": "complete at generalized corridor scale"
+        },
+        {
+          "fragments": [
+            2495
+          ],
+          "component_scope": "Nikoluk lower corridor and actual Shallow Bay terminal",
+          "finding": "The original 107B map shows the northward watercourse through the delta wetland/lake mosaic and its outlet through the south-shore marsh into Shallow Bay. The selected terminal lies in this southern Shallow Bay setting. It is not assigned to an inland lake or to the separate, more easterly Napoiak approach. Neighboring ponds and oxbows are context, not additional selected lake/reservoir components. No reservoir is depicted along the selected route.",
+          "sources": [
+            "r115-nluis-aklavik-107b-1976"
+          ],
+          "correspondence": "complete at generalized corridor scale"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80067417",
+      "source_keys": [
+        "r115-nluis-66j",
+        "r115-nluis-66o",
+        "r115-nluis-66i",
+        "r115-nluis-66p"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2517
+          ],
+          "component_scope": "Joe Lake headward passage",
+          "finding": "The selected opening lies in the mapped Joe Lake setting and extends north through its elongated lake passage and northern lake/channel continuation. The local-name annotation on the historical sheet is not adopted as a modern official alias.",
+          "sources": [
+            "r115-nluis-66j"
+          ],
+          "correspondence": "bounded component supported",
+          "limits": "The selection starts within this lake setting; it does not establish the natural source of the entire named McNaughton River."
+        },
+        {
+          "fragments": [
+            2517
+          ],
+          "component_scope": "upper named river and linked lake corridor",
+          "finding": "North of Joe Lake, the selected corridor follows the lake-rich reach on which McNaughton River is printed. The map shows elongated lakes, narrow connecting reaches, side streams and rapids in this corridor.",
+          "sources": [
+            "r115-nluis-66j"
+          ],
+          "correspondence": "bounded component supported",
+          "limits": "This label is usable for this mapped component; it cannot name the entire later eastern detour, every lake or the full model feature."
+        },
+        {
+          "fragments": [
+            2517
+          ],
+          "component_scope": "northeast inland chain and four-sheet transition",
+          "finding": "The selected course turns through a northeast-trending succession of unnamed lakes and streams toward the shared sheet corners, then continues in the western margin of Sherman Basin sheet66P. The nearby Kaleet River is separately labeled farther east.",
+          "sources": [
+            "r115-nluis-66j",
+            "r115-nluis-66i",
+            "r115-nluis-66p"
+          ],
+          "correspondence": "corridor observed; continuous selected linkage not fully established",
+          "limits": "The selected eastern chain is not assigned the Kaleet label. Adjacent mapped water and a continuous model line alone do not prove every selected connecting passage or its flow direction."
+        },
+        {
+          "fragments": [
+            2517
+          ],
+          "component_scope": "east-side approach to McNaughton Lake",
+          "finding": "The selected inland detour turns west and southwest through the lake/stream field east of McNaughton Lake, then reaches its eastern lake margin. Both the large named lake and the intervening smaller lakes/channels are visible.",
+          "sources": [
+            "r115-nluis-66o",
+            "r115-nluis-66p"
+          ],
+          "correspondence": "material connector unresolved",
+          "limits": "The exact geographic relationship of the selected east-to-west connecting sequence to the independently mapped McNaughton trunk remains unresolved at ordinary corridor scale. This is a material connector gap, not merely an exact-bank disagreement."
+        },
+        {
+          "fragments": [
+            2517
+          ],
+          "component_scope": "McNaughton Lake to eastern lower corridor",
+          "finding": "The selection continues north near the eastern arm/lake chain and turns east into a lower unnamed stream corridor. The source separately maps the McNaughton River trunk on the western side of this setting.",
+          "sources": [
+            "r115-nluis-66o"
+          ],
+          "correspondence": "material connector unresolved",
+          "limits": "The selected lake-to-eastern-stream connection is not securely established by the acquired cartography. A basin association or the nearby McNaughton label cannot substitute for this connector."
+        },
+        {
+          "fragments": [
+            2517
+          ],
+          "component_scope": "eastern coastal stream and actual terminal setting",
+          "finding": "The lower selection runs north and then northwest to the eastern part of the McLoughlin Bay coastal/wetland margin. The primary pixels distinguish this approach from the separately drawn western McNaughton outlet and from Falcon Inlet/Sherman Basin to the east.",
+          "sources": [
+            "r115-nluis-66o"
+          ],
+          "correspondence": "bounded terminal setting supported; linkage upstream remains pending",
+          "limits": "No hydronym is transferred from the western mouth to the selected eastern channel. The sea-terminal metadata do not establish a precise mouth, current shoreline or active distributary."
+        }
+      ],
+      "bounded_primary_prose": [
+        {
+          "source_key": "r115-nluis-66j",
+          "scope": "Map marginal fish-resource comment2",
+          "observation": "A1979 fisheries-survey comment associated with the upper labeled corridor refers the reader to66O for falls/rapids near the river mouth. It supplies regional continuity context, not proof of the selected eastern detour or mouth."
+        },
+        {
+          "source_key": "r115-nluis-66o",
+          "scope": "Map marginal fish-resource comment1",
+          "observation": "The marginal prose explicitly discusses fish in McNaughton Lake. It corroborates the lake identity but does not explain the selected east-side inlet/outlet connectors."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80038155",
+      "source_keys": [
+        "r115-usgs-topo-kokolik"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2347
+          ],
+          "component_scope": "selected mountain headward corridor",
+          "finding": "The original source labels the selected westward mountain-valley channel Iligluruk Creek. The entire selected opening, westward bends, northward deflection and approach to the larger western trunk are visible. Spike Creek enters from the south along this selected headward corridor; other small side branches are drawn without usable names. The selection does not follow the complete separate Spike Creek headwater.",
+          "sources": [
+            "r115-usgs-topo-kokolik"
+          ],
+          "limits": "No exact natural source point or reach-name transition vertex is assigned. Unnamed side branches remain unnamed; no nearby-label transfer."
+        },
+        {
+          "fragments": [
+            2347
+          ],
+          "component_scope": "Iligluruk–Kokolik joining sequence",
+          "finding": "Iligluruk Creek joins the separately mapped Kokolik River from the east. The Kokolik has its own unselected upstream valley from the south. Just downstream, Tingmerkpuk River joins from the southwest; the selected route continues north on the labeled Kokolik trunk. Small lakes and their side drainage occur beside these valleys, but the selected route remains in the stream corridor and does not traverse an inland lake.",
+          "sources": [
+            "r115-usgs-topo-kokolik"
+          ],
+          "limits": "The unselected upstream Kokolik, Tingmerkpuk River and adjacent lake drainage are distinct connected context. They are not all renamed or incorporated into the selected mainstem. Names of unlabeled small lakes remain null."
+        },
+        {
+          "fragments": [
+            2347
+          ],
+          "component_scope": "upper Kokolik northward valley",
+          "finding": "Continuous original coverage follows the selected northward Kokolik valley out of the mountain/foothill setting, past its side channels and the labeled Kantangnak Creek junction from the east, to the bend toward the northeast. Repeated Kokolik River labels follow the same mapped trunk.",
+          "sources": [
+            "r115-usgs-topo-kokolik"
+          ],
+          "limits": "Kantangnak Creek is a separate tributary. Small side streams, oxbows and floodplain ponds do not establish lake or reservoir passages along the selection."
+        },
+        {
+          "fragments": [
+            2347
+          ],
+          "component_scope": "middle northeastward corridor",
+          "finding": "The selected river turns northeast and follows the broad meandering Kokolik corridor past the Kirilupiklak Hills setting. The full intervening course, then the northward reach and eastern Avingak Creek confluence, is visible in overlapping originals.",
+          "sources": [
+            "r115-usgs-topo-kokolik"
+          ],
+          "limits": "Epizetka River is separately mapped west of the selected Kokolik and is not a selected junction, alias or route. Avingak Creek remains a separate tributary; no full tributary course is assigned to this feature."
+        },
+        {
+          "fragments": [
+            2347
+          ],
+          "component_scope": "northern bend and lower lake plain",
+          "finding": "After the Avingak Creek setting, the selected Kokolik continues north, makes the prominent westward turn, then runs northwest and west across the lake-rich coastal plain. The source follows its continuous meandering and locally divided channel corridor across the entire lower route. Large neighboring lakes and their feeder/outlet streams lie beside the selection; no selected inland lake or reservoir crossing is depicted.",
+          "sources": [
+            "r115-usgs-topo-kokolik"
+          ],
+          "limits": "Neighboring Utukok, Kukpowruk and Epizetka drainage labels are not transferred to the Kokolik. The selected generalized course does not assert a particular active braid or every bend."
+        },
+        {
+          "fragments": [
+            2347
+          ],
+          "component_scope": "actual coastal terminal and lagoon",
+          "finding": "The final selected westward Kokolik corridor reaches the delta/wetland margin of Kasegaluk Lagoon in the Point Lay setting. Original pixels show the river-to-lagoon connection, adjoining delta channels, Point Lay barrier coast and lagoon water behind the coastal barrier. The terminal is therefore read in its actual lagoon/coastal setting rather than assigned from a regional sea association.",
+          "sources": [
+            "r115-usgs-topo-kokolik"
+          ],
+          "limits": "The model sea-terminal class is retained as metadata. Kasegaluk Lagoon is a separate receiving-waterbody identity, not a scalar river name. No present-day mouth point, shoreline, active distributary or open-ocean crossing is asserted."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:60125754",
+      "publication": "Guiana 2013 Map9, retained Approuague lower/terminal source",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/jpg/ZM_2013_9.jpg",
+      "observed_outcome": "Inherited acquisition was cancelled before inspection. Origin HTTP outcome and source content were not observed; no request was made in this batch.",
+      "outcome_layer": "Inherited acquisition cancellation; no observed origin HTTP 401/403.",
+      "restriction_scope": "Whole named map/publication and all equivalent copies, formats and acquisition routes remain stopped. No new request, mirror, cache, alternate format or equivalent map recovery was attempted.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Excluded. The independently acquired original IGN, ORSTOM, IRD and DEAL sources cover the selected Sinnamary system; this inherited restriction creates no material gap or second pending status."
+    },
+    {
+      "aw_id": "hydro-system:80053184",
+      "publication": "Measured highway distances, Beaufort Delta region, Government of the Northwest Territories",
+      "official_url": "https://www.geomatics.gov.nt.ca/fr/measured-highway-distances-beaufort-delta-region",
+      "observed_outcome": "The sole normal original acquisition returned HTTP 504 Gateway Timeout. No source body or original pixels were acquired.",
+      "outcome_layer": "HTTP response surfaced by the original acquisition client; originating server versus upstream gateway provenance was not established",
+      "restriction_scope": "Missing publication content and equivalent copies, formats, viewers, alternate-language and other acquisition routes paused for availability. No retry or alternative route followed.",
+      "earlier_lawful_prose_exception": null,
+      "material_to_completion": false
+    },
+    {
+      "aw_id": "hydro-system:80067417",
+      "publication": "Reconnaissance surficial geology, Joe Lake, Nunavut, NTS66-J south half; Canadian Geoscience Map194, preliminary version (2014)",
+      "official_url": "https://publications.aws.tpsgc-pwgsc.cloud-nuage.canada.ca/site/eng/9.858880/publication.html?wbdisable=true",
+      "observed_outcome": "Catalogue prose opened in the web reader. The subsequent normal original HTML acquisition, intended to identify the exact linked map URL, returned HTTP502 Bad Gateway. No original map acquired.",
+      "outcome_layer": "HTTP502 reported by the normal URL acquisition; no401/403, challenge or origin access denial inferred.",
+      "restriction_scope": "Further missing map/publication content and equivalent copies, formats, catalogue/original/mirror routes paused for availability. No retry or equivalent retrieval followed.",
+      "earlier_lawful_prose_exception": "Earlier catalogue abstract and bibliographic metadata were actually read. They concern regional surficial geology and do not establish this selected hydro-route."
+    },
+    {
+      "aw_id": "hydro-system:80067417",
+      "publication": "Reconnaissance surficial geology, Joe Lake north, Nunavut, NTS66-J north; Canadian Geoscience Map442 (2022)",
+      "official_url": "https://publications.gc.ca/site/eng/9.906645/publication.html",
+      "observed_outcome": "The catalogue web-reader open returned Internal Error with no exposed body, HTTP status or security/authorization reason. No original HTML or map acquisition followed.",
+      "outcome_layer": "Web-reader technical catalogue-route failure; origin outcome unobserved.",
+      "restriction_scope": "The failed reader route was not repeated. This status-free technical result is not promoted to a publication-wide denial. A separate normal original-route possibility was left unattempted; no exact map URL was guessed.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:80067417",
+      "publication": "Surficial geology, King William Island and Adelaide Peninsula, Nunavut, NTS66-O and P,67-A and D, and parts of57-B and57-C; Canadian Geoscience Map313, second edition (2024)",
+      "official_url": "https://publications.gc.ca/collections/collection_2025/rncan-nrcan/m183-1/M183-1-313-2024-eng.pdf",
+      "observed_outcome": "Catalogue opened normally. The linked PDF web reader returned400 Content length is too large:18765731. The sole sequential normal request to that exact official original link returned HTTP200, content-type text/html; charset=utf-8,19365 bytes, an archived-information HTML page rather than the PDF. No original map pixels acquired.",
+      "outcome_layer": "Initial tool size limit, followed by a normal HTTP200 wrong-content availability outcome; no access denial inferred.",
+      "restriction_scope": "Missing original map/publication content and equivalent copies, editions used as replacement map content, formats, reader/cache/mirror and acquisition routes paused. No retry or further fallback followed.",
+      "earlier_lawful_prose_exception": "Only the earlier catalogue abstract and edition/bibliographic description were read. These do not supply selected-route hydrographic evidence.",
+      "catalogue_url": "https://publications.gc.ca/site/eng/9.940556/publication.html"
+    },
+    {
+      "aw_id": "hydro-system:80038155",
+      "publication": "Kokolik R NR Point Lay AK — USGS-694539162310000, Water Data for the Nation",
+      "official_url": "https://waterdata.usgs.gov/monitoring-location/USGS-694539162310000",
+      "observed_outcome": "The web reader returned Cache miss. No page body, HTTP status or authorization reason was supplied by the open request.",
+      "outcome_layer": "Web-reader availability failure; origin-server HTTP status unobserved.",
+      "restriction_scope": "Missing content of this station page/publication and equivalent copies, formats, cached content and acquisition routes remains paused. No retry, alternate monitoring-location URL, API or other equivalent route was requested. This does not stop independent USGSTopo cartography or unrelated USGS publications.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_created": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:80053184",
+      "source_keys": [
+        "r115-nluis-index",
+        "r115-nluis-bell-river-116p-1976",
+        "r115-nluis-fort-mcpherson-106m-1976",
+        "r115-nluis-aklavik-107b-1976"
+      ],
+      "source_use_observations": [
+        "The NLUIS introduction calls the maps interim, notes incomplete/preliminary/reconnaissance information in some areas, approximate thematic boundaries and possible differences between adjoining maps; information on the updated sheets is described as current to November 1975. These cautions are retained as source limitations rather than treated as a reading prohibition.",
+        "Government hosting and cartographic credits do not establish unrestricted redistribution rights. Originals, crops and orientation overlays remain private; public-ready output consists only of own factual synthesis, brief geographic labels and ordinary bibliography."
+      ]
+    }
+  ]
+}
