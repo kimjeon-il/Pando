@@ -1,0 +1,433 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r76",
+  "sources": [
+    {
+      "source_key": "r76-mana-plu-2018",
+      "title": "Plan Local d’Urbanisme de la commune de Mana — Rapport de présentation",
+      "publisher": "Commune de Mana",
+      "edition": "Cover records initial approval 8 February 2007 and subsequent changes through Modification 3 approved 23 February 2018",
+      "year": 2018,
+      "page": "p. 12, Figure 2, Carte du relief et de l’hydrographie; p. 11, municipal setting",
+      "supports": "Readable middle/lower Mana corridor, named rapid and settlement context, separation of Arouani, Kokioko, Portal and Acarouany, and Mana bourg/coastal approach.",
+      "limits": "Municipal planning cartography combines a topographic base and administrative overlay. The southern headwater region is outside the main detailed map. Older coast depiction is not modern shoreline evidence. The map is not republished.",
+      "official_url": "https://www.mairie-mana.fr/wp-content/uploads/2018/04/1.Rapport%20de%20pr%C3%83%C2%A9sentation%20PLU%20Mana%202018%2002%2023.pdf"
+    },
+    {
+      "source_key": "r76-bon-espoir-2016",
+      "title": "Armina Ressources Minières — Demande de transformation du PER de Bon Espoir en concession pour or et substances connexes, Tome 3 — Notice d’impact",
+      "author": "GéoPlusEnvironnement",
+      "publisher": "Armina Ressources Minières; original hosted by DGTM Guyane",
+      "attribution": "Figures credit IGN, ARMINA, USGS and Guyane-SIG. Official hosting does not make the consultant's maps public domain.",
+      "edition": "October 2016; report R 15111105bis – T3 – V1",
+      "year": 2016,
+      "page": "PDF pp. 9–10, Figures 1–2; PDF p. 24 / printed p. 23, hydrography",
+      "supports": "Mana mainstem bend near Bon Espoir; Arouani southern approach and confluence upstream of the separate Crique Lézard junction; downstream corridor toward Saut Sabbat and neighboring drainage separation.",
+      "limits": "Environmental-project report used only for geographic naming correspondence. No assertion about current permits, mine operations, water quality or hydrologic measurements. The selected tributary is only part of the mapped Arouani.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/tome_3_notice_impact_-_armina-bon_espoir_-_2016_10_27.pdf"
+    },
+    {
+      "source_key": "r76-deal-znieff-2013-13",
+      "title": "Modernisation des ZNIEFF de Guyane — Carte 13",
+      "author": "BIOTOPE",
+      "publisher": "DEAL de Guyane",
+      "attribution": "Source printed on sheet: IGN 500 000. Cartography: Biotope, March 2013.",
+      "edition": "Cartographie: Biotope, mars 2013; official ZNIEFF inventory update published 2014",
+      "year": 2013,
+      "supports": "Mana from the Pakira setting northward through Roche Cabrit, Ikissi, Aïmara, Baboune and Fracas, west of the Montagnes de la Trinité, with adjacent tributaries separately printed.",
+      "limits": "Regional topographic map with ecological overlays. Its southern edge is connected to the Saül sheet through the separately cited regional drainage map; no exact rapid geometry or channel-width claim.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/jpg/ZM_2013_13.jpg"
+    },
+    {
+      "source_key": "r76-deal-znieff-2013-19",
+      "title": "Modernisation des ZNIEFF de Guyane — Carte 19",
+      "author": "BIOTOPE",
+      "publisher": "DEAL de Guyane",
+      "attribution": "Source printed on sheet: IGN 500 000. Cartography: Biotope, March 2013.",
+      "edition": "Cartographie: Biotope, mars 2013; official ZNIEFF inventory update published 2014",
+      "year": 2013,
+      "supports": "Upper Mana setting west of Saül and north of Mont Galbao, Repentir and the northward river connection; separate Saint-Eloi, Sophie and other drainage context.",
+      "limits": "Regional topographic map with ecological overlays. Precise headwater initiation and each small feeder are not established. Its northern edge is bridged to the Trinité sheet by separately cited regional drainage cartography.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/jpg/ZM_2013_19_new.jpg"
+    },
+    {
+      "source_key": "r75-deal-oyapock-camopi-2018",
+      "title": "Aménagement des sauts du fleuve Oyapock et de la rivière Camopi — Dossier de demande d’autorisation environnementale",
+      "author": "SAFEGE Ingénieurs Conseils",
+      "publisher": "DEAL Guyane; original retained from DGTM Guyane",
+      "attribution": "Regional drainage map credits Parc amazonien de Guyane.",
+      "edition": "Version 2, October 2018 on cover; interior footers retain February 2018",
+      "year": 2018,
+      "page": "PDF p. 8, whole-Guyane park drainage map",
+      "supports": "Regional Mana basin placement between Maroni-side drainage and Sinnamary; continuous Mana trunk bridging the upper-middle sheet-edge interval, with Eau Blanche to the west and Loubère to the east; broad coastal approach context.",
+      "limits": "Retained source reused without another request. Used for a short unambiguous regional connection anchored by detailed sheets on either side, not as a substitute for the entire route review, every local bend or present coastal geometry.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/dossier_aeu_sauts_oyapock_octobre2018f-compressed.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; southeastern interior and glaciated margin around the selected 64–66°N extent, full graticule context and Inland Ice legend.",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology; regional map-label context.",
+      "supports": "Explains ice-contour classes and regional map context without establishing a natural river identity for this selected route.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r76-orange-holden2023",
+      "title": "Lake Informational Sheet: Lake Holden",
+      "publisher": "Orange County Government, hosted by Orange County Water Atlas / University of South Florida Water Institute",
+      "year_note": "Sheet dated June 2023; map and engineering inputs include older observations.",
+      "year": 2023,
+      "page": "Pages 1–2",
+      "supports": "Northern urban lake setting, Boggy Creek basin attribution, Holden as a distinct lake with drainwells and an overflow relationship toward Jessamine.",
+      "limits": "The sheet calls Holden landlocked and describes overtopping separately. This does not establish continuous surface flow or a natural named river through the modeled northern approach.",
+      "official_url": "https://orange.wateratlas.usf.edu/upload/documents/Lake-Fact-Sheet_Holden.pdf"
+    },
+    {
+      "source_key": "r76-orange-jessamine2023",
+      "title": "Lake Informational Sheet: Lake Jessamine",
+      "publisher": "Orange County Government, hosted by Orange County Water Atlas / University of South Florida Water Institute",
+      "year_note": "Sheet dated June 2023.",
+      "year": 2023,
+      "page": "Pages 1–2",
+      "supports": "Separate Jessamine lake, eastern controlled outlet toward Conway, weir/pipe/channel feature classes and urban geographic setting.",
+      "limits": "General engineering description and older base mapping. No current discharge, exact model-to-pipe match or present flood extent is inferred.",
+      "official_url": "https://orange.wateratlas.usf.edu/upload/documents/Lake-Fact-Sheet_Jessamine.pdf"
+    },
+    {
+      "source_key": "r76-orange-conway2023",
+      "title": "Lake Informational Sheet: Lake Conway",
+      "publisher": "Orange County Government, hosted by Orange County Water Atlas / University of South Florida Water Institute",
+      "year_note": "Sheet dated June 2023.",
+      "year": 2023,
+      "page": "Pages 1–2",
+      "supports": "Conway lake setting, southeastern controlled outlet at Daetwyler Drive and onward ditch to Lake Marie Prairie within the Boggy Creek basin.",
+      "limits": "The named receiving feature and outlet describe this component only; they are not an alias for Boggy Creek or the entire selected system.",
+      "official_url": "https://orange.wateratlas.usf.edu/upload/documents/Lake-Fact-Sheet_Conway.pdf"
+    },
+    {
+      "source_key": "r76-sfwmd-erp-basinmaps",
+      "title": "Environmental Resource Permit Information Manual, Part III R: Allowable Discharge Values for Projects within the South Florida Water Management District",
+      "publisher": "South Florida Water Management District",
+      "year_note": "Part III R is dated 17 February 1994. The compilation cover says 2020 and includes rule-history updates dated July 2024; those dates do not make the historical basin maps current surveys.",
+      "year": 1994,
+      "page": "Figure 13, Boggy Creek Basin, printed page 38 / PDF page 663; Figure 124, Location of Caloosahatchee Basin, printed page 152 / PDF page 777; section title PDF page 621",
+      "supports": "Boggy Creek/urban lake and swamp geography distinct from Shingle Creek; Moore Haven–Hicpochee–Ortona–LaBelle–Alva–Olga river/canal corridor and neighboring drainage network.",
+      "limits": "Historical basin maps with schematic detail. Basin labels are not whole-channel hydronyms, and map boundary/structure depiction is not a current regulatory or operational determination.",
+      "official_url": "https://www.sfwmd.gov/sites/default/files/documents/erp_swerp_manual.pdf"
+    },
+    {
+      "source_key": "r76-sfwmd-upperkissim",
+      "title": "Kissimmee Upper Basin navigation map",
+      "publisher": "South Florida Water Management District",
+      "year_note": "Official map catalogue lists this as the 2014 Upper Kissimmee Navigation map; the linked original filename contains 2013. No more precise publication date is assigned.",
+      "year": null,
+      "page": "Single map sheet",
+      "supports": "Boggy Creek approach to East Lake Tohopekaliga; C-31 to Lake Tohopekaliga; C-35, Cypress Lake, C-36, Lake Hatchineha, C-37 and Lake Kissimmee; S-65/C-38 transition.",
+      "limits": "Navigation and regional feature-class correspondence, not a claim that modeled lake lines are surveyed channels or navigation routes. Neighboring Shingle/Reedy creeks and eastern lakes remain distinct.",
+      "official_url": "https://www.sfwmd.gov/sites/default/files/documents/upperkissim_waterway_2013.pdf"
+    },
+    {
+      "source_key": "r76-sfwmd-lowerkissim",
+      "title": "Kissimmee Lower Basin navigation map",
+      "publisher": "South Florida Water Management District",
+      "year_note": "Official catalogue lists this as the 2014 Lower Kissimmee Navigation map; original filename contains 2013 and depicts restoration phases at that time.",
+      "year": null,
+      "page": "Single map sheet",
+      "supports": "Lake Kissimmee outlet, Kissimmee River/C-38 corridor through the depicted restoration reaches and lower structures to the Okee-Tantie/Lake Okeechobee receiving area; distinct Istokpoga and canal approaches.",
+      "limits": "Historical restoration-stage map. It is not evidence that every modeled straight reach is the present flowing river or that depicted structures remain in their historical condition.",
+      "official_url": "https://www.sfwmd.gov/sites/default/files/documents/lowkissim_waterway_2013.pdf"
+    },
+    {
+      "source_key": "r76-sfwmd-lakeo2009",
+      "title": "Lake Okeechobee Scenic Trail and Okeechobee Waterway brochure",
+      "publisher": "South Florida Water Management District, U.S. Army Corps of Engineers and Florida Department of Environmental Protection Office of Greenways and Trails",
+      "year_note": "Production mark on the map page reads 18 June 2009.",
+      "year": 2009,
+      "page": "PDF page 4 map; associated waterway text on pages 2 and 4",
+      "supports": "Kissimmee inflow separate from Lake Okeechobee, western-lake/Moore Haven setting, westward Caloosahatchee connection and separate eastward St. Lucie route.",
+      "limits": "General recreational map. It does not identify the selected interior-lake line as a natural river, establish exact shoreline/rim-canal matching, or place it on an official marked navigation route. Hours and recreational conditions are not used.",
+      "official_url": "https://www.sfwmd.gov/sites/default/files/documents/lakeo_trail_waterway.pdf"
+    },
+    {
+      "source_key": "r76-sfwmd-caloos2000",
+      "title": "Caloosahatchee Water Management Plan: Planning Document",
+      "publisher": "South Florida Water Management District",
+      "year_note": "Title page dated April 2000.",
+      "year": 2000,
+      "page": "Figures 3 and 4, printed pages 29 and 31 / PDF pages 51 and 53; printed pages 27–30 / PDF pages 49–52",
+      "supports": "Caloosahatchee/C-43 western corridor through Hicpochee, Ortona, LaBelle and Franklin to the Fort Myers region, with separate tributaries and artificial connections; historical development makes a uniform natural-river interpretation inappropriate.",
+      "limits": "Historical water-management plan, not present flow or operating rules. Proposed alternatives are not treated as built works, and downstream map coverage does not extend the actual selection to the Gulf.",
+      "official_url": "https://www.sfwmd.gov/sites/default/files/documents/caloos_mngmt_plan.pdf"
+    },
+    {
+      "source_key": "r76-tocuyo-fishes-2007",
+      "title": "Los peces y su conservación en el río Tocuyo, la cuenca andina de la vertiente Caribe en Venezuela",
+      "author": "Douglas Rodríguez-Olarte, Jorge Coronel, Donald C. Taphorn and Ahyran Amaro",
+      "publisher": "Memoria de la Fundación La Salle de Ciencias Naturales, 165: 33–61",
+      "attribution": "Original research article, inspected in an already-acquired author-reprint copy. Journal title, authors, article title, printed pagination and date were verified on the source pages. No readable official article landing page was established in the bounded bibliography check; no third-party download URL is presented as official hosting.",
+      "edition": "Printed citation is 2007 (2006); field observations are from 2002–2004.",
+      "year": 2007,
+      "page": "Printed pp. 35–36, study-area prose and Figure 1; PDF pp. 3–4",
+      "supports": "Entire-basin Tocuyo identity, western tributary versus southern upper Tocuyo distinction, middle/lower course and separate reservoir/coastal-waterbody context.",
+      "limits": "Figure 1 is a small generalized basin figure. It supports the connected regional corridor, not every tiny bend or exact hydronym boundary.",
+      "official_url": null
+    },
+    {
+      "source_key": "r76-andrade-torres-2010",
+      "title": "Generación y mapeo de parámetros ambientales con fines de evaluación de tierras en el municipio Torres, Estado Lara, Venezuela",
+      "author": "Onelia Andrade, Josué Briceño, Stefan Erasmi, Martin Kappas and Jorge Unda",
+      "publisher": "Bioagro 22(2): 115–126, Universidad Centroccidental Lisandro Alvarado",
+      "attribution": "Author-generated hydrology mapping based on national cartography and a September 2000 Landsat scene, described in the methods.",
+      "year": 2010,
+      "page": "Hydrology methods/results and Figure 7, PDF pp. 10–11 in the acquired 14-page copy",
+      "supports": "Continuous western Torres approach through El Ermitaño and the eastward then northeast receiving route; distinction from southern tributaries and Atarigua.",
+      "limits": "Municipal extent does not reach the marine outlet. Small figure labels are not used to name every connector.",
+      "official_url": "https://ve.scielo.org/scielo.php?pid=S1316-33612010000200004&script=sci_arttext"
+    },
+    {
+      "source_key": "r76-mop-tocuyo-morere-1969",
+      "title": "Estudio agrológico y de clasificación de tierras con fines de riego semidetallado de los valles de los ríos Tocuyo y Morere; sectores Arenales–Parapara y Carora–Río Tocuyo, Estado Lara. Anexo mapas",
+      "author": "Deud Dumith Muñoz, Samuel Strebin and Alfred Zinck",
+      "publisher": "Ministerio de Obras Públicas, Dirección de Obras Hidráulicas, División de Edafología",
+      "attribution": "MOP original cartography retained in the Universidad Central de Venezuela hydrometeorological repository.",
+      "edition": "UCV repository catalog date 1969; inspected sheet 1 bears 28 October 1968 and scale 1:25,000.",
+      "year": 1969,
+      "page": "PDF p. 2, sheet 1, Carora–Aregue–Río Tocuyo valley",
+      "supports": "Printed Río Morere name on the actual Carora–Aregue corridor and separation of the receiving Tocuyo approach.",
+      "limits": "Historical soil/irrigation survey with local valley extent; does not cover the western start or coastal endpoint.",
+      "official_url": "https://aluvion.org/items/7ac856b4-be0c-4760-99fa-755c410214ad"
+    },
+    {
+      "source_key": "r76-proinlara-atlas-2017",
+      "title": "Atlas de Lara 2017",
+      "publisher": "PROINLARA",
+      "year": 2017,
+      "page": "pp. 143–144 and 147–149, hydrology and basin descriptions",
+      "supports": "El Ermitaño reservoir/river setting and distinction from Dos Cerritos and Atarigua on the southern upper Tocuyo; regional Morere and Tocuyo context.",
+      "limits": "Used for prose only. Its low-resolution 2011 basin-map reproduction was already inspected before the standalone map later returned a verification challenge; that reproduction supplies no detailed naming evidence and was not reacquired after the stop.",
+      "official_url": "https://laraenred.com/Proinlara/wwwroot/diseno/atlas2017.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60111852",
+      "source_keys": [
+        "r76-mana-plu-2018",
+        "r76-bon-espoir-2016",
+        "r76-deal-znieff-2013-13",
+        "r76-deal-znieff-2013-19",
+        "r75-deal-oyapock-camopi-2018"
+      ],
+      "correspondence": [
+        {
+          "finding": "The southern selected beginning lies in the Mana headwater setting west of Saül and north of Mont Galbao. The Saül sheet shows its northward connection through the Repentir and upper-river setting, then the east-west bends toward Saut Tambour, Saut Magloire and the river printed Mana. The nearby Saint-Eloi, Sophie and other criques remain separately labeled waterways; their names are not transferred to the complete mainstem. The precise official source point and names of each small headwater feeder are not established.",
+          "sources": [
+            "r76-deal-znieff-2013-19",
+            "r75-deal-oyapock-camopi-2018"
+          ]
+        },
+        {
+          "finding": "Between the northern edge of the Saül sheet and the southern edge of the Trinité sheet, the retained whole-Guyane park drainage map shows a continuous Mana trunk, with Eau Blanche approaching from the west and Loubère from the east. This readable connection bridges the two anchored parts without a competing trunk or a name transfer onto either tributary. The bridge is supported at coarser regional scale than the surrounding sheets; individual bends and feeder heads are not separately resolved.",
+          "sources": [
+            "r76-deal-znieff-2013-13",
+            "r76-deal-znieff-2013-19",
+            "r75-deal-oyapock-camopi-2018"
+          ]
+        },
+        {
+          "finding": "The middle selected corridor matches the Mana west of the Montagnes de la Trinité: the river runs north from the Pakira setting past Roche Cabrit and the Ikissi, Aïmara and Baboune rapid sequence toward Saut Fracas and Bois Couronné. Crique Forte and the separate eastern Kokioko drainage remain distinguishable from this main river. Local bends and rapids are generalized by the model.",
+          "sources": [
+            "r76-deal-znieff-2013-13",
+            "r76-mana-plu-2018"
+          ]
+        },
+        {
+          "finding": "Near Bon Espoir the Mana approaches from the southeast, turns north, receives the Arouani from the south, and then receives Crique Lézard from the west farther downstream. The sole selected tributary follows only the short lower northward Arouani approach to the first junction. The report's regional and detailed maps distinguish that approach from Crique Lézard, Crique Mousse and the more distant Kokioko. The entire Arouani basin and its upstream source are not selected.",
+          "sources": [
+            "r76-bon-espoir-2016",
+            "r76-mana-plu-2018"
+          ]
+        },
+        {
+          "finding": "The lower selected Mana continues north through the bend sequence toward Saut Tamanoir and Saut Sabbat, then past Angoulême, Terre Rouge and Mana bourg. The municipal map separates this river from Crique Portal and the Acarouany approach, and from the Maroni farther west. These nearby tributaries are context, not additional selected paths.",
+          "sources": [
+            "r76-mana-plu-2018",
+            "r76-bon-espoir-2016"
+          ]
+        },
+        {
+          "finding": "The selection continues northwest beyond Mana bourg into the coastal approach. Its generalized endpoint is not sufficient to establish the present ocean-mouth position, the full westward estuarine extension or an administrative sea limit. The older cartography is used for river identity and approach only; no precise modern shoreline or tidal boundary is claimed.",
+          "sources": [
+            "r76-mana-plu-2018",
+            "r75-deal-oyapock-camopi-2018"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90113051",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The one selected mainstem piece and its full extent were inspected. It begins in the southern interior, runs north along a long western leg, bends northeast to its northernmost interior section, then turns east through several broad model bends before descending southeast and ending after a short eastward lower segment. No separate tributary fragment is selected.",
+        "The western and northern route lies within the mapped Inland Ice. Its eastward and southeastward continuation approaches the southeastern glaciated margin in the broader inland Køge Bugt region. The readable graticule, continuous ice field, ice contours and adjacent coast support this whole-route feature-class reading. The endpoint is not assigned to a specific glacier, fjord or marginal stream.",
+        "No natural river hydronym is established for the whole modeled ice-sheet path. A nearby glacier, settlement or fjord label cannot name the full selection. This positive feature-class mismatch is a completed naming-scope hold, not a claim that all marginal streams lack names or a report of missing source material.",
+        "The map legend distinguishes ice-surface contours, dashed ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments south of 68°N. These map symbols do not prove named-river flow or a present-day surface or subglacial connection along the modeled path."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70836751",
+      "source_keys": [
+        "r76-orange-holden2023",
+        "r76-orange-jessamine2023",
+        "r76-orange-conway2023",
+        "r76-sfwmd-erp-basinmaps",
+        "r76-sfwmd-upperkissim",
+        "r76-sfwmd-lowerkissim",
+        "r76-sfwmd-lakeo2009",
+        "r76-sfwmd-caloos2000"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10261
+          ],
+          "finding": "The northern modeled approach passes south through the Holden–Jessamine–Conway urban-lake setting. Orange County maps and flowpath descriptions distinguish these lakes and their controls: Holden is listed as landlocked with drainwells and a separate overflow relationship toward Jessamine; Jessamine has an eastern weir/pipe/channel connection to Conway; Conway has a controlled southeastern outlet toward Lake Marie Prairie. These support a connected drainage setting at regional scale, not one uninterrupted natural stream name. The brief initial urban approach has no verified individual channel name in this assessment and is not asserted to be an official river source. Exact lake-shore and infrastructure intersections are not inferred from the generalized path.",
+          "sources": [
+            "r76-orange-holden2023",
+            "r76-orange-jessamine2023",
+            "r76-orange-conway2023",
+            "r76-sfwmd-erp-basinmaps"
+          ]
+        },
+        {
+          "fragments": [
+            10261
+          ],
+          "finding": "South of the urban lake/outlet setting, the selected approach follows the Boggy Creek/swamp corridor toward the northwestern side of East Lake Tohopekaliga. The basin map and upper navigation map distinguish this from Shingle Creek farther west and from the Hart/Mary Jane/Fells Cove approach east of it. Boggy Creek is a component hydronym; the full set of upstream urban lakes and outlets is not renamed Boggy Creek merely because it lies in that drainage basin.",
+          "sources": [
+            "r76-sfwmd-erp-basinmaps",
+            "r76-sfwmd-upperkissim",
+            "r76-orange-conway2023"
+          ]
+        },
+        {
+          "fragments": [
+            10261
+          ],
+          "finding": "The route crosses the East Lake Tohopekaliga setting, takes the C-31/S-59 connection westward into Lake Tohopekaliga, then continues via the southern S-61/C-35 corridor to Cypress Lake. It then follows the C-36/Hatchineha and C-37/Kissimmee chain before leaving Lake Kissimmee at S-65. The original upper-basin map labels these waterbodies and connectors separately. The model line through a lake does not turn the lake into a natural river reach or establish a surveyed navigation route.",
+          "sources": [
+            "r76-sfwmd-upperkissim"
+          ]
+        },
+        {
+          "fragments": [
+            10261
+          ],
+          "finding": "From Lake Kissimmee the selected southward corridor agrees with the lower-basin map’s Kissimmee River/C-38 alignment, including the upper straightened reach, central restored/meandering-river setting, Basinger/lower structures and the final approach to Okee-Tantie at Lake Okeechobee. Istokpoga, Harney Pond and Indian Prairie routes join from separate western directions and are not selected tributary fragments. The historical map’s restoration phases are kept separate from any claim about the present flow channel.",
+          "sources": [
+            "r76-sfwmd-lowerkissim"
+          ]
+        },
+        {
+          "fragments": [
+            10261,
+            10262
+          ],
+          "finding": "After the Kissimmee inflow, the model continues within the northern/western Lake Okeechobee setting and toward the western-lake approach to Moore Haven. The acquired brochure distinguishes the lake from its northern inflows, the Caloosahatchee western outlet and the St. Lucie eastern outlet. The modeled interior-lake arc and westward connection are not independently named as Kissimmee River, a rim canal, or a marked Okeechobee Waterway route. The fragment boundary inside this lake/western-margin setting does not establish a hydronym boundary.",
+          "sources": [
+            "r76-sfwmd-lakeo2009",
+            "r76-sfwmd-lowerkissim",
+            "r76-sfwmd-caloos2000"
+          ]
+        },
+        {
+          "fragments": [
+            10262
+          ],
+          "finding": "The continuation turns through the Moore Haven/S-77 outlet sector and west through the Lake Hicpochee/C-43 corridor, passing the Ortona/S-78, LaBelle, Alva and Franklin/S-79 settings. The historical SFWMD plan expressly treats C-43 and Caloosahatchee River together while describing artificial connection, excavation and channel modification. These are supported local river/canal designations, not evidence that the name extends north through Lake Okeechobee to Orlando. Nearby C-19, agricultural canals, sloughs and Orange River remain separate features.",
+          "sources": [
+            "r76-sfwmd-erp-basinmaps",
+            "r76-sfwmd-lakeo2009",
+            "r76-sfwmd-caloos2000"
+          ]
+        },
+        {
+          "fragments": [
+            10262
+          ],
+          "finding": "The last selected reach continues west of the Franklin/Olga vicinity in the lower Caloosahatchee corridor and ends before central Fort Myers. The SFWMD plan’s regional maps cover the river farther downstream, allowing the selected endpoint to be distinguished from the full estuary and Gulf outlet. The modeled endpoint is not identified as the river’s official mouth.",
+          "sources": [
+            "r76-sfwmd-caloos2000"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60001672",
+      "source_keys": [
+        "r76-tocuyo-fishes-2007",
+        "r76-andrade-torres-2010",
+        "r76-mop-tocuyo-morere-1969",
+        "r76-proinlara-atlas-2017"
+      ],
+      "correspondence": [
+        {
+          "finding": "The western selected beginning follows the drainage through the El Ermitaño reservoir setting near Quebrada Arriba, then bends southeast and east across the western Torres lowlands toward Carora. Andrade and colleagues' Figure 7 independently maps this connected western drainage and distinguishes the more southerly reservoir systems. Neither a reservoir polygon nor every neighboring feeder is included merely because the line crosses this setting.",
+          "sources": [
+            "r76-andrade-torres-2010",
+            "r76-proinlara-atlas-2017"
+          ]
+        },
+        {
+          "finding": "The connected selected route turns northeast at Carora and follows the Morere valley past Aregue to the Río Tocuyo settlement/confluence setting. The MOP map prints Río Morere along this valley and shows the receiving Tocuyo approach separately. The selected western continuation is therefore not evidence that the Tocuyo itself originates at the western model endpoint.",
+          "sources": [
+            "r76-mop-tocuyo-morere-1969",
+            "r76-andrade-torres-2010"
+          ]
+        },
+        {
+          "finding": "After the tributary connection, the selection follows the receiving river north toward Siquisique and then east along the elongated middle-basin corridor. Its later northeast turn and lower coastward course agree with the entire-basin map in the 2007 field study. That map separates the Baragua, Urama, Araurima and other side drainages rather than combining them into the selected line.",
+          "sources": [
+            "r76-tocuyo-fishes-2007"
+          ]
+        },
+        {
+          "finding": "The northeastern ending is in the lower Tocuyo coastward approach. The study separates its final coastal reach from the nearby Játira–Tacarigua waterbody and Golfete de Cuare. The selection is not extended into those waterbodies or treated as a complete present-day estuary or marine-mouth outline.",
+          "sources": [
+            "r76-tocuyo-fishes-2007"
+          ]
+        },
+        {
+          "finding": "The southern upper Tocuyo, Dos Cerritos, Atarigua, the complete Los Quediches and Puricaure reservoir systems, and the many unselected tributaries remain separate. The western connecting reach can remain partly unnamed while its connection to the supported Morere–Tocuyo route is recorded. No hydronym is transferred from a nearby or inconsistently placed label.",
+          "sources": [
+            "r76-tocuyo-fishes-2007",
+            "r76-andrade-torres-2010",
+            "r76-proinlara-atlas-2017"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
