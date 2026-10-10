@@ -117,7 +117,7 @@ export function resolvePlaceLabelRows(place, languages = DEFAULT_PLACE_LANGUAGES
   const names = { ko: place.name, en: place.nameEn };
   let native = [place.nameNative, ...(place.nameNativeExtras || [])];
   if (mapDate != null) {
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/u.test(mapDate)) throw new TypeError('Invalid map label date');
+    if (!/^\d{4}-\d{2}-\d{2}$/u.test(mapDate)) throw new TypeError('Invalid map label date');
     for (const transition of place.nameTimeline || []) {
       if (transition.fromDate ? transition.fromDate > mapDate : transition.fromYear > Number(mapDate.slice(0, 4))) break;
       if (transition.ko != null) names.ko = transition.ko;
