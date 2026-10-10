@@ -1,0 +1,316 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r64",
+  "sources": [
+    {
+      "source_key": "r64-cehq-region09-summer-lowflow",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 09",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011. Cartography: Marie-Lise Paquin and Éric Levasseur; approved by Joëlle Bérubé. BDGA 1:1,000,000 base; map scale 1:2,300,000; NAD83 Québec Lambert.",
+      "year": 2011,
+      "page": "Single regional sheet; whole sheet and upper/lower corridor enlargements.",
+      "supports": "Representative corridor, upper lake-country context, long named Petite rivière de la Baleine trunk and coastal disambiguation from adjacent rivers.",
+      "limits": "Regional cartography does not resolve every small feeder’s name, precise lake transition, or tidal boundary. Low-flow values and current management status are outside the finding.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_09_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r61-cehq-region10-summer-lowflow",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 10",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011. Cartography: Marie-Lise Paquin and Éric Levasseur; approved by Joëlle Bérubé. BDGA 1:1,000,000 base; map scale 1:2,300,000; NAD83 Québec Lambert.",
+      "year": 2011,
+      "page": "Single-sheet regional map, southwestern Nastapoka and Loups Marins lake-country detail.",
+      "supports": "Named Nastapoka trunk, Natwakupaw and Loups Marins settings, neighboring drainages and Hudson Bay terminal correspondence.",
+      "limits": "Generalized regional cartography. Does not name every feeder or connecting channel, resolve exact shoreline or hydronym transition vertices, or establish current discharge conditions. Low-flow numerical values were not used.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r64-krg-masterplan-tursujuq",
+      "title": "Plan directeur de la région Kativik 2020 — Parc national Tursujuq map",
+      "publisher": "Administration régionale Kativik; map by Gouvernement du Québec, Ministère des Forêts, de la Faune et des Parcs, Direction des parcs nationaux",
+      "attribution": "Map © Gouvernement du Québec, first trimester 2015; scale 1:1,150,000; NAD83 Lambert; source BDTA 1:1,000,000, Ressources naturelles Canada, 2002.",
+      "year": 2020,
+      "page": "Printed p. 51, PDF p. 59; title page for publication identity.",
+      "supports": "Independent context for the southern corridor below the D’Iberville lake setting, labeled Petite rivière de la Baleine along the southern park setting and terminal context south of Lac Guillaume-Delisle/Le Goulet.",
+      "limits": "Map does not extend over the entire far-eastern selected hook. It is corroboration for the western and central corridor, not coverage of all headwaters or an assertion of current legal park limits.",
+      "official_url": "https://www.krg.ca/en-CA/assets/renewable-resources/MasterPlan%28FR%29.pdf"
+    },
+    {
+      "source_key": "r64-inrs-baleine-r99",
+      "title": "Étude hydrologique de la Grande rivière de la Baleine et de la Petite rivière de la Baleine — Rapport scientifique no 99",
+      "publisher": "Institut national de la recherche scientifique, INRS-Eau, Québec",
+      "attribution": "G. Morin, R. Charbonneau, J.-P. Fortin, J.-P. Lardeau, L. Potvin and W. Sochanska; report prepared for Hydro-Québec. Institutional catalogue and legal-deposit page date the publication to 1979; the internal reference uses 1978.",
+      "year": 1979,
+      "page": "Figure 4.1, printed p. 57, PDF p. 74; natural secondary-outflow discussion, printed pp. 59–61, PDF pp. 77–79; geographic context, printed p. 19, PDF p. 36.",
+      "supports": "Independent explanation that natural secondary outlets connect Petite Baleine sub-basins with Nastapoka and other branches; prevents an exclusive-watershed interpretation of the selected modeled line.",
+      "limits": "Generalized historical hydrological model, not a detailed hydronym map for the selected headwater feeder. Proposed development simulations elsewhere in the report are not evidence of built dams or current drainage modifications.",
+      "official_url": "https://espace.inrs.ca/id/eprint/1088/1/R000099.pdf"
+    },
+    {
+      "source_key": "r64-qc-tursujuq2015-in-krg2020",
+      "title": "Parc national Tursujuq map, reproduced in Plan directeur de la région Kativik 2020",
+      "publisher": "Map: Gouvernement du Québec, Ministère des Forêts, de la Faune et des Parcs, Direction des parcs nationaux. Hosting report: Administration régionale Kativik.",
+      "attribution": "Map © Gouvernement du Québec, first quarter 2015. BDTA 1:1,000,000, Ressources naturelles Canada 2002; map scale 1:1,150,000; NAD83, Lambert conic.",
+      "year": 2015,
+      "page": "Printed p. 51, PDF p. 59; adjoining hydrography summary on printed p. 50.",
+      "supports": "D’Iberville–Petit lake-country approach, northward Loups Marins connection, branched lake setting, named Nastapoka and Natwakupaw trunk, neighboring branches and Hudson Bay mouth setting north of Umiujaq.",
+      "limits": "Regional map with generalized cartographic base and imagery, not a current detailed hydrographic survey. The initial feeder remains unnamed. Its historical park boundary and protected-status descriptions are not adopted as current regulatory conclusions. Search-result wording differed from the actual report title; the bibliography uses the actual cover and embedded map attribution.",
+      "official_url": "https://www.krg.ca/en-CA/assets/renewable-resources/MasterPlan%28FR%29.pdf"
+    },
+    {
+      "source_key": "r64-dfo-loupsmarins2018",
+      "title": "Programme de rétablissement du phoque commun, sous-espèce des lacs des Loups Marins (Phoca vitulina mellonae)",
+      "publisher": "Pêches et Océans Canada, Ottawa; Government of Canada species-at-risk registry",
+      "attribution": "MPO 2018, vi + 31 pp.; Figure 1 credits literature and traditional-knowledge consultations held in April 2012.",
+      "year": 2018,
+      "page": "Figure 1, regional distribution map; section 3.2.2 and publication attribution.",
+      "supports": "Independent regional placement of Lac D’Iberville south of Petit lac des Loups Marins, Lacs des Loups Marins farther north, and the named Nastapoka westward corridor.",
+      "limits": "Small-scale ecological distribution map. Used for geographic context only, not a basin boundary, complete stream-name assignment, flow connection proof, present-day species status or inferred wildlife presence on the selected line. Figure 2 is the already represented provincial park map and was not separately acquired.",
+      "official_url": "https://www.canada.ca/fr/environnement-changement-climatique/services/registre-public-especes-peril/programmes-retablissement/phoque-commun-lacs-loups-marins.html"
+    },
+    {
+      "source_key": "r64-inrs-r99-1979",
+      "title": "Étude hydrologique de la Grande rivière de la Baleine et de la Petite rivière de la Baleine",
+      "authors": [
+        "G. Morin",
+        "R. Charbonneau",
+        "J. P. Fortin",
+        "J. P. Lardeau",
+        "L. Potvin",
+        "W. Sochanska"
+      ],
+      "publisher": "INRS-Eau, Université du Québec; report prepared for Hydro-Québec",
+      "year": 1979,
+      "page": "Section 4.1.2, printed pp. 59–60, PDF pp. 77–78; Figure 4.1, printed p. 57, PDF p. 74.",
+      "supports": "Important scope qualification: two secondary outflows from Petite Baleine sub-basins toward the Nastapoka basin prevent describing these neighboring modeled routes as isolated exhaustive catchments.",
+      "limits": "Historical hydrological modeling study. Does not establish current flow division, identify every exact selected interlake connection, or justify adopting its Nastapoca spelling as a current official alias.",
+      "official_url": "https://espace.inrs.ca/id/eprint/1088/1/R000099.pdf"
+    },
+    {
+      "source_key": "r64-utah-sevier-basin-1999",
+      "title": "State Water Plan — Sevier River Basin",
+      "publisher": "Utah Board of Water Resources / Utah Department of Natural Resources, Division of Water Resources",
+      "year": 1999,
+      "page": "Figure 3-1, printed p. 3-3 (PDF p. 17); Figure 5-1, printed p. 5-2 (PDF p. 47); Figure 5-2, printed p. 5-4 (PDF p. 49); basin description, printed pp. 3-2–3-4; Foreword p. 1-1.",
+      "supports": "Distinct East Fork headwater branch, downstream Sevier corridor, reservoir sequence and inland Sevier Lake/playa terminus.",
+      "limits": "Generalized historical basin-planning maps. The flow schematic is not a planimetric river survey. Exact feeder, confluence, shoreline and hydronym boundaries remain unassigned. Original source pixels and local renderings are retained privately.",
+      "official_url": "https://water.utah.gov/wp-content/uploads/2019/SWP/Sevier/SevierRiver1999.pdf"
+    },
+    {
+      "source_key": "r64-dga-loa-quality-2004",
+      "title": "Diagnóstico y clasificación de los cursos y cuerpos de agua según objetivos de calidad — Cuenca Río Loa",
+      "publisher": "Gobierno de Chile, Dirección General de Aguas; official copy hosted by Ministerio del Medio Ambiente",
+      "edition": "December 2004",
+      "year": 2004,
+      "page": "Printed pp. 1–2, complete river-course description; printed p. 4, segmentation table; Figure 2.1, printed p. 10 (PDF p. 16)",
+      "supports": "Distinctive full Loa trajectory and separate named tributaries; central-basin map around Calama, San Pedro, María Elena and Quillagua; source and coastal-destination prose.",
+      "limits": "Figure 2.1 reproduces a DGA hydrogeological-map excerpt at 1:1,000,000 and omits the extreme source and coast. It is not detailed endpoint map evidence. Historical lengths, discharge, water-quality and operational statements are not adopted as current findings.",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Loa.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70065502",
+      "source_keys": [
+        "r64-cehq-region09-summer-lowflow",
+        "r61-cehq-region10-summer-lowflow",
+        "r64-krg-masterplan-tursujuq",
+        "r64-inrs-baleine-r99"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9111
+          ],
+          "finding": "The selected eastern beginning travels east, bends north and returns west through a lake-and-feeder corridor before reaching the western connecting piece. The CEHQ maps show this eastern lake country and its west-draining connections to the Petite Baleine corridor. The small initial feeder and individual eastern waterbody passages remain unnamed; nearby lake labels alone do not establish a particular lake traversal.",
+          "sources": [
+            "r64-cehq-region09-summer-lowflow",
+            "r61-cehq-region10-summer-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            9111,
+            9112,
+            9113
+          ],
+          "finding": "The connected route continues west, then turns distinctly south before entering the long western trunk. This is the southern connecting corridor below the D’Iberville/Petit lac des Loups Marins setting, rather than the neighboring north-turning route toward Nastapoka. D’Iberville, Amichinatwayach, Sirvé and Mondain are separately labeled regional waterbodies; no exact entry/exit sequence through them is assigned to the selected line.",
+          "sources": [
+            "r64-cehq-region09-summer-lowflow",
+            "r61-cehq-region10-summer-lowflow",
+            "r64-krg-masterplan-tursujuq"
+          ]
+        },
+        {
+          "fragments": [
+            9113
+          ],
+          "finding": "After its southern bend, the route follows the sustained westward corridor labeled Petite rivière de la Baleine. The Tursujuq map repeats that name along the southern side of the park setting. Rivière Boutin is separately depicted to the south; no separately selected tributary fragment follows it.",
+          "sources": [
+            "r64-cehq-region09-summer-lowflow",
+            "r61-cehq-region10-summer-lowflow",
+            "r64-krg-masterplan-tursujuq"
+          ]
+        },
+        {
+          "fragments": [
+            9113
+          ],
+          "finding": "The western continuation bends northwest toward Hudson Bay south of Lac Guillaume-Delisle and its Le Goulet opening. The regional sheet places the river north of Kuujjuarapik and the Grande rivière de la Baleine mouth, distinguishing it from the neighboring Coats and Grande Baleine corridors. The selected ending represents the coastal river approach, not a surveyed estuary boundary or complete marine channel.",
+          "sources": [
+            "r64-cehq-region09-summer-lowflow",
+            "r64-krg-masterplan-tursujuq"
+          ]
+        },
+        {
+          "fragments": [
+            9111,
+            9112,
+            9113
+          ],
+          "finding": "The INRS hydrological study explicitly represents secondary natural outflows from Petite Baleine sub-basins toward the neighboring Nastapoka drainage and other internal connections. Consequently, the selected connected line supports a representative Petite Baleine identity without implying that every contributing lake drains exclusively to it or that the line defines an exhaustive isolated watershed.",
+          "sources": [
+            "r64-inrs-baleine-r99"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70045636",
+      "source_keys": [
+        "r61-cehq-region10-summer-lowflow",
+        "r64-qc-tursujuq2015-in-krg2020",
+        "r64-dfo-loupsmarins2018",
+        "r64-inrs-r99-1979"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9093
+          ],
+          "finding": "The actual headward piece first turns east and south, then west into the southern D’Iberville lake-country setting before reversing north toward Petit lac des Loups Marins. It is not replaced by a simpler origin at the larger Loups Marins lakes. The eastern feeder and its small waterbodies remain unnamed; the D’Iberville–Petit correspondence is a regional cartographic inference, not an exact surveyed lake-entry boundary.",
+          "sources": [
+            "r64-qc-tursujuq2015-in-krg2020",
+            "r61-cehq-region10-summer-lowflow",
+            "r64-dfo-loupsmarins2018"
+          ]
+        },
+        {
+          "fragments": [
+            9093,
+            9094
+          ],
+          "finding": "The selected line continues north through the Petit lac des Loups Marins corridor, enters the eastern Loups Marins lake country and bends west across the large branched lake setting. Petit lac des Loups Marins and Lacs des Loups Marins are separate mapped waterbody names. Lac Bourdel is northern contributing context, not a replacement for the selected southern approach.",
+          "sources": [
+            "r64-qc-tursujuq2015-in-krg2020",
+            "r61-cehq-region10-summer-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            9094
+          ],
+          "finding": "Beyond the lake-country passage, the selected southwestward bend and sustained northwest-to-west continuation correspond to the labeled Rivière Nastapoka, including the Lac Natwakupaw setting. The separately mapped Rivière du Nord and Sheldrake courses lie to the south and are not followed by this selected trunk.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r64-qc-tursujuq2015-in-krg2020"
+          ]
+        },
+        {
+          "fragments": [
+            9094
+          ],
+          "finding": "The terminal piece reaches the Nastapoka coastal setting north of Umiujaq on Hudson Bay. It does not turn south into Lac Guillaume-Delisle or use that lake’s Le Goulet outlet. Regional map correspondence does not define the precise modeled endpoint as a surveyed mouth, tidal boundary or particular estuarine channel.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r64-qc-tursujuq2015-in-krg2020"
+          ]
+        },
+        {
+          "fragments": [
+            9093,
+            9094
+          ],
+          "finding": "The INRS study describes secondary natural outflows from two Petite rivière de la Baleine sub-basins toward the Nastapoka basin. Accordingly, this finding identifies the selected connected corridor; it does not claim an exhaustive or hydrologically isolated catchment, determine current flow division, or assign one river name to every neighboring connecting waterway.",
+          "sources": [
+            "r64-inrs-r99-1979"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70594679",
+      "source_keys": [
+        "r64-utah-sevier-basin-1999"
+      ],
+      "correspondence": [
+        {
+          "finding": "The southern approach matches the East Fork corridor west of Bryce Canyon and through the Tropic Reservoir setting. The mapped Hatch–Panguitch branch lies separately to its west; the initial short headwater feeder remains unassigned.",
+          "sources": [
+            "r64-utah-sevier-basin-1999"
+          ]
+        },
+        {
+          "finding": "The selected line continues north toward Antimony, turns west toward Kingston and joins the Sevier corridor above Piute Reservoir. The map distinguishes the Otter Creek contribution from this selected approach.",
+          "sources": [
+            "r64-utah-sevier-basin-1999"
+          ]
+        },
+        {
+          "finding": "North of Piute, the route follows the Marysvale–Richfield–Salina sequence, then the Sevier trunk toward the San Pitch junction and Sevier Bridge Reservoir. The separate San Pitch headwaters are not traversed.",
+          "sources": [
+            "r64-utah-sevier-basin-1999"
+          ]
+        },
+        {
+          "finding": "The northern bend turns west and southwest through the Sevier Desert toward Delta, matching the mapped downstream river and the DMAD/Gunnison Bend reservoir setting. Reservoir crossings are treated as modeled connections, not uniform river-name extents.",
+          "sources": [
+            "r64-utah-sevier-basin-1999"
+          ]
+        },
+        {
+          "finding": "The final southwestward approach reaches the northern Sevier Lake/playa setting. The plan describes an inland terminus with intermittent inflow and a usually dry playa; the modeled terminal line does not prove permanent water or a continuously flowing natural river.",
+          "sources": [
+            "r64-utah-sevier-basin-1999"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61319619",
+      "source_keys": [
+        "r64-dga-loa-quality-2004"
+      ],
+      "correspondence": [
+        {
+          "finding": "The eastern arm runs predominantly south through the upper Loa setting toward Chiuchiu. DGA describes the same northern-source-to-Chiuchiu course. The model’s short northeastern starting approach is not assigned an exact feeder name or the surveyed Ojos del Miño source.",
+          "sources": [
+            "r64-dga-loa-quality-2004"
+          ]
+        },
+        {
+          "finding": "The southern turn runs west through the Calama setting toward Chacance. This matches both DGA’s course description and the readable central-basin map. San Pedro and Salado are separately identified eastern contributions.",
+          "sources": [
+            "r64-dga-loa-quality-2004"
+          ]
+        },
+        {
+          "finding": "At the western side the selected route turns north, matching the Chacance–Quillagua arm. DGA identifies San Salvador as a separate tributary joining at Chacance; its upstream channel is not selected.",
+          "sources": [
+            "r64-dga-loa-quality-2004"
+          ]
+        },
+        {
+          "finding": "The northwestern arc then turns west toward the Pacific, matching DGA’s Quillagua-to-Caleta Huelén description. This supports the coastal destination but not an exact estuary, tidal limit or contemporary surveyed mouth vertex.",
+          "sources": [
+            "r64-dga-loa-quality-2004"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
