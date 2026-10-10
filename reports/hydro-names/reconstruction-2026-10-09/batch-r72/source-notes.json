@@ -1,0 +1,453 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r72",
+  "sources": [
+    {
+      "source_key": "r72-nluis-76g",
+      "title": "Beechey Lake, 76G, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of Fisheries and the Environment, Lands Directorate; Indian and Northern Affairs; thematic cartography by Maritime Resource Management Service",
+      "year": 1978,
+      "page": "Single-sheet original map, eastern source lakes and upper Ellice corridor",
+      "supports": "Actual selected western feeder and lake sequence, northeastward connection and separation from the southeastern named river approach.",
+      "limits": "No separate names for the selected feeder or its lakes; generalized small-channel connections and historical topography.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76g.jpg"
+    },
+    {
+      "source_key": "r72-nluis-76h",
+      "title": "Duggan Lake, 76H, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of Fisheries and the Environment, Lands Directorate; Indian and Northern Affairs; thematic cartography by Maritime Resource Management Service",
+      "year": 1978,
+      "page": "Single-sheet original map, northwestern upper Ellice and lake corridor",
+      "supports": "Upper Ellice identity, selected lake widenings and eastward then northward route.",
+      "limits": "Lake passages lack separately established hydronyms; no formal naming boundary assigned.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76h.jpg"
+    },
+    {
+      "source_key": "r72-nluis-76i",
+      "title": "Overby Lake, 76I, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of Fisheries and the Environment, Lands Directorate; Indian and Northern Affairs; thematic cartography by Maritime Resource Management Service",
+      "year": 1978,
+      "page": "Single-sheet original map, middle Ellice and northeastern continuation",
+      "supports": "Middle Ellice labels and bends, selected northeastern branch continuation and exclusion of the neighboring lake and northwestward branch.",
+      "limits": "Thematic boundaries partly overlay river pixels; underlying watercourse continuity was inspected beyond those boundaries.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76i.jpg"
+    },
+    {
+      "source_key": "r72-nluis-76p",
+      "title": "Brichta Lake, 76P, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of Fisheries and the Environment, Lands Directorate; Indian and Northern Affairs; thematic cartography by Maritime Resource Management Service",
+      "year": 1978,
+      "page": "Single-sheet original map, eastern lower Ellice corridor",
+      "supports": "Lower Ellice identity, selected bends and northward continuation near the eastern map edge.",
+      "limits": "The sheet stops before the coastal endpoint; the Queen Maud Gulf sheet provides the terminal setting.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76p.jpg"
+    },
+    {
+      "source_key": "r72-nluis-67b",
+      "title": "Queen Maud Gulf, 67B, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Environment Canada, Lands Directorate; Indian and Northern Affairs; thematic cartography by Agriculture Canada",
+      "year": 1983,
+      "page": "Single-sheet original map, southwestern Ellice–Campbell Bay coast",
+      "supports": "Northern endpoint at the lower Ellice outlet into Campbell Bay and the bay’s connection to Queen Maud Gulf.",
+      "limits": "Historical generalized coast; no precise present-day mouth or tidal limit established.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_67b.jpg"
+    },
+    {
+      "source_key": "r72-dnr-rrmp-map2005",
+      "title": "Nushagak and Mulchatna Rivers Recreation Management Plan, Plan Map 3-1",
+      "publisher": "Alaska Department of Natural Resources",
+      "year": 2005,
+      "page": "Single oversized sheet, dated April 2005",
+      "supports": "Direct Nushagak, Nuyakuk and Mulchatna river labels; actual upper Nushagak branch; tributary junctions and middle/lower trunk.",
+      "limits": "The mapped planning boundary omits portions of the western lake setting, far eastern upper Mulchatna and final coastal approach. Those extents are supplied by the regional sheets rather than inferred from the title.",
+      "official_url": "https://dnr.alaska.gov/mlw/planning/mgtplans/nushagak/pdf/rrmp_map1.pdf"
+    },
+    {
+      "source_key": "r72-dnr-bbap-region6",
+      "title": "Bristol Bay Area Plan, Map 3-6: Region 06, Planning Area, Regions, and General Land Status",
+      "publisher": "Alaska Department of Natural Resources, Division of Mining, Land and Water",
+      "year": 2014,
+      "page": "Single sheet, scale 1:700,000; boundaries and information current to March 2014",
+      "supports": "Western lake-outlet connection, full central Nushagak–Mulchatna junction setting and overlapping trunk geography.",
+      "limits": "Generalized cartography with thematic overlays and faint background lake labels; not evidence of exact shorelines or all individual channel threads.",
+      "official_url": "https://dnr.alaska.gov/mlw/planning/areaplans/bristol/pdf/bbap_amend2013_map3-06.pdf"
+    },
+    {
+      "source_key": "r72-dnr-bbap-region7",
+      "title": "Bristol Bay Area Plan, Map 3-7: Region 07, Planning Area, Regions, and General Land Status",
+      "publisher": "Alaska Department of Natural Resources, Division of Mining, Land and Water",
+      "year": 2014,
+      "page": "Single sheet, scale 1:400,000; boundaries and information current to March 2014",
+      "supports": "Turquoise Lake setting and upper Mulchatna route through its northwest bend and southwest continuation; distinction from the southern Twin Lakes–Chilikadrotna approach.",
+      "limits": "Lake and background labels are faint beneath land-status shading; the map is used for actual visible route and lake connection, not an exact source coordinate.",
+      "official_url": "https://dnr.alaska.gov/mlw/planning/areaplans/bristol/pdf/bbap_amend2013_map3-07.pdf"
+    },
+    {
+      "source_key": "r72-dnr-bbap-region5",
+      "title": "Bristol Bay Area Plan, Map 3-5: Region 05, Planning Area, Regions, and General Land Status",
+      "publisher": "Alaska Department of Natural Resources, Division of Mining, Land and Water",
+      "year": 2014,
+      "page": "Single sheet, scale 1:425,000; boundaries and information current to March 2014",
+      "supports": "Lower Nushagak continuation, characteristic west/northwest terminal turn and adjoining coastal-water setting near Dillingham.",
+      "limits": "Does not establish the exact river-mouth coordinate, tidal boundary or a modern shoreline survey.",
+      "official_url": "https://dnr.alaska.gov/mlw/planning/areaplans/bristol/pdf/bbap_amend2013_map3-05.pdf"
+    },
+    {
+      "source_key": "r61-cehq-region10-summer-lowflow",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 10",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011; regional hydrology map at 1:2,300,000, BDGA cartographic base.",
+      "year": 2011,
+      "page": "Single-sheet western margin, upper and middle Kogaluc context",
+      "supports": "Rivière Kogaluc spelling and distinction from Mariet, Innuksuac and neighboring Ungava-draining waters.",
+      "limits": "Retained map reused; its western margin omits the final coastward selection. The three NTS sheets below supply readable detailed route and terminal context.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r72-nts-034j",
+      "title": "Lac Vernon, NTS 34 J",
+      "publisher": "Canada, Department of Energy, Mines and Resources",
+      "attribution": "Surveys and Mapping Branch; edition and publication year read from the map imprint; original archived by Natural Resources Canada.",
+      "edition": 2,
+      "year": 1986,
+      "page": "Single sheet, drainage corridor and publication imprint",
+      "scale": "1:250,000",
+      "supports": "Southeastern initial lake-and-stream approach, elongated upper lake chain and labelled upper Kogaluc corridor.",
+      "limits": "Historical topographic evidence of waterbody classes, connections and named corridor; no present-day water level, discharge or exact model-vertex correspondence is asserted. Source map images are not redistributed.",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/034/j/034j_0200_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r72-nts-034o",
+      "title": "Lac Anuc, NTS 34 O",
+      "publisher": "Canada, Department of Energy, Mines and Resources",
+      "attribution": "Canada Centre for Mapping; edition and publication year read from the map imprint; original archived by Natural Resources Canada.",
+      "edition": 3,
+      "year": 1992,
+      "page": "Single sheet, drainage corridor and publication imprint",
+      "scale": "1:250,000",
+      "supports": "Tasiat/Anuc lake-and-channel setting, northern selected loop and western Albrutchaq/Anartalik connections.",
+      "limits": "Historical topographic evidence of waterbody classes, connections and named corridor; no present-day water level, discharge or exact model-vertex correspondence is asserted. Source map images are not redistributed.",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/034/o/034o_0300_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r72-nts-034n",
+      "title": "Kogaluk Bay, NTS 34 N and 34 M (part)",
+      "publisher": "Canada, Department of Energy, Mines and Resources",
+      "attribution": "Canada Centre for Mapping; edition and publication year read from the map imprint; original archived by Natural Resources Canada.",
+      "edition": 3,
+      "year": 1992,
+      "page": "Single sheet, drainage corridor and publication imprint",
+      "scale": "1:250,000",
+      "supports": "Manguic and lower Kogaluc lake-and-river corridor, Lac Kogaluc and northward Reef Bay/Hudson Bay receiving connection.",
+      "limits": "Historical topographic evidence of waterbody classes, connections and named corridor; no present-day water level, discharge or exact model-vertex correspondence is asserted. Source map images are not redistributed.",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/034/n/034n_0300_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r65-inegi-sinaloa-state",
+      "title": "Condensado Estatal Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "First edition 2020; copyright 2021",
+      "year": 2020,
+      "page": "Single state sheet, PDF p. 1; Colorado–Humaya route, Adolfo López Mateos reservoir, Culiacán junction and coastal plain.",
+      "supports": "Regional continuity, Colorado versus El Valle approach, Humaya reservoir passage, separation from Tamazula and Sanalona, Culiacán valley and coastal receiving setting.",
+      "limits": "Scale 1:700,000; generalized cartography does not establish exact naming limits, current reservoir extent or individual inlet vertices.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf"
+    },
+    {
+      "source_key": "r72-inegi-guanacevi-2010",
+      "title": "Compendio de información geográfica municipal 2010: Guanaceví, Durango",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; southwestern Colorado headwater corridor.",
+      "supports": "Actual selected southern-flowing upper Colorado approach and separation from neighboring mapped streams.",
+      "limits": "First short feeder and exact upstream limit of the Colorado name are not assigned; municipal coverage ends upstream of the full Humaya course.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10009.pdf"
+    },
+    {
+      "source_key": "r72-inegi-tepehuanes-2010",
+      "title": "Compendio de información geográfica municipal 2010: Tepehuanes, Durango",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; northern and western Colorado route.",
+      "supports": "Colorado continuation along the northern and western municipal margin toward Tamazula, distinct from the eastern Tepehuanes drainage.",
+      "limits": "Generalized municipal network does not fix individual tributary junction vertices or the downstream name boundary.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10035.pdf"
+    },
+    {
+      "source_key": "r72-inegi-tamazula-2010",
+      "title": "Compendio de información geográfica municipal 2010: Tamazula, Durango",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; northern Colorado approach and west-flowing Humaya corridor.",
+      "supports": "Northern approach into the Humaya corridor and geographic separation from the Tamazula river farther south.",
+      "limits": "Exact Colorado-to-Humaya name-transition point is not established.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10034.pdf"
+    },
+    {
+      "source_key": "r72-inegi-culiacan-2010",
+      "title": "Compendio de información geográfica municipal 2010: Culiacán, Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 7, Relieve; lower Humaya, Tamazula junction, Sanalona and coastal receiving context.",
+      "supports": "Lower Humaya approach to the Culiacán urban junction; Tamazula and Sanalona on a separate eastern approach; Pabellones coastal-lagoon context.",
+      "limits": "The lower selected Culiacán course is chiefly outside this municipal map and is resolved using Navolato cartography.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25006.pdf"
+    },
+    {
+      "source_key": "r72-inegi-navolato-2010",
+      "title": "Compendio de información geográfica municipal 2010: Navolato, Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; Culiacán bends and Pabellones terminal connection.",
+      "supports": "Named Culiacán channel through its western bend and southward lower course into the Pabellones coastal-lagoon setting; distinction from canals, Río Viejo and Laguna de Batoato.",
+      "limits": "Supports receiving-waterbody identity and natural river connection at the cartographic scale, not a surveyed inlet, current shoreline or a continuation to the open sea.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25018.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80063190",
+      "source_keys": [
+        "r72-nluis-76g",
+        "r72-nluis-76h",
+        "r72-nluis-76i",
+        "r72-nluis-76p",
+        "r72-nluis-67b"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2506
+          ],
+          "finding": "The actual southwestern beginning follows an unnamed small-lake and stream chain northward into a larger western lake, then turns northeast through further lake widenings to join the channel labelled Ellice River. The labelled river approach from farther southeast is a separate approach, not the selected beginning. The lake shapes, connecting watercourses and west-then-east turn are visible on the Beechey Lake sheet.",
+          "sources": [
+            "r72-nluis-76g"
+          ]
+        },
+        {
+          "fragments": [
+            2506
+          ],
+          "finding": "On the Duggan Lake sheet the selection follows the upper Ellice corridor east and northeast through two prominent unnamed lake widenings, then bends north. The river labels, western sheet-edge connection, successive lake outlets and broad eastward bend match the selected route; the sheet title does not name those selected lakes.",
+          "sources": [
+            "r72-nluis-76g",
+            "r72-nluis-76h"
+          ]
+        },
+        {
+          "fragments": [
+            2506
+          ],
+          "finding": "Across the Overby Lake sheet the selection follows the labelled Ellice northward and northeastward, including its middle bends and the northeastern continuation at the northern branch junction. It does not take the northwestward mapped branch, and Overby Lake lies west of the selected river rather than forming a selected lake passage.",
+          "sources": [
+            "r72-nluis-76i"
+          ]
+        },
+        {
+          "fragments": [
+            2506
+          ],
+          "finding": "The Brichta Lake sheet depicts the selected lower Ellice continuously through the southwest-to-northeast entrance, intervening bends, lake-like widenings and lower northward course near the eastern sheet edge. Direct Ellice River labels accompany this same corridor.",
+          "sources": [
+            "r72-nluis-76i",
+            "r72-nluis-76p"
+          ]
+        },
+        {
+          "fragments": [
+            2506
+          ],
+          "finding": "The Queen Maud Gulf sheet shows the northern continuation of Ellice River entering the western side of Campbell Bay. The modeled endpoint reaches that coastal outlet setting, and the bay opens into Queen Maud Gulf. This supports the terminal geography without fixing an exact modern mouth, shoreline or tidal boundary.",
+          "sources": [
+            "r72-nluis-76p",
+            "r72-nluis-67b"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80281632",
+      "source_keys": [
+        "r72-dnr-rrmp-map2005",
+        "r72-dnr-bbap-region6",
+        "r72-dnr-bbap-region7",
+        "r72-dnr-bbap-region5"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2752
+          ],
+          "finding": "The selected upper mainstem takes the east–west upper Nushagak branch and its subsequent southwestward bends into the south-flowing trunk. The recreation map places the Nushagak River label on this actual eastern branch. Its separately mapped Chichitnok approach extends farther north and is not the selected beginning; that neighboring headwater is not substituted for the model route.",
+          "sources": [
+            "r72-dnr-rrmp-map2005",
+            "r72-dnr-bbap-region6"
+          ]
+        },
+        {
+          "fragments": [
+            2753,
+            2754,
+            2755
+          ],
+          "finding": "The trunk continues south to the western Nuyakuk junction, then past the Koliganek setting to the eastern Mulchatna junction and onward through the New Stuyahok and Ekwok corridor. The mapped junction order, major bends and community positions match the selected mainstem pieces. The northern King Salmon and Chichitnok approaches and other nearby tributaries are not separately selected members.",
+          "sources": [
+            "r72-dnr-rrmp-map2005",
+            "r72-dnr-bbap-region6",
+            "r72-dnr-bbap-region5"
+          ]
+        },
+        {
+          "fragments": [
+            2756,
+            2757
+          ],
+          "finding": "The western two-piece chain begins at the eastern Tikchik Lake outlet setting and runs generally east through the mapped Nuyakuk corridor into Nushagak above Koliganek. The regional sheet shows the lake, its outlet connection and the successive downstream bends; the recreation map directly labels Nuyakuk River. The selection does not include the full Wood–Tikchik lake complex or the northern Tikchik River approach.",
+          "sources": [
+            "r72-dnr-bbap-region6",
+            "r72-dnr-rrmp-map2005"
+          ]
+        },
+        {
+          "fragments": [
+            2758,
+            2759,
+            2760
+          ],
+          "finding": "The long eastern chain begins in the Turquoise Lake setting, exits west, swings northwest through the upper Mulchatna valley and then southwest to the Nushagak confluence. Region 7 depicts the distinctive upper route and its separate southern Twin Lakes approach; the recreation map shows the continuation past the Chilikadrotna junction and directly labels Mulchatna River. The actual selection follows upper Mulchatna rather than turning into the separately mapped Chilikadrotna–Twin Lakes chain. Middle and lower selected pieces continue along Mulchatna to Nushagak.",
+          "sources": [
+            "r72-dnr-bbap-region7",
+            "r72-dnr-rrmp-map2005",
+            "r72-dnr-bbap-region6"
+          ]
+        },
+        {
+          "fragments": [
+            2755
+          ],
+          "finding": "The last mainstem piece follows lower Nushagak south toward Portage Creek, then west and northwest along its lower-channel course toward Dillingham and the head-of-bay outlet setting. Region 5 depicts this distinctive terminal turn and the adjoining coastal water. The selected endpoint is not asserted to be a surveyed river mouth or tidal boundary, and the line is not extended through the whole of Nushagak Bay or Bristol Bay.",
+          "sources": [
+            "r72-dnr-rrmp-map2005",
+            "r72-dnr-bbap-region5"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70006954",
+      "source_keys": [
+        "r61-cehq-region10-summer-lowflow",
+        "r72-nts-034j",
+        "r72-nts-034o",
+        "r72-nts-034n"
+      ],
+      "correspondence": [
+        {
+          "finding": "The actual southeastern beginning follows a mapped small-watercourse and lake approach into the elongated northward upper Kogaluc lake chain. The short initial feeder has no separately assigned hydronym, and the model starting point is not treated as an official river source.",
+          "sources": [
+            "r72-nts-034j",
+            "r61-cehq-region10-summer-lowflow"
+          ]
+        },
+        {
+          "finding": "The northward selected approach corresponds to the upper corridor labelled Kogaluc and the Tukimuattuq/Tukimuattup Qamaninga lake setting. The map title Lac Vernon is not a name for this entire route, and nearby lakes or rivers are not substituted solely because they are labelled.",
+          "sources": [
+            "r72-nts-034j",
+            "r61-cehq-region10-summer-lowflow"
+          ]
+        },
+        {
+          "finding": "In the middle, the actual modeled line makes an east-and-north loop in the Tasiat/Anuc lake network before following its northern-western connection toward the Albrutchaq and Anartalik setting. The detailed source shows the connected lake-and-channel setting and also a separate more direct western Kogaluc course from the Tasiat area. The model route is not flattened into that shorter course or used to adjudicate flow division between connections.",
+          "sources": [
+            "r72-nts-034o"
+          ]
+        },
+        {
+          "finding": "The west-northwest continuation matches the Manguic/lower Kogaluc corridor and its series of lake expansions toward Lac Kogaluc. The lake names identify distinct waterbodies rather than alternate names for the whole modeled river group.",
+          "sources": [
+            "r72-nts-034n"
+          ]
+        },
+        {
+          "finding": "After the lower lake setting, the selected end bends north along the mapped lower Kogaluc connection toward Reef Bay, opening to Hudson Bay. The separate Polemond route farther southwest is not the selected terminal. No full bay crossing, open-sea extension or surveyed present mouth vertex is assigned.",
+          "sources": [
+            "r72-nts-034n"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70852633",
+      "source_keys": [
+        "r65-inegi-sinaloa-state",
+        "r72-inegi-guanacevi-2010",
+        "r72-inegi-tepehuanes-2010",
+        "r72-inegi-tamazula-2010",
+        "r72-inegi-culiacan-2010",
+        "r72-inegi-navolato-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10371
+          ],
+          "finding": "The selected northeastern beginning descends through the southwestern Guanaceví Colorado drainage and turns west across the northern Tepehuanes corridor. The municipal relief maps match the actual south-then-west approach. The first short feeder and an official source point are not assigned.",
+          "sources": [
+            "r72-inegi-guanacevi-2010",
+            "r72-inegi-tepehuanes-2010",
+            "r65-inegi-sinaloa-state"
+          ]
+        },
+        {
+          "fragments": [
+            10371
+          ],
+          "finding": "The selection continues southwest along the Colorado corridor and joins the west-flowing Humaya route in northern Tamazula, then follows its long western bend toward El Portezuelo. The eastern El Valle approach and the separate Tamazula river farther south are not substituted for this selected branch.",
+          "sources": [
+            "r72-inegi-tepehuanes-2010",
+            "r72-inegi-tamazula-2010",
+            "r65-inegi-sinaloa-state"
+          ]
+        },
+        {
+          "fragments": [
+            10371
+          ],
+          "finding": "The actual selected Humaya course enters the northeastern approach of Presa Adolfo López Mateos, traverses the mapped reservoir corridor and continues south below its dam toward Culiacán. The western Badiraguato arm and the separate Dique Mariquita are not selected upstream or reservoir passages.",
+          "sources": [
+            "r65-inegi-sinaloa-state",
+            "r72-inegi-culiacan-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10371,
+            10372
+          ],
+          "finding": "The northern Humaya approach reaches the Tamazula junction at Culiacán, where the selection turns west into the receiving Culiacán course toward San Pedro and Navolato. The Tamazula approach and Presa Sanalona lie east of the selected route and are not aliases or selected reservoir passages.",
+          "sources": [
+            "r65-inegi-sinaloa-state",
+            "r72-inegi-culiacan-2010",
+            "r72-inegi-navolato-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10372,
+            10373
+          ],
+          "finding": "The selected western bend near Navolato and following southward bends match the river labeled Culiacán on the Navolato relief map, including its natural connection into the Pabellones coastal-lagoon setting near the end of the mapped river. Adjacent canals, Río Viejo and Laguna de Batoato are distinct. The endpoint does not imply a complete lagoon crossing or continuation through Boca la Tonina to the open Gulf.",
+          "sources": [
+            "r72-inegi-navolato-2010",
+            "r65-inegi-sinaloa-state",
+            "r72-inegi-culiacan-2010"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
