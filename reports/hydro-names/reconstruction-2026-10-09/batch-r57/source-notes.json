@@ -1,0 +1,367 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r57",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; western and northern Inland Ice, readable graticules and margins, and Inland Ice legend",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology, including Figure 47",
+      "supports": "Identifies Inland Ice as the continental ice sheet and explains the surface, thickness and sub-ice bedrock contours; provides no natural river identity for the modeled path.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r57-inegi-durango-municipal-2010",
+      "title": "Compendio de información geográfica municipal 2010: Durango, Durango",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "attribution": "INEGI; map credits municipal framework 2010 v4.3, topographic information 1:250,000 series II/III and INEGI–CONAGUA hydrographic mapping 2007.",
+      "year": 2010,
+      "page": "PDF p. 7, Relieve; hydrography table",
+      "supports": "Río Chico approach, Guadalupe Victoria setting, El Tunal loop and separation of La Sauceda and Santiago Bayacora.",
+      "limits": "Municipal coverage and generalized source mapping; no exact hydronym-transition vertices or present reservoir limits.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10005.pdf"
+    },
+    {
+      "source_key": "r57-inegi-durango-2015",
+      "title": "Anuario estadístico y geográfico de Durango 2015",
+      "publisher": "INEGI",
+      "attribution": "INEGI; hydrographic map credits INEGI–CONAGUA 2007 and INEGI surface-water/topographic cartography. Map scale 1:3,000,000.",
+      "year": 2015,
+      "page": "PDF p. 44, Hidrografía, Mapa 10",
+      "supports": "Upper-loop context, main Mezquital descent and southwestward middle-course bend across southern Durango.",
+      "limits": "State-level generalization; nearby reservoir statistics and basin labels do not name individual river vertices.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/anuarios_2015/702825076160.pdf"
+    },
+    {
+      "source_key": "r57-inegi-nayarit-2015",
+      "title": "Anuario estadístico y geográfico de Nayarit 2015",
+      "publisher": "INEGI",
+      "attribution": "INEGI; map credits topographic information 1:250,000 series III, INEGI–CONAGUA 2007 and surface-water cartography series I. Map scale 1:1,500,000.",
+      "year": 2015,
+      "page": "PDF p. 45, Hidrografía, Mapa 10",
+      "supports": "Lower San Pedro course, Tuxpan westward turn, Mexcaltitán coastal setting and separation from neighboring drainage systems.",
+      "limits": "Regional hydrography does not resolve individual estuarine channels or contemporary shoreline changes.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/anuarios_2015/702825076108.pdf"
+    },
+    {
+      "source_key": "r57-inegi-santiago-2010",
+      "title": "Compendio de información geográfica municipal 2010: Santiago Ixcuintla, Nayarit",
+      "publisher": "INEGI",
+      "attribution": "INEGI; map credits municipal framework 2010 v4.3, topographic information 1:250,000 series II/III and INEGI–CONAGUA hydrographic mapping 2007.",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; hydrography table",
+      "supports": "Southwestward San Pedro terminal corridor, separately labeled Laguna Grande de Mexcaltitán and Grande de Santiago.",
+      "limits": "Generalized historical coastal network, not proof of current tidal hydraulics or a unique present mouth.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/18/18015.pdf"
+    },
+    {
+      "source_key": "r57-conagua-dof-2014",
+      "title": "Acuerdo: estudios técnicos de aguas superficiales de la Subregión Hidrológica Río San Pedro, Región Hidrológica 11 Presidio-San Pedro",
+      "publisher": "Comisión Nacional del Agua / Secretaría de Medio Ambiente y Recursos Naturales, published in Diario Oficial de la Federación",
+      "attribution": "Official CONAGUA technical study issued by Director General David Korenfeld Federman; DOF publication 9 July 2014.",
+      "year": 2014,
+      "page": "Sections 2.2.3–2.2.11 and 2.3.2",
+      "supports": "Conventional La Sauceda source account, distinct upper tributaries, Durango/Mezquital/San Pedro reach descriptions and explicit principal-current name Río San Pedro-Mezquital.",
+      "limits": "Administrative basin descriptions and historical prose do not establish a single label on every selected reach. Legal status, water availability, storage figures and present operating conditions are outside this finding.",
+      "official_url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5351765"
+    },
+    {
+      "source_key": "r57-inema-paraguacu-2014-map",
+      "title": "Região de Planejamento e Gestão das Águas – X: Rio Paraguaçu, Estado da Bahia, 2014",
+      "publisher": "Instituto do Meio Ambiente e Recursos Hídricos, Governo do Estado da Bahia",
+      "attribution": "INEMA, Setor de Geoprocessamento. Sheet credits Plano Estadual de Recursos Hídricos (2004), CONRH/CONERH resolutions and INEMA data (2014).",
+      "year": 2014,
+      "page": "Original single-sheet basin map",
+      "supports": "Paraguaçu bends and settlement sequence, reservoir settings, tributary separation and downstream coastal context.",
+      "limits": "Generalized 2014 planning map. The finer western feeder corridor is resolved using NT7; this sheet alone does not establish every headwater label or present shoreline.",
+      "official_url": "https://www.ba.gov.br/inema/servicos/mapas-tematicos"
+    },
+    {
+      "source_key": "r57-inema-paraguacu-nt7-2025",
+      "title": "Plano de Recursos Hídricos e Proposta de Enquadramento dos Corpos de Água da Bacia Hidrográfica do Rio Paraguaçu: PP-02A – Diagnóstico Preliminar, NT7 – Qualidade das Águas, Revisão 01",
+      "publisher": "Governo do Estado da Bahia, Instituto do Meio Ambiente e Recursos Hídricos",
+      "attribution": "Consórcio ENGECONSULT–ENGEPLUS for INEMA, March 2025, revision dated 17 March 2025. Figures credit INEMA hydrography and water bodies (2019) and other stated official cartographic bases.",
+      "year": 2025,
+      "page": "Text pp. 29–31, 64 and 74; Figure 1.2 p. 32, Figure 2.12 p. 65 and Figure 2.16 p. 75",
+      "supports": "Cochó–Preto–Santo Antônio relationship; actual western feeder and Seabra route; Marimbus and Andaraí connection; separate Paraguaçu headwaters; reservoir-arm and estuarine scope.",
+      "limits": "Planning and monitoring cartography, not a reach-by-reach gazetteer. Management-unit control points may simplify confluence positions, as the report expressly states. Water-quality conclusions and numerical hydrological claims are outside this finding.",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/2025-09/NT7%20%E2%80%93%20QUALIDADE%20DAS%20%C3%81GUAS_PARAGUA%C3%87U.pdf"
+    },
+    {
+      "source_key": "r57-inema-paraguacu-plan-page",
+      "title": "Plano da bacia do Rio Paraguaçu",
+      "publisher": "Instituto do Meio Ambiente e Recursos Hídricos, Governo do Estado da Bahia",
+      "attribution": "INEMA official basin-plan webpage, published 2 October 2024 and updated 20 January 2026.",
+      "page": "A Bacia",
+      "supports": "Representative Paraguaçu identity, Chapada Diamantina setting, distinct named tributaries, Pedra do Cavalo and Iguape/Todos-os-Santos terminal context.",
+      "limits": "Regional description corroborates the map-based correspondence; its basin extent is not treated as the selected line's geometry or endpoint.",
+      "official_url": "https://www.ba.gov.br/inema/planos-de-bacias/rio-paraguacu-3"
+    },
+    {
+      "source_key": "r57-mgs-bedrock-of2024-4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Geological Survey",
+      "attribution": "Manitoba Geological Survey, 1:1,000,000. Cartography by H.O. Adediran and L.E. Chackowsky; hydrographic base credits CanVec+, Natural Resources Canada, and Manitoba Land Initiative.",
+      "year": 2024,
+      "page": "Single-sheet northern Manitoba map and imprint",
+      "supports": "Full-group geographic correspondence, western lake-country route and separation of North Seal, South Seal and adjacent drainages.",
+      "limits": "Generalized geological map with a hydrographic base; not a detailed hydronym-boundary or present-channel survey.",
+      "official_url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf"
+    },
+    {
+      "source_key": "r57-seal-monitoring-2014-2024",
+      "title": "Seal River: Canadian Heritage Rivers System, Ten-year Monitoring Report 2014–2024",
+      "publisher": "Manitoba Environment and Climate Change, Parks and Trails Division",
+      "attribution": "Prepared for the Canadian Heritage Rivers Board, March 2025.",
+      "year": 2025,
+      "page": "Printed p. 2, Background and Figure 1; printed p. 11, recreational route context",
+      "supports": "Seal begins at Shethanei Lake; North Seal, South Seal and Wolverine are tributaries. Figure 1 shows the named downstream course, Great Island and coastal endpoint.",
+      "limits": "Heritage-corridor mapping is generalized and does not fix the selected model's exact river/lake transitions or estuary-channel choice. Its river-length statement is not applied to the longer modeled trunk.",
+      "official_url": "https://www.gov.mb.ca/sd/parks/_resources/en/pdf/sealriver-monitoringreport.pdf"
+    },
+    {
+      "source_key": "r57-manitoba-heritage-rivers",
+      "title": "Canadian Heritage Rivers System: Seal River",
+      "publisher": "Province of Manitoba, Environment and Climate Change",
+      "attribution": "Official provincial Parks and Protected Spaces page, Seal River section.",
+      "supports": "Shethanei origin, upstream North and South Seal extensions, and distinction between the Tadoule route and the named downstream river.",
+      "limits": "Visitor overview used for geographic scope only; no travel, wildlife or current operational claims are adopted.",
+      "official_url": "https://www.gov.mb.ca/sd/parks/park-facilities-and-services/heritage-rivers/index.html"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90050999",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The single selected line was inspected from its eastern northward hook through the long westward sequence, central southwestward step and final western approach. No additional tributary fragment is present.",
+        "The eastern hook and long middle run lie in mapped Inland Ice. The final westward approach reaches the western ice-margin sector near the broader Kullorsuaq–Kiatassuaq setting. Graticule, ice shading, coastline/land configuration and the actual bends were considered together.",
+        "Neither original source identifies this whole model line as a named surface or subglacial river. Nearby glacier, settlement and marine labels cannot be transferred to it; exact terminal glacier/channel identity remains unassigned.",
+        "The legend distinguishes surface elevation, ice-thickness isopachs and sub-ice bedrock contours from river features. These historical sources do not establish present ice margins, actual flow or hydraulic connectivity."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90003983",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The single selected line was inspected over the southern northward leg, the middle westward bend, the second long northern leg and the short westward terminal curve. No additional tributary fragment is present.",
+        "The long southern and middle sections lie in mapped Inland Ice. The northern leg approaches the northern ice/land margin and the terminal curve proceeds west near that margin. The readable northern graticule and ice/land pattern support this regional feature-class correspondence, not a named-river alignment.",
+        "The source does not establish the complete path as one named surface river, subglacial river or glacier. A glacier/fjord name near the northern margin is not a substitute for identity evidence covering the full interior course.",
+        "The legend distinguishes surface elevation, ice-thickness isopachs and sub-ice bedrock contours from river features. These historical sources do not establish present ice margins, actual flow or hydraulic connectivity."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70869371",
+      "source_keys": [
+        "r57-inegi-durango-municipal-2010",
+        "r57-inegi-durango-2015",
+        "r57-inegi-nayarit-2015",
+        "r57-inegi-santiago-2010",
+        "r57-conagua-dof-2014"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10404
+          ],
+          "finding": "The northern route descends southeast through the Río Chico corridor toward the Presidente Guadalupe Victoria water-body setting. The Durango municipal relief sheet labels Río Chico on this northwest approach and separates the El Tunal approach from the south and La Sauceda farther northeast. The selection therefore does not follow the La Sauceda–Canatlán–Peña del Águila source route described in CONAGUA's conventional main-river account.",
+          "sources": [
+            "r57-inegi-durango-municipal-2010",
+            "r57-inegi-durango-2015",
+            "r57-conagua-dof-2014"
+          ]
+        },
+        {
+          "fragments": [
+            10404
+          ],
+          "finding": "Beyond the Guadalupe Victoria setting, the selected line bends northeast along the El Tunal corridor beside Victoria de Durango, then turns east and south toward the Nombre de Dios drainage junction. The municipal and state maps reproduce this distinctive upper loop and distinguish the Santiago Bayacora and Poanas approaches. CONAGUA describes the Durango reach and the Nombre de Dios tributary system; the map label El Tunal and administrative Río Durango description are retained with their respective scopes, without fixing a vertex-level naming boundary.",
+          "sources": [
+            "r57-inegi-durango-municipal-2010",
+            "r57-inegi-durango-2015",
+            "r57-conagua-dof-2014"
+          ]
+        },
+        {
+          "fragments": [
+            10404
+          ],
+          "finding": "The route continues south through the Mezquital setting and makes the broad southwestward turn across southern Durango before resuming a southerly course. The Durango state sheet labels Mezquital on this same mountain-crossing corridor. CONAGUA's description follows the river past El Mezquital and Xoconoxtle into Nayarit and explicitly gives Río San Pedro-Mezquital as the official principal-current name.",
+          "sources": [
+            "r57-inegi-durango-2015",
+            "r57-conagua-dof-2014"
+          ]
+        },
+        {
+          "fragments": [
+            10404
+          ],
+          "finding": "In Nayarit, the selected course follows the north–south San Pedro corridor and then turns west across the lower plain past Tuxpan. The Nayarit hydrography map shows these successive bends, separately from the Acaponeta drainage to the west and the Jesús María–Huaynamota–Santiago drainage to the east and south. Those neighboring basin and river labels are not transferred to the selection.",
+          "sources": [
+            "r57-inegi-nayarit-2015",
+            "r57-conagua-dof-2014"
+          ]
+        },
+        {
+          "fragments": [
+            10404,
+            10405
+          ],
+          "finding": "The western continuation and second fragment proceed southwest through the coastal network adjoining Laguna Grande de Mexcaltitán toward the Pacific. The Santiago Ixcuintla relief sheet labels San Pedro along this southwestward terminal corridor and distinguishes the lagoon and the separate Grande de Santiago farther south. This supports the terminal system association, while the fine lagoon/channel transition and the model endpoint are not promoted to a surveyed river mouth or a claim of current estuarine flow.",
+          "sources": [
+            "r57-inegi-santiago-2010",
+            "r57-inegi-nayarit-2015",
+            "r57-conagua-dof-2014"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61117809",
+      "source_keys": [
+        "r57-inema-paraguacu-2014-map",
+        "r57-inema-paraguacu-nt7-2025",
+        "r57-inema-paraguacu-plan-page"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13880
+          ],
+          "finding": "The western endpoint follows a small feeder northward and then eastward into the Boninal–Cochó corridor; it then runs north through the Seabra setting and bends east/northeast. NT7 Figure 2.16 resolves this route within the western feeder network and the labeled Rio Cochó, including the Seabra monitoring location. This is an upstream tributary approach, not the official Paraguaçu headwater course. Individual feeder names are not assigned to every selected reach.",
+          "sources": [
+            "r57-inema-paraguacu-nt7-2025"
+          ]
+        },
+        {
+          "fragments": [
+            13880
+          ],
+          "finding": "The next southward leg east of Lençóis follows Santo Antônio through the Remanso–Marimbus setting toward Andaraí, where the selection joins the eastward Paraguaçu. NT7 maps distinguish the Cochó, Preto and Santo Antônio connections and show the separate Paraguaçu approach from Mucugê. Its text identifies Cochó and Preto as forming Santo Antônio. The selected route therefore does not include the named Paraguaçu's upper Mucugê–Apertado corridor.",
+          "sources": [
+            "r57-inema-paraguacu-nt7-2025",
+            "r57-inema-paraguacu-2014-map"
+          ]
+        },
+        {
+          "fragments": [
+            13880
+          ],
+          "finding": "Below that junction, the selected course turns southeast past the Nova Redenção setting to Itaetê and the Bandeira de Melo impoundment, runs east past Marcionílio Souza, then bends northeast through Iaçu. The original basin sheet follows these successive bends and labels the Paraguaçu corridor, separating the Una and other tributary approaches. NT7 describes the Paraguaçu reach from the Santo Antônio junction to Bandeira de Melo, followed by its middle course toward Pedra do Cavalo.",
+          "sources": [
+            "r57-inema-paraguacu-2014-map",
+            "r57-inema-paraguacu-nt7-2025"
+          ]
+        },
+        {
+          "fragments": [
+            13880,
+            13881
+          ],
+          "finding": "The two-piece continuation proceeds east below the Itaberaba/Piranhas approach toward Cabaceiras do Paraguaçu and the western arm of Pedra do Cavalo. The selected course corresponds to the basin sheet's repeated Rio Paraguaçu labels and reservoir outline. NT7 explicitly distinguishes the reservoir's Paraguaçu and Jacuípe arms; the northern Jacuípe arm is not an additional selected mainstem or an alias for this corridor.",
+          "sources": [
+            "r57-inema-paraguacu-2014-map",
+            "r57-inema-paraguacu-nt7-2025"
+          ]
+        },
+        {
+          "fragments": [
+            13881
+          ],
+          "finding": "The eastern end bends south below Pedra do Cavalo through the Cachoeira–São Félix setting toward the widening upper estuarine channel north of Maragogipe. Both the basin map and NT7 distinguish this downstream Paraguaçu–Iguape context. The selected endpoint does not trace the entire outer estuary to Todos-os-Santos Bay; no precise river/bay boundary or surveyed mouth is assigned to that model endpoint.",
+          "sources": [
+            "r57-inema-paraguacu-2014-map",
+            "r57-inema-paraguacu-nt7-2025",
+            "r57-inema-paraguacu-plan-page"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70011099",
+      "source_keys": [
+        "r57-mgs-bedrock-of2024-4",
+        "r57-seal-monitoring-2014-2024",
+        "r57-manitoba-heritage-rivers"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8946
+          ],
+          "finding": "The western piece begins with a northward feeder approach, then makes the distinctive west-to-northeast turn through the North Seal lake country around Maria, Chatwin, Egenolf and Blackfish lakes. The geological map distinguishes this connected route from the Cochrane River farther west and Nueltin Lake drainage to the north. The source-end feeder is not assigned a precise local hydronym or treated as the source of the named Seal proper.",
+          "sources": [
+            "r57-mgs-bedrock-of2024-4"
+          ]
+        },
+        {
+          "fragments": [
+            8946,
+            8947,
+            8948
+          ],
+          "finding": "The eastward continuation traverses the Stony Lake setting and approaches Shethanei Lake from the west. Its lake-chain course matches the provincial hydrographic base. The model's fragment joins do not establish named-river boundaries: North Seal and the intervening lake passages remain distinct from the Seal River downstream of Shethanei.",
+          "sources": [
+            "r57-mgs-bedrock-of2024-4",
+            "r57-seal-monitoring-2014-2024"
+          ]
+        },
+        {
+          "fragments": [
+            8949
+          ],
+          "finding": "The separate southern piece runs north through the South Seal corridor and Tadoule Lake setting toward the southwestern Shethanei approach. The geological map labels South Seal separately, and the monitoring report identifies it as a tributary. This branch is not an additional reach of the named Seal proper; small feeder and lake-transition names are left unassigned.",
+          "sources": [
+            "r57-mgs-bedrock-of2024-4",
+            "r57-seal-monitoring-2014-2024"
+          ]
+        },
+        {
+          "fragments": [
+            8948
+          ],
+          "finding": "East of Shethanei Lake, the selected course agrees with the river labeled Seal on monitoring-report Figure 1: the eastward bends, Great Island branching setting and subsequent long lower sweep correspond. The selected line through that branching setting is retained without inventing an individual channel name. Shethanei is a lake passage, not a river alias.",
+          "sources": [
+            "r57-seal-monitoring-2014-2024",
+            "r57-mgs-bedrock-of2024-4"
+          ]
+        },
+        {
+          "fragments": [
+            8948
+          ],
+          "finding": "The lower line turns sharply north, bends east again and reaches the Hudson Bay coast north of Churchill, matching Figure 1 and the geological coastline context. Little Seal and Caribou rivers lie separately north, and the Knife and Churchill systems south. The mapped estuary supports the terminal system identity, without fixing a contemporary mouth vertex or naming every tidal channel.",
+          "sources": [
+            "r57-seal-monitoring-2014-2024",
+            "r57-mgs-bedrock-of2024-4"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
