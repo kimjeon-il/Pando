@@ -1,9 +1,11 @@
 name: Place Sync Contract
 on:
   workflow_dispatch:
-  pull_request:
+  push:
+    branches:
+      - work/places
     paths:
-      - 'reports/places/tier1-major-cities-batch*.json'
+      - 'reports/places/**'
       - 'contracts/places/**'
       - 'assets/js/modules/place-contract.js'
       - 'assets/js/modules/place-codec.js'
@@ -14,6 +16,21 @@ on:
       - 'tools/export-place-sync.mjs'
       - 'tests/unit/place-sync-contract.test.mjs'
       - 'package.json'
+      - '.github/workflows/place-sync-contract.yml'
+  pull_request:
+    paths:
+      - 'reports/places/**'
+      - 'contracts/places/**'
+      - 'assets/js/modules/place-contract.js'
+      - 'assets/js/modules/place-codec.js'
+      - 'assets/js/modules/label-layout.js'
+      - 'assets/js/modules/user-preferences.js'
+      - 'assets/js/modules/app-map-settings.js'
+      - 'tools/place-sync-cases.mjs'
+      - 'tools/export-place-sync.mjs'
+      - 'tests/unit/place-sync-contract.test.mjs'
+      - 'package.json'
+      - '.github/workflows/place-sync-contract.yml'
 
 permissions:
   contents: read
