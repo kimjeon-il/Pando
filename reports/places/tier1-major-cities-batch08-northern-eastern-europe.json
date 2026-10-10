@@ -3,7 +3,7 @@
   "batch": "08-northern-eastern-europe",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames (CC BY 4.0)",
-  "checkedOn": "2026-10-08",
+  "checkedOn": "2026-10-10",
   "selection": "Eight clearly established European capital or federal-seat populated-place records, all GeoNames P/PPLC. Bern is de facto federal seat, not a legally designated capital.",
   "coordinateConvention": "Dataset-wide WGS84 (EPSG:4326), geographic lat/long decimal degrees. Points are settlement representatives, not historical municipality polygons.",
   "countryCodeSemantics": "sourceCountryCode is present-day GeoNames source metadata only, never historic sovereignty.",
@@ -14,13 +14,13 @@
   "qualityNotes": [
     "Oslo: Norwegian Christiania from 1801, Kristiania in municipal usage from approximate 1897, official Oslo from 1925-01-01 (1924-07-11 law). English Christiania and Korean 크리스티아니아 remain until the 1925 legal rename; do not confuse 1877 state spelling with 1897 municipal practice.",
     "Copenhagen: Kjøbenhavn to København selected native spelling switch in approximate 1906 based on municipal orthography change. Korean 코펜하겐 and English Copenhagen remain constant; exact day unknown and national orthography permitted overlap.",
-    "Helsinki and Helsingfors coexist in Finnish and Swedish. Dublin and Baile Átha Cliath similarly coexist.",
-    "Bern became federal seat on 1848-11-28; no technically designated Swiss de jure national capital.",
+    "Helsinki: selected Swedish Helsingfors / English Helsingfors / Korean 헬싱포르스 for 1801–1902-06-18. From the 1902-06-19 language decree, two concurrent native names (Finnish Helsinki, Swedish Helsingfors) are stored in nativeNames[] with scalar Finnish primary, English Helsinki and Korean 헬싱키. This is an editorial threshold, not a city rename or first attestation; municipal council minutes become bilingual in 1903. Dublin remains separately staged.",
+    "Bern: from 1801 the chosen German/English/Korean names stay Bern/Bern/베른. The 1848-11-28 federal seat selection is not a city rename; French Berne is not included as a second native name of the German-speaking city.",
     "Kyiv: PandoEditor Korean label convention changes 키예프→키이우 on Ukraine's 1991-08-24 independence declaration. The 2022-03-10 South Korean norm adoption remains evidence only. Ukrainian Київ and Russian Киев are coexisting language forms; no official city renaming occurred in 1991.",
     "Bucharest 1862-02-05 Gregorian (24 Jan Julian) became capital; city name persisted.",
     "UI notes/details and short descriptions <=28 Unicode codepoints; detailed notes and sources retained separately.",
     "Data is staged for later merge; map runtime and production manifest not updated.",
-    "Stockholm: Swedish/English Stockholm and Korean 스톡홀름 remain unchanged from 1801. Batch 08 Stockholm, Copenhagen and Oslo trilingual names are finalized; other five city records are not part of this update."
+    "Batch 08 records now explicitly reviewed for Stockholm, Copenhagen, Oslo, Helsinki and Bern; Dublin, Kyiv and Bucharest are not changed by this commit. Data remain staging-only, not map runtime."
   ],
   "records": [
     {
@@ -282,14 +282,36 @@
       "geonameId": 658225,
       "names": [
         {
-          "text": "Helsinki",
-          "language": "fi",
-          "usage": "standard"
+          "text": "Helsingfors",
+          "language": "sv",
+          "usage": "standard",
+          "sourceUrl": "https://historia.hel.fi/en/ilmiot/helsinki-residents/helsinki-of-many-languages"
         },
         {
           "text": "Helsingfors",
-          "language": "sv",
-          "usage": "standard"
+          "language": "en",
+          "usage": "historical",
+          "variantType": "selectedPre1902EnglishExonym",
+          "sourceUrl": "https://en.wikisource.org/wiki/1911_Encyclop%C3%A6dia_Britannica/Helsingfors"
+        },
+        {
+          "text": "헬싱포르스",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "selectedPre1902KoreanMapName",
+          "sourceUrl": "https://historia.hel.fi/en/ilmiot/helsinki-residents/helsinki-of-many-languages"
+        },
+        {
+          "text": "Helsinki",
+          "language": "fi",
+          "usage": "standard",
+          "sourceUrl": "https://historia.hel.fi/en/ilmiot/helsinki-residents/helsinki-of-many-languages"
+        },
+        {
+          "text": "Helsinki",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://historia.hel.fi/en/ilmiot/helsinki-residents/helsinki-of-many-languages"
         },
         {
           "text": "헬싱키",
@@ -304,16 +326,44 @@
       "sourceUrl": "https://www.geonames.org/658225/",
       "sourceCountryCode": "FI",
       "defaultDisplayNameKo": "헬싱키",
-      "shortDescriptionKo": "핀란드어·스웨덴어 명칭 병용",
+      "shortDescriptionKo": "1902년부터 핀란드어·스웨덴어 병용",
       "displayTimeline": [
         {
-          "nameKo": "헬싱키",
           "fromYear": 1801,
+          "nameKo": "헬싱포르스",
+          "nameEn": "Helsingfors",
+          "nameNative": "Helsingfors",
+          "nativeLanguage": "sv",
           "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/658225/"
+          "sourceUrl": "https://historia.hel.fi/en/ilmiot/helsinki-residents/helsinki-of-many-languages",
+          "note": "스웨덴어 중심의 기존 대표 명칭",
+          "researchNote": "1801년부터 스웨덴어 Helsingfors를 원어 대표명으로 선택한다. 한국어 헬싱포르스는 지도의 편집상 표기이고 당시 한국어 사용 실증은 아니다. 영어 Helsingfors는 1911년 브리태니커에도 기록되나, 모든 영어 출판물이 1902년에 일제히 명칭을 바꾼 것은 아니다. 1801년은 조사 시작 연도다."
+        },
+        {
+          "fromDate": "1902-06-19",
+          "nameKo": "헬싱키",
+          "nameEn": "Helsinki",
+          "nameNative": "Helsinki",
+          "nativeLanguage": "fi",
+          "nativeNames": [
+            {
+              "text": "Helsinki",
+              "language": "fi",
+              "script": "Latn"
+            },
+            {
+              "text": "Helsingfors",
+              "language": "sv",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalCoOfficialNativeLanguages",
+          "sourceUrl": "https://fi.wikisource.org/wiki/Kieliasetus_1902",
+          "note": "핀란드어·스웨덴어 공식 병기 기준",
+          "researchNote": "1902-06-19 핀란드어·스웨덴어의 행정적 사용을 규정한 언어칙령을 지도 편집상 병기 시작 기준일로 채택한다. Helsinki와 Helsingfors는 그 이전에도 쓰인 이름이며 실제 도시 개명이나 두 이름의 최초 사용일을 뜻하지 않는다. 헬싱키 시의회 회의록은 1903년부터 양언어로 작성됐다. 한국어 헬싱키·영어 Helsinki로의 대표 표기 선택도 편집상 전환이지 영어권 전체의 즉각적인 사용 변경 주장은 아니다. 1923년 언어법 시행은 별도 이름 전환점으로 두지 않는다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1902-bilingual-native-names",
       "historicalGeography": {
         "events": [
           {
@@ -321,15 +371,48 @@
             "type": "becameGrandDuchyCapital",
             "detail": "핀란드 대공국 수도 지정",
             "sourceUrl": "https://historia.hel.fi/en/kaannekohdat/1800-luku/1812-capital-city"
+          },
+          {
+            "date": "1902-06-19",
+            "type": "officialLanguageDecree",
+            "detail": "핀란드어·스웨덴어 관청사용 언어칙령",
+            "sourceUrl": "https://fi.wikisource.org/wiki/Kieliasetus_1902"
+          },
+          {
+            "year": 1903,
+            "type": "municipalBilingualMinutes",
+            "detail": "시의회 회의록 양언어 작성 시작",
+            "sourceUrl": "https://historia.hel.fi/fi/ilmiot/vallankayttoa-ja-hallintoa/kaupunginvaltuuston-ensimmainen-poytakirja-1211875"
           }
         ],
         "notes": [
           {
-            "detail": "스웨덴어 Helsingfors 병용",
-            "sourceUrl": "https://historia.hel.fi/en/ilmiot/helsinki-residents/helsinki-of-many-languages"
+            "detail": "스웨덴어 Helsingfors 공식명 유지",
+            "sourceUrl": "https://historia.hel.fi/en/ilmiot/helsinki-residents/helsinki-of-many-languages",
+            "researchDetail": "1902년 이후에도 Helsingfors는 스웨덴어 공식 명칭이다. 원어 배열의 두 이름은 동시 사용 명칭이며 별칭으로 처리하지 않는다."
+          },
+          {
+            "detail": "1923년은 명칭 전환점으로 사용 안 함",
+            "sourceUrl": "https://www.finlex.fi/fi/lainsaadanto/saadoskokoelma/1922/148",
+            "researchDetail": "1922년 언어법의 후속 시행과 헬싱키의 이중언어 법적 지위는 1902년 편집상 병기 시작을 뒤집거나 별도의 개명 이력을 만들지 않는다."
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Helsinki",
+      "defaultDisplayNameNative": "Helsinki",
+      "defaultNativeLanguage": "fi",
+      "defaultNativeNames": [
+        {
+          "text": "Helsinki",
+          "language": "fi",
+          "script": "Latn"
+        },
+        {
+          "text": "Helsingfors",
+          "language": "sv",
+          "script": "Latn"
+        }
+      ]
     },
     {
       "geonameId": 2964574,
@@ -382,7 +465,14 @@
         {
           "text": "Bern",
           "language": "de",
-          "usage": "standard"
+          "usage": "standard",
+          "sourceUrl": "https://www.bern.ch/en/"
+        },
+        {
+          "text": "Bern",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.bern.ch/en/"
         },
         {
           "text": "베른",
@@ -400,10 +490,14 @@
       "shortDescriptionKo": "1848년부터 스위스 연방정부 소재지",
       "displayTimeline": [
         {
-          "nameKo": "베른",
           "fromYear": 1801,
+          "nameKo": "베른",
+          "nameEn": "Bern",
+          "nameNative": "Bern",
+          "nativeLanguage": "de",
           "kind": "historicalLocalName",
-          "sourceUrl": "https://www.geonames.org/2661552/"
+          "sourceUrl": "https://www.bern.ch/en/",
+          "researchNote": "1801년부터 검토 범위 내에서 독일어 Bern, 영어 Bern, 한국어 베른으로 일관되게 표시한다. 1848-11-28 연방정부 소재지 지정은 명칭 변경이 아니며 1801년은 도시 설립일이 아니다."
         }
       ],
       "historicalDisplayCoverage": "reviewed-since-1801",
@@ -420,9 +514,17 @@
           {
             "detail": "법률상 정식 수도는 아님",
             "sourceUrl": "https://www.aboutswitzerland.eda.admin.ch/en/political-system"
+          },
+          {
+            "detail": "시 행정어는 독일어, 원어명 Bern",
+            "sourceUrl": "https://www.bern.ch/en/",
+            "researchDetail": "베른주의 프랑스어 명칭 Berne는 별도로 존재하지만 독일어 사용 도시인 베른의 지도 대표 원어명은 Bern 한 개만 선택한다. 영어도 Bern을 선택한다."
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Bern",
+      "defaultDisplayNameNative": "Bern",
+      "defaultNativeLanguage": "de"
     },
     {
       "geonameId": 703448,
