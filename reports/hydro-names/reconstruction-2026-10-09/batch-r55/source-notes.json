@@ -1,0 +1,275 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r55",
+  "sources": [
+    {
+      "source_key": "r55-cogerh-alto-sintese",
+      "title": "Síntese do Plano da Região Hidrográfica do Alto Jaguaribe",
+      "publisher": "Governo do Ceará; Secretaria dos Recursos Hídricos; COGERH; FUNCAP–UFC",
+      "attribution": "Infrastructure sheet: Aquino, T. S., UFC / COGERH Gerência de Desenvolvimento Operacional, July 2022; drainage credited to ANA 2016. The synthesis describes plan preparation during July 2022–May 2023.",
+      "page": "Table 3.1, p. 32; Infraestrutura Hídrica original map, p. 33, scale 1:400,000",
+      "supports": "Northern feeder distinction, upper-course bends and reservoir succession through Orós.",
+      "limits": "The URL's 2021 directory is not treated as publication year. River labels are generalized; the sheet combines drainage with planned water-transfer infrastructure, which is not treated as river geometry. Exact source and local transition points are not established.",
+      "official_url": "https://portal.cogerh.com.br/wp-content/uploads/2021/07/10.-S%C3%8DNTESE-DO-PLANO-DO-ALTO-JAGUARIBE.pdf"
+    },
+    {
+      "source_key": "r55-alece-alto-2009",
+      "title": "Caderno regional da sub-bacia do Alto Jaguaribe, volume 5",
+      "publisher": "Assembleia Legislativa do Estado do Ceará, Conselho de Altos Estudos e Assuntos Estratégicos / INESP",
+      "attribution": "Eudoro Walter de Santana, coordinator; Figure 3 credited to Pacto das Águas; official copy hosted by COGERH.",
+      "year": 2009,
+      "page": "Printed pp. 17–18, Figure 3; p. 25",
+      "supports": "Upper Jaguaribe municipal/course context, separate Carrapateiras and Trici tributary terminology, and Orós-to-Castanhão continuity.",
+      "limits": "Figure 3 is a coarse raster; it supplies broad corridor context, supplemented by the newer infrastructure sheet. Historical flow, capacity and length numbers are not applied to the selected feature.",
+      "official_url": "https://portal.cogerh.com.br/wp-content/uploads/2018/09/Bacia-do-Alto-Jaguaribe.pdf"
+    },
+    {
+      "source_key": "r55-cogerh-medio-map-2018",
+      "title": "Bacia do Médio Jaguaribe",
+      "publisher": "COGERH, Governo do Estado do Ceará",
+      "attribution": "COGERH Gerência de Tecnologia da Informação, May 2018; drainage and reservoirs credited to COGERH/SRH, municipal limits to IPECE.",
+      "year": 2018,
+      "page": "Single-sheet original map, scale 1:600,000",
+      "supports": "Middle selected course, Orós-side approach, Jaguaribe town, Castanhão, Jaguaribara and downstream direction toward São João do Jaguaribe.",
+      "limits": "The 2017 regulated-channel layer is historical context, not evidence of current flow. The sheet does not establish every local channel name or exact reservoir-crossing boundary.",
+      "official_url": "https://portal.cogerh.com.br/wp-content/uploads/2018/10/Bacia-do-Medio-Jaguaribe.pdf"
+    },
+    {
+      "source_key": "r55-alece-baixo-2009",
+      "title": "Caderno regional da sub-bacia do Baixo Jaguaribe, volume 7",
+      "publisher": "Assembleia Legislativa do Estado do Ceará, Conselho de Altos Estudos e Assuntos Estratégicos / INESP",
+      "attribution": "Eudoro Walter de Santana, coordinator; Figure 3 credited to Pacto das Águas; official copy hosted by COGERH.",
+      "year": 2009,
+      "page": "Printed pp. 17–18, Figure 3",
+      "supports": "Lower Jaguaribe corridor, named-town sequence to Fortim, Palhano distinction and branching estuary context.",
+      "limits": "Generalized raster map; the town/river configuration is readable but individual lower-channel names and exact current mouth geometry are not resolved.",
+      "official_url": "https://portal.cogerh.com.br/wp-content/uploads/2018/09/Bacia-do-Baixo-Jaguaribe.pdf"
+    },
+    {
+      "source_key": "r55-cogerh-medio-overview",
+      "title": "A Sub-Bacia Hidrográfica do Médio Jaguaribe",
+      "publisher": "Companhia de Gestão dos Recursos Hídricos do Ceará",
+      "attribution": "Official COGERH basin overview",
+      "supports": "Explicit Jaguaribe name and the separate Figueiredo and Riacho do Sangue tributary relationship.",
+      "limits": "Basin-level description, not a reach-by-reach naming survey. Numerical basin statistics and current office-holder information are outside this finding.",
+      "official_url": "https://portal.cogerh.com.br/medio-jaguaribe/"
+    },
+    {
+      "source_key": "r55-honduras-hydro-delimitations-technical-2017",
+      "title": "Generación de los mapas oficiales de cuencas, subcuencas y microcuencas para el territorio Hondureño (Memoria Técnica)",
+      "authors": "F. Monserrate, J. Valencia, S. Leverón, J. Pineda and C. Cartagena",
+      "publisher": "Sistema de Apoyo a la Planificación Hídrica Local en Honduras; USAID, Centro Internacional de Agricultura Tropical and Dirección General de Recursos Hídricos",
+      "year": 2017,
+      "page": "Publication credits, introduction and definitions, printed pp. 1–5",
+      "supports": "Provenance and intended basin/subbasin classification scope of the official 2017 mapping project.",
+      "limits": "General methodological text. It does not establish correspondence between this selected modeled route and a named natural river, and is not counted as acquired visual map evidence.",
+      "official_url": "https://aguadehonduras.gob.hn/files/Mapas_Oficiales_Delimitaciones_Hidrograficas_Honduras_MemoriaTecnica.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; northern and western graticule, northwestern Inland Ice, Washington Land, Humboldt Gletscher / Kane Basin margin and Inland Ice legend",
+      "supports": "Distinguishes the interior ice-sheet route from the named glacier and marine context at its western approach; supplies readable full-route feature-class coverage.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology, including Figure 47",
+      "supports": "Identifies Inland Ice as the continental ice sheet and explains the surface, thickness and sub-ice bedrock contours; provides no natural river identity for the modeled path.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r55-inegi-durango-geography-2022",
+      "title": "Aspectos geográficos de Durango. Compendio 2022",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2024,
+      "page": "Printed pp. 35–36, Maps 10–11 (PDF pages 42–43); printed pp. 17–18, hydrology tables",
+      "supports": "Southern Santiago corridor, separate Tepehuanes and Sextín approaches, Ramos course, Lázaro Cárdenas, middle Nazas, Francisco Zarco and Lerdo/Gómez Palacio setting.",
+      "limits": "Published at 1:3,000,000 using cited INEGI topographic and INEGI–CONAGUA hydrographic sources. This generalized state map cannot name every local feeder or model vertex and ends at the state coverage limit before the Mayrán terminal extension.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463913276.pdf"
+    },
+    {
+      "source_key": "r55-inegi-sanpedro-hydrography-1996",
+      "title": "San Pedro, estado de Coahuila: Cuaderno Estadístico Municipal, edición 1996",
+      "publisher": "INEGI, Gobierno del Estado de Coahuila and H. Ayuntamiento Constitucional de San Pedro",
+      "year": 1997,
+      "page": "Printed p. 16, Map 6 Hidrografía (PDF page 26 in part 1)",
+      "supports": "Lower named Nazas course south of San Pedro, San Miguel–San Nicolás anchors, separate canal symbols and labels, and Mayrán subbasin context for the eastern continuation.",
+      "limits": "Historical municipal cartography citing the 1:250,000 surface-water hydrology sheet. It does not show the entire selected terminal extension as a named river, establish a present waterbody outline or prove current flow. Municipal clipping and generalization are not evidence that an omitted channel does not exist.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/1334/702825926335/702825926335_1.pdf"
+    },
+    {
+      "source_key": "r55-conanp-canon-fernandez-ris-2008",
+      "title": "Ficha Informativa de los Humedales de Ramsar: Parque Estatal Cañón de Fernández",
+      "publisher": "Official Ramsar information sheet hosted by Comisión Nacional de Áreas Naturales Protegidas (CONANP), Mexico",
+      "year": 2008,
+      "page": "Sections 16–17, printed pp. 4–6",
+      "supports": "Nazas beginning at the Ramos–Sextín confluence at Lázaro Cárdenas, distinct Francisco Zarco reservoir downstream, Nazas through Cañón de Fernández, and endorheic regional context.",
+      "limits": "Supporting geographical description rather than a full-route detailed map. Historical hydrological quantities and river-permanence descriptions are not applied to every selected segment or treated as current observations.",
+      "official_url": "https://conanp.gob.mx/conanp/dominios/ramsar/docs/sitios/FIR_RAMSAR/Durango/Parque%20Estatal%20Ca%C3%B1%C3%B3n%20de%20Fern%C3%A1ndez/Mexico%20Ca%C3%B1%C3%B3n%20de%20Fern%C3%A1ndez%20RIS%20S%202008.pdf"
+    },
+    {
+      "source_key": "r55-gomezpalacio-development-2022-2025",
+      "title": "Plan Municipal de Desarrollo 2022–2025",
+      "publisher": "Municipio de Gómez Palacio, Durango",
+      "year": 2022,
+      "page": "Printed pp. 27–28 (PDF pages 33–34)",
+      "supports": "Nazas at the Durango–Coahuila boundary, generally dry local course with exceptional flows toward Mayrán, upstream impoundment and irrigation diversion.",
+      "limits": "Municipal-scale prose does not establish every bend, terminal extension, canal identity, contemporary flow event or natural mouth position.",
+      "official_url": "https://transparencia.gomezpalacio.gob.mx/wp-content/uploads/2022/12/PLAN-MUNICIPAL-DE-DESARROLLO-2022-Transparencia.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60698168",
+      "source_keys": [
+        "r55-cogerh-alto-sintese",
+        "r55-alece-alto-2009",
+        "r55-cogerh-medio-map-2018",
+        "r55-alece-baixo-2009",
+        "r55-cogerh-medio-overview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13787
+          ],
+          "finding": "The northern end follows the Forquilha II–Várzea do Boi–Tauá corridor, rather than the western Trici branch. The plan's infrastructure map carries Jaguaribe labels along this corridor, while its reservoir table explicitly calls the watercourse at Forquilha II and Várzea do Boi Carrapateiras. This supports representative-system identity with a retained upper-feeder distinction, not an assertion that the selected endpoint is the river's exact natural source.",
+          "sources": [
+            "r55-cogerh-alto-sintese",
+            "r55-alece-alto-2009"
+          ]
+        },
+        {
+          "fragments": [
+            13787
+          ],
+          "finding": "South of Tauá the line follows the Arneiroz II setting, bends southeast toward Saboeiro, then continues east through the Jucás/Cariús and Iguatu settings into Orós and its eastward outlet. The readable infrastructure sheet and the older basin figure show this distinctive succession. The modeled line through reservoir water is not assigned a separate natural-channel name.",
+          "sources": [
+            "r55-cogerh-alto-sintese",
+            "r55-alece-alto-2009"
+          ]
+        },
+        {
+          "fragments": [
+            13788,
+            13789
+          ],
+          "finding": "From the corridor east of Orós, the selected course turns north past the Salgado approach and Jaguaribe town, makes its westward middle bend, and then turns northeast through the Castanhão setting toward Jaguaribara. The Médio Jaguaribe sheet shows that continuous Jaguaribe corridor and separately draws the eastern Figueiredo drainage and western Riacho do Sangue approach. Those tributaries are not transferred to the selected line as aliases.",
+          "sources": [
+            "r55-cogerh-medio-map-2018",
+            "r55-cogerh-medio-overview"
+          ]
+        },
+        {
+          "fragments": [
+            13789,
+            13790
+          ],
+          "finding": "Below Castanhão the route continues northeast through the São João do Jaguaribe setting into the Limoeiro do Norte area. The downstream piece then follows the lower valley toward Jaguaruana, turns north by Itaiçaba and Aracati, and reaches the Fortim estuarine setting. The Médio sheet and Baixo Figure 3 join these successive reaches; the Baixo text independently identifies Jaguaribe as the main river from Peixe Gordo to its mouth.",
+          "sources": [
+            "r55-cogerh-medio-map-2018",
+            "r55-alece-baixo-2009"
+          ]
+        },
+        {
+          "fragments": [
+            13790
+          ],
+          "finding": "The Baixo source separately identifies Palhano as a left-bank tributary and describes branching/meandering channels near the mouth. Its generalized map supports the lower-system correspondence but does not establish a distinct local name for each modeled channel, a current coastline intersection or a surveyed final mouth vertex.",
+          "sources": [
+            "r55-alece-baixo-2009"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70935447",
+      "source_keys": [
+        "r55-honduras-hydro-delimitations-technical-2017"
+      ],
+      "correspondence": [
+        "The actual cached route was inspected in full, including the western starting leg, southern loop, northeastward upper section, southward return to the second fragment, broad eastward middle loop and long northeastward lower course. All three selected fragments are modeled mainstem fragments.",
+        "The supporting 2017 technical report describes an official basin and subbasin framework prepared through the Honduran water-resources authority and its project partners. It explains that catchment names and boundaries classify drainage areas; that text alone is not evidence that every modeled channel in an area shares its basin name.",
+        "No readable original map was inspected before acquisitions stopped. Consequently no full source-object correspondence, individual feeder name, reservoir passage, precise name transition or coastal outlet identity is asserted."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90014308",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": {
+        "object_scope": "The complete single cached mainstem fragment was inspected, from the long eastern northward leg through the alternating westward bends, including the northern high-latitude bend and the final western approach. There are no additional tributary fragments in this selected group.",
+        "displayed_mainstem_length_km": 638.646,
+        "displayed_length_limit": "Retained model display length, not independently established natural-river length.",
+        "full_path_finding": "The eastern leg and the long middle sequence lie in the mapped Inland Ice, southeast and south of Washington Land. The western approach runs toward the broad ice-margin sector mapped as Humboldt Gletscher beside Kane Basin. The source graticule, ice shading, margin shape and land/coast configuration were inspected for this actual line; a bounding box or prior Greenland finding was not substituted for it.",
+        "map_interpretation": "The sheet distinguishes the blue surface contours, dashed ice-thickness isopachs and grey sub-ice bedrock contours. They describe ice and terrain, not named river courses.",
+        "name_limit": "Neither the geological map nor the glaciology explanation identifies the whole model line as one named surface river, one subglacial river or a uniformly named glacier. Proximity to the printed Humboldt Gletscher label cannot convert that glacier name into a river identity. The exact terminal natural feature and present-day flow remain unassigned.",
+        "historical_scope": "Historical 1995 cartography and 2009 explanation supply feature-class context. No current ice-front location, contemporary discharge or hydrological connection is asserted.",
+        "conclusion": "Readable regional coverage is sufficient for the completed scope hold; retain null names and no automatic application. Positive natural-river identity evidence would be required before any later name assignment."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70844043",
+      "source_keys": [
+        "r55-inegi-durango-geography-2022",
+        "r55-inegi-sanpedro-hydrography-1996",
+        "r55-conanp-canon-fernandez-ris-2008",
+        "r55-gomezpalacio-development-2022-2025"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10359
+          ],
+          "scope": "Southern upstream leg",
+          "finding": "The long northward mountain leg west of Durango continues through the Santiago Papasquiaro setting. INEGI Map 11 depicts this corridor as Santiago, distinct from Río Chico to the southeast and the west-draining San Gregorio/Piaxtla systems. Map 10 supplies the corresponding narrow upper drainage setting. The selected southern tip is retained as an upper feeder extent, without asserting its exact local hydronym or the natural source of the named Santiago."
+        },
+        {
+          "fragments": [
+            10359
+          ],
+          "scope": "Upper junction and reservoir approach",
+          "finding": "North of Santiago Papasquiaro, the selected route turns northeast in the mapped Ramos corridor after the separate Tepehuanes approach. It reaches the Lázaro Cárdenas reservoir setting from the southwest. The map shows Sextín arriving separately from the northwest. CONANP identifies the Ramos–Sextín confluence at the Lázaro Cárdenas/El Palmito setting as the beginning of Nazas. A modeled line through that impounded junction is not uniformly Santiago, Ramos or an independently named reservoir channel."
+        },
+        {
+          "fragments": [
+            10359
+          ],
+          "scope": "Middle Nazas and Francisco Zarco passage",
+          "finding": "The selected line leaves the Lázaro Cárdenas setting southeastward, makes its broad southern turn and then runs east toward Francisco Zarco. Its sequence of bends and the mapped San Juan junction context agree with INEGI's Nazas corridor. The subsequent northward turn and approach to Lerdo correspond to the river below Francisco Zarco. CONANP independently places Nazas in Cañón de Fernández and distinguishes Francisco Zarco/Las Tórtolas from the upstream Lázaro Cárdenas reservoir. Exact reservoir-entry and name-transition vertices are not assigned."
+        },
+        {
+          "fragments": [
+            10359
+          ],
+          "scope": "Lower river and Mayrán terminal continuation",
+          "finding": "The selected lower course approaches the Lerdo–Gómez Palacio/Torreón setting and continues northeast and east toward San Pedro. INEGI's San Pedro hydrography map follows a separately labeled Nazas channel south of San Pedro through the San Miguel–San Nicolás setting, while distinguishing nearby irrigation canals. The modeled line continues farther east/northeast into the mapped Mayrán subbasin context than the named channel is depicted. The acquired sources do not establish that complete terminal extension as one named natural channel, a current wet river, or a surveyed salt-flat channel."
+        },
+        {
+          "fragments": [
+            10359
+          ],
+          "scope": "Flow and feature-class limit",
+          "finding": "The Gómez Palacio municipal plan describes the local Nazas course as generally dry during the year, with exceptional flows toward Mayrán, and records upstream impoundment and irrigation diversion. That description explains why named river identity and present flow must be separated. The modeled continuation does not by itself prove continuous water, present-day connection across the terminal basin, or an exact historical shoreline."
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

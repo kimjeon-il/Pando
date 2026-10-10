@@ -1,0 +1,403 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r55",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r54",
+    "commit": "1319a46cbce168ce46bbab0fbee25606fd28139a",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r54/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:60698168",
+    "hydro-system:70935447",
+    "hydro-system:90014308",
+    "hydro-system:70844043"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:60698168",
+      "category": "river_group",
+      "system_id": "60698168",
+      "baseline_logical_fid": 3439,
+      "geometry_fids": [
+        13790,
+        13788,
+        13787,
+        13789
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -40.310417,
+        -6.572917,
+        -37.747917,
+        -4.428106
+      ],
+      "rendered_mainstem_length_km": 658.31,
+      "rendered_network_length_km": 658.31,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -40.310417,
+          -6.572917,
+          -37.747917,
+          -4.428106
+        ]
+      },
+      "candidate_name": "Rio Jaguaribe (Ceará)",
+      "candidate_names": [
+        "Rio Jaguaribe"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Jaguaribe is supported as the representative identity of the selected four-piece corridor in Ceará. This does not assign that name uniformly to its northern feeder, every impounded passage or every lower channel. The Carrapateiras headwater corridor and the named reservoirs retain separate scope; exact feeder/name-transition vertices and local estuarine channel names remain unassigned.",
+      "geographic_disambiguation": "The selected route was compared along its actual course, including its southward upper limb, broad eastward southern sweep, Orós outlet, northward middle corridor, Castanhão passage and lower northeastern-to-coastal turn. The result is not inferred from the bounding box, model mainstem classification or a nearby settlement name. Ceará is an editorial geographic qualifier.",
+      "source_keys": [
+        "r55-cogerh-alto-sintese",
+        "r55-alece-alto-2009",
+        "r55-cogerh-medio-map-2018",
+        "r55-alece-baixo-2009",
+        "r55-cogerh-medio-overview"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Ceará, northeastern Brazil, from the northern Tauá drainage through the upper and middle Jaguaribe to its lower coastal corridor near Fortim.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence for all four selected modeled-mainstem fragments. The acquired official maps and direct text are sufficient for this finding; no further source acquisition is pending. Individual reach naming, exact source attribution, reservoir entry/exit vertices and present-day mouth-channel selection are outside this completed scope and remain unapplied.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rio Jaguaribe",
+        "geographic_qualifier": "Ceará, Brazil; the qualifier is editorial and is not asserted to be part of the official hydronym.",
+        "upper_feeder_scope": "Carrapateiras is retained for the northern headwater corridor identified by the reservoir table. The infrastructure map's broader Jaguaribe labeling is not used to erase that distinction. Trici remains the separate western approach to Tauá.",
+        "reservoir_scope": "Forquilha II, Várzea do Boi, Arneiroz II, Orós and Castanhão are reservoir context, not blanket river aliases. The Saboeiro map also identifies the Caldeirões reservoir setting. No precise inundation boundaries are inferred from fragment breaks.",
+        "tributary_scope": "The selection contains no separately classified tributary fragments. The surrounding Trici, Cariús/Bastiões, Trussu, Salgado, Figueiredo, Riacho do Sangue and Palhano approaches are geographical disambiguation context; their names are not applied to the whole selected feature.",
+        "model_limits": "Model stage, modeled length and mainstem status identify the object to review, not its official hydronym, exact named-river length, perennial-flow condition or present-day reservoir and estuary geometry."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70935447",
+      "category": "river_group",
+      "system_id": "70935447",
+      "baseline_logical_fid": 3292,
+      "geometry_fids": [
+        10591,
+        10590,
+        10589
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -86.966667,
+        14.21875,
+        -84.280118,
+        15.799323
+      ],
+      "rendered_mainstem_length_km": 656.277,
+      "rendered_network_length_km": 656.277,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -86.966667,
+          14.21875,
+          -84.280118,
+          15.799323
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_access_pending",
+      "supported_name_scope": "No representative river identity is established yet. The actual three-fragment route has been inspected, but readable official cartography has not yet been acquired and compared with that complete route. A Patuca-system search lead is not promoted to a supported name.",
+      "geographic_disambiguation": "Honduras: a western upper approach makes a southward loop, runs northeast, turns south to the next fragment, then follows a broad eastward and northeastward route to the Caribbean coastal setting. Regional location alone does not establish the names of the initial feeder, the connecting reaches or the terminal channel.",
+      "source_keys": [
+        "r55-honduras-hydro-delimitations-technical-2017"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": true,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "Source-access pending; full source-object correspondence is incomplete. The current missing map evidence follows directly from the access block and is not separately counted as source-material pending. This is not a completed naming-scope hold.",
+      "naming_scope_details": {
+        "upstream_limit": "The initial modeled feeder and the upper name-transition sequence remain unassigned.",
+        "waterbody_and_branch_limit": "No reservoir or tributary designation is transferred to the whole collection. MAIN_RIV membership and fragment boundaries do not establish natural naming boundaries.",
+        "model_limit": "The model route does not establish present flow, contemporary shoreline position, impoundment operation or a uniform natural-river name."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90014308",
+      "category": "river_group",
+      "system_id": "90014308",
+      "baseline_logical_fid": 2825,
+      "geometry_fids": [
+        8835
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -64.823823,
+        77.7,
+        -52.833333,
+        80.277083
+      ],
+      "rendered_mainstem_length_km": 638.646,
+      "rendered_network_length_km": 638.646,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -64.823823,
+          77.7,
+          -52.833333,
+          80.277083
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for this complete modeled route across the northwestern Inland Ice and toward the Humboldt Gletscher margin. This is a completed naming and feature-class scope hold, not a finding that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "Northwestern Greenland Inland Ice, east and southeast of Washington Land, with the western end approaching the Humboldt Gletscher / Kane Basin sector. The glacier and marine-basin labels are geographical context only, not river names assigned to the model.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "Complete selected-path scope assessment. A future river-name assignment would require positive natural-feature identity evidence; no further acquisition is required now to establish the hold."
+    },
+    {
+      "aw_id": "hydro-system:70844043",
+      "category": "river_group",
+      "system_id": "70844043",
+      "baseline_logical_fid": 3219,
+      "geometry_fids": [
+        10359
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -105.452083,
+        24.0375,
+        -102.522917,
+        25.785417
+      ],
+      "rendered_mainstem_length_km": 636.254,
+      "rendered_network_length_km": 636.254,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -105.452083,
+          24.0375,
+          -102.522917,
+          25.785417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Río Nazas"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The selected line contains the Santiago–Ramos approach and the Río Nazas corridor, including passages through Lázaro Cárdenas and Francisco Zarco reservoirs, followed by a lower-course and terminal-basin continuation toward Laguna de Mayrán. Río Nazas is supported for the central/lower named corridor and as its drainage context; it is not established as one hydronym covering the entire modeled fragment. The upper feeder names, impounded passages and eastern terminal model link must remain separate. This is a completed naming-scope hold.",
+      "geographic_disambiguation": "Northern Mexico, from the mountain corridor west of Durango and through Santiago Papasquiaro, northeast in the Ramos corridor to Lázaro Cárdenas, southeast and east in the Nazas corridor, then through the Francisco Zarco–Lerdo/Gómez Palacio–Torreón setting toward San Pedro and the Mayrán terminal basin in Coahuila. The actual line's northward upper leg, northeast turn, southeast middle descent, eastward middle reach, northern lower bend and eastern terminal extension were inspected. The adjacent Sextín, Tepehuanes and Aguanaval routes are not substituted for the selected line.",
+      "source_keys": [
+        "r55-inegi-durango-geography-2022",
+        "r55-inegi-sanpedro-hydrography-1996",
+        "r55-conanp-canon-fernandez-ris-2008",
+        "r55-gomezpalacio-development-2022-2025"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "The full selected fragment has a completed bounded correspondence and naming-scope assessment. Readable original INEGI maps and distinct direct official text establish a named river/feeder/reservoir corridor and an unsupported terminal model extension. No further material acquisition is pending for this hold. The access limitation concerns an optional CONAGUA report whose original-body request returned 403; it is not the reason a single name is withheld. Follow-up is required only before any future whole-object name assignment, which would need positive evidence for its full scope.",
+      "naming_scope_details": {
+        "supported_named_corridor": "Río Nazas",
+        "upper_corridor_names": [
+          "Río Santiago",
+          "Río Ramos"
+        ],
+        "waterbody_context": [
+          "Presa Lázaro Cárdenas (El Palmito)",
+          "Presa Francisco Zarco (Las Tórtolas)",
+          "Laguna de Mayrán terminal basin"
+        ],
+        "not_aliases": "Santiago and Ramos are upper river corridors; the two presa names identify impoundments, and Mayrán identifies the terminal basin/waterbody context. None is treated as a blanket alias for the selected object.",
+        "unassigned": "Exact name of the southernmost feeder, exact river-name and impoundment transitions, fine lower-course/canal correspondences, and the complete terminal model extension east of the mapped named Nazas channel.",
+        "excluded_name_transfer": "Tepehuanes and Sextín are separately mapped joining routes; Aguanaval is a different southern drainage toward the Viesca context. Nearby settlement, canal, reservoir and basin labels are not assigned to unsupported model segments.",
+        "model_limits": "One fragment and a modeled mainstem classification do not establish a single natural river name, a natural source-to-mouth length, permanence, current flow or complete hydraulic connectivity. The hold does not assert that all unresolved parts are unnamed.",
+        "separately_named_corridor_parts": [
+          "Río Nazas"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "The full selected fragment has a completed bounded correspondence and naming-scope assessment. Readable original INEGI maps and distinct direct official text establish a named river/feeder/reservoir corridor and an unsupported terminal model extension. No further material acquisition is pending for this hold. The access limitation concerns an optional CONAGUA report whose original-body request returned 403; it is not the reason a single name is withheld. Follow-up is required only before any future whole-object name assignment, which would need positive evidence for its full scope."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90014308",
+      "hydro-system:70844043"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [
+      "hydro-system:70935447"
+    ],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 2,
+    "access_pending": 1,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 162,
+    "non_pending_records": 157,
+    "source_access_pending": 3,
+    "source_material_pending": 2,
+    "source_any_pending": 5,
+    "scope_holds": 54,
+    "river_groups": 64,
+    "lakes": 98,
+    "unrecorded": 3903,
+    "unrecorded_river_groups": 3391,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r55-cogerh-alto-sintese",
+      "official_url": "https://portal.cogerh.com.br/wp-content/uploads/2021/07/10.-S%C3%8DNTESE-DO-PLANO-DO-ALTO-JAGUARIBE.pdf"
+    },
+    {
+      "source_key": "r55-alece-alto-2009",
+      "official_url": "https://portal.cogerh.com.br/wp-content/uploads/2018/09/Bacia-do-Alto-Jaguaribe.pdf"
+    },
+    {
+      "source_key": "r55-cogerh-medio-map-2018",
+      "official_url": "https://portal.cogerh.com.br/wp-content/uploads/2018/10/Bacia-do-Medio-Jaguaribe.pdf"
+    },
+    {
+      "source_key": "r55-alece-baixo-2009",
+      "official_url": "https://portal.cogerh.com.br/wp-content/uploads/2018/09/Bacia-do-Baixo-Jaguaribe.pdf"
+    },
+    {
+      "source_key": "r55-cogerh-medio-overview",
+      "official_url": "https://portal.cogerh.com.br/medio-jaguaribe/"
+    },
+    {
+      "source_key": "r55-honduras-hydro-delimitations-technical-2017",
+      "official_url": "https://aguadehonduras.gob.hn/files/Mapas_Oficiales_Delimitaciones_Hidrograficas_Honduras_MemoriaTecnica.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r55-inegi-durango-geography-2022",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463913276.pdf"
+    },
+    {
+      "source_key": "r55-inegi-sanpedro-hydrography-1996",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/1334/702825926335/702825926335_1.pdf"
+    },
+    {
+      "source_key": "r55-conanp-canon-fernandez-ris-2008",
+      "official_url": "https://conanp.gob.mx/conanp/dominios/ramsar/docs/sitios/FIR_RAMSAR/Durango/Parque%20Estatal%20Ca%C3%B1%C3%B3n%20de%20Fern%C3%A1ndez/Mexico%20Ca%C3%B1%C3%B3n%20de%20Fern%C3%A1ndez%20RIS%20S%202008.pdf"
+    },
+    {
+      "source_key": "r55-gomezpalacio-development-2022-2025",
+      "official_url": "https://transparencia.gomezpalacio.gob.mx/wp-content/uploads/2022/12/PLAN-MUNICIPAL-DE-DESARROLLO-2022-Transparencia.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "1319a46cbce168ce46bbab0fbee25606fd28139a",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      18,
+      19,
+      20,
+      21
+    ],
+    "next_unrecorded_id": "hydro-system:61457989",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}
