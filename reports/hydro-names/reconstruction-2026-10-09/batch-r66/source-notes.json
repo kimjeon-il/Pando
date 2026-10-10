@@ -1,0 +1,272 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r66",
+  "sources": [
+    {
+      "source_key": "r66-ana-pianco-piranhas-acu-plan-2018",
+      "title": "Plano de recursos hídricos da bacia hidrográfica do rio Piancó-Piranhas-Açu: resumo executivo",
+      "publisher": "Agência Nacional de Águas (ANA), Brasília",
+      "year": 2018,
+      "page": "Figure 4, printed p. 21 / PDF p. 22; river-sequence text and Table 3, printed p. 22 / PDF p. 23; Figure 5, printed p. 27 / PDF p. 28; Figure 18, printed p. 58 / PDF p. 59. Figure 2, printed p. 19 / PDF p. 20, supplies regional context.",
+      "supports": "Full regional river/source-area/reservoir/coastal sequence, the Piancó–Piranhas–Açu component names and transitions, town anchors, separate tributaries and the lower branching network.",
+      "limits": "Generalized basin-planning cartography, not an exact hydronym-boundary or present-day shoreline survey. The historical station-map symbols and perennization classifications are not used to claim current conditions. The extreme initial feeder and final distributary name limits remain bounded.",
+      "official_url": "https://www.gov.br/ana/pt-br/assuntos/gestao-das-aguas/planos-de-recursos-hidricos/planos-de-recursos-hidricos-de-bacias-hidrograficas/planos-de-bacias-hidrograficas-interfederativas/pianco-piranhas-acu/PlanodeRecursosHdricosdaBaciaHidrogrficadoRioPiancPiranhasAu2.pdf"
+    },
+    {
+      "source_key": "r61-cehq-region10-summer-lowflow",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 10",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011. Cartography: Marie-Lise Paquin and Eric Levasseur; approved by Joëlle Bérubé. BDGA 1:1,000,000 base; map scale 1:2,300,000; NAD83 Québec Lambert.",
+      "year": 2011,
+      "page": "Single regional sheet; whole map and readable enlargements of the complete eastern Ungava corridor, southern headwaters, Wheeler branch and coastal approach.",
+      "supports": "Named Baleine trunk, separately named Wheeler tributary, southern feeder/lake setting, lower coastal direction and separation from the neighboring drainage systems.",
+      "limits": "Regional generalized cartography does not name every initial feeder, precisely delimit lake passages or establish surveyed terminal boundaries. Low-flow estimates are outside this finding.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r66-krg-masterplan-ungava-maps",
+      "title": "Plan directeur de la région Kativik 2020 — Rivière-Marralik and Lac-Jeannin maps and the Baleine–Wheeler confluence entry",
+      "publisher": "Administration régionale Kativik; embedded maps by the Québec Ministère de l’Environnement et de la Lutte contre les changements climatiques, Direction des aires protégées",
+      "attribution": "Actual cover title is Plan directeur de la région Kativik 2020. Ministry cartography uses the Base de données topographiques et administratives (BDTA); Rivière-Marralik sheet dated July 2020 and Lac-Jeannin sheet dated January 2022.",
+      "year": 2020,
+      "page": "Printed pp. 72–73 and 78–79 (PDF pp. 80–81 and 86–87), plus the confluence entry on printed p. 140 (PDF p. 148).",
+      "supports": "Baleine versus Marralik lower-corridor distinction, Ungava coastal setting, Jeannin–Ninawawe lake context within the Baleine basin, and the separately named Wheeler confluence.",
+      "limits": "The two detailed maps cover different portions of the route and complement the whole CEHQ sheet. No exact small-feeder name, source-lake claim or endpoint boundary is assigned. Conservation designations and proposals are not used as current legal facts.",
+      "official_url": "https://www.krg.ca/en-CA/assets/renewable-resources/MasterPlan%28FR%29.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; northern Inland Ice, graticule and marginal terrain in the Sherard Osborn Fjord–Victoria Fjord region, Inland Ice legend",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description, pp. 64–65 Glaciology, and map-label register for northern regional context",
+      "supports": "Explains ice-contour classes and regional map labels without establishing a natural river identity for this selected route.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r66-inegi-sonora-state-2024-2025",
+      "title": "Condensado Estatal Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "year": 2024,
+      "publication_year": 2025,
+      "page": "Single map sheet, PDF p. 1; fourth edition 2024, copyright 2025; scale 1:970,000.",
+      "supports": "Whole regional route, direct Sonora labels, ordered valley localities, separate Bacanuchi and San Miguel corridors, El Molinito setting and western coastal-plain context.",
+      "limits": "Generalized state cartography derived from 1:250,000 sixth-edition 2023 topographic coverage. Does not assign every headwater or lowland segment, resolve current outlet continuity or establish contemporary reservoir shorelines. Original map imagery remains local.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/son/794551162958.pdf"
+    },
+    {
+      "source_key": "r66-inegi-cananea-2010",
+      "title": "Compendio de información geográfica municipal 2010. Cananea, Sonora",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; hydrography table on PDF p. 3 and locality-page text on PDF p. 5.",
+      "supports": "Southeastern Cananea headwater setting and the separately labeled Sonora and Bacanuchi drainage branches.",
+      "limits": "Municipal map based on generalized INEGI topographic series II/III and INEGI–CONAGUA 2007 hydrography. Does not establish an exact first feeder or a present-day reservoir or headwater configuration. Municipal basin proportions were not used as line-identification evidence.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26019.pdf"
+    },
+    {
+      "source_key": "r66-inegi-hermosillo-2010",
+      "title": "Compendio de información geográfica municipal 2010. Hermosillo, Sonora",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF pp. 6–7, Localidades e Infraestructura para el Transporte and Relieve; hydrography table on PDF pp. 3–4.",
+      "supports": "Río Sonora approaching Hermosillo, separately identified Rodolfo Félix Valdés and Abelardo L. Rodríguez reservoirs, Canal Hermosillo and other plain channels, and the Bahía de Kino–Punta Blanca coastal setting.",
+      "limits": "Generalized 2010 municipal cartography with older topographic and 2007 hydrographic inputs. Its channel network is not evidence of current continuous surface flow or a unique modern outlet, and different lower channels cannot be merged into one hydronym.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26030.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60740555",
+      "source_keys": [
+        "r66-ana-pianco-piranhas-acu-plan-2018"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13799
+          ],
+          "finding": "The selected beginning approaches from the southwest through the Santa Inês–Conceição setting. ANA describes the principal sequence as beginning with Piancó in Santa Inês, while Figure 5 labels Riacho Santa Inês in the far southwestern feeder setting. The exact feeder-to-Piancó name transition is left unassigned.",
+          "sources": [
+            "r66-ana-pianco-piranhas-acu-plan-2018"
+          ]
+        },
+        {
+          "fragments": [
+            13799
+          ],
+          "finding": "The route continues through Itaporanga and Piancó to the Curema/Mãe-d’Água reservoir setting at Coremas, then north toward the Pombal junction. The maps distinguish this approach from the western upper Piranhas through São José de Piranhas and the separate Peixe contribution.",
+          "sources": [
+            "r66-ana-pianco-piranhas-acu-plan-2018"
+          ]
+        },
+        {
+          "fragments": [
+            13799,
+            13800
+          ],
+          "finding": "Beyond the Pombal setting the selection follows the mapped middle Piranhas through Paulista, São Bento and Jardim de Piranhas toward Jucurutu. ANA explicitly places the name Piranhas after the Piancó confluence; the modeled fragment boundary is not treated as that name boundary.",
+          "sources": [
+            "r66-ana-pianco-piranhas-acu-plan-2018"
+          ]
+        },
+        {
+          "fragments": [
+            13800
+          ],
+          "finding": "The middle piece crosses the Armando Ribeiro Gonçalves reservoir corridor before continuing toward Assú. ANA identifies the downstream change from Piranhas to Açu at this dam. Reservoir and channel name scopes are retained separately.",
+          "sources": [
+            "r66-ana-pianco-piranhas-acu-plan-2018"
+          ]
+        },
+        {
+          "fragments": [
+            13800,
+            13801
+          ],
+          "finding": "The final sequence follows the lower Açu through the Assú–Ipanguaçu and Alto do Rodrigues–Pendências setting toward coastal Macau. Official maps show the Atlantic receiving setting and a branching lower network; no exact mouth or individual estuarine distributary is assigned to the selected endpoint.",
+          "sources": [
+            "r66-ana-pianco-piranhas-acu-plan-2018"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70025373",
+      "source_keys": [
+        "r61-cehq-region10-summer-lowflow",
+        "r66-krg-masterplan-ungava-maps"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8990,
+            8991
+          ],
+          "finding": "The southern selected beginning lies in the feeder-and-lake country southwest of the Champdoré–Tudor setting, then continues north toward the upper Baleine corridor. CEHQ distinguishes that corridor from the De Pas and George drainage to its east. The first selected feeder and small headwater waterbodies remain unnamed; neither a neighboring lake label nor the modeled mainstem role establishes an official river source.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            8991,
+            8992
+          ],
+          "finding": "The northward route reaches the Jeannin–Ninawawe lake setting before bending northwest. The ministry map embedded in the Kativik plan separately labels Lac Jeannin, Lac Ninawawe and the downstream Rivière à la Baleine; the adjoining description places the Lac-Jeannin territory in the Baleine basin. This supports the lake-to-river corridor without assigning exact entry/exit vertices or extending a river hydronym across every lake passage.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r66-krg-masterplan-ungava-maps"
+          ]
+        },
+        {
+          "fragments": [
+            8992,
+            8993
+          ],
+          "finding": "Beyond the broad westward bend, the selected mainstem follows the sustained northwest-to-north corridor labeled Rivière à la Baleine. The maps distinguish the parallel Marralik and Qurlutuq systems to the east and the False/Koksoak setting to the west; the connected route does not switch into those neighboring rivers.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r66-krg-masterplan-ungava-maps"
+          ]
+        },
+        {
+          "fragments": [
+            8994,
+            8995
+          ],
+          "finding": "The two tributary fragments form one western connected branch, approaching the mainstem from southern lake country and then continuing north to the confluence. CEHQ labels this middle-to-lower corridor Rivière Wheeler, and the Kativik plan independently names the Baleine–Wheeler confluence. The two fragments are not two separately established river names; their initial small feeder and exact lake passages remain unassigned.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r66-krg-masterplan-ungava-maps"
+          ]
+        },
+        {
+          "fragments": [
+            8993
+          ],
+          "finding": "The last selected piece continues into the lower Baleine coastal approach on the southern side of Ungava Bay. CEHQ and the Kativik Marralik map show the Baleine connection toward that bay separately from the neighboring Marralik corridor. The selected endpoint is not asserted to mark the surveyed mouth, the full estuarine channel or the freshwater–tidal limit.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r66-krg-masterplan-ungava-maps"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90002174",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete single selected fragment was inspected from its southern interior endpoint along the long nearly northward leg to a short northwestward bend and westward terminal hook. No additional tributary fragment is present.",
+        "The long southern and middle portions lie on mapped Inland Ice. The short northern bends approach the adjoining marginal terrain in the broader Sherard Osborn Fjord–Victoria Fjord setting. The map graticule and ice/land arrangement support this regional feature-class reading, without assigning an exact terminal stream, glacier or fjord boundary.",
+        "The readable source does not establish a natural river name for the complete modeled route. Nearby glacier, land or fjord labels cannot supply a uniform river identity or prove subglacial connectivity; the scope hold does not imply that all local marginal waterways are unnamed.",
+        "Ice-surface contours, ice-thickness isopachs and sub-ice bedrock contours describe ice and terrain rather than named river channels. Historical mapping does not establish current ice margins, flow direction or connectivity along the model path."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70817659",
+      "source_keys": [
+        "r66-inegi-sonora-state-2024-2025",
+        "r66-inegi-cananea-2010",
+        "r66-inegi-hermosillo-2010"
+      ],
+      "correspondence": [
+        {
+          "finding": "The northern approach lies southeast of Cananea and continues toward Bacoachi on the Río Sonora side of the headwater setting. Cananea mapping separately labels the western Bacanuchi drainage; no precise feeder name is assigned to the first modeled reach.",
+          "sources": [
+            "r66-inegi-sonora-state-2024-2025",
+            "r66-inegi-cananea-2010"
+          ]
+        },
+        {
+          "finding": "The long southward valley course matches Bacoachi, Arizpe, Sinoquipe, Banámichi, Huépac, Aconchi and Baviácora. Readable Sonora labels and the sequence of bends support the river corridor rather than municipality or basin membership alone.",
+          "sources": [
+            "r66-inegi-sonora-state-2024-2025"
+          ]
+        },
+        {
+          "finding": "Near Mazocahui the course turns west and southwest through the Puerta del Sol–Ures setting toward Topahue and Hermosillo. San Miguel de Horcasitas approaches from the north and is separately mapped, not an alias for this selected upstream branch.",
+          "sources": [
+            "r66-inegi-sonora-state-2024-2025",
+            "r66-inegi-hermosillo-2010"
+          ]
+        },
+        {
+          "finding": "The Hermosillo approach passes the Ingeniero Rodolfo Félix Valdés (El Molinito) and Abelardo L. Rodríguez reservoir settings in that order. The municipal map labels Río Sonora between the storage settings; the water surfaces and precise modeled crossings are not assigned a uniform river name.",
+          "sources": [
+            "r66-inegi-sonora-state-2024-2025",
+            "r66-inegi-hermosillo-2010"
+          ]
+        },
+        {
+          "finding": "The terminal extension crosses the plain west of Hermosillo toward the Bahía de Kino–Punta Blanca coastal setting. Official maps distinguish Canal Hermosillo, Río Sonora-labelled reaches and other plain channels; this regional correspondence does not establish a single named channel, an exact current mouth or uninterrupted surface flow along the modeled extension.",
+          "sources": [
+            "r66-inegi-sonora-state-2024-2025",
+            "r66-inegi-hermosillo-2010"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
