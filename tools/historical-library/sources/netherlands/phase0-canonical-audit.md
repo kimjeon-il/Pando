@@ -539,3 +539,119 @@ For subsequent Netherlands rollback work:
    connectivity as separate layers of evidence.
 
 No production geometry was modified by this audit.
+
+
+## 11. Whole-country “country polygon − current water = land” audit — 2026-10-10
+
+Machine-readable measurements:
+[phase0-country-minus-water-area-audit.json](phase0-country-minus-water-area-audit.json).
+
+This audit uses the **European Netherlands only**. The current NLD source also
+contains three Caribbean components (Bonaire, Sint Eustatius and Saba), while
+the CBS national land-use totals used here refer to the Netherlands' European
+provincial territory. Mixing those components made the earlier whole-NLD area
+comparison look artificially closer.
+
+### 11.1 Current Pando country polygon
+
+European NLD components:
+
+- 9 polygon components;
+- approximate spherical area: **36,957.00 km²**.
+
+CBS 2022:
+
+- dry land: **33,626.00 km²**;
+- inland water: **3,748.92 km²**;
+- dry land + inland water: **37,374.92 km²**.
+
+Thus the current Pando European country polygon is about **417.92 km²
+(-1.12%)** below the CBS land+inland-water total. Its semantics are therefore
+much closer to “territorial land plus inland water” than to a dry-land mask.
+
+CBS source:
+https://www.cbs.nl/nl-nl/cijfers/detail/86211NED
+
+### 11.2 What the current bundled lake layer actually removes
+
+Only two `lakes_base.geojson` polygons intersect the European Netherlands:
+
+| Current bundled feature | Approx. area |
+| --- | ---: |
+| IJsselmeer (Natural Earth polygon also covers Markermeer) | 1,961.58 km² |
+| Lauwersmeer | 30.72 km² |
+| **Total** | **1,992.30 km²** |
+
+All vertices of these two polygons test inside the current European NLD
+country geometry, so the first-pass area subtraction does not need an
+intersection correction for these features.
+
+Actual current-source subtraction:
+
+```text
+36,957.00 km²  current European NLD
+-1,992.30 km²  current bundled lake polygons
+------------
+34,964.71 km²  derived “land”
+```
+
+CBS dry land is 33,626.00 km². Therefore this derived value is
+**1,338.71 km² too large, or +3.98%**.
+
+### 11.3 Why it fails
+
+The current Natural Earth lake layer represents only about **53.14%** of the
+CBS inland-water area:
+
+```text
+Natural Earth bundled lakes: 1,992.30 km²
+CBS inland water:            3,748.92 km²
+unrepresented by lake area:  1,756.62 km²
+```
+
+So about **46.86% of official inland-water area has no corresponding current
+bundled lake polygon area** in this national comparison.
+
+CBS inland water includes not only IJsselmeer/Markermeer but also closed sea
+arms, Rhine/Meuse waters, Randmeren, reservoirs, recreational water and other
+inland water. CBS defines inland-water polygons down to 6 m width and generally
+1 ha area for the smaller categories. Natural Earth `lakes_base` is a
+selective small-scale cartographic layer and is not intended as a complete
+Dutch water mask.
+
+CBS category definitions:
+https://www.cbs.nl/nl-nl/cijfers/detail/86211NED
+
+### 11.4 What a complete water mask would imply
+
+If one uses the CBS inland-water total purely as an area control:
+
+```text
+36,957.00 − 3,748.92 = 33,208.08 km²
+```
+
+This is about **417.92 km² (-1.24%)** below CBS dry land, exactly reflecting
+the Pando country polygon's pre-existing area deficit versus CBS
+land+inland-water.
+
+This is **not** a geometric overlay result, but it shows that the model
+“country polygon − complete inland-water mask ≈ dry land” is structurally
+sound to roughly the 1% level. The model
+“country polygon − current Natural Earth lakes = dry land” is **not**.
+
+### 11.5 Final Phase 0 classification
+
+- **Current Pando country polygon − current Pando lake polygons:** **FAIL** as
+  a dry-land mask; about +4.0% / +1,339 km² too much area.
+- **Current Pando country polygon − complete authoritative inland-water mask:**
+  **plausibly close**, with the country baseline itself already about 1.1%
+  below CBS land+inland-water.
+- **Next exact test:** intersect the current NLD polygon with the complete
+  current TOP10NL `waterdeel_vlak` coverage and compute the actual geometric
+  difference. PDOK documents TOP10NL as nationwide and updated through
+  2026-09-03.
+
+PDOK water polygon collection:
+https://api.pdok.nl/kadaster/brt-top10nl/ogc/v1/collections/waterdeel_vlak?f=html
+
+No production geometry was modified.
