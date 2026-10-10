@@ -1,0 +1,444 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r74",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r73",
+    "commit": "df0fd67aac3b23d8b813e49c1338c4f910455207",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r73/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70088384",
+    "hydro-system:60849674",
+    "hydro-system:70781976",
+    "hydro-system:70667164"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70088384",
+      "category": "river_group",
+      "system_id": "70088384",
+      "baseline_logical_fid": 2944,
+      "geometry_fids": [
+        9146,
+        9145,
+        9144,
+        9148,
+        9147,
+        9143
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -129.847917,
+        55.009711,
+        -128.31875,
+        57.135417
+      ],
+      "rendered_mainstem_length_km": 382.051,
+      "rendered_network_length_km": 545.09,
+      "geometry_summary": {
+        "fragment_count": 6,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -129.6256,
+          55.009711,
+          -128.31875,
+          57.1
+        ]
+      },
+      "candidate_name": "Nass River",
+      "candidate_names": [
+        "Nass River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Readable Natural Resources Canada cartography repeatedly labels the actual selected trunk Nass River and the western selected chain Bell-Irving River. The modeled upper mainstem begins along a short western feeder into the Nass, rather than following the separately visible northern headwater continuation. The feeder's own name is not established.",
+      "geographic_disambiguation": "Eastern upper Nass route past the Konigus and Muskaboo approaches, the large south-to-west bend near the Taylor junction, the Bell-Irving confluence above Meziadin Junction, and the lower Nass corridor past the Cranberry approach, Gitlaxksip, Aiyansh and Laxgalts'ap. The western chain follows upper Bell-Irving through the Bell II corridor and past the Bowser approach to Nass.",
+      "source_keys": [
+        "r74-nrcan-cbmt-nass"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northwestern British Columbia, Skeena and Coast Mountains, Nass drainage and lower Nass estuary setting",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "All six selected pieces, both upper beginnings, the full western tributary chain, junction order, nearby lake approaches and lower endpoint were compared with readable original regional and enlarged official map images. The short initial feeder has a visible connection to the named Nass; it is not a substantial unmapped source gap. No natural-connection conflict is visible. Exact hydronym boundaries, every model vertex, present shoreline and tidal limits are not adjudicated.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Nass River",
+        "mainstem_scope": "The selected short western feeder and downstream Nass trunk. Only the named trunk supports the representative Nass hydronym; the feeder remains separately qualified. The northern Nass headwater continuation is not selected.",
+        "western_tributary_scope": "Two selected pieces of the Bell-Irving chain, including its small initial headwater approach, upper valley, Bell II corridor, Bowser junction setting and lower confluence with Nass. Bell-Irving retains its own component name.",
+        "lake_scope": "No named lake is identified as a selected through-passage in the inspected map windows. The neighboring upper, Bell-Irving and lower-valley lakes remain separately mapped features. In particular, the selection is not presented as a complete Nass Lake-to-sea itinerary, and neither Bowser Lake nor Meziadin Lake is included merely because its outlet joins the drainage.",
+        "terminal_scope": "Lower Nass channel downstream of Laxgalts'ap in the estuarine approach toward Nass Bay. Exact tidal limit, shoreline position and hydronym transition to coastal water remain unspecified.",
+        "source_authority_limit": "The acquired original is Natural Resources Canada's Canada Base Map - Transportation, containing both labels and geometry and derived from CanVec topographic data. It is a general reference map, not a formal geographical-name decision, hydrographic navigation chart or field survey. Multiple windows are views of one cartographic publication, not independent sources.",
+        "model_limits": "Modeled MAIN_RIV membership, stage breaks and fragment boundaries do not establish official hydronym limits. The local overlay is an aid to regional correspondence, not a vertex-level validation or a claim of exact channel registration. Modeled length is not official river length. No Korean form, formal naming date, historical alias or Indigenous-name equivalence is established.",
+        "candidate_names_scope": "Only Nass River is proposed as the bounded representative system identity. Bell-Irving River, the unnamed initial feeder, adjacent lake labels and the coastal water retain distinct roles."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60849674",
+      "category": "river_group",
+      "system_id": "60849674",
+      "baseline_logical_fid": 3454,
+      "geometry_fids": [
+        13813
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -37.1,
+        -8.216667,
+        -34.885417,
+        -7.082778
+      ],
+      "rendered_mainstem_length_km": 381.377,
+      "rendered_network_length_km": 381.377,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -37.1,
+          -8.216667,
+          -34.885417,
+          -7.082778
+        ]
+      },
+      "candidate_name": "Rio Paraíba",
+      "candidate_names": [
+        "Rio Paraíba"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Paraíba is the receiving river and representative identity. The actual selected upper route is the separately labelled Umbuzeiro approach, not the Monteiro–Poções–Camalaú source route. Reservoir and tributary names are not aliases of the whole modeled group.",
+      "geographic_disambiguation": "Northeastern Brazil’s Paraíba basin, with the actual Umbuzeiro upper approach, Epitácio Pessoa/Boqueirão and Acauã passages, and Santa Rita lower ending; not Rio Paraíba do Sul in southeastern Brazil.",
+      "source_keys": [
+        "r74-aesa-paraiba-diagnostico-tomo1",
+        "r74-ibge-sao-sebastiao-2022"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Paraíba state, northeastern Brazil; western upper feeder through the Umbuzeiro corridor and eastward Paraíba route to the Santa Rita/João Pessoa estuarine approach.",
+      "candidate_name_role": "bounded_representative_system_identity_with_distinct_umbuzeiro_upper_approach",
+      "completion_scope": "The single selected piece was inspected from the western initial feeder through the actual upper branch, principal reservoir passages, middle bends and lower river. Regional connection and representative identity are supported; every small feeder name, reservoir name, precise shoreline and terminal tidal limit are not assigned.",
+      "naming_scope_details": {
+        "representative_name": "Rio Paraíba, geographically qualified by Paraíba state in northeastern Brazil.",
+        "selected_upper_branch": "Initial unnamed western feeder to the São Sebastião do Umbuzeiro drainage, mapped upper lake/impoundment and northeastern Umbuzeiro route. IBGE prints Riacho do Umbuzeiro; the basin report prints Rio Umbuzeiro. These are source wordings for the upper corridor, not formal alias adjudication or names applied to all mainstem pieces.",
+        "excluded_upper_routes": "Monteiro–Poções–Camalaú, Sucuru and Taperoá are distinct contributing routes, not automatically selected because of their prominence in the basin description.",
+        "reservoir_scope": "Upper impoundment names are not all assigned. The principal downstream passages through Epitácio Pessoa (Boqueirão setting) and Acauã (Argemiro de Figueiredo in the report) are supported. The model line does not represent complete reservoir outlines or every arm.",
+        "terminal_scope": "Paraíba near the Santa Rita/João Pessoa estuarine approach, before the full northward estuary to Costinha/Cabedelo and the Atlantic outlet. No precise tidal boundary, current channel mouth or full estuary traversal is assigned.",
+        "source_scope": "AESA-hosted COBRAPE final report is dated March 2025 and uses maps compiled in 2024 with stated input dates. IBGE municipal edition is 2022, copyright 2023. Geographic naming is the purpose; operational, legal, discharge and present-day reservoir claims are excluded.",
+        "model_limits": "A single MAIN_RIV mainstem role and modeled length do not imply one natural river name for every feeder, official source coordinates, perennial flow, or official river length. No Korean name is invented.",
+        "candidate_names_scope": "Only the representative receiving river is listed; upper tributary, reservoirs and receiving estuary retain separate roles."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70781976",
+      "category": "river_group",
+      "system_id": "70781976",
+      "baseline_logical_fid": 3152,
+      "geometry_fids": [
+        9941
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -107.63125,
+        28.647917,
+        -107.15625,
+        31.13125
+      ],
+      "rendered_mainstem_length_km": 376.482,
+      "rendered_network_length_km": 376.482,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -107.63125,
+          28.647917,
+          -107.15625,
+          31.13125
+        ]
+      },
+      "candidate_name": "Río Santa María",
+      "candidate_names": [
+        "Río Santa María"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Santa María is directly supported for the receiving upper, middle and northern river corridor and is the representative identity of this modeled group. The initial short feeder remains unnamed. Las Chepas and El Tintero are separately scoped reservoirs; Laguna Santa María is the inland receiving waterbody. The river name is not asserted for every selected reservoir or lake-center segment.",
+      "geographic_disambiguation": "The actual southern start approaches from the west in eastern Guerrero, then turns north into southern Bachíniva and Las Chepas. It follows the western Namiquipa river, passes El Tintero, and takes the distinctive northern Galeana eastward bend before continuing north into Laguna Santa María. The eastern Santa Clara–Las Lajas corridor and the western Casas Grandes–Guzmán system are distinct.",
+      "source_keys": [
+        "r65-inegi-chihuahua-state",
+        "r74-inegi-guerrero-2010",
+        "r74-inegi-bachiniva-2010",
+        "r74-inegi-namiquipa-2010",
+        "r74-inegi-buenaventura-2010",
+        "r74-inegi-galeana-2010",
+        "r69-inegi-ascension-2010"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western and northwestern Chihuahua, Mexico, from the eastern Guerrero–southern Bachíniva uplands through Namiquipa, Buenaventura and Galeana to the Laguna Santa María depression in Ascensión.",
+      "candidate_name_role": "bounded_representative_system_identity_with_distinct_initial_feeder_reservoirs_and_inland_terminal",
+      "completion_scope": "Completed for bounded representative identity, the selected initial approach, mapped reservoir passages, the middle bend and the river-to-inland-lake connection. Readable primary cartography covers every major selected section. The first short feeder has no assigned hydronym. Precise name boundaries, surveyed source or inlet points, modern water extent and any onward connection beyond the modeled endpoint are not established.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río Santa María",
+        "distinct_selected_upstream_route": "Unnamed short eastern Guerrero feeder entering southern Bachíniva from the west, followed by the Las Chepas reservoir corridor and the northward Santa María valley.",
+        "feeder_scope": "The actual first small feeder is visible in the Guerrero and Bachíniva cartographic continuation but is not separately named. El Chorro, La Matanza, Guadalupe and La Casita remain distinct tributaries. The model start is not an official river source.",
+        "river_scope": "Santa María directly names mapped receiving river reaches in Bachíniva, Namiquipa, Galeana, northern Buenaventura and Ascensión. It represents the selected system without renaming the initial feeder or reservoir/lake portions. Municipal names or basin membership were not used in place of channel-name correspondence.",
+        "reservoir_scope": "Las Chepas, also labeled Constituyente Manuel M. Prieto (Las Chepas) on the state sheet, and El Tintero are supported selected historical reservoir passages. The modeled path follows their main connected river corridors, not every mapped arm. Ojo Caliente is a nearby side-waterbody setting rather than a demonstrated selected reservoir passage. Las Lajas belongs to the separate eastern corridor.",
+        "terminal_scope": "Laguna Santa María is the receiving inland lake/depression. The selected line enters from the south and continues northwest into its mapped interior. A complete lake crossing, northward outlet, dry connector beyond the endpoint or connection to Guzmán is not asserted. The state sheet depicts the lake with intermittent-waterbody hatching; this is historical cartographic classification, not a current water-presence observation.",
+        "nearby_exclusions": "Santa Clara–Las Lajas to the east and Casas Grandes–Laguna de Guzmán to the west are separate drainages. Laguna Prieta, Los Ajolotes, Ojo Caliente, El Fresnal and the nearby eastern depressions are not added to the modeled selection as extra lake passages or connectors.",
+        "historical_source_scope": "The Chihuahua state map is fourth edition 2024, copyright 2025, with topographic planimetry derived from sixth-edition 2023 1:250,000 coverage. Municipal compendia date to 2010. They support geographic identities and mapped connections, not current impoundment operations, modern reservoir completeness, present shorelines, discharge or perennial continuity.",
+        "model_limits": "One modeled mainstem piece and its 376.482 modeled km do not establish an official river length, source point, permanent flow or a single name for every constituent section. No Korean name or formal alias history is established.",
+        "candidate_names_scope": "Only the representative river appears in candidate_names. The reservoir and terminal-waterbody labels remain separately scoped."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70667164",
+      "category": "river_group",
+      "system_id": "70667164",
+      "baseline_logical_fid": 3111,
+      "geometry_fids": [
+        9857,
+        9856
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -119.827083,
+        35.272917,
+        -118.352083,
+        36.6625
+      ],
+      "rendered_mainstem_length_km": 374.87,
+      "rendered_network_length_km": 374.87,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -119.827083,
+          35.272917,
+          -118.352083,
+          36.6625
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Kern River",
+        "North Fork Kern River"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The northern mountain selection follows the Kern/North Fork Kern corridor above Isabella Reservoir, rather than the separate Little Kern or South Fork approaches. Below the reservoir it follows Kern River through its canyon and Bakersfield to the western valley/intertie setting. The subsequent Outlet Canal and Kern River Flood Channel corridor and the final Tulare lake-bed grid retain separate engineered/receiving-terrain scope.",
+      "geographic_disambiguation": "The selected mountain approach is the northerly Kern branch west of the Sierra crest, with its Hockett Peak bend and Little Kern junction; it is not the more easterly South Fork Kern. The lower route turns north toward Tulare Lake bed rather than continuing south along the California Aqueduct or into the southern Kern/Buena Vista lake beds. The line stops within the Tulare receiving area and does not reach the San Joaquin River.",
+      "source_keys": [
+        "r74-usfs-northfork1982",
+        "r74-kcwa-joint28",
+        "r74-dwr-drainage2015",
+        "r74-kwba-eir2018",
+        "r74-epa-tulare2007"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Sierra Nevada and southern San Joaquin Valley, California, United States",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed bounded geographic and naming-scope assessment of both selected pieces using readable original primary maps and explicit hydrologic prose. Independent acquired sources cover the mountain branch, reservoir, lower natural-river corridor, northbound engineered flood conveyance and inland terminal setting. The hold is caused by mixed feature classes and the unsupported extension of a natural river hydronym through a lake-bed canal grid, not a substantial missing-map gap. Follow-up is required only before a later whole-group label, reach subdivision or name application. Exact channel-by-channel matching of every lake-bed vertex and modern flow conditions are not adjudicated.",
+      "naming_scope_details": {
+        "whole_group_scope": "A natural named mountain/lower river, a large impoundment crossing, an engineered outlet/flood conveyance and an inland lake-bed network are combined in two mainstem-role fragments. One river scalar is withheld.",
+        "headwater_scope": "North Fork Kern/Kern above Isabella, with the selected initial portion south of the furthest headwaters. Kern-Kaweah, Little Kern and South Fork Kern are distinct neighboring branches, not aliases assigned to the selection.",
+        "lake_scope": "Mountain Kern Lake and Little Kern Lake are distinct from the valley-floor historical Kern Lake. Isabella Reservoir is an impoundment crossed by the modeled route, not a river alias. Lake Webb/Evans and the full historical Buena Vista and Kern lake beds are not selected as complete waterbodies.",
+        "lower_river_scope": "Kern River below Isabella through its canyon and Bakersfield to the intertie setting is supported by original cartography. Nearby river canals and diversion works are kept distinct.",
+        "engineered_scope": "Outlet Canal and Kern River Flood Channel are separately documented conveyances on the northbound continuation. A mainstem model attribute cannot turn them into an uninterrupted natural river.",
+        "terminal_scope": "Tulare lake-bed canal and flood-receiving setting. The exact last east-west channel name remains unassigned; it is not inferred from the nearest Tule, Kings or Kern label.",
+        "historical_and_flow_scope": "Primary prose describes historically connected lakes/sloughs and later irrigation, storage, diversion and flood-control pathways. These are time-bounded descriptions, not observations of October 2026 flow. Continuous present flow, current gates, legal water rights, regulatory classifications and inundation extent are outside this finding.",
+        "source_authority_limit": "Official agency maps and project-author hydrology documents support geographic feature classes and printed names. Hydrologic-unit labels in the KWBA overview are basin context, not names assigned to every line. Historical proposed dams in the 1982 study are not treated as built features.",
+        "model_limits": "The 374.87 km modeled length is not an official river length. Fragment stages and mainstem roles do not define natural hydronym limits. No Korean form, formal naming act or whole-group name has been established.",
+        "separately_named_corridor_parts": [
+          "Kern River",
+          "North Fork Kern River"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed bounded geographic and naming-scope assessment of both selected pieces using readable original primary maps and explicit hydrologic prose. Independent acquired sources cover the mountain branch, reservoir, lower natural-river corridor, northbound engineered flood conveyance and inland terminal setting. The hold is caused by mixed feature classes and the unsupported extension of a natural river hydronym through a lake-bed canal grid, not a substantial missing-map gap. Follow-up is required only before a later whole-group label, reach subdivision or name application. Exact channel-by-channel matching of every lake-bed vertex and modern flow conditions are not adjudicated."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70667164"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 239,
+    "non_pending_records": 231,
+    "source_access_pending": 3,
+    "source_material_pending": 5,
+    "source_any_pending": 8,
+    "scope_holds": 73,
+    "river_groups": 141,
+    "lakes": 98,
+    "unrecorded": 3826,
+    "unrecorded_river_groups": 3314,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r74-nrcan-cbmt-nass",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r74-aesa-paraiba-diagnostico-tomo1",
+      "official_url": "https://www.aesa.pb.gov.br/assets/uploads/2026/04/Tomo-I.pdf"
+    },
+    {
+      "source_key": "r74-ibge-sao-sebastiao-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PB/sao_sebastiao_do_umbuzeiro/A0_2515203_MM.pdf"
+    },
+    {
+      "source_key": "r65-inegi-chihuahua-state",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/chih/794551162774.pdf"
+    },
+    {
+      "source_key": "r74-inegi-guerrero-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08031.pdf"
+    },
+    {
+      "source_key": "r74-inegi-bachiniva-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08006.pdf"
+    },
+    {
+      "source_key": "r74-inegi-namiquipa-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08048.pdf"
+    },
+    {
+      "source_key": "r74-inegi-buenaventura-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08010.pdf"
+    },
+    {
+      "source_key": "r74-inegi-galeana-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08023.pdf"
+    },
+    {
+      "source_key": "r69-inegi-ascension-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08005.pdf"
+    },
+    {
+      "source_key": "r74-usfs-northfork1982",
+      "official_url": "https://rivers.gov/sites/rivers/files/2023-02/kern-nf-study-eis.pdf"
+    },
+    {
+      "source_key": "r74-kcwa-joint28",
+      "official_url": "https://www.waterboards.ca.gov/waterrights/water_issues/programs/hearings/kernriver_fas/exhibits2009/northkern_joint/joint_28.pdf"
+    },
+    {
+      "source_key": "r74-dwr-drainage2015",
+      "official_url": "https://www.waterboards.ca.gov/waterrights/water_issues/programs/bay_delta/california_waterfix/exhibits/docs/RestoretheDelta/part2/RTD_181.pdf"
+    },
+    {
+      "source_key": "r74-kwba-eir2018",
+      "official_url": "https://www.kwb.org/files/96a4b604e/eir.pdf"
+    },
+    {
+      "source_key": "r74-epa-tulare2007",
+      "official_url": "https://www.epa.gov/sites/default/files/2018-05/documents/tulare-fullreport.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "df0fd67aac3b23d8b813e49c1338c4f910455207",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      95,
+      96,
+      97,
+      98
+    ],
+    "next_unrecorded_id": "hydro-system:80026392",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}
