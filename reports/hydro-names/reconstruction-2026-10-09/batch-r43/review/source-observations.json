@@ -1,0 +1,151 @@
+{
+  "schema": "hydro-original-source-observations-v3",
+  "batch": "r43",
+  "scope_aw_ids": [
+    "lakes_base:1159123751",
+    "lakes_base:1159108211",
+    "lakes_base:1159110219"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "The retained original West-Central Sheet was read locally. No external search, original-body request or source acquisition occurred in this batch.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": null,
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "source_group_definition": "One Ontario Geological Survey thematic index publication. An independent hydrographic dataset is not established.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All 76 selected ordered positions were independently registered from fresh original projected WKT/GPTS/LPTS controls with a full affine, both cross terms and explicit MediaBox/CropBox offsets. Six original detail/context arrays and two credit/imprint arrays match fresh renders. Maximum control residual is under 0.001 PDF point; this measures affine consistency, not shoreline or name-boundary accuracy. No manual shoreline fitting was used. Readable whole-footprint hydrography and the pale-cyan-water/white-land distinction were confirmed visually, not inferred from crop containment.",
+  "observations": [
+    {
+      "source_key": "ogs_index_bedrock_west_central_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991\u20132020, West-Central Sheet",
+      "publisher": "Ontario Geological Survey",
+      "url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-WestCentral.pdf",
+      "original_acquired_at_utc": "2026-10-10T02:07:35.288175+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2021",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The original suggested citation identifies Ontario Geological Survey 2021. Copyright year 2021 is recorded separately. The title interval 1991\u20132020 describes indexed map coverage; no publication month or day is established.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r41",
+      "directly_read_water_labels": [
+        "Separation Lake",
+        "Bamaji Lake",
+        "Ball Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "English",
+        "River",
+        "Cat River",
+        "Fry Lake",
+        "Churchill Lake",
+        "Tide Lake",
+        "Oak Lake",
+        "Maynard Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Complete readable footprints support generalized Bamaji and Ball associations, and a partial Separation naming-scope hold.",
+      "authority_scope": "Official provincial thematic cartographic usage supports these bounded associations. It is not a formal naming-registry decision and does not certify exact shorelines or name partitions.",
+      "registered_overlay_performed": true,
+      "own_observations": "Fresh original pixels and all 33 registered positions show a selected northward lobe in southern Separation Lake water and a long eastward lobe crossing into water beside English text. Wider context also shows separately positioned River text, without certifying a name partition or transferring a reconstructed river name. The selected eastward reach is not established as wholly Separation Lake. Pale-cyan fill and blue shores remain readable throughout despite thematic red coverage lines. The partial Separation association supports a naming-scope hold, not source-access or material pending. Fresh original pixels and all 29 registered positions place the selected principal basin beside the printed Bamaji Lake label. Pale-cyan northern/central and southern water lobes support one generalized lake identity. The Cat River label lies on the northwestern approach; Fry Lake farther northeast and Churchill Lake farther southeast remain contextual. The ring omits peripheral arms and cuts land between bays, so the association does not certify precise shores, detailed full-lake inclusion or exact river-to-lake transitions. Fresh original pixels and all 14 registered positions show the selected north, central and south pale-cyan basin immediately west of the land-placed Ball Lake label. Original water fill was explicitly distinguished from white land; the large white area east of the label is not an omitted lake basin. Wider northeast context places Tide Lake, Maynard Lake and Oak Lake beside separate outside waters; no competing named component is established inside the ring. One bounded generalized Ball identity is supported, while narrow connecting reaches, peripheral branches and exact name transitions remain unverified.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "Publication Services Unit, Ontario Geological Survey compiled and edited the index; J. Rose is credited for map outlines and cartographic production. The credits caution that coverage outlines and the topographic base may differ and that editorial review was limited.",
+      "printed_copyright_year": "2021",
+      "printed_bibliographic_citation_year": "2021",
+      "hydrographic_base_provider": null,
+      "original_requested_at_utc": "2026-10-10T02:07:26.442841+00:00"
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159123751",
+      "aw_id": "lakes_base:1159123751",
+      "source_id": "1159123751",
+      "geometry_fids": [
+        16279
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 33,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_west_central_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Fresh original pixels and all 33 registered positions show a selected northward lobe in southern Separation Lake water and a long eastward lobe crossing into water beside English text. Wider context also shows separately positioned River text, without certifying a name partition or transferring a reconstructed river name. The selected eastward reach is not established as wholly Separation Lake. Pale-cyan fill and blue shores remain readable throughout despite thematic red coverage lines. The partial Separation association supports a naming-scope hold, not source-access or material pending."
+    },
+    {
+      "observation_id": "lakes_base:1159108211",
+      "aw_id": "lakes_base:1159108211",
+      "source_id": "1159108211",
+      "geometry_fids": [
+        15321
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 29,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_west_central_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Fresh original pixels and all 29 registered positions place the selected principal basin beside the printed Bamaji Lake label. Pale-cyan northern/central and southern water lobes support one generalized lake identity. The Cat River label lies on the northwestern approach; Fry Lake farther northeast and Churchill Lake farther southeast remain contextual. The ring omits peripheral arms and cuts land between bays, so the association does not certify precise shores, detailed full-lake inclusion or exact river-to-lake transitions."
+    },
+    {
+      "observation_id": "lakes_base:1159110219",
+      "aw_id": "lakes_base:1159110219",
+      "source_id": "1159110219",
+      "geometry_fids": [
+        15474
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 14,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_west_central_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Fresh original pixels and all 14 registered positions show the selected north, central and south pale-cyan basin immediately west of the land-placed Ball Lake label. Original water fill was explicitly distinguished from white land; the large white area east of the label is not an omitted lake basin. Wider northeast context places Tide Lake, Maynard Lake and Oak Lake beside separate outside waters; no competing named component is established inside the ring. One bounded generalized Ball identity is supported, while narrow connecting reaches, peripheral branches and exact name transitions remain unverified."
+    }
+  ],
+  "source_group_limit": "Official thematic cartography supports the recorded bounded associations. Formal naming-registry authority and underlying hydrographic dataset independence remain unverified.",
+  "independent_review_and_source_research_agree": true,
+  "request_accounting": {
+    "search_tool_calls": 0,
+    "search_queries": 0,
+    "explicit_web_open_requests": 0,
+    "original_body_requests": 0,
+    "new_original_bodies_acquired": 0,
+    "new_source_access_denials": 0,
+    "new_source_availability_failures": 0,
+    "stopped_resource_requests": 0,
+    "additional_source_acquisitions_planned": false
+  }
+}
