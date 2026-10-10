@@ -1,0 +1,537 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r111",
+  "sources": [
+    {
+      "source_key": "r111-geus-sydgronland-sheet 1-2007",
+      "title": "Geological map of Greenland, 1:500 000, Sydgrønland, Sheet 1. Second edition",
+      "author": "Adam A. Garde",
+      "publisher": "Geological Survey of Denmark and Greenland",
+      "year": 2007,
+      "official_url": "https://doi.org/10.22008/FK2/L4LGK6",
+      "acquired_scope": "Original official TIFF, overview and overlapping northern/middle/terminal local crops; original legend, graticule and imprint were visually read.",
+      "supports": "Substantive selected-route geographic correspondence from 62°30′N south to the actual inner-Sermilik terminal setting; ice/bedrock/fjord distinction and separation from Bredefjord.",
+      "limits": "The northern opening is outside this sheet and is covered separately by the actually read Bulletin 18 page 4 regional map. Historical geological/topographic cartography does not establish a whole natural-river name, subglacial drainage, current flow or current ice-front position.",
+      "reuse_limit": "Official custom terms allow internal use/processing but restrict redistribution and new-map transfer. Originals and all crops/derived maps remain private."
+    },
+    {
+      "source_key": "r111-geus-bulletin18-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000.2nd edition",
+      "authors": "Niels Henriksen,A.K.Higgins,Feiko Kalsbeek and T.Christopher R.Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf",
+      "page": "Printed page 4, Geographical subdivisions of Greenland used by the Survey; printed pages 64–65, Glaciology",
+      "acquired_scope": "Original PDF successfully downloaded. Original page 4 cartographic pixels, their geographic ticks and Inland Ice/coastal-belt distinction were rendered and visually read; title/copyright information and bounded pages 64–65 prose were also read. Page14 Figure 2 was inspected as supporting general context but is not needed for the route finding.",
+      "supports": "The original page 4 regional map covers the northern opening and upper connector in the southwestern Inland Ice and overlaps the 2007 detailed sheet. Glaciology prose distinguishes continental ice from local glaciers and the meanings of ice/bedrock contours.",
+      "limits": "Page4 is a regional overview adequate for the broad interior-ice setting, not a river survey or present ice-front map. The source does not establish selected hydrological continuity or a hydronym. Figures 46–47 are not used as selected-route cartography, and historical numerical ice/climate statistics are not asserted as current.",
+      "reuse_limit": "Copyright GEUS 2009 visible in the original; original and working files remain private. Factual paraphrase only."
+    },
+    {
+      "source_key": "r111-geus-sheet 2-1982-extent-check",
+      "title": "Geological map of Greenland, 1:500 000, Sheet 2, Frederikshåbs Isblink–Søndre Strømfjord",
+      "author": "Jan H. Allaart",
+      "publisher": "Geological Survey of Greenland",
+      "year": 1982,
+      "official_url": "https://doi.org/10.22008/FK2/F77JXT",
+      "acquired_scope": "Original official single-sheet PDF and its full-sheet pixels read.",
+      "supports": "Negative coverage finding: this western coastal sheet does not include the selected northern corridor.",
+      "limits": "Not used as positive map correspondence for any selected component. A sheet reaching the same latitude is insufficient when its longitude extent misses the target.",
+      "reuse_limit": "Official custom terms allow internal use/processing but restrict redistribution and new-map transfer. Originals and all crops/derived maps remain private."
+    },
+    {
+      "source_key": "r111-inegi-canatlan",
+      "title": "Compendio de información geográfica municipal 2010: Canatlán, Durango",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10001.pdf",
+      "acquired_scope": "Complete original PDF acquired with HTTP 200; Relieve map, PDF page 6, including private enlargement of the southwestern headwater sector, and hydrography table, PDF page 3, read.",
+      "supports": "Headward west-draining course on the western flank of Cerro Colorado and its approach to San Dimas.",
+      "limits": "Municipal map clipping is supplemented by the San Dimas original. Hydrographic table subbasin associations are context only; neither the table nor the nearby terrain label names the first selected reach. Base map is INEGI topographic 1:250,000 series II/III and INEGI–CONAGUA 2007 hydrographic mapping, as credited in the municipal publication."
+    },
+    {
+      "source_key": "r111-inegi-san-dimas",
+      "title": "Compendio de información geográfica municipal 2010: San Dimas, Durango",
+      "publisher": "INEGI",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10026.pdf",
+      "acquired_scope": "Complete original PDF acquired with HTTP 200; Relieve map, PDF page 7, Localidades e Infraestructura para el Transporte, PDF page 6, and hydrography table, PDF page 4, read. Private enlargements of the upper valley and middle corridor were inspected.",
+      "supports": "Direct Miravalles and Piaxtla labels, connected upper valley and western canyon continuation, and distinction from Piedra Parada and neighboring Presidio drainage.",
+      "limits": "The publication establishes component/corridor identity but not a legal name-transition location. Miravalles and Piaxtla are not collapsed into one whole-feature scalar name. Topographic base 1:250,000 series III and INEGI–CONAGUA 2007 hydrographic map credited in the publication."
+    },
+    {
+      "source_key": "r111-inegi-san-ignacio",
+      "title": "Compendio de información geográfica municipal 2010: San Ignacio, Sinaloa",
+      "publisher": "INEGI",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25016.pdf",
+      "acquired_scope": "Complete original PDF acquired with HTTP 200; Relieve map, PDF page 7, and hydrography table, PDF page 3, read.",
+      "supports": "Continuous Piaxtla across the municipality, distinct Río Verde joining approach, lower northern bend, coastal plain and outlet setting.",
+      "limits": "Municipal-scale generalization does not establish exact banks, source points, current channel conditions or a uniform upstream name. The basin/subbasin table is not used as an exact reach-name assignment. Topographic base 1:250,000 series II/III and INEGI–CONAGUA 2007 hydrographic mapping credited in the publication."
+    },
+    {
+      "source_key": "r111-inegi-sinaloa-state",
+      "title": "Condensado Estatal Sinaloa, scale 1:700,000, first edition 2020",
+      "publisher": "INEGI",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf",
+      "acquired_scope": "Complete original single-sheet PDF acquired with HTTP 200 and visually read, with private enlargements of the upper, middle, lower and coastal-terminal corridor and the technical/use notice.",
+      "supports": "Continuous regional Piaxtla corridor through Tayoltita and San Ignacio to the coast north of Barras de Piaxtla, direct Río Piaxtla inscriptions, major joining waterways, settlement orientation and separation from neighboring reservoirs/outlets. Municipal originals supply the clipped/detail headward context.",
+      "limits": "Scale 1:700,000 generalized from 1:250,000 series III; first edition 2020, copyright 2021, road information 2017 and geographical framework 2018. The sheet is not a present-day channel survey. Printed notice requires prior written authorization for full or partial reproduction. Original PDF, crops, private enlargements and any derivatives remain private and are not part of public findings."
+    },
+    {
+      "source_key": "r111-inegi-jalisco-state",
+      "title": "Condensado Estatal Jalisco, first edition 2020, copyright 2021, scale 1:650,000",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/jal/889463836964.pdf",
+      "acquired_scope": "Original one-page PDF acquired normally; original map visually read in upper, overlapping middle and lower corridor views, plus publication information.",
+      "supports": "Full regional corridor from La Vega through Ameca, the Jalisco–Nayarit boundary reach, the Atenguillo and Los Reyes junctions, Aguamilpa–El Colomo, the Mascota junction and lower river to Bahía de Banderas. Repeated Ameca labels occur along the matching middle/lower channel.",
+      "limits": "Generalized from 1:250,000 series III; roads updated from 2017 information and boundaries from 2018. Small headward feeders and exact lake-entry threading require the separate detailed sources. Printed prior-written-authorization requirement for full or partial reproduction is preserved. No original map, crop or overlay is published."
+    },
+    {
+      "source_key": "r111-inegi-tala-topographic",
+      "title": "Tala F13D64, Información Topográfica 1:50,000, fifth edition 2021, copyright 2022",
+      "publisher": "INEGI, Dirección General de Geografía y Medio Ambiente",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_50_000/889463871385_geo.pdf",
+      "acquired_scope": "Original PDF acquired normally and visually read across the selected opening hills, El Refugio lowland drainage, La Vega reservoir and southern dam/outlet. The technical legend was read.",
+      "supports": "Distinguishes the small opening feeder country northwest of El Refugio from the longer Salado approach from Tala; distinguishes Teuchitlán and western tributary approaches, the reservoir, irrigation/drainage lines, and the southern outlet by La Vega.",
+      "limits": "Represents the 2019 topographic vector information; updating used May 2019 imagery, with inherited older topographic elements. Numerous small/intermittent and engineered water lines occur in the eastern lowlands. It does not establish a single exact name for the whole modeled initial feeder or a present-day operational channel path. Original and derivative images stay private."
+    },
+    {
+      "source_key": "r111-inegi-teuchitlan-2010",
+      "title": "Compendio de información geográfica municipal 2010: Teuchitlán, Jalisco",
+      "publisher": "INEGI",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/14/14095.pdf",
+      "acquired_scope": "Original PDF acquired normally; Relieve map at PDF page 6 visually read, with bounded hydrography table context.",
+      "supports": "Independent municipal-scale overview of La Vega, nearby northern/eastern feeders and Salado-side approach. Separates the western Cocolisco corridor from the selected lake passage.",
+      "limits": "Generalized municipal composition using 1:250,000 topographic information and the INEGI–CONAGUA 2007 hydrographic map. No exact naming transition, flow state or modeled feeder-name assignment is inferred. Original source images remain private."
+    },
+    {
+      "source_key": "r111-inegi-tala-2010",
+      "title": "Compendio de información geográfica municipal 2010: Tala, Jalisco",
+      "publisher": "INEGI",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/14/14083.pdf",
+      "acquired_scope": "Original PDF acquired normally; Relieve map at PDF page 6 visually read.",
+      "supports": "Distinguishes the eastern Salado network, Cuisillos/Ahuisculco-side tributaries and municipal outlet toward Ameca. This prevents treating the selected short northwestern opening as the entire Salado source course.",
+      "limits": "Municipal generalization, not precise channel threading or an exact headward-name assignment. Original map and crops remain private."
+    },
+    {
+      "source_key": "r111-jalisco-vega-management-2014",
+      "title": "Programa de Conservación y Manejo (PCyM), Presa La Vega, Humedal de Importancia Internacional (2014)",
+      "publisher": "GeoAlternativa A.C. and PROCCMA A.C., compiled for and promoted by Secretaría de Medio Ambiente y Desarrollo Territorial, Jalisco",
+      "official_url": "https://transparencia.info.jalisco.gob.mx/sites/default/files/2014.%20Proyecto%20de%20Servicio%20Especializado%20Estudio%20de%20Programa%20de%20Manejo%20de%20la%20Presa%20La%20Vega.pdf",
+      "acquired_scope": "Original 414-page PDF acquired normally. Bounded reading: cover/credits; printed pp40–43 and 163; original annex 11.5.10, printed p287/PDF p288; original annex 11.5.24, printed p301/PDF p302.",
+      "supports": "Primary state-sponsored study treats La Vega as an impoundment receiving several distinct feeders and giving rise to downstream Ameca. Its 1:30,000 zoning map depicts the eastern Salado approach into the reservoir, supporting the selected east-side inflow corridor alongside the detailed topographic alternatives.",
+      "limits": "The annex hydrology overview is 1:150,000; the zoning map is 1:30,000. Prose notes altered/diverted flows and does not equate every feeder with Ameca. This is historical study cartography, not proof of a current operational water path. Missing internal cross-reference text appears in the report but the two cited maps were actually seen. No source images are redistributed."
+    },
+    {
+      "source_key": "r111-udg-jalisco-amenazas",
+      "title": "Amenazas naturales del estado de Jalisco, Río Ameca section",
+      "publisher": "Universidad de Guadalajara, Centro Universitario de Ciencias Biológicas y Agropecuarias, División de Ciencias Ambientales; hosted by Gobierno de Jalisco",
+      "official_url": "https://siga.jalisco.gob.mx/moet/subsistemanatural/AmenazasNaturales/amejal.htm",
+      "acquired_scope": "Normally opened original hosted HTML; bounded Río Ameca prose read. No map observation is attributed to this source.",
+      "supports": "Describes Teuchitlán and Salado as formative rivers, the southwest–northwest–southwest main-course sequence through Ameca, the late Mascota junction and discharge to Bahía de Banderas.",
+      "limits": "Supporting regional prose only. Its stated river length is not substituted for retained model length. It neither names every selected reach nor verifies the initial modeled feeder."
+    },
+    {
+      "source_key": "r111-usgs-national-map-nottoway-chowan",
+      "title": "USGS The National Map, USGSTopo cartographic MapServer",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "acquired_scope": "Seven bounded original raster map views acquired sequentially and visually inspected, including overlapping headward, upper, middle, lower and terminal coverage and focused headward/terminal junction views.",
+      "supports": "Complete correspondence for both selected FIDs; direct North Fork Nottoway River, Nottoway River, Nottoway Reservoir and Chowan River labels; material Little Nottoway, Stony Creek, Three Creek, Blackwater, Meherrin, Wiccacon and Bennetts Creek junction settings; continued Chowan below the selected terminal.",
+      "limits": "Independently maintained composite federal cartography, distinct from stopped USGS reports and their equivalent figures. A single compilation date, legal naming status, exact source point, present bank alignment and official river length are not established. Original rasters, private enlargements and exact-view request parameters are not public deliverables."
+    },
+    {
+      "source_key": "r111-virginia-dwr-nottoway-hercules",
+      "title": "Exploring the Nottoway River from Hercules Landing",
+      "author": "John Page Williams",
+      "publisher": "Virginia Department of Wildlife Resources",
+      "publication_date": "2022-02-23",
+      "official_url": "https://dwr.virginia.gov/blog/exploring-the-nottoway-river-from-hercules-landing/",
+      "acquired_scope": "Original state-published article opened normally in the web text reader; geographic and lower-river prose actually read. No linked photographs or maps were used as cartographic evidence.",
+      "supports": "The Nottoway runs from the Virginia Piedmont toward Southampton, joins the Blackwater just below the state line, and continues as the Chowan toward Albemarle Sound. Hercules Landing lies on the lower Nottoway south of the Courtland–Franklin area; the article describes this section as tidal fresh water.",
+      "limits": "Supporting prose corroborates the downstream name progression but does not identify every selected headwater reach, reservoir crossing or exact terminal. Its stated length is not substituted for retained model length. The article footer carries Virginia DWR copyright; no photos or article reproduction are distributed."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90134489",
+      "source_keys": [
+        "r111-geus-sydgronland-sheet 1-2007",
+        "r111-geus-bulletin18-2009",
+        "r111-geus-sheet 2-1982-extent-check"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8923
+          ],
+          "component_scope": "Northern opening and upper connector into the southern map overlap",
+          "finding": "The original geographical-subdivisions map on Bulletin 18 page 4 has readable latitude/longitude ticks and distinguishes continuous Inland Ice from the exposed coastal belts. The northern opening and its southward/southwestward connector occupy the mapped southwestern Inland Ice interior, well inland of the western coastal belt. That continuous interior setting extends south into the 62°30′N boundary region covered by the 2007 detailed sheet.",
+          "correspondence": "complete at bounded generalized regional/component scale",
+          "limits": "The page 4 overview establishes broad ice-interior correspondence only; it does not supply a river trace, subglacial hydrology, a local channel name or precise ice/basin boundaries. Its pixels were actually read; this is not an inference from a catalogue extent or general prose alone.",
+          "sources": [
+            "r111-geus-bulletin18-2009",
+            "r111-geus-sydgronland-sheet 1-2007"
+          ]
+        },
+        {
+          "fragments": [
+            8923
+          ],
+          "component_scope": "Upper mapped southern corridor and southwestward middle steps",
+          "finding": "South of the northern sheet boundary, the original graticule places the selected southwestward sequence across the continuous light-blue ice surface. Ice-surface contours continue across this middle corridor. Exposed western-margin terrain lies away from the selected course. No mapped river label or river-channel sequence corresponding to these interior steps is established.",
+          "correspondence": "bounded geographic setting read from original cartography",
+          "limits": "Ice and elevation contours are not surface or subglacial river traces.",
+          "sources": [
+            "r111-geus-sydgronland-sheet 1-2007"
+          ]
+        },
+        {
+          "fragments": [
+            8923
+          ],
+          "component_scope": "Stepped middle descent and long near-southward approaches",
+          "finding": "The overlapping original middle and southern views cover the small southwestward steps, the long near-southward intervals and their approach to the southern ice margin. This selected corridor remains on mapped ice toward the Søndre Qipisaqqu Bræ setting. The map does not show a selected through-lake, reservoir or river confluence that would license a river-system name.",
+          "correspondence": "bounded geographic setting read from original cartography",
+          "limits": "The glacier label is local margin context and is not propagated upstream over the complete modeled mainstem. No present flow direction, glacier catchment boundary or contemporary ice extent is asserted.",
+          "sources": [
+            "r111-geus-sydgronland-sheet 1-2007"
+          ]
+        },
+        {
+          "fragments": [
+            8923
+          ],
+          "component_scope": "Final southwestward approach, short turn and actual terminal setting",
+          "finding": "The original detailed pixels place the final approach at the southern ice-front/inner-fjord setting of Sermilik, west of the intervening bedrock peninsula and the separate Bredefjord corridor. The ending is at the narrow northeastern inner-head vicinity, rather than at the outer coastal mouth. The map distinguishes ice, exposed bedrock and fjord water here.",
+          "correspondence": "actual terminal setting read at generalized corridor scale",
+          "limits": "This is a historical map setting, not a surveyed mouth, present ice front or exact shoreline intersection. Sermilik and Søndre Qipisaqqu Bræ are not accepted names for the modeled river group.",
+          "sources": [
+            "r111-geus-sydgronland-sheet 1-2007"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70857164",
+      "source_keys": [
+        "r111-inegi-canatlan",
+        "r111-inegi-san-dimas",
+        "r111-inegi-san-ignacio",
+        "r111-inegi-sinaloa-state"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10379
+          ],
+          "component_scope": "Headward opening in the western Canatlán highlands",
+          "finding": "The retained short westward/northwestward opening corresponds to the small west-draining course on the western flank of Cerro Colorado in Canatlán. The municipal original shows this headwater approaching the San Dimas boundary, where the adjacent San Dimas original continues the southward valley. The Santiago drainage to the east and the more northerly Arroyo Quebrada Santa Rosa are distinct mapped courses.",
+          "sources": [
+            "r111-inegi-canatlan",
+            "r111-inegi-san-dimas"
+          ],
+          "limits": "The first modeled reach has no established hydronym in the inspected maps. Cerro Colorado is a terrain orientation label, not a river name. No precise source point is assigned."
+        },
+        {
+          "fragments": [
+            10379
+          ],
+          "component_scope": "Miravalles upper course and joining sector",
+          "finding": "The selected southward then southwestward course follows the valley directly labeled Miravalles on the San Dimas Relieve map. The state sheet supplies the Doce de Mayo and Río de Miravalles locality setting and the continuous southwestward joining course toward the trunk labeled Río Piaxtla. The adjacent Piedra Parada and other side-drainage approaches remain separate from the selected northern approach.",
+          "sources": [
+            "r111-inegi-san-dimas",
+            "r111-inegi-sinaloa-state"
+          ],
+          "limits": "Río de Miravalles is also a locality inscription on the state sheet; the hydronym observation comes from the municipal Relieve map. No exact Miravalles/Piaxtla name-transition vertex or formal naming boundary is assigned."
+        },
+        {
+          "fragments": [
+            10379
+          ],
+          "component_scope": "Piaxtla canyon and Durango–Sinaloa continuation",
+          "finding": "The retained course continues west and southwest on the mapped Piaxtla through the Carboneras/General Rafael Buelna and Tayoltita setting, then follows the canyon across the Durango–Sinaloa boundary. The river is continuous into the San Ignacio municipal map; the more southerly Presidio course is a separate drainage.",
+          "sources": [
+            "r111-inegi-san-dimas",
+            "r111-inegi-san-ignacio",
+            "r111-inegi-sinaloa-state"
+          ],
+          "limits": "Settlement names locate the corridor. They are not added as hydronyms, and no unselected side branches are added."
+        },
+        {
+          "fragments": [
+            10379
+          ],
+          "component_scope": "San Ignacio middle course and northern bend",
+          "finding": "The selected westward course crosses the San Ignacio setting on the stream labeled Río Piaxtla. The maps show the separate Río Verde approach from the north near Ajoya/El Platanar joining the Piaxtla corridor, followed by the west/northwest reach through the San Javier/Coacoyol sector and the pronounced bend back south. This full joining and bending corridor corresponds to the retained middle selection.",
+          "sources": [
+            "r111-inegi-san-ignacio",
+            "r111-inegi-sinaloa-state"
+          ],
+          "limits": "The Río Verde approach is contextual and is not a separately selected tributary feature. Exact confluence vertices are not adjudicated."
+        },
+        {
+          "fragments": [
+            10379
+          ],
+          "component_scope": "Coastal plain and actual terminal corridor",
+          "finding": "Below the northern bend the selected course turns southwest through the Piaxtla de Arriba/Piaxtla de Abajo and Duranguito–Dimas coastal-plain setting. The state original continues the same Río Piaxtla channel to the coast immediately north of Barras de Piaxtla. The Elota/Ceuta outlet to the northwest and Estero el Pozole farther southeast are separate coastal features, not substitutes for the selected terminal.",
+          "sources": [
+            "r111-inegi-san-ignacio",
+            "r111-inegi-sinaloa-state"
+          ],
+          "limits": "The receiving-water setting is the Pacific coast at southern Sinaloa. No exact present-day inlet, bank, shoreline intersection or surveyed mouth coordinate is assigned."
+        },
+        {
+          "fragments": [
+            10379
+          ],
+          "component_scope": "Lake and reservoir context across the full selected corridor",
+          "finding": "No major named lake or reservoir passage is depicted on the selected route in the inspected maps. Presa las Truchas, Presa Aurelio Benassini Vizcaíno (El Salto) and Presa Picachos are visibly on separate neighboring drainage settings. They are not assigned to this feature.",
+          "sources": [
+            "r111-inegi-canatlan",
+            "r111-inegi-san-dimas",
+            "r111-inegi-san-ignacio",
+            "r111-inegi-sinaloa-state"
+          ],
+          "limits": "This is a statement about the inspected cartographic corridor, not a present-day inventory of every small impoundment or a claim about current regulation or flow."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70877529",
+      "source_keys": [
+        "r111-inegi-jalisco-state",
+        "r111-inegi-tala-topographic",
+        "r111-inegi-teuchitlan-2010",
+        "r111-inegi-tala-2010",
+        "r111-jalisco-vega-management-2014",
+        "r111-udg-jalisco-amenazas"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10418
+          ],
+          "component_scope": "Headward selection and eastern reservoir connector",
+          "finding": "The fine topographic map places the selected opening in the small streams and agricultural-drainage landscape northwest of El Refugio. It distinguishes the La Tabaquera-side hills and other local feeders from the larger Salado approach through Tala. The original La Vega zoning map shows the named eastern Salado connection into the reservoir, supplying bounded east-inlet correspondence. Initial exact name remains null.",
+          "sources": [
+            "r111-inegi-tala-topographic",
+            "r111-inegi-tala-2010",
+            "r111-jalisco-vega-management-2014"
+          ],
+          "limits": "The rural opening is mapped as several local/intermittent and engineered drainage elements, with historical/generalized differences in lake entry. This is corridor correspondence, not an exact assignment of one hydronym or proof of a continuously active modern channel at every modeled point."
+        },
+        {
+          "fragments": [
+            10418
+          ],
+          "component_scope": "La Vega reservoir and southern outlet",
+          "finding": "The selection continues through the La Vega impoundment and leaves its southern end by the dam/La Vega settlement. Northern Teuchitlán inflows, western Chapulimita/Cocolisco-side drainage and the southeastern Cuisillos–Salado approach remain distinguishable; none is automatically the selected opening.",
+          "sources": [
+            "r111-inegi-tala-topographic",
+            "r111-inegi-teuchitlan-2010",
+            "r111-jalisco-vega-management-2014"
+          ],
+          "limits": "The rural opening is mapped as several local/intermittent and engineered drainage elements, with historical/generalized differences in lake entry. This is corridor correspondence, not an exact assignment of one hydronym or proof of a continuously active modern channel at every modeled point."
+        },
+        {
+          "fragments": [
+            10418
+          ],
+          "component_scope": "Upper Ameca valley",
+          "finding": "Downstream of La Vega, the route runs west/southwest through the irrigated valley toward Ameca, then northwest by San Nicolás, Jayamitla and the San Blasito/Jesús María boundary setting. The regional map labels the matching channel Ameca.",
+          "sources": [
+            "r111-inegi-jalisco-state"
+          ],
+          "limits": "The rural opening is mapped as several local/intermittent and engineered drainage elements, with historical/generalized differences in lake entry. This is corridor correspondence, not an exact assignment of one hydronym or proof of a continuously active modern channel at every modeled point."
+        },
+        {
+          "fragments": [
+            10418
+          ],
+          "component_scope": "Boundary reach and major middle junctions",
+          "finding": "The selection follows the northwest-trending Ameca along the Jalisco–Nayarit boundary, past the Amatlán de Cañas/Tepuzhuacán sector, the Atenguillo junction, the broad northern bend and then the west/southwest course by El Ahuejote and Aguamilpa. The map separately labels the Los Reyes tributary entering this downstream sector.",
+          "sources": [
+            "r111-inegi-jalisco-state"
+          ],
+          "limits": "The rural opening is mapped as several local/intermittent and engineered drainage elements, with historical/generalized differences in lake entry. This is corridor correspondence, not an exact assignment of one hydronym or proof of a continuously active modern channel at every modeled point."
+        },
+        {
+          "fragments": [
+            10418
+          ],
+          "component_scope": "Lower valley and transition to second feature",
+          "finding": "The Ameca turns southwest from Aguamilpa/El Colomo into the San José del Valle–San Vicente–Ixtapa lowland. Mascota approaches independently from the southeast and joins in the lower valley near the transition to the final feature.",
+          "sources": [
+            "r111-inegi-jalisco-state",
+            "r111-udg-jalisco-amenazas"
+          ],
+          "limits": "The rural opening is mapped as several local/intermittent and engineered drainage elements, with historical/generalized differences in lake entry. This is corridor correspondence, not an exact assignment of one hydronym or proof of a continuously active modern channel at every modeled point."
+        },
+        {
+          "fragments": [
+            10419
+          ],
+          "component_scope": "Final lower Ameca and actual terminal",
+          "finding": "The original state map carries the matching Ameca channel to the bay; it also distinguishes the southern Pitillal river and nearby coastal settlements. Regional primary prose independently identifies Bahía de Banderas as the Ameca receiving water.",
+          "sources": [
+            "r111-inegi-jalisco-state",
+            "r111-udg-jalisco-amenazas"
+          ],
+          "limits": "Regional cartographic scale supports the estuary and bay identity, not exact modern mouth position or bank alignment."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70660917",
+      "source_keys": [
+        "r111-usgs-national-map-nottoway-chowan",
+        "r111-virginia-dwr-nottoway-hercules"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9853
+          ],
+          "component_scope": "Headward fork and Nottoway junction",
+          "finding": "South of Oliveville and Twin Bridges Road, the selected western opening follows the directly labeled North Fork Nottoway River corridor east toward its junction with the separately labeled Nottoway River. The continuing river turns south and southeast along the Nottoway–Lunenburg county-border setting toward Rubermont. The separately mapped western Nottoway approach and the northern Snail Creek approach are distinct from the selected opening.",
+          "sources": [
+            "r111-usgs-national-map-nottoway-chowan"
+          ],
+          "limits": "This is corridor correspondence, not a precise junction or natural-source assignment."
+        },
+        {
+          "fragments": [
+            9853
+          ],
+          "component_scope": "Upper Nottoway, reservoir and eastern continuation",
+          "finding": "The route continues southeast and then east along the Nottoway county-border corridor, receiving the Big Hounds Creek approach and reaching the Little Nottoway junction southwest of Blackstone. It passes through the mapped Nottoway Reservoir and its southeast outlet, then proceeds east and southeast along the Nottoway through the Dinwiddie–Brunswick boundary setting toward the Sussex–Greensville side.",
+          "sources": [
+            "r111-usgs-national-map-nottoway-chowan"
+          ],
+          "limits": "Little Nottoway is the northern joining tributary, not the selected upstream branch. Nottoway Reservoir retains its mapped impoundment identity."
+        },
+        {
+          "fragments": [
+            9853
+          ],
+          "component_scope": "Middle Nottoway and Sussex bend",
+          "finding": "The selected course follows the Nottoway eastward to the Interstate 95/US 301 corridor, then its conspicuous northward loop toward the Stony Creek joining setting. It continues east across the Sussex interior before turning south and southeast. The connected floodplain channel, route crossings and repeated Nottoway labels cover the whole selected middle corridor.",
+          "sources": [
+            "r111-usgs-national-map-nottoway-chowan"
+          ],
+          "limits": "Stony Creek, nearby swamps and lesser branches remain junction context; no exhaustive tributary naming is attempted."
+        },
+        {
+          "fragments": [
+            9853
+          ],
+          "component_scope": "Lower Nottoway through Southampton",
+          "finding": "The river descends through the Three Creek junction neighborhood and Southampton County, passes the Courtland/US 58 corridor west of Franklin, and continues southeast through the wooded lower Nottoway toward the state line. The Nottoway remains separately labeled from the Blackwater River approaching south from Franklin on the east. The original map shows their junction just below the Virginia–North Carolina boundary, followed by the Chowan. Virginia DWR prose independently states that the Nottoway and Blackwater join to form the Chowan.",
+          "sources": [
+            "r111-usgs-national-map-nottoway-chowan",
+            "r111-virginia-dwr-nottoway-hercules"
+          ],
+          "limits": "The Blackwater approach is not selected. Supporting prose also describes the full downstream river, which is longer than the retained selection."
+        },
+        {
+          "fragments": [
+            9853
+          ],
+          "component_scope": "Upper Chowan and Meherrin junction",
+          "finding": "Below the Nottoway–Blackwater junction the selected channel turns south, bends west and then south toward Winton. It is directly labeled Chowan River before receiving the separately labeled Meherrin River from the west. The first retained feature ends in this junction neighborhood, and the second continues on the same mapped Chowan channel.",
+          "sources": [
+            "r111-usgs-national-map-nottoway-chowan"
+          ],
+          "limits": "No exact fragment seam is asserted to equal a hydronym boundary or tributary mouth point."
+        },
+        {
+          "fragments": [
+            9854
+          ],
+          "component_scope": "Winton and eastward Chowan",
+          "finding": "From immediately below the Meherrin joining neighborhood the selected route passes Winton and the US 13 crossing, turns southeast and then east along the Gates–Hertford boundary, and continues through the mapped Chowan bends by Rays Beach and Pettys Shore. Multiple direct Chowan River labels follow this full channel.",
+          "sources": [
+            "r111-usgs-national-map-nottoway-chowan"
+          ],
+          "limits": "Meherrin and nearby creeks are independent tributaries and are not assigned the Chowan representative name."
+        },
+        {
+          "fragments": [
+            9854
+          ],
+          "component_scope": "Widening Chowan and actual terminal",
+          "finding": "The selected southeastward lower section passes the western Wiccacon joining setting and continues into the wider Chowan opposite the Bennetts Creek side. It ends in the broad river near the Bennetts Creek–Catherine Creek junction neighborhood, above Holiday Island. The viewed original extends beyond the retained end, making clear that the Chowan continues downstream rather than terminating there.",
+          "sources": [
+            "r111-usgs-national-map-nottoway-chowan"
+          ],
+          "limits": "Bennetts Creek and Catherine Creek are eastern joining waters, not the selected route. The selected endpoint is not Albemarle Sound, an ocean shoreline or the natural mouth of the Chowan."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:90134489",
+      "publication": "Geological map of Greenland 1:2 500 000, Escher and Pulvertaft, 1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "observed_outcome": "The web reader returned an Internal Error stating that the DOI URL was not accessible via that tool; it provided no HTTP status or security/authorization reason.",
+      "restriction_scope": "The failed DOI-reader route was not retried. This is not an observed publication-wide access denial. No original 1995 map was acquired or used for this target.",
+      "earlier_lawful_prose_exception": "Only the retained public bibliography and use notice are available from earlier work; earlier observations of other selections do not establish this target."
+    },
+    {
+      "aw_id": "hydro-system:90134489",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 1, Sydgrønland, Allaart, 1975, dataset landing page",
+      "official_url": "https://doi.org/10.22008/FK2/VS6X7M",
+      "observed_outcome": "The web reader returned an Internal Error stating that the DOI URL was not accessible via that tool; it provided no HTTP status or security/authorization reason.",
+      "restriction_scope": "The failed DOI-reader route was not retried. No 1975 original map was acquired or used. The separately identified 2007 second-edition original was acquired normally through its own successful official landing page.",
+      "earlier_lawful_prose_exception": "None used; search-discovery metadata is not cartographic evidence."
+    },
+    {
+      "aw_id": "hydro-system:90134489",
+      "publication": "Satellite Image Atlas of Glaciers of the World—Greenland, Anker Weidick, 1995; USGS Professional Paper 1386-C",
+      "official_url": "https://pubs.usgs.gov/pp/p1386c/",
+      "observed_outcome": "The web reader reported Failed to fetch:403 Forbidden.",
+      "restriction_scope": "Entire publication and equivalent copies, formats, PDFs, Plate 1, figures, mirrors and acquisition routes stopped. No retry or alternate request followed.",
+      "earlier_lawful_prose_exception": "None. Search-discovery snippets are excluded from geographic and naming evidence."
+    },
+    {
+      "aw_id": "hydro-system:70857164",
+      "publication": "Reserva de la Biosfera Piaxtla–Tayoltita",
+      "official_url": "https://www.conanp.gob.mx/pdf/separata/EPJ-RB-PiaxtlaTayoltita.pdf",
+      "observed_outcome": "The single original-file request returned HTTP 502 Bad Gateway. No document body was acquired.",
+      "restriction_scope": "The publication and equivalent missing content remain paused for availability across acquisition routes. No retry, mirror, reader or figure route was used.",
+      "earlier_lawful_prose_exception": "None. Discovery search excerpts are excluded from substantive evidence.",
+      "material_effect": "None. The four successfully acquired INEGI originals cover the entire retained selection at ordinary generalized corridor scale. This optional failure does not create an additional material-pending count."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:90134489",
+      "publication": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000,2nd edition; GEUS Bulletin 18,2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf",
+      "observed_outcome": "The web reader rejected the PDF as too large, reporting 400 Content length is too large: 18046692. One subsequent sequential normal original-file retrieval succeeded with HTTP 200 and 18,046,692 bytes.",
+      "restriction_scope": "Resolved reader-size limitation, not an access denial or active publication stop. The successfully acquired original page 4 cartography and bounded printed pages 64–65 prose were actually read.",
+      "earlier_lawful_prose_exception": "The newly downloaded original supports the actually read page 4 regional cartography and bounded Glaciology prose on printed pages 64–65."
+    },
+    {
+      "aw_id": "hydro-system:90134489",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 1, Sydgrønland,2nd edition, Garde, 2007",
+      "official_url": "https://doi.org/10.22008/FK2/L4LGK6",
+      "observed_outcome": "The official landing page and original TIFF both opened normally. The landing page states Custom Dataset Terms allowing internal use/processing but restricting redistribution and creation or transfer of new maps based on processed data.",
+      "restriction_scope": "Original, crops, processed data and any comparison/derived maps remain private. Independently written factual observations and ordinary bibliography only may enter public results.",
+      "earlier_lawful_prose_exception": "Not applicable; this target was newly read from the successfully acquired original."
+    },
+    {
+      "aw_id": "hydro-system:90134489",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 2, Frederikshåbs Isblink–Søndre Strømfjord, Allaart, 1982",
+      "official_url": "https://doi.org/10.22008/FK2/F77JXT",
+      "observed_outcome": "The official landing page and original PDF both opened normally. The landing page states Custom Dataset Terms allowing internal use/processing but restricting redistribution and creation or transfer of new maps based on processed data.",
+      "restriction_scope": "Original, crops, processed data and any comparison/derived maps remain private. Independently written factual observations and ordinary bibliography only may enter public results.",
+      "earlier_lawful_prose_exception": "Not applicable; this source was newly read but lies west of the material target gap."
+    }
+  ]
+}

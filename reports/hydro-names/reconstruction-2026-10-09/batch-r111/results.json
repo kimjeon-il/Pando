@@ -1,0 +1,537 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r111",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r110",
+    "commit": "73ad1d90ff8044e6f2bd8922f4aaf839a6519ef0",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r110/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:90134489",
+    "hydro-system:70857164",
+    "hydro-system:70877529",
+    "hydro-system:70660917"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:90134489",
+      "category": "river_group",
+      "system_id": "90134489",
+      "original_queue_rank": 244,
+      "baseline_logical_fid": 2890,
+      "geometry_fids": [
+        8923
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -47.02341,
+        60.952083,
+        -46.041667,
+        63.066667
+      ],
+      "rendered_mainstem_length_km": 248.484,
+      "rendered_network_length_km": 248.484,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -47.02341,
+          60.952083,
+          -46.041667,
+          63.066667
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "candidate_name_role": "whole_route_name_unestablished",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No whole-route natural-river hydronym is established. Sermilik and Søndre Qipisaqqu Bræ are bounded geographic context only.",
+      "geographic_disambiguation": "The actual southern ending belongs to the inner Sermilik/Søndre Qipisaqqu Bræ margin setting west of the intervening bedrock peninsula and the separate Bredefjord corridor. The whole mainstem is not assigned any of these place names.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "The complete selected mainstem was read against the original Bulletin 18 page 4 regional map and the overlapping 2007 Sydgrønland sheet. The first covers the northern opening and upper Inland Ice connector; the second covers the southern continuation, middle corridor and actual terminal setting. Geographic correspondence is complete at the required generalized scale; neither a surveyed river trace nor hydrological continuity across the ice is asserted.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The selected northern and middle route lies in mapped Inland Ice and descends toward an ice-front/fjord-head setting. Neither the regional cartography nor supporting prose establishes a continuously named natural river along the complete modeled route.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "nearby_glacier_context": "Søndre Qipisaqqu Bræ",
+        "receiving_fjord_context": "Sermilik",
+        "excluded_neighboring_fjord": "Bredefjord",
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0
+      },
+      "source_keys": [
+        "r111-geus-sydgronland-sheet 1-2007",
+        "r111-geus-bulletin18-2009",
+        "r111-geus-sheet 2-1982-extent-check"
+      ],
+      "region": "Southern Greenland, southwestern Inland Ice interior to the inner Sermilik ice-margin/fjord-head setting."
+    },
+    {
+      "aw_id": "hydro-system:70857164",
+      "category": "river_group",
+      "system_id": "70857164",
+      "original_queue_rank": 245,
+      "baseline_logical_fid": 3236,
+      "geometry_fids": [
+        10379
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -106.815497,
+        23.702555,
+        -105.379167,
+        24.485417
+      ],
+      "rendered_mainstem_length_km": 247.573,
+      "rendered_network_length_km": 247.573,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -106.815497,
+          23.702555,
+          -105.379167,
+          24.485417
+        ]
+      },
+      "candidate_name": "Río Piaxtla",
+      "candidate_names": [
+        "Río Piaxtla"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Piaxtla is supported as the representative river identity of the connected selection. The initial unnamed headwater and mapped Miravalles component retain separate scope; their exact local name boundaries remain unassigned.",
+      "geographic_disambiguation": "The selected route uses the western Canatlán headwater and Miravalles approach into Piaxtla, the Tayoltita canyon, San Ignacio and the lower Piaxtla bend to the coastal outlet north of Barras de Piaxtla. It does not substitute the Río Verde tributary, Río Elota, Río Presidio or a coastal lagoon route.",
+      "source_keys": [
+        "r111-inegi-canatlan",
+        "r111-inegi-san-dimas",
+        "r111-inegi-san-ignacio",
+        "r111-inegi-sinaloa-state"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western Durango and southern Sinaloa, Mexico, from the Canatlán/San Dimas highlands through Tayoltita and San Ignacio to the Pacific coast.",
+      "completion_scope": "All of retained mainstem FID 10379 was read against separately published primary INEGI maps at ordinary generalized corridor scale: headward opening, Miravalles valley, joining sector, canyon, middle/lower course and actual coastal terminal. The review includes major joining-waterway and lake/reservoir context. No geometry revalidation or exact bank/mouth-point fitting was performed.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Piaxtla",
+        "initial_headmost_reach_name": null,
+        "initial_headward_component_name": "Miravalles (mapped downstream of the unnamed headward opening)",
+        "initial_headward_scope": "Direct mapped Miravalles label applies to the upper valley component; the short first headwater remains unnamed. No exact source or transition boundary is assigned.",
+        "selected_reservoirs": [],
+        "selected_reservoir_scope": "No major named lake/reservoir crossing is depicted on the selected cartographic corridor; this is not a current small-impoundment inventory.",
+        "selected_tributary_scope": "No separately retained tributary feature. Other joining waterways are context only.",
+        "receiving_waterbody_name": "Pacific Ocean coastal setting",
+        "terminal_limit": "Piaxtla coastal outlet north of Barras de Piaxtla in the Dimas sector, at ordinary generalized map scale.",
+        "separately_named_corridor_parts": [
+          "Miravalles",
+          "Piaxtla"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "excluded_inferences": [
+          "No scalar hydronym is assigned across the unnamed headwater and separately labeled Miravalles/Piaxtla components.",
+          "No basin table or nearby settlement/terrain name is promoted to a river name.",
+          "No formal registry status, official river length, exact source, legal naming boundary, present flow or surveyed mouth is inferred.",
+          "No search excerpt, failed CONANP publication or unviewed figure supplies correspondence."
+        ],
+        "model_limits": "Retained geometry was read only for orientation. No product, code, name or geometry changes were made.",
+        "source_availability_limits": [
+          {
+            "publication": "Reserva de la Biosfera Piaxtla–Tayoltita",
+            "publisher": "Comisión Nacional de Áreas Naturales Protegidas (CONANP)",
+            "url": "https://www.conanp.gob.mx/pdf/separata/EPJ-RB-PiaxtlaTayoltita.pdf",
+            "observed_outcome": "The single original-file request returned HTTP 502 Bad Gateway. No document body was acquired.",
+            "outcome_layer": "HTTP error response from the direct acquisition route; the response does not establish an origin access denial, and the exact responding gateway was not identified.",
+            "scope": "The publication and equivalent missing content remain paused for availability across acquisition routes. No retry, mirror, reader or figure route was used.",
+            "earlier_lawful_prose": "None. Discovery search excerpts are excluded from substantive evidence.",
+            "material_effect": "None. The four successfully acquired INEGI originals cover the entire retained selection at ordinary generalized corridor scale. This optional failure does not create an additional material-pending count."
+          }
+        ],
+        "access_and_availability_summary": "Four primary INEGI original publications were acquired successfully. The optional CONANP publication returned HTTP 502 and remains paused; this leaves no material correspondence gap. Existing access stops and the Sinaloa reproduction restriction are preserved."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70877529",
+      "category": "river_group",
+      "system_id": "70877529",
+      "original_queue_rank": 246,
+      "baseline_logical_fid": 3255,
+      "geometry_fids": [
+        10418,
+        10419
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -105.292992,
+        20.539583,
+        -103.75625,
+        21.022917
+      ],
+      "rendered_mainstem_length_km": 246.42,
+      "rendered_network_length_km": 246.42,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -105.292992,
+          20.539583,
+          -103.75625,
+          21.022917
+        ]
+      },
+      "candidate_name": "Río Ameca",
+      "candidate_names": [
+        "Río Ameca"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Ameca is supported as the representative downstream identity of the complete selected two-feature system. The short initial local feeder has no established exact name, and the passage through Presa La Vega retains its reservoir identity. No uniform scalar name is assigned.",
+      "geographic_disambiguation": "The selection begins in the small-feeder country northwest of El Refugio and east of Teuchitlán, approaches La Vega from the east, crosses the impoundment and leaves by its southern outlet. It then follows the Ameca valley and the Jalisco–Nayarit boundary corridor, keeping Atenguillo, Los Reyes and Mascota as distinct tributary approaches, before reaching Bahía de Banderas north of Puerto Vallarta. It is not the complete remote Salado source route, the Teuchitlán north-inlet branch or the separate coastal Pitillal course.",
+      "source_keys": [
+        "r111-inegi-jalisco-state",
+        "r111-inegi-tala-topographic",
+        "r111-inegi-teuchitlan-2010",
+        "r111-inegi-tala-2010",
+        "r111-jalisco-vega-management-2014",
+        "r111-udg-jalisco-amenazas"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Jalisco–Nayarit Pacific drainage, Mexico, from the Teuchitlán–Tala/La Vega headward setting to the Ameca estuary in Bahía de Banderas.",
+      "completion_scope": "Both entire retained features were compared with primary original cartography at ordinary generalized component/corridor scale: opening and alternative feeders, east-side reservoir approach, reservoir passage and southern outlet, upper Ameca valley, boundary bends and material tributary junctions, the final lowland feature and actual marine receiving bay. Detailed and regional originals overlap without a material source-coverage gap. Exact channel/shoreline agreement was not required or claimed.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Ameca",
+        "initial_headward_component_name": null,
+        "initial_headmost_reach_name": null,
+        "initial_headward_scope": "The selected beginning is a short local feeder/lowland approach northwest of El Refugio, in the La Tabaquera-side setting. The nearby label is not promoted to an exact name for the complete opening. The historical zoning map and topographic sheet depict different levels of simplification in the Salado/east-reservoir inflow area; they establish the same bounded inflow setting, not precise modern channel equivalence.",
+        "selected_reservoirs": [
+          {
+            "name": "Presa La Vega",
+            "observed_alternate_map_label": "Laguna de la Vega",
+            "scope": "Selected reservoir passage and southern outlet; not renamed Ameca."
+          }
+        ],
+        "selected_tributary_scope": "Atenguillo, Los Reyes and Mascota are material separately mapped tributaries along the selected Ameca corridor. Their upstream branches are not selected or renamed. Teuchitlán, Chapulimita/Cocolisco and the longer eastern Salado approach are distinguished in the La Vega setting.",
+        "receiving_waterbody_name": "Bahía de Banderas, Pacific Ocean",
+        "terminal_limit": "Final Ameca channel reaches the bay between the Nuevo Vallarta/Las Jarretaderas side and the northern Puerto Vallarta side. No exact present-day bank or mouth-position claim.",
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "excluded_inferences": [
+          "A nearby La Tabaquera label does not by itself name the initial selected reach.",
+          "Basin membership does not uniformly name all headward, reservoir and downstream components.",
+          "The 246.420 km retained length is not an official length of Río Ameca.",
+          "Historical mapped drainage does not establish current flow, channel operation or shoreline position.",
+          "No formal naming-register status has been independently verified."
+        ],
+        "model_limits": "The generalized selected route is used only for source correspondence and orientation. No geometry editing, pointwise agreement test or revalidation was performed.",
+        "source_availability_limits": [],
+        "access_and_availability_summary": "All five requested PDF originals and the bounded HTML prose opened normally. No new access denial, challenge, availability stop or excluded limited-distribution material was encountered. Ordinary reproduction restrictions remain in force."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70660917",
+      "category": "river_group",
+      "system_id": "70660917",
+      "original_queue_rank": 247,
+      "baseline_logical_fid": 3109,
+      "geometry_fids": [
+        9853,
+        9854
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -78.283333,
+        36.298155,
+        -76.709948,
+        37.122917
+      ],
+      "rendered_mainstem_length_km": 245.771,
+      "rendered_network_length_km": 245.771,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -78.283333,
+          36.298155,
+          -76.709948,
+          37.122917
+        ]
+      },
+      "candidate_name": "Chowan River",
+      "candidate_names": [
+        "Chowan River"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Chowan River is supported as the representative downstream identity of the complete selected connected corridor. The selected headward North Fork Nottoway River, Nottoway River and Nottoway Reservoir retain their separate name scopes. The selection stops within the widening Chowan, upstream of its eventual Albemarle Sound mouth.",
+      "geographic_disambiguation": "The selected opening uses the North Fork Nottoway approach south of Oliveville, joins the separately mapped Nottoway, passes through the Nottoway Reservoir setting, follows the Nottoway through the Dinwiddie–Brunswick and Sussex–Southampton corridor, then enters the Chowan below the Blackwater confluence. It uses neither the Little Nottoway approach to the reservoir nor the Blackwater or Meherrin tributaries as its selected headwater.",
+      "source_keys": [
+        "r111-usgs-national-map-nottoway-chowan",
+        "r111-virginia-dwr-nottoway-hercules"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "South-central and southeastern Virginia to northeastern North Carolina, USA.",
+      "completion_scope": "Both entire retained mainstem features were reviewed using seven overlapping original USGSTopo cartographic views at ordinary generalized corridor scale, including the headward branch and junction, upper reservoir and outlet, full middle and lower Nottoway, Blackwater and Meherrin junctions, connecting Chowan reaches, and actual in-river terminal setting. Direct Virginia DWR prose independently supports the Nottoway–Blackwater–Chowan progression. No material source or connector gap remains.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Chowan River",
+        "initial_headward_component_name": "North Fork Nottoway River",
+        "initial_headward_scope": "A bounded North Fork Nottoway corridor south of Oliveville approaches the separately labeled Nottoway River. The selection does not extend to an established natural source point; exact hydronym transition vertices are not assigned.",
+        "exact_initial_source_name": null,
+        "selected_reservoirs": [
+          "Nottoway Reservoir"
+        ],
+        "separately_named_corridor_parts": [
+          "North Fork Nottoway River",
+          "Nottoway River",
+          "Nottoway Reservoir",
+          "Chowan River"
+        ],
+        "selected_tributary_scope": "There are no separately retained tributary features. Little Nottoway River, Stony Creek, Three Creek, Blackwater River, Meherrin River, Wiccacon River and Bennetts Creek are mapped junction context, not names applied to the selected mainstem.",
+        "terminal_waterbody_name": "Chowan River",
+        "ultimate_receiving_waterbody_name": "Albemarle Sound",
+        "terminal_limit": "The actual modeled terminal lies in the broad Chowan near the Bennetts Creek–Catherine Creek junction setting, upstream of Holiday Island. The selection does not continue to Albemarle Sound or a surveyed ocean mouth. The retained sea terminal class is model metadata, not a finding of an ocean shoreline or saltwater boundary.",
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "excluded_inferences": [
+          "The representative Chowan name is not assigned to the headward North Fork Nottoway, Nottoway River, reservoir interior or adjacent tributaries.",
+          "No exact source point, precise bank or vertex correspondence, present water level, surveyed mouth, formal registry status or official river length is established.",
+          "The selected terminal is not extended downstream to Albemarle Sound merely because prose describes the complete named river.",
+          "No basin association, snippet, unviewed source map or model connectivity alone supplies the correspondence finding."
+        ],
+        "model_limits": "Selected geometry was used solely to orient the complete route. Cartographic generalization, especially at small bends, confluences, the reservoir and estuarine expansion, was assessed at component/corridor scale. No geometry revalidation or edits were performed.",
+        "source_availability_limits": [],
+        "access_and_availability_summary": "All seven original cartographic views and the supporting state article opened successfully. No new access or availability stop was observed."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90134489"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 387,
+    "non_pending_records": 350,
+    "source_access_pending": 3,
+    "source_material_pending": 34,
+    "source_any_pending": 37,
+    "scope_holds": 115,
+    "river_groups": 289,
+    "lakes": 98,
+    "unrecorded": 3678,
+    "unrecorded_river_groups": 3166,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r111-geus-sydgronland-sheet 1-2007",
+      "official_url": "https://doi.org/10.22008/FK2/L4LGK6"
+    },
+    {
+      "source_key": "r111-geus-bulletin18-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r111-geus-sheet 2-1982-extent-check",
+      "official_url": "https://doi.org/10.22008/FK2/F77JXT"
+    },
+    {
+      "source_key": "r111-inegi-canatlan",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10001.pdf"
+    },
+    {
+      "source_key": "r111-inegi-san-dimas",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10026.pdf"
+    },
+    {
+      "source_key": "r111-inegi-san-ignacio",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25016.pdf"
+    },
+    {
+      "source_key": "r111-inegi-sinaloa-state",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf"
+    },
+    {
+      "source_key": "r111-inegi-jalisco-state",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/jal/889463836964.pdf"
+    },
+    {
+      "source_key": "r111-inegi-tala-topographic",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_50_000/889463871385_geo.pdf"
+    },
+    {
+      "source_key": "r111-inegi-teuchitlan-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/14/14095.pdf"
+    },
+    {
+      "source_key": "r111-inegi-tala-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/14/14083.pdf"
+    },
+    {
+      "source_key": "r111-jalisco-vega-management-2014",
+      "official_url": "https://transparencia.info.jalisco.gob.mx/sites/default/files/2014.%20Proyecto%20de%20Servicio%20Especializado%20Estudio%20de%20Programa%20de%20Manejo%20de%20la%20Presa%20La%20Vega.pdf"
+    },
+    {
+      "source_key": "r111-udg-jalisco-amenazas",
+      "official_url": "https://siga.jalisco.gob.mx/moet/subsistemanatural/AmenazasNaturales/amejal.htm"
+    },
+    {
+      "source_key": "r111-usgs-national-map-nottoway-chowan",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r111-virginia-dwr-nottoway-hercules",
+      "official_url": "https://dwr.virginia.gov/blog/exploring-the-nottoway-river-from-hercules-landing/"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "73ad1d90ff8044e6f2bd8922f4aaf839a6519ef0",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      244,
+      245,
+      246,
+      247
+    ],
+    "next_unrecorded_id": "hydro-system:61514286",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}
