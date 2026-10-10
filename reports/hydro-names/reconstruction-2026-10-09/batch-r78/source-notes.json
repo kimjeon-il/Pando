@@ -1,0 +1,425 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r78",
+  "sources": [
+    {
+      "source_key": "r78-retained-wwf-glsc-national-2006",
+      "title": "Biodiversity Assessment Survey of the Upper Berbice Region, Guyana — BAT Survey Report No. 3, Figure B: Map of Guyana showing the major rivers",
+      "publisher": "WWF-Guianas and Global Wildlife Conservation; national map by Guyana Lands and Surveys Commission",
+      "attribution": "Report editors Leeanne E. Alonso, Juliana Persaud and Aiesha Williams. Figure B explicitly credits © Guyana Lands and Surveys Commission, Georgetown, Guyana, 2006.",
+      "year": 2018,
+      "page": "Printed p. 17 / PDF p. 18, Figure B",
+      "supports": "Barama course south of Matthews Ridge through the Kokerite setting, its Waini junction, and lower Waini continuation toward the coast; separation from Barima, Cuyuni and surrounding rivers.",
+      "limits": "Generalized national cartography; does not independently name every initial channel, determine official source positions, or fix precise terminal geography. The Upper Berbice title does not limit Figure B, which is explicitly countrywide.",
+      "official_url": "https://wwfeu.awsassets.panda.org/downloads/biodiversity_assessment_survey_of_the_upper_berbice_region_2018.pdf"
+    },
+    {
+      "source_key": "r78-pac-shell-beach-plan-2024",
+      "title": "Shell Beach Protected Area — Management Plan 2024–2028",
+      "authors": "Odacy Davis and Steven Husbands",
+      "publisher": "Protected Areas Commission, Guyana",
+      "attribution": "Plan recommended citation identifies PAC, Guyana, 2024. The regional map is marked © Protected Areas Commission, 2019.",
+      "year": 2024,
+      "page": "p. 2 recommended citation and credits; p. 12 Shell Beach regional map; p. 13 regional description",
+      "supports": "Distinct Barama–Waini connection near Little Kaniballi; northward Waini past Warapoka; northwest lower Waini behind Shell Beach and Three Brothers; separate Baramani, Luri Creek, Barima, Kaituma and Mora Passage contexts.",
+      "limits": "Used for regional hydrographic naming and connection only. No present protected-area legal-boundary, land-rights, ecological-condition or exact shoreline determination is made.",
+      "official_url": "https://www.pac.gov.gy/wp-content/uploads/2025/09/FINAL-SBPA-Management-Plan-2024-2028-1.pdf"
+    },
+    {
+      "source_key": "r65-inegi-chihuahua-state",
+      "title": "Condensado Estatal Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "Fourth edition 2024; copyright 2025",
+      "year": 2024,
+      "page": "Single sheet, PDF p. 1; selected upper, middle, Las Lajas, Ahumada and terminal-plain areas and hydrographic legend.",
+      "supports": "Regional selected-route correspondence, Las Lajas passage, Villa Ahumada setting, extensive terminal plain and separation from Santa María–Guzmán corridors.",
+      "limits": "Scale 1:1,000,000. No exact shoreline, hydronym-transition vertex or continuous named river through the entire terminal extension is established.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/chih/794551162774.pdf"
+    },
+    {
+      "source_key": "r74-inegi-namiquipa-2010",
+      "title": "Compendio de información geográfica municipal 2010: Namiquipa, Chihuahua",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Direct Santa Clara river label, southern approach near Cerro El Cubo, and separation from Carretas, Palomino, El Mesteño, Los Álamos, El Bushi and western Santa María.",
+      "limits": "Regional generalized cartography; initial Riva Palacio route lies outside this municipal coverage.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08048.pdf"
+    },
+    {
+      "source_key": "r74-inegi-buenaventura-2010",
+      "title": "Compendio de información geográfica municipal 2010: Buenaventura, Chihuahua",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Santa Clara, Las Lajas reservoir, Las Orientales local corridor label and continuation toward Ahumada, distinct from Santa María and El Tintero.",
+      "limits": "No exact modern reservoir extent or universal Las Orientales–El Carmen alias equivalence is established.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08010.pdf"
+    },
+    {
+      "source_key": "r69-inegi-ascension-2010",
+      "title": "Compendio de información geográfica municipal 2010: Ascensión, Chihuahua",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Selected endpoint in the eastern saline/floodable plain east of La Morita and Sierra China, separated from Laguna Santa María and Guzmán.",
+      "limits": "The terminal plain is not directly labeled El Barreal on this municipal sheet. It does not show the selected long extension as a named river.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08005.pdf"
+    },
+    {
+      "source_key": "r78-inegi-riva-palacio-2010",
+      "title": "Compendio de información geográfica municipal 2010: Riva Palacio, Chihuahua",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Unnamed initial feeder and northwestern approach west of Sierra Rusia, distinguished from El Gachupín and El Perol.",
+      "limits": "No separate name is assigned to the small selected feeder and the model start is not an official source.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08054.pdf"
+    },
+    {
+      "source_key": "r78-inegi-ahumada-2010",
+      "title": "Compendio de información geográfica municipal 2010: Ahumada, Chihuahua",
+      "publisher": "INEGI",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Direct El Carmen label, distinctive bend and Moctezuma junction setting, Villa Ahumada approach and northern terminal-plain geography.",
+      "limits": "The long northwest extension does not correspond to a labeled continuous river channel. The hydrography prose table contains unrelated river names and was not used as channel-name evidence.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08001.pdf"
+    },
+    {
+      "source_key": "r78-conagua-patos-2024-prose",
+      "title": "Actualización de la disponibilidad media anual de agua en el acuífero Laguna de Patos (0817), estado de Chihuahua",
+      "publisher": "Comisión Nacional del Agua (CONAGUA), Subdirección General Técnica, Gerencia de Aguas Subterráneas",
+      "year": 2024,
+      "page": "Printed p. 8, section 3.3 Hidrografía, PDF p. 9.",
+      "supports": "Santa Clara upstream and El Carmen downstream terminology; Las Lajas; stated river discharge into Laguna de Patos about 14 km below Villa Ahumada.",
+      "limits": "Narrative does not verify the modeled source point, an exact name-transition vertex or a Patos-to-Barreal surface connector. All further access to this underlying publication and equivalents is stopped.",
+      "official_url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/chihuahua/DR_0817.pdf"
+    },
+    {
+      "source_key": "r78-conagua-conejos-2024-prose",
+      "title": "Actualización de la disponibilidad media anual de agua en el acuífero Conejos-Médanos (0823), estado de Chihuahua",
+      "publisher": "Comisión Nacional del Agua (CONAGUA), Subdirección General Técnica, Gerencia de Aguas Subterráneas",
+      "year": 2024,
+      "page": "Printed pp. 9–10, sections 3.3–3.4; PDF pp. 10–11.",
+      "supports": "Localized intermittent closed-basin surface drainage and the western/southwestern lacustrine plain identified as the Laguna El Barreal bed.",
+      "limits": "Regional plain identity only. No exact selected endpoint shoreline, mapped Patos-to-Barreal river channel or present water extent is established. Aquifer/basin classification is not used to assign a river name.",
+      "official_url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/chihuahua/DR_0823.pdf"
+    },
+    {
+      "source_key": "r69-wwf-upper-berbice2018-figures-a-b",
+      "title": "Biodiversity Assessment Survey of the Upper Berbice Region, Guyana, BAT Survey Report No. 3",
+      "authors": "Leeanne E. Alonso, Juliana Persaud and Aiesha Williams, editors",
+      "publisher": "WWF-Guianas, with Global Wildlife Conservation and collaborating Guyanese institutions",
+      "attribution": "Figure A credited to Oronde Drakes, map dated WWF November 2014, with hydrological and boundary data from Guyana Lands and Surveys Commission. Figure B explicitly credited to Guyana Lands and Surveys Commission, Georgetown, Guyana, 2006.",
+      "year": 2018,
+      "page": "Figure A, printed page 13 / PDF page 14; Figure B, printed page 17 / PDF page 18",
+      "supports": "Regional Figure A shows the unnamed eastern upper feeder and its junction with Demerara; national Figure B labels and traces the receiving Demerara through its major bends, Kumaka and Linden to Georgetown while separating Essequibo, Berbice and Mahaica.",
+      "limits": "The national sheet simplifies headwaters and omits the selected eastern feeder, so Figure A is necessary for that component. The regional map labels the receiving river but does not give the feeder an individual name. These are regional historical maps rather than modern survey or navigation evidence.",
+      "official_url": "https://wwfeu.awsassets.panda.org/downloads/biodiversity_assessment_survey_of_the_upper_berbice_region_2018.pdf"
+    },
+    {
+      "source_key": "r78-worldbank-guyana1972-peer",
+      "title": "Current Economic Position and Prospects of Guyana, Volume I: Main Report, Report No. 242a-GUA",
+      "publisher": "International Bank for Reconstruction and Development / International Development Association, Latin America and the Caribbean Regional Office",
+      "year_note": "Report dated 19 December 1973; Guyana map dated March 1972.",
+      "year": 1973,
+      "page": "PDF page 7, Guyana map; cover for report title and date",
+      "supports": "Independent historical corroboration of the Demerara receiving corridor, upper western bend, Linden/Wismar setting and lower river toward Georgetown between the separate Essequibo and Berbice systems.",
+      "limits": "Historical national map with simplified upper network and variable scan clarity. It does not individually name the selected eastern feeder or establish present coastal and navigation details.",
+      "official_url": "https://documents1.worldbank.org/curated/en/113261468252287309/pdf/multi0page.pdf"
+    },
+    {
+      "source_key": "r78-dpi-linden2019",
+      "title": "Linden riverfront forum advances tourism potential of river",
+      "publisher": "Department of Public Information, Government of Guyana",
+      "year_note": "Article date 2019-06-29.",
+      "year": 2019,
+      "supports": "Directly identifies the river dividing Linden as Demerara.",
+      "limits": "Used as a settlement/river identity anchor only, not a full-route map or current hydrological assessment.",
+      "official_url": "https://dpi.gov.gy/linden-riverfront-forum-advances-tourism-potential-of-river/"
+    },
+    {
+      "source_key": "r78-national-trust-georgetown",
+      "title": "Historic Georgetown: Brief History of the City of Georgetown",
+      "publisher": "National Trust of Guyana",
+      "year_note": "Page publication date not stated; accessed 10 October 2026. Website copyright year is not treated as a publication date.",
+      "year": null,
+      "supports": "Georgetown’s historic center lies on the Demerara’s eastern bank near the Atlantic outlet; the page distinguishes opposite mouth banks.",
+      "limits": "Historical locality prose only. It does not define a current shoreline, precise endpoint, estuary limit or navigation channel.",
+      "official_url": "https://ntg.gov.gy/historic-georgetown/"
+    },
+    {
+      "source_key": "r78-nrcan-cbmt-sounding",
+      "title": "Canada Base Map Transportation (CBMT3978), Sounding Creek–Eyehill Creek–Manitou Lake regional view",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "year_note": "Agency map service viewed 10 October 2026; individual underlying feature survey dates not established.",
+      "supports": "Sounding Creek and Eyehill Creek labels, separate neighboring tributaries and basins, the Sounding Lake transition and terminal Manitou Lake extent.",
+      "limits": "General cartography supports regional naming correspondence, not current flow, exact shorelines or a river name for modeled lake interiors.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r78-brwa-watersheds",
+      "title": "Our Watersheds — Sounding Creek Watershed",
+      "publisher": "Battle River Watershed Alliance",
+      "year_note": "Undated webpage read 10 October 2026; footer year is not treated as publication year.",
+      "supports": "Primary watershed organization describes the Sounding Creek–Sounding Lake–Eyehill Creek–Manitou Lake sequence and closed-basin character.",
+      "limits": "Broad basin description does not demonstrate continuous contemporary flow; its linked watershed map was unavailable and is not used as cartographic evidence.",
+      "official_url": "https://www.battleriverwatershed.ca/our-watersheds/"
+    },
+    {
+      "source_key": "r78-nsr-source-water-plan",
+      "title": "North Saskatchewan River Watershed Source Water Protection Plan",
+      "publisher": "North Saskatchewan River Basin Council / Saskatchewan Watershed Authority; hosted by Saskatchewan Water Security Agency",
+      "year_note": "Historical plan containing actions scheduled from 2008; exact issue year not established here. The 2025 upload path is not used as publication year.",
+      "page": "Printed page 24 / PDF page 26, Manitou Lake / Eyehill Creek",
+      "supports": "Distinguishes Eyehill Creek from the upstream Sounding Lake/Creek basin and qualifies the assessment of high-flow contributions.",
+      "limits": "Historical hydrological planning context only; not a current flow observation, exact boundary determination or legal advice.",
+      "official_url": "https://wsask.ca/wp-content/uploads/2025/05/NorthSaskatchewanRiverWatershedSourceWaterProtectionPlan.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60027437",
+      "source_keys": [
+        "r78-retained-wwf-glsc-national-2006",
+        "r78-pac-shell-beach-plan-2024"
+      ],
+      "correspondence": [
+        {
+          "selected_fids": [
+            11263
+          ],
+          "finding": "The western beginning and long eastward upper course lie on the mapped Barama corridor south of Matthews Ridge. The national map distinctly labels Barama and separately depicts Barima to the north and Cuyuni to the south. The selected beginning is not asserted to be the official Barama source, and no smaller initial feeder name is independently assigned.",
+          "sources": [
+            "r78-retained-wwf-glsc-national-2006"
+          ]
+        },
+        {
+          "selected_fids": [
+            11264
+          ],
+          "finding": "The middle selected route continues through the Kokerite setting, turns north and then northeast, and approaches Waini from the southwest. The national map shows this as the continuation of Barama into Waini rather than a Barima route. The detailed PAC map independently labels the Barama connection near Little Kaniballi.",
+          "sources": [
+            "r78-retained-wwf-glsc-national-2006",
+            "r78-pac-shell-beach-plan-2024"
+          ]
+        },
+        {
+          "selected_fids": [
+            11265
+          ],
+          "finding": "From the Barama receiving junction the selection follows the northward lower Waini corridor past the Little Kaniballi and Warapoka setting, then turns northwest behind the Shell Beach coastal strip toward Three Brothers. PAC cartography labels Waini along this trunk and separates the eastward Baramani and Luri Creek branches. Those named branches are not selected mainstem continuations.",
+          "sources": [
+            "r78-retained-wwf-glsc-national-2006",
+            "r78-pac-shell-beach-plan-2024"
+          ]
+        },
+        {
+          "selected_fids": [
+            11265
+          ],
+          "finding": "The northwest terminal leg remains on the lower Waini coastal approach. The PAC regional map distinguishes the more westerly Barima/Kaituma drainage and Mora Passage connection from Waini. The selected endpoint is not used to establish a complete Atlantic mouth, an exact tidal limit, or a current shoreline position.",
+          "sources": [
+            "r78-retained-wwf-glsc-national-2006",
+            "r78-pac-shell-beach-plan-2024"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70782485",
+      "source_keys": [
+        "r65-inegi-chihuahua-state",
+        "r74-inegi-namiquipa-2010",
+        "r74-inegi-buenaventura-2010",
+        "r69-inegi-ascension-2010",
+        "r78-inegi-riva-palacio-2010",
+        "r78-inegi-ahumada-2010",
+        "r78-conagua-patos-2024-prose",
+        "r78-conagua-conejos-2024-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9942
+          ],
+          "finding": "The southern modeled approach begins on an unnamed westward feeder in northern Riva Palacio, then turns northwest and north through the western side of the Sierra Rusia drainage. The Riva Palacio map distinguishes this approach from the separately labeled El Gachupín and El Perol tributaries. Its continuation crosses into southern Namiquipa near the Cerro El Cubo sector and joins the Santa Clara corridor. The modeled start is not treated as an official river source.",
+          "sources": [
+            "r78-inegi-riva-palacio-2010",
+            "r74-inegi-namiquipa-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9942
+          ],
+          "finding": "Through eastern Namiquipa, the northward selected course agrees with the channel directly labeled Santa Clara. Carretas, Palomino, El Mesteño and Los Álamos enter from the east, while El Bushi approaches from the west. These side routes are not substituted for the actual selected upstream path. The separate Santa María valley lies farther west.",
+          "sources": [
+            "r74-inegi-namiquipa-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9942
+          ],
+          "finding": "The southern Buenaventura course remains on Santa Clara and passes through the mapped Las Lajas reservoir setting, west of Sierra El Pajarito and Sierra La Mojina. North of the reservoir, the municipal map labels the selected corridor Las Orientales. The state map supports the river/reservoir continuation through the Flores Magón–El Dame area toward the eastern Buenaventura and Ahumada valleys. El Tintero belongs to the separate western Santa María route.",
+          "sources": [
+            "r74-inegi-buenaventura-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9942
+          ],
+          "finding": "On entering Ahumada, the selected northeastern course matches the river labeled El Carmen, bends east and then north near the Moctezuma junction, and continues along the Villa Ahumada corridor. The separately mapped Moctezuma approach is not the selected southern branch. The nearby Laguna Colorada waterbody is not promoted to an established selected lake crossing. The CONAGUA Patos hydrology prose, read before the later original-file denial, describes Santa Clara upstream, El Carmen downstream of La Trasquila, Las Lajas and eventual discharge to Laguna de Patos roughly 14 km below Villa Ahumada.",
+          "sources": [
+            "r78-inegi-ahumada-2010",
+            "r65-inegi-chihuahua-state",
+            "r78-conagua-patos-2024-prose"
+          ]
+        },
+        {
+          "fragments": [
+            9942
+          ],
+          "finding": "The model subsequently turns northwest across the extensive low terminal plain east of Sierra San Miguel and toward the plain east of Sierra China and La Morita. The terminal segment enters eastern Ascensión. The state and municipal maps show the surrounding watercourses and saline/floodable plain but do not establish a continuous named El Carmen channel along this long generalized extension. CONAGUA's Conejos-Médanos prose identifies the western and southwestern lacustrine plain as the bed of Laguna El Barreal and describes localized intermittent closed-basin drainage. El Barreal is therefore retained as the regional terminal-plain setting, with no exact shoreline or complete lake-crossing claim. The modeled endpoint is not relabeled Laguna de Patos, Laguna Santa María or Laguna de Guzmán.",
+          "sources": [
+            "r65-inegi-chihuahua-state",
+            "r78-inegi-ahumada-2010",
+            "r69-inegi-ascension-2010",
+            "r78-conagua-conejos-2024-prose"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60067709",
+      "source_keys": [
+        "r69-wwf-upper-berbice2018-figures-a-b",
+        "r78-worldbank-guyana1972-peer",
+        "r78-dpi-linden2019",
+        "r78-national-trust-georgetown"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11312
+          ],
+          "finding": "The southeastern model start follows a northward then westward, hooked eastern feeder into the upper Demerara. WWF Figure A depicts this complete stream branch and its receiving junction beside the prominently labeled Demerara corridor. The branch is not individually labeled. Figure B instead continues its simplified upper Demerara farther south on a separate stem. Thus neither the model start nor every initial selected reach is asserted to be the officially named Demerara source. The eastern Kamiwatta/Berbice network is separate.",
+          "sources": [
+            "r69-wwf-upper-berbice2018-figures-a-b"
+          ]
+        },
+        {
+          "fragments": [
+            11312,
+            11313
+          ],
+          "finding": "After joining the labeled upper Demerara corridor, the model continues north, bends northwest toward the river’s westernmost upper reach, then turns northeast and east in the Mabura Hill setting before resuming its long northward course. This characteristic bend sequence agrees with the GLSC national map and the independent historical World Bank sheet. The adjacent Essequibo remains a separate western river, with no selected cross-basin connection.",
+          "sources": [
+            "r69-wwf-upper-berbice2018-figures-a-b",
+            "r78-worldbank-guyana1972-peer"
+          ]
+        },
+        {
+          "fragments": [
+            11313
+          ],
+          "finding": "The middle selection continues through the northward Demerara corridor past the Kumaka setting and west of Ituni toward Linden. Both national maps label Demerara along this same river. The model does not turn east along the separate Berbice route through Kwakwani, or west onto the Essequibo at Rockstone. No major lake or reservoir passage is depicted on the selected corridor in these maps.",
+          "sources": [
+            "r69-wwf-upper-berbice2018-figures-a-b",
+            "r78-worldbank-guyana1972-peer"
+          ]
+        },
+        {
+          "fragments": [
+            11313,
+            11314
+          ],
+          "finding": "The fragment junction near Linden falls on the same continuous mapped Demerara corridor. The official 29 June 2019 DPI article explicitly identifies Demerara as the river dividing Linden, corroborating the map identity independently of the settlement label. A model stage break here does not imply a river-name change.",
+          "sources": [
+            "r69-wwf-upper-berbice2018-figures-a-b",
+            "r78-dpi-linden2019"
+          ]
+        },
+        {
+          "fragments": [
+            11314
+          ],
+          "finding": "The lower selection continues north through the Demerara corridor near the Cheddi Jagan/Timehri airport setting and onward to Georgetown at the Atlantic-facing mouth. The National Trust describes Georgetown’s early center on the eastern Demerara bank near its Atlantic outlet and distinguishes opposite east- and west-bank mouth sites. This anchors the terminal river-mouth setting without extending the modeled endpoint offshore or assigning an exact modern shoreline, tidal limit or ships’ channel.",
+          "sources": [
+            "r69-wwf-upper-berbice2018-figures-a-b",
+            "r78-worldbank-guyana1972-peer",
+            "r78-national-trust-georgetown"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70158285",
+      "source_keys": [
+        "r78-nrcan-cbmt-sounding",
+        "r78-brwa-watersheds",
+        "r78-nsr-source-water-plan"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9236
+          ],
+          "finding": "The western beginning and long southeastward reach match the mapped Sounding Creek corridor through the Spondin setting and east of the separate Berry Creek valley. The southern bend turns east near Youngstown and follows the Sounding Creek/Sounding Creek Reservoir corridor before turning north toward New Brigden. The modeled start is not asserted to be the officially defined source of Sounding Creek.",
+          "sources": [
+            "r78-nrcan-cbmt-sounding"
+          ]
+        },
+        {
+          "fragments": [
+            9236
+          ],
+          "finding": "The eastern side of the large U-shaped upstream route returns northwest through the Grassy Island Lake and Monitor vicinity, continuing on Sounding Creek to Sounding Lake. Monitor Creek is shown entering from the west and is not the selected long western headwater. Small adjacent lakes and wetlands are not all claimed to be crossed by the generalized line.",
+          "sources": [
+            "r78-nrcan-cbmt-sounding"
+          ]
+        },
+        {
+          "fragments": [
+            9236
+          ],
+          "finding": "The model enters and traverses the Sounding Lake setting, then turns east onto the Eyehill Creek corridor near Rosenheim and Bodo. Eyehill is separately labeled northeast through the Macklin and Evesham surroundings toward Saskatchewan. Sounding Creek does not name the entire downstream Eyehill reach or the lake-interior portions.",
+          "sources": [
+            "r78-nrcan-cbmt-sounding",
+            "r78-brwa-watersheds"
+          ]
+        },
+        {
+          "fragments": [
+            9236
+          ],
+          "finding": "The northeastern model section follows the Eyehill corridor to the southern Manitou Lake setting, then extends into the terminal lake. The endpoint is an inland lake position rather than a river mouth at the ocean. The federal map labels this lake Manitou Lake; no alias or renamed-feature claim is inferred from other sources using a different spelling.",
+          "sources": [
+            "r78-nrcan-cbmt-sounding",
+            "r78-brwa-watersheds"
+          ]
+        },
+        {
+          "fragments": [
+            9236
+          ],
+          "finding": "BRWA describes Sounding as a closed basin with Sounding Creek entering Sounding Lake and Eyehill Creek leading to Manitou Lake, which has no outflow. The older watershed protection plan separately discusses Eyehill Creek and says that Sounding basin contributions in high-flow years required additional hydrological study. These sources support basin sequence and the need to qualify connectivity; they do not establish a continuously flowing named river along the complete modeled route or present-day lake levels.",
+          "sources": [
+            "r78-brwa-watersheds",
+            "r78-nsr-source-water-plan"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

@@ -1,0 +1,451 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r78",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r77",
+    "commit": "e52033af7910f64f4f64bff8811e5c72824026de",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r77/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:60027437",
+    "hydro-system:70782485",
+    "hydro-system:60067709",
+    "hydro-system:70158285"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:60027437",
+      "category": "river_group",
+      "system_id": "60027437",
+      "baseline_logical_fid": 3359,
+      "geometry_fids": [
+        11265,
+        11264,
+        11263
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -60.579167,
+        7.185417,
+        -59.214583,
+        8.344541
+      ],
+      "rendered_mainstem_length_km": 351.209,
+      "rendered_network_length_km": 351.209,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -60.579167,
+          7.185417,
+          -59.214583,
+          8.344541
+        ]
+      },
+      "candidate_name": "Waini River",
+      "candidate_names": [
+        "Waini River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The three selected mainstem pieces follow upper and middle Barama eastward, turn northeast into the Barama–Waini junction, and continue north then northwest on lower Waini behind the Shell Beach coastal strip. Barima, Mora Passage, Baramani and Luri Creek retain distinct contextual identities.",
+      "geographic_disambiguation": "The selected western and middle course is Barama south of Matthews Ridge through the Kokerite setting, joining Waini near Little Kaniballi. It then follows lower Waini north and northwest behind Shell Beach toward Three Brothers. It is not the separate Barima/Kaituma route to the west, upper Waini arriving from the south, or the Baramani and Luri Creek side branches. The generalized coastal ending does not establish the complete Atlantic mouth or a modern shoreline.",
+      "source_keys": [
+        "r78-retained-wwf-glsc-national-2006",
+        "r78-pac-shell-beach-plan-2024"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northwestern Guyana, Barama–Waini drainage and the Shell Beach coastal corridor",
+      "candidate_name_role": "bounded_representative_receiving_system_identity",
+      "completion_scope": "All three selected mainstem fragments were compared with the readable national drainage map, including the western Barama route and its Waini receiving junction. Detailed PAC cartography distinguishes the lower Waini corridor from nearby Barima, Mora Passage, Baramani and coastal creeks. No substantial selected-route coverage gap remains. Fine initial channels and the precise mouth or shoreline are not assigned.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Waini River",
+        "distinct_selected_upstream_route": "Barama River occupies the long western and middle selected course before its connection to Waini. Barama is a component river, not an alias of Waini.",
+        "tributary_scope": "No separate tributary fragments occur in the selection. The modeled mainstem itself chooses Barama as the upper route; the independently mapped upper Waini arriving from the south is not substituted for that selected route.",
+        "coastal_and_creek_scope": "The selected lower corridor follows Waini behind Shell Beach. Baramani, Luri Creek, Barima, Kaituma and Mora Passage are surrounding or connected waterways, not alternative names assigned to this selection.",
+        "terminal_scope": "Generalized lower Waini approach toward the Three Brothers/coastal setting; no complete outlet or precision shoreline claim.",
+        "model_limits": "Displayed 351.209 km is a modeled path length, not an official Waini or Barama length. Model stages and mainstem roles do not define hydronym boundaries. No Korean rendering, historical alias sequence or formal naming adjudication is established.",
+        "remaining_work": "No further acquisition is needed for this bounded receiving-system finding. Accepted, scalar, Korean and automatic assignments remain disabled."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70782485",
+      "category": "river_group",
+      "system_id": "70782485",
+      "baseline_logical_fid": 3153,
+      "geometry_fids": [
+        9942
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -107.085417,
+        28.972917,
+        -106.489583,
+        31.152083
+      ],
+      "rendered_mainstem_length_km": 350.864,
+      "rendered_network_length_km": 350.864,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -107.085417,
+          28.972917,
+          -106.489583,
+          31.152083
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Río del Carmen"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "INEGI directly labels the selected upstream river Santa Clara and the receiving Ahumada river El Carmen. Río del Carmen and Río El Carmen are used for the receiving river in the actually read CONAGUA hydrology prose. Las Lajas is a separately scoped reservoir. The final modeled line extends beyond the described Laguna de Patos receiving area toward the El Barreal lacustrine plain; a continuous named river through this extension is not established.",
+      "geographic_disambiguation": "The selected upper route takes the south-to-north Santa Clara corridor west of the Carretas, Palomino and El Mesteño tributary approaches. It passes Las Lajas and the eastern Buenaventura valley, enters the El Carmen reach in Ahumada, and bends toward Villa Ahumada. Its northwest terminal extension lies east of Sierra China and the Santa María lake corridor. Neither Río Santa María nor Casas Grandes–Laguna de Guzmán is the selected river.",
+      "source_keys": [
+        "r65-inegi-chihuahua-state",
+        "r74-inegi-namiquipa-2010",
+        "r74-inegi-buenaventura-2010",
+        "r69-inegi-ascension-2010",
+        "r78-inegi-riva-palacio-2010",
+        "r78-inegi-ahumada-2010",
+        "r78-conagua-patos-2024-prose",
+        "r78-conagua-conejos-2024-prose"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "North-central Chihuahua, Mexico, from northern Riva Palacio through eastern Namiquipa and Buenaventura to Ahumada and the eastern Ascensión terminal plain.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed bounded correspondence review of the whole selected geometry. Independent readable INEGI maps establish the river, reservoir and terminal-plain settings. The hold concerns the feature class and natural-channel identity of the long modeled terminal extension, not an unresolved inability to acquire route-covering maps. Follow-up is needed before whole-group naming or application. No further source acquisition is needed for this bounded finding.",
+      "naming_scope_details": {
+        "directly_supported_component_name": "Río del Carmen / El Carmen for the receiving Ahumada river corridor.",
+        "representative_name_scope": "Río del Carmen is a bounded representative corridor name, not a verified uniform hydronym for the complete selected line.",
+        "upper_scope": "Santa Clara is directly supported for the selected Namiquipa–southern Buenaventura river. The initial Riva Palacio feeder remains unnamed. El Gachupín, El Perol, Carretas, Palomino and El Mesteño are not asserted to be aliases or selected headwater substitutions.",
+        "middle_label_scope": "Las Orientales is a cartographic label on the selected corridor north of Las Lajas in the Buenaventura map. This is retained as local reach evidence; no exact name-transition point or universal alias relation is assigned. CONAGUA's prose relates the upstream Santa Clara and downstream El Carmen names but does not establish every modeled vertex.",
+        "reservoir_scope": "Las Lajas is the selected reservoir passage. The model follows its generalized connected corridor; current impoundment extent, exact arms and shoreline positions are not established. El Tintero and Las Chepas are separate western-system reservoirs and are not selected passages here.",
+        "terminal_scope": "The described El Carmen receiving area at Laguna de Patos and the model's farther northwestern El Barreal plain extension are kept distinct. El Barreal is supported at regional lacustrine-plain scale, not as a surveyed endpoint shoreline. The map line alone cannot establish a natural Patos-to-Barreal surface connector, a perennial river through the terminal plain, or flow continuing beyond the selected endpoint.",
+        "hold_reason": "A material terminal portion is a generalized inland-plain/lacustrine extension beyond the supported named river corridor. Its treatment as a continuous natural named river is unestablished. This is a naming/feature-scope hold, not a source-access-pending classification or a search for a tiny feeder's name.",
+        "nearby_exclusions": "Río Santa María, Laguna Santa María, Casas Grandes, Laguna de Guzmán, El Fresnal and the Río Bravo are separate regional features. Aquifer or basin membership is not used to transfer any of those names to this selection. Groundwater relationships do not establish a surface-river connection.",
+        "historical_source_scope": "INEGI municipal maps are 2010 compilations. The state sheet is fourth edition 2024, copyright 2025, with topographic planimetry from sixth-edition 2023 coverage. CONAGUA reports are dated 2024. None is an observation of present water levels, current reservoir operation or perennial surface flow.",
+        "model_limits": "The single mainstem-role fragment and 350.864 modeled km do not establish an official river length, official source, surveyed thalweg or one name across feeders, reservoir and terminal plain. No Korean name is established.",
+        "separately_named_corridor_parts": [
+          "Río del Carmen"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed bounded correspondence review of the whole selected geometry. Independent readable INEGI maps establish the river, reservoir and terminal-plain settings. The hold concerns the feature class and natural-channel identity of the long modeled terminal extension, not an unresolved inability to acquire route-covering maps. Follow-up is needed before whole-group naming or application. No further source acquisition is needed for this bounded finding."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60067709",
+      "category": "river_group",
+      "system_id": "60067709",
+      "baseline_logical_fid": 3364,
+      "geometry_fids": [
+        11314,
+        11313,
+        11312
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -58.647917,
+        4.670833,
+        -58.171425,
+        6.814274
+      ],
+      "rendered_mainstem_length_km": 350.508,
+      "rendered_network_length_km": 350.508,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -58.647917,
+          4.670833,
+          -58.171425,
+          6.814274
+        ]
+      },
+      "candidate_name": "Demerara River",
+      "candidate_names": [
+        "Demerara River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Demerara River is directly supported for the receiving upper, middle and lower river. The selected southeastern beginning is an unnamed eastern feeder shown joining the upper Demerara, rather than the southern stem retained on the national map. The river name is not forced onto the entire feeder or treated as proof of the official source.",
+      "geographic_disambiguation": "The selected upstream route uses the curved eastern feeder into the upper Demerara. It does not begin on the more southerly upper stem depicted in the national map, nor on the separate Berbice/Kamiwatta drainage to the east. Its middle western bend remains east of the Essequibo, then turns east and north toward Kumaka and Linden. The lower river approaches Georgetown, distinct from the Essequibo estuary to the west and Mahaica to the east.",
+      "source_keys": [
+        "r69-wwf-upper-berbice2018-figures-a-b",
+        "r78-worldbank-guyana1972-peer",
+        "r78-dpi-linden2019",
+        "r78-national-trust-georgetown"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central and eastern Guyana, from the forested upper Demerara drainage between Essequibo and Berbice through the Mabura Hill, Kumaka and Linden settings to Georgetown on the Atlantic coast.",
+      "candidate_name_role": "bounded_representative_receiving_river_identity_with_distinct_unnamed_eastern_upper_feeder",
+      "completion_scope": "Completed bounded correspondence review of all three selected mainstem-role pieces. Readable regional pixels depict the actual initial feeder, and national agency and World Bank maps cover the characteristic middle bends, Linden and coastal ending. Official prose independently anchors Linden and Georgetown to Demerara. The evidence supports a representative receiving system with a separate unnamed upper component; exact source, tributary-name transition, current shoreline and navigational channel are not established.",
+      "naming_scope_details": {
+        "representative_name": "Demerara River, Guyana.",
+        "upper_feeder": "The selected initial eastern branch is shown but unnamed in Figure A. The larger national-map stem extends south of its junction on a different branch. This is sufficient to qualify the representative system without inventing a feeder name or pursuing minor nomenclature.",
+        "middle_course": "Upper Demerara western and eastward bends in the Mabura Hill setting, then Kumaka and Linden, match the actual selected route rather than a copied prior candidate.",
+        "reservoir_scope": "No major reservoir or lake passage is depicted along the selected path by the inspected sources. This is a bounded cartographic observation, not a claim that no small or modern impoundment exists anywhere in the basin.",
+        "terminal_scope": "Lower Demerara in the Georgetown mouth setting toward the Atlantic. The endpoint is not treated as a surveyed river mouth, offshore extension, navigation channel or contemporary shoreline.",
+        "tributary_role_scope": "All three selected fragments have model mainstem roles; no separate tributary-role piece is selected. The initial natural feeder is nevertheless a tributary component, so model roles are not hydronym assignments.",
+        "excluded_waterways": "Essequibo and its estuary to the west, Berbice/Kamiwatta to the east of the upper selection, and lower Mahaica to the east remain distinct systems.",
+        "historical_scope": "WWF Figure A is dated November 2014, its national Figure B is credited to GLSC 2006, and the World Bank map is March 1972 in a December 1973 report. The 2019 article corroborates Linden; the National Trust page is undated. No present-day flow, exact tidal boundary, channel depth, water quality, reservoir operation or navigability is asserted.",
+        "model_limits": "The rendered 350.508 km is a model length, not an official Demerara length. Fragment and stage boundaries do not establish natural naming transitions. No accepted, scalar or Korean name is assigned."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70158285",
+      "category": "river_group",
+      "system_id": "70158285",
+      "baseline_logical_fid": 2970,
+      "geometry_fids": [
+        9236
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -111.754167,
+        51.54375,
+        -109.647917,
+        52.760417
+      ],
+      "rendered_mainstem_length_km": 349.458,
+      "rendered_network_length_km": 349.458,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -111.754167,
+          51.54375,
+          -109.647917,
+          52.760417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Sounding Creek",
+        "Eyehill Creek"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Sounding Creek, the Sounding Lake crossing/outlet setting, Eyehill Creek, and the terminal Manitou Lake setting are supported. No single river name is assigned across the lake interiors and both creeks.",
+      "geographic_disambiguation": "The selection follows the large U-shaped Sounding Creek corridor through the Spondin, Youngstown, New Brigden and Monitor settings, then the Sounding Lake and Eyehill Creek corridor toward Macklin, Evesham and Manitou Lake south of Neilburg. It is separate from Berry Creek to the west, Monitor Creek as a western tributary, and Ribstone Creek/Battle River to the north. It does not form a verified through-river from Manitou Lake to the Battle River or the ocean.",
+      "source_keys": [
+        "r78-nrcan-cbmt-sounding",
+        "r78-brwa-watersheds",
+        "r78-nsr-source-water-plan"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "East-central Alberta and west-central Saskatchewan, Canada",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed bounded correspondence and naming-scope review of the complete selected fragment. Original federal cartographic pixels cover the western headwater, full southern bend, Sounding Lake, Eyehill Creek and Manitou Lake terminal setting. The hold reflects differently named creek components, lake-interior modeling and conditional inter-lake connectivity, not a substantial missing-source gap. Continuous natural flow and a single whole-line name are not established.",
+      "naming_scope_details": {
+        "separately_named_corridor_parts": [
+          "Sounding Creek",
+          "Eyehill Creek"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed bounded correspondence and naming-scope review of the complete selected fragment. Original federal cartographic pixels cover the western headwater, full southern bend, Sounding Lake, Eyehill Creek and Manitou Lake terminal setting. The hold reflects differently named creek components, lake-interior modeling and conditional inter-lake connectivity, not a substantial missing-source gap. Continuous natural flow and a single whole-line name are not established."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70782485",
+      "hydro-system:70158285"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 255,
+    "non_pending_records": 247,
+    "source_access_pending": 3,
+    "source_material_pending": 5,
+    "source_any_pending": 8,
+    "scope_holds": 78,
+    "river_groups": 157,
+    "lakes": 98,
+    "unrecorded": 3810,
+    "unrecorded_river_groups": 3298,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r78-retained-wwf-glsc-national-2006",
+      "official_url": "https://wwfeu.awsassets.panda.org/downloads/biodiversity_assessment_survey_of_the_upper_berbice_region_2018.pdf"
+    },
+    {
+      "source_key": "r78-pac-shell-beach-plan-2024",
+      "official_url": "https://www.pac.gov.gy/wp-content/uploads/2025/09/FINAL-SBPA-Management-Plan-2024-2028-1.pdf"
+    },
+    {
+      "source_key": "r65-inegi-chihuahua-state",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/chih/794551162774.pdf"
+    },
+    {
+      "source_key": "r74-inegi-namiquipa-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08048.pdf"
+    },
+    {
+      "source_key": "r74-inegi-buenaventura-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08010.pdf"
+    },
+    {
+      "source_key": "r69-inegi-ascension-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08005.pdf"
+    },
+    {
+      "source_key": "r78-inegi-riva-palacio-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08054.pdf"
+    },
+    {
+      "source_key": "r78-inegi-ahumada-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08001.pdf"
+    },
+    {
+      "source_key": "r78-conagua-patos-2024-prose",
+      "official_url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/chihuahua/DR_0817.pdf"
+    },
+    {
+      "source_key": "r78-conagua-conejos-2024-prose",
+      "official_url": "https://sigagis.conagua.gob.mx/gas1/Edos_Acuiferos_18/chihuahua/DR_0823.pdf"
+    },
+    {
+      "source_key": "r69-wwf-upper-berbice2018-figures-a-b",
+      "official_url": "https://wwfeu.awsassets.panda.org/downloads/biodiversity_assessment_survey_of_the_upper_berbice_region_2018.pdf"
+    },
+    {
+      "source_key": "r78-worldbank-guyana1972-peer",
+      "official_url": "https://documents1.worldbank.org/curated/en/113261468252287309/pdf/multi0page.pdf"
+    },
+    {
+      "source_key": "r78-dpi-linden2019",
+      "official_url": "https://dpi.gov.gy/linden-riverfront-forum-advances-tourism-potential-of-river/"
+    },
+    {
+      "source_key": "r78-national-trust-georgetown",
+      "official_url": "https://ntg.gov.gy/historic-georgetown/"
+    },
+    {
+      "source_key": "r78-nrcan-cbmt-sounding",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r78-brwa-watersheds",
+      "official_url": "https://www.battleriverwatershed.ca/our-watersheds/"
+    },
+    {
+      "source_key": "r78-nsr-source-water-plan",
+      "official_url": "https://wsask.ca/wp-content/uploads/2025/05/NorthSaskatchewanRiverWatershedSourceWaterProtectionPlan.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "e52033af7910f64f4f64bff8811e5c72824026de",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      111,
+      112,
+      113,
+      114
+    ],
+    "next_unrecorded_id": "hydro-system:90109409",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}
