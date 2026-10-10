@@ -1,0 +1,588 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r101",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r100",
+    "commit": "521dd9dbf4b1d89916a501815c98642163688d27",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r100/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:70878834"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:80064967",
+      "category": "river_group",
+      "system_id": "80064967",
+      "baseline_logical_fid": 902,
+      "geometry_fids": [
+        2509
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -119.202083,
+        67.491667,
+        -115.48125,
+        68.06875
+      ],
+      "rendered_mainstem_length_km": 268.608,
+      "rendered_network_length_km": 268.608,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -119.202083,
+          67.491667,
+          -115.48125,
+          68.06875
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Rae River",
+        "Richardson River",
+        "Richardson Bay",
+        "Coronation Gulf"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Repeated federal map labels support Rae River in the northern central corridor and Richardson River in the separate southern and terminal valley. Richardson Bay and Coronation Gulf identify the terminal receiving waters. Cox Lake is a separate mapped lake used for disambiguation, not a selected mainstem lake or accepted alias.",
+      "geographic_disambiguation": "The route first runs north and northeast through western stream-and-lake country, enters the Rae River setting, follows the northern eastward valley, then drops south west of Cox Lake across terrain whose full aquatic connector is unestablished. It subsequently passes through Richardson River and an adjacent southern tributary corridor before reaching the lower Richardson River, turning north and ending in its coastal outlet setting. The Rae mouth farther northwest and the Coppermine mouth near Kugluktuk are distinct from the selected terminal channel.",
+      "source_keys": [
+        "r101-nrcan-cbmt-rae-richardson"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Arctic Canada west of Kugluktuk, across the Rae River and Richardson River surroundings to Richardson Bay in Coronation Gulf.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Five successfully acquired original federal raster views cover the entire selected fragment, including the initial feeder, lake sequence, upper receiving-river junction, central Rae corridor, interriver connector, lower southern tributary setting, Richardson valley and coastal endpoint. Originals, necessary crops and separate local orientation copies were inspected. Coverage is complete, but full source-to-feature correspondence is not: the actual Rae-to-Richardson connector and parts of the southern lower branch sequence remain materially unestablished. This record therefore remains material-pending, rather than a completed representative identity or completed naming-scope hold.",
+      "material_pending_reason": "A substantive southward selected connector leaves Rae River west of Cox Lake and reaches the separately mapped Richardson River without an established continuous blue-mapped waterway across the intervening terrain. The subsequent selected southern tributary versus Richardson branch sequence also remains unresolved in part. Readable full-area coverage and direct names for central and terminal components cannot substitute for this missing actual source-to-object correspondence.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_named_river_components": [
+          "Rae River",
+          "Richardson River"
+        ],
+        "initial_headward_component_name": null,
+        "initial_headward_component": "Northward and northeastward small-stream/lake approach west of Bebensee Lake; no directly mapped hydronym or official source vertex established.",
+        "initial_lake_names": null,
+        "short_lake_connector_names": null,
+        "central_named_corridor": "Rae River, as directly printed on federal cartography.",
+        "interriver_connector_name": null,
+        "interriver_connector_scope": "The modeled southward passage west of Cox Lake leaves Rae River, crosses intervening terrain and small-water settings, and reaches Richardson River. A continuous mapped aquatic connection across the full passage is not established.",
+        "adjacent_unselected_named_lake": "Cox Lake",
+        "lower_southern_tributary_name": null,
+        "lower_southern_tributary_scope": "Unlabeled southern tributary/wetland corridor alongside the separately mapped Richardson River. Some modeled connecting and branch assignments remain unresolved.",
+        "terminal_river_component": "Richardson River",
+        "terminal_receiving_water": "Richardson Bay",
+        "broader_receiving_water": "Coronation Gulf",
+        "other_nearby_rivers_not_substituted": [
+          "Rae River coastal outlet",
+          "Coppermine River"
+        ],
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "Do not name the complete model Rae River, Richardson River or a purported officially named combined Rae–Richardson river.",
+          "Do not promote the unnamed western feeder, lake interiors, uncertain southward connector or southern lower tributary to either named river.",
+          "Do not treat Cox Lake or Bebensee Lake as selected mainstem lakes merely because they lie close to the route.",
+          "Do not infer a real interbasin connection, continuous flow, a current bifurcation, a surveyed source or mouth, or a legal hydronym boundary from the modeled line.",
+          "No Indigenous-language alternative, formal naming date, gazetteer adjudication or Korean name is established.",
+          "Do not count this record as completed representative identity, completed scope hold or a second access-pending record."
+        ],
+        "model_limits": "The 268.608 km figure is the selected modeled-fragment length, not an official length of Rae River, Richardson River, or their combined drainage. Generalized bends and the substantive cross-corridor connection are distinct issues. The existing geometry was used only to orient source viewing; it was neither edited nor revalidated.",
+        "separately_named_corridor_parts": [
+          "Rae River",
+          "Richardson River",
+          "Richardson Bay",
+          "Coronation Gulf"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Five successfully acquired original federal raster views cover the entire selected fragment, including the initial feeder, lake sequence, upper receiving-river junction, central Rae corridor, interriver connector, lower southern tributary setting, Richardson valley and coastal endpoint. Originals, necessary crops and separate local orientation copies were inspected. Coverage is complete, but full source-to-feature correspondence is not: the actual Rae-to-Richardson connector and parts of the southern lower branch sequence remain materially unestablished. This record therefore remains material-pending, rather than a completed representative identity or completed naming-scope hold."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70856797",
+      "category": "river_group",
+      "system_id": "70856797",
+      "baseline_logical_fid": 3235,
+      "geometry_fids": [
+        10378,
+        10377
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -99.179167,
+        23.727083,
+        -97.777159,
+        24.185417
+      ],
+      "rendered_mainstem_length_km": 268.283,
+      "rendered_network_length_km": 268.283,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -99.179167,
+          23.727083,
+          -97.777159,
+          24.185417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Río El Pilón",
+        "Presa Vicente Guerrero",
+        "Río Soto la Marina"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Actual map pixels support the distinct Pilón, Vicente Guerrero and Soto la Marina components and the La Pesca coastal outlet setting. The separately mapped Purificación, Corona, El Sauz and Los Puentes features provide disambiguation; their proximity does not establish that their names cover the complete selected initial route.",
+      "geographic_disambiguation": "The selection uses a short western approach north of the Purificación corridor, joins the Pilón approach to the northern part of Vicente Guerrero, crosses the reservoir toward its eastern outlet, follows the river through the Abasolo–El Contadero sector and south to Soto la Marina, then turns east to La Pesca and the Gulf of Mexico. It is distinct from the Conchos–San Fernando river farther north and from the Corona/Purificación routes entering Vicente Guerrero from the west and southwest.",
+      "source_keys": [
+        "r101-inegi-tamaulipas-state",
+        "r101-inegi-padilla-2010",
+        "r101-inegi-soto-marina-2010",
+        "r101-inegi-hidalgo-2010"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central coastal Tamaulipas, Mexico, from the Cruz y Carmen–Ojo de Agua surroundings through the Padilla–Vicente Guerrero reservoir setting and Abasolo to Soto la Marina and La Pesca.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "The retained original state sheet covers both complete selected fragments, and three successfully acquired municipal compendia supply western, reservoir and coastal detail. Actual original map views were inspected across the initial approach, reservoir, tributary junctions, receiving trunk and terminal setting. This establishes bounded component identities but does not establish the modeled Cruz y Carmen–Ojo de Agua approach and its downstream connector as one continuous mapped watercourse. Material-pending is the sole primary accounting status; successful broad coverage is not counted as completed correspondence.",
+      "material_pending_reason": "The initial Cruz y Carmen–Ojo de Agua northward connector and subsequent eastward connection toward the Pilón/Los Puentes setting are not established as one continuous mapped watercourse. The original state sheet shows a distinct intermittent/disappearing-current setting, while the municipal originals distinguish El Sauz, Pilón and Purificación without resolving that full modeled connection. Strong reservoir, lower-river and coastal evidence cannot substitute for that missing source-to-object correspondence.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Soto la Marina drainage",
+        "representative_system_identity_role": "Supported receiving-corridor context only; not a completed full-selection identity or applied scalar name.",
+        "initial_headward_component_name": null,
+        "initial_headward_component": "Modeled northward connector from the Cruz y Carmen surroundings toward Ojo de Agua, followed by an eastward approach through the El Sauz outlet/intermittent-stream setting. A continuous mapped correspondence across the full initial connector remains unresolved.",
+        "initial_adjacent_reservoir": "Presa El Sauz; mapped contextual feature, not an established selected crossing.",
+        "initial_adjacent_feeder": "Arroyo Los Puentes; distinct mapped Padilla tributary/junction context, not a name assigned to the complete initial model.",
+        "supported_upper_receiving_component": "Río El Pilón",
+        "reservoir_component": "Presa Vicente Guerrero",
+        "dominant_selected_lower_river_component": "Río Soto la Marina",
+        "receiving_water": "Golfo de México",
+        "terminal_setting": "La Pesca river-mouth and coastal-lagoon setting.",
+        "upstream_and_side_components_not_substituted": [
+          "Farther-north Río El Pilón headwater course",
+          "Río Purificación",
+          "Río Corona",
+          "Arroyo Los Puentes outside its directly mapped local scope",
+          "Arroyo Grande",
+          "Northern Jiménez-direction incoming drainage",
+          "Arroyo El Paisano",
+          "Palmas drainage"
+        ],
+        "nearby_coastal_waterbodies_not_aliases": [
+          "Laguna Madre",
+          "Laguna Almagre",
+          "Laguna Chovenosa",
+          "Laguna Contadero",
+          "Laguna Morelos",
+          "Laguna Santa Rita"
+        ],
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "No complete feature name from the bbox, length, rank or downstream river label alone.",
+          "No El Sauz transit or continuous western connector inferred from locality proximity.",
+          "No uniform Soto la Marina name across the western feeder, Pilón and reservoir interior.",
+          "No current reservoir level, continuous surface flow, permanently open coastal inlet or legal hydronym boundary established.",
+          "No Korean name, formal naming date or authoritative compound name established.",
+          "No completed representative-identity count or completed naming-scope hold."
+        ],
+        "model_limits": "The supplied 268.283 km is a modeled selected length, not an official river length. Existing geometry was used only to orient source viewing and was neither edited nor revalidated. Generalized corridor correspondence does not certify exact alignment at every bend or shore.",
+        "separately_named_corridor_parts": [
+          "Río El Pilón",
+          "Presa Vicente Guerrero",
+          "Río Soto la Marina"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "The retained original state sheet covers both complete selected fragments, and three successfully acquired municipal compendia supply western, reservoir and coastal detail. Actual original map views were inspected across the initial approach, reservoir, tributary junctions, receiving trunk and terminal setting. This establishes bounded component identities but does not establish the modeled Cruz y Carmen–Ojo de Agua approach and its downstream connector as one continuous mapped watercourse. Material-pending is the sole primary accounting status; successful broad coverage is not counted as completed correspondence."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60174418",
+      "category": "river_group",
+      "system_id": "60174418",
+      "baseline_logical_fid": 3381,
+      "geometry_fids": [
+        11521,
+        11520,
+        11519,
+        11523,
+        11518,
+        11522
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -53.139583,
+        3.229167,
+        -51.94375,
+        4.480955
+      ],
+      "rendered_mainstem_length_km": 267.914,
+      "rendered_network_length_km": 304.845,
+      "geometry_summary": {
+        "fragment_count": 6,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -53.139583,
+          3.229167,
+          -51.94375,
+          4.480955
+        ]
+      },
+      "candidate_name": "Approuague",
+      "candidate_names": [
+        "Approuague",
+        "Fleuve Approuague"
+      ],
+      "research_category": "source_material_pending",
+      "supported_name_scope": "Approuague and Fleuve Approuague are printed on the supported main-river corridor. Crique Arataye in the official descriptive sheet and Arataï on the topographic base describe a separate western tributary, not aliases for the mainstem. No name is assigned uniformly to every selected component.",
+      "geographic_disambiguation": "The selected interior river lies west of the Oyapock/Oiapoque border river. The source maps distinguish the Approuague trunk from the eastern Ekini, Mataroni, Armontabo and Noussiri drainage and from the western Arataye. French administration does not place this South American object in Europe. The regional French Guiana/Brazil border-area cue was used only for navigation, not as a name assignment.",
+      "source_keys": [
+        "r101-deal-znieff-2013-21",
+        "r76-deal-znieff-2013-19",
+        "r101-deal-znieff-2013-20",
+        "r101-deal-crique-arataye-2014",
+        "r75-deal-oyapock-camopi-2018"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Eastern interior French Guiana, South America: Massif des Émérillons and Monts Bakra headwater setting, upper Approuague, the Arataye junction, and a modeled lower northeastern continuation toward the Régina/lower-Approuague region.",
+      "candidate_name_role": "Bounded upper and middle receiving-river identity, with a separately identified western Arataye tributary approach; the full selected lower and terminal correspondence remains incomplete.",
+      "completion_scope": "All six actual selected features were inspected in their retained network and role context: four mainstem features and two tributary features. Available detailed cartography was read for the southern beginning, eastward upper corridor, northward middle trunk, both western tributary pieces and their shared confluence, and the middle-lower northeastward continuation. The acquired Map20 ends before the complete selected lower/terminal interval. The retained regional drainage map provides wider context but does not adequately resolve that remaining approach at bounded component scale. This is a material-pending result, not a completed scope hold or a completed representative identity. No exact geometry alignment or revalidation was performed.",
+      "material_pending_reason": "The acquired detailed Map20 stops before the full selected lower northeastern/northward continuation. The retained regional map is too coarse to finish the terminal component correspondence. Map9 was not inspected after its access request was cancelled; its HTTP outcome and source content remain unknown and no alternate retrieval was used. Full bounded lower/terminal source correspondence remains unestablished.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_receiving_identity": "Approuague, supported only for the stated upper/middle receiving corridor while the complete selected feature remains pending.",
+        "initial_component": "Upper Approuague drainage in the Massif des Émérillons–Gros Montagne–Monts Bakra setting; exact initial feeder/source hydronym remains null.",
+        "initial_endpoint_official_source_name": null,
+        "middle_component": "Approuague through Pointe Finie, Grand Kanori, Machikou and the Arataye junction.",
+        "tributary_component": "Crique Arataye / Arataï, restricted to the two selected lower-tributary features.",
+        "tributary_full_upstream_course_selected": false,
+        "separate_neighboring_waterways": [
+          "Ekini",
+          "Mataroni",
+          "Armontabo",
+          "Noussiri",
+          "Limonade"
+        ],
+        "lake_or_reservoir_component_identified_in_supported_corridor": false,
+        "terminal_component_name": null,
+        "terminal_local_branch_name": null,
+        "terminal_exact_receiving_waterbody_name": null,
+        "terminal_endpoint_is_open_coast_mouth": null,
+        "alternative_whole_route_name": null,
+        "excluded_inferences": [
+          "Do not transfer the previously researched Oyapock/Oiapoque identity onto this interior river because the broad region includes the Brazil border.",
+          "Do not apply Approuague uniformly to both Arataye tributary features or every local reach.",
+          "Do not infer a complete representative-system identity from the resolved middle trunk while the final selected corridor remains unestablished.",
+          "Do not call the unreviewed ending an Atlantic mouth, a particular estuarine branch, a named confluence or a lake passage.",
+          "Do not turn old ecological overlays or topographic map editions into present-day regulatory, flow, navigation or shoreline claims.",
+          "No legal naming date, exact name-transition vertex, Korean name or formal alias register is established."
+        ],
+        "model_limits": "The retained 267.914 km mainstem length and 304.845 km network length describe this generalized selection, not an official published river length. The four mainstem features and two tributary features are model components, not six independently named rivers. Existing geometry was used only for source viewing and bounded visual orientation.",
+        "access_limitations": "The required Map9 source was not inspected after its access request was cancelled. Its HTTP outcome is unknown, so no HTTP 401/403 is claimed. The source remains unavailable and is excluded from the findings. Unresolved lower/terminal correspondence is counted once as source-material pending."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70878834",
+      "category": "river_group",
+      "system_id": "70878834",
+      "baseline_logical_fid": 3256,
+      "geometry_fids": [
+        10421,
+        10420
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -77.232111,
+        20.060417,
+        -75.922917,
+        20.627083
+      ],
+      "rendered_mainstem_length_km": 267.589,
+      "rendered_network_length_km": 267.589,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -77.232111,
+          20.060417,
+          -75.922917,
+          20.627083
+        ]
+      },
+      "candidate_name": "Río Cauto",
+      "candidate_names": [
+        "Río Cauto"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Primary cartography repeatedly labels the initial, middle and lower river Río Cauto. Gilbert, Gota Blanca, the Palmarito–Mella impoundment and the Cauto del Paso reservoir setting remain distinct lake components; surrounding tributaries and coastal branches are not renamed.",
+      "geographic_disambiguation": "The headward selection starts in the upper Cauto valley near Alto de la Estrella, traverses the Gilbert/Gota Blanca and Palmarito–Mella reservoir corridors, then follows Cauto west past the southern Contramaestre junction and Cauto Cristo. It crosses the northern Cauto del Paso impounded corridor and continues through the Salado junction setting and Guamo Embarcadero to the main delta outlet. It does not select upper Contramaestre, Bayamo, Salado, Río Baire, Cañas/Charco Mono, Brazo de la Puente or the separate northern Brazo Cauto Norte.",
+      "source_keys": [
+        "r101-jog-santiago",
+        "r101-jog-holguin",
+        "r101-jog-camaguey",
+        "r101-jog-bayamo",
+        "r101-delera2007",
+        "r101-ramsar1236-2002",
+        "r101-granma-hydraulics2025"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Eastern Cuba: Sierra Maestra and Palma Soriano through the Mella and Cauto Cristo settings to the lower Cauto delta on Golfo de Guacanayabo.",
+      "candidate_name_role": "Supported representative river identity for the complete bounded selected corridor; not a uniform name for all reservoir, delta or tributary components.",
+      "completion_scope": "Completed bounded source-to-object correspondence for the full existing two-fragment selection: initial mountain valley, upper reservoirs, Palma Soriano, Palmarito–Mella impoundment, westward main river and tributary junctions, Cauto del Paso reservoir corridor, lower floodplain, delta branches and terminal mangrove-mouth corridor. Representative identity is supported without asserting precise point matches or naming every component. The optional404 and403 sources are not required to close a correspondence gap.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_identity": "Río Cauto",
+        "initial_headward_component_name": "Río Cauto",
+        "initial_headward_component": "Selected mountain-river corridor near Alto de la Estrella, not an established natural-source point.",
+        "lake_components": [
+          "Gilbert",
+          "Gota Blanca",
+          "Palmarito–Mella impoundment",
+          "Cauto del Paso reservoir setting"
+        ],
+        "reservoir_naming_limit": "Gilbert and Gota Blanca are directly named and ordered by the primary field study. Cauto del Paso is named by the official Ramsar record and operator statement, with its locality and reservoir physically mapped. Protesta de Baraguá is an independently attested upstream Santiago reservoir name, retained as regional context; the inspected JOG lake area is not itself labeled with that name, so no exact formal reservoir-name crosswalk is claimed.",
+        "middle_named_component": "Río Cauto",
+        "lower_named_component": "Río Cauto",
+        "terminal_component_name": "Río Cauto",
+        "terminal_component": "Main river-mouth corridor through Ciénaga de Cauto Norte into the Golfo de Guacanayabo receiving setting; adjoining estuarine lagoons and branches remain separate.",
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "Do not apply the representative river name uniformly to reservoir surfaces, coastal lagoons, marshes or tributaries.",
+          "The separate northern Brazo Cauto Norte and southern Brazo de la Puente are not the chosen main delta path.",
+          "The model split near the lower joining setting is not an official hydronym boundary.",
+          "No current discharge, dam condition, operating level, exact contemporary bank or shoreline, surveyed natural-source or mouth vertex, formal naming date or Korean name is established."
+        ],
+        "model_limits": "The 267.589 km length is retained model metadata for this selected generalized corridor, not an official river length. Existing geometry was used only to orient reading; it was neither edited nor revalidated.",
+        "access_limitations": "One optional INRH presentation returned404 and one independent reservoir study returned403. Both remain stopped without equivalent recovery. Full bounded correspondence is established from independent acquired sources, so neither is counted as a pending gap."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:80064967",
+      "hydro-system:70856797",
+      "hydro-system:60174418"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 347,
+    "non_pending_records": 321,
+    "source_access_pending": 3,
+    "source_material_pending": 23,
+    "source_any_pending": 26,
+    "scope_holds": 109,
+    "river_groups": 249,
+    "lakes": 98,
+    "unrecorded": 3718,
+    "unrecorded_river_groups": 3206,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r101-nrcan-cbmt-rae-richardson",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r101-inegi-tamaulipas-state",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/tamps/889463837107.pdf"
+    },
+    {
+      "source_key": "r101-inegi-padilla-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28030.pdf"
+    },
+    {
+      "source_key": "r101-inegi-soto-marina-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28037.pdf"
+    },
+    {
+      "source_key": "r101-inegi-hidalgo-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28016.pdf"
+    },
+    {
+      "source_key": "r101-deal-znieff-2013-21",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/jpg/ZM_2013_21.jpg"
+    },
+    {
+      "source_key": "r76-deal-znieff-2013-19",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/jpg/ZM_2013_19_new.jpg"
+    },
+    {
+      "source_key": "r101-deal-znieff-2013-20",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/jpg/ZM_2013_20.jpg"
+    },
+    {
+      "source_key": "r101-deal-crique-arataye-2014",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/00290002_Crique_Arataye.pdf"
+    },
+    {
+      "source_key": "r75-deal-oyapock-camopi-2018",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/dossier_aeu_sauts_oyapock_octobre2018f-compressed.pdf"
+    },
+    {
+      "source_key": "r101-jog-santiago",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-57254574-nf18-14.jpg"
+    },
+    {
+      "source_key": "r101-jog-holguin",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-57254574-nf18-10.jpg"
+    },
+    {
+      "source_key": "r101-jog-camaguey",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-57254574-nf18-9.jpg"
+    },
+    {
+      "source_key": "r101-jog-bayamo",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-57254574-nf18-13.jpg"
+    },
+    {
+      "source_key": "r101-delera2007",
+      "official_url": "https://ephemeroptera-galactica.com/pubs/pub_d/pubdelera2007p451.pdf"
+    },
+    {
+      "source_key": "r101-ramsar1236-2002",
+      "official_url": "https://rsis.ramsar.org/RISapp/files/RISrep/CU1236RIS.pdf"
+    },
+    {
+      "source_key": "r101-granma-hydraulics2025",
+      "official_url": "https://www.granma.cu/cuba/2025-11-01/no-hay-afectaciones-a-la-infraestructura-hidraulica-de-granma-01-11-2025-09-11-51"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "521dd9dbf4b1d89916a501815c98642163688d27",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      204,
+      205,
+      206,
+      207
+    ],
+    "next_unrecorded_id": "hydro-system:80057706",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}
