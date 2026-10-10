@@ -1,0 +1,375 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r95",
+  "sources": [
+    {
+      "source_key": "r95-usgs-national-map-naknek",
+      "title": "The National Map USGS Topo: American Creek, Katmai lakes, Savonoski and Naknek river corridor",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Representative receiving-system identity, bounded complete route correspondence, component lake and river distinctions, receiving connections and exclusion of nearby unselected tributaries and drainages.",
+      "limits": "Independently maintained federal basemap, not a stopped USGS report, NPS brochure, ADFG publication, BLM drainage map or USFWS Becharof map. Its river-network labels sometimes extend across named lake interiors. The composite service does not establish a single source edition, legal naming status, every minor channel name or exact bank/channel alignment. The southeastern Grosvenor modeled passage is generalized relative to the mapped outlet. Original raster files, exact-view export URLs, request parameters and orientation material remain private.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r95-canada-basemap-sainte-marguerite",
+      "title": "Canada Base Map: upper Sainte-Marguerite, Sainte-Marguerite 3 reservoir and lower river corridor",
+      "publisher": "Natural Resources Canada, Government of Canada",
+      "supports": "Representative river identity, actual complete route correspondence, named upper lake settings, Sainte-Marguerite 3 reservoir passage, tributary separation and lower river/estuary approach.",
+      "limits": "Composite cartography has scale-dependent representations and no single established compilation date. The larger-scale reservoir depiction resolves the older narrow-river overview. It does not supply a separate label for the lower impoundment, legal name boundaries, precise shorelines or current operating conditions. Original rasters and exact export views remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r95-cehq-denis-perron",
+      "title": "Répertoire des barrages: Barrage Denis-Perron, X2023173",
+      "publisher": "Gouvernement du Québec, ministère de l'Environnement, de la Lutte contre les changements climatiques, de la Faune et des Parcs",
+      "supports": "The dam setting on the selected central-to-lower transition, Sainte-Marguerite 3 reservoir identification, Sainte-Marguerite basin relationship and the listed downstream installation records.",
+      "limits": "Independent provincial engineering record, not a gazetteer or Hydro-Québec publication. Used only for the river/reservoir relationship and site setting; safety, performance, area and operating values are outside the finding.",
+      "official_url": "https://www.cehq.gouv.qc.ca/barrages/detail.asp?no_mef_lieu=X2023173"
+    },
+    {
+      "source_key": "r95-cehq-sainte-marguerite2",
+      "title": "Répertoire des barrages: Barrage Sainte-Marguerite-2, X0003239",
+      "publisher": "Gouvernement du Québec, ministère de l'Environnement, de la Lutte contre les changements climatiques, de la Faune et des Parcs",
+      "supports": "Sainte-Marguerite-2 dam setting below the selected lower impounded corridor and its Sainte-Marguerite watercourse relationship.",
+      "limits": "The reservoir-name field is blank. The dam and installation names do not establish a separate official reservoir name or a precise upstream impoundment limit.",
+      "official_url": "https://www.cehq.gouv.qc.ca/barrages/detail.asp?no_mef_lieu=X0003239"
+    },
+    {
+      "source_key": "r95-cehq-sainte-marguerite1",
+      "title": "Répertoire des barrages: X0003240, Petite centrale hydroélectrique - Sainte-Marguerite-1",
+      "publisher": "Gouvernement du Québec, ministère de l'Environnement, de la Lutte contre les changements climatiques, de la Faune et des Parcs",
+      "supports": "Distinct downstream Sainte-Marguerite-1 installation setting on the same river, above the selected lower terminal approach.",
+      "limits": "Dam-name and reservoir-name fields are blank. The installation title is not assigned as an official dam or reservoir hydronym.",
+      "official_url": "https://www.cehq.gouv.qc.ca/barrages/detail.asp?no_mef_lieu=X0003240"
+    },
+    {
+      "source_key": "r95-ign-tegua-saladillo-250k",
+      "title": "Cartas topográficas 1:250 000: El Cano–Tegua, Chazón and Bañados del Río Saladillo",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Component hydronyms, complete geographic route, wetland ending and neighboring river exclusions.",
+      "limits": "Historical composite topography; individual sheet dates are not asserted. It does not prove present channelized continuity, exact channel banks, or a common hydronym for the complete modeled route.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r69-ign-cordoba-physical",
+      "title": "Provincia de Córdoba, Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "year": 2016,
+      "supports": "Regional distinction among Tegua, Carnerillo, Chazón, Río Cuarto and the Saladillo wetland/trunk setting.",
+      "limits": "Province-scale map is contextual. It does not resolve modeled connectors or demonstrate precise present-day canal alignments.",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/CORDOBA/CORDOBA-FISICO-WEB.jpg"
+    },
+    {
+      "source_key": "r95-santinelli-saladillo-2020",
+      "title": "Cambios morfohidrológicos, inducidos por intervenciones antrópicas, en los sistemas lagunares de los bañados del Saladillo, Córdoba",
+      "authors": "María Santinelli, Nelso Doffo, Susana Degiovanni, Karina Echevarria and Jimena Andreazzini",
+      "publisher": "Revista de la Asociación Geológica Argentina",
+      "year": 2020,
+      "supports": "Regional canalized Chazón-system integration and distinction between natural streams, channels and wetlands.",
+      "limits": "Regional figures do not resolve every modeled connector or identify the exact selected terminal leg. Independently authored research, not a reproduction of the stopped 2025 Canals project.",
+      "official_url": "https://revista.geologica.org.ar/raga/article/view/24"
+    },
+    {
+      "source_key": "r95-ign-vanpraet-trenquelauquen-250k",
+      "title": "Cartas topográficas 1:250 000: Adolfo Van Praet–Villa Sauze–Trenque Lauquen and the Hinojo–Las Tunas lakes",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Complete geographic correspondence, plains and wet-depression settings, settlements/transport crossings, Laguna El Hinojo crossing and Laguna Las Tunas Grandes ending.",
+      "limits": "Historical composite topography; individual sheet dates are not asserted. No precise modern canal route, present hydraulic connection, permanent absence of water or full-route river hydronym is established.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r95-gba-salado-overview",
+      "title": "Cuenca del Río Salado",
+      "publisher": "Provincia de Buenos Aires, Dirección Provincial de Hidráulica",
+      "supports": "Dune/interdunal drainage context, southward movement toward Hinojo–Las Tunas and artificial integration with the Salado.",
+      "limits": "Regional prose, not an exact-route map. It does not identify this selected northern approach or individual connectors, and does not establish a river-group name.",
+      "official_url": "https://gba.gob.ar/hidraulica/interior_bonaerense/cuenca_salado"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80285365",
+      "source_keys": [
+        "r95-usgs-national-map-naknek"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2766
+          ],
+          "finding": "The eastern selected start lies on the stream labeled American Creek southeast of Murray Lake. The mapped creek enters Murray Lake, continues northwest into Hammersly Lake and leaves its northern end. The selected route follows this same sequence of stream and elongated lake settings. The small neighboring lakes and side valleys are not substituted for the main connection; the modeled starting vertex is not asserted to be the official source.",
+          "sources": [
+            "r95-usgs-national-map-naknek"
+          ]
+        },
+        {
+          "fragments": [
+            2766
+          ],
+          "finding": "Below Hammersly Lake, American Creek runs west, then curves north and west around the broad northern bend before turning south through its lower valley. The original map carries repeated American Creek labels on this connected watercourse and shows it entering the northern end of Lake Coville. Nonvianuk Lake and its drainage farther north are outside the selected route.",
+          "sources": [
+            "r95-usgs-national-map-naknek"
+          ]
+        },
+        {
+          "fragments": [
+            2766
+          ],
+          "finding": "The selection traverses Lake Coville southeastward, passes through the short mapped water connection at its southeastern end and follows Lake Grosvenor eastward before turning south around the lake's eastern end. Both lake names are separately printed on the source. Artificial water-network labels repeating American Creek across the lake interiors are not used to erase the lake components. A separate name for the short interlake connection is not established.",
+          "sources": [
+            "r95-usgs-national-map-naknek"
+          ]
+        },
+        {
+          "fragments": [
+            2766
+          ],
+          "finding": "The eastern enlargement shows Hardscrabble Creek approaching the southern Grosvenor shore from the east and a short lake-outlet waterway connecting the southern lake setting to the braided Savonoski River farther south. The modeled line crosses the eastern tributary-mouth/floodplain setting before joining that receiving-river corridor, rather than precisely tracing the visible outlet channel. The bounded southern Grosvenor-to-Savonoski connection is established, but the outlet's separate name remains null and the upper Hardscrabble tributary is not assigned to the selected mainstem.",
+          "sources": [
+            "r95-usgs-national-map-naknek"
+          ]
+        },
+        {
+          "fragments": [
+            2766
+          ],
+          "finding": "After the receiving junction, the selection follows the repeatedly labeled lower Savonoski River southwest through its braided valley to the southeastern lake arm. The upper Savonoski continuing east and other rivers joining near the lake are separate unselected approaches. The retained line generalizes the broad braided corridor rather than identifying a particular channel thread.",
+          "sources": [
+            "r95-usgs-national-map-naknek"
+          ]
+        },
+        {
+          "fragments": [
+            2766
+          ],
+          "finding": "The selected lake transit crosses the southeastern arm of the connected Naknek Lake complex, turns northwest through the mapped narrows near the Brooks River inlet and proceeds west across the main lake. It does not enter the separately mapped Brooks River or Lake Brooks to the southwest. Naknek River labels appearing along artificial paths across the broad lake are not treated as evidence that the lake interiors are ordinary river reaches. A separate name for the southeastern arm is not established in this finding.",
+          "sources": [
+            "r95-usgs-national-map-naknek"
+          ]
+        },
+        {
+          "fragments": [
+            2766,
+            2767
+          ],
+          "finding": "The two selected fragments meet within the western Naknek Lake setting. The second fragment continues northwest across the western lake, leaves its western outlet and follows the mapped Naknek River through its large initial southern bend and subsequent westward bends toward King Salmon. The fragment boundary does not establish a separate named watercourse.",
+          "sources": [
+            "r95-usgs-national-map-naknek"
+          ]
+        },
+        {
+          "fragments": [
+            2767
+          ],
+          "finding": "The lower selection follows Naknek River past King Salmon and west toward Naknek. King Salmon Creek, Eskimo Creek and the other side tributaries remain distinct. The terminal tip lies in the lower river at the Naknek settlement setting, east of the broad final opening toward the bay; it is not an exact sea-shore endpoint or a claim that the full estuary was selected.",
+          "sources": [
+            "r95-usgs-national-map-naknek"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70248650",
+      "source_keys": [
+        "r95-canada-basemap-sainte-marguerite",
+        "r95-cehq-denis-perron",
+        "r95-cehq-sainte-marguerite2",
+        "r95-cehq-sainte-marguerite1"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9336
+          ],
+          "finding": "The modeled beginning follows a west-to-east small-lake and stream approach into the upper Sainte-Marguerite corridor. The enlarged original map shows its connection rather than merely placing it inside the basin. No separate name is established for this first feeder or its small waters. The northern continuation of the receiving river is not selected, and the modeled beginning is not asserted to be an official source point.",
+          "sources": [
+            "r95-canada-basemap-sainte-marguerite"
+          ]
+        },
+        {
+          "fragments": [
+            9336
+          ],
+          "finding": "The route turns south and follows the connected upper waterway through Lac aux Cèdres and Petit lac des Cèdres. Lac Isabel to the east and the other nearby lakes are not substituted for the actual selected lake chain. Repeated Sainte-Marguerite river labels establish the receiving corridor.",
+          "sources": [
+            "r95-canada-basemap-sainte-marguerite"
+          ]
+        },
+        {
+          "fragments": [
+            9336
+          ],
+          "finding": "Below Petit lac des Cèdres the route follows the southward waterway, turns southeast into the Monts Groulx valley and passes the narrow mapped Lac Carré setting. The overlapping enlargement connects this upper valley directly to the broader reservoir corridor farther south. No exact boundary between the named lake setting and the reservoir reach is assigned.",
+          "sources": [
+            "r95-canada-basemap-sainte-marguerite"
+          ]
+        },
+        {
+          "fragments": [
+            9336,
+            9337
+          ],
+          "finding": "The central selection crosses the connected water body explicitly labeled Réservoir de la Sainte-Marguerite 3. Both fragments occupy this same reservoir across their split. The modeled line continues through the southern open-water bend and then the southward reservoir arm; it does not turn west into the Cacaoui approach. The Denis-Perron engineering record identifies Sainte-Marguerite 3 as its reservoir and Sainte-Marguerite as its river basin.",
+          "sources": [
+            "r95-canada-basemap-sainte-marguerite",
+            "r95-cehq-denis-perron"
+          ]
+        },
+        {
+          "fragments": [
+            9337
+          ],
+          "finding": "At the southern reservoir end the selection reaches the Denis-Perron dam setting, turns southwest through the downstream canyon and then bends southeast along repeated Rivière Sainte-Marguerite labels. The mapped Grande Coulée and Dumas approaches enter from the sides and are not selected tributary fragments.",
+          "sources": [
+            "r95-canada-basemap-sainte-marguerite",
+            "r95-cehq-denis-perron"
+          ]
+        },
+        {
+          "fragments": [
+            9337
+          ],
+          "finding": "Farther downstream the selection turns south and southwest through the lower widened, impounded valley, passing the Baie du Vingt-Quatre and Baie du Quatorze settings. The map separates this trunk from the Vallée, de la Coulée, à Charles and Vain approaches. The Sainte-Marguerite-2 technical record locates the downstream dam at the end of this lower impounded reach. Its reservoir-name field is blank, so a separate official reservoir hydronym is left unassigned.",
+          "sources": [
+            "r95-canada-basemap-sainte-marguerite",
+            "r95-cehq-sainte-marguerite2"
+          ]
+        },
+        {
+          "fragments": [
+            9337
+          ],
+          "finding": "The lower selection passes the coastal-road and Clarke City setting and continues below the two lower hydroelectric installation settings. The provincial records distinguish Sainte-Marguerite-2 from the downstream Sainte-Marguerite-1 installation, both on the Sainte-Marguerite river. The latter record has no dam name; its installation name is not promoted to an official dam hydronym.",
+          "sources": [
+            "r95-canada-basemap-sainte-marguerite",
+            "r95-cehq-sainte-marguerite2",
+            "r95-cehq-sainte-marguerite1"
+          ]
+        },
+        {
+          "fragments": [
+            9337
+          ],
+          "finding": "The selected terminal tip is in the lower Sainte-Marguerite corridor near the inner bend toward the estuarine water at Val-Marguerite. The source continues that water to Baie Sainte-Marguerite at Gallix. The selection does not extend across the whole estuary or coastal bay, and its schematic terminal vertex is not treated as an exact bank, mouth, shoreline or tidal limit.",
+          "sources": [
+            "r95-canada-basemap-sainte-marguerite"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61498951",
+      "source_keys": [
+        "r95-ign-tegua-saladillo-250k",
+        "r69-ign-cordoba-physical",
+        "r95-santinelli-saladillo-2020"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14078
+          ],
+          "component_scope": "Western El Cano and Tegua approach",
+          "finding": "The original topography places the western selected reach along A. El Cano toward the crossing north of Alcira Gigena; the subsequent northeastward corridor is directly labeled A. de Tegua toward Las Selvas and Punta del Agua. The separately drawn Boca del Sauce approach is not the selected western origin. The source does not supply an exact official spring or a surveyed hydronym-change vertex.",
+          "sources": [
+            "r95-ign-tegua-saladillo-250k"
+          ]
+        },
+        {
+          "fragments": [
+            14078
+          ],
+          "component_scope": "Punta del Agua–Dalmacio Vélez–Chazón connector",
+          "finding": "East of Punta del Agua the selection traverses mapped marshy low ground near La Paulina and Dalmacio Vélez Sársfield, then turns south through Las Chilcas and La Mala Vuelta west of Ticino. It reaches a separately labeled A. Chazón corridor near Los Granaderos and La Magdalena. The complete historical raster shows lowlands, channels and discontinuous drainage features; it does not label this entire modeled connector as Tegua or Chazón.",
+          "sources": [
+            "r95-ign-tegua-saladillo-250k",
+            "r69-ign-cordoba-physical"
+          ]
+        },
+        {
+          "fragments": [
+            14078
+          ],
+          "component_scope": "Etruria–Pascanas and wetland ending",
+          "finding": "The selection passes west of Etruria and east of Chazón village, crosses west of Pascanas, then follows low ground through La Uruguaya, Sol de Mayo and El Nido toward the Saladillo wetlands east of La Carlota. It crosses drainage, marsh and lagoon surroundings without a single continuously labeled channel to its terminal vertex. Bañados del R. Saladillo names the terminal wetland landscape; it does not prove that the selected ending is on the named Río Saladillo channel or at a surveyed confluence.",
+          "sources": [
+            "r95-ign-tegua-saladillo-250k"
+          ]
+        },
+        {
+          "fragments": [
+            14078
+          ],
+          "component_scope": "Known modern integration and its limit",
+          "finding": "The independent 2020 study identifies the Chazón system as canalized transfers involving Tegua, Carnerillo and Chucul, entering the Saladillo wetlands. Its original figures distinguish natural streams, canalized sections and wetland routes. Regional integration is therefore supported, but it does not establish the exact selected southward terminal leg as one continuously named natural river.",
+          "sources": [
+            "r95-santinelli-saladillo-2020"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61521556",
+      "source_keys": [
+        "r95-ign-vanpraet-trenquelauquen-250k",
+        "r95-gba-salado-overview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14481
+          ],
+          "component_scope": "Northern La Pampa plains",
+          "finding": "The opening and broad eastward bends occupy mapped farmland and scattered wet depressions around San Hilario, Aguas Buenas, Las Mellizas, La Voluntad, Ramón Segundo, Sarah and Bernardo Larroudé. No single river trace or hydronym follows the whole selected northern sequence. Its southward excursion below the east–west transport corridor is not evidence that it is a particular modern canal.",
+          "sources": [
+            "r95-ign-vanpraet-trenquelauquen-250k"
+          ]
+        },
+        {
+          "fragments": [
+            14481
+          ],
+          "component_scope": "Provincial border to San Mauricio",
+          "finding": "The selection passes through the Trequén–El Meridiano chain of low areas and the Villa Sauze lagoon/railway setting, then south through Colonia San Francisco and San Mauricio. It stays east of González Moreno and west of América. The source shows scattered lagoons, marsh symbols and agricultural parcels, without establishing a continuous named river through the intervening connectors.",
+          "sources": [
+            "r95-ign-vanpraet-trenquelauquen-250k"
+          ]
+        },
+        {
+          "fragments": [
+            14481
+          ],
+          "component_scope": "Fortín Olavarría to northern Trenque Lauquen",
+          "finding": "The modeled line passes through the Fortín Olavarría surroundings and the La Cristina–San Miguel lagoon setting, then crosses alternating lowland and agricultural ground near La Chiquita, Los Quilmes and El Refugio. It approaches Trenque Lauquen from the northwest and turns east north of the city. Local water surfaces do not supply a hydronym for the full approach.",
+          "sources": [
+            "r95-ign-vanpraet-trenquelauquen-250k"
+          ]
+        },
+        {
+          "fragments": [
+            14481
+          ],
+          "component_scope": "Named terminal lakes",
+          "finding": "The terminal sequence crosses the road/rail corridor east-northeast of Trenque Lauquen near La China and Los Chañares, traverses the mapped Laguna El Hinojo water surface, and then enters Laguna Las Tunas Grandes, where the selected endpoint lies. The map separately labels Laguna El Hinojo Chico and Las Tunas Chicas farther south. These lake identities are supported; a river name for the connecting modeled segments is not.",
+          "sources": [
+            "r95-ign-vanpraet-trenquelauquen-250k"
+          ]
+        },
+        {
+          "fragments": [
+            14481
+          ],
+          "component_scope": "Regional drainage context",
+          "finding": "The provincial hydraulic authority describes the northwest as dune and interdunal lowland with limited natural surface drainage, excess water moving south toward Hinojo–Las Tunas, and canal connections toward the Salado. That supports the regional lake/depression setting, not identification of this entire modeled trace with the Río Quinto, Río Salado or a named canal.",
+          "sources": [
+            "r95-gba-salado-overview"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
