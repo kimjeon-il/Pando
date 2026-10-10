@@ -1,0 +1,442 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r71",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r70",
+    "commit": "e10efa53da7a360b7c7f65004266f6237e21b2f8",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r70/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61475335",
+    "hydro-system:80120285",
+    "hydro-system:70849778",
+    "hydro-system:80200005"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61475335",
+      "category": "river_group",
+      "system_id": "61475335",
+      "baseline_logical_fid": 3558,
+      "geometry_fids": [
+        14038,
+        14037,
+        14036,
+        14035
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -54.05,
+        -31.272917,
+        -51.764583,
+        -30.839583
+      ],
+      "rendered_mainstem_length_km": 391.443,
+      "rendered_network_length_km": 391.443,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -54.05,
+          -31.272917,
+          -51.764583,
+          -30.839583
+        ]
+      },
+      "candidate_name": "Rio Camaquã",
+      "candidate_names": [
+        "Rio Camaquã"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Camaquã supports the representative receiving river. The western Camaquã Chico approach, initial unnamed feeder and terminal delta/lake setting keep separate scope; one hydronym is not imposed on every selected vertex.",
+      "geographic_disambiguation": "The actual northern Bagé approach, northeastern upper bend, long eastward Camaquã valley, Amaral Ferrador–Cristal corridor and southeastern delta approach distinguish this route from the separate Negro, Piratini and Jacuí systems.",
+      "source_keys": [
+        "r71-ibge-rs-physical-2010",
+        "r71-sema-camaqua-map",
+        "r71-ibge-bage-2022"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Rio Grande do Sul, Brazil; northern Bagé/Lavras do Sul headwater country to the western Lagoa dos Patos shore.",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Completed regional-scale correspondence of all four selected mainstem pieces using readable state, basin and upper municipal map pixels. The initial small feeder name, exact headwater naming transition and terminal distributary boundary remain unassigned.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rio Camaquã",
+        "upper_scope": "Unnamed southern initial feeder followed by the Camaquã Chico approach and the receiving Camaquã trunk. Exact first-channel identity and the hydronym-change vertex remain unassigned. The northern Lavras do Sul headwater is not substituted for the actual selection.",
+        "tributary_scope": "Four selected modeled mainstem fragments, no separate tributary fragments. Velhaco, Boici, Sutil and Evaristo are contextual inflows, not aliases or silently added selections.",
+        "terminal_scope": "Intralagoon delta and western Lagoa dos Patos receiving shore. Lake water, wetlands and individual distributaries retain distinct feature classes; no full lake traversal, direct ocean mouth, current shoreline or tidal limit is inferred.",
+        "source_scope": "The state sheet dates to 2010. The SEMA map credits its cartographic base to SEMA/FEPAM 2018 without a visible map-edition date. The 2022 municipal series supplies local drainage context rather than a naming adjudication.",
+        "model_limits": "Model length, piece boundaries and mainstem status do not establish official river length, naming boundaries or contemporary discharge. No formal naming history, alias equivalence or Korean form is established.",
+        "candidate_names_scope": "Only the representative river is a candidate; upstream and receiving-water names remain separate."
+      }
+    },
+    {
+      "aw_id": "hydro-system:80120285",
+      "category": "river_group",
+      "system_id": "80120285",
+      "baseline_logical_fid": 939,
+      "geometry_fids": [
+        2567,
+        2566
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -69.052083,
+        63.85,
+        -66.035417,
+        65.487494
+      ],
+      "rendered_mainstem_length_km": 389.095,
+      "rendered_network_length_km": 389.095,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -69.052083,
+          63.85,
+          -66.035417,
+          65.487494
+        ]
+      },
+      "candidate_name": "McKeand River",
+      "candidate_names": [
+        "McKeand River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The mapped McKeand trunk corresponds to the selected westward upper course, northward central valley and northeastern lower course. The southeastern initial channel and its small lakes have no separate hydronyms established by the inspected sheets.",
+      "geographic_disambiguation": "The selected southeastern Hall Peninsula feeder, upper east-west lake corridor, northward valley east of Sylvia Grinnell Lake, western lower bend and northeastward approach to Irvine Inlet distinguish this system from the Sylvia Grinnell and Frobisher Bay drainages.",
+      "source_keys": [
+        "r71-nts25o",
+        "r71-nts26b",
+        "r71-nts26c",
+        "r71-nts26f",
+        "r71-cgm260"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Hall Peninsula and adjacent southeastern Baffin Island, Nunavut, Canada",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Both selected pieces reviewed at regional topographic scale, including the southeastern start, upper lake passages, central valley, northern bend and lower-river terminal setting. Small initial-channel naming and exact shoreline or estuarine limits are not established, but no substantial source-correspondence gap remains.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "McKeand River",
+        "distinct_selected_upstream_route": "Southeastern Hall Peninsula channel, northwestern small-lake chain and the westward upper McKeand corridor.",
+        "feeder_scope": "The initial southeastern feeder is visibly connected at the inspected map scale, but its separate name and the exact upstream limit of the McKeand hydronym are not established. This small naming uncertainty does not create a correspondence hold.",
+        "lake_scope": "Several unnamed lake widenings and larger upper-course lake passages are selected. Their roles are lake passages, not aliases for McKeand River. No separate named lake is assigned; Sylvia Grinnell Lake is contextual and unselected.",
+        "tributary_scope": "Adjacent side branches and lake arms provide geographic context. Neither the northern lake arms nor the larger lake southwest of the initial feeder is promoted to a selected tributary identity.",
+        "terminal_scope": "Northeastern lower McKeand toward the head of Irvine Inlet. No complete inlet, exact shoreline crossing, mouth coordinate or tidal extent is assigned.",
+        "source_authority_limit": "Official National Topographic System cartography supports the river labels and connected corridor. Geological Survey of Canada cartography independently supports the northern geometry. These historical maps do not adjudicate present formal naming status or naming dates.",
+        "model_limits": "Model mainstem roles and fragment boundaries do not determine official hydronym limits. The modeled length is not an official river length. No historical alias sequence, Indigenous-name equivalence or Korean form is established.",
+        "candidate_names_scope": "Only the representative river hydronym is listed. Lake, feeder, neighboring drainage and inlet roles remain separate."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70849778",
+      "category": "river_group",
+      "system_id": "70849778",
+      "baseline_logical_fid": 3228,
+      "geometry_fids": [
+        10368
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -99.91875,
+        24.520833,
+        -97.542758,
+        25.13125
+      ],
+      "rendered_mainstem_length_km": 388.313,
+      "rendered_network_length_km": 388.313,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -99.91875,
+          24.520833,
+          -97.542758,
+          25.13125
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Río Conchos"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Río Conchos is directly labeled on the receiving trunk in the acquired INEGI maps. Pablillo is a distinct upstream river, Cerro Prieto a reservoir, and Laguna Madre the receiving coastal-lagoon setting. The terminal modeled extension remains outside a supported uniform river-name assignment.",
+      "geographic_disambiguation": "This is the Conchos corridor in Nuevo León and Tamaulipas, not Río Conchos in Chihuahua. Its southern Pablillo approach, Cerro Prieto passage, Nuevo León–Tamaulipas boundary reach, Méndez bend and San Fernando coastal approach jointly identify the selection.",
+      "source_keys": [
+        "r71-inegi-tamaulipas-state",
+        "r71-inegi-iturbide-2010",
+        "r71-inegi-linares-2010",
+        "r71-inegi-san-fernando-2010"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southeastern Nuevo León and north-central coastal Tamaulipas, Mexico, through the Linares–Méndez–San Fernando corridor toward Laguna Madre.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Complete bounded cartographic review of the selected route. The receiving-river component and representative corridor identity are supported. A naming-scope hold remains on treating the entire modeled terminal lagoon/barrierward extension as a natural named river channel or perennial ocean connection. Additional acquisition was stopped once this distinction was established.",
+      "naming_scope_details": {
+        "directly_supported_component_name": "Río Conchos, specifically the Nuevo León–Tamaulipas receiving trunk and San Fernando corridor.",
+        "representative_name_scope": "Río Conchos can represent the identified receiving-river corridor, with explicit upstream and terminal qualifications. It is not a verified uniform hydronym for the complete modeled line.",
+        "feeder_scope": "The actual initial southern/western feeder is unnamed in this finding. Its approach to the Pablillo corridor is supported by the state and municipal map comparison; an unknown feeder name alone is not the reason for the hold.",
+        "upper_scope": "Pablillo retains a separate upstream-river role. The selected approach is distinguished from the northwestern La Poza drainage, Hualahuises and the more northerly Montemorelos drainage. No exact hydronym-transition vertex is assigned.",
+        "lake_scope": "Presa Lic. José López Portillo (Cerro Prieto) is the selected reservoir setting. Laguna Madre is the receiving coastal lagoon, not an alias for Río Conchos. Nearby Laguna la Nacha and Laguna Anda la Piedra are separately mapped waterbodies; no exact lake crossing or boundary assignment is made for them.",
+        "terminal_scope": "The terminal selection reaches the Laguna Madre coastal-lagoon complex and contains a straight lagoon/barrierward extension. The maps show marsh, open lagoon, islands, a coastal barrier and named openings, rather than establishing that complete extension as one natural river channel. No specific ocean-mouth identity, perennial lagoon-to-sea connection or river-name continuation over that extension is accepted.",
+        "hold_reason": "The unresolved issue is natural-connection and feature-class scope of the modeled terminal extension, not inability to acquire route-covering sources. Retain a naming-scope hold.",
+        "san_fernando_scope": "San Fernando identifies the geographic corridor and appears in regional hydrologic terminology. The acquired map labels used for the river component are Conchos. This finding does not establish a San Fernando–Conchos alias equivalence.",
+        "historical_source_scope": "The state sheet is first edition 2020, with planimetry derived from 1:250,000 series III mapping. Municipal compendia date to 2010. They support cartographic identity and network context, not current water extent, flow permanence or a currently open coastal inlet.",
+        "model_limits": "Mainstem status, endpoint placement and modeled length do not establish an official source, uniform naming limits, permanent flow, a natural coastal connector or official river length.",
+        "candidate_names_scope": "Only the directly supported receiving-river representative is listed. Feeder, Pablillo, reservoir, lagoon and coastal-opening names remain distinct roles. No Korean name is established.",
+        "separately_named_corridor_parts": [
+          "Río Conchos"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Complete bounded cartographic review of the selected route. The receiving-river component and representative corridor identity are supported. A naming-scope hold remains on treating the entire modeled terminal lagoon/barrierward extension as a natural named river channel or perennial ocean connection. Additional acquisition was stopped once this distinction was established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:80200005",
+      "category": "river_group",
+      "system_id": "80200005",
+      "baseline_logical_fid": 959,
+      "geometry_fids": [
+        2664,
+        2663
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -95.835417,
+        62.0539,
+        -93.333852,
+        63.327083
+      ],
+      "rendered_mainstem_length_km": 387.904,
+      "rendered_network_length_km": 387.904,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -95.835417,
+          62.0539,
+          -93.333852,
+          63.327083
+        ]
+      },
+      "candidate_name": "Ferguson River",
+      "candidate_names": [
+        "Ferguson River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Direct Ferguson River labels support the selected middle and lower channel. The northern Banks–Blakely feeder and the selected lake passages keep separate component roles; no river name is transferred to them solely from modeled mainstem membership.",
+      "geographic_disambiguation": "Kivalliq route distinguished by the Banks–Blakely northern loop, southward Kaminuriak passage, Victory–O’Neil sequence, northern Quartzite–Snug corridor and the lower Ferguson outlet at Nevill Bay west of Tavani.",
+      "source_keys": [
+        "r71-nluis-55m",
+        "r71-nluis-55l",
+        "r71-nluis-55k"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Kivalliq, Nunavut, western Hudson Bay",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "All of both selected mainstem pieces were compared with readable contiguous official cartography. Regional lake sequence, connecting-channel setting and coastal termination are supported. Unnamed initial feeders and precise hydronym boundaries remain naming limits, without a substantial uncorroborated route segment.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Ferguson River",
+        "distinct_selected_upstream_route": "Unnamed initial lake/stream feeder → Banks Lake → Blakely Lake → Kaminuriak Lake → eastern MacKenzie/Victory connection → Victory Lake → O’Neil Lake → middle Ferguson and northern Quartzite–Snug lake chain → lower Ferguson → Nevill Bay.",
+        "feeder_scope": "The initial small-lake chain and Banks–Blakely connections are geographically supported but have no separately established river name. They are not assumed to be the conventionally described source of Ferguson River.",
+        "lake_scope": "Banks, Blakely, Kaminuriak, Victory, O’Neil, Quartzite and Snug are lake-component labels on the inspected historical maps, not alternative river names. MacKenzie is the adjoining outlet setting; the route does not establish a full traverse of its western lake body. Kaminuriak also carries a local Qamanirjuaq label on sheet 55L; no formal naming chronology or present-day gazetteer equivalence is adjudicated.",
+        "contextual_lake_scope": "Kaminak’s large main body, Savage Lake and the northern Maze–Wilson corridor are contextual neighboring waters. No blanket lake-name assignment follows from their proximity or the sheet title.",
+        "tributary_scope": "No separately selected tributary fragment is present. Surrounding inflows and neighboring river approaches are not aliases of the selected mainstem.",
+        "terminal_scope": "Lower Ferguson at the head of Nevill Bay, connected to Hudson Bay; exact tidal and shoreline limits are not established.",
+        "source_authority_limit": "Official historical thematic sheets using Canadian topographic base mapping support geography and printed hydronyms. They are not a current field survey or a formal naming decision.",
+        "model_limits": "Two modeled mainstem pieces and their join do not establish official naming limits. Modeled length is not official river length. No Korean form, naming date or complete historical alias sequence is established.",
+        "candidate_names_scope": "Only the representative river hydronym is listed. Lake labels, unnamed feeder components and coastal-bay names retain their separate roles."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70849778"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 227,
+    "non_pending_records": 220,
+    "source_access_pending": 3,
+    "source_material_pending": 4,
+    "source_any_pending": 7,
+    "scope_holds": 72,
+    "river_groups": 129,
+    "lakes": 98,
+    "unrecorded": 3838,
+    "unrecorded_river_groups": 3326,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r71-ibge-rs-physical-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/fisico/rs_fisico1000k_2010.pdf"
+    },
+    {
+      "source_key": "r71-sema-camaqua-map",
+      "official_url": "https://www.sema.rs.gov.br/upload/arquivos/202104/29084721-l030.png"
+    },
+    {
+      "source_key": "r71-ibge-bage-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/RS/bage/A0_4301602_MM.pdf"
+    },
+    {
+      "source_key": "r71-nts25o",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/025/o/025o_0200_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r71-nts26b",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/026/b/026b_0200_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r71-nts26c",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/026/c/026c_0300_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r71-nts26f",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/026/f/026f_0300_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r71-cgm260",
+      "official_url": "https://doi.org/10.4095/297595"
+    },
+    {
+      "source_key": "r71-inegi-tamaulipas-state",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/tamps/889463837107.pdf"
+    },
+    {
+      "source_key": "r71-inegi-iturbide-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/19/19030.pdf"
+    },
+    {
+      "source_key": "r71-inegi-linares-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/19/19033.pdf"
+    },
+    {
+      "source_key": "r71-inegi-san-fernando-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28035.pdf"
+    },
+    {
+      "source_key": "r71-nluis-55m",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55m.jpg"
+    },
+    {
+      "source_key": "r71-nluis-55l",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55l.jpg"
+    },
+    {
+      "source_key": "r71-nluis-55k",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55k.jpg"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "e10efa53da7a360b7c7f65004266f6237e21b2f8",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      83,
+      84,
+      85,
+      86
+    ],
+    "next_unrecorded_id": "hydro-system:80063190",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

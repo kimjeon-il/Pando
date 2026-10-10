@@ -1,0 +1,375 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r71",
+  "sources": [
+    {
+      "source_key": "r71-ibge-rs-physical-2010",
+      "title": "Mapa Físico do Estado do Rio Grande do Sul",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "attribution": "Scale 1:1,000,000; SIRGAS 2000; polyconic projection; cartographic base bCIMdv3 2009.",
+      "year": 2010,
+      "page": "Single sheet; complete southern-state corridor and readable headwater, middle-valley, delta and legend enlargements.",
+      "supports": "Camaquã Chico versus Camaquã regional naming, continuous eastward river, distinct tributaries and Lagoa dos Patos receiving setting.",
+      "limits": "Generalized state map does not name every initial feeder or resolve precise delta-channel and shoreline boundaries.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/fisico/rs_fisico1000k_2010.pdf"
+    },
+    {
+      "source_key": "r71-sema-camaqua-map",
+      "title": "Mapa da Bacia Hidrográfica do Rio Camaquã — L030",
+      "publisher": "Rio Grande do Sul, Secretaria do Meio Ambiente e Infraestrutura, Departamento de Recursos Hídricos e Saneamento",
+      "attribution": "Map legend credits Base Cartográfica 1:25.000, SEMA/FEPAM 2018; geographic coordinates, SIRGAS 2000. Visible publication date is not established.",
+      "year": null,
+      "page": "Single basin map linked from the official L030 basin page.",
+      "supports": "Actual Camaquã Chico approach, complete Camaquã trunk, named tributary junction settings, Amaral Ferrador/Cristal sequence and terminal delta/lake context.",
+      "limits": "Basin-wide thematic map; administrative outlines are not hydronym boundaries, and no current legal status or exact terminal vertex is inferred.",
+      "official_url": "https://www.sema.rs.gov.br/upload/arquivos/202104/29084721-l030.png"
+    },
+    {
+      "source_key": "r71-ibge-bage-2022",
+      "title": "Bagé — RS, Mapa Municipal, 4301602",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística",
+      "year": 2022,
+      "page": "Single sheet; northern Bagé drainage and adjoining Lavras do Sul/northern river-boundary context.",
+      "supports": "Actual northern Bagé feeder setting and drainage course, distinguished from roads and municipal outlines.",
+      "limits": "Many adjoining headwater channels are not labeled; no exact first-feeder hydronym is assigned. Municipality edges are not used as proof of a river name.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/RS/bage/A0_4301602_MM.pdf"
+    },
+    {
+      "source_key": "r71-nts25o",
+      "title": "Ward Inlet, National Topographic System sheet 25-O, edition 2",
+      "publisher": "Canada Centre for Mapping; official digital distribution by Natural Resources Canada",
+      "page": "Single map, northeastern inland quadrant",
+      "scale": "1:250,000",
+      "supports": "Unnamed southeastern initial channel, its small lake widenings and northward continuation.",
+      "limits": "Initial feeder and lakes are unlabeled; small positional differences and exact source limits are not resolved.",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/025/o/025o_0200_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r71-nts26b",
+      "title": "Chidliak Bay, National Topographic System sheet 26 B, edition 2",
+      "publisher": "Canada Centre for Mapping; official digital distribution by Natural Resources Canada",
+      "page": "Single map, southern corridor",
+      "scale": "1:250,000",
+      "supports": "Upper McKeand label, east-west course, intervening lake passages and connection toward the western valley.",
+      "limits": "No separate lake hydronyms are assigned from this map.",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/026/b/026b_0200_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r71-nts26c",
+      "title": "Sylvia Grinnell Lake, National Topographic System sheet 26 C, edition 3",
+      "publisher": "Surveys and Mapping Branch, Department of Energy, Mines and Resources; official digital distribution by Natural Resources Canada",
+      "page": "Single map, eastern McKeand valley",
+      "scale": "1:250,000",
+      "supports": "Labeled northward McKeand valley, tributary setting and separation from Sylvia Grinnell Lake.",
+      "limits": "Historical generalized cartography; no current naming adjudication.",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/026/c/026c_0300_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r71-nts26f",
+      "title": "McKeand River, National Topographic System sheet 26 F, edition 3",
+      "publisher": "Surveys and Mapping Branch, Department of Energy, Mines and Resources; official digital distribution by Natural Resources Canada",
+      "page": "Single map, southern and southeastern McKeand corridor",
+      "scale": "1:250,000",
+      "supports": "McKeand river label, westward bend followed by northeastward course, and approach to Irvine Inlet.",
+      "limits": "No exact mouth, shoreline or tidal limit assigned.",
+      "official_url": "https://ftp.maps.canada.ca/pub/nrcan_rncan/raster/topographic/250k/026/f/026f_0300_canmatrix_prtpdf.zip"
+    },
+    {
+      "source_key": "r71-cgm260",
+      "title": "Geology, McKeand River (south), Baffin Island, Nunavut, Canadian Geoscience Map 260E; Canada-Nunavut Geoscience Office Open File Map 2016-17E",
+      "publisher": "Natural Resources Canada, Geological Survey of Canada and Canada-Nunavut Geoscience Office",
+      "year": 2016,
+      "page": "Single geological map sheet",
+      "scale": "1:100,000",
+      "supports": "Independent northern-bend and northeastern lower-valley geometry.",
+      "limits": "Geological map title is not used alone to establish hydronym topology; topographic river labels provide the direct naming evidence.",
+      "official_url": "https://doi.org/10.4095/297595"
+    },
+    {
+      "source_key": "r71-inegi-tamaulipas-state",
+      "title": "Condensado Estatal Tamaulipas",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "year": 2020,
+      "page": "Single state sheet, PDF p. 1; complete selected corridor, enlarged initial feeder, Pablillo–Cerro Prieto, Conchos trunk and coastal terminal sectors; hydrographic legend and edition panel.",
+      "supports": "Route-wide correspondence, the actual southern feeder choice, Pablillo and Conchos component labels, Cerro Prieto passage, Méndez and San Fernando course, and separation of coastal marsh, Laguna Madre, islands and barrier openings.",
+      "limits": "Scale 1:750,000, generalized from 1:250,000 mapping. Does not establish the initial feeder name, exact name-change limits, current hydrologic conditions or a natural river channel matching the entire modeled terminal extension.",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/tamps/889463837107.pdf"
+    },
+    {
+      "source_key": "r71-inegi-iturbide-2010",
+      "title": "Compendio de información geográfica municipal 2010: Iturbide, Nuevo León",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Mountain-drainage context of the actual Pablillo approach and separation from the Hualahuises and other neighboring stream corridors.",
+      "limits": "Municipal extent does not contain the complete small western feeder or the downstream receiving trunk; it does not assign the first feeder a name.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/19/19030.pdf"
+    },
+    {
+      "source_key": "r71-inegi-linares-2010",
+      "title": "Compendio de información geográfica municipal 2010: Linares, Nuevo León",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Linares and Cerro Prieto route, Pablillo downstream of the reservoir setting, the Conchos receiving reach and separately mapped neighboring tributaries.",
+      "limits": "Municipal coverage does not establish the distant Laguna Madre terminal or exact Pablillo-to-Conchos name boundary.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/19/19033.pdf"
+    },
+    {
+      "source_key": "r71-inegi-san-fernando-2010",
+      "title": "Compendio de información geográfica municipal 2010: San Fernando, Tamaulipas",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; hydrologic context on PDF p. 3.",
+      "supports": "Río Conchos coastal approach, the Laguna Madre receiving setting and distinction from Laguna la Nacha, Laguna Anda la Piedra and other coastal waterbodies.",
+      "limits": "Generalized municipal cartography does not establish a continuous natural channel along the modeled final extension, a specific ocean-mouth identity, flow permanence or present lagoon and inlet conditions.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28035.pdf"
+    },
+    {
+      "source_key": "r71-nluis-55m",
+      "title": "MacQuoid Lake, 55M, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of the Environment; Indian and Northern Affairs; thematic cartography by Agriculture Canada",
+      "year": 1980,
+      "page": "Single-sheet original map, southern Banks–Blakely–Kaminuriak corridor and map imprint",
+      "supports": "Actual selected northern loop, unnamed initial feeder setting, Banks and Blakely lake passages and entry into Kaminuriak.",
+      "limits": "Dense thematic overlays and generalized topography do not fix every channel vertex or name the initial feeder. Historical cartographic correspondence is not a present-day flow-direction measurement.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55m.jpg"
+    },
+    {
+      "source_key": "r71-nluis-55l",
+      "title": "Kaminak Lake, 55L, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of the Environment; Indian and Northern Affairs; thematic cartography by Agriculture Canada",
+      "year": 1979,
+      "page": "Single-sheet original map, Kaminuriak–Victory–O’Neil route and northern Ferguson/Quartzite–Snug corridor",
+      "supports": "Selected lake sequence and Ferguson corridor; separation between selected northern route and Kaminak’s large southern main body.",
+      "limits": "Not a formal naming adjudication or evidence that every lake passage bears the river name.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55l.jpg"
+    },
+    {
+      "source_key": "r71-nluis-55k",
+      "title": "Tavani, 55K, Land Use Information Series, 1:250,000",
+      "publisher": "Canada, Department of the Environment; Indian and Northern Affairs; thematic cartography by Agriculture Canada",
+      "year": 1980,
+      "page": "Single-sheet original map, lower Ferguson, The Canyon and Nevill Bay outlet setting",
+      "supports": "Direct Ferguson River identity on the actual selected lower course and its Nevill Bay coastal termination.",
+      "limits": "Historical generalized shoreline and river depiction; no exact contemporary mouth, tidal-limit or channel-edge assignment.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55k.jpg"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61475335",
+      "source_keys": [
+        "r71-ibge-rs-physical-2010",
+        "r71-sema-camaqua-map",
+        "r71-ibge-bage-2022"
+      ],
+      "correspondence": [
+        {
+          "finding": "The selected southern initial branch lies north of Bagé and approaches the mapped Camaquã Chico headwater corridor. The municipal map supplies the actual northward drainage and northern river-boundary context; the basin and state maps identify Camaquã Chico separately from the northern Lavras do Sul approach. The initial small feeder remains unnamed, and the selected endpoint is not declared the official river source.",
+          "sources": [
+            "r71-ibge-bage-2022",
+            "r71-sema-camaqua-map",
+            "r71-ibge-rs-physical-2010"
+          ]
+        },
+        {
+          "finding": "The upper selection turns northeast and then southeast into the long trunk named Rio Camaquã. Its eastward bends and the incoming Velhaco and Boici settings agree across the state and basin maps; those southern tributaries are not additional selected pieces.",
+          "sources": [
+            "r71-sema-camaqua-map",
+            "r71-ibge-rs-physical-2010"
+          ]
+        },
+        {
+          "finding": "The middle and lower selected route continues east past the Amaral Ferrador setting and through the Cristal corridor, separately from the northern Arroio Sutil and southern Arroio Evaristo contributions. The complete valley sequence, rather than basin membership alone, supports the representative identity.",
+          "sources": [
+            "r71-sema-camaqua-map",
+            "r71-ibge-rs-physical-2010"
+          ]
+        },
+        {
+          "finding": "The final part turns southeast into the Camaquã delta and the western shore of Lagoa dos Patos. The maps show branching river/wetland channels and a separate receiving lake. The selected ending is not assigned to a surveyed mouth, a particular delta island channel, the entire lake or a direct Atlantic outlet.",
+          "sources": [
+            "r71-sema-camaqua-map",
+            "r71-ibge-rs-physical-2010"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80120285",
+      "source_keys": [
+        "r71-nts25o",
+        "r71-nts26b",
+        "r71-nts26c",
+        "r71-nts26f",
+        "r71-cgm260"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2566
+          ],
+          "finding": "The southeastern modeled start follows an unnamed inland channel on the Ward Inlet sheet. Its northwestward bends and small lake widenings connect to the channel continuing onto the Chidliak Bay sheet; the larger lake farther southwest is a different branch.",
+          "sources": [
+            "r71-nts25o",
+            "r71-nts26b"
+          ]
+        },
+        {
+          "fragments": [
+            2566
+          ],
+          "finding": "Across the southern Chidliak Bay sheet, the selection turns west through the mapped McKeand corridor and intervening unnamed lakes. The long lake branches extending north of this corridor are not separate selected river pieces.",
+          "sources": [
+            "r71-nts26b"
+          ]
+        },
+        {
+          "fragments": [
+            2566
+          ],
+          "finding": "The western turn leads into the northward valley labeled McKeand River on the Sylvia Grinnell Lake sheet. Sylvia Grinnell Lake and its drainage remain west of the selected route rather than forming a selected lake passage.",
+          "sources": [
+            "r71-nts26c"
+          ]
+        },
+        {
+          "fragments": [
+            2566,
+            2567
+          ],
+          "finding": "The two selected pieces continue across the sheet boundary along the same valley, bend west, and then turn northeast. The McKeand River topographic sheet and the independent geological sheet both show this distinctive lower-course geometry.",
+          "sources": [
+            "r71-nts26c",
+            "r71-nts26f",
+            "r71-cgm260"
+          ]
+        },
+        {
+          "fragments": [
+            2567
+          ],
+          "finding": "The northeastern endpoint lies in the lower McKeand corridor approaching the head-of-Irvine-Inlet setting. It is the downstream end of this selection; the southeastern endpoint is the inland headwater end. The modeled endpoint does not fix an exact mouth or tidal boundary.",
+          "sources": [
+            "r71-nts26f",
+            "r71-cgm260"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70849778",
+      "source_keys": [
+        "r71-inegi-tamaulipas-state",
+        "r71-inegi-iturbide-2010",
+        "r71-inegi-linares-2010",
+        "r71-inegi-san-fernando-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10368
+          ],
+          "finding": "The selected beginning follows the southern/western small-stream approach west of the Sierra El Tesorero sector, turns east through the mountain drainage and joins the Pablillo corridor north of Camarones. The state-map pixels distinguish this approach from the northwestern drainage toward La Poza. The first small feeder has no assigned hydronym, and the modeled beginning is not asserted to be an official river source.",
+          "sources": [
+            "r71-inegi-tamaulipas-state",
+            "r71-inegi-iturbide-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10368
+          ],
+          "finding": "The route continues northeast along the mapped Río Pablillo past the Rancho Viejo y la Palma–San Francisco corridor, through Linares and the Presa Lic. José López Portillo (Cerro Prieto) setting. The Hualahuises approach and the more northerly Montemorelos drainage are separate incoming routes, not substituted headwaters for this selection.",
+          "sources": [
+            "r71-inegi-tamaulipas-state",
+            "r71-inegi-iturbide-2010",
+            "r71-inegi-linares-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10368
+          ],
+          "finding": "Beyond Cerro Prieto, the selected route bends north into the receiving trunk labeled Río Conchos, follows the Nuevo León–Tamaulipas boundary sector and continues through the Paso Hondo–Méndez corridor. Its eastward course and subsequent southeastern bend toward San Fernando agree with the state map. The separately mapped El Salado approach is not the selected western mainstem.",
+          "sources": [
+            "r71-inegi-tamaulipas-state",
+            "r71-inegi-linares-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10368
+          ],
+          "finding": "The lower selected course bends south near San Fernando before turning northeast through the Río Conchos coastal approach beside the La Nacha–Guadalupe Victoria sector. INEGI distinguishes the receiving marsh and Laguna Madre, adjacent named lagoons, islands and coastal openings. These pixels support the coastal-lagoon setting but do not depict a continuous Conchos river channel matching the entire final straight modeled extension across the lagoon/barrierward sector.",
+          "sources": [
+            "r71-inegi-tamaulipas-state",
+            "r71-inegi-san-fernando-2010"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80200005",
+      "source_keys": [
+        "r71-nluis-55m",
+        "r71-nluis-55l",
+        "r71-nluis-55k"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2663
+          ],
+          "finding": "The eastern beginning lies in an unnamed small-lake and stream chain southwest of Banks Lake. The selection turns east and north into Banks, then northwest through the Blakely Lake setting and southwest into the northeastern arm of Kaminuriak Lake. Sheet 55M depicts this distinctive loop and its connecting watercourses; the source does not establish a separate hydronym for the initial feeder.",
+          "sources": [
+            "r71-nluis-55m"
+          ]
+        },
+        {
+          "fragments": [
+            2663
+          ],
+          "finding": "The selected line traverses Kaminuriak Lake southward, reaches the eastern MacKenzie outlet setting, and continues through Victory Lake and O’Neil Lake. The lake outlines, relative positions, narrow connections and successive turns on sheet 55L match this route. The western Ferguson approach to Kaminuriak is a separate mapped approach, not the selected beginning.",
+          "sources": [
+            "r71-nluis-55m",
+            "r71-nluis-55l"
+          ]
+        },
+        {
+          "fragments": [
+            2663,
+            2664
+          ],
+          "finding": "From O’Neil the selection turns east along the mapped Ferguson corridor, then southeast to the northern lake chain and through the Quartzite–Snug setting before continuing east. Kaminak’s large main lake body is south of the selection; its sheet title and nearby label do not justify describing the selected line as a traverse of that entire lake.",
+          "sources": [
+            "r71-nluis-55l"
+          ]
+        },
+        {
+          "fragments": [
+            2664
+          ],
+          "finding": "The eastern continuation matches the channel directly labelled Ferguson River on sheet 55K, including its southeastward lower course and The Canyon setting. The Maze–Wilson lake corridor is separately visible to the north and is not selected.",
+          "sources": [
+            "r71-nluis-55k"
+          ]
+        },
+        {
+          "fragments": [
+            2664
+          ],
+          "finding": "The modeled endpoint reaches the head-of-bay outlet setting of lower Ferguson River at Nevill Bay, west of Tavani. The sheet shows Nevill Bay opening toward Hudson Bay. This supports the coastal termination, without assigning an exact modern shoreline, tidal boundary or official river-mouth coordinate.",
+          "sources": [
+            "r71-nluis-55k"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}
