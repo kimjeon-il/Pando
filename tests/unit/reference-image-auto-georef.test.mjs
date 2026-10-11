@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildReferenceImagePlaceSeeds,
   buildReferenceImagePlaceSymbolCandidates,
   findReferenceImagePointSymbol,
 } from '../../assets/js/modules/reference-image-auto-georef.js';
@@ -65,4 +66,21 @@ test('point-symbol detector can also find a compact light symbol on a dark local
   assert.ok(result);
   assert.equal(result.polarity, 'light');
   assert.ok(result.confidence > 0.5);
+});
+
+
+test('place seed builder ranks supported city kinds and converts map positions into image UVs', () => {
+  const places = [
+    { id: 'village', name: 'Village', kind: 'region', coordinates: [9, 49], priority: 99, population: 1000 },
+    { id: 'berlin', name: 'Berlin', kind: 'capital', coordinates: [13.4, 52.5], priority: 90, population: 3_000_000 },
+    { id: 'leipzig', name: 'Leipzig', kind: 'city', coordinates: [12.37, 51.34], priority: 70, population: 600_000 },
+    { id: 'town', name: 'Town', kind: 'town', coordinates: [11, 50], priority: 20, population: 20_000 },
+  ];
+  const seeds = buildReferenceImagePlaceSeeds(places, {
+    projectCoordinate: coordinate => [coordinate[0] * 2, coordinate[1] * 2],
+    hitTestUv: screen => [screen[0] / 40, screen[1] / 120],
+    maximumSeeds: 2,
+  });
+  assert.deepEqual(seeds.map(seed => seed.id), ['berlin', 'leipzig']);
+  assert.ok(seeds.every(seed => seed.expectedUv.every(value => value > 0 && value < 1)));
 });
