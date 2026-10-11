@@ -74,6 +74,48 @@ private slots:
         }
     }
 
+    void autoSelectsAffineByCrossValidation()
+    {
+        QImage image(420,320,QImage::Format_RGB32);image.fill(Qt::white);
+        QPainter painter(&image);painter.setPen(Qt::NoPen);painter.setBrush(Qt::black);
+        const QVector<QPointF> uv{{.12,.15},{.86,.14},{.14,.84},{.85,.86},{.28,.61},{.70,.34},{.36,.27},{.62,.73}};
+        QVariantList seeds;
+        for(int i=0;i<uv.size();++i) {
+            const auto p=uv[i];painter.drawEllipse(QPointF(p.x()*(image.width()-1),p.y()*(image.height()-1)),4,4);
+            seeds.push_back(QVariantMap{{"id",QString("aff-%1").arg(i)},{"name",QString("A%1").arg(i)},{"kind","city"},
+                {"expectedUv",QVariantList{p.x(),p.y()}},
+                {"coordinate",QVariantList{10.+2.4*p.x()+.35*p.y(),50.+.25*p.x()+1.8*p.y()}},
+                {"priority",90}});
+        }
+        painter.end();
+        const auto result=solveReferenceAutoGeoref(image,seeds,{},QStringLiteral("auto"));
+        QVERIFY2(result.ok,qPrintable(result.reason));
+        QCOMPARE(result.mode,QString("affine"));
+        QCOMPARE(result.modelSelection.value("consensusMode").toString(),QString("projective"));
+        QCOMPARE(result.modelSelection.value("selectedMode").toString(),QString("affine"));
+    }
+
+    void autoKeepsProjectiveForPerspective()
+    {
+        QImage image(420,320,QImage::Format_RGB32);image.fill(Qt::white);
+        QPainter painter(&image);painter.setPen(Qt::NoPen);painter.setBrush(Qt::black);
+        const QVector<QPointF> uv{{.12,.15},{.86,.14},{.14,.84},{.85,.86},{.28,.61},{.70,.34},{.36,.27},{.62,.73}};
+        QVariantList seeds;
+        for(int i=0;i<uv.size();++i) {
+            const auto p=uv[i];painter.drawEllipse(QPointF(p.x()*(image.width()-1),p.y()*(image.height()-1)),4,4);
+            const double d=1.+.12*p.x()-.08*p.y();
+            seeds.push_back(QVariantMap{{"id",QString("proj-%1").arg(i)},{"name",QString("P%1").arg(i)},{"kind","city"},
+                {"expectedUv",QVariantList{p.x(),p.y()}},
+                {"coordinate",QVariantList{(10.+2.2*p.x()+.4*p.y())/d,(50.+.3*p.x()+2.1*p.y())/d}},
+                {"priority",90}});
+        }
+        painter.end();
+        const auto result=solveReferenceAutoGeoref(image,seeds,{},QStringLiteral("auto"));
+        QVERIFY2(result.ok,qPrintable(result.reason));
+        QCOMPARE(result.mode,QString("projective"));
+        QCOMPARE(result.modelSelection.value("selectedMode").toString(),QString("projective"));
+    }
+
     void hardAnchorCountsTowardMinimumAndStaysExact()
     {
         QImage image(240,160,QImage::Format_RGB32);image.fill(Qt::white);
