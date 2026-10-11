@@ -160,14 +160,14 @@ std::shared_ptr<const WorldBaseFrame> WorldDatasetLoader::matchingBaseFrame(
         const auto unit=std::find_if(view.document.units.begin(),view.document.units.end(),
             [&](const auto& value){return value.id==range.ownerId;});
         const pandoeditor::GeometryRef ref{range.geometryId,1};
-        if(unit==view.document.units.end()||view.inactiveIds.count(unit->id)||
-           !(pandoeditor::staticGeometryBinding(view.document,unit->id).geometryRef==ref))continue;
         const auto actual=document.geometries.get(ref);
+        if(!actual)continue;
         const auto expected=canonical.document.geometries.get(ref);
-        if(!actual||!expected||actual->type!=expected->type||
+        if(!expected||actual->type!=expected->type||
            !actual->points.empty()||!actual->lines.empty()||
            actual->polygons.size()!=expected->polygons.size())return {};
-        // Serialized IDs alone are not proof that an imported/restored shape is canonical.
+        // The cached frame contains every country, including owners inactive this month.
+        // Check their stored coordinates before a later cursor can reuse those mesh slots.
         for(std::size_t p=0;p<actual->polygons.size();++p) {
             const auto& a=actual->polygons[p];const auto& b=expected->polygons[p];
             if(a.size()!=b.size())return {};
@@ -175,7 +175,8 @@ std::shared_ptr<const WorldBaseFrame> WorldDatasetLoader::matchingBaseFrame(
                 if(a[r].size()!=b[r].size()||!std::equal(a[r].begin(),a[r].end(),b[r].begin(),
                     [](const auto& x,const auto& y){return x.x==y.x&&x.y==y.y;}))return {};
         }
-        matched=true;
+        if(unit!=view.document.units.end()&&!view.inactiveIds.count(unit->id)&&
+           pandoeditor::staticGeometryBinding(view.document,unit->id).geometryRef==ref)matched=true;
     }
     if(!matched)return {};
     auto frame=std::make_shared<WorldBaseFrame>();

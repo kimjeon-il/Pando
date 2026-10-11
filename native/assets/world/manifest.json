@@ -49,15 +49,15 @@
   "historicalTimelineManifest": {
     "path": "historical-world/v1/manifest.json",
     "version": "1",
-    "gitBlobSha": "9e8fddc6e407bf034138efead5c9c3c2114fb3e6",
-    "sha256": "4ff9fcea714c861f23927d692cb3fb0adf4098c2662ceb48bc205b228737668f",
+    "gitBlobSha": "c941d066fa8d9a9c7ac877be0eb0f6defad463b1",
+    "sha256": "e42e29dc7c7a71afc0e6fbaddd135f934a17e6be8ffede16346e84a6cdd6c8ac",
     "required": true
   },
   "historicalTimeline": {
     "path": "historical-world/v1/world-project.json.gz",
     "version": "1",
-    "gitBlobSha": "bdc57c38e6fb17949f6e542b3a35a371fc2c4563",
-    "sha256": "c3ce9e9f6a9685e2af07571cd17334f0178461fc091261f4518c7f4a532f98f1",
+    "gitBlobSha": "8ee5ee17cd3317e8b52f23446ceaaac7d8997447",
+    "sha256": "1c2fcd0e66ae2726b53946cdbd18d7d7d686ab66eecf285e70cfd3e9df843155",
     "required": true
   }
 }
