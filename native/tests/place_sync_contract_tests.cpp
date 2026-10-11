@@ -70,7 +70,7 @@ bool hasLines(EditorController& editor,const QString& id,int count) {
 class PlaceSyncContractTests final : public QObject {
     Q_OBJECT
 private slots:
-    void published264CityPlaceAssetsLoadAndSearchHistoricNames() {
+    void published163ApprovedCityPlaceAssetsLoadAndSearchHistoricNames() {
         Q_INIT_RESOURCE(place_runtime);
         QFile manifest(QStringLiteral(":/place/manifest.json"));
         QVERIFY(manifest.open(QIODevice::ReadOnly));
@@ -78,17 +78,17 @@ private slots:
         QVERIFY(!document.isEmpty());
         QCOMPARE(document.value("version").toInt(),1);
         QCOMPARE(document.value("revision").toString(),
-                 QStringLiteral("reviewed-places-ac1c04485ec5e0e2"));
+                 QStringLiteral("approved-places-a912045657f35026"));
         QCOMPARE(document.value("shards").toObject().size(),1);
-        QCOMPARE(document.value("search").toObject().size(),608);
+        QCOMPARE(document.value("search").toObject().size(),475);
         QFile encoded(QStringLiteral(":/place/places-v1.bin"));
         QVERIFY(encoded.open(QIODevice::ReadOnly));
         const auto payload=encoded.readAll();
-        QCOMPARE(payload.size(),76922);
+        QCOMPARE(payload.size(),55176);
         const auto checksum=QString::fromLatin1(QCryptographicHash::hash(payload,QCryptographicHash::Sha256).toHex());
-        QCOMPARE(checksum,QStringLiteral("68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6"));
+        QCOMPARE(checksum,QStringLiteral("43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594"));
         const auto decoded=PlaceRuntimeStore::decodeTile(payload);
-        QCOMPARE(decoded.size(),std::size_t(264));
+        QCOMPARE(decoded.size(),std::size_t(163));
         QString error;
         const auto runtime=PlaceRuntimeStore::open(QStringLiteral(":/place/manifest.json"),error);
         QVERIFY2(runtime,qPrintable(error));
