@@ -101,46 +101,40 @@ test('complex timeline file opens and month controls resolve its historical worl
   expect(errors).toEqual([]);
 });
 
-test('builtin delta autosave includes archive and fingerprint and restores omitted identities',async({page})=>{
+test('historical default full save and offline restore retain every identity and record',async({page})=>{
   const errors=await openApp(page);
   const before=await page.evaluate(()=>({count:window.PANDOLAB_TERRITORIAL.list().length,
-    name:window.PANDOLAB_TERRITORIAL.get('IRL').properties.name,geometry:window.PANDOLAB_TERRITORIAL.get('IRL').geometry}));
+    geometry:window.PANDOLAB_TERRITORIAL.get('IRL').geometry}));
   await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.setName('IRL','시간 저장 아일랜드'));
-  await expect.poll(async()=> (await readAutosave(page))?.entityDelta?.changed?.find(entity=>entity.id==='IRL')?.properties.name,{timeout:30000}).toBe('시간 저장 아일랜드');
+  await expect.poll(async()=> (await readAutosave(page))?.territorialEntities?.find(entity=>entity.id==='IRL')?.properties.name,{timeout:30000}).toBe('시간 저장 아일랜드');
   const saved=await readAutosave(page);
-  expect(saved.format).toBe('pandolab-autosave-delta');
-  expect(saved.baseDatasetFingerprint).toMatch(/^[a-f0-9]{64}$/);
-  expect(saved.timelineRecords.lifetimes.length).toBe(before.count);
+  expect(saved.format).toBe('pandolab-autosave-full');
+  expect(saved.territorialEntities.length).toBe(280);
+  expect(saved.timelineRecords.lifetimes.length).toBeGreaterThan(before.count);
   expect(saved.geometries.length).toBeGreaterThanOrEqual(before.count);
-  expect(saved.entityDelta.changed.length).toBeLessThan(before.count);
+  expect(saved.entityDelta).toBeUndefined();
+  await page.locator('#undoBtn').click();
+  await expect.poll(()=>page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').properties.name)).not.toBe('시간 저장 아일랜드');
+  await page.locator('#redoBtn').click();
+  await expect.poll(async()=>semantics(await readAutosave(page)),{timeout:30000}).toEqual(semantics(saved));
+  const file=await downloadProject(page);
+  expect(semantics(file.project)).toEqual(semantics(saved));
+  await openProject(page,file.path);
+  await expect(page.locator('#gisImportModal')).toBeHidden({timeout:30000});
+  await expect.poll(async()=>semantics(await readAutosave(page)),{timeout:30000}).toEqual(semantics(saved));
+  await page.evaluate(async()=>{for(const key of await caches.keys())await caches.delete(key);});
+  await page.route('**/historical-world/**',route=>route.abort());
   await page.reload();
   await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().length)).toBe(before.count);
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').properties.name)).toBe('시간 저장 아일랜드');
-  await expect(page.locator('#projectSaveStatus')).not.toHaveAttribute('data-save-state','saving',{timeout:30000});
-  // Seed after leaving the editor: its beforeunload flush legitimately rewrites a live save.
-  await page.goto('/assets/css/app.css');
-  await page.evaluate(async()=>{
-    const database=await new Promise((resolve,reject)=>{
-      const request=indexedDB.open('pandolab-editor',2);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
-    });
-    try { await new Promise((resolve,reject)=>{
-      const transaction=database.transaction('projects','readwrite'),store=transaction.objectStore('projects');
-      const request=store.get('active-project');
-      request.onsuccess=()=>{const project=request.result;project.baseDatasetFingerprint='0'.repeat(64);store.put(project,'active-project');};
-      transaction.oncomplete=()=>resolve();transaction.onerror=()=>reject(transaction.error);transaction.onabort=()=>reject(transaction.error);
-    }); } finally {database.close();}
-  });
-  const invalidSave=await readAutosave(page);
-  expect(invalidSave.baseDatasetFingerprint).toBe('0'.repeat(64));
-  await page.goto('/?debug=1');
-  await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:90000});
-  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').properties.name)).toBe(before.name);
-  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
-  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().length)).toBe(before.count);
-  expect(await readAutosave(page)).toEqual(invalidSave);
-  expect(await page.locator('#undoBtn').isDisabled()).toBe(true);
-  expect(await page.locator('#redoBtn').isDisabled()).toBe(true);
+  await page.locator('#timelineMonthButton').click();
+  await page.locator('#timelineMonthInput').fill('2012-10');
+  await page.locator('#timelineMonthInput').press('Enter');
+  await expect(page.locator('#timelineMonthInput')).toBeHidden();
+  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().map(row=>row.id).sort())).toEqual(['state:nagorno-karabakh','state:ukraine']);
+  expect(semantics(await readAutosave(page))).toEqual(semantics(saved));
+  await expect(page.locator('#undoBtn')).toBeDisabled();
   expect(errors).toEqual([]);
 });
