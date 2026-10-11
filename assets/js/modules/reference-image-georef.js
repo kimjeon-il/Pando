@@ -488,7 +488,7 @@ function normalizeAutoGeorefCandidates(values = []) {
   const result = [];
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
-    const id = String(value?.id || \`auto-gcp-\${index + 1}\`).trim() || \`auto-gcp-\${index + 1}\`;
+    const id = String(value?.id || `auto-gcp-${index + 1}`).trim() || `auto-gcp-${index + 1}`;
     if (ids.has(id) || id === 'anchor') continue;
     const normalized = normalizeReferenceControlPoints([{ ...value, id, pinned: false }])[0];
     if (!normalized) continue;
