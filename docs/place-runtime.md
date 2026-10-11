@@ -89,3 +89,56 @@ npx playwright test tests/browser/place-runtime.spec.mjs tests/browser/label-met
 `main` 병합과 기존 GitHub Pages 사이트의 배포 브랜치 전환은 수행하지 않았다.
 저장소의 workflow에는 브랜치별 웹 배포 작업이 없으며, 연결된 도구에서 별도
 브랜치의 웹 배포 경로를 확인할 수 없어 실사이트 배포는 수행하지 않았다.
+
+## 2026-10-08: 다국어 라벨 표시 기능 (data/places-tier1-major-cities)
+
+- 현재 검수 자료의 `names[]`, `displayTimeline`은 출처/언어별 원본을 보존하는 **staging 데이터**이다. 지도 바이너리 타일의 실행용 레코드는 `name`(한국어 기본형), `nameEn`, `nameNative`, `nameNativeExtras`, `nameTimeline`으로 압축해 사용한다.
+- `nameTimeline`은 언어별 `ko`/`en`/`native` 변경 값을 필요할 때만 포함한다. `fromYear`(연도 정밀도) 또는 `fromDate`(일자 정밀도)를 그대로 보존하고, 근거 없이 연도를 1월 1일로 변환하지 않는다. 다른 언어명의 변경은 자동 추론하지 않는다.
+- 2026-10-08 당시의 place 타일 codec은 **v2만 지원**했다. 현재 작업 브랜치의 신규 바이너리 형식은 **v3**이며 manifest schema version(1)과는 별개이다.
+- 지도 `보기 → 지명`에서 한국어/영어/원어를 각자 켜거나 끌 수 있다. 기본은 한국어만 사용하고, 3개 언어가 전부 꺼지는 조합은 막는다. 선택값은 프로젝트 저장 파일이 아닌 사용자 환경설정에 보관한다.
+- 동일 텍스트의 영어·원어 및 복수 원어끼리의 중복도 한 줄만 표시한다. 서로 다른 언어는 단일 SVG label group 안에서 행으로 표시하고 **하나의 충돌 상자**로 판정한다. 언어 설정 변경은 기존 Worker 타일 재조회 없이 label layout을 invalidation한다.
+- 브라우저의 활성 역사 시점을 지명에 제공하는 연결은 아직 별도로 필요하다. 현재 지도는 날짜 미지정 시 각 레코드의 현행 표기를 사용한다.
+- **중요:** 현재 `assets/data/places/manifest.json`의 타일 목록은 비어 있으며, 검수 배치를 자동으로 생성·게시하는 파이프라인은 이번 변경에 포함하지 않았다. 따라서 지명 샘플/실제 배포 데이터를 연결하기 전에는 언어 스위치를 조작해도 내장 도시가 새로 나타나지 않는다.
+
+## 2026-10-11: PLAC v3 복수 원어명 표시 (work/places 개발 브랜치)
+
+- 공유 바이너리 계약은 `contracts/places/v3.json`이다. 현재 **새로 생성하는 타일은 PLAC v3(레코드 72바이트, 9개 문자열 슬롯)만 사용**하며, 검수용 `defaultNativeNames[]`/`displayTimeline[].nativeNames[]`는 그대로 공식 언어·문자 출처를 보존한다.
+- 실행용 `nameNative`는 그 시기의 대표 원어명 1개, `nameNativeExtras`는 중복을 제외한 추가 원어명 최대 2개의 문자열 목록이다. 시간별 변경은 `nameTimeline[]`의 `native`(대표명) 및 `nativeExtras[]`(전체 추가명 목록)로 표현한다. 대표 원어명이 바뀌면 이전의 추가 원어명은 상속되지 않는다.
+- 영어와 원어명이 같거나 복수 원어명끼리 철자가 같으면 NFKC 정규화·소문자 비교 후 최초 등장하는 1행만 표시한다. **우선순위는 한국어 → 영어 → 대표 원어 → 추가 원어**이다. 실제 원어명 메타데이터(언어코드)는 검수용 JSON에만 보존한다.
+- SVG 텍스트 행의 동일 언어코드 `native`가 최대 3번 등장할 수 있으므로 각 행은 언어코드가 아닌 **행 순번**으로 구별해 재렌더링한다. 전체 행은 하나의 지도 라벨/충돌 상자로 처리한다. 앱도 동일한 행 해석을 구현한다.
+- 양 저장소 `work/places`에는 니코시아 예제를 포함하는 동일한 v3 바이너리 교차 검증 벡터가 있다. 기존 v2 검증 벡터는 과거 테스트자료로 남겨 두고, 신규 게시 형식으로 사용하지 않는다.
+- **제한:** 기본 지명 manifest는 여전히 비어 있으며 기존 역사 타임라인과 지명 해석기의 자동 연결은 아직 없다. 이번 변경은 런타임 형식·표시 지원이며 도시 데이터를 지도에 게시하거나 `main`에 통합한 작업이 아니다.
+
+
+## 2026-10-11: 1~22차 지명 264건 실행 데이터 생성
+
+- 출처: `reports/places/tier1-major-cities-batch*.json` 22개(264개 고유 GeoNames ID, 명칭 구간 482개). 각 배치 JSON은 변경하지 않는다.
+- 정식 웹 데이터: `assets/data/places/reviewed-records-v1.json`, `places-v1.bin` (PLAC v3, 76,922 bytes), `manifest.json` (검색 접두어 608개). 샤드 SHA-256: `68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6`.
+- 현재 규모에서는 264개를 1개 tile에 담았다(최대 512개). 새 차수로 한계에 접근하면 다단계 공간 분할/검색 샤딩으로 이관해야 한다. 전체 도시를 DOM/프로젝트 상태에 적재하지 않는다.
+- 재생성: `pnpm build:places`. 무변경 재생성 및 실제 PLAC 디코딩/검색 검사: `pnpm check:places`.
+- Worker 쿼리는 시대별 한국어/영어/원어(최대 세 개) 표시명을 선택하며 과거 선택명도 검색한다. 웹 라벨은 지도 월말 시점을 전달받아 `displayTimeline`에서 표시명을 고른다. 앱은 동일한 Git blob의 바이너리와 manifest를 번들한다.
+- 의심스러운 취락·행정 객체 및 자동 포함 정책 밖의 8개 레코드는 데이터에 보존하되 `town`으로 처리하며 임의의 최종 5단계 도시 등급을 부여하지 않는다. 등록 자체가 역사 좌표·국가 소속 승인이라는 뜻은 아니다.
+- 확인되지 않은 현재 영어/원어 슬롯 6건은 추측으로 채우지 않고 공란을 유지한다. 단일 1801년 명칭은 완전한 역사상 불변 확정이 아닌 잠정 표기일 수 있다.
+- `temporalEligibility`·연구 근거·`historicalGeography`는 조사본과 JSON 카탈로그에 보존했다. **PLAC v3 바이너리에는 도시 소멸·재건 기간 및 5등급 중요도 자료를 직렬화하지 않는다.** 실제 적용은 별도 계약 확장이 필요하다.
+- GeoNames 원천은 CC BY 4.0이므로 출처·라이선스 귀속이 필요하다. 현재 국가코드로 과거 국가 소속·행정 경계를 결정하지 않는다.
+- GitHub `work/places`에 저장했다고 공개 사이트에 배포된 것은 아니다. 웹 `main` 통합과 실제 배포·앱 릴리스는 별도 검증 및 승인된 절차를 거친다.
+
+## 2026-10-11: 검증된 도시만 지도 런타임에 게시하는 게이트 (work/places)
+
+과거 검수본을 무조건 지도에 게시하지 않는다. `reports/places/runtime-release-approvals-v1.json`에 명시된 **163개 GeoNames ID**만 PLAC v3 실데이터와 검색 색인으로 생성한다. 조사용 22개 배치에는 **264개**가 보존되며, 나머지 **101개**는 출시 자료로 승격하지 않는다.
+
+- 초기 1–15차의 검토된 도시 87개만 우선 포함한다. 1873년부터 독립 도시가 아닌 Pest(3046446)는 `temporalEligibility.activeIntervals`를 타일에서 집행할 때까지 제외한다.
+- 16–22차에서는 B/C로 개별 조사된 도시 중 해당 시기의 명칭에 **GeoNames 외부 HTTPS 근거**가 있고 검토 상태가 provisional/unverified가 아닌 76개만 포함한다. A등급의 역사적 명칭은 잠정이므로 제외한다.
+- `candidatePolicyException.autoPromoted=false` 및 `urbanIdentityReview.autoTierApproved=false`인 장소는 등급이나 수도 여부와 상관없이 금지한다. 새 도시를 조사 JSON에 추가해도 승인 목록에 없으면 검색·타일로 자동 반영되지 않는다.
+- 각 도시의 `temporalEligibility.beforeCityEstablished = suppress-city-label`인 경우 생성기에서 첫 이름 노출 시점을 **검증된 근대 도시 형성일보다 이르게 설정하지 않는다**. 기존 조사용 JSON의 원래 사건일은 바꾸지 않는다. 여러 독립 도시 유효 구간(`activeIntervals`)의 집행은 PLAC v3에서 미지원이므로 해당 레코드의 자동 승격은 금지한다.
+- **주의:** 이것은 도시 *정체와 선택된 명칭 구간의 게시 승인*이지 완전한 1801년 이후 역사적 도시 등급·인구·국경 인증은 아니다. 명칭이 바뀌지 않은 기간의 실제 한국어/영어 용례는 별도 증거가 필요할 수 있다. 모든 승인 기록의 `population=0`과 동일한 라벨 우선순위는 확정된 역사적 상대 순위가 아니다.
+
+실행 계약(노드 표준 라이브러리 기반):
+
+```sh
+node tools/build-place-runtime.mjs
+node tools/build-place-runtime.mjs --check
+node --test tests/unit/place-publication.test.mjs tests/unit/place-codec.test.mjs
+```
+
+세 게시 산출물 `assets/data/places/reviewed-records-v1.json`, `places-v1.bin`, `manifest.json`은 하나의 승인 목록과 22개 조사본으로 결정론적으로 재생성된다. manifest의 검색 prefix·tile 범위·sha256은 **승인된 레코드만** 포함해야 한다. PR 검증은 `place-runtime.yml`이 담당하고, `work/places`에서만 새로 생성된 바이너리를 커밋하는 자동 게시 작업은 `place-curated-release.yml`이 담당한다. `main` 통합과 웹사이트 실배포 및 앱 저장소 이전은 별도 작업이다.

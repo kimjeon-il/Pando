@@ -33,3 +33,16 @@ test('renderer disposal is idempotent and prevents deferred initialization', asy
   assert.equal(renderer.getRenderDevice(), null);
   assert.equal(requestedFrames, 0);
 });
+test('timeline changes release modern preview ownership', t => {
+  const previous = globalThis.window; globalThis.window = { devicePixelRatio: 1 };
+  t.after(() => { globalThis.window = previous; });
+  const state = { projection: 'globe', view: { globeZoom: 1 }, countryVisualPhase: 'preview',
+    auditPreviewCountries: { features: [{ id: 'RUS' }] }, auditPreviewTerritorialUnits: [], auditPreviewGeometryReferences: new Map() };
+  const renderer = createGpuMapRenderer({ state, runtimeAssetUrl: path => path,
+    renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null, scheduleGpuFrame: () => {} });
+  assert.equal(typeof renderer.invalidateCountryPreview, 'function');
+  renderer.invalidateCountryPreview();
+  assert.equal(renderer.getRuntimeState().previewAllowed, false);
+  assert.equal(state.auditPreviewCountries, null);
+  assert.equal(state.countryVisualPhase, 'canonical'); renderer.dispose();
+});
