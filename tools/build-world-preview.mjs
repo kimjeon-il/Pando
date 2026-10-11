@@ -15,14 +15,20 @@ import { verifyGzipAssetBytes } from '../scripts/lib/gzip-asset-verification.mjs
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
-const APP_VERSION = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')).version;
-const sourcePath = path.join(projectRoot, 'assets', 'data', 'territorial-entities', 'generated', 'current-world.geojson');
-const canonicalCountryPacketPath = path.join(projectRoot, 'assets', 'data', `countries-canonical-v${APP_VERSION}.pcg.gz`);
-const canonicalMeshPath = path.join(projectRoot, 'assets', 'data', 'world-mesh-v0.12.6.bin.gz');
-const labelAnchorsPath = path.join(projectRoot, 'assets', 'data', 'country-label-anchors-v0.10.1.json');
-const previewCountriesPath = path.join(projectRoot, 'assets', 'data', `countries-preview-v${APP_VERSION}.geojson.gz`);
-const previewMeshPath = path.join(projectRoot, 'assets', 'data', `world-mesh-preview-v${APP_VERSION}.bin.gz`);
-const previewManifestPath = path.join(projectRoot, 'assets', 'data', `world-preview-v${APP_VERSION}.json`);
+const bundleSeed = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data/world/build-input.json'), 'utf8'));
+const legacyTag = /^world-preview-v(\d+\.\d+\.\d+)\.json$/.exec(bundleSeed.legacyPreviewManifest || '');
+if (!legacyTag) throw new Error('Invalid pinned world dataset output revision');
+const LEGACY_DATA_VERSION = legacyTag[1];
+const dataDirectory = path.join(projectRoot, 'assets', 'data');
+const legacySourceManifest = JSON.parse(fs.readFileSync(path.join(dataDirectory, bundleSeed.legacyPreviewManifest), 'utf8'));
+if (legacySourceManifest.version !== LEGACY_DATA_VERSION) throw new Error('Inconsistent pinned legacy world data revision');
+const sourcePath = path.join(dataDirectory, bundleSeed.canonicalSource);
+const canonicalCountryPacketPath = path.join(dataDirectory, legacySourceManifest.assets.canonicalCountryPacket.url);
+const canonicalMeshPath = path.join(dataDirectory, legacySourceManifest.assets.canonicalMesh.url);
+const labelAnchorsPath = path.join(dataDirectory, legacySourceManifest.assets.labelAnchors.url);
+const previewCountriesPath = path.join(dataDirectory, legacySourceManifest.assets.previewCountries.url);
+const previewMeshPath = path.join(dataDirectory, legacySourceManifest.assets.previewMesh.url);
+const previewManifestPath = path.join(dataDirectory, bundleSeed.legacyPreviewManifest);
 const checkOnly = process.argv.includes('--check');
 
 const MAX_COORDINATES = 120_000;
@@ -94,7 +100,7 @@ function buildPreview(canonicalSource) {
     collection: {
       type: 'FeatureCollection',
       features,
-      name: `pandolab-world-preview-v${APP_VERSION}`,
+      name: `pandolab-world-preview-v${LEGACY_DATA_VERSION}`,
       crs: canonicalSource.crs,
       bbox: canonicalSource.bbox,
     },
@@ -220,7 +226,7 @@ const combinedCompressedBytes = previewCountries.length + packedMesh.compressed.
 if (combinedCompressedBytes > MAX_COMPRESSED_BYTES) throw new Error(`미리보기 압축 크기가 3MiB를 초과했습니다: ${combinedCompressedBytes}`);
 
 const manifest = {
-  version: APP_VERSION,
+  version: LEGACY_DATA_VERSION,
   source: 'territorial-entities/generated/current-world.geojson',
   sourceSha256: sha256(canonicalBytes),
   defaultClassification,
@@ -240,11 +246,11 @@ const manifest = {
   countriesSha256: sha256(previewCountries),
   meshSha256: sha256(packedMesh.compressed),
   assets: {
-    previewCountries: { url: `countries-preview-v${APP_VERSION}.geojson.gz`, encoding: 'gzip', compressedBytes: previewCountries.length, decodedBytes: previewJson.length, sha256: sha256(previewCountries) },
-    previewMesh: { url: `world-mesh-preview-v${APP_VERSION}.bin.gz`, encoding: 'gzip', compressedBytes: packedMesh.compressed.length, decodedBytes: packedMesh.raw.length, sha256: sha256(packedMesh.compressed), header: meshHeader(packedMesh.raw) },
+    previewCountries: { url: `countries-preview-v${LEGACY_DATA_VERSION}.geojson.gz`, encoding: 'gzip', compressedBytes: previewCountries.length, decodedBytes: previewJson.length, sha256: sha256(previewCountries) },
+    previewMesh: { url: `world-mesh-preview-v${LEGACY_DATA_VERSION}.bin.gz`, encoding: 'gzip', compressedBytes: packedMesh.compressed.length, decodedBytes: packedMesh.raw.length, sha256: sha256(packedMesh.compressed), header: meshHeader(packedMesh.raw) },
     labelAnchors: { url: 'country-label-anchors-v0.10.1.json', encoding: 'identity', compressedBytes: labelAnchorBytes.length, decodedBytes: labelAnchorBytes.length, sha256: sha256(labelAnchorBytes) },
     canonicalCountryPacket: {
-      url: `countries-canonical-v${APP_VERSION}.pcg.gz`,
+      url: `countries-canonical-v${LEGACY_DATA_VERSION}.pcg.gz`,
       encoding: 'gzip',
       compressedBytes: canonicalCountryPacket.length,
       decodedBytes: canonicalCountryPacketBuffer.byteLength,

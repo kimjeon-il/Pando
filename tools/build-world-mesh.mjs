@@ -8,9 +8,11 @@ import { fileURLToPath } from 'node:url';
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');
 const sourcePath = path.join(projectRoot, 'assets', 'data', 'territorial-entities', 'generated', 'current-world.geojson');
+const bundleSeed = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data/world/build-input.json'), 'utf8'));
+const pinnedManifest = JSON.parse(fs.readFileSync(path.join(projectRoot, 'assets/data', bundleSeed.legacyPreviewManifest), 'utf8'));
 const outputPath = path.resolve(
   projectRoot,
-  process.argv[2] || path.join('assets', 'data', 'world-mesh-v0.12.6.bin.gz'),
+  process.argv[2] || path.join('assets', 'data', pinnedManifest.assets.canonicalMesh.url),
 );
 const MESH_FORMAT_VERSION = 2;
 const MESH_HEADER_WORDS = 12;

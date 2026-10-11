@@ -1,0 +1,84 @@
+name: Check Hügum 1878 Hårup and confluence hotspots at screen scale
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [work/gis]
+    paths:
+      - tools/review_north_schleswig_1914_hugum_hotspots.py
+      - .github/workflows/north-schleswig-1914-hugum-hotspots.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: north-schleswig-hugum-1914-hotspots
+  cancel-in-progress: false
+
+jobs:
+  screen-tolerance-source-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: work/gis
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check shapely pyproj requests pillow
+      - name: Record original 1914 candidate checksum before comparison
+        run: sha256sum tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.geojson > /tmp/hugum-exceptions-master.sha
+      - name: Render original 1878 period river against ±0.5 CSS px candidate envelope
+        env:
+          GIS_LOG_HOTSPOT_THUMBNAIL: "1"
+        run: python tools/review_north_schleswig_1914_hugum_hotspots.py
+      - name: Validate chronology, geometry provenance, and non-final status
+        run: |
+          sha256sum -c /tmp/hugum-exceptions-master.sha
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path("tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.json")
+          data=json.loads(path.read_text())
+          source=data["otherPublishedRevision"]
+          display=data["rendering"]
+          assert data["referenceDate"]=="1914-07-31"
+          assert data["masterUnmodified"] is True
+          assert data["historicBorderCertified"] is False
+          assert data["rasterFilesCommittedToGit"] is False
+          assert source["reportedLastSubstantialRevision"]=="B 1916"
+          assert source["lastRevisionAfterReferenceDate"] is True
+          assert source["reportedFirstEditionYear"]==1880
+          assert data["nearContemporarySeries"]["later0619SheetAcquired"] is False
+          assert display["mapContentWidthCssPx"]==2560
+          assert display["flatZoom"]==64
+          assert display["viewToleranceCssPx"]==0.5
+          assert abs(display["toleranceDegrees"]-(0.5*360/(2560*64)))<1e-12
+          assert display["historicalReferenceDigitized"] is False
+          assert display["measuredDifferenceToHistorical1914CssPx"] is None
+          assert display["targetPassed"] is None
+          assert set(data["panels"])=={"harup-meander","gels-flads-confluence"}
+          for name,panel in data["panels"].items():
+            assert panel["historicalLineDigitized"] is False
+            assert panel["manualReviewStatus"]=="needs-visual-inspection"
+            assert panel["panelSizePx"][0]>=1700
+          print("PASS: 2 original map previews; no inappropriate 1916/1914 equivalence or pixel certification.")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: north-schleswig-hugum-1878-two-hotspots
+          path: tools/historical-library/review-output/north-schleswig-1914-001-026/0619-hugum-hotspots/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Commit only source and visualization metadata, never period raster pixels
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.json
+          if git diff --cached --quiet; then
+            echo "Hügum hotspots metadata unchanged"
+          else
+            git commit -m "data(gis): record Hügum 1878 Hårup and confluence historic-screen hotspot review"
+            git pull --rebase origin work/gis
+            git push origin HEAD:work/gis
+          fi

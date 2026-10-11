@@ -1,5 +1,16 @@
 # Historical library geometry builds
 
+## Mandatory historical boundary reconstruction standard
+
+Historical national/subnational borders, rivers, coastlines and reclamation
+geometry follow the shared [historical boundary reconstruction policy](../../docs/historical-border-reconstruction-policy.md).
+The standard uses suitable period maps (normally around 1:25,000), with a
+maximum-zoom **2560 CSS px / 0.5 CSS px** visual stopping criterion, but never
+allows subpixel tolerance to override source chronology, territory ownership,
+shoreline changes or shared-border topology. Keep canonical evidence separate
+from display-only simplified geometry.
+
+
 `east-germany-1989.recipe.json` is the pinned, declarative build recipe for the
 PandoLab historical-country pilot `state:deutsche-demokratische-republik`.
 
@@ -65,6 +76,25 @@ These entries use the same `territory-replacement` materialization mode, so addi
 subtracts its transferred geometry from overlapping current-country objects in
 one undoable operation.
 
+## German coastline changes across eras
+
+The [coastline event/source index](sources/german-coastline/README.md) and
+[`change-events.json`](sources/german-coastline/change-events.json) record
+coastal engineering and land/water changes across the German Empire,
+German Reich (1919–1945), and later periods **without assigning each change to
+a permanent country owner or inventing a precise completion date**.
+
+The index currently records historical sources, construction/closure year
+ranges and the available Pillau/Zimmerbude/Gdynia map-sheet series. It is
+**research evidence, not digitized shoreline geometry**. Do not promote an
+event into a dated polygon until independent period maps have established its
+location, geometry, actual land/water classification and applicable dates.
+The present German Empire 1914 working geometry still has provisional modern
+coastline sections.
+
+Validate its data contract with
+`node --test tests/unit/historical-german-coastline-events.test.mjs`.
+
 ## German Empire 1914 working base
 
 `german-empire-1914-base.recipe.json` defines the reproducible working-base
@@ -112,3 +142,9 @@ workflow.
 
 The HGIS source contract and local-file policy are documented in
 `sources/german-empire-1914/README.md`.
+
+## Worldwide event-based shoreline pilot (October 2026)
+
+The [global historical coastline change workflow](../../docs/historical-coastline-change-workflow.md) reuses the German coastline event catalogue instead of duplicating it by sovereign or year. Its [read-only catalogue registry](sources/coastline-catalogs.json) references the existing German and new Dutch inventories without duplicating event records. The Netherlands pilot adds a [nine-event source index](sources/netherlands/change-events.json), [twelve read-only national-polygon point probes](sources/netherlands/canonical-phase0-probes.json), and a [Phase 0 audit](sources/netherlands/phase0-canonical-audit.md).
+
+The Dutch sample audit established that the current NLD national polygon covers inland-water positions and does not prove whether small artificial islands/lake masks are represented. It also places the published Maasvlakte 2 sample point outside the present national outline. All historical geometry, hydrology and contemporary canonical files remain unchanged; the probes are **not** a verified shoreline or polygon rollback. Run `node --test tests/unit/historical-netherlands-coast-phase0.test.mjs` after syncing the GIS branch to a local worktree to reproduce the regression assertions.

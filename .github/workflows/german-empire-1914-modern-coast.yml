@@ -3,10 +3,9 @@ name: Build German Empire 1914 modern-coast base
 on:
   push:
     branches:
-      - feat/german-empire-1914-modern-coast
+      - work/gis
     paths:
       - tools/build_german_empire_1914_modern_coast.py
-      - .github/workflows/german-empire-1914-modern-coast.yml
 
 permissions:
   contents: write
@@ -17,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feat/german-empire-1914-modern-coast
+          ref: work/gis
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
