@@ -1,0 +1,595 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r148",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r147",
+    "commit": "44a168dd0260923c58c9c20857615c7effb69bc3",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r147/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:80161639",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:80161639",
+      "category": "river_group",
+      "system_id": "80161639",
+      "original_queue_rank": 395,
+      "baseline_logical_fid": 954,
+      "geometry_fids": [
+        2596
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -85.73125,
+        63.718203,
+        -84.422917,
+        64.791667
+      ],
+      "rendered_mainstem_length_km": 191.352,
+      "rendered_network_length_km": 191.352,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -85.73125,
+          63.718203,
+          -84.422917,
+          64.791667
+        ]
+      },
+      "candidate_name": "Boas River",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "candidate_names": [
+        "Boas River"
+      ],
+      "region": "Southampton Island, Nunavut, Canada; selected corridor toward the Bay of God Mercy.",
+      "candidate_name_role": "Representative river-system identity for the selected northern upland course, lowland river and unnamed lake passage, and southern Boas delta/estuary; not a uniform scalar name for every waterbody or distributary.",
+      "source_keys": [
+        "r148-nluis-boas-46c",
+        "r148-nluis-bear-cove-45n",
+        "r148-eccc-ikkattuaq-prose",
+        "r148-cws-important-areas-2012-prose"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected northern opening follows a mapped small upland watercourse into the labeled Boas River valley. The river runs south through higher terrain east of Mount Saorre, bends west below The Buttocks, and swings northwest into lake-rich lowland before turning south. It enters the eastern side of a broad unnamed lake and continues through the lake’s southern outlet and widened, islanded river. Across the adjoining Bear Cove sheet it expands into the braided Boas delta, ending in its distributary/tidal-estuary setting at the north end of Bay of Gods Mercy, part of Hudson Bay. The selected coastal tip is treated at this delta/estuary scale rather than as a surveyed point on a fixed coastline.",
+      "completion_scope": "The two original NLUIS sheets give positive continuous geographic coverage of the selected headward course, main valley and lowland turn, broad unnamed lake, southern river widening, sheet join, branching delta and bayward terminal setting. A source name is not required for every feeder, lake or distributary. Optional failed reports and the unavailable modern sanctuary map do not leave a genuine unobserved selected connector. No precise bank or mouth-point agreement was required.",
+      "supported_name_scope": "Representative river-system identity for the selected northern upland course, lowland river and unnamed lake passage, and southern Boas delta/estuary; not a uniform scalar name for every waterbody or distributary.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The candidate is a representative system identity supported by the complete mapped river/lake/delta sequence, not a claim that every selected component is uniformly named Boas River.",
+          "The initial small headward course, broad unnamed lake and final individual distributary have no independently established component name.",
+          "Historical map labels and modern supporting prose do not establish formal registry status, legal naming boundaries, Korean spelling, a current surveyed mouth or an official river length.",
+          "The NLUIS maps are historical1984 thematic publications with information current to December1983 and NTS second-edition1980 base mapping. Modern fine-scale positions and current flow conditions are outside this bounded finding."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:60237339",
+      "category": "river_group",
+      "system_id": "60237339",
+      "original_queue_rank": 396,
+      "baseline_logical_fid": 3390,
+      "geometry_fids": [
+        11590,
+        11591,
+        11592
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -77.54375,
+        2.166667,
+        -77.147917,
+        3.210417
+      ],
+      "rendered_mainstem_length_km": 191.107,
+      "rendered_network_length_km": 191.107,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -77.54375,
+          2.166667,
+          -77.147917,
+          3.210417
+        ]
+      },
+      "candidate_name": "Río Micay",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "candidate_names": [
+        "Río Micay"
+      ],
+      "region": "Pacific Cauca, Colombia; selected southern inland opening and northwestern coastal-drainage corridor.",
+      "candidate_name_role": "Lower-river candidate established in primary community cartography only; not a completed representative identity for the full selected system. The northern coastal branch network includes a separately labeled Quebrada Tambor corridor.",
+      "source_keys": [
+        "r148-manglares-pmat-original",
+        "r148-integracion-pmat-original",
+        "r148-sanjoc-pmat-original",
+        "r148-ideam-hydro-metadata-only"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The southern opening and mountain corridor in FID11590, the inland middle continuation and major junctions in FID11591, and the inland start of FID11592 into the positively mapped lower Micay corridor remain unestablished by the acquired original cartography.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": {
+        "coverage": "Partial original lower/coastal mapping and bounded tributary/contextual primary prose. Full opening-to-terminal correspondence remains materially incomplete.",
+        "headward_opening": "FID11590 is the southern inland opening and long north-trending mountain-side corridor. No readable allowed primary cartography acquired here establishes its opening or all headward names; it cannot inherit Micay from downstream evidence.",
+        "middle_transition": "FID11591 bends northwest and then north through the inland middle corridor toward the López de Micay/Chuare region. The source prose distinguishes Micay, Jolí and Chuare, but does not fix all selected junctions. The acquired Integración maps are local and have inadequate label/detail coverage for a full inland interpretation.",
+        "lower_transition": "The western/northern portion of FID11592 is geographically consistent with the independently mapped lower Micay reach through the Manglares council area. Original 2007 coverage and base maps positively distinguish inland mixed/guandal terrain, river branches, esteros and coastal mangroves.",
+        "terminal_branch_scope": "The selected northward/east-curving coastal leg is consistent at generalized scale with the eastern Quebrada Tambor side of the connected northern estuarine network before Bocana Río Micay. The map also shows a distinct Río Micay channel on the western side and separate Coco/Candelaria/Bocagrande outlets. This is a bounded lower-route interpretation, not proof that every selected connector or channel bears one name.",
+        "terminal": "Original community cartography shows the northern estuarine mouth opening to the Pacific south of Cartagena. No exact rendered mouth-point or bank agreement is required or asserted.",
+        "lakes_reservoirs": "No lake or reservoir through-link is established on the selected route from the acquired sources. The lower map marks local Laguna/Murciélago waters separately; nearby water-body labels are not assigned to the selected line.",
+        "material_missing_links": [
+          "Full FID11590 opening and mountain corridor",
+          "Full FID11591 inland continuation and major junctions",
+          "The inland beginning of FID11592 and positive source continuity into the mapped Manglares lower reach"
+        ]
+      },
+      "completion_scope": "Material source gap remains for all of the southern opening/mountain and middle corridor and the inland-to-lower connector. Primary community maps support the lower Río Micay setting and show the Noanamito bifurcation, separate western outlets and a distinct eastern Tambor channel before the northern mouth. Río Micay is retained only as a lower-course candidate. This is not a completed representative identity or naming-scope hold.",
+      "supported_name_scope": "Lower-river candidate established in primary community cartography only; not a completed representative identity for the full selected system. The northern coastal branch network includes a separately labeled Quebrada Tambor corridor.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Río Micay is a partial lower-course candidate, not a supported full-system representative result.",
+          "A model mainstem role and continuity do not establish a uniform hydronym.",
+          "Chuare and Jolí are separately identified tributary/sector names; no downstream representative name is propagated to them.",
+          "The northern estuarine network explicitly has distinct Micay and Tambor labels; the western Coco/Candelaria outlets are separate from the retained northern route.",
+          "Unknown headward and middle names remain null. Accepted, scalar and Korean names remain null; no application authorized."
+        ]
+      },
+      "material_pending_components": [
+        "Full FID11590 opening and mountain corridor",
+        "Full FID11591 inland continuation and major junctions",
+        "The inland beginning of FID11592 and positive source continuity into the mapped Manglares lower reach"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70023641",
+      "category": "river_group",
+      "system_id": "70023641",
+      "original_queue_rank": 397,
+      "baseline_logical_fid": 2915,
+      "geometry_fids": [
+        8988
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -67.427083,
+        57.24375,
+        -66.05625,
+        58.2838
+      ],
+      "rendered_mainstem_length_km": 191.004,
+      "rendered_network_length_km": 191.004,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -67.427083,
+          57.24375,
+          -66.05625,
+          58.2838
+        ]
+      },
+      "candidate_name": "Rivière Marralik",
+      "candidate_names": [
+        "Rivière Marralik"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "The retained primary regional map supports Marralik as a broad labeled northward corridor. No uniform name is assigned to the selected eastern feeder, lake passages or connector reaches.",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Southern Ungava Bay hinterland, Nunavik, northern Québec, Canada; Marralik regional corridor.",
+      "candidate_name_role": "cartographically_supported_middle_lower_corridor_candidate_only; not a completed representative-system identity",
+      "source_keys": [
+        "r148-cehq2011-region10",
+        "r148-marralik-reserve-prose",
+        "r148-ark2005-extent-only"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "Original-map correspondence remains unresolved for the far-eastern initial feeder, the selected La Moinerie–Guers-sector connections, the westward lake/outlet and joining relations, material lower connections and the actual coastal terminal. Broad Marralik corridor context is insufficient for completed representative identity or a completed naming-scope hold.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The broad northward continuation is a Marralik corridor candidate, but genuine gaps in initial-course, waterbody-link, junction and coastal-terminal evidence leave the selected system source-material pending.",
+      "completion_scope": "The broad northward continuation is a Marralik corridor candidate, but genuine gaps in initial-course, waterbody-link, junction and coastal-terminal evidence leave the selected system source-material pending.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The retained primary regional map supports Marralik as a broad labeled northward corridor. No uniform name is assigned to the selected eastern feeder, lake passages or connector reaches."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70281204",
+      "category": "river_group",
+      "system_id": "70281204",
+      "original_queue_rank": 398,
+      "baseline_logical_fid": 3014,
+      "geometry_fids": [
+        9354,
+        9355
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -55.89375,
+        48.302083,
+        -54.48125,
+        49.267646
+      ],
+      "rendered_mainstem_length_km": 190.978,
+      "rendered_network_length_km": 190.978,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -55.89375,
+          48.302083,
+          -54.48125,
+          49.267646
+        ]
+      },
+      "candidate_name": "Gander River",
+      "candidate_names": [
+        "Gander River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": {
+        "all_selected_geometry_fragments_read_for_orientation": true,
+        "all_selected_component_corridors_source_resolved": false,
+        "actual_terminal_setting_inspected": true,
+        "actual_terminal_setting": "Gander Bay, at the end of the mapped lower Gander corridor.",
+        "unresolved_material_connections": [
+          "FID9354 initial headward pond/feeder selection and its first connection to Northwest Gander."
+        ],
+        "ordinary_scale_note": "No precise bank, vertex or surveyed mouth-point agreement is required. The unresolved issue is selection of a headward branch, not a demand for exact geometry."
+      },
+      "region": "Newfoundland, Canada; selected Gander watershed corridor.",
+      "candidate_name_role": "Provisional downstream/representative-system candidate. Full representative identity is not complete because the selected opening and initial headward connector remain unresolved.",
+      "source_keys": [
+        "traverse1972-gander93"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "Traverse1972 supplies an original whole-watershed drawing, but the specific opening and first pond/feeder connector of FID9354 cannot be securely disambiguated among the illustrated far-headward forks. Requested detailed/regional original maps were unavailable or denied. Basin association, similar line shape and model connectivity do not close that source-correspondence gap.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Gander River is supported as a downstream candidate. The selected upper route follows the Northwest Gander side, rather than the separate Southwest Gander branch. The initial pond/feeder selection is not securely resolved, so the record remains material pending.",
+      "supported_name_scope": "Bounded downstream/system candidate only.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Gander River is not assigned uniformly to the selected upper feeder, Northwest Gander or Gander Lake.",
+          "The separate Southwest Gander and Great Gull tributary names are not extended onto every selected component.",
+          "Unnamed initial ponds and feeders remain null.",
+          "The historical survey does not establish present flow, reservoir operations or exact official hydronym boundaries. No reservoir passage is positively identified on the selected corridor."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:60237339",
+      "hydro-system:70023641",
+      "hydro-system:70281204"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 535,
+    "non_pending_records": 443,
+    "source_access_pending": 3,
+    "source_material_pending": 89,
+    "source_any_pending": 92,
+    "scope_holds": 142,
+    "river_groups": 437,
+    "lakes": 98,
+    "unrecorded": 3530,
+    "unrecorded_river_groups": 3018,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r148-nluis-boas-46c",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46c.jpg"
+    },
+    {
+      "source_key": "r148-nluis-bear-cove-45n",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_45n.jpg"
+    },
+    {
+      "source_key": "r148-eccc-ikkattuaq-prose",
+      "official_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/harry-gibbons.html"
+    },
+    {
+      "source_key": "r148-cws-important-areas-2012-prose",
+      "official_url": "https://publications.gc.ca/collections/collection_2012/ec/CW66-302-2012-eng.pdf"
+    },
+    {
+      "source_key": "r148-manglares-pmat-original",
+      "official_url": "https://cococauca.org/wp-content/uploads/2020/07/Plan-de-Manejo-Ambiental-Territorial-Manglares.pdf"
+    },
+    {
+      "source_key": "r148-integracion-pmat-original",
+      "official_url": "https://cococauca.org/wp-content/uploads/2020/07/Plan-de-Manejo-Ambiental-Territorial-Integraci%C3%B3n.pdf"
+    },
+    {
+      "source_key": "r148-sanjoc-pmat-original",
+      "official_url": "https://cococauca.org/wp-content/uploads/2020/07/Plan-de-Manejo-Ambiental-Territorial-Sanjoc.pdf"
+    },
+    {
+      "source_key": "r148-ideam-hydro-metadata-only",
+      "official_url": "https://dhime.ideam.gov.co/server/rest/services/Cartografia_Basica/Hidrografia/MapServer"
+    },
+    {
+      "source_key": "r148-cehq2011-region10",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r148-marralik-reserve-prose",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-territoires/nunavik/riviere-marralik-en.htm"
+    },
+    {
+      "source_key": "r148-ark2005-extent-only",
+      "official_url": "https://cdn-contenu.quebec.ca/cdn-contenu/parcs/documents/RA_Etat-connaissances_Kuururjuaq.pdf"
+    },
+    {
+      "source_key": "traverse1972-gander93",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/65572.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "44a168dd0260923c58c9c20857615c7effb69bc3",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      395,
+      396,
+      397,
+      398
+    ],
+    "next_unrecorded_id": "hydro-system:61481564",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      }
+    ]
+  }
+}
