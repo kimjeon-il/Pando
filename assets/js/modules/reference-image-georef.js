@@ -931,11 +931,15 @@ export function buildReferenceImageLinearRefinement({
   maximumSamples = 24,
 } = {}) {
   const basePoints = Array.isArray(controlPoints) ? controlPoints : [];
-  const baseWarp = buildReferenceImageCalibrationWarp({
-    controlPoints: basePoints,
-    anchor,
-    mode: baseMode,
-  });
+  const baseWarp = buildReferenceImageWarp([
+    ...(anchor ? [{
+      id: 'anchor',
+      image: anchor.image,
+      coordinate: anchor.coordinate,
+      pinned: true,
+    }] : []),
+    ...basePoints.map(point => ({ ...point, pinned: false })),
+  ], { mode: baseMode });
   if (!baseWarp.ok) {
     return Object.freeze({
       ok: false,
@@ -1006,6 +1010,7 @@ export function referenceImageWarpQuad(warp) {
 export function buildReferenceImageCalibrationWarp({
   controlPoints = [],
   anchor = null,
+  linearConstraints = [],
   cornerPinEnabled = false,
   mapQuad = null,
   mode = REFERENCE_IMAGE_WARP_MODES.AUTO,
@@ -1028,8 +1033,39 @@ export function buildReferenceImageCalibrationWarp({
     });
   }
 
+  let linePoints = [];
+  if (
+    Array.isArray(linearConstraints)
+    && linearConstraints.some(item => item?.enabled !== false)
+    && calibrationPoints.length
+  ) {
+    const baseWarp = buildReferenceImageWarp(calibrationPoints, { mode });
+    if (baseWarp.ok) {
+      linePoints = [...buildReferenceImageLinearConstraintPoints(linearConstraints, {
+        baseWarp,
+        samplesPerConstraint: 4,
+        maximumSamples: 24,
+      })];
+      calibrationPoints.push(...linePoints);
+    }
+  }
+
+  const withLinearDiagnostics = warp => {
+    if (!warp?.ok || !linePoints.length) return warp;
+    return Object.freeze({
+      ...warp,
+      diagnostics: Object.freeze({
+        ...warp.diagnostics,
+        linearConstraintCount: new Set(linePoints.map(point => point.linearConstraintId)).size,
+        linearConstraintPointCount: linePoints.length,
+      }),
+    });
+  };
+
   if (!cornerPinEnabled || !calibrationPoints.length) {
-    return buildReferenceImageWarp(calibrationPoints, { mode });
+    return withLinearDiagnostics(buildReferenceImageWarp(calibrationPoints, {
+      mode: linePoints.length ? REFERENCE_IMAGE_WARP_MODES.TPS : mode,
+    }));
   }
 
   if (!Array.isArray(mapQuad) || mapQuad.length !== 4) {
@@ -1049,10 +1085,10 @@ export function buildReferenceImageCalibrationWarp({
     coordinate: Array.isArray(coordinate) ? [...coordinate] : coordinate,
     pinned: true,
   }));
-  return buildReferenceImageWarp(
+  return withLinearDiagnostics(buildReferenceImageWarp(
     [...cornerPoints, ...calibrationPoints],
     { mode: REFERENCE_IMAGE_WARP_MODES.TPS },
-  );
+  ));
 }
 
 export function buildReferenceImageProjectiveWarpFromQuad(mapQuad) {
