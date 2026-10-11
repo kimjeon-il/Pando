@@ -1,4 +1,4 @@
-export const REFERENCE_IMAGE_MODEL_VERSION = 5;
+export const REFERENCE_IMAGE_MODEL_VERSION = 6;
 
 const DEFAULT_OPACITY = 0.55;
 const DEFAULT_BLEND_MODE = 'source-over';
@@ -41,6 +41,44 @@ export function normalizeReferenceImageAnchor(value) {
   };
 }
 
+const LINEAR_CONSTRAINT_KINDS = new Set(['coastline', 'river', 'border', 'other']);
+
+function normalizeImagePolyline(values) {
+  if (!Array.isArray(values)) return null;
+  const points = values.map(finitePair).filter(Boolean);
+  if (points.length < 2 || points.some(point => point.some(component => component < 0 || component > 1))) return null;
+  return points.map(point => [...point]);
+}
+
+function normalizeMapPolyline(values) {
+  if (!Array.isArray(values)) return null;
+  const points = values.map(normalizeReferenceImageMapCoordinate).filter(Boolean);
+  return points.length >= 2 ? points.map(point => [...point]) : null;
+}
+
+export function normalizeReferenceImageLinearConstraints(values = []) {
+  if (!Array.isArray(values)) return [];
+  const result = [];
+  const ids = new Set();
+  for (const value of values) {
+    const id = String(value?.id || '').trim();
+    const image = normalizeImagePolyline(value?.image);
+    const coordinates = normalizeMapPolyline(value?.coordinates || value?.coordinate);
+    if (!id || ids.has(id) || !image || !coordinates) continue;
+    ids.add(id);
+    const weight = Number(value?.weight);
+    result.push({
+      id,
+      kind: LINEAR_CONSTRAINT_KINDS.has(value?.kind) ? value.kind : 'other',
+      image,
+      coordinates,
+      weight: clamp(Number.isFinite(weight) ? weight : 1, 0.25, 3),
+      enabled: value?.enabled !== false,
+    });
+  }
+  return result;
+}
+
 function normalizeControlPoints(values) {
   if (!Array.isArray(values)) return [];
   const result = [];
@@ -61,6 +99,7 @@ export function normalizeReferenceImageRecord(record = {}) {
   const opacity = Number(record?.opacity ?? DEFAULT_OPACITY);
   const order = Number(record?.order);
   const controlPoints = normalizeControlPoints(record?.controlPoints);
+  const linearConstraints = normalizeReferenceImageLinearConstraints(record?.linearConstraints);
   const anchor = normalizeReferenceImageAnchor(record?.anchor);
   const mapQuad = normalizeReferenceImageMapQuad(record?.mapQuad);
   return {
@@ -75,6 +114,7 @@ export function normalizeReferenceImageRecord(record = {}) {
     flipX: record?.flipX === true,
     flipY: record?.flipY === true,
     controlPoints,
+    linearConstraints,
     anchor,
     cornerPinEnabled: record?.cornerPinEnabled === true && !!mapQuad,
     mapQuad,
@@ -94,6 +134,11 @@ export function referenceImageMappingSignature(record = {}) {
       id: point.id,
       image: [...point.image],
       coordinate: [...point.coordinate],
+    })),
+    linearConstraints: normalized.linearConstraints.map(constraint => ({
+      ...constraint,
+      image: constraint.image.map(point => [...point]),
+      coordinates: constraint.coordinates.map(point => [...point]),
     })),
     anchor: normalized.anchor ? {
       image: [...normalized.anchor.image],
@@ -122,6 +167,11 @@ export function serializeReferenceImageRecord(record, order = 0) {
       image: [...point.image],
       coordinate: [...point.coordinate],
     })),
+    linearConstraints: normalized.linearConstraints.map(constraint => ({
+      ...constraint,
+      image: constraint.image.map(point => [...point]),
+      coordinates: constraint.coordinates.map(point => [...point]),
+    })),
     anchor: normalized.anchor ? {
       image: [...normalized.anchor.image],
       coordinate: [...normalized.anchor.coordinate],
@@ -143,6 +193,7 @@ export function cloneReferenceImageRecord(record) {
         coordinate: [...point.coordinate],
       }))
       : [],
+    linearConstraints: normalizeReferenceImageLinearConstraints(record?.linearConstraints),
     anchor: normalizeReferenceImageAnchor(record?.anchor),
     mapQuad: normalizeReferenceImageMapQuad(record?.mapQuad),
     projectedMesh: null,
