@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildReferenceImageAutoGeoref,
   buildReferenceImageCalibrationWarp,
   buildReferenceImageMesh,
   buildReferenceImageProjectiveWarpFromQuad,
@@ -244,4 +245,122 @@ test('diagnostics flags control points concentrated in a small image area', () =
   ], { mode: REFERENCE_IMAGE_WARP_MODES.AFFINE });
   assert.equal(warp.ok, true);
   assert.ok(warp.diagnostics.warnings.includes('control-points-concentrated'));
+});
+
+
+test('automatic georeferencing rejects a bad candidate and preserves the hard anchor', () => {
+  const coordinate = ([u, v]) => [10 + 2 * u + 0.1 * v, 50 + 0.2 * u + 2 * v];
+  const candidates = [
+    point('a', [0, 0], coordinate([0, 0])),
+    point('b', [1, 0], coordinate([1, 0])),
+    point('c', [0, 1], coordinate([0, 1])),
+    point('d', [1, 1], coordinate([1, 1])),
+    point('e', [0.2, 0.7], coordinate([0.2, 0.7])),
+    point('f', [0.75, 0.35], coordinate([0.75, 0.35])),
+    point('bad-city-match', [0.8, 0.2], [25, 65]),
+  ].map((candidate, index) => ({ ...candidate, confidence: 1 - index * 0.03, origin: 'city' }));
+  const anchorImage = [0.5, 0.5];
+  const anchor = { image: anchorImage, coordinate: coordinate(anchorImage) };
+  const result = buildReferenceImageAutoGeoref(candidates, {
+    anchor,
+    mode: REFERENCE_IMAGE_WARP_MODES.AFFINE,
+    inlierThresholdMeters: 2000,
+    maxTrials: 128,
+    seed: 12345,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, REFERENCE_IMAGE_WARP_MODES.AFFINE);
+  assert.equal(result.inlierCount, 6);
+  assert.deepEqual(result.rejectedIds, ['bad-city-match']);
+  assert.ok(result.diagnostics.hardMaxMeters < 0.01);
+  const projectedAnchor = result.project(anchorImage);
+  assert.ok(Math.abs(projectedAnchor[0] - anchor.coordinate[0]) < 1e-9);
+  assert.ok(Math.abs(projectedAnchor[1] - anchor.coordinate[1]) < 1e-9);
+});
+
+test('automatic georeferencing selects affine when cross-validation beats projective', () => {
+  const images = [
+    [0, 0], [1, 0], [0, 1], [1, 1],
+    [0.2, 0.7], [0.75, 0.35], [0.35, 0.2], [0.65, 0.85],
+  ];
+  const coordinate = ([u, v]) => [10 + 2.4 * u + 0.35 * v, 50 + 0.25 * u + 1.8 * v];
+  const result = buildReferenceImageAutoGeoref(
+    images.map((image, index) => ({ ...point(String(index), image, coordinate(image)), confidence: 0.9 })),
+    { mode: REFERENCE_IMAGE_WARP_MODES.AUTO, inlierThresholdMeters: 5000, seed: 13 },
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, REFERENCE_IMAGE_WARP_MODES.AFFINE);
+  assert.equal(result.diagnostics.modelSelection.consensusMode, REFERENCE_IMAGE_WARP_MODES.PROJECTIVE);
+  assert.equal(result.diagnostics.modelSelection.selectedMode, REFERENCE_IMAGE_WARP_MODES.AFFINE);
+  const affine = result.diagnostics.modelSelection.validations.find(item => item.mode === REFERENCE_IMAGE_WARP_MODES.AFFINE);
+  const projective = result.diagnostics.modelSelection.validations.find(item => item.mode === REFERENCE_IMAGE_WARP_MODES.PROJECTIVE);
+  assert.ok(affine);
+  assert.ok(projective);
+  assert.ok(affine.rmsMeters <= projective.rmsMeters * 1.01);
+});
+
+test('automatic georeferencing keeps projective when perspective is real', () => {
+  const images = [
+    [0, 0], [1, 0], [0, 1], [1, 1],
+    [0.2, 0.7], [0.75, 0.35], [0.35, 0.2], [0.65, 0.85],
+  ];
+  const coordinate = ([u, v]) => {
+    const denominator = 1 + 0.12 * u - 0.08 * v;
+    return [
+      (10 + 2.2 * u + 0.4 * v) / denominator,
+      (50 + 0.3 * u + 2.1 * v) / denominator,
+    ];
+  };
+  const result = buildReferenceImageAutoGeoref(
+    images.map((image, index) => ({ ...point(String(index), image, coordinate(image)), confidence: 0.9 })),
+    { mode: REFERENCE_IMAGE_WARP_MODES.AUTO, inlierThresholdMeters: 5000, seed: 17 },
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, REFERENCE_IMAGE_WARP_MODES.PROJECTIVE);
+  assert.equal(result.diagnostics.modelSelection.selectedMode, REFERENCE_IMAGE_WARP_MODES.PROJECTIVE);
+});
+
+test('automatic georeferencing is deterministic for the same seed', () => {
+  const candidates = [
+    point('a', [0, 0], [10, 50]),
+    point('b', [1, 0], [12, 50]),
+    point('c', [0, 1], [10, 52]),
+    point('d', [1, 1], [12, 52]),
+    point('e', [0.4, 0.6], [10.8, 51.2]),
+    point('bad', [0.2, 0.8], [30, 20]),
+  ];
+  const options = {
+    mode: REFERENCE_IMAGE_WARP_MODES.PROJECTIVE,
+    inlierThresholdMeters: 2500,
+    maxTrials: 96,
+    seed: 77,
+  };
+  const first = buildReferenceImageAutoGeoref(candidates, options);
+  const second = buildReferenceImageAutoGeoref(candidates, options);
+  assert.equal(first.ok, true);
+  assert.equal(second.ok, true);
+  assert.deepEqual(first.inlierIds, second.inlierIds);
+  assert.deepEqual(first.rejectedIds, second.rejectedIds);
+  assert.equal(first.trials, second.trials);
+});
+
+test('automatic georeferencing fails cleanly when there are too few candidates', () => {
+  const result = buildReferenceImageAutoGeoref([
+    point('a', [0, 0], [10, 50]),
+    point('b', [1, 0], [12, 50]),
+  ], { mode: REFERENCE_IMAGE_WARP_MODES.AFFINE });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'insufficient-auto-georef-candidates');
+  assert.equal(result.minimumPoints, 3);
+});
+
+test('automatic georeferencing keeps TPS out of the robust coarse-fit stage', () => {
+  const result = buildReferenceImageAutoGeoref([
+    point('a', [0, 0], [10, 50]),
+    point('b', [1, 0], [12, 50]),
+    point('c', [0, 1], [10, 52]),
+  ], { mode: REFERENCE_IMAGE_WARP_MODES.TPS });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'unsupported-auto-georef-mode');
 });
