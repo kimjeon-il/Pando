@@ -9,8 +9,8 @@
   <title>판도연구소 — 국가와 국경을 만드는 세계지도 편집기</title>
   <link rel="preload" href="assets/fonts/pretendard-v1.3.9/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('pandolab-user-preferences')||'null')||{};var a=Number(p.version)===2&&p.appearance||{};var t=a.theme;document.documentElement.dataset.theme=t==='light'||t==='dark'?t:'light';document.documentElement.dataset.statusBarVisible=String(a.statusBarVisible!==false);}catch(_){document.documentElement.dataset.theme='light';document.documentElement.dataset.statusBarVisible='true';}}());</script>
-  <link rel="stylesheet" href="assets/css/app.css?v=0.36.0-build-f5040d34a1f5" />
-  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.36.0-build-f5040d34a1f5" data-pandolab-ui="ui-bundle" />
+  <link rel="stylesheet" href="assets/css/app.css?v=0.36.0-build-a5641da22713" />
+  <link rel="stylesheet" href="assets/css/ui.bundle.css?v=0.36.0-build-a5641da22713" data-pandolab-ui="ui-bundle" />
 </head>
 <body class="is-loading">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -349,12 +349,19 @@
             <div id="statusView" class="status-group status-view" aria-label="보기 정보">
               <span id="projectionStatus" class="status-item">지구본</span>
             </div>
-            <div class="status-group timeline-status" aria-label="시간대">
-              <button id="timelinePreviousMonth" class="ui-button ghost timeline-step" type="button" aria-label="이전 달">‹</button>
-              <span id="timelineMonthLabel" class="status-item">현재 월</span>
-              <input id="timelineMonthInput" class="timeline-month-input" type="text" inputmode="numeric" aria-label="표시할 연월" placeholder="YYYY-MM" />
-              <span class="status-item" aria-label="선택한 달의 마지막 날 기준">월말 기준</span>
-              <button id="timelineNextMonth" class="ui-button ghost timeline-step" type="button" aria-label="다음 달">›</button>
+            <div class="status-group timeline-status" aria-label="시점 이동">
+              <button id="timelinePreviousYear" class="ui-button ghost timeline-step" type="button" aria-label="1년 이전" data-tooltip="1년 이전">«</button>
+              <button id="timelinePreviousMonth" class="ui-button ghost timeline-step" type="button" aria-label="1개월 이전" data-tooltip="1개월 이전">‹</button>
+              <span class="timeline-month-control">
+                <button id="timelineMonthButton" class="ui-button timeline-month-button" type="button" aria-label="시점 직접 입력" data-tooltip="시점 직접 입력">
+                  <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
+                  <span id="timelineMonthButtonText">현재 시점</span>
+                </button>
+                <input id="timelineMonthInput" class="timeline-month-input" type="text" inputmode="text" enterkeyhint="done" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="연월 입력" aria-describedby="timelineMonthError" placeholder="YYYY-MM" hidden />
+              </span>
+              <button id="timelineNextMonth" class="ui-button ghost timeline-step" type="button" aria-label="1개월 이후" data-tooltip="1개월 이후">›</button>
+              <button id="timelineNextYear" class="ui-button ghost timeline-step" type="button" aria-label="1년 이후" data-tooltip="1년 이후">»</button>
+              <span id="timelineMonthLabel" hidden>현재 월</span>
               <span id="timelineMonthError" class="timeline-month-error" role="status" hidden></span>
             </div>
             <div id="statusSelection" class="status-group status-selection hidden" aria-label="선택 대상">
@@ -835,10 +842,10 @@
 
 
 
-  <script src="assets/js/build-meta.js?v=0.36.0-build-f5040d34a1f5" defer></script>
+  <script src="assets/js/build-meta.js?v=0.36.0-build-a5641da22713" defer></script>
   <script src="assets/js/vendor/d3.min.js" defer></script>
   <script src="assets/js/vendor/polygon-clipping.min.js" defer></script>
   <script src="assets/js/vendor/earcut.min.js" defer></script>
-  <script src="assets/js/bootstrap.js?v=0.36.0-build-f5040d34a1f5" defer></script>
+  <script src="assets/js/bootstrap.js?v=0.36.0-build-a5641da22713" defer></script>
 </body>
 </html>
