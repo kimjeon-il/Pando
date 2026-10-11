@@ -1,0 +1,846 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r122",
+  "sources": [
+    {
+      "title": "Estudio geoambiental de la cuenca del río Puyango–Tumbes [Boletín C32], ALICIA/CONCYTEC metadata record",
+      "type": "primary public catalogue metadata",
+      "observed_use": "Successfully read author,2006 edition, report/plate identities and exact original links; not treated as cartographic correspondence.",
+      "source_limits": "Catalogue openAccess/CC BY-NC-SA4.0 metadata retained alongside, not used to erase, the report’s printed reproduction notice.",
+      "source_key": "alicia-c32-catalogue",
+      "official_url": "https://alicia.concytec.gob.pe/vufind/Record/INGEMMET_55fbee6565b39ae68fbce2b053edd924/Details"
+    },
+    {
+      "authors": [
+        "Segundo Núñez Juárez",
+        "Juan Zegarra Loo"
+      ],
+      "title": "Estudio geoambiental de la cuenca del río Puyango–Tumbes",
+      "series": "INGEMMET Boletín, Serie C: Geodinámica e Ingeniería Geológica,32",
+      "edition": "Primera edición,2006",
+      "catalogue_handle": "https://hdl.handle.net/20.500.12544/264",
+      "type": "primary geological/geoenvironmental report with original basin cartography and supporting prose",
+      "pages_read": [
+        "Copyright page, PDFp.3",
+        "Figure1, Mapa de ubicación, PDFp.17",
+        "Printedpp.27–28, PDFpp.36–37: hydrological context and Cazaderos/Puyango/Tumbes sequence",
+        "Printedp.41: delta and1997/98 channel shift",
+        "Portovelo/Amarillo and Amarillo–Pindo junction prose in Chapter10"
+      ],
+      "observed_use": "Original Figure1 and other acquired accompanying maps ground the geography; hydrological and delta prose gives bounded named-reach and terminal-history context.",
+      "source_limits": "Historic report, not current river-name register. Do not repeat internally inconsistent source length statements as selected-river measurements. Originals and derivatives remain private under observed reproduction notice.",
+      "source_key": "ingemmet-c32-report",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/264/1222/C032-Boletin-Estudio_geoambiental_cuenca_rio_Puyango-Tumbes.pdf"
+    },
+    {
+      "title": "Mapa geomorfológico, Estudio geoambiental de la cuenca Puyango–Tumbes",
+      "edition": "Edición1,2006",
+      "plate": "Lámina5",
+      "scale": "1:250,000",
+      "type": "primary original thematic cartography",
+      "observed_use": "Whole sheet and private upper, middle and lower crops read visually: mountain tributary network, Portovelo setting, westward trunk, border valley, lower gorge/plain and coast.",
+      "source_limits": "Thematic geomorphology and relief can obscure small channel labels; used with independent prose and other same-publication original figures. Geographic correspondence is corridor-scale. Base credit: Proyecto Binacional Puyango–Tumbes.",
+      "source_key": "ingemmet-c32-geomorph",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/264/4/C032-MAPA_GEOMORFOL%c3%93GICO.pdf"
+    },
+    {
+      "title": "Mapa de muestreo de aguas superficiales y metales pesados, Estudio geoambiental de la cuenca Puyango–Tumbes",
+      "edition": "Edición1,2006",
+      "plate": "Figura14",
+      "scale": "1:400,000",
+      "type": "primary original field-sampling map",
+      "observed_use": "Full original and upper/middle/lower crops show the mapped hydrographic network through every selected fragment and its settlement/junction context. Sampling labels and tables are not treated as hydronym labels.",
+      "source_limits": "Original hydrographic linework was visually read. No scientific water-quality inference is required for this naming task. Base credit: Proyecto Binacional Puyango–Tumbes.",
+      "source_key": "ingemmet-c32-water",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/264/3/C032-MAPA_DE_MUESTREO_DE_AGUAS_SUPERFICIALES_Y_METALES_PESADOS.pdf"
+    },
+    {
+      "title": "Variación del cauce del río Tumbes (entre1961 y2000)",
+      "edition": "Edición1,2006",
+      "plate": "Figura3",
+      "scale": "1:100,000",
+      "type": "primary original historical-channel comparison map",
+      "observed_use": "Original map visually read from Capitana/Higuerón to the city/delta and Pacific; legend explicitly distinguishes1961,1976,1986 and2000 channels. Resolves the actual selected western terminal corridor versus the later eastern course.",
+      "source_limits": "Historical courses do not establish today’s active main mouth. Local inset partly covers the western coast; whole-basin geomorphological map supplies surrounding coastal context.",
+      "source_key": "ingemmet-c32-cauces",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/264/2/C032-MAPA_VARIACI%c3%93N_DEL_CAUCE_DEL_R%c3%8dO_TUMBES.pdf"
+    },
+    {
+      "title": "Niveles de metales pesados en sedimentos de la cuenca del río Puyango, Ecuador",
+      "authors": [
+        "Abrahan Mora",
+        "Diana Jumbo-Flores",
+        "Max González-Merizalde",
+        "Santos Amable Bermeo-Flores"
+      ],
+      "year": 2016,
+      "journal": "Revista Internacional de Contaminación Ambiental32(4):385–397",
+      "doi": "https://doi.org/10.20937/rica.2016.32.04.02",
+      "failed_pdf_url": "https://www.scielo.org.mx/pdf/rica/v32n4/0188-4999-rica-32-04-00385.pdf",
+      "type": "primary field study; abstract only lawfully read",
+      "observed_use": "Optional bounded corroboration that Calera and Amarillo are separate confluent rivers. No Figure1 observation and no whole-route evidence.",
+      "source_limits": "Missing full article and figures paused after linked PDF timeout.",
+      "source_key": "mora-2016",
+      "official_url": "https://www.scielo.org.mx/scielo.php?pid=S0188-49992016000400385&script=sci_abstract"
+    },
+    {
+      "title": "Plan de gestión de los recursos hídricos de la cuenca Tumbes",
+      "type": "identified primary plan, unavailable",
+      "observed_use": "No substantive source evidence.",
+      "source_limits": "Whole missing publication/equivalent routes paused after web-reader timeout.",
+      "source_key": "ana-tumbes-plan",
+      "official_url": "https://www.ana.gob.pe/sites/default/files/archivos/paginas/PLAN%20de%20GESTI%C3%93N%20de%20los%20RECURSOS%20H%C3%8DDRICOS%20de%20la%20CUENCA%20TUMBES.pdf"
+    },
+    {
+      "title": "Actualización del Plan de Desarrollo y Ordenamiento Territorial, GAD Salvias; discovery header2019",
+      "type": "identified local planning publication, unavailable",
+      "observed_use": "No substantive source evidence; discovery excerpt not used to assign a feeder name.",
+      "source_limits": "Whole missing publication/equivalent routes paused after web-reader502 Bad Gateway.",
+      "source_key": "gad-salvias-pdot",
+      "official_url": "https://gadsalvias.gob.ec/wp-content/uploads/2024/06/PDOT-SALVIAS-CON-ALINEACION.pdf"
+    },
+    {
+      "title": "Região de Planejamento e Gestão das Águas – III: Rios Peruípe, Itanhém e Jucuruçu, Estado da Bahia, 2014",
+      "author": "Instituto do Meio Ambiente e Recursos Hídricos (INEMA), Governo do Estado da Bahia",
+      "publication_date": "2014",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Entire regional sheet, hydrography legend and source credits; detailed northern-arm corridor and southern-arm junction/coastal terminal views.",
+      "source_notes": "The map credits Plano Estadual de Recursos Hídricos2004, Resolução CNRH32/2003, Resoluções CONERH43/2009 and88/2012, and Banco de Dados do INEMA2014. Scale bar0–24km. State administrative/planning map; not a current detailed channel survey.",
+      "use_notice": "No special limited-distribution or officials-only notice observed in the inspected sheet. Official hosting does not establish permission to redistribute source cartography; original and crops remain private.",
+      "source_key": "INEMA_RPGA_III_2014",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/III-RPGA-DOS-RIOS-PERUIPE-ITANHEM-JUCURUCU.pdf"
+    },
+    {
+      "title": "Felisburgo – MG, Mapa Municipal, código3125606",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE), Coordenação de Estruturas Territoriais",
+      "publication_date": "Edition04/2021; hosted in the2020 municipal-map collection",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Full-sheet location and margin; southeastern Prata/Repouso/do Meio and Rio do Prado headward drainage corridor.",
+      "source_notes": "Geographic coordinates, SIRGAS2000; printed scale bar0–2600m. The selected initial reach lies in the southeastern Felisburgo/Prata drainage setting, not at Felisburgo town.",
+      "use_notice": "The printed intended-use notice identifies this as a semi-automatically compiled municipal map for IBGE statistical collection/tabulation, with a warning against other uses and no IBGE responsibility for such uses. © IBGE — reproduction rights reserved. Treated as historical/generalized reference cartography, not a hydrological or current-channel survey. No original map, crop or derivative is redistributed.",
+      "source_key": "IBGE_FELISBURGO",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MG/felisburgo/3125606_MM.pdf"
+    },
+    {
+      "title": "Rio do Prado – MG, Mapa Municipal Estatístico, geocódigo3155108, Censo2010",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "publication_date": "Edition23/07/2010; malha territorial2010",
+      "scale": "1:50,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Entire sheet, southwest headward drainage, Vila Formosa–Córrego Grande–Palmópolis corridor and printed compilation/copyright notices.",
+      "source_notes": "Margin describes a semi-automatic compilation from IBGE/DSG/other systematic mapping and municipal digital boundaries, with varied-source updates and incomplete integration/completeness treatment. Geographic SIRGAS2000 and UTM SAD69 coordinate information is printed.",
+      "use_notice": "© IBGE — reproduction rights reserved. Historical compilation and integration/completeness caveat retained. No source maps or crops redistributed.",
+      "source_key": "IBGE_RIO_DO_PRADO",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/mg/rio_do_prado_v2.pdf"
+    },
+    {
+      "title": "Palmópolis – MG, Mapa Municipal, código3146750",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE), Coordenação de Estruturas Territoriais",
+      "publication_date": "Edition04/2021; hosted in the2020 municipal-map collection",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Full-sheet context and central river corridor through Palmópolis, eastward/southward bend and Jeribá toward the Bahia boundary; legend and printed notices.",
+      "source_notes": "Geographic coordinates, SIRGAS2000; printed scale bar0–2000m. Modern reference hydrography provides the geographic connection even where the channel has no printed hydronym.",
+      "use_notice": "The printed intended-use notice identifies this as a semi-automatically compiled municipal map for IBGE statistical collection/tabulation, with a warning against other uses and no IBGE responsibility for such uses. © IBGE — reproduction rights reserved. Treated as historical/generalized reference cartography, not a hydrological or current-channel survey. No original map, crop or derivative is redistributed.",
+      "source_key": "IBGE_PALMOPOLIS",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MG/palmopolis/3146750_MM.pdf"
+    },
+    {
+      "title": "Atlas Digital das Águas de Minas: Atualização dos estudos hidrológicos nas regiões hidrográficas das Bacias do Leste — Resumo expandido",
+      "author": "Humberto Paulo Euclydes, Paulo Afonso Ferreira, Reynaldo Furtado F. Filho and Elvis Paulo de Oliveira; Universidade Federal de Viçosa, programa HIDROTEC",
+      "publication_date": "Page attribution: Euclydes et al.(2011s); exact page update date unstated",
+      "evidence_kind": "primary_research_program_prose",
+      "cartographic_reading": false,
+      "actually_read": "Introduction, especially the Jucuruçu paragraph, and team/source attribution.",
+      "observation": "The authors identify Jucuruçu as the union of northern and southern arms; the northern arm has its headwaters in Felisburgo, Minas Gerais, and the southern arm in Bahia. This independently supports the named arm relationship, not exact source-point or uniform reach naming.",
+      "map_limits": "No linked images or maps from this page were acquired or treated as cartographic evidence.",
+      "use_notice": "Only bounded factual paraphrase; no redistribution permission inferred.",
+      "source_key": "UFV_ATLAS_LESTE",
+      "official_url": "https://www.atlasdasaguas.ufv.br/leste/resumo_leste.html"
+    },
+    {
+      "title": "Cartas topográficas 1:250.000, historical cartas_mosaicos mosaic, Somuncurá–Ventana–Salado–Golfo San Matías corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; individual sheet dates not established from the inspected mosaic views.",
+      "material_read": "Previously retained, completed original overview and headward views from r118 were reused without another download; two new sequential original middle and eastern views completed normally and were visually read. All selected corridor segments and the actual terminal were inspected.",
+      "supports": "Full headward-to-coast cartographic correspondence, Ventana and Salado reach labels, the Los Berros junction and coastal terminal.",
+      "limits": "Historical generalized 1:250,000 cartography; no formal registry decision, uniform whole-feature hydronym or present-flow condition established. Small white mosaic patches in retained maps are outside the selected corridor and leave no material gap.",
+      "use_notice": "No redistribution permission inferred from official hosting. Source originals, crops and orientation overlays remain private.",
+      "source_key": "ign-historical-250k"
+    },
+    {
+      "title": "Plan de Manejo del Área Natural Protegida Meseta de Somuncurá, 19 October 2007; Decreto 465, 30 May 2008, published in Boletín Oficial de Río Negro 4634 supplement, 3 July 2008",
+      "publisher": "Consejo de Ecología y Medio Ambiente, Gobierno de Río Negro",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf",
+      "material_read": "Already retained complete original PDF and extracted text. Printed/PDF pp.35–36 surface-drainage text and p.78 passage were read; p.78 was also rendered and visually read locally.",
+      "supports": "Classifies the Ventana–Los Berros–Salado basin with Atlantic drainage; explicitly says Ventana and Los Berros converge to constitute Salado, which may discharge to the sea in hydrologically wet periods.",
+      "limits": "Regional basin prose supports the system relationship and intermittent hydrological setting; detailed selected-route correspondence is supplied by IGN. The provincial classification is not a claim that every selected reach has the same hydronym.",
+      "use_notice": "Original retained privately; no redistribution permission inferred.",
+      "source_key": "codema2007-plan2008"
+    },
+    {
+      "title": "Kokot, Roberto R. (2015), Capítulo 4: Erosión Costera, pp.167–230, in H. E. Zaixso and A. L. Boraso (eds.), La Zona Costera Patagónica Argentina, Volumen II: Comunidades Biológicas y Geología",
+      "publisher": "Editorial Universitaria de la Patagonia, Instituto de Desarrollo Costero, UNPSJB; CENPAT-CONICET repository",
+      "isbn": "978-987-1937-47-9",
+      "official_url": "https://www.repositorio.cenpat-conicet.gob.ar/server/api/core/bitstreams/0deff26a-646c-4108-8328-282b679f999b/content",
+      "material_read": "Previously retained complete original PDF; relevant extracted prose on printed pp.174–175 and 217 was read locally. No duplicate download.",
+      "supports": "Identifies a coastal Arroyo Salado mouth and supplies the Balneario El Salado / Playas Doradas locality equivalence.",
+      "limits": "Historical chapter with data/references through 2005, accepted in 2008; regional coastal context only, not selected upper-route cartography or present outlet state.",
+      "use_notice": "Original remains private; no redistribution permission inferred.",
+      "source_key": "kokot2015-coastal"
+    },
+    {
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "year": 1995,
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "acquired_scope": "Previously acquired complete official original reused locally. Full-sheet and northern graticule views, complete selected northeast corridor, overlapping regional/terminal views, Inland Ice legend and imprint were rendered and actually read.",
+      "supports": "The complete FID 8837 corridor: inland-ice opening and southward approach, the eastward ice corridor and Bildsøe Nunatakker ice/rock belt, the narrow western Jøkelbugten coastal strip, and the actual eastern coastal ending north of Skærfjorden.",
+      "limits": "Historical national-scale geological/topographic cartography provides ordinary generalized geographic correspondence. It does not map or name a continuous natural river along the selection, show a subglacial route, establish current glacier fronts/shorelines, or resolve a modern formal name registry. Ice surface contours, thickness isopachs and sub-ice bedrock contours are separate legend symbols and are not interpreted as river traces.",
+      "reuse_limit": "GEUS Custom Dataset Terms permit internal use/processing while restricting redistribution and production or transfer of new maps. Original, crops, processed data and cartographic derivatives stay private. Only independently written observations and ordinary bibliography are public-ready.",
+      "source_key": "r122-geus-greenland-national-1995-retained"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 9, Lambert Land",
+      "author": "Hans F. Jepsen",
+      "publisher": "Geological Survey of Denmark and Greenland (GEUS), Copenhagen",
+      "year": 2000,
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16484",
+      "acquired_scope": "Retained original overview, southwest ice/nunatak margin, 78°N southern graticule, legend and imprint were visually read locally. No network request.",
+      "supports": "Regional discrimination of ice/perennial snow, nunataks and coastal land at the northern margin of the target region; names Bildsø Nunatakker, Laub Nunatakker and Søndre Mellemland are distinct terrain context, not river names. Also establishes why this sheet alone cannot cover the selection.",
+      "limits": "Its main map ends at 78°N. The long eastward route and ending extend south of that edge, and the southwest synoptic tectonic inset obscures part of the northern headward map area. Neither the inset nor a label at the edge is treated as full selected-route correspondence. The 1995 national original independently supplies the complete geographic coverage.",
+      "reuse_limit": "Custom Dataset Terms restrict redistribution and production or transfer of new maps. Original and every crop or other local derivative remain private.",
+      "source_key": "r122-geus-lambert-land-sheet9-2000-retained"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60636465",
+      "source_keys": [
+        "ingemmet-c32-report",
+        "ingemmet-c32-geomorph",
+        "ingemmet-c32-water",
+        "ingemmet-c32-cauces"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13780
+          ],
+          "component_scope": "eastern headward mountain feeder",
+          "finding": "The original whole-basin and geomorphological maps show the selected north–south then southwest mountain corridor in the northern/eastern basin, in the Salvias–Sinsao setting, continuing toward Portovelo. The selected headward stream is distinguished from the western Paccha/Huertas–Calera-side branches. Its geographic continuation is readable, while the initial feeder’s local name is not established.",
+          "sources": [
+            "ingemmet-c32-geomorph",
+            "ingemmet-c32-water",
+            "ingemmet-c32-report"
+          ],
+          "correspondence": "observed at ordinary generalized component/corridor scale",
+          "limits": "Small tributary names and exact source vertices are not required or assigned; mountain relief and generalized linework are used at corridor scale.",
+          "local_reach_name": null
+        },
+        {
+          "fragments": [
+            13780
+          ],
+          "component_scope": "Portovelo upper-valley junctions into the middle trunk",
+          "finding": "The mapped corridor runs southwest past the Sinsao/Portovelo valley into the converging upper network before the long westward trunk. The report independently identifies the Portovelo river as Amarillo and states that it joins Pindo downstream of the town. The selected route uses this Amarillo-side feeder, rather than assigning Pindo to all headwater branches.",
+          "sources": [
+            "ingemmet-c32-geomorph",
+            "ingemmet-c32-water",
+            "ingemmet-c32-report"
+          ],
+          "correspondence": "observed",
+          "limits": "The exact hydronym-change point and every small incoming branch are not established. Calera is a separate confluent tributary, not a name for this whole selected reach.",
+          "local_reach_name": null,
+          "bounded_reach_names": [
+            "Río Amarillo",
+            "Río Pindo"
+          ]
+        },
+        {
+          "fragments": [
+            13780
+          ],
+          "component_scope": "Balsas/Marcabelí to the westward Puyango corridor",
+          "finding": "The cartography follows the trunk west past the Santa Rufina–Balsas/Marcabelí setting, then along the northern side of the Ciano/El Limo country toward the international boundary. This matches the long westward section of FID13780. Report p.27 links Puyango usage to the Yaguachi junction near Balsas and describes the subsequent westward route.",
+          "sources": [
+            "ingemmet-c32-geomorph",
+            "ingemmet-c32-water",
+            "ingemmet-c32-report"
+          ],
+          "correspondence": "observed",
+          "limits": "Puyango applies to the observed middle-trunk context; no whole-FID scalar name is asserted because FID13780 also includes the separately described upper feeder and junction reaches.",
+          "local_reach_name": "Río Puyango"
+        },
+        {
+          "fragments": [
+            13781
+          ],
+          "component_scope": "northeastern border-corridor fragment",
+          "finding": "The original maps show the westward trunk meeting the international border and continuing southwest along its valley. The short selected border-aligned fragment occupies that same channel corridor, between the interior Ecuadorian middle reach and the next bend.",
+          "sources": [
+            "ingemmet-c32-geomorph",
+            "ingemmet-c32-water",
+            "ingemmet-c32-report"
+          ],
+          "correspondence": "observed",
+          "limits": "Selected border alignment is retained metadata, not proof of exact surveyed border/channel coincidence. No exact bank or every-bend agreement is required.",
+          "local_reach_name": "Río Puyango"
+        },
+        {
+          "fragments": [
+            13782
+          ],
+          "component_scope": "short intervening bend in the border river corridor",
+          "finding": "The short non-border-aligned selected bend lies within the same mapped southwestward Puyango border-valley continuation. The source cartography shows the intervening river corridor, with no lake, reservoir or missing overland connector needed between FIDs13781 and13783.",
+          "sources": [
+            "ingemmet-c32-geomorph",
+            "ingemmet-c32-water"
+          ],
+          "correspondence": "observed",
+          "limits": "Its small triangular/generalized shape is not treated as a separately named tributary or independently revalidated geometry.",
+          "local_reach_name": "Río Puyango"
+        },
+        {
+          "fragments": [
+            13783
+          ],
+          "component_scope": "southwestern border-corridor fragment",
+          "finding": "The river and border corridor continue southwest through the mapped hill country toward the major lower bend. The source covers the full short FID13783 continuation to the start of FID13784; this is not inferred solely from model connectivity.",
+          "sources": [
+            "ingemmet-c32-geomorph",
+            "ingemmet-c32-water",
+            "ingemmet-c32-report"
+          ],
+          "correspondence": "observed",
+          "limits": "No exact contemporary bank, boundary or vertex claim is made.",
+          "local_reach_name": "Río Puyango"
+        },
+        {
+          "fragments": [
+            13784
+          ],
+          "component_scope": "Cazaderos junction and westward-to-northward Tumbes bend",
+          "finding": "The acquired basin maps show the trunk continuing west along the southern bend, receiving the southern tributary corridor and then turning northwest/north through the confined valley toward Rica Playa. Report pp.27–28 identifies the Cazaderos confluence and the change to Tumbes, with Cabo Inga and downstream gauging context. These sources jointly establish the material upper/lower-system transition.",
+          "sources": [
+            "ingemmet-c32-geomorph",
+            "ingemmet-c32-water",
+            "ingemmet-c32-report"
+          ],
+          "correspondence": "observed",
+          "limits": "No exact coordinate for the name transition is asserted. The selected initial portion of this FID is not all relabeled Tumbes.",
+          "local_reach_name": null,
+          "bounded_reach_names": [
+            "Río Puyango",
+            "Río Tumbes"
+          ]
+        },
+        {
+          "fragments": [
+            13784
+          ],
+          "component_scope": "northward lower valley through Rica Playa and the Tumbes plain",
+          "finding": "The maps show the north-turning lower river past Rica Playa/Capitana, Higuerón, the Pampas de Hospital–San Jacinto valley and the city of Tumbes. Geomorphological valley and terrace units corroborate the selected lower corridor. Figure3 independently depicts the lower river through these same settlements before its delta bifurcation/avulsion zone.",
+          "sources": [
+            "ingemmet-c32-geomorph",
+            "ingemmet-c32-water",
+            "ingemmet-c32-cauces"
+          ],
+          "correspondence": "observed",
+          "limits": "Multiple dated channel positions are evidence of one river corridor, not exact modern bank agreement.",
+          "local_reach_name": "Río Tumbes"
+        },
+        {
+          "fragments": [
+            13784
+          ],
+          "component_scope": "actual selected terminal: western historical delta/outlet corridor to the Pacific",
+          "finding": "At1:100,000, Figure3 shows older1961/1976/1986 Tumbes channels running northwest from the city and then north through the western delta toward the Pacific coast, matching the selected western terminal corridor. The2000 course shifts eastward toward a separate outlet. Report p.41 describes the1997/98 channel change into Estero Tamarindo and changing delta/coastal sedimentation. The selected actual sea terminus is therefore read as part of the historical Tumbes river outlet system rather than assumed to be today’s main mouth.",
+          "sources": [
+            "ingemmet-c32-cauces",
+            "ingemmet-c32-report",
+            "ingemmet-c32-geomorph"
+          ],
+          "correspondence": "observed, with historical/current-channel distinction",
+          "limits": "Present activity, present water allocation, a unique estero name for the selected western branch, exact tidal limits and source/render endpoint vertices are unverified. The diagram’s inset partially obscures the far western coastal corner, but dated channels, surrounding coastline and the whole-basin map together show the ordinary terminal corridor; no precise mouth-point match is required.",
+          "local_reach_name": "Río Tumbes",
+          "receiving_water_name": "Océano Pacífico"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61246484",
+      "source_keys": [
+        "INEMA_RPGA_III_2014",
+        "IBGE_FELISBURGO",
+        "IBGE_RIO_DO_PRADO",
+        "IBGE_PALMOPOLIS",
+        "UFV_ATLAS_LESTE"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13906
+          ],
+          "component_scope": "Selected headward Prata drainage, southeastern Felisburgo",
+          "finding": "Felisburgo original shows the stream corridor beside Cabeceira da Prata/Comunidade da Prata toward Vargem da Lapa, its connection with the Repouso drainage and then the eastward channel below the do Meio junction. The overlapping Rio do Prado map labels the southwestern feeder Córrego Prata and the connected eastward reach Córrego do Prado. Generalized geographic correspondence is established; the exact first modeled vertex is not declared an officially named spring.",
+          "sources": [
+            "IBGE_FELISBURGO",
+            "IBGE_RIO_DO_PRADO"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Prata is a local feeder label, not a uniform name assigned to the complete selected river. The precise initial short reach retains a null individual name.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13906
+          ],
+          "component_scope": "Vila Formosa and the do Prado corridor to Palmópolis",
+          "finding": "Rio do Prado original follows the channel past Boa Sorte and Vila Formosa, through the Córrego Grande setting to Palmópolis. It labels the upstream part Córrego do Prado and the eastward river Rio do Prado ou Jucuruçu. Tributaries such as Prado Pequeno and Santa Isabel and the Bananeiras drainage at Palmópolis are distinct lateral waters. The Palmópolis map overlaps the same west-entry corridor.",
+          "sources": [
+            "IBGE_RIO_DO_PRADO",
+            "IBGE_PALMOPOLIS"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Bounded component observation only; no accepted whole-feature scalar name.",
+          "mapped_component_name": "Rio do Prado ou Jucuruçu"
+        },
+        {
+          "fragments": [
+            13906
+          ],
+          "component_scope": "Palmópolis eastward bend, Jeribá and Bahia transition",
+          "finding": "Palmópolis original traces the connected river from the city eastward, down the large southward bend and toward the Jeribá settlement corridor, continuing into the Jucuruçu municipal setting. The river line and relevant tributary joins were visually followed; the green district boundary is a separate cartographic line and is not mistaken for the selected channel. INEMA2014 overlaps the Bahia continuation west of Jucuruçu town.",
+          "sources": [
+            "IBGE_PALMOPOLIS",
+            "INEMA_RPGA_III_2014"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Geographic passage is supported even where the municipal source has no printed reach label; no individual name invented.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13906
+          ],
+          "component_scope": "Jucuruçu town and the eastbound northern arm",
+          "finding": "INEMA original shows the selected channel along the Jucuruçu town corridor with Jucuruçu and do Prado labels, below the northern Gado Bravo tributary system and past the Abril/São Domingos tributary setting. The mapped trunk then turns southeast and is explicitly labelled Rio Jucuruçu Braço Norte. The southern-arm drainage is geographically separate.",
+          "sources": [
+            "INEMA_RPGA_III_2014"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Bounded component observation only; no accepted whole-feature scalar name.",
+          "mapped_component_name": "Rio Jucuruçu Braço Norte"
+        },
+        {
+          "fragments": [
+            13906
+          ],
+          "component_scope": "Itamaraju and the lower northern arm",
+          "finding": "INEMA follows the northern arm through Itamaraju, the Rio do Ouro tributary junction and the BR101/BR489 road setting. It continues southeast past the Boa União tributary setting toward the southern-arm confluence. The original channel course, rather than town or basin proximity alone, supplies correspondence.",
+          "sources": [
+            "INEMA_RPGA_III_2014"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Bounded component observation only; no accepted whole-feature scalar name.",
+          "mapped_component_name": "Rio Jucuruçu Braço Norte"
+        },
+        {
+          "fragments": [
+            13906
+          ],
+          "component_scope": "Southern-arm confluence and combined lower Jucuruçu",
+          "finding": "INEMA original maps the separate Jucuruçu/Jacuruçu Braço Sul joining the northern arm northwest of Prado. The selected continuation proceeds from that junction toward the broad lower meanders. Colino I, Colino II and Cachoeira da Lixa hydroelectric symbols occur on the southern-arm tributary system, not on this selected northern-arm mainstem. No large lake or reservoir traversal is shown on the selected route at the inspected map scales. UFV prose independently describes the two-arm formation.",
+          "sources": [
+            "INEMA_RPGA_III_2014",
+            "UFV_ATLAS_LESTE"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Bounded component observation only; no accepted whole-feature scalar name.",
+          "mapped_component_name": "Rio Jucuruçu"
+        },
+        {
+          "fragments": [
+            13906
+          ],
+          "component_scope": "Prado lower meanders and actual Atlantic outlet",
+          "finding": "INEMA original follows the combined river through its broad meandering lower waterway, below the Cotia and Leandro tributary settings, past the south side of Prado and through the coastal channel to the Atlantic shoreline. The river/coast connection and the adjacent coastal form were actually read. The Santo Antônio and Alcobaça/Itanhém outlets to the south are separate systems. Generalized mouth correspondence is sufficient; no exact bank or mouth-point alignment is asserted.",
+          "sources": [
+            "INEMA_RPGA_III_2014"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Representative coastal-system identity only; no scalar river hydronym assigned to every estuarine water surface or tidal connector.",
+          "mapped_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61563892",
+      "source_keys": [
+        "ign-historical-250k",
+        "codema2007-plan2008",
+        "kokot2015-coastal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14582
+          ],
+          "component_scope": "Somuncurá headward setting",
+          "finding": "The selected western head is on the Somuncurá basalt upland between the Cerro Loco and Cerro Mirasol sector, east of Cerro Corona. The original map shows small intermittent upland drainage and the southeastward descent past Cerro Bouzo toward La Polvareda. A separate Laguna Blanca lies northwest; the selected head is not assigned that lake as its source. The headward hydronym is unestablished.",
+          "sources": [
+            "ign-historical-250k"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": null
+        },
+        {
+          "fragments": [
+            14582
+          ],
+          "component_scope": "Arroyo de la Ventana upper valley",
+          "finding": "From La Polvareda the corridor turns south by Campana Mahuida and the Sierra Nevada flank, then east past El Sauce, Salitral Grande and Carrizo toward Arroyo de la Ventana locality. The original channel carries the Ventana label. The line marked Acueducto is separately mapped infrastructure and is not treated as the stream.",
+          "sources": [
+            "ign-historical-250k"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Arroyo de la Ventana"
+        },
+        {
+          "fragments": [
+            14582
+          ],
+          "component_scope": "Ventana–Los Berros material junction",
+          "finding": "East of the Arroyo de la Ventana locality the selected channel turns northeast through the lowland west of Mesada Blanca. The independently drawn Los Berros drainage descends from the northwest through Los Álamos and the El Sacrificio sector to this same trunk. The onward combined corridor turns east/northeast through the Los Tamariscos sector. The plan explicitly identifies the confluence of Ventana and Los Berros as forming Arroyo Salado. Exact channel/name-transition vertices are not assigned.",
+          "sources": [
+            "ign-historical-250k",
+            "codema2007-plan2008"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Ventana–Los Berros junction; downstream Salado system"
+        },
+        {
+          "fragments": [
+            14582
+          ],
+          "component_scope": "Middle Salado lowland and highway crossing",
+          "finding": "The selected corridor continues northeast, then turns east by Las Violetas into the channel directly labeled Arroyo Salado. It follows the low-lying, intermittently drawn drainage through the La Aguadita sector, crosses the north–south RN 3 corridor north of Sierra Grande, then bends southeast through Los Tres Morros. Mapped small depressions and wet ground are part of the corridor setting, not separately renamed rivers or proof of continuous present flow.",
+          "sources": [
+            "ign-historical-250k"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Arroyo Salado"
+        },
+        {
+          "fragments": [
+            14582
+          ],
+          "component_scope": "Lower Salado and separate tributaries",
+          "finding": "Downstream of Los Tres Morros, the selected channel passes El Salado estancia and turns southeast along the western side of Loma Moncho. A separately mapped tributary arrives from the El Porvenir / Sierra Grande area to the west. The Salado corridor then passes El Pedregal and the San Miguel sector toward the small coastal lagoon/estuarine expansion. A separate farther-south drainage through the San Francisco sector is not substituted for the selected mainstem.",
+          "sources": [
+            "ign-historical-250k"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Arroyo Salado"
+        },
+        {
+          "fragments": [
+            14582
+          ],
+          "component_scope": "Actual coastal terminal",
+          "finding": "The lower Salado corridor opens into a small coastal water body north of the historical Balneario El Salado label, then a narrow outlet reaches the western Golfo San Matías coast beside that locality. Original mapping shows both the final inlet/outlet setting and the sea. The coastal chapter independently identifies the Arroyo Salado mouth and equates Balneario El Salado with Playas Doradas. No precise bank, mouth vertex or current opening condition is asserted.",
+          "sources": [
+            "ign-historical-250k",
+            "kokot2015-coastal"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Arroyo Salado"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90025974",
+      "source_keys": [
+        "r122-geus-greenland-national-1995-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8837
+          ],
+          "component_scope": "Headward opening and long southward approach",
+          "finding": "The opening and long southward sequence lie on the mapped continental Inland Ice, inland and west of the coastal nunatak belt. The original shows continuous ice geography throughout this approach, with ice surface contours and thickness shading. No natural-river source, named channel or tributary identity is established.",
+          "sources": [
+            "r122-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "limits": "The positive observation is the ice setting, not river continuity, subglacial flow or a claim that each modeled step is a natural channel."
+        },
+        {
+          "fragments": [
+            8837
+          ],
+          "component_scope": "Southward-to-eastward turn and first eastward connector",
+          "finding": "The turn and first long eastward sequence remain in the mapped Inland Ice west of the Bildsøe Nunatakker belt. The entire connector is visible on the retained original, including the small northward bend before the route continues east-southeast. No lake passage or named receiving river is established.",
+          "sources": [
+            "r122-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "limits": "Blue ice-contour lines and black sub-ice bedrock contours are not adopted as channels."
+        },
+        {
+          "fragments": [
+            8837
+          ],
+          "component_scope": "Bildsøe Nunatakker ice/rock transition",
+          "finding": "The east-southeast sequence passes through the southern part of the mapped nunatak-belt setting. The source separates exposed rock bodies from intervening ice and shows the surrounding connector into the ice corridor farther east. Bildsøe Nunatakker is a terrain-group label on the national original, not a representative river identity.",
+          "sources": [
+            "r122-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "limits": "This national-scale reading does not assign every short modeled step to a precise rock boundary or ice bank. No unresolved major geographic gap remains."
+        },
+        {
+          "fragments": [
+            8837
+          ],
+          "component_scope": "Eastern ice corridor and approach to the narrow coastal strip",
+          "finding": "The remaining eastward sequence traverses the mapped ice corridor between the nunatak belt and the narrow exposed-rock coastal strip along the western side of the Jøkelbugten region. The later northward bend and following eastward/southward progression occupy that ice-to-coastal-land setting. The source provides both sides and the connecting setting; no unseen lake, reservoir or river confluence is inferred.",
+          "sources": [
+            "r122-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "limits": "The nearby Storstrømmen label belongs to the larger glacier corridor extending south. Neither it nor Jøkelbugten is transferred to the whole modeled feature."
+        },
+        {
+          "fragments": [
+            8837
+          ],
+          "component_scope": "Final coastal-land interval and actual ending",
+          "finding": "The actual ending is on the eastern coastal margin of the narrow bedrock strip in the southern Jøkelbugten setting, north of the separately labeled Skærfjorden. The national original distinguishes this coastal ending from the inland ice corridor and from the broader glacier corridor to the west/south. The selected terminal is geographically accounted for without assigning a nearby fjord or glacier name as a river name.",
+          "sources": [
+            "r122-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized terminal/corridor scale.",
+          "limits": "No fine-scale terminal inlet name is assigned. The retained model terminal class sea is metadata, not evidence of a surveyed natural river mouth, contemporary coastline or current ice-front position."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:60636465",
+      "publication": "Plan de gestión de los recursos hídricos de la cuenca Tumbes, Autoridad Nacional del Agua; edition not established from acquired original",
+      "official_url": "https://www.ana.gob.pe/sites/default/files/archivos/paginas/PLAN%20de%20GESTI%C3%93N%20de%20los%20RECURSOS%20H%C3%8DDRICOS%20de%20la%20CUENCA%20TUMBES.pdf",
+      "observed_outcome": "Web reader reported (400) Timeout fetching. No original PDF, map pixels or substantive plan prose was acquired.",
+      "outcome_layer": "web-reader fetch/transport; origin-server HTTP status not exposed",
+      "restriction_scope": "The missing whole plan, maps and equivalent copies, formats, original, reader, cache, mirror, screenshots and other acquisition routes remain paused for availability. No retry or alternative acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_after_independent_sources": false
+    },
+    {
+      "aw_id": "hydro-system:60636465",
+      "publication": "Actualización del Plan de Desarrollo y Ordenamiento Territorial, GAD Parroquial Rural de Salvias; PDF discovery header 2019, exact edition not independently established",
+      "official_url": "https://gadsalvias.gob.ec/wp-content/uploads/2024/06/PDOT-SALVIAS-CON-ALINEACION.pdf",
+      "observed_outcome": "Web reader reported (502) Bad Gateway. No PDF body or original map pixels was acquired.",
+      "outcome_layer": "web-reader fetch response; an independently observed origin HTTP response is not asserted",
+      "restriction_scope": "The missing whole plan and equivalent copies, maps, formats, original, reader, cache, mirror, screenshots and other acquisition routes remain paused for availability. No retry or alternative acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_after_independent_sources": false
+    },
+    {
+      "aw_id": "hydro-system:60636465",
+      "publication": "Mora, Abrahan; Jumbo-Flores, Diana; González-Merizalde, Max; Bermeo-Flores, Santos Amable (2016). Niveles de metales pesados en sedimentos de la cuenca del río Puyango, Ecuador. Revista Internacional de Contaminación Ambiental32(4):385–397. DOI10.20937/RICA.2016.32.04.02",
+      "official_url": "https://www.scielo.org.mx/pdf/rica/v32n4/0188-4999-rica-32-04-00385.pdf",
+      "observed_outcome": "The abstract opened normally. Its linked PDF returned web-reader (400) Timeout fetching; no full article or Figure1 pixels was acquired.",
+      "outcome_layer": "web-reader fetch/transport; origin-server HTTP status not exposed",
+      "restriction_scope": "Missing full article and figures, including all equivalent copies, formats, original, reader, cache, mirror, screenshot and other acquisition routes remain paused. No retry or alternate request.",
+      "earlier_lawful_prose_exception": "Only the previously read abstract remains usable: it distinguishes the Calera–Amarillo confluence and Puyango sampling context. It supplies no Figure1 observation or complete geographic coverage.",
+      "landing_url": "https://www.scielo.org.mx/scielo.php?pid=S0188-49992016000400385&script=sci_abstract",
+      "material_gap_after_independent_sources": false
+    },
+    {
+      "aw_id": "hydro-system:61246484",
+      "publication": "Lacerda, Hugo Ferraz; Silva, João Batista Lopes da; Silva, Danilo Paulúcio da (2025), Regionalização Conjunta de Vazões das Bacias Hidrográficas dos Rios Peruípe, Itanhém e Jucuruçu, Revista Brasileira de Geografia Física18(4):3190–3208",
+      "official_url": "https://periodicos.ufpe.br/revistas/rbgfe/article/view/263548",
+      "observed_outcome": "Direct web-reader open returned Failed to fetch ... (403) Forbidden. No article body or original figure pixels acquired.",
+      "outcome_layer": "HTTP403 as reported by the web reader; no separate origin transport receipt",
+      "restriction_scope": "Whole article and equivalent copies, PDFs, figures, DOI/publisher/mirror and every acquisition route stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "doi": "https://doi.org/10.26848/rbgf.v18.4.p3190-3208"
+    },
+    {
+      "aw_id": "hydro-system:61563892",
+      "publication": "Hoja Geológica 4166-III Cona Niyeu, 2001, Boletín 262",
+      "official_url": "https://repositorio.segemar.gov.ar/bitstream/handle/308849217/108/HG%204166-III%20Cona%20Niyeu.pdf?isAllowed=y&sequence=14",
+      "observed_outcome": "Web reader (400) Timeout fetching.",
+      "outcome_layer": "web-reader acquisition timeout; no origin HTTP status exposed",
+      "restriction_scope": "Missing map/publication content and equivalent copies, formats, original, reader, cache, mirror and acquisition routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": "Catalogue opened successfully before timeout. It identifies regional Somún Curá setting and lists Cona, Verde, Tambelén, Ventana regional drainage; no unseen map correspondence inferred.",
+      "inherited_stop": true
+    },
+    {
+      "aw_id": "hydro-system:61563892",
+      "publication": "Hoja Geológica 4166-IV Sierra Grande, 1998, Boletín 241",
+      "official_url": "https://repositorio.segemar.gov.ar/bitstream/handle/308849217/2844/HG%204166-IV%20Sierra%20Grande_1998.pdf?isAllowed=y&sequence=4",
+      "observed_outcome": "Web reader (400) Timeout fetching.",
+      "outcome_layer": "web-reader acquisition timeout; no origin HTTP status exposed",
+      "restriction_scope": "Missing map/publication content and equivalent copies, formats, original, reader, cache, mirror and acquisition routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": "Catalogue opened successfully before timeout. Bibliographic and broad geological-setting text only; no selected-route cartographic correspondence.",
+      "inherited_stop": true
+    },
+    {
+      "aw_id": "hydro-system:61563892",
+      "publication": "Piche S.A., Informe de Impacto Ambiental Arroyo Verde y Marifil II,rev07, official 2023 posting",
+      "official_url": "https://ambiente.chubut.gov.ar/wp-content/uploads/2023/05/Piche-SA-IIA-Arroyo-Verde-y-Marifil-II-rev07.pdf",
+      "observed_outcome": "Web reader (404) Not Found.",
+      "outcome_layer": "web-reader reports HTTP 404",
+      "restriction_scope": "Missing publication/map content and equivalent copies, formats and routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": null,
+      "inherited_stop": true
+    },
+    {
+      "aw_id": "hydro-system:61563892",
+      "publication": "IGN Argenmap base-map WMS publication",
+      "official_url": "https://wms.ign.gob.ar/geoserver/wms",
+      "observed_outcome": "Inherited r112 GetMap HTTP 403; no request made in this batch.",
+      "outcome_layer": "inherited recorded HTTP denial",
+      "restriction_scope": "Entire Argenmap publication and equivalent tile, WMTS, viewer and acquisition routes remain stopped. Distinct historical cartas_mosaicos publication was separately allowed and acquired normally.",
+      "earlier_lawful_prose_exception": "Earlier lawfully acquired historical-mosaic observations are distinct source evidence; no stopped Argenmap content used.",
+      "inherited_stop": true
+    },
+    {
+      "aw_id": "hydro-system:90025974",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 10, Dove Bugt, Niels Henriksen, 1997",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/EPJIGC",
+      "observed_outcome": "The sole catalogue-page web-reader open returned Internal Error: Failed to fetch the exact URL: Cache miss. No HTTP status, authorization/security reason, substantive catalogue body or original map pixels were exposed by that open.",
+      "outcome_layer": "Web-reader/cache availability failure; no origin HTTP outcome established.",
+      "restriction_scope": "Missing Sheet 10 map/publication content and all equivalent copies, formats, original/reader/cache/mirror/figure and other acquisition routes remain paused. No retry, original fallback or alternate route was used.",
+      "earlier_lawful_prose_exception": "Discovery search metadata identified title, author, year and DOI only. No missing map, search label or unseen figure is geographic correspondence evidence.",
+      "bibliographic_doi": "https://doi.org/10.22008/FK2/EPJIGC",
+      "why_not_material": "The independently and previously acquired 1995 national original was actually read over the entire selected corridor and actual terminal; it supplies sufficient ordinary generalized ice/rock/coast geographic coverage. This optional detailed sheet is not necessary to claim a natural-river name, and no such name is claimed.",
+      "material_gap_for_current_target": false
+    },
+    {
+      "aw_id": "hydro-system:90025974",
+      "publication": "Satellite Image Atlas of Glaciers of the World—Greenland, Anker Weidick, 1995; USGS Professional Paper 1386-C",
+      "official_url": "https://pubs.usgs.gov/pp/p1386c/",
+      "observed_outcome": "Inherited r111 web-reader HTTP 403 stop; no current request made.",
+      "outcome_layer": "Historical HTTP 403 reported by web reader; no new origin response asserted.",
+      "restriction_scope": "Entire publication, Plate 1, PDFs, figures and all equivalent copies, formats, mirrors and acquisition routes remain stopped.",
+      "earlier_lawful_prose_exception": "None used. Discovery snippets excluded.",
+      "material_gap_for_current_target": false,
+      "inherited_stop": true
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60636465",
+      "publication": "INGEMMET Boletín C32, Estudio geoambiental de la cuenca del río Puyango–Tumbes, first edition2006, and its accompanying cartography",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/264/1222/C032-Boletin-Estudio_geoambiental_cuenca_rio_Puyango-Tumbes.pdf",
+      "observed_outcome": "Original report acquired HTTP200. Copyright page prints ©INGEMMET and Derechos Reservados. Prohibida su reproducción. A separately read ALICIA catalogue records openAccess and a CC BY-NC-SA4.0 rights link; this does not erase the observed printed notice.",
+      "outcome_layer": "printed source-use notice in successfully acquired original; not an access denial",
+      "restriction_scope": "Retain original PDFs, page images, crops, overlays and derivative cartography privately. Use only original factual observations and ordinary citations in public-ready output. The ordinary reproduction notice does not stop factual reading.",
+      "earlier_lawful_prose_exception": "Successfully acquired report prose and maps may be factually read within the task’s bounded source-use conditions.",
+      "material_gap_after_independent_sources": false
+    },
+    {
+      "aw_id": "hydro-system:61246484",
+      "publication": "IBGE2020 municipal-map directory for Palmópolis, Minas Gerais",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MG/palmopolis/",
+      "observed_outcome": "The directory web reader had a completed technical URL-access error without an HTTP status or security reason. One sequential normal original-directory request completed HTTP200 and supplied the exact map link; the linked original map then succeeded.",
+      "outcome_layer": "Initial completed tool-reader technical limitation; subsequent successful original HTTP response",
+      "restriction_scope": "Failed reader route not retried. No publication-wide denial or unresolved source stop inferred after successful original directory/map acquisitions.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61246484",
+      "publication": "Região de Planejamento e Gestão das Águas – III: Rios Peruípe, Itanhém e Jucuruçu, Estado da Bahia, 2014",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/III-RPGA-DOS-RIOS-PERUIPE-ITANHEM-JUCURUCU.pdf",
+      "observed_outcome": "No special limited-distribution or officials-only notice observed in the inspected sheet. Official hosting does not establish permission to redistribute source cartography; original and crops remain private.",
+      "outcome_layer": "Printed original-map notice/attribution",
+      "restriction_scope": "Source-use/reproduction limitation; source originals and all private crops remain excluded from public output. No officials-only restriction observed.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61246484",
+      "publication": "Felisburgo – MG, Mapa Municipal, código3125606",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MG/felisburgo/3125606_MM.pdf",
+      "observed_outcome": "The printed intended-use notice identifies this as a semi-automatically compiled municipal map for IBGE statistical collection/tabulation, with a warning against other uses and no IBGE responsibility for such uses. © IBGE — reproduction rights reserved. Treated as historical/generalized reference cartography, not a hydrological or current-channel survey. No original map, crop or derivative is redistributed.",
+      "outcome_layer": "Printed original-map notice/attribution",
+      "restriction_scope": "Source-use/reproduction limitation; source originals and all private crops remain excluded from public output. No officials-only restriction observed.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61246484",
+      "publication": "Rio do Prado – MG, Mapa Municipal Estatístico, geocódigo3155108, Censo2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/mg/rio_do_prado_v2.pdf",
+      "observed_outcome": "© IBGE — reproduction rights reserved. Historical compilation and integration/completeness caveat retained. No source maps or crops redistributed.",
+      "outcome_layer": "Printed original-map notice/attribution",
+      "restriction_scope": "Source-use/reproduction limitation; source originals and all private crops remain excluded from public output. No officials-only restriction observed.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61246484",
+      "publication": "Palmópolis – MG, Mapa Municipal, código3146750",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MG/palmopolis/3146750_MM.pdf",
+      "observed_outcome": "The printed intended-use notice identifies this as a semi-automatically compiled municipal map for IBGE statistical collection/tabulation, with a warning against other uses and no IBGE responsibility for such uses. © IBGE — reproduction rights reserved. Treated as historical/generalized reference cartography, not a hydrological or current-channel survey. No original map, crop or derivative is redistributed.",
+      "outcome_layer": "Printed original-map notice/attribution",
+      "restriction_scope": "Source-use/reproduction limitation; source originals and all private crops remain excluded from public output. No officials-only restriction observed.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61563892",
+      "publication": "Carta de Minerales Industriales, Rocas y Gemas Hoja 4166-IV Sierra Grande, 2007, Boletín 371",
+      "official_url": "https://repositorio.segemar.gob.ar/handle/308849217/2426",
+      "observed_outcome": "Web reader Internal Error; no HTTP status or body reported.",
+      "outcome_layer": "web-reader technical",
+      "restriction_scope": "Failed catalogue reader route not repeated. No source body or map used; no alternate acquisition attempted. No publication-wide access denial inferred.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61563892",
+      "publication": "Plan de Manejo del Área Natural Protegida Meseta de Somuncurá, Boletín Oficial de Río Negro 4634 supplement",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf",
+      "observed_outcome": "The reader again returned its previously observed content-length limitation. No original reacquisition or further retry followed. The complete original retained from an earlier successful HTTP200 acquisition supplied the actual source reading.",
+      "outcome_layer": "Web-reader technical content-length limitation; no origin HTTP denial reported.",
+      "restriction_scope": "Reader route remains technically unavailable. Already acquired original remains usable; no publication-wide denial or new material gap.",
+      "earlier_lawful_prose_exception": "Complete original successfully acquired in r118 and read locally in r122."
+    },
+    {
+      "aw_id": "hydro-system:90025974",
+      "publication": "Geological map of Greenland 1:2 500 000, Jan C. Escher and T. Christopher R. Pulvertaft, 1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "observed_outcome": "An earlier technical DOI-reader limitation, without HTTP denial or security reason, was resolved by successful official landing and original PDF acquisitions. The failed reader route was not repeated. This batch reused the retained original locally.",
+      "outcome_layer": "Historical technical DOI-reader route limitation resolved by successful original HTTP acquisition; no new network request.",
+      "restriction_scope": "No active publication-wide access or availability stop. The failed DOI-reader route remains unrepeated. Custom Dataset Terms restrict redistribution and production or transfer of new maps; original, crops, processed data and all cartographic working material remain private.",
+      "earlier_lawful_prose_exception": "Current r122 observations come from the retained original map and its actual legend, graticule and imprint. The retained official terms were reread.",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "material_gap_for_current_target": false
+    },
+    {
+      "aw_id": "hydro-system:90025974",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 9, Lambert Land, Hans F. Jepsen, 2000",
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS",
+      "observed_outcome": "An earlier technical DOI-reader routing error was resolved by successful official landing and original PDF acquisitions. This batch reused the retained original only for regional context and coverage limits.",
+      "outcome_layer": "Historical technical route limitation resolved by successful original HTTP acquisition; no current network request.",
+      "restriction_scope": "No active publication denial. Failed DOI-reader route not repeated. Custom Dataset Terms restrict redistribution and production or transfer of new maps; original, crops and all derivatives remain private.",
+      "earlier_lawful_prose_exception": "The actual retained original, legend, southern graticule and local retained terms were read. The inset and southern map edge are preserved as coverage limits.",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16484",
+      "material_gap_for_current_target": false
+    }
+  ]
+}
