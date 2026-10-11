@@ -177,14 +177,16 @@ QVector<int> sampleIndices(int count,int needed,quint32& state)
     indices.resize(needed);std::sort(indices.begin(),indices.end());return indices;
 }
 
-QVector<ReferenceControlPoint> controls(const QVector<Candidate>& candidates,const QVector<int>& indices)
+QVector<ReferenceControlPoint> controls(const QVector<Candidate>& candidates,const QVector<int>& indices,const QVariantMap& anchor={})
 {
-    QVector<ReferenceControlPoint> result;result.reserve(indices.size());
+    QVector<ReferenceControlPoint> result;result.reserve(indices.size()+1);
+    QPointF anchorImage,anchorCoordinate;if(anchorPair(anchor,anchorImage,anchorCoordinate))result.push_back({anchorImage,anchorCoordinate});
     for(int index:indices)result.push_back({candidates[index].image,candidates[index].coordinate});return result;
 }
-QVector<ReferenceControlPoint> controls(const QVector<Candidate>& candidates)
+QVector<ReferenceControlPoint> controls(const QVector<Candidate>& candidates,const QVariantMap& anchor={})
 {
-    QVector<ReferenceControlPoint> result;result.reserve(candidates.size());
+    QVector<ReferenceControlPoint> result;result.reserve(candidates.size()+1);
+    QPointF anchorImage,anchorCoordinate;if(anchorPair(anchor,anchorImage,anchorCoordinate))result.push_back({anchorImage,anchorCoordinate});
     for(const auto& c:candidates)result.push_back({c.image,c.coordinate});return result;
 }
 
@@ -266,14 +268,14 @@ ReferenceAutoGeorefResult solveCandidates(const QVector<Candidate>& candidates,i
     for(int trial=0;trial<512;++trial){
         const auto indices=sampleIndices(candidateCount,requiredSoft,random);QString key;for(int index:indices)key+=QString::number(index)+",";
         if(seen.contains(key)){if(requiredSoft>=candidateCount||seen.size()>=std::max(1,candidateCount*32))break;continue;}seen.insert(key);
-        auto warp=solveReferenceWarp(mode,controls(candidates,indices));if(!warp.valid||!enforceAnchor(warp,anchor))continue;const auto current=score(warp,candidates,threshold,anchor);
+        auto warp=solveReferenceWarp(mode,controls(candidates,indices,anchor));if(!warp.valid||!enforceAnchor(warp,anchor))continue;const auto current=score(warp,candidates,threshold,anchor);
         if(current.inliers.size()<requiredInliers)continue;if(!hasBest||better(current,best)){best=current;hasBest=true;}
         if(current.inliers.size()==candidateCount)break;
     }
     if(!hasBest){output.reason=QStringLiteral("no-auto-georef-consensus");return output;}
 
     QVector<Candidate> accepted;for(int index:best.inliers)accepted.push_back(candidates[index]);
-    auto finalWarp=solveReferenceWarp(mode,controls(accepted));if(!finalWarp.valid||!enforceAnchor(finalWarp,anchor)){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
+    auto finalWarp=solveReferenceWarp(mode,controls(accepted,anchor));if(!finalWarp.valid||!enforceAnchor(finalWarp,anchor)){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
     const auto finalScore=score(finalWarp,candidates,threshold,anchor);if(finalScore.inliers.size()<requiredInliers){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
     accepted.clear();for(int index:finalScore.inliers)accepted.push_back(candidates[index]);finalWarp=solveReferenceWarp(mode,controls(accepted));
     if(!finalWarp.valid||!enforceAnchor(finalWarp,anchor)){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
