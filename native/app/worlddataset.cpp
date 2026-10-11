@@ -22,9 +22,9 @@ QByteArray fileBytes(const QString& name) {
 QString hash(QCryptographicHash::Algorithm algorithm,const QByteArray& bytes) {
     return QString::fromLatin1(QCryptographicHash::hash(bytes,algorithm).toHex());
 }
-constexpr std::array<const char*,7> worldRoles{{
+constexpr std::array<const char*,9> worldRoles{{
     "countryPreview","previewMesh","countryCanonical","canonicalMesh",
-    "terrain","hydro","labelAnchors"
+    "terrain","hydro","labelAnchors","historicalTimelineManifest","historicalTimeline"
 }};
 bool validHex(const QString& value,int size) {
     if(value.size()!=size)return false;
@@ -82,6 +82,18 @@ WorldDataset::WorldDataset(QString root):root_(std::move(root)) {
     }
 }
 WorldAsset WorldDataset::asset(const QString& key) const {
+    if(key==QStringLiteral("historicalTimelineManifest")||key==QStringLiteral("historicalTimeline")) {
+        const auto entry=manifest_.value(key).toObject();
+        WorldAsset result{entry.value("path").toString(),entry.value("version").toString(),
+            entry.value("gitBlobSha").toString(),entry.value("sha256").toString(),
+            entry.value("required").toBool(),entry.value("bytes").toInteger()};
+        const auto path=key==QStringLiteral("historicalTimelineManifest")?
+            QStringLiteral("historical-world/v1/manifest.json"):QStringLiteral("historical-world/v1/world-project.json.gz");
+        require(result.path==path&&result.version==QStringLiteral("1")&&result.required&&
+                validHex(result.gitBlobSha,40)&&validHex(result.sha256,64)&&result.bytes>0&&result.bytes<100000000,
+                "Wrong historical world dataset identity");
+        return result;
+    }
     require(std::any_of(worldRoles.begin(),worldRoles.end(),
                         [&key](const char* name){return key==QLatin1String(name);}),
             "Unknown world dataset asset");

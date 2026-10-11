@@ -865,6 +865,10 @@ bool EditorController::setTimelineMonth(const QString& month) {
     }
     try {
         if(!project_.setTimelineCursor(month.toStdString()))return true;
+        if(worldBase_&&worldBase_->startupPreview()) {
+            auto frame=std::make_shared<WorldBaseFrame>(*worldBase_);frame->documentReady=true;
+            worldBase_=std::move(frame);cacheWorldFrame(worldBase_);
+        }
         projection_.rebuild(project_.viewDocument(),project_.inactiveEntityIds());
         mapPicker_.reset();
         if(labelAnchors_)for(const auto& unit:project_.document().units) {
@@ -872,6 +876,8 @@ bool EditorController::setTimelineMonth(const QString& month) {
                 labelAnchors_->invalidateOwner(text(unit.id));
             else scheduleDerivedLabelAnchor(pandoeditor::territorialRef(unit.id));
         }
+        placeLabelSignature_.clear();
+        refreshBuiltinPlaceLabels();
         publish(false);
         emit geometryChanged();
         refreshTypedScene();
@@ -1121,7 +1127,7 @@ bool EditorController::replaceFromBytes(const QByteArray& bytes,bool imported,co
             }
         });
         watcher->setFuture(QtConcurrent::run([initial,root=worldDataRoot_] {
-            DetailFrames frames;frames.first=WorldDatasetLoader::matchingBaseFrame(initial.document(),root);
+            DetailFrames frames;frames.first=WorldDatasetLoader::matchingBaseFrame(initial.document(),root,initial.timelineMonth());
             if(frames.first)try {
                 auto preview=std::make_shared<WorldBaseFrame>(*WorldDatasetLoader::preview(root).frame);
                 if(preview->ranges==frames.first->ranges) {

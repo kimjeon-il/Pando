@@ -47,8 +47,10 @@ add_library(pandoeditor_editor STATIC
     builtinworldpolicy.cpp builtinworldpolicy.h
     worlddataset.cpp worlddataset.h
     worlddatasetloader.cpp worlddatasetloader.h
+    historicalworldtimeline.cpp historicalworldtimeline.h
     terrainimageprovider.cpp terrainimageprovider.h
     placeruntimestore.cpp placeruntimestore.h
+    placenamedisplay.cpp placenamedisplay.h
     placeruntimeprovider.cpp placeruntimeprovider.h
     editorplace.cpp
     resourcecachecoordinator.cpp resourcecachecoordinator.h
@@ -120,7 +122,8 @@ qt_add_resources(pandoeditor_editor terrain_dem_metadata
           "${PROJECT_SOURCE_DIR}/assets/world/physical-inventory-terrain-dem-c3c18d1.json"
           "${PROJECT_SOURCE_DIR}/assets/world/terrain-dem-provenance-c3c18d1.json")
 qt_add_resources(pandoeditor_editor place_runtime PREFIX "/place" BASE "${PROJECT_SOURCE_DIR}/assets/place"
-    FILES "${PROJECT_SOURCE_DIR}/assets/place/manifest.json")
+    FILES "${PROJECT_SOURCE_DIR}/assets/place/manifest.json"
+          "${PROJECT_SOURCE_DIR}/assets/place/places-v1.bin")
 qt_add_resources(pandoeditor_editor m4_geometry
     PREFIX "/geometry" BASE "${PROJECT_SOURCE_DIR}/assets/geometry"
     FILES "${PROJECT_SOURCE_DIR}/assets/geometry/polygon-clipping-0.15.7.js"
@@ -173,7 +176,8 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${PANDO_WORLD_MA
 file(READ "${PANDO_WORLD_MANIFEST_FILE}" PANDO_WORLD_MANIFEST_JSON)
 set(PANDO_WORLD_RESOURCE_FILES "${PANDO_WORLD_MANIFEST_FILE}")
 set(PANDOEDITOR_WORLD_ASSET_ROLES
-    countryPreview previewMesh countryCanonical canonicalMesh terrain hydro labelAnchors)
+    countryPreview previewMesh countryCanonical canonicalMesh terrain hydro labelAnchors
+    historicalTimelineManifest historicalTimeline)
 foreach(PANDO_WORLD_ROLE IN LISTS PANDOEDITOR_WORLD_ASSET_ROLES)
     string(JSON PANDO_ASSET_REL ERROR_VARIABLE PANDO_ASSET_ERROR
         GET "${PANDO_WORLD_MANIFEST_JSON}" "${PANDO_WORLD_ROLE}" path)
@@ -288,6 +292,17 @@ if(BUILD_TESTING)
     target_link_libraries(place_runtime_store_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(place_runtime_store_tests PRIVATE PLACE_RUNTIME_FIXTURE="${PROJECT_SOURCE_DIR}/tests/fixtures/web-place-runtime-source")
     add_test(NAME place_runtime_store_tests COMMAND place_runtime_store_tests)
+    add_executable(place_sync_contract_tests ../tests/place_sync_contract_tests.cpp)
+    target_link_libraries(place_sync_contract_tests PRIVATE pandoeditor_editor Qt6::Test)
+    qt_add_resources(place_sync_contract_tests sample PREFIX "/assets"
+        BASE "${PROJECT_SOURCE_DIR}/assets"
+        FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
+    target_compile_definitions(place_sync_contract_tests PRIVATE
+        PLACE_SYNC_CONTRACT_PATH="${PROJECT_SOURCE_DIR}/contracts/places/v2.json"
+        PLACE_SYNC_REPOSITORY_ROOT="${PROJECT_SOURCE_DIR}")
+    add_test(NAME place_sync_contract_tests COMMAND place_sync_contract_tests)
+    set_tests_properties(place_sync_contract_tests PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(place_runtime_provider_tests ../tests/place_runtime_provider_tests.cpp)
     target_link_libraries(place_runtime_provider_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(place_runtime_provider_tests PRIVATE PLACE_RUNTIME_FIXTURE="${PROJECT_SOURCE_DIR}/tests/fixtures/web-place-runtime-source")
@@ -516,6 +531,16 @@ if(BUILD_TESTING)
     set_tests_properties(map_render_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(world_corpus_tests ../tests/world_corpus_tests.cpp)
     add_executable(builtin_world_policy_tests ../tests/builtin_world_policy_tests.cpp)
+    add_executable(historical_world_timeline_tests ../tests/historical_world_timeline_tests.cpp)
+    target_link_libraries(historical_world_timeline_tests PRIVATE pandoeditor_editor Qt6::Test)
+    target_compile_definitions(historical_world_timeline_tests PRIVATE PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world")
+    add_test(NAME historical_world_timeline_tests COMMAND historical_world_timeline_tests -o -,txt)
+    add_executable(historical_world_resolution_probe ../tests/historical_world_resolution_probe.cpp)
+    target_link_libraries(historical_world_resolution_probe PRIVATE pandoeditor_editor)
+    add_executable(historical_world_ui_tests ../tests/historical_world_ui_tests.cpp)
+    target_link_libraries(historical_world_ui_tests PRIVATE pandoeditor_editor Qt6::QuickControls2 Qt6::Test)
+    target_compile_definitions(historical_world_ui_tests PRIVATE PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world")
+    add_test(NAME historical_world_ui_tests COMMAND historical_world_ui_tests -o -,txt)
     target_link_libraries(builtin_world_policy_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(builtin_world_policy_tests PRIVATE
         PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world")
@@ -724,7 +749,7 @@ if(BUILD_TESTING)
     target_link_libraries(ui_tests PRIVATE pandoeditor_editor Qt6::QuickControls2 Qt6::Test)
     target_compile_definitions(ui_tests PRIVATE PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world"
         PANDOEDITOR_TIMELINE_COMPLEX_FIXTURE="${PROJECT_SOURCE_DIR}/tests/fixtures/timeline-resolution/complex-v10.json")
-    foreach(native_ui_target ui_tests terrain_controller_display_tests)
+    foreach(native_ui_target ui_tests terrain_controller_display_tests historical_world_ui_tests)
     qt_add_resources(${native_ui_target} ui PREFIX "/" BASE "${PROJECT_SOURCE_DIR}/ui"
         FILES "${PROJECT_SOURCE_DIR}/ui/common/Main.qml"
         "${PROJECT_SOURCE_DIR}/ui/common/WebImportDialog.qml"
@@ -745,7 +770,7 @@ if(BUILD_TESTING)
     endforeach()
     # Exercise the production default flag resolver and image loading without
     # leaving other sample-country flags unresolved in the UI test engine.
-    foreach(test_name presentation_editor_tests ui_tests terrain_controller_display_tests territorial_catalog_controller_tests)
+    foreach(test_name presentation_editor_tests ui_tests terrain_controller_display_tests historical_world_ui_tests territorial_catalog_controller_tests)
         qt_add_resources(${test_name} test_default_flag PREFIX "/defaults/flags"
             BASE "${PROJECT_SOURCE_DIR}/assets/defaults/flags"
             FILES ${DEFAULT_FLAG_FILES})

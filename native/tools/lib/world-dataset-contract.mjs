@@ -10,6 +10,10 @@ export const WORLD_ROLES = Object.freeze([
   'terrain', 'hydro', 'labelAnchors',
 ]);
 export const OPTIONAL_ROLES = Object.freeze(['countryPreview', 'terrain', 'hydro']);
+const HISTORICAL_ROLES = Object.freeze({
+  historicalTimelineManifest: 'historical-world/v1/manifest.json',
+  historicalTimeline: 'historical-world/v1/world-project.json.gz',
+});
 const COMMIT_RE = /^[a-f0-9]{40}$/;
 const SHA_RE = /^[a-f0-9]{64}$/;
 const SEMVER_RE = /^\d+\.\d+\.\d+$/;
@@ -79,16 +83,24 @@ export function validateWorldDataset(manifest) {
       `Unexpected world geometry asset format: ${role}`);
     }
   }
+  for (const [role, path] of Object.entries(HISTORICAL_ROLES)) {
+    const entry = manifest[role];
+    ensure(entry && entry.path === path && !seenPaths.has(path) && entry.version === '1'
+      && entry.required === true && COMMIT_RE.test(entry.gitBlobSha || '') && SHA_RE.test(entry.sha256 || '')
+      && Number.isSafeInteger(entry.bytes) && entry.bytes > 0 && entry.bytes < 100_000_000,
+    `Invalid historical world asset: ${role}`);
+    seenPaths.add(path);
+  }
   ensure(Object.keys(manifest).every(key => [
     'schema', 'version', 'countryCount', 'canonicalPositionCount', 'origin',
-    ...WORLD_ROLES,
+    ...WORLD_ROLES, ...Object.keys(HISTORICAL_ROLES),
   ].includes(key)), 'Unexpected native world manifest fields');
   return manifest;
 }
 
 export function validateWorldAssetBytes(manifest, role, bytes) {
   validateWorldDataset(manifest);
-  ensure(WORLD_ROLES.includes(role), `Unknown native asset: ${role}`);
+  ensure(WORLD_ROLES.includes(role) || Object.hasOwn(HISTORICAL_ROLES, role), `Unknown native asset: ${role}`);
   const asset = manifest[role];
   ensure(Buffer.isBuffer(bytes) && bytes.length === asset.bytes,
     `Wrong byte count: ${role}`);
