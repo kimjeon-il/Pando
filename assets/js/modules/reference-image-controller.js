@@ -502,7 +502,11 @@ export function installReferenceImageController({
         record.autoGeorefPreview = result.ok ? result : null;
         renderEditor();
         if (result.ok) {
-          setHint(`자동 후보 ${result.symbolCandidateCount}개 중 ${result.georef.inlierCount}개를 채택했습니다. 결과를 확인한 뒤 적용하세요.`, 'success');
+          const method = result.source === 'place-ocr' ? 'OCR 도시명' : '도시 기호';
+          const candidates = result.source === 'place-ocr'
+            ? (result.matching?.matchCount ?? 0)
+            : (result.symbolCandidateCount ?? 0);
+          setHint(`${method} 후보 ${candidates}개 중 ${result.georef.inlierCount}개를 채택했습니다. 결과를 확인한 뒤 적용하세요.`, 'success');
         } else setHint(autoGeorefFailureMessage(result), 'error');
       } catch (error) {
         if (!validToken(token) || selected() !== record || !records.includes(record)) return;
@@ -1039,9 +1043,26 @@ export function installReferenceImageController({
 
   async function autoGeorefSmart(options = {}) {
     const symbols = await autoGeorefPlaceSymbols(options);
-    if (symbols.ok) return symbols;
+    const symbolInliers = Number(symbols?.georef?.inlierCount || 0);
+    const symbolRms = Number(symbols?.georef?.diagnostics?.rmsMeters);
+    const symbolStrong = symbols.ok
+      && symbolInliers >= 6
+      && Number.isFinite(symbolRms)
+      && symbolRms <= 10000;
+    if (symbolStrong) return symbols;
+
     const ocr = await autoGeorefOcr(options);
-    if (ocr.ok) return ocr;
+    if (ocr.ok) {
+      if (!symbols.ok) return ocr;
+      const ocrInliers = Number(ocr?.georef?.inlierCount || 0);
+      const ocrRms = Number(ocr?.georef?.diagnostics?.rmsMeters);
+      const ocrBetter = ocrInliers > symbolInliers
+        || (ocrInliers === symbolInliers
+          && Number.isFinite(ocrRms)
+          && (!Number.isFinite(symbolRms) || ocrRms + 1e-6 < symbolRms));
+      if (ocrBetter) return ocr;
+    }
+    if (symbols.ok) return Object.freeze({ ...symbols, ocrFallback: ocr });
     return Object.freeze({
       ...symbols,
       ocrFallback: ocr,
