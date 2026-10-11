@@ -467,6 +467,353 @@ export function buildReferenceImageWarp(values = [], { mode = REFERENCE_IMAGE_WA
   });
 }
 
+
+const AUTO_GEOREF_RANSAC_MODES = new Set([
+  REFERENCE_IMAGE_WARP_MODES.SIMILARITY,
+  REFERENCE_IMAGE_WARP_MODES.AFFINE,
+  REFERENCE_IMAGE_WARP_MODES.PROJECTIVE,
+]);
+
+function resolveAutoGeorefMode(mode, pointCount) {
+  if (AUTO_GEOREF_RANSAC_MODES.has(mode)) return mode;
+  if (mode === REFERENCE_IMAGE_WARP_MODES.TPS) return null;
+  if (pointCount >= 4) return REFERENCE_IMAGE_WARP_MODES.PROJECTIVE;
+  if (pointCount >= 3) return REFERENCE_IMAGE_WARP_MODES.AFFINE;
+  return REFERENCE_IMAGE_WARP_MODES.SIMILARITY;
+}
+
+function normalizeAutoGeorefCandidates(values = []) {
+  if (!Array.isArray(values)) return Object.freeze([]);
+  const ids = new Set();
+  const result = [];
+  for (let index = 0; index < values.length; index += 1) {
+    const value = values[index];
+    const id = String(value?.id || `auto-gcp-${index + 1}`).trim() || `auto-gcp-${index + 1}`;
+    if (ids.has(id) || id === 'anchor') continue;
+    const normalized = normalizeReferenceControlPoints([{ ...value, id, pinned: false }])[0];
+    if (!normalized) continue;
+    ids.add(id);
+    const rawConfidence = finiteNumber(value?.confidence);
+    result.push(Object.freeze({
+      id,
+      image: normalized.image,
+      coordinate: normalized.coordinate,
+      pinned: false,
+      confidence: clamp(rawConfidence === null ? 1 : rawConfidence, 0, 1),
+      origin: value?.origin == null ? null : String(value.origin),
+    }));
+  }
+  return Object.freeze(result);
+}
+
+function normalizeAutoGeorefAnchor(anchor) {
+  if (!anchor) return null;
+  const normalized = normalizeReferenceControlPoints([{
+    id: 'anchor',
+    image: anchor.image,
+    coordinate: anchor.coordinate,
+    pinned: true,
+  }])[0];
+  return normalized || null;
+}
+
+function createDeterministicRandom(seed = 0x6d2b79f5) {
+  let state = (Number(seed) >>> 0) || 0x6d2b79f5;
+  return () => {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    return (state >>> 0) / 0x100000000;
+  };
+}
+
+function sampleAutoGeorefCandidates(values, count, random) {
+  if (count <= 0) return [];
+  if (count >= values.length) return [...values];
+  const indices = values.map((_, index) => index);
+  for (let index = 0; index < count; index += 1) {
+    const swapIndex = index + Math.floor(random() * (indices.length - index));
+    [indices[index], indices[swapIndex]] = [indices[swapIndex], indices[index]];
+  }
+  return indices.slice(0, count).sort((a, b) => a - b).map(index => values[index]);
+}
+
+function autoGeorefResidualMeters(warp, candidate) {
+  if (!warp?.ok || typeof warp.project !== 'function') return Number.POSITIVE_INFINITY;
+  return haversineMeters(candidate.coordinate, warp.project(candidate.image));
+}
+
+function autoGeorefHypothesisScore(warp, candidates, thresholdMeters) {
+  const inliers = [];
+  let squaredMeters = 0;
+  let confidence = 0;
+  for (const candidate of candidates) {
+    const meters = autoGeorefResidualMeters(warp, candidate);
+    if (!Number.isFinite(meters) || meters > thresholdMeters) continue;
+    inliers.push(candidate);
+    squaredMeters += meters * meters;
+    confidence += candidate.confidence;
+  }
+  const rmsMeters = inliers.length
+    ? Math.sqrt(squaredMeters / inliers.length)
+    : Number.POSITIVE_INFINITY;
+  return {
+    inliers,
+    confidence,
+    rmsMeters,
+    coverage: imageCoverage(inliers),
+  };
+}
+
+function betterAutoGeorefScore(candidate, current) {
+  if (!current) return true;
+  if (candidate.inliers.length !== current.inliers.length) {
+    return candidate.inliers.length > current.inliers.length;
+  }
+  if (Math.abs(candidate.confidence - current.confidence) > 1e-12) {
+    return candidate.confidence > current.confidence;
+  }
+  if (Math.abs(candidate.rmsMeters - current.rmsMeters) > 1e-9) {
+    return candidate.rmsMeters < current.rmsMeters;
+  }
+  return candidate.coverage > current.coverage;
+}
+
+const AUTO_GEOREF_MODE_COMPLEXITY = Object.freeze({
+  [REFERENCE_IMAGE_WARP_MODES.SIMILARITY]: 0,
+  [REFERENCE_IMAGE_WARP_MODES.AFFINE]: 1,
+  [REFERENCE_IMAGE_WARP_MODES.PROJECTIVE]: 2,
+});
+
+function autoGeorefCrossValidation(mode, candidates, hardPoints) {
+  const minimum = MODE_MIN_POINTS[mode] || 2;
+  if (candidates.length < 2 || candidates.length - 1 + hardPoints.length < minimum) return null;
+  const errors = [];
+  for (let holdout = 0; holdout < candidates.length; holdout += 1) {
+    const training = candidates.filter((_, index) => index !== holdout);
+    const warp = buildReferenceImageWarp([...hardPoints, ...training], { mode });
+    if (!warp.ok) return null;
+    const meters = autoGeorefResidualMeters(warp, candidates[holdout]);
+    if (!Number.isFinite(meters)) return null;
+    errors.push(meters);
+  }
+  const sorted = [...errors].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  const medianMeters = sorted.length % 2
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+  const squared = errors.reduce((sum, meters) => sum + meters * meters, 0);
+  return Object.freeze({
+    mode,
+    count: errors.length,
+    rmsMeters: Math.sqrt(squared / errors.length),
+    medianMeters,
+    maxMeters: sorted.at(-1),
+  });
+}
+
+function selectAutoGeorefRefitMode(requestedMode, consensusMode, candidates, hardPoints) {
+  if (requestedMode !== REFERENCE_IMAGE_WARP_MODES.AUTO || candidates.length < 5) {
+    return Object.freeze({ mode: consensusMode, validations: Object.freeze([]) });
+  }
+  const modes = [
+    REFERENCE_IMAGE_WARP_MODES.SIMILARITY,
+    REFERENCE_IMAGE_WARP_MODES.AFFINE,
+    REFERENCE_IMAGE_WARP_MODES.PROJECTIVE,
+  ];
+  const validations = modes
+    .map(candidateMode => autoGeorefCrossValidation(candidateMode, candidates, hardPoints))
+    .filter(Boolean);
+  if (!validations.length) {
+    return Object.freeze({ mode: consensusMode, validations: Object.freeze([]) });
+  }
+  let best = validations[0];
+  for (const candidate of validations.slice(1)) {
+    const materiallyBetter = candidate.rmsMeters < best.rmsMeters * 0.99;
+    const effectivelyTied = candidate.rmsMeters <= best.rmsMeters * 1.01;
+    const simpler = AUTO_GEOREF_MODE_COMPLEXITY[candidate.mode] < AUTO_GEOREF_MODE_COMPLEXITY[best.mode];
+    if (materiallyBetter || (effectivelyTied && simpler)) best = candidate;
+  }
+  return Object.freeze({
+    mode: best.mode,
+    validations: Object.freeze(validations),
+  });
+}
+
+/**
+ * Robustly fits a coarse automatic georeferencing transform from candidate
+ * image/GIS matches. This deliberately limits RANSAC hypotheses to global
+ * similarity/affine/projective transforms; TPS is reserved for a later
+ * refinement stage after outliers have been removed.
+ */
+export function buildReferenceImageAutoGeoref(values = [], {
+  anchor = null,
+  mode = REFERENCE_IMAGE_WARP_MODES.AUTO,
+  inlierThresholdMeters = 25000,
+  maxTrials = 256,
+  minimumInliers = null,
+  seed = 0x6d2b79f5,
+} = {}) {
+  const candidates = normalizeAutoGeorefCandidates(values);
+  const hardAnchor = anchor ? normalizeAutoGeorefAnchor(anchor) : null;
+  if (anchor && !hardAnchor) {
+    return Object.freeze({
+      ok: false,
+      reason: 'invalid-anchor',
+      candidateCount: candidates.length,
+    });
+  }
+
+  const hardPoints = hardAnchor ? [hardAnchor] : [];
+  const totalPointCount = candidates.length + hardPoints.length;
+  const consensusMode = resolveAutoGeorefMode(mode, totalPointCount);
+  if (!consensusMode) {
+    return Object.freeze({
+      ok: false,
+      reason: 'unsupported-auto-georef-mode',
+      mode,
+      candidateCount: candidates.length,
+    });
+  }
+
+  const consensusMinimumPoints = MODE_MIN_POINTS[consensusMode] || 2;
+  const requiredSoftSample = Math.max(0, consensusMinimumPoints - hardPoints.length);
+  if (candidates.length < requiredSoftSample || totalPointCount < consensusMinimumPoints) {
+    return Object.freeze({
+      ok: false,
+      reason: 'insufficient-auto-georef-candidates',
+      mode: consensusMode,
+      minimumPoints: consensusMinimumPoints,
+      candidateCount: candidates.length,
+      hardPointCount: hardPoints.length,
+    });
+  }
+
+  const thresholdMeters = Math.max(1, finiteNumber(inlierThresholdMeters) ?? 25000);
+  const trialLimit = Math.max(1, Math.min(4096, Math.round(finiteNumber(maxTrials) ?? 256)));
+  const requestedMinimum = Math.round(finiteNumber(minimumInliers) ?? consensusMinimumPoints);
+  const requiredInliers = Math.max(consensusMinimumPoints, requestedMinimum);
+  const random = createDeterministicRandom(seed);
+  const seenSamples = new Set();
+  let trials = 0;
+  let attempts = 0;
+  let best = null;
+
+  while (trials < trialLimit && attempts < trialLimit * 12) {
+    attempts += 1;
+    const sample = sampleAutoGeorefCandidates(candidates, requiredSoftSample, random);
+    const sampleKey = sample.map(item => item.id).join('\u0000');
+    if (seenSamples.has(sampleKey)) {
+      if (requiredSoftSample >= candidates.length) break;
+      continue;
+    }
+    seenSamples.add(sampleKey);
+    trials += 1;
+    const hypothesis = buildReferenceImageWarp([...hardPoints, ...sample], { mode: consensusMode });
+    if (!hypothesis.ok) continue;
+    const score = autoGeorefHypothesisScore(hypothesis, candidates, thresholdMeters);
+    if (score.inliers.length + hardPoints.length < requiredInliers) continue;
+    if (betterAutoGeorefScore(score, best?.score)) best = { score, hypothesis };
+    if (score.inliers.length === candidates.length) break;
+  }
+
+  if (!best) {
+    return Object.freeze({
+      ok: false,
+      reason: 'no-auto-georef-consensus',
+      mode: consensusMode,
+      minimumPoints: consensusMinimumPoints,
+      candidateCount: candidates.length,
+      hardPointCount: hardPoints.length,
+      trials,
+      thresholdMeters,
+    });
+  }
+
+  let accepted = [...best.score.inliers];
+  const modelSelection = selectAutoGeorefRefitMode(mode, consensusMode, accepted, hardPoints);
+  const resolvedMode = modelSelection.mode;
+  const minimumPoints = MODE_MIN_POINTS[resolvedMode] || consensusMinimumPoints;
+  let finalWarp = null;
+  for (let refinement = 0; refinement < 3; refinement += 1) {
+    finalWarp = buildReferenceImageWarp([...hardPoints, ...accepted], { mode: resolvedMode });
+    if (!finalWarp.ok) break;
+    const refined = candidates.filter(candidate => (
+      autoGeorefResidualMeters(finalWarp, candidate) <= thresholdMeters
+    ));
+    if (refined.length + hardPoints.length < requiredInliers) break;
+    if (
+      refined.length === accepted.length
+      && refined.every((candidate, index) => candidate.id === accepted[index]?.id)
+    ) {
+      accepted = refined;
+      break;
+    }
+    accepted = refined;
+  }
+
+  if (!finalWarp?.ok) {
+    return Object.freeze({
+      ok: false,
+      reason: finalWarp?.reason || 'auto-georef-refit-failed',
+      mode: resolvedMode,
+      minimumPoints,
+      candidateCount: candidates.length,
+      hardPointCount: hardPoints.length,
+      trials,
+      thresholdMeters,
+    });
+  }
+
+  const acceptedIds = new Set(accepted.map(candidate => candidate.id));
+  const matches = candidates.map(candidate => {
+    const residualMeters = autoGeorefResidualMeters(finalWarp, candidate);
+    return Object.freeze({
+      id: candidate.id,
+      image: candidate.image,
+      coordinate: candidate.coordinate,
+      confidence: candidate.confidence,
+      origin: candidate.origin,
+      residualMeters,
+      inlier: acceptedIds.has(candidate.id) && residualMeters <= thresholdMeters,
+    });
+  });
+  const inlierIds = matches.filter(match => match.inlier).map(match => match.id);
+  const rejectedIds = matches.filter(match => !match.inlier).map(match => match.id);
+
+  return Object.freeze({
+    ok: true,
+    schemaVersion: REFERENCE_IMAGE_GEOREF_SCHEMA_VERSION,
+    mode: resolvedMode,
+    minimumPoints,
+    thresholdMeters,
+    trials,
+    candidateCount: candidates.length,
+    hardPointCount: hardPoints.length,
+    inlierCount: inlierIds.length,
+    rejectedCount: rejectedIds.length,
+    inlierIds: Object.freeze(inlierIds),
+    rejectedIds: Object.freeze(rejectedIds),
+    matches: Object.freeze(matches),
+    controlPoints: finalWarp.controlPoints,
+    diagnostics: Object.freeze({
+      ...finalWarp.diagnostics,
+      ransacTrials: trials,
+      ransacThresholdMeters: thresholdMeters,
+      candidateCount: candidates.length,
+      inlierCount: inlierIds.length,
+      rejectedCount: rejectedIds.length,
+      modelSelection: Object.freeze({
+        consensusMode,
+        selectedMode: resolvedMode,
+        validations: modelSelection.validations,
+      }),
+    }),
+    project: finalWarp.project,
+    warp: finalWarp,
+  });
+}
+
 export function referenceImageWarpQuad(warp) {
   if (!warp?.ok || typeof warp.project !== 'function') return null;
   const corners = [[0, 0], [1, 0], [1, 1], [0, 1]]

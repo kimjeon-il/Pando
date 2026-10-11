@@ -171,3 +171,67 @@ test('free transform is disabled only by record lock', () => {
   });
   assert.match(locked, /data-ref-action="free-transform"[^>]* disabled/);
 });
+
+
+test('automatic georeferencing shows scan action and a review-before-apply preview', () => {
+  const previewRecord = record({
+    autoGeorefPreview: {
+      ok: true,
+      seedCount: 18,
+      symbolCandidateCount: 12,
+      georef: {
+        inlierCount: 9,
+        rejectedCount: 3,
+        diagnostics: { rmsMeters: 4200 },
+      },
+    },
+  });
+  const markup = referenceImageEditorMarkup({ ...options, record: previewRecord });
+  assert.match(markup, /data-ref-action="auto-georef"[^>]*>자동 맞춤<\/button>/);
+  assert.match(markup, /탐색 도시<\/small><strong>18<\/strong>/);
+  assert.match(markup, /기호 후보<\/small><strong>12<\/strong>/);
+  assert.match(markup, /채택<\/small><strong>9<\/strong>/);
+  assert.match(markup, /제외<\/small><strong>3<\/strong>/);
+  assert.match(markup, /RMS<\/small><strong>4\.2 km<\/strong>/);
+  assert.match(markup, /data-ref-action="apply-auto-georef"[^>]*>결과 적용<\/button>/);
+  assert.match(markup, /data-ref-action="cancel-auto-georef"[^>]*>취소<\/button>/);
+});
+
+test('automatic georeferencing action is disabled while analysis is running or the record is locked', () => {
+  const busy = referenceImageEditorMarkup({
+    ...options,
+    record: record({ autoGeorefBusy: true }),
+  });
+  assert.match(busy, /data-ref-action="auto-georef" disabled>자동 분석 중…<\/button>/);
+
+  const locked = referenceImageEditorMarkup({
+    ...options,
+    record: record({ locked: true }),
+  });
+  assert.match(locked, /data-ref-action="auto-georef" disabled>자동 맞춤<\/button>/);
+});
+
+
+test('OCR automatic georeferencing preview identifies the method and place matching counts', () => {
+  const markup = referenceImageEditorMarkup({
+    ...options,
+    record: record({
+      autoGeorefPreview: {
+        ok: true,
+        source: 'place-ocr',
+        ocr: { detections: [{ text: 'Berlin' }, { text: 'Prag' }, { text: 'Wien' }] },
+        matching: { matchCount: 2 },
+        georef: {
+          inlierCount: 2,
+          rejectedCount: 0,
+          diagnostics: { rmsMeters: 1800 },
+        },
+      },
+    }),
+  });
+  assert.match(markup, /방식<\/small><strong>OCR 도시명<\/strong>/);
+  assert.match(markup, /인식 문자<\/small><strong>3<\/strong>/);
+  assert.match(markup, /지명 매칭<\/small><strong>2<\/strong>/);
+  assert.match(markup, /RMS<\/small><strong>1\.8 km<\/strong>/);
+  assert.match(markup, /data-ref-action="apply-auto-georef"/);
+});

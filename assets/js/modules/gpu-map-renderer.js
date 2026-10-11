@@ -150,6 +150,7 @@ export function createGpuMapRenderer(deps) {
     APP_VERSION,
     ASSET_REVISION,
     DATA_REVISION,
+    sharedBoundaryCacheUrls,
     PHYSICAL_DATA_BASE_URL,
     TERRAIN_RASTER_MANIFEST_URL,
     onTerrainSourceChanged,
@@ -550,7 +551,8 @@ export function createGpuMapRenderer(deps) {
       countryBoundaryWorker.postMessage({ type: replace ? 'replace' : 'patch',
         requestId: countryBoundaryRequestId, projectGeneration,
         geometryRevision: geometryRevisionTracker.committedRevision(), quality: activeMeshQuality,
-        cacheUrl: replace ? runtimeAssetUrl(`../data/countries-${activeMeshQuality === 'preview' ? 'preview' : 'canonical'}-shared-v0.34.0.json.gz`).href : null,
+        cacheUrl: replace && sharedBoundaryCacheUrls?.[activeMeshQuality]
+          ? new URL(sharedBoundaryCacheUrls[activeMeshQuality], PHYSICAL_DATA_BASE_URL).href : null,
         skipCacheReconcile: baselineCache,
         features: source, removedIds });
     }
@@ -2146,6 +2148,21 @@ export function createGpuMapRenderer(deps) {
       if (renderPending) invalidateGpuFrame('country-patch-preview');
       window.__PANDOLAB_GPU_METRICS__ = getStats();
       rendererUi.onContextStateChange?.('fallback');
+    }
+
+    function invalidateCountryPreview() {
+      previewAllowed = false;
+      state.auditPreviewCountries = null;
+      state.auditPreviewTerritorialUnits = null;
+      state.auditPreviewGeometryReferences = null;
+      activeMeshQuality = 'canonical';
+      meshQuality = 'canonical';
+      state.countryVisualPhase = 'canonical';
+      if (meshVariants.has('canonical')) activateMeshVariant('canonical', { renderFrame: false });
+      sceneColorCache.invalidate('timeline-preview');
+      for (const resolve of previewFrameWaiters) resolve(false);
+      previewFrameWaiters.clear();
+      invalidateGpuFrame('timeline-preview');
     }
 
     function resetProjectRenderState({ generation = null, preserveBuiltinMesh = false } = {}) {
@@ -4656,7 +4673,7 @@ export function createGpuMapRenderer(deps) {
         mapHost: 'legacy',
         assetRevision: ASSET_REVISION,
         dataRevision: DATA_REVISION,
-        dataCacheName: `pandolab-data-${DATA_REVISION}`,
+        dataCacheName: 'pandolab-world-content-v1',
         projectGeneration,
         terrainRepresentation: rendererMode === 'canvas-worker' || rendererMode === 'canvas2d'
           ? TERRAIN_RASTER_FORMAT : terrainManifest?.representation || null,
@@ -4828,7 +4845,7 @@ export function createGpuMapRenderer(deps) {
       requestCountryFocus, cancelCountryFocus, setCountryEditingActive, syncCountryMeshQuality,
       setCountryPropertyEditingActive,
       invalidateHydroVisibility, invalidatePhysicalStyle, resetCountryGeometryVisualState,
-      resetProjectRenderState, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline,
+      resetProjectRenderState, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline, invalidateCountryPreview,
       hasBuiltinMeshBaseline: () => !!builtinMeshBaseline?.mesh,
       getProjectGeneration: () => projectGeneration,
       invalidateCountryPalette,

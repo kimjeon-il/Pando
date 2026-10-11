@@ -4,9 +4,9 @@ import test from 'node:test';
 import zlib from 'node:zlib';
 
 const data = new URL('../../assets/data/', import.meta.url);
-const appVersion = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url))).version;
+const worldBundle = JSON.parse(fs.readFileSync(new URL('world/current.json', data), 'utf8'));
 const canonical = JSON.parse(fs.readFileSync(new URL('countries-ne-5.1.1.geojson', data)));
-const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(new URL(`countries-preview-v${appVersion}.geojson.gz`, data))));
+const preview = JSON.parse(zlib.gunzipSync(fs.readFileSync(new URL(worldBundle.assets.previewCountries.url, data))));
 const anchors = JSON.parse(fs.readFileSync(new URL('country-label-anchors-v0.10.1.json', data))).anchors;
 
 function coordinates(geometry) {
