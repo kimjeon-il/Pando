@@ -455,52 +455,87 @@ private slots:
         const auto records=data.value("records").toArray();
         QCOMPARE(records.size(),5);
         const QList<int> ids{1526273,1512569,1528675,1221874,162183};
-        const QStringList names{QStringLiteral("아스타나"),QStringLiteral("타슈켄트"),
+        const QStringList labels{QStringLiteral("아스타나"),QStringLiteral("타슈켄트"),
             QStringLiteral("비슈케크"),QStringLiteral("두샨베"),QStringLiteral("아시가바트")};
+        const QList<int> counts{7,7,3,4,9};
         for(qsizetype i=0;i<records.size();++i) {
-            const QJsonObject value=records.at(i).toObject();
-            QCOMPARE(value.value("geonameId").toInt(),ids.at(i));
-            QCOMPARE(value.value("featureClass").toString(),QStringLiteral("P"));
-            QCOMPARE(value.value("featureCode").toString(),QStringLiteral("PPLC"));
-            QCOMPARE(value.value("defaultDisplayNameKo").toString(),names.at(i));
+            const auto city=records.at(i).toObject();
+            QCOMPARE(city.value("geonameId").toInt(),ids.at(i));
+            QCOMPARE(city.value("featureClass").toString(),QStringLiteral("P"));
+            QCOMPARE(city.value("featureCode").toString(),QStringLiteral("PPLC"));
+            QCOMPARE(city.value("defaultDisplayNameKo").toString(),labels.at(i));
+            const auto chosen=city.value("defaultNativeNames").toArray();
+            QCOMPARE(chosen.size(),1);
+            QCOMPARE(chosen.at(0).toObject().value("text").toString(),
+                city.value("defaultDisplayNameNative").toString());
+            const auto entries=city.value("displayTimeline").toArray();
+            QCOMPARE(entries.size(),counts.at(i));
+            for(const auto& entry:entries) {
+                const auto t=entry.toObject(), forms=t.value("nativeNames").toArray();
+                QCOMPARE(forms.size(),1);
+                QCOMPARE(forms.at(0).toObject().value("text").toString(),t.value("nameNative").toString());
+                QVERIFY(!t.value("nameKo").toString().isEmpty());
+                QVERIFY(!t.value("nameEn").toString().isEmpty());
+            }
         }
         const auto createFrom=[&](int index) {
-            const QJsonObject place=records.at(index).toObject();
+            const auto row=records.at(index).toObject();
             PlaceRecord item;
-            item.name=place.value("defaultDisplayNameKo").toString();
-            for(const auto& value:place.value("displayTimeline").toArray()) {
-                const QJsonObject row=value.toObject();
-                PlaceNameTransition name;
-                if(row.contains("fromDate"))name.fromDate=row.value("fromDate").toString();
-                else name.fromYear=row.value("fromYear").toInt();
-                name.ko=row.value("nameKo").toString();
-                item.nameTimeline.push_back(std::move(name));
+            item.name=row.value("defaultDisplayNameKo").toString();
+            item.nameEn=row.value("defaultDisplayNameEn").toString();
+            item.nameNative=row.value("defaultDisplayNameNative").toString();
+            for(const auto& value:row.value("displayTimeline").toArray()) {
+                const auto entry=value.toObject();
+                PlaceNameTransition t;
+                if(entry.contains("fromDate"))t.fromDate=entry.value("fromDate").toString();
+                else t.fromYear=entry.value("fromYear").toInt();
+                t.ko=entry.value("nameKo").toString();
+                t.en=entry.value("nameEn").toString();
+                t.native=entry.value("nameNative").toString();
+                item.nameTimeline.push_back(std::move(t));
             }
             return item;
         };
-        const auto expectedName=[&](int index,const QString& date,const QString& expected) {
-            const auto item=createFrom(index);
-            const auto result=resolvePlaceDisplayRows(item,PlaceLanguageSelection{},date);
-            QCOMPARE(result.size(),std::size_t(1));
-            QCOMPARE(result.front().text,expected);
+        auto selected=PlaceLanguageSelection{};
+        selected.en=true;selected.native=true;
+        const auto expect=[&](int index,const QString& date,const QStringList& expected){
+            const auto resolved=resolvePlaceDisplayRows(createFrom(index),selected,date);
+            QCOMPARE(resolved.size(),std::size_t(expected.size()));
+            for(qsizetype i=0;i<expected.size();++i)QCOMPARE(resolved.at(std::size_t(i)).text,expected.at(i));
         };
-        expectedName(0,"1961-03-19",QStringLiteral("아크몰린스크"));
-        expectedName(0,"1961-03-20",QStringLiteral("첼리노그라드"));
-        expectedName(0,"1992-07-06",QStringLiteral("아크몰라"));
-        expectedName(0,"1998-05-06",QStringLiteral("아스타나"));
-        expectedName(0,"2019-03-23",QStringLiteral("누르술탄"));
-        expectedName(0,"2022-09-18",QStringLiteral("누르술탄"));
-        expectedName(0,"2022-09-19",QStringLiteral("아스타나"));
-        expectedName(2,"1926-05-11",QStringLiteral("피슈페크"));
-        expectedName(2,"1926-05-12",QStringLiteral("프룬제"));
-        expectedName(2,"1991-02-04",QStringLiteral("프룬제"));
-        expectedName(2,"1991-02-05",QStringLiteral("비슈케크"));
-        expectedName(3,"1950-06-15",QStringLiteral("스탈리나바드"));
-        expectedName(3,"1961-06-15",QStringLiteral("두샨베"));
-        expectedName(4,"1927-04-06",QStringLiteral("폴토라츠크"));
-        expectedName(4,"1927-04-07",QStringLiteral("아슈하바트"));
-        expectedName(4,"1991-10-27",QStringLiteral("아시가바트"));
-        QCOMPARE(records.at(1).toObject().value("displayTimeline").toArray().size(),1);
+        expect(0,"1961-03-19",{QStringLiteral("아크몰린스크"),"Akmolinsk",QStringLiteral("Акмолинск")});
+        expect(0,"1961-03-20",{QStringLiteral("첼리노그라드"),"Tselinograd",QStringLiteral("Целиноград")});
+        expect(0,"1992-07-06",{QStringLiteral("아크몰라"),"Aqmola",QStringLiteral("Ақмола")});
+        expect(0,"1998-05-06",{QStringLiteral("아스타나"),"Astana",QStringLiteral("Астана")});
+        expect(0,"2019-03-23",{QStringLiteral("누르술탄"),"Nur-Sultan",QStringLiteral("Нұр-Сұлтан")});
+        expect(0,"2022-09-18",{QStringLiteral("누르술탄"),"Nur-Sultan",QStringLiteral("Нұр-Сұлтан")});
+        expect(0,"2022-09-19",{QStringLiteral("아스타나"),"Astana",QStringLiteral("Астана")});
+        expect(1,"1929-06-01",{QStringLiteral("타슈켄트"),"Tashkent",QStringLiteral("Taşkent")});
+        expect(1,"1934-03-13",{QStringLiteral("타슈켄트"),"Tashkent",QStringLiteral("Taşkent")});
+        expect(1,"1940-05-08",{QStringLiteral("타슈켄트"),"Tashkent",QStringLiteral("Тошкент")});
+        expect(1,"1993-10-12",{QStringLiteral("타슈켄트"),"Tashkent",QStringLiteral("Toşkent")});
+        expect(1,"1995-05-06",{QStringLiteral("타슈켄트"),"Tashkent",QStringLiteral("Toshkent")});
+        expect(2,"1926-05-11",{QStringLiteral("피슈페크"),"Pishpek",QStringLiteral("Пишпек")});
+        expect(2,"1926-05-12",{QStringLiteral("프룬제"),"Frunze",QStringLiteral("Фрунзе")});
+        expect(2,"1991-02-05",{QStringLiteral("비슈케크"),"Bishkek",QStringLiteral("Бишкек")});
+        expect(3,"1929-12-01",{QStringLiteral("스탈리나바드"),"Stalinabad","Stalinobod"});
+        expect(3,"1940-05-21",{QStringLiteral("스탈리나바드"),"Stalinabad",QStringLiteral("Сталинобод")});
+        expect(3,"1961-11-10",{QStringLiteral("스탈리나바드"),"Stalinabad",QStringLiteral("Сталинобод")});
+        expect(3,"1961-11-11",{QStringLiteral("두샨베"),"Dushanbe",QStringLiteral("Душанбе")});
+        expect(4,"1927-04-06",{QStringLiteral("폴토라츠크"),"Poltoratsk",QStringLiteral("Полторацк")});
+        expect(4,"1927-04-07",{QStringLiteral("아슈하바트"),"Ashkhabad",QStringLiteral("Ашхабад")});
+        expect(4,"1940-07-01",{QStringLiteral("아슈하바트"),"Ashkhabad",QStringLiteral("Ашгабат")});
+        expect(4,"1991-10-27",{QStringLiteral("아시가바트"),"Ashgabat",QStringLiteral("Ашгабат")});
+        expect(4,"1993-04-12",{QStringLiteral("아시가바트"),"Ashgabat",QStringLiteral("A¢gabat")});
+        expect(4,"1995-01-10",{QStringLiteral("아시가바트"),"Ashgabat",QStringLiteral("A¢gabat")});
+        expect(4,"1995-01-11",{QStringLiteral("아시가바트"),"Ashgabat",QStringLiteral("Aşgabat")});
+        const auto uz=records.at(1).toObject();
+        auto uzEvents=uz.value("historicalGeography").toObject().value("events").toArray();
+        bool approved1934=false;
+        for(const auto& item:uzEvents)if(item.toObject().value("date").toString()=="1934-03-13")approved1934=true;
+        QVERIFY(approved1934);
+        for(const auto& item:uz.value("displayTimeline").toArray())
+            QVERIFY(item.toObject().value("fromDate").toString()!="1934-03-13");
         QCOMPARE(records.at(0).toObject().value("temporalEligibility").toObject()
             .value("cityEstablishedFromYear").toInt(),1830);
         QCOMPARE(records.at(2).toObject().value("temporalEligibility").toObject()
