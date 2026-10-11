@@ -1,0 +1,1087 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r149",
+  "sources": [
+    {
+      "title": "Pinheiro Machado–RS, Mapa Municipal, 4314506",
+      "source_type": "Primary original cartography",
+      "map_locator": "Single original municipal sheet, 04/2021 edition; 2020 collection",
+      "observed_scope": "Selected small southern headward opening and its connection into the west-to-east Basílio corridor. The initial small opening is not assigned a hydronym.",
+      "use_notice": "Printed IBGE statistical-collection purpose and accuracy/use disclaimer; reproduction rights reserved. The sheet is read for bounded geographic correspondence, without treating it as a naming registry or redistributing source maps/crops.",
+      "source_key": "ibge-pinheiro2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/pinheiro_machado/4314506_MM.pdf"
+    },
+    {
+      "title": "Piratini–RS, Mapa Municipal Estatístico, 4314605",
+      "source_type": "Primary original cartography",
+      "map_locator": "Two-sheet original, especially PDF sheet 1; scale 1:100,000; printed edition 27-09-2007.",
+      "observed_scope": "Arroio Basílio along the southern municipal margin; its confluence with the independently labelled Rio Piratini at Pedro Osório; adjoining headward streams.",
+      "use_notice": "Map states that base cartography is periodically updated from several sources without a full accuracy commitment and requests source attribution. No source-map redistribution permission is inferred.",
+      "source_key": "ibge-piratini2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/rs/piratini.pdf"
+    },
+    {
+      "title": "Capão do Leão–RS, Mapa Municipal, 4304663",
+      "source_type": "Primary original cartography",
+      "map_locator": "Single original municipal sheet, 04/2021 edition; 2020 collection",
+      "observed_scope": "Lower Rio Piratini from Pedro Osório/Cerrito vicinity to its junction with Canal de São Gonçalo; adjacent northern channel.",
+      "use_notice": "Printed IBGE statistical-collection purpose and accuracy/use disclaimer; reproduction rights reserved. The sheet is read for bounded geographic correspondence, without treating it as a naming registry or redistributing source maps/crops.",
+      "source_key": "ibge-capao2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/capao_do_leao/4304663_MM.pdf"
+    },
+    {
+      "title": "Pelotas–RS, Mapa Municipal, 4314407",
+      "source_type": "Primary original cartography",
+      "map_locator": "Single original municipal sheet, 04/2021 edition; 2020 collection",
+      "observed_scope": "Final Canal de São Gonçalo course by Pelotas, turning east into Lagoa dos Patos; actual selected terminal setting.",
+      "use_notice": "Printed IBGE statistical-collection purpose and accuracy/use disclaimer; reproduction rights reserved. The sheet is read for bounded geographic correspondence, without treating it as a naming registry or redistributing source maps/crops.",
+      "source_key": "ibge-pelotas2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/pelotas/4314407_MM.pdf"
+    },
+    {
+      "title": "Rio Grande–RS, Mapa Municipal, 4315602",
+      "source_type": "Primary original cartography",
+      "map_locator": "Single original municipal sheet, 04/2021 edition; 2020 collection",
+      "observed_scope": "Northern Lagoa Mirim outlet into Canal de São Gonçalo, channel through the Piratini junction and Pelotas approach, and open-water receiving setting.",
+      "use_notice": "Printed IBGE statistical-collection purpose and accuracy/use disclaimer; reproduction rights reserved. The sheet is read for bounded geographic correspondence, without treating it as a naming registry or redistributing source maps/crops.",
+      "source_key": "ibge-riogrande2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/rio_grande/4315602_MM.pdf"
+    },
+    {
+      "title": "Santa Vitória do Palmar–RS, Mapa Municipal, 4317301",
+      "source_type": "Primary original cartography",
+      "map_locator": "Single original municipal sheet, 04/2021 edition; 2020 collection",
+      "observed_scope": "Continuous Lagoa Mirim waterbody and central/northern lake passages, overlapping the Uruguay-side map and Rio Grande sheet. No internal lake line is treated as a separately named river.",
+      "use_notice": "Printed IBGE statistical-collection purpose and accuracy/use disclaimer; reproduction rights reserved. The sheet is read for bounded geographic correspondence, without treating it as a naming registry or redistributing source maps/crops.",
+      "source_key": "ibge-santavitoria2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/santa_vitoria_do_palmar/4317301_MM.pdf"
+    },
+    {
+      "title": "Pedras Altas–RS, Mapa Municipal, 4314175",
+      "source_type": "Primary original cartography",
+      "map_locator": "Single original municipal sheet, 04/2021 edition; 2020 collection",
+      "observed_scope": "Glória-side small headward feeder and its southeastward connection to the international-boundary Jaguarão corridor. Small opening hydronym remains null.",
+      "use_notice": "Printed IBGE statistical-collection purpose and accuracy/use disclaimer; reproduction rights reserved. The sheet is read for bounded geographic correspondence, without treating it as a naming registry or redistributing source maps/crops.",
+      "source_key": "ibge-pedrasaltas2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/pedras_altas/4314175_MM.pdf"
+    },
+    {
+      "title": "Herval–RS, Mapa Municipal, 4307104",
+      "source_type": "Primary original cartography",
+      "map_locator": "Single original municipal sheet, 04/2021 edition; 2020 collection",
+      "observed_scope": "Overlapping Glória/upper border-river setting and progression down the western international margin.",
+      "use_notice": "Printed IBGE statistical-collection purpose and accuracy/use disclaimer; reproduction rights reserved. The sheet is read for bounded geographic correspondence, without treating it as a naming registry or redistributing source maps/crops.",
+      "source_key": "ibge-herval2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/herval/4307104_MM.pdf"
+    },
+    {
+      "title": "Jaguarão–RS, Mapa Municipal, 4311007",
+      "source_type": "Primary original cartography",
+      "map_locator": "Single original municipal sheet, 04/2021 edition; 2020 collection",
+      "observed_scope": "Middle/lower Jaguarão border course past Jaguarão and Rio Branco, entering Lagoa Mirim; lower river and lake connection are distinct.",
+      "use_notice": "Printed IBGE statistical-collection purpose and accuracy/use disclaimer; reproduction rights reserved. The sheet is read for bounded geographic correspondence, without treating it as a naming registry or redistributing source maps/crops.",
+      "source_key": "ibge-jaguarao2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/jaguarao/4311007_MM.pdf"
+    },
+    {
+      "title": "MGAP, SNIA/Hidrografia: Cursos de agua and Espejos de agua",
+      "source_type": "Primary original cartography",
+      "map_locator": "Original corridor map using layers 1 and 2, inspected with bounded feature responses in the selected headward and joining reaches.",
+      "observed_scope": "Original rendered river-and-waterbody cartography covers every selected Uruguay corridor: western feeder to Cebollatí, the retained Olimar Grande and Tacuarí portions, the southern feeder/San Luis wetlands, their lagoon entries and the Uruguay-side Jaguarão. Bounded source-feature attributes/paths support local naming distinctions; none is a nearest-label assignment to the full group.",
+      "use_notice": "The service/layer metadata has blank copyright text. This is not a redistribution license. Several attribute names have damaged accent characters; code 900 is not treated as a hydronym.",
+      "related_urls": [
+        "https://dgrn.mgap.gub.uy/arcgis/rest/services/SNIA/Hidrografia/MapServer/1",
+        "https://dgrn.mgap.gub.uy/arcgis/rest/services/SNIA/Hidrografia/MapServer/2"
+      ],
+      "source_key": "mgap-snia-hydro",
+      "official_url": "https://dgrn.mgap.gub.uy/arcgis/rest/services/SNIA/Hidrografia/MapServer"
+    },
+    {
+      "title": "Cuenca de la Laguna Merín, 29 de junio de 2012",
+      "source_type": "Primary original cartography",
+      "map_locator": "DINAGUA/MVOTMA presentation, title slide and slide 2 Subcuencas; tables on slide 3.",
+      "observed_scope": "Primary agency sub-basin map distinguishes Yaguarón, Tacuarí, Olimar Grande, Cebollatí, and the San Luis/San Miguel sector. It supports regional interpretation but does not replace detailed source/connector coverage.",
+      "use_notice": "No limited-distribution restriction observed in the inspected presentation. No source-map redistribution permission is inferred.",
+      "source_key": "dinagua-caballero2012",
+      "official_url": "https://www.gub.uy/ministerio-ambiente/sites/ministerio-ambiente/files/2020-09/Eduardo_Caballero_0.pdf"
+    },
+    {
+      "title": "Directrices Departamentales de Ordenamiento Territorial y Desarrollo Sostenible, Memoria de Información",
+      "source_type": "Primary original cartography",
+      "map_locator": "Section 1.7, printed pp.39–40 / PDF pp.40–41; Gráfico 5, Cuenca Hidrográfica. Inspected copy date not independently established.",
+      "observed_scope": "Original departmental hydrographic drawing and supporting prose distinguish Olimar, Cebollatí and Tacuarí and show the Olimar–Cebollatí junction and respective lagoon approaches.",
+      "use_notice": "Figure credits the Intendencia de Treinta y Tres territorial-planning team. No source-map redistribution permission is inferred.",
+      "source_key": "idtt-memoria",
+      "official_url": "https://treintaytres.gub.uy/wp-content/uploads/2020/12/MEMORIA-INFORMACION.pdf"
+    },
+    {
+      "title": "Mosaico cartas 1:250.000, historical cartas_mosaicos mosaic, Sierra Talagapa–Cañadón Largo–Telsen–Bajo de la Tierra Colorada corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; constituent sheet dates and editions unestablished from the bounded views.",
+      "material_read": "Two complete original bounded images, full selected corridor overview and detailed Talagapa opening, each acquired with terminal HTTP200 image/png responses. Both original images and source-only local detail crops were visually inspected. Retained selected geometry was used solely for orientation.",
+      "supports": "Visible upper feeder, eastward Cañadón Largo route, Las Horquetas convergence, Telsen middle/lower corridor, lateral lake-fed drainage setting and actual terminal wet depression.",
+      "limits": "The extreme western upland connection is not independently mapped across the entire selected interval. Historical wet and intermittent symbols do not prove present flow or water level.",
+      "use_notice": "The retained IGN service notice cites Article 2 of Argentine Law 27.275. No blanket redistribution permission or legal hydronym status is inferred; source originals, crops and private derivatives remain private.",
+      "source_key": "r149-ign250k-talagapa-telsen"
+    },
+    {
+      "title": "USGSTopo, The National Map: bounded St. Marys River and southeastern Okefenokee corridor views",
+      "publisher": "U.S. Geological Survey",
+      "source_type": "Original composite federal cartography",
+      "acquired_and_read": "Service metadata and four sequential original bounded map images completed HTTP 200. All four original views were visually read; local orientation copies only assisted comparison with the retained selected object.",
+      "views": [
+        "Western loop",
+        "Focused southeastern Okefenokee headward setting",
+        "Middle northward reach and eastward turn",
+        "Lower river and Cumberland Sound"
+      ],
+      "coverage": "All selected components are within the inspected geographic views, but map coverage does not establish the unresolved opening and cross-swamp through-connection.",
+      "limits": "Composite cartography does not establish one underlying source edition, current flow direction or operation, official naming status, exact bank positions or precise legal hydronym limits. Distinct from stopped USGS reports and the separately paused SFWMD canal publication.",
+      "source_key": "r149-usgstopo-st-marys",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "title": "St. Marys River: Wild and Scenic River Study, Florida and Georgia, Final Report, March 1995",
+      "publisher": "National Park Service, Southeast Regional Office, U.S. Department of the Interior",
+      "source_type": "Original institutional river-study report and maps",
+      "acquired_and_read": "The official-hosted original PDF completed HTTP 200. The cover, Area Map (PDF page 11), Eligibility Evaluation Segments map (PDF page 25), Background passage (printed page 7, PDF page 19) and bounded River Environment passage (printed page 25, PDF page 37) were read. Original map pages were rendered and visually inspected.",
+      "observations": "The Area Map distinguishes North, Middle and South Prongs and Cedar Creek, shows the south-east-north-east river course and Cumberland Sound outlet. Background prose describes North Prong leaving Okefenokee near Baxter, joining Middle Prong, then the trunk reaching South Prong near Macclenny and continuing via Folkston to Cumberland Sound.",
+      "limits": "Historical generalized maps stop the mapped North Prong at the southern swamp margin and do not establish the selected interior wetland connection. The River Environment section explicitly says portions derive from Southern Georgia Canoeing (1980); it is supporting context rather than independent selected-line proof. No present legal designation is inferred from the 1995 study.",
+      "source_key": "r149-nps-st-marys-study1995",
+      "official_url": "https://www.fws.gov/rivers/sites/rivers/files/2023-02/st-marys-study.pdf"
+    },
+    {
+      "title": "St. Marys River basin",
+      "publisher": "St. Johns River Water Management District",
+      "source_type": "Official primary institutional webpage; prose-only supporting context",
+      "acquired_and_read": "Direct web-reader open succeeded; lines 7 and 12-13 were read as prose, not as cartographic evidence.",
+      "observations": "The district identifies St. Marys as the southeastern Georgia/northeastern Florida border river reaching Cumberland Sound and the Atlantic. It distinguishes the Okefenokee North Prong from the Pinhook Middle Prong, and describes the lower U.S. 17-to-Cumberland Sound reach as tidal.",
+      "limits": "No map or photograph from the page is used. General headwaters or basin membership does not establish the selected initial connector. The page's reported river length is not applied to the retained model.",
+      "source_key": "r149-sjrwmd-st-marys-basin",
+      "official_url": "https://www.sjrwmd.com/waterways/st-marys-river/"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 2, Frederikshåbs Isblink–Søndre Strømfjord",
+      "authors": "Jan H. Allaart",
+      "year": 1982,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:500 000",
+      "official_url": "https://doi.org/10.22008/FK2/F77JXT",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/F77JXT",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16797",
+      "acquired_scope": "Previously lawfully retained complete single-sheet original PDF reused locally without reacquisition. Full-sheet overview, original graticule, northern/eastern corridor, lower lake approach, legend, imprint and retained dataset terms were visually read.",
+      "supports": "Opening in the Inland Ice; all middle directional changes and the transition into exposed rock and small-water-body terrain; the lower northwestward approach and westward Taserssuaq lake setting up to the adjoining-sheet boundary.",
+      "limits": "The original northern boundary is approximately 66°45′N. It is not alone claimed to cover the terminal north of that boundary. Historical geological/topographic mapping establishes ordinary geographic correspondence, not a continuous natural river, subglacial connection, current glacier front or formal river identity.",
+      "reuse_limit": "GEUS Custom Dataset Terms permit bounded internal use and processing and restrict redistribution and new maps. Originals, crops and processed or comparison maps remain private; only independently written factual findings, bounded metadata and ordinary bibliography are public-ready.",
+      "source_key": "r149-geus-sheet2-1982-retained"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Kangerlussuaq/Søndre Strømfjord–Nuussuaq, Sheet 3. Second edition",
+      "authors": "Adam A. Garde and Mogens K. Marker",
+      "year": 2010,
+      "publisher": "Geological Survey of Denmark and Greenland, Copenhagen",
+      "scale": "1:500 000",
+      "official_url": "https://doi.org/10.22008/FK2/X9U5BF",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/X9U5BF",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16538",
+      "acquired_scope": "Previously lawfully retained complete official TIFF reused locally without reacquisition. Full-sheet overview and southern graticule, the Tasersuaq sheet join, northward deposit valley, lower Nivingmaneq corridor, Umiviit terminal, original legend and imprint, and retained terms were visually read.",
+      "supports": "The adjoining-sheet lake/terrain join, northern connector, lower valley junction and actual Umiviit-arm terminal, distinguished from the separate town-head river outlet beside Kangerlussuaq.",
+      "limits": "The southern boundary is approximately 66°45′N, so this sheet is not used for the distant southern ice opening. Local lake, corridor and fjord labels do not establish one whole-route river name.",
+      "reuse_limit": "GEUS Custom Dataset Terms permit bounded internal use and processing and restrict redistribution and new maps. Originals, crops and processed or comparison maps remain private; only independently written factual findings, bounded metadata and ordinary bibliography are public-ready.",
+      "source_key": "r149-geus-sheet3-2010-retained"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61481564",
+      "source_keys": [
+        "ibge-pinheiro2020",
+        "ibge-piratini2007",
+        "ibge-capao2020",
+        "ibge-pelotas2020",
+        "ibge-riogrande2020",
+        "ibge-santavitoria2020",
+        "ibge-pedrasaltas2020",
+        "ibge-herval2020",
+        "ibge-jaguarao2020",
+        "mgap-snia-hydro",
+        "dinagua-caballero2012",
+        "idtt-memoria"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14041
+          ],
+          "component_scope": "mainstem FID 14041: river corridor",
+          "finding": [
+            "The retained small opening south of Pinheiro Machado connects into the west-to-east stream along the southern municipal margin.",
+            "Piratini sheet 1 explicitly labels the long southern reach Arroio Basílio. The selected course approaches the separate Rio Piratini at Pedro Osório.",
+            "The small initial opening is geographically depicted but its hydronym is unestablished."
+          ],
+          "sources": [
+            "ibge-pinheiro2020",
+            "ibge-piratini2007"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Arroio Basílio"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14042
+          ],
+          "component_scope": "mainstem FID 14042: river corridor",
+          "finding": [
+            "The selected continuation follows the Piratini after the Basílio junction in the Pedro Osório/Cerrito setting.",
+            "It trends southeast across the Capão do Leão/Arroio Grande side to the clearly depicted São Gonçalo junction."
+          ],
+          "sources": [
+            "ibge-piratini2007",
+            "ibge-capao2020",
+            "ibge-riogrande2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Rio Piratini"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14043
+          ],
+          "component_scope": "mainstem FID 14043: channel and lagoon outlet",
+          "finding": [
+            "From the Piratini junction the retained course follows the São Gonçalo channel northward, then eastward along Pelotas.",
+            "The original Pelotas sheet shows the actual ending at Lagoa dos Patos. The retained sea terminal class is model metadata and does not make this an open-Atlantic mouth."
+          ],
+          "sources": [
+            "ibge-capao2020",
+            "ibge-riogrande2020",
+            "ibge-pelotas2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Canal de São Gonçalo"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14044
+          ],
+          "component_scope": "tributary FID 14044: headward stream, wetland connectors and river-to-lagoon entrance",
+          "finding": [
+            "The southern retained opening follows the mapped Sarandí de los Amarales-side drainage, east of the separate India Muerta reservoir.",
+            "The original river network and bounded source paths show its headward stream, northward progression into the lowland/estero connections, and the east/northeast San Luis corridor to southern Laguna Merín.",
+            "India Muerta and other adjacent streams are distinguished from the selected route; a nearby reservoir label is not assigned to this passage."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "dinagua-caballero2012"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "SARAND- DE LOS AMARALES (source attribute spelling)",
+            "SAN LUIS (source attribute spelling)"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "The damaged source attribute spelling is retained as observed, not promoted to an accepted name. The entire multi-reach fragment is not uniformly named San Luis.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14045
+          ],
+          "component_scope": "tributary FID 14045: lagoon passage",
+          "finding": [
+            "The selected continuation runs north within the southern Laguna Merín waterbody after the San Luis-side entrance.",
+            "The route is a modeled lake passage, not a newly named river or a continuation of the San Luis hydronym across the lake."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-santavitoria2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14046
+          ],
+          "component_scope": "tributary FID 14046: lagoon passage",
+          "finding": [
+            "The selected lake continuation proceeds along the western southern-lagoon setting to the meeting with the lower Cebollatí-side selection.",
+            "The waterbody and entry relations are positively depicted; modeled joins inside the lake are not terrestrial river confluences."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-santavitoria2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14047
+          ],
+          "component_scope": "tributary FID 14047: headward stream and connected western river corridor",
+          "finding": [
+            "The western retained opening is on the Cimbra/Polanco-side drainage, not a warrant to assign Cebollatí to the whole headward component.",
+            "The original hydrographic network depicts the selected southwest-to-northeast opening, its eastward turns and the connected approach toward the Cebollatí trunk."
+          ],
+          "sources": [
+            "mgap-snia-hydro"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "CIMBRA (bounded source attribute)",
+            "POLANCO (bounded source attribute)"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14048
+          ],
+          "component_scope": "tributary FID 14048: river corridor",
+          "finding": [
+            "The connected western branch proceeds northeast along the depicted Cebollatí corridor.",
+            "The selected downstream end is the junction with the independently retained Olimar Grande course."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "dinagua-caballero2012",
+            "idtt-memoria"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Río Cebollatí"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14049
+          ],
+          "component_scope": "tributary FID 14049: river corridor",
+          "finding": [
+            "Below the Olimar Grande junction the selected course follows lower Cebollatí through the Charqueada/Cebollatí-side lowland setting to Laguna Merín.",
+            "The lagoon entry and the adjoining lake-side modeled join are distinguished from the river channel itself."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "idtt-memoria"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Río Cebollatí"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14050
+          ],
+          "component_scope": "tributary FID 14050: lagoon passage",
+          "finding": [
+            "This selected continuation follows the western Laguna Merín passage northeastward beyond the Cebollatí entry.",
+            "Original cartography shows open lagoon water and the indented western shore rather than a single named downstream Cebollatí river."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-santavitoria2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14051
+          ],
+          "component_scope": "tributary FID 14051: lagoon passage",
+          "finding": [
+            "The border-aligned retained fragment continues through the lagoon toward the Tacuarí-side modeled meeting.",
+            "International and internal map boundary lines are not interpreted as separate river channels."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-santavitoria2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14052
+          ],
+          "component_scope": "tributary FID 14052: river corridor",
+          "finding": [
+            "The retained west-to-east Olimar Grande portion passes the Treinta y Tres vicinity and joins Cebollatí.",
+            "Both its selected opening on the existing river corridor and the entire connector to the Cebollatí junction are positively depicted; it is not renamed Cebollatí."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "idtt-memoria"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Río Olimar Grande"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14053
+          ],
+          "component_scope": "tributary FID 14053: river and lagoon entrance",
+          "finding": [
+            "The retained lower Tacuarí selection runs eastward to its distinct Laguna Merín entrance.",
+            "The short continuation into the modeled lake meeting is a waterbody connection and does not transfer the Tacuarí name across the lagoon."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "dinagua-caballero2012",
+            "idtt-memoria"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Río Tacuarí"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14054
+          ],
+          "component_scope": "tributary FID 14054: lagoon passage and outlet channel",
+          "finding": [
+            "The long retained continuation traverses Laguna Merín/Mirim northward, crossing the central and northern lake settings covered by overlapping original waterbody maps.",
+            "It leaves the northern lake through Canal de São Gonçalo and continues to the Piratini junction.",
+            "The lake and channel are separate hydrographic components; the representative channel name is not extended over the modeled lake-axis segments."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-santavitoria2020",
+            "ibge-riogrande2020",
+            "ibge-capao2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Canal de São Gonçalo (northern channel reach only)"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14055
+          ],
+          "component_scope": "tributary FID 14055: headward feeder and border-river connection",
+          "finding": [
+            "The selected small opening on the Brazilian Glória side connects southeast into the Jaguarão international-boundary river.",
+            "Pedras Altas and Herval originals show the same feeder/receiving-channel setting; the unlabelled opening is not assigned the downstream Jaguarão hydronym."
+          ],
+          "sources": [
+            "ibge-pedrasaltas2020",
+            "ibge-herval2020",
+            "mgap-snia-hydro"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14056
+          ],
+          "component_scope": "tributary FID 14056: river corridor",
+          "finding": [
+            "The upper selected border-river course proceeds south below the Glória-side entry.",
+            "The successive fragments are parts of the same observed border-river corridor, not independent rivers created by retained fragment boundaries."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-herval2020",
+            "ibge-jaguarao2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Rio Jaguarão / Río Yaguarón"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14057
+          ],
+          "component_scope": "tributary FID 14057: river corridor",
+          "finding": [
+            "The short retained border-aligned continuation remains on the mapped Jaguarão corridor.",
+            "The successive fragments are parts of the same observed border-river corridor, not independent rivers created by retained fragment boundaries."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-herval2020",
+            "ibge-jaguarao2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Rio Jaguarão / Río Yaguarón"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14058
+          ],
+          "component_scope": "tributary FID 14058: river corridor",
+          "finding": [
+            "The selected middle reach bends southeast with its intervening tributary junctions; the complete corridor is depicted.",
+            "The successive fragments are parts of the same observed border-river corridor, not independent rivers created by retained fragment boundaries."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-herval2020",
+            "ibge-jaguarao2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Rio Jaguarão / Río Yaguarón"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14059
+          ],
+          "component_scope": "tributary FID 14059: river corridor",
+          "finding": [
+            "The next selected southeast reach follows the international-boundary Jaguarão toward the lower settled corridor.",
+            "The successive fragments are parts of the same observed border-river corridor, not independent rivers created by retained fragment boundaries."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-herval2020",
+            "ibge-jaguarao2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Rio Jaguarão / Río Yaguarón"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14060
+          ],
+          "component_scope": "tributary FID 14060: river corridor",
+          "finding": [
+            "The selected lower-border reach approaches Jaguarão and Rio Branco.",
+            "The successive fragments are parts of the same observed border-river corridor, not independent rivers created by retained fragment boundaries."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-herval2020",
+            "ibge-jaguarao2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Rio Jaguarão / Río Yaguarón"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14061
+          ],
+          "component_scope": "tributary FID 14061: river corridor",
+          "finding": [
+            "The retained reach passes the Jaguarão/Rio Branco river setting and continues downstream.",
+            "The successive fragments are parts of the same observed border-river corridor, not independent rivers created by retained fragment boundaries."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-herval2020",
+            "ibge-jaguarao2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Rio Jaguarão / Río Yaguarón"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            14062
+          ],
+          "component_scope": "tributary FID 14062: river mouth and lagoon continuation",
+          "finding": [
+            "The final selected Jaguarão section continues southeast below Jaguarão/Rio Branco to Laguna Mirim.",
+            "The retained eastward extension inside the lake meets the modeled lagoon route; the river-mouth setting and open-water continuation are separately recognized."
+          ],
+          "sources": [
+            "mgap-snia-hydro",
+            "ibge-jaguarao2020",
+            "ibge-santavitoria2020"
+          ],
+          "correspondence": "Positive original-source correspondence at ordinary generalized component/corridor scale.",
+          "mapped_component_names": [
+            "Rio Jaguarão / Río Yaguarón (river reach only)"
+          ],
+          "mapped_component_name": null,
+          "name_scope": "Observed reach labels do not establish a uniform name for the complete fragment or group.",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61570080",
+      "source_keys": [
+        "r149-ign250k-talagapa-telsen"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14592
+          ],
+          "component_scope": "Extreme western Talagapa opening and connection to the first mapped intermittent feeder",
+          "finding": "The selected opening is on the eastern flank/upland of Sierra Talagapa northeast of Cerro Buitrera and north of Estancia Los Guanacos. The original overview and detailed 250k image depict rugged upland contours. Farther east they depict an intermittent feeder approaching Puesto Betelo. They do not show a drainage connector across the full selected western upland interval into that feeder. Nearby printed channels to the north and south are distinct approaches and cannot be substituted for the selected connection.",
+          "sources": [
+            "r149-ign250k-talagapa-telsen"
+          ],
+          "correspondence": "Material pending for the extended opening-to-feeder connection. Upland setting is established; terrain association and retained model connectivity alone do not establish this entire channel interval. No hydronym is assigned to it.",
+          "lakes_wetlands_reservoirs": "No selected headward lake or reservoir passage is depicted. The missing 100k view adds no evidence.",
+          "mapped_component_names": [
+            null,
+            "Sierra Talagapa"
+          ]
+        },
+        {
+          "fragments": [
+            14592
+          ],
+          "component_scope": "Visible feeder near Betelo and Ibáñez into Cañadón Largo",
+          "finding": "The printed intermittent feeder proceeds east and southeast past Puesto Betelo, joins converging ravines near the western puestos and Puesto Ibáñez, and continues east through the valley north of Colonia Agrícola Sepaucal. The map explicitly labels the eastern valley Cañadón Largo. The selected corridor lies north of Laguna de Sepaucal and does not traverse that lake.",
+          "sources": [
+            "r149-ign250k-talagapa-telsen"
+          ],
+          "correspondence": "Established from the visible intermittent feeder onward at ordinary channel/valley and junction scale. The canyon/valley label is retained as such; it does not establish a whole-route river hydronym.",
+          "lakes_wetlands_reservoirs": "Intermittent channel symbols with localized vegetated valley-floor patches. Laguna de Sepaucal is a separate southern lake setting.",
+          "mapped_component_names": [
+            null,
+            "Cañadón Largo"
+          ]
+        },
+        {
+          "fragments": [
+            14592
+          ],
+          "component_scope": "Las Horquetas convergence, El Fresno and Chacras de Telsen",
+          "finding": "At Las Horquetas the eastward Cañadón Largo approach joins the south-running valley drainage arriving from the north. The selected route turns south past El Fresno into Chacras de Telsen. It then receives the western Cañadón Chileno drainage in the Laguna Telsen outflow corridor and an eastern ravine at the Chacay Chico side. The continuing main valley is labeled A. Telsen. Laguna Cona and Laguna Sabalsa are neighboring northern waterbodies, outside the selected west-to-south route.",
+          "sources": [
+            "r149-ign250k-talagapa-telsen"
+          ],
+          "correspondence": "Established for the main convergence and complete selected southward connector. No northern lake traversal or propagation of the main-river label into every feeder is inferred.",
+          "lakes_wetlands_reservoirs": "Laguna Telsen and the Sepaucal-side drainage belong to the western tributary setting, not a selected lake crossing. Local valley-floor wet/vegetated patches are shown. No reservoir or dam is depicted.",
+          "mapped_component_names": [
+            "Cañadón Largo",
+            "Arroyo Telsen",
+            "Cañadón Chileno",
+            "Laguna Telsen"
+          ]
+        },
+        {
+          "fragments": [
+            14592
+          ],
+          "component_scope": "Named Telsen corridor through Telsen, Paso Moreno and the lower valley",
+          "finding": "The selected mapped channel continues southeast beside Sierra de Telsen, through the Telsen settlement and main road crossing, then through Paso Moreno and the Estancia Telsen setting. It bends south past El Paso Zapeto, Las Tres Banderas and Salto de Agua. Side ravines enter the valley, while the separately labeled Arroyo Ranquilao lies west of the selected lower route.",
+          "sources": [
+            "r149-ign250k-talagapa-telsen"
+          ],
+          "correspondence": "Established through the named main-river corridor, its bends and material lateral drainage settings. The lower Arroyo Telsen label supplies the provisional representative candidate, subject to the unresolved far-western opening.",
+          "lakes_wetlands_reservoirs": "A narrowing then widening natural valley with intermittent/wet-channel and small wet-area symbols. Historical mapping does not establish present discharge or permanent water along the whole selected line. No impoundment is shown.",
+          "mapped_component_names": [
+            "Arroyo Telsen"
+          ]
+        },
+        {
+          "fragments": [
+            14592
+          ],
+          "component_scope": "Chasicó, San Manuel and actual inland terminal in Bajo de la Tierra Colorada",
+          "finding": "South of Salto de Agua the selected channel passes Chasicó, continues southwest of Estancia San Manuel and enters an unnamed horizontally hatched shallow-water/wet depression at the northern edge of Bajo de la Tierra Colorada. The selected endpoint lies within that mapped depression. Neighboring Ranquilao and Perdido drainage and other shallow depressions occupy the wider closed-basin floor, but the selected line is not extended through them or to an ocean outlet.",
+          "sources": [
+            "r149-ign250k-talagapa-telsen"
+          ],
+          "correspondence": "Established at inland depression and terminal waterbody-complex scale. No precise shoreline, permanent lake level, named terminal lake, or exact river-mouth point is asserted.",
+          "lakes_wetlands_reservoirs": "Natural shallow wet/temporary-water depression in the endorheic lowland, not a reservoir. The unnamed terminal interior does not acquire the river hydronym.",
+          "mapped_component_names": [
+            "Arroyo Telsen",
+            "Bajo de la Tierra Colorada",
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70789628",
+      "source_keys": [
+        "r149-usgstopo-st-marys",
+        "r149-nps-st-marys-study1995",
+        "r149-sjrwmd-st-marys-basin"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9945
+          ],
+          "component_scope": "Initial selected opening south of Horse Shoe Break",
+          "finding": "The focused original map places the opening in a patchwork of wooded terrain, small wet areas and roads south of Horse Shoe Break, near but distinct from the mapped River Styx drainage. It does not depict a corresponding north-running feeder connecting the opening to the selected northwest line. Nearby hydrographic lines and place labels are not substituted for this missing connection.",
+          "sources": [
+            "r149-usgstopo-st-marys"
+          ],
+          "correspondence": "materially_unresolved",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9945
+          ],
+          "component_scope": "Northwest cross-swamp traverse and western headward loop",
+          "finding": "The selected line travels northwest across the southeastern Okefenokee wetland, turns west, then south and southeast toward the North Prong exit. Original cartography shows extensive wetland, islands, ponds and separately drawn channels, including Cross Branch farther west, but does not establish the full selected traverse as one generalized through-connection. The NPS overview starts the North Prong at the southern swamp margin and supplies no missing interior route. This is more than an unknown hydronym or fine bank-position mismatch.",
+          "sources": [
+            "r149-usgstopo-st-marys",
+            "r149-nps-st-marys-study1995"
+          ],
+          "correspondence": "materially_unresolved",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9945
+          ],
+          "component_scope": "North Prong exit and southward river corridor",
+          "finding": "At the southern swamp margin near Elliotts Mound the selected route reaches the mapped North Prong and follows its southward corridor through the Highway 94 crossing and onward beside the Florida-Georgia boundary. The map independently shows Moccasin Creek and other lateral feeders; their junctions do not turn them into portions of the selected main route.",
+          "sources": [
+            "r149-usgstopo-st-marys",
+            "r149-nps-st-marys-study1995"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_name": "North Prong Saint Marys River"
+        },
+        {
+          "fragments": [
+            9945
+          ],
+          "component_scope": "Middle Prong junction and transition to St. Marys River",
+          "finding": "The selected southward route reaches the clearly mapped junction where Middle Prong Saint Marys River joins from the west and then continues as Saint Marys River. NPS background prose independently describes North Prong and Middle Prong joining to form St. Marys River. The Middle Prong is a lateral tributary, not the selected opening.",
+          "sources": [
+            "r149-usgstopo-st-marys",
+            "r149-nps-st-marys-study1995"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_name": "Saint Marys River"
+        },
+        {
+          "fragments": [
+            9945
+          ],
+          "component_scope": "Southern turn, Cedar Creek and South Prong junctions",
+          "finding": "The mapped river turns east north of Macclenny, receives Cedar Creek and South Prong Saint Marys River from the south, then curves northeast and north. The selected generalized route corresponds to this trunk and these junction settings. It does not follow the South Prong or Cedar Creek upstream.",
+          "sources": [
+            "r149-usgstopo-st-marys",
+            "r149-nps-st-marys-study1995"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_name": "Saint Marys River"
+        },
+        {
+          "fragments": [
+            9945
+          ],
+          "component_scope": "Northward reach to Traders Hill and Folkston turn",
+          "finding": "Overlapping source views establish the northward boundary-river corridor past the tributary junctions toward Traders Hill and the broad turn east and northeast beside Folkston. The selected line follows the same river corridor at generalized scale, despite omitted meander detail. Spanish Creek and the Suwannee Canal approach from the west are distinct lateral waters, not a continuation of the selected line.",
+          "sources": [
+            "r149-usgstopo-st-marys",
+            "r149-nps-st-marys-study1995",
+            "r149-sjrwmd-st-marys-basin"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_name": "Saint Marys River"
+        },
+        {
+          "fragments": [
+            9945
+          ],
+          "component_scope": "Eastward middle river and highway crossings",
+          "finding": "The original middle and lower maps overlap along the sinuous eastward river through the Coleraine/Flea Hill and Kings Ferry settings, onward past Clark Bluff, then through the U.S. 17 and I-95 crossing corridor. The maps distinguish Little Saint Marys River and Crooked River as separate nearby waterways; neither is used to fill the selected route.",
+          "sources": [
+            "r149-usgstopo-st-marys",
+            "r149-nps-st-marys-study1995"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_name": "Saint Marys River"
+        },
+        {
+          "fragments": [
+            9945
+          ],
+          "component_scope": "Tidal lower river and actual selected terminal",
+          "finding": "The selected lower route corresponds to the broad tidal Saint Marys channel past the Bells River junction and the city of Saint Marys. It ends in the mouth/entry setting of southern Cumberland Sound near Point Peter Creek, west of the ocean inlet between Cumberland and Amelia islands. North River and Bells River remain distinct estuarine branches. No selected reservoir or intervening named lake is depicted along the established downstream corridor.",
+          "sources": [
+            "r149-usgstopo-st-marys",
+            "r149-nps-st-marys-study1995",
+            "r149-sjrwmd-st-marys-basin"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "mapped_component_name": "Saint Marys River",
+          "terminal_setting": "Southern Cumberland Sound"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90100750",
+      "source_keys": [
+        "r149-geus-sheet2-1982-retained",
+        "r149-geus-sheet3-2010-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8876
+          ],
+          "component_scope": "Southern opening and initial north-northwest course",
+          "finding": "The opening and long initial northward/northwestward course occupy the mapped Inland Ice east of the exposed-rock belt and east of the Tasersiaq lake setting. The ice shading, its contours and the coastal rock margin are visible throughout this opening.",
+          "sources": [
+            "r149-geus-sheet2-1982-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "No natural-river hydronym is established for the ice portion. Neither the ice contours nor the modeled line demonstrate a surface or subglacial river."
+        },
+        {
+          "fragments": [
+            8876
+          ],
+          "component_scope": "Short eastward return and northward middle bend",
+          "finding": "The selected short eastward turn, renewed northward course and subsequent westward bend remain in the eastern ice-margin setting. Sheet 2 covers these changes of direction and the approach to the first exposed granite/gneiss terrain north of Tasersiaq.",
+          "sources": [
+            "r149-geus-sheet2-1982-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "Tasersiaq is a separately mapped lake south of this middle bend. It is not adopted as the selected whole-route name or confused with the lower Tasersuaq lake."
+        },
+        {
+          "fragments": [
+            8876
+          ],
+          "component_scope": "Westward rock-margin crossing, northeastward return and northwestward continuation",
+          "finding": "After the westward turn, the selected corridor enters the exposed-rock belt north of Tasersiaq. Its northwestward approach, northeastward return and further northwestward continuation are covered by the mapped granite/gneiss terrain, small water bodies and narrow intervening depressions. The selected setting is not uniformly ice or one mapped continuous watercourse.",
+          "sources": [
+            "r149-geus-sheet2-1982-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "The original explains the geographic terrain throughout the modeled bends; it does not establish that the separate ice, bedrock and small-water-body intervals are one named river. Geological contacts, dykes, structural lines and elevation contours are not treated as hydrographic channels."
+        },
+        {
+          "fragments": [
+            8876
+          ],
+          "component_scope": "Lower northwestward approach and westward Tasersuaq lake passage",
+          "finding": "The lower northwestern course reaches the long east-west lake corridor at the northern edge of Sheet 2. The westward selected passage lies in the southern Tasersuaq setting, labelled Taserssuaq on the older sheet. The matching lake and surrounding terrain at the southern edge of Sheet 3 establish the regional-sheet join.",
+          "sources": [
+            "r149-geus-sheet2-1982-retained",
+            "r149-geus-sheet3-2010-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "Tasersuaq/Taserssuaq is retained as lake context only. It is distinct from Tasersiaq farther south and from the separate northern Tasersuaq label west of the Kangerlussuaq town-head valley."
+        },
+        {
+          "fragments": [
+            8876
+          ],
+          "component_scope": "Northward lake-to-fjord valley and material lower junction",
+          "finding": "The selected northward turn leaves the lake setting and enters the narrow sediment-filled valley shown at the lower edge of Sheet 3. That valley meets the broader east-west, sediment-filled Nivingmaneq corridor immediately before its opening into the Umiviit arm. The lake approach, sheet boundary, northern connector and receiving lower valley are all represented in the adjoining originals.",
+          "sources": [
+            "r149-geus-sheet2-1982-retained",
+            "r149-geus-sheet3-2010-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "Nivingmaneq is used only as the map label locating this lower corridor. Its label placement is not treated as an independently verified river registry entry or a hydronym extending over the lake, bedrock and ice portions."
+        },
+        {
+          "fragments": [
+            8876
+          ],
+          "component_scope": "Actual terminal in the Umiviit arm of Kangerlussuaq/Søndre Strømfjord",
+          "finding": "The ending is at the lower sediment-filled valley where it opens into the Umiviit arm of Kangerlussuaq/Søndre Strømfjord. The original shows the broad valley/deposit junction, inner marine arm and enclosing exposed-rock terrain. It is south of the town-head outlet beside Kangerlussuaq, rather than at that separate northern river mouth, and it does not end in the lower lake.",
+          "sources": [
+            "r149-geus-sheet3-2010-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "Umiviit and Kangerlussuaq/Søndre Strømfjord locate the receiving fjord setting. They are not accepted as a natural-river name for FID 8876."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61481564",
+      "publication": "Informe Laguna Merín 2014–2016",
+      "official_url": "https://www.ambiente.gub.uy/oan/documentos/Informe_Laguna_Merin_2014-2016-VF.pdf",
+      "observed_outcome": "The sole web-reader open returned Internal Error with (400) Timeout fetching. No report body or map pixels were acquired.",
+      "outcome_layer": "Web-reader fetch/transport outcome; origin HTTP status unknown.",
+      "restriction_scope": "The missing publication and equivalent copies, figures, formats, catalogue, original, reader, cache, screenshot, mirror and other acquisition routes remain paused. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_timeout",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61481564",
+      "publication": "SEMA L040 – Bacia Hidrográfica da Lagoa Mirim e do Canal São Gonçalo, basin landing page and linked map material",
+      "official_url": "https://www3.sema.rs.gov.br/l040-bh-mirim",
+      "observed_outcome": "The sole web-reader open returned Internal Error with Cache miss. No landing-page body or original linked basin map was acquired.",
+      "outcome_layer": "Web-reader availability outcome; origin HTTP status unknown.",
+      "restriction_scope": "The landing publication, its linked basin-map material and equivalent copies/formats/reader/original/cache/mirror/screenshot routes remain paused. No alternate hostname or linked map acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_cache_miss",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61481564",
+      "publication": "MGAP SNIA/Hidrografia, Cursos de agua attribute labels",
+      "official_url": "https://dgrn.mgap.gub.uy/arcgis/rest/services/SNIA/Hidrografia/MapServer/1",
+      "observed_outcome": "Original map and bounded source responses completed HTTP200. Some stored name strings contain hyphens where accented characters would be expected, and many unnamed pieces contain code 900.",
+      "outcome_layer": "Source-content/encoding and name-scope limitation, not an access failure.",
+      "restriction_scope": "Do not treat code 900 as a name or assert unverified spelling/official status for the damaged labels. This does not restrict acquisition or leave a geographic gap.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_name_field_limitation",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61570080",
+      "publication": "Ardolino, Alberto A., and Franchi, Mario (1996), Hoja Geológica 4366-I Telsen, SEGEMAR Boletín 215",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/1538?locale-attribute=es&show=full",
+      "observed_outcome": "Sole direct web-reader catalogue open returned Internal Error: Cache miss. No HTTP status or catalogue body was exposed.",
+      "outcome_layer": "Web-reader acquisition result; origin HTTP status unknown.",
+      "restriction_scope": "Missing whole publication and equivalent report, maps, catalogue, original, reader, cache, mirror and other acquisition routes paused without retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "cache_miss_availability_stop",
+      "evidence_boundary": "Discovery metadata only; snippets and unseen maps excluded from substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:61570080",
+      "publication": "IAP Cantera de áridos MALLÍN GRANDE, M. Belén Karakas, official November 2024 posting",
+      "official_url": "https://ambiente.chubut.gov.ar/wp-content/uploads/2024/11/IIA-Cantera-Mallin-Grande.pdf",
+      "observed_outcome": "Sole direct web-reader open returned Internal Error: URL is not accessible via this tool. No cause, HTTP status, PDF body or map pixels was exposed.",
+      "outcome_layer": "Unexplained web-reader acquisition failure; origin status unknown.",
+      "restriction_scope": "Missing publication and equivalents paused. No original-file, screenshot, alternate route or retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unexplained_tool_accessibility_stop",
+      "evidence_boundary": "Discovery excerpts excluded as substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:61570080",
+      "publication": "IGN historical Mosaico cartas 1:100.000, selected Talagapa–Cañadón Largo headward extent",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "Sole bounded original view completed HTTP200 image/png. Visual inspection found the selected headward extent entirely white; only a narrow eastern edge sliver contained cartography beyond the opening.",
+      "outcome_layer": "Successful original HTTP response with bounded cartographic coverage absence.",
+      "restriction_scope": "Missing selected 1:100,000 headward extent is excluded and not repeated. This is not a service-wide denial or a restriction on distinct successful scale layers.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_cartographic_coverage_absence",
+      "material_effect": "Adds no corroboration for the extreme western headward segment."
+    },
+    {
+      "aw_id": "hydro-system:61570080",
+      "publication": "Ardolino, Lizuaín, Salani, Giacosa and Hernando (2021), Hoja Geológica 4369-II Gan Gan, Provincia de Chubut, SEGEMAR Boletín317",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/4178",
+      "observed_outcome": "Sole catalogue web-reader open returned (400) Timeout fetching. No catalogue body, report or map acquired.",
+      "outcome_layer": "Web-reader fetch/transport result; origin HTTP status unestablished.",
+      "restriction_scope": "Missing publication and equivalent report, maps, catalogue, original, reader, cache, mirror and other acquisition routes paused without retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_timeout",
+      "evidence_boundary": "Discovery bibliography only; snippets and unseen maps excluded."
+    },
+    {
+      "aw_id": "hydro-system:70789628",
+      "publication": "USGSTopo: bounded St. Marys River and southeastern Okefenokee corridor views",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "Metadata and all four original bounded views completed HTTP 200 and were visually read. They show the initial wooded/wetland setting and the surrounding channels, but do not establish the selected opening or the full northwest cross-swamp connection to North Prong.",
+      "outcome_layer": "Substantive cartographic/correspondence limitation, not an origin HTTP or transport failure.",
+      "restriction_scope": "Unresolved selected headward opening and cross-swamp through-connection only. The mapped North Prong, main river, major junctions and actual terminal observations remain usable. No all-routes or equivalent-publication acquisition stop is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_headward_and_wetland_connector_gap",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70789628",
+      "publication": "St. Marys River: Wild and Scenic River Study, Florida and Georgia, Final Report, March 1995",
+      "official_url": "https://www.fws.gov/rivers/sites/rivers/files/2023-02/st-marys-study.pdf",
+      "observed_outcome": "The original report and two original maps were acquired and read successfully. They establish the regional prong/junction/trunk arrangement but leave the selected initial interior-swamp connection unshown.",
+      "outcome_layer": "Historical map scale and geographic coverage, not an acquisition failure.",
+      "restriction_scope": "The selected headward connection is not supplied by the report's regional swamp setting. The acquired source remains usable within the inspected extent; no acquisition route or equivalent-publication prohibition was observed.",
+      "earlier_lawful_prose_exception": "Bounded read Background and River Environment passages remain available as regional supporting context.",
+      "limitation_kind": "regional_source_insufficient_for_selected_connector",
+      "material_gap": true
+    }
+  ],
+  "additional_source_use_notices": []
+}
