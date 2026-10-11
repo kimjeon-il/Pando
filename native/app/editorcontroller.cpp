@@ -864,6 +864,8 @@ bool EditorController::setTimelineMonth(const QString& month) {
                 labelAnchors_->invalidateOwner(text(unit.id));
             else scheduleDerivedLabelAnchor(pandoeditor::territorialRef(unit.id));
         }
+        placeLabelSignature_.clear();
+        refreshBuiltinPlaceLabels();
         publish(false);
         emit geometryChanged();
         refreshTypedScene();
