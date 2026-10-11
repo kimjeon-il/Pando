@@ -23,7 +23,8 @@
     "Do not treat La Paz's seat-of-government role as constitutional capital of Bolivia; Sucre and La Paz have separate IDs.",
     "Panamá Viejo and the replacement city after 1673 must retain different historical city sites; present GeoNames point is not automatically reused for abandoned old site.",
     "All single-period 1801 cases require future source-by-era verification where greater precision is important. English and native orthography choices are map editorial labels, not evidence that those forms were legally established in 1801.",
-    "No PLAC v3 publishing, no runtime, no main or app repository changes."
+    "No PLAC v3 publishing, no runtime, no main or app repository changes.",
+    "Each record has researchDifficulty A/B/C. A-class single-period historical continuity is editorial provisional and must not be treated as an independently documented absence of renaming throughout 1801–2026."
   ],
   "stats": {
     "cityCount": 25,
@@ -92,7 +93,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 6094817,
@@ -185,7 +188,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "B",
+      "reviewStatus": "selected-historical-transitions-source-reviewed"
     },
     {
       "geonameId": 3553478,
@@ -254,7 +259,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3492908,
@@ -365,7 +372,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "C",
+      "reviewStatus": "selected-historical-transitions-source-reviewed"
     },
     {
       "geonameId": 3489854,
@@ -427,7 +436,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3718426,
@@ -557,7 +568,9 @@
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다.",
         "아이티 크레올어 병용 지명·정식 공용어 사용시기와 각 번역형은 추가 조사 대상이다. 본 차수는 프랑스어 도시명 연혁 우선."
-      ]
+      ],
+      "researchDifficulty": "C",
+      "reviewStatus": "selected-historical-transitions-source-reviewed"
     },
     {
       "geonameId": 3582677,
@@ -626,7 +639,9 @@
         "sourceUrl": "https://belmopancitycouncil.org/welcome/our-history/",
         "note": "1970년 신수도 1단계 완공",
         "researchNote": "1967년 건설 시작·1970년 완공한 신수도 중심지. 2000년의 법인 자치도시 설립과 구별한다. 1970년 경계일의 정확한 일자는 미확인."
-      }
+      },
+      "researchDifficulty": "B",
+      "reviewStatus": "selected-historical-transitions-source-reviewed"
     },
     {
       "geonameId": 3598132,
@@ -696,7 +711,9 @@
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다.",
         "역사적 장명 Nueva Guatemala de la Asunción이 공식 자료에서 사용되지만 이번 1801 대표명은 현재 관용 Ciudad de Guatemala로 임시 선정; 해당 당시의 최우선 원어 표기는 후속 교차 검증."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3583361,
@@ -758,7 +775,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3600949,
@@ -820,7 +839,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3617763,
@@ -882,7 +903,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3621849,
@@ -944,7 +967,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3703443,
@@ -1023,7 +1048,9 @@
             "researchNote": "1671년 파괴된 옛 파나마 시가지와 1673년 새로 조성한 현대 도심은 좌표를 별도로 취급해야 한다."
           }
         ]
-      }
+      },
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3688689,
@@ -1152,7 +1179,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "C",
+      "reviewStatus": "selected-historical-transitions-source-reviewed"
     },
     {
       "geonameId": 3646738,
@@ -1214,7 +1243,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3652462,
@@ -1276,7 +1307,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3936456,
@@ -1338,7 +1371,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3911925,
@@ -1401,7 +1436,9 @@
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다.",
         "La Paz는 중앙정부 소재 도시이고 Sucre는 헌법상 수도다. PPLG를 PPLC로 바꾸지 않는다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3903987,
@@ -1494,7 +1531,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "B",
+      "reviewStatus": "selected-historical-transitions-source-reviewed"
     },
     {
       "geonameId": 3871336,
@@ -1556,7 +1595,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3439389,
@@ -1618,7 +1659,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3441575,
@@ -1680,7 +1723,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "geonameId": 3469058,
@@ -1749,7 +1794,9 @@
         "sourceUrl": "https://www.gov.br/iphan/pt-br/superintendencias/distrito-federal/patrimonio-mundial",
         "note": "1960년 4월 21일 도시 개장",
         "researchNote": "1957년부터 신도시 조성 후 공식 개장한 날짜. 건설 노동자의 앞선 거주나 행정구역 면적·기존 작은 취락 자체를 현대 중심도시와 동일시하지 않음."
-      }
+      },
+      "researchDifficulty": "B",
+      "reviewStatus": "selected-historical-transitions-source-reviewed"
     },
     {
       "geonameId": 3378644,
@@ -1842,7 +1889,9 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "B",
+      "reviewStatus": "selected-historical-transitions-source-reviewed"
     },
     {
       "geonameId": 3383330,
@@ -1904,7 +1953,14 @@
       "nameSelectionNotes": [
         "한국어·영어·원어 각 시기 대표형만 저장하며 별칭이나 미선택 로마자 표기를 넣지 않는다.",
         "1801년부터의 지도상 이름과 도시 등급·역사적 국경·옛 수도 지정은 서로 다른 속성이다."
-      ]
+      ],
+      "researchDifficulty": "A",
+      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     }
-  ]
+  ],
+  "difficultySummary": {
+    "A": "17개, 현대명이 뚜렷하며 조사시점 이전의 미확인 개칭 가능성은 열어 둠",
+    "B": "5개, 단일 개칭 또는 신도시 성립 등 문헌으로 경계 확인",
+    "C": "3개, 여러 공식 개칭·혁명기 변경·표기 정책 전환을 정밀 조사"
+  }
 }
