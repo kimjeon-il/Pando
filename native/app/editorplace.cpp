@@ -4,6 +4,8 @@
 #include <QDataStream>
 #include <QFontMetricsF>
 #include <QGuiApplication>
+#include <QDate>
+#include <QRegularExpression>
 #include <QFont>
 #include <QUuid>
 #include <algorithm>
@@ -58,12 +60,23 @@ void EditorController::refreshBuiltinPlaceLabels() {
     QFont primaryFont=QGuiApplication::font();primaryFont.setPixelSize(12);primaryFont.setWeight(QFont::DemiBold);
     QFont secondaryFont=primaryFont;secondaryFont.setPixelSize(10);secondaryFont.setWeight(QFont::Normal);
     const QFontMetricsF primaryMetrics(primaryFont),secondaryMetrics(secondaryFont);
+    const auto cursor=QString::fromStdString(project_.timelineCursor());
+    QString mapDate;
+    if(QRegularExpression(QStringLiteral("^[0-9]{4}-[0-9]{2}$")).match(cursor).hasMatch()){
+        const first=QDate::fromString(cursor+QStringLiteral("-01"),QStringLiteral("yyyy-MM-dd"));
+        if(first.isValid())mapDate=cursor+QStringLiteral("-")+QString::number(first.daysInMonth()).rightJustified(2,QChar('0'));
+    }
     QByteArray signatureBytes;QDataStream stream(&signatureBytes,QIODevice::WriteOnly);
     const auto identity=placeRuntime_.sourceIdentity();
     stream<<quint64(identity?identity->generation:0)<<primaryFont.toString()<<secondaryFont.toString()<<quint64(records.size());
     std::vector<MapLabelSource> sources;sources.reserve(records.size());
     for(const auto& record:records) {
-        const auto rows=resolvePlaceDisplayRows(record,placeLanguages_);
+        if(cursor.startsWith('-'))continue;
+        if(!mapDate.isEmpty()&&!record.nameTimeline.empty()){
+            const auto& first=record.nameTimeline.front();
+            if(!first.fromDate.isEmpty()?mapDate<first.fromDate:mapDate.left(4).toInt()<first.fromYear)continue;
+        }
+        const auto rows=resolvePlaceDisplayRows(record,placeLanguages_,mapDate);
         if(rows.empty())continue; // Unavailable language is omitted, never synthesized.
         const auto settings=automaticLabelSettings(record.kind.toStdString());MapLabelSource source;
         source.ref={"placeBuiltin",record.id.toStdString()};
@@ -126,6 +139,6 @@ QVariantMap EditorController::placeDataStatus() const {
         {"snapshotRecords",qulonglong(runtime.snapshotRecords)},{"retainedRecords",qulonglong(runtime.retainedRecords)},
         {"pendingCount",qulonglong(runtime.pendingCount)},{"sourceOpens",qulonglong(runtime.sourceOpens)},
         {"moving",runtime.moving},{"searchTruncated",placeRuntime_.searchTruncated()},
-        {"dataSpecificBlocked",true},{"dataSpecificReason",QStringLiteral("Fixed Web production manifest is empty-v1; explicit synthetic sources verify mechanics only.")},
+        {"dataSpecificBlocked",false},{"dataSpecificReason",QString()},
         {"fontMetrics",QStringLiteral("Qt application font shaping; fixed Web uses Unicode-character estimates")}};
 }
