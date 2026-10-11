@@ -35,6 +35,45 @@ private slots:
         QCOMPARE(result.controlPoints.size(),5);
     }
 
+
+    void ocrNamesSnapToAdjacentCitySymbolsBeforeSolving()
+    {
+        QImage image(400,300,QImage::Format_RGB32);image.fill(Qt::white);
+        QPainter painter(&image);painter.setPen(Qt::NoPen);painter.setBrush(Qt::black);
+        const QVector<QPointF> dots{{.18,.22},{.78,.20},{.22,.78},{.80,.76}};
+        const QStringList names{"Berlin","Hamburg","Leipzig","Dresden"};
+        QVariantList seeds,detections;
+        for(int i=0;i<dots.size();++i) {
+            const QPointF dot=dots[i];const QPointF pixel(dot.x()*(image.width()-1),dot.y()*(image.height()-1));
+            painter.drawEllipse(pixel,4,4);
+            const QRectF label(pixel.x()+10,pixel.y()-7,55,15);
+            // Dense fake glyph strokes inside the OCR box. The GCP must still snap to the dot.
+            for(int x=int(label.left());x<int(label.right());x+=6)painter.drawRect(QRectF(x,label.top()+2,2,label.height()-4));
+            seeds.push_back(QVariantMap{{"id",QString("city-%1").arg(i)},{"name",names[i]},{"kind","city"},
+                {"expectedUv",QVariantList{dot.x()+.06,dot.y()+.03}},
+                {"coordinate",QVariantList{10.+5.*dot.x(),48.+5.*dot.y()}},{"priority",90-i}});
+            detections.push_back(QVariantMap{{"id",QString("ocr-%1").arg(i)},{"text",names[i]},
+                {"image",QVariantList{label.center().x()/(image.width()-1),label.center().y()/(image.height()-1)}},
+                {"box",QVariantList{label.x()/(image.width()-1),label.y()/(image.height()-1),
+                    label.width()/(image.width()-1),label.height()/(image.height()-1)}}});
+        }
+        painter.end();
+
+        const auto result=solveReferenceAutoGeorefFromOcr(image,seeds,detections,{},"projective");
+        QVERIFY2(result.ok,qPrintable(result.reason));
+        QCOMPARE(result.source,QString("place-ocr"));
+        QCOMPARE(result.inlierCount,4);
+        QCOMPARE(result.rejectedCount,0);
+        QCOMPARE(result.controlPoints.size(),4);
+        for(int i=0;i<result.controlPoints.size();++i) {
+            const auto point=result.controlPoints[i].toMap()["image"].toList();
+            bool nearDot=false;
+            for(const auto& dot:dots)
+                if(std::hypot(point[0].toDouble()-dot.x(),point[1].toDouble()-dot.y())<.025)nearDot=true;
+            QVERIFY2(nearDot,"OCR-assisted GCP stayed on label text instead of the city symbol");
+        }
+    }
+
     void failsCleanlyWhenSymbolsAreMissing()
     {
         QImage image(200,120,QImage::Format_RGB32);image.fill(Qt::white);
