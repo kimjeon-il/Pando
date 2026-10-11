@@ -1,0 +1,1025 @@
+{
+  "schema": "pando-places-tier1-review-v6",
+  "status": "verified-source-staging-not-runtime",
+  "source": "GeoNames (CC BY 4.0)",
+  "checkedOn": "2026-10-08",
+  "selection": "unambiguous large city settlement point; exclude administrative-area feature-class A",
+  "warning": "Source point coordinates, not city boundaries. This file is not connected to runtime or manifest.",
+  "records": [
+    {
+      "geonameId": 1835848,
+      "names": [
+        {
+          "text": "서울",
+          "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "Seoul",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "漢陽",
+          "language": "ko-Hani",
+          "usage": "historical",
+          "variantType": "historicalOfficialNativeName",
+          "officialPeriod": {
+            "fromYear": 1308,
+            "toYear": 1395
+          },
+          "sourceUrl": "https://db.history.go.kr/goryeo/compareViewer.do?levelId=kr_077_0010_0550_0170"
+        },
+        {
+          "text": "한양",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "koreanReadingOfHistoricalOfficialName",
+          "sourceUrl": "https://db.history.go.kr/goryeo/compareViewer.do?levelId=kr_077_0010_0550_0170"
+        },
+        {
+          "text": "Hanyang",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "englishRenderingOfHistoricalName",
+          "sourceUrl": "https://db.history.go.kr/goryeo/compareViewer.do?levelId=kr_077_0010_0550_0170"
+        },
+        {
+          "text": "漢城",
+          "language": "ko-Hani",
+          "usage": "historical",
+          "variantType": "historicalOfficialNativeName",
+          "officialPeriod": {
+            "fromYear": 1395,
+            "toYear": 1910
+          },
+          "sourceUrl": "https://sillok.history.go.kr/id/kaa_10406006_001"
+        },
+        {
+          "text": "한성",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "koreanReadingOfHistoricalOfficialName",
+          "sourceUrl": "https://sillok.history.go.kr/id/kaa_10406006_001"
+        },
+        {
+          "text": "Hanseong",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "englishRenderingOfHistoricalName",
+          "sourceUrl": "https://sillok.history.go.kr/id/kaa_10406006_001"
+        },
+        {
+          "text": "京城",
+          "language": "ja",
+          "usage": "historical",
+          "variantType": "japaneseAdministrationOfficialName",
+          "officialPeriod": {
+            "fromYear": 1910,
+            "toYear": 1946
+          },
+          "sourceUrl": "https://archives.seoul.go.kr/class/OC-0001"
+        },
+        {
+          "text": "경성",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "koreanReadingOfHistoricalOfficialName",
+          "sourceUrl": "https://archives.seoul.go.kr/class/OC-0001"
+        },
+        {
+          "text": "Keijō",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "englishRenderingOfJapaneseOfficialName",
+          "sourceUrl": "https://archives.seoul.go.kr/class/OC-0001"
+        }
+      ],
+      "latitude": 37.566,
+      "longitude": 126.9784,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/1835848/",
+      "sourceCountryCode": "KR",
+      "defaultDisplayNameKo": "서울",
+      "shortDescriptionKo": "한양·한성·경성을 거쳐 서울로 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1308,
+          "nameKo": "한양",
+          "nameEn": "Hanyang",
+          "nameNative": "漢陽",
+          "nativeLanguage": "ko-Hani",
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://db.history.go.kr/goryeo/compareViewer.do?levelId=kr_077_0010_0550_0170",
+          "researchNote": "남경을 한양부로 개편한 연도. 남경 명칭은 사용자 요청대로 후속 검토하며 일자는 확정하지 않음."
+        },
+        {
+          "fromDate": "1395-07-01",
+          "nameKo": "한성",
+          "nameEn": "Hanseong",
+          "nameNative": "漢城",
+          "nativeLanguage": "ko-Hani",
+          "kind": "officialRenaming",
+          "sourceUrl": "https://sillok.history.go.kr/id/kaa_10406006_001",
+          "researchNote": "『태조실록』 태조 4년 음력 6월 6일(무진)을 그레고리력으로 소급 환산한 1395-07-01. 당시 율리우스력 날짜와 구분하며, 연도 경계 1395-01-01을 적용하지 않는다."
+        },
+        {
+          "fromDate": "1910-10-01",
+          "nameKo": "경성",
+          "nameEn": "Keijō",
+          "nameNative": "京城",
+          "nativeLanguage": "ja",
+          "kind": "officialRenaming",
+          "sourceUrl": "https://theme.archives.go.kr/next/place/outline.do?flag=08",
+          "researchNote": "1910-09-30 지방관 관제 공포 이후 1910-10-01 조선총독부령 제7호에 따라 경성부로 지정·개칭되었다."
+        },
+        {
+          "fromDate": "1946-08-10",
+          "nameKo": "서울",
+          "nameEn": "Seoul",
+          "nameNative": "서울",
+          "nativeLanguage": "ko",
+          "kind": "officialRenaming",
+          "sourceUrl": "https://www.law.go.kr/LSW/lsInfoP.do?efYd=19460810&lsiSeq=62915",
+          "researchNote": "1946-08-10 시행 서울시헌장 제1조에 따라 경성부를 서울시로 칭함. 1946-09-28은 미군정 법령 제106호(서울특별시의 설치) 시행일로서 별도 행정지위 관련 사건이며 지명 개칭일과 구별한다."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1308-predecessor-deferred",
+      "defaultDisplayNameEn": "Seoul",
+      "defaultDisplayNameNative": "서울",
+      "defaultNativeLanguage": "ko",
+      "nameSelectionNotes": [
+        "1308년 이전의 남경(南京)은 이번 서울 명칭 데이터에 추가하지 않음.",
+        "영어 Hanyang·Hanseong은 원어명에 대응하는 후대 로마자 전사이며 당대 법정 영어명이라는 주장이 아님.",
+        "1910~1946의 영어 Keijō는 일본어 京城의 대표 로마자 표기임. 해방 직후에도 京城 이름이 잠시 사용된 사실과 구별하여 추후 영어사료 재검토 가능.",
+        "1395-07-01은 태조실록의 음력 6월 6일을 그레고리력으로 소급 환산한 날짜. 1910-10-01은 경성부 지정, 1946-08-10은 서울시헌장에 따른 명칭 변경일. 1946-09-28은 서울특별시 설치 관련 법령 시행일로 별도 처리."
+      ]
+    },
+    {
+      "geonameId": 1838524,
+      "names": [
+        {
+          "text": "부산",
+          "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "Busan",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "釜山",
+          "language": "ko-Hani",
+          "usage": "historical",
+          "variantType": "joseonNativeToponym",
+          "sourceUrl": "https://www.busan.go.kr/bhnorigin01"
+        },
+        {
+          "text": "釜山",
+          "language": "ja",
+          "usage": "historical",
+          "variantType": "japaneseAdministrationToponym",
+          "sourceUrl": "https://ndlsearch.ndl.go.jp/en/books/R100000002-I000010185961",
+          "researchNote": "Japanese administration's 釜山(フザン) is the same written toponym but represents the locally governing language in the period."
+        },
+        {
+          "text": "Pusan",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "selectedHistoricalEnglishRomanization",
+          "sourceUrl": "https://law.go.kr/detcInfoP.do?detcSeq=148192",
+          "researchNote": "Selected before 1910 and again from 1945 to 2000; Fusan also occurred before 1910. The choice is map editorial convention, not an exclusive attested date of English use."
+        },
+        {
+          "text": "Fusan",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "selectedJapaneseEraEnglishRomanization",
+          "sourceUrl": "https://ndlsearch.ndl.go.jp/en/books/R100000002-I000010185961",
+          "researchNote": "Chosen as the historical English map label for Japanese rule by editorial convention; 1910-08-29 is the annexation boundary, not the first recorded use of Fusan."
+        }
+      ],
+      "latitude": 35.10168,
+      "longitude": 129.03004,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/1838524/",
+      "sourceCountryCode": "KR",
+      "historicalGeography": {
+        "policy": "Administrative-territorial genealogy, NOT names[] aliases or equal-area polygons; do not auto-relocate the GeoNames city point.",
+        "linkedPlaces": [
+          {
+            "nameKo": "동래부",
+            "relation": "historicalAdministrativeJurisdictionAndPredecessor",
+            "detail": "조선시대 부산포를 관할한 행정구역",
+            "sourceUrl": "https://www.busan.go.kr/historyoccu/view",
+            "researchDetail": "부산포를 관할하던 조선시대 행정구역. 1910년 부산부로 개편되었으나 현대 부산과 경계가 같지는 않음."
+          },
+          {
+            "nameKo": "부산포",
+            "relation": "historicPortSettlementWithinDongnae",
+            "detail": "동래부 관할의 역사적 항구",
+            "sourceUrl": "https://www.busan.go.kr/bhhistory/",
+            "researchDetail": "동래부의 관할 지역에 있던 역사적 항구. 동래부 전체 또는 현대 부산시 전체와 동일시하지 않음."
+          },
+          {
+            "nameKo": "동래군",
+            "relation": "post1914SeparateAdministrativeUnitAndTerritorialSource",
+            "detail": "1914년 분리, 이후 부산에 일부 편입",
+            "sourceUrl": "https://encykorea.aks.ac.kr/Article/E0066986",
+            "researchDetail": "1914년 부산부와 구별되어 재편되었고 이후 그 일부가 여러 차례 부산으로 편입됨."
+          }
+        ],
+        "events": [
+          {
+            "year": 1910,
+            "type": "administrativeReorganization",
+            "detail": "동래부가 부산부로 개편.",
+            "sourceUrl": "https://www.busan.go.kr/historyoccu/view"
+          },
+          {
+            "year": 1914,
+            "type": "administrativeDivision",
+            "detail": "부산부·동래군 분리 재편",
+            "sourceUrl": "https://www.busan.go.kr/historyoccu/view",
+            "researchDetail": "옛 동래부 관할 일부와 기장군 등을 동래군으로 재편하여 부산부와 구분."
+          },
+          {
+            "year": 1936,
+            "type": "partialTerritorialIncorporation",
+            "detail": "동래군 서면 지역과 암남리 등이 부산부에 편입.",
+            "sourceUrl": "https://www.busan.go.kr/bhhistory/"
+          },
+          {
+            "year": 1942,
+            "type": "partialTerritorialIncorporation",
+            "detail": "동래읍 등 부산부에 편입",
+            "sourceUrl": "https://www.busan.go.kr/bhhistory/",
+            "researchDetail": "동래군 동래읍 전역과 사하면, 남면 등 일부 지역이 부산부에 편입."
+          },
+          {
+            "year": 1963,
+            "type": "partialTerritorialIncorporation",
+            "detail": "구포·사상·북면 등 부산 편입",
+            "sourceUrl": "https://www.busan.go.kr/PageDownload.do?savename=sub0301_1-2.pdf",
+            "researchDetail": "부산의 직할시 승격과 함께 동래군 구포읍, 사상면, 북면 등 일부가 부산에 편입."
+          },
+          {
+            "year": 1973,
+            "type": "administrativeDissolution",
+            "detail": "동래군 폐지, 잔여 기장 양산군 편입",
+            "sourceUrl": "https://www.busan.go.kr/PageDownload.do?savename=sub0301_1-2.pdf",
+            "researchDetail": "남아 있던 동래군이 폐지되고 잔여 기장지역은 양산군에 편입. 동래군 전체가 1942년 또는 1963년에 일괄 부산에 편입된 것은 아님."
+          }
+        ]
+      },
+      "defaultDisplayNameKo": "부산",
+      "shortDescriptionKo": "1910·1945·2000년 영문 표기 전환",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "부산",
+          "nameEn": "Pusan",
+          "nameNative": "釜山",
+          "nativeLanguage": "ko-Hani",
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.busan.go.kr/bhnorigin01",
+          "researchNote": "조선시대의 부산은 동래부 관할 항구·취락의 지명이며 독립적인 부산부 또는 현재 부산시 전체와 동일시하지 않는다. Pusan은 당시 여러 영문 표기 중 선택된 대표형."
+        },
+        {
+          "fromDate": "1910-08-29",
+          "nameEn": "Fusan",
+          "nameNative": "釜山",
+          "nativeLanguage": "ja",
+          "kind": "governingAuthorityEditorialLabelTransition",
+          "sourceUrl": "https://ndlsearch.ndl.go.jp/en/books/R100000002-I000010185961",
+          "researchNote": "한일병합에 따른 지도 편집상 표기 전환일. Fusan은 병합 이전에도 쓰였으므로 역사적 영어명의 실제 개칭일이 아님. 부산부는 이후 1910-10-01 별도로 설치."
+        },
+        {
+          "fromDate": "1945-08-15",
+          "nameEn": "Pusan",
+          "nameNative": "부산",
+          "nativeLanguage": "ko",
+          "kind": "governingAuthorityEditorialLabelTransition",
+          "sourceUrl": "https://www.busan.go.kr/historyoccu",
+          "researchNote": "일본 항복 발표일을 지도용 원어·영어 대표명 복구 시점으로 선택. 행정권 인계나 법령상 영문명 개칭일과 동일시하지 않음."
+        },
+        {
+          "fromDate": "2000-07-07",
+          "nameEn": "Busan",
+          "kind": "englishRomanizationPolicyChange",
+          "sourceUrl": "https://law.go.kr/detcInfoP.do?detcSeq=148192",
+          "researchNote": "문화관광부고시 제2000-8호 시행일. 실제 부산시 도메인 표기 단일화는 2002-07-01로 이와 구별한다."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "defaultDisplayNameEn": "Busan",
+      "defaultDisplayNameNative": "부산",
+      "defaultNativeLanguage": "ko",
+      "nameSelectionNotes": [
+        "한국어 부산은 전 시기 동일하며 동래부·부산포 등 별도 행정/항구 객체와 혼동하지 않음.",
+        "1910-08-29과 1945-08-15는 통치권 전환에 맞춰 Pusan/Fusan 영문 대표형을 선택한 편집상 경계일이지 독점적 영문 사용일이 아님.",
+        "1910-10-01의 부산부 설치는 행정구역 신설이며 1910-08-29 영어 대표형 전환과 별개.",
+        "2000-07-07 공식 국어 로마자 표기법 개정에 따라 Pusan에서 Busan으로 전환."
+      ]
+    },
+    {
+      "geonameId": 1850147,
+      "names": [
+        {
+          "text": "東京",
+          "language": "ja",
+          "usage": "standard"
+        },
+        {
+          "text": "Tokyo",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "도쿄",
+          "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "江戸",
+          "language": "ja",
+          "usage": "historical",
+          "officialPeriod": {
+            "toYear": 1868
+          },
+          "sourceUrl": "https://www.archives.go.jp/exhibition/digital/henbou/contents/03.html"
+        },
+        {
+          "text": "에도",
+          "language": "ko",
+          "usage": "historical",
+          "officialPeriod": {
+            "toYear": 1868
+          },
+          "sourceUrl": "https://www.archives.go.jp/exhibition/digital/henbou/contents/03.html"
+        },
+        {
+          "text": "Edo",
+          "language": "en",
+          "usage": "historical",
+          "officialPeriod": {
+            "toYear": 1868
+          },
+          "sourceUrl": "https://www.archives.go.jp/exhibition/digital/henbou/contents/03.html"
+        }
+      ],
+      "latitude": 35.6895,
+      "longitude": 139.69171,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/1850147/",
+      "sourceCountryCode": "JP",
+      "defaultDisplayNameKo": "도쿄",
+      "shortDescriptionKo": "1868년 에도에서 도쿄로 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "에도",
+          "nameEn": "Edo",
+          "nameNative": "江戸",
+          "nativeLanguage": "ja",
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.archives.go.jp/exhibition/digital/henbou/contents/03.html"
+        },
+        {
+          "fromDate": "1868-09-03",
+          "nameKo": "도쿄",
+          "nameEn": "Tokyo",
+          "nameNative": "東京",
+          "nativeLanguage": "ja",
+          "kind": "officialRenaming",
+          "sourceUrl": "https://www.jacar.go.jp/exhibition/glossary/meijiasia/table/history1.html",
+          "researchNote": "1868년 9월 3일은 일본 구력 게이오 4년 7월 17일의 그레고리력 날짜."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "defaultDisplayNameEn": "Tokyo",
+      "defaultDisplayNameNative": "東京",
+      "defaultNativeLanguage": "ja",
+      "nameSelectionNotes": [
+        "동경 등 일본어 한자 지명의 한국 한자음은 별도 한국어 대표명이나 별칭으로 수록하지 않음."
+      ]
+    },
+    {
+      "geonameId": 1853909,
+      "names": [
+        {
+          "text": "大阪",
+          "language": "ja",
+          "usage": "standard"
+        },
+        {
+          "text": "Osaka",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "오사카",
+          "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "大坂",
+          "language": "ja",
+          "usage": "historical",
+          "variantType": "periodPreferredNativeOrthography",
+          "sourceUrl": "https://www.city.osaka.lg.jp/seisakukikakushitsu/page/0000010271.html",
+          "note": "1868년 이전의 대표 한자 표기",
+          "researchNote": "大坂과 大阪은 에도 시대부터 공존했고 大阪은 1877년경에 일반적으로 정착. 1868-06-21은 大阪府 설치라는 관청 공식 표기를 이용한 편집상 대표형 전환일."
+        }
+      ],
+      "latitude": 34.69379,
+      "longitude": 135.50107,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/1853909/",
+      "sourceCountryCode": "JP",
+      "defaultDisplayNameKo": "오사카",
+      "shortDescriptionKo": "1868년 大坂에서 大阪으로 표기 전환",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "오사카",
+          "nameEn": "Osaka",
+          "nameNative": "大坂",
+          "nativeLanguage": "ja",
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.city.osaka.lg.jp/seisakukikakushitsu/page/0000010271.html"
+        },
+        {
+          "fromDate": "1868-06-21",
+          "nameNative": "大阪",
+          "nativeLanguage": "ja",
+          "kind": "historicalOrthographyEditorialTransition",
+          "sourceUrl": "https://archives.pref.osaka.lg.jp/search/image/h30_kouza2.pdf",
+          "researchNote": "일본 음력 게이오 4년 5월 2일 大阪府 설치를 그레고리력으로 환산한 날짜. 당시 두 철자가 병용되었으므로 정확한 도시명 개칭일이 아닌 시대별 표기 선택 기준."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "defaultDisplayNameEn": "Osaka",
+      "defaultDisplayNameNative": "大阪",
+      "defaultNativeLanguage": "ja",
+      "nameSelectionNotes": [
+        "원어의 한자 표기만 변경됨. 한국어 오사카·영어 Osaka는 모든 시기에 동일.",
+        "1868-06-21은 大阪府 설치일이며 도시 한자 철자가 일시에 폐지/변경된 법정 개칭일을 주장하지 않음.",
+        "일본어 大坂/大阪의 한국식 한자 독음(대판) 등은 별도 한국어 지도명으로 수록하지 않음."
+      ]
+    },
+    {
+      "geonameId": 1816670,
+      "names": [
+        {
+          "text": "北京",
+          "language": "zh",
+          "usage": "standard"
+        },
+        {
+          "text": "베이징",
+          "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "Beijing",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "北平",
+          "language": "zh",
+          "usage": "historical",
+          "variantType": "historicalOfficialNativeToponym",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "researchNote": "1928-06-28~1937-10-11 및 1945-08-15~1949-09-26의 지도 대표 원어명. 1945-08-15는 법정 개칭일이 아니라 편집상 복구일."
+        },
+        {
+          "text": "북경",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "historicalKoreanSinoReading",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "note": "1912년 이전 한국어 대표명"
+        },
+        {
+          "text": "Peking",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "historicalPreferredEnglishExonym",
+          "sourceUrl": "https://history.state.gov/historicaldocuments/frus1977-80v13/d161",
+          "researchNote": "1979-01-01부터 중국 정부의 공식 영어 로마자 표기로 Beijing을 선택한다. 이전의 영어 Peking은 관용 지명으로 병용되었을 수 있음."
+        },
+        {
+          "text": "베이핑",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "koreanTranscriptionOfBeiping",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html"
+        },
+        {
+          "text": "Peiping",
+          "language": "en",
+          "usage": "historical",
+          "variantType": "historicalPreferredEnglishForBeiping",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "researchNote": "北平의 대표 영어 표기는 Peiping으로 선택. Beiping은 별도의 지도 대표명으로 저장하지 않음."
+        }
+      ],
+      "latitude": 39.9075,
+      "longitude": 116.39723,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/1816670/",
+      "sourceCountryCode": "CN",
+      "koMapLabels": [
+        {
+          "whenLocalToponym": "北京",
+          "before1912": "북경",
+          "from1912": "베이징",
+          "note": "1912-01-01 한국어 표기 편집 기준; 중국어 도시명은 그대로 北京."
+        },
+        {
+          "whenLocalToponym": "北平",
+          "from1912": "베이핑",
+          "note": "北平이 공식 대표명으로 선택된 1928-06-28~1937-10-11 및 1945-08-15~1949-09-26에만 적용."
+        }
+      ],
+      "defaultDisplayNameKo": "베이징",
+      "shortDescriptionKo": "1928·1937·1945·1949년 명칭 변경",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "북경",
+          "nameEn": "Peking",
+          "nameNative": "北京",
+          "nativeLanguage": "zh",
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html"
+        },
+        {
+          "fromDate": "1912-01-01",
+          "nameKo": "베이징",
+          "kind": "koreanEditorialTranscription",
+          "researchNote": "중화민국 건국일을 기준으로 중국 대륙 지명의 한국어 대표 표기를 한국식 한자음에서 중국어 발음 기반으로 일괄 전환. 중국의 공식 도시명 변경일은 아님."
+        },
+        {
+          "fromDate": "1928-06-28",
+          "nameKo": "베이핑",
+          "nameEn": "Peiping",
+          "nameNative": "北平",
+          "nativeLanguage": "zh",
+          "kind": "officialRenaming",
+          "sourceUrl": "https://ahonline.drnh.gov.tw/index.php?act=Archive%2FSearch%2FeyJxdWVyeSI6W3siZmllbGQiOiJpbl9zdG9yZV9ubyIsInZhbHVlIjoiMDAxMDAwMDA0NTg5QSIsImF0dHIiOiIrIn1dfQ%3D%3D",
+          "researchNote": "1928-06-21 중앙정치회의 개칭 결의 후 1928-06-28 국민정부 정식 훈령/통지에 맞춘 시점."
+        },
+        {
+          "fromDate": "1937-10-12",
+          "nameKo": "베이징",
+          "nameEn": "Peking",
+          "nameNative": "北京",
+          "nativeLanguage": "zh",
+          "kind": "occupationAuthorityNaming",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "researchNote": "일본 점령 아래 북평지방유지회의 北京 복칭 시점을 채택. 중화민국의 영토 주권 이전이라는 뜻은 아님."
+        },
+        {
+          "fromDate": "1945-08-15",
+          "nameKo": "베이핑",
+          "nameEn": "Peiping",
+          "nameNative": "北平",
+          "nativeLanguage": "zh",
+          "kind": "postwarEditorialNameRestoration",
+          "sourceUrl": "https://www.beijing.gov.cn/renwen/sy/whkb/201907/t20190715_1866582.html",
+          "researchNote": "일본 항복일을 일본 점령기 행정 명칭의 지도 사용 종료 및 중화민국 北平 복구의 편집상 전환일로 채택. 군대 입성/실제 행정 인수/법정 개칭일과 구별."
+        },
+        {
+          "fromDate": "1949-09-27",
+          "nameKo": "베이징",
+          "nameEn": "Peking",
+          "nameNative": "北京",
+          "nativeLanguage": "zh",
+          "kind": "officialRenaming",
+          "sourceUrl": "https://www.bjdsdfz.cn/jcdq.jhtml",
+          "researchNote": "중국인민정치협상회의의 수도·도시 명칭 변경 결의일. 중화인민공화국 건국일 1949-10-01과 구별."
+        },
+        {
+          "fromDate": "1979-01-01",
+          "nameEn": "Beijing",
+          "kind": "englishRomanizationPolicyChange",
+          "sourceUrl": "https://history.state.gov/historicaldocuments/frus1977-80v13/d161",
+          "researchNote": "중국 정부의 외교문서 인명·지명 로마자 표기에 한어병음을 공식 채택한 날. 영어 표기만 변경하며 중국어 北京·한국어 베이징은 유지."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "defaultDisplayNameEn": "Beijing",
+      "defaultDisplayNameNative": "北京",
+      "defaultNativeLanguage": "zh",
+      "nameSelectionNotes": [
+        "북경은 1912년 이전 역사적 한국식 한자음이며, 1912년 이후 동일 원어 北京에는 베이징을 표시함.",
+        "北平이 대표 원어명인 시기의 한국어는 베이핑·영어는 Peiping으로만 표시. 북평·Beiping은 별도 대표명에 저장하지 않음.",
+        "1937-10-12 일본 점령지 복칭과 1945-08-15 일본 항복에 따른 편집상 전환은 영토 주권의 법적 양도/회복일로 해석하지 않음.",
+        "1979-01-01은 중국 정부 공식 한어병음 로마자 표기 개시일이므로 영어 Peking만 Beijing으로 교체."
+      ]
+    },
+    {
+      "geonameId": 1796236,
+      "names": [
+        {
+          "text": "上海",
+          "language": "zh",
+          "usage": "standard"
+        },
+        {
+          "text": "Shanghai",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "상하이",
+          "language": "ko",
+          "usage": "standard"
+        },
+        {
+          "text": "상해",
+          "language": "ko",
+          "usage": "historical",
+          "variantType": "historicalKoreanSinoReading",
+          "sourceUrl": "https://www.korean.go.kr/front/page/pageView.do?mn_id=97&page_id=P000146",
+          "note": "1912년 이전 한국어 지도명"
+        }
+      ],
+      "latitude": 31.22222,
+      "longitude": 121.45806,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/1796236/",
+      "sourceCountryCode": "CN",
+      "koMapLabels": [
+        {
+          "whenLocalToponym": "上海",
+          "before1912": "상해",
+          "from1912": "상하이"
+        }
+      ],
+      "defaultDisplayNameKo": "상하이",
+      "shortDescriptionKo": "1912년부터 한국어 표기 상하이",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "상해",
+          "nameEn": "Shanghai",
+          "nameNative": "上海",
+          "nativeLanguage": "zh",
+          "kind": "koreanEditorialTranscription",
+          "sourceUrl": "https://www.geonames.org/1796236/"
+        },
+        {
+          "fromDate": "1912-01-01",
+          "nameKo": "상하이",
+          "kind": "koreanEditorialTranscription",
+          "researchNote": "중화민국 건국일에 맞춘 한국어 지도 표기 기준 변경이며 중국 현지의 도시 개칭이 아님."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "defaultDisplayNameEn": "Shanghai",
+      "defaultDisplayNameNative": "上海",
+      "defaultNativeLanguage": "zh",
+      "nameSelectionNotes": [
+        "1912-01-01에는 한국어명만 변경; 원어 上海 및 영어 Shanghai는 동일.",
+        "옛 한국식 한자음 상해는 alternate 대신 historical 명칭으로 분류."
+      ]
+    },
+    {
+      "geonameId": 1273294,
+      "names": [
+        {
+          "text": "दिल्ली",
+          "language": "hi",
+          "usage": "standard",
+          "sourceUrl": "https://language.delhi.gov.in/",
+          "script": "Deva"
+        },
+        {
+          "text": "Delhi",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/1273294/"
+        },
+        {
+          "text": "델리",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/1273294/"
+        },
+        {
+          "text": "دہلی",
+          "language": "ur",
+          "usage": "standard",
+          "variantType": "coOfficialNativeLanguage",
+          "sourceUrl": "https://prsindia.org/files/bills_acts/acts_states/delhi/2003/2003Delhi8.pdf",
+          "script": "Arab"
+        },
+        {
+          "text": "ਦਿੱਲੀ",
+          "language": "pa",
+          "usage": "standard",
+          "variantType": "coOfficialNativeLanguage",
+          "sourceUrl": "https://prsindia.org/files/bills_acts/acts_states/delhi/2003/2003Delhi8.pdf",
+          "script": "Guru"
+        },
+        {
+          "text": "دهلی",
+          "language": "fa",
+          "usage": "historical",
+          "variantType": "mughalPersianEditorialNativeSelection",
+          "sourceUrl": "https://searcharchives.bl.uk/catalog/032-004341440",
+          "script": "Arab",
+          "researchNote": "1801년 지도용으로 선택한 페르시아어 지명형. 제시된 영국도서관 카탈로그는 당시 페르시아어 문서의 존재를 뒷받침하지만 이 도시명 철자의 직접 공문서 증거는 아니므로 확정적 법정명으로 주장하지 않는다."
+        }
+      ],
+      "latitude": 28.65195,
+      "longitude": 77.23149,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/1273294/",
+      "sourceCountryCode": "IN",
+      "defaultDisplayNameKo": "델리",
+      "shortDescriptionKo": "1858·1947·2004년 원어 표기 전환",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "델리",
+          "nameEn": "Delhi",
+          "nameNative": "دهلی",
+          "nativeLanguage": "fa",
+          "nativeNames": [
+            {
+              "text": "دهلی",
+              "language": "fa",
+              "script": "Arab"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://searcharchives.bl.uk/catalog/032-004341440",
+          "researchNote": "무굴기 페르시아어 대표명을 1801년 조사 시작점부터 잠정 적용. 1801년은 개칭일이 아니며, 초기 델리 행정의 정확한 공식 표기와 적용 기간은 추가 사료로 검증할 필요가 있다."
+        },
+        {
+          "fromDate": "1858-11-01",
+          "nameNative": "دہلی",
+          "nativeLanguage": "ur",
+          "nativeNames": [
+            {
+              "text": "دہلی",
+              "language": "ur",
+              "script": "Arab"
+            }
+          ],
+          "kind": "governingAuthorityEditorialLabelTransition",
+          "sourceUrl": "https://www.qdl.qa/en/archive/81055/vdc_100023510061.0x000089",
+          "researchNote": "영국 왕실 직접통치 개시를 기준으로 편집상 원어를 페르시아어에서 우르두어로 선정. 실제 우르두어 사용은 이전에도 있었으며 이 날짜는 언어 최초 채택·법정 도시 개칭일이 아니다."
+        },
+        {
+          "fromDate": "1947-08-15",
+          "nameNative": "दिल्ली",
+          "nativeLanguage": "hi",
+          "nativeNames": [
+            {
+              "text": "दिल्ली",
+              "language": "hi",
+              "script": "Deva"
+            },
+            {
+              "text": "دہلی",
+              "language": "ur",
+              "script": "Arab"
+            }
+          ],
+          "kind": "postIndependenceEditorialMultilingualTransition",
+          "sourceUrl": "https://nehruarchive.in/documents/urdu-and-hindi-regional-languages-of-delhi-24-september-1957-yj45w9",
+          "researchNote": "인도 독립일을 힌디어·우르두어 병기 시작의 지도 편집상 경계로 선택. 1947년 양 언어의 법정 동시 지정일이 아니다. 네루의 1957년 기록에 1952년 의회에서 힌디어·우르두어·영어가 사용됐다고 언급됨."
+        },
+        {
+          "fromDate": "2004-01-26",
+          "nativeNames": [
+            {
+              "text": "दिल्ली",
+              "language": "hi",
+              "script": "Deva"
+            },
+            {
+              "text": "دہلی",
+              "language": "ur",
+              "script": "Arab"
+            },
+            {
+              "text": "ਦਿੱਲੀ",
+              "language": "pa",
+              "script": "Guru"
+            }
+          ],
+          "kind": "coOfficialLanguageLegislationCommencement",
+          "sourceUrl": "https://cdnbbsr.s3waas.gov.in/s3ec0232b3ee0272954b956a7d1f86f76a/uploads/2024/05/2024050482.pdf",
+          "researchNote": "델리 공용어법(법령명 2000, 2003-07-02 공포)의 2004-01-26 시행을 기준으로 펀자브어를 추가. 힌디어·우르두어는 그대로 유지되며 당일 처음 사용되기 시작했다는 의미가 아니다. 정부 법률 원문은 별도 sourceUrl에서 확인."
+        }
+      ],
+      "historicalDisplayCoverage": "reviewed-since-1801-mughal-persian-form-provisional",
+      "defaultDisplayNameEn": "Delhi",
+      "defaultDisplayNameNative": "दिल्ली",
+      "defaultNativeLanguage": "hi",
+      "defaultNativeNames": [
+        {
+          "text": "दिल्ली",
+          "language": "hi",
+          "script": "Deva"
+        },
+        {
+          "text": "دہلی",
+          "language": "ur",
+          "script": "Arab"
+        },
+        {
+          "text": "ਦਿੱਲੀ",
+          "language": "pa",
+          "script": "Guru"
+        }
+      ],
+      "nameSelectionNotes": [
+        "Delhi(영어)·델리(한국어)는 모든 시기에 동일하므로 원어명 전환 때 중복 변경하지 않음.",
+        "1801~1858년 페르시아어 دهلی의 정확한 행정상 공식성은 추가 검증 대상으로 보존하며 1801년을 역사적 개칭일로 해석하지 않음.",
+        "1858-11-01과 1947-08-15는 정치체제 변화에 맞춘 편집상 대표 원어 전환일, 2004-01-26은 법령 시행일.",
+        "1947년에는 힌디어 दिल्ली와 우르두어 دہلی를 함께 선정, 2004년부터 펀자브어 ਦਿੱਲੀ를 추가. 세 현지어는 각각 독립된 실제 공적·사회적 사용이 확인되므로 같은 시점 병기를 허용.",
+        "1837년 언어개혁, 1950년 인도 헌법, 1952년 델리 의회 언어 사용은 이름 변경일과 구분. 뉴델리·샤자하나바드는 델리의 개칭명이 아니라 별도 지명/도시구역."
+      ],
+      "multilingualNativeNamePolicy": {
+        "status": "approved-exception",
+        "maxSimultaneousNativeNames": 3,
+        "selectedOrdering": [
+          "hi",
+          "ur",
+          "pa"
+        ],
+        "classification": "period-specific official/local usage and editorial selection; not legal city rename",
+        "evidenceUrls": [
+          "https://nehruarchive.in/documents/urdu-and-hindi-regional-languages-of-delhi-24-september-1957-yj45w9",
+          "https://prsindia.org/files/bills_acts/acts_states/delhi/2003/2003Delhi8.pdf",
+          "https://cdnbbsr.s3waas.gov.in/s3ec0232b3ee0272954b956a7d1f86f76a/uploads/2024/05/2024050482.pdf",
+          "https://artandculture.delhi.gov.in/art-and-culture/office-memorandum-regarding-order-official-languages-languages-other-hindi-and"
+        ],
+        "sourceCountryCodeNotHistoricalAuthority": true,
+        "firstDateEvidenceLimit": "The 1858 and 1947 transition dates are editorial markers, not documentary proof of first language use or de jure name change.",
+        "runtimeNote": "review-stage only: nativeNames[] are not yet serialized/displayed as multiple rows in PLAC v2."
+      }
+    },
+    {
+      "geonameId": 2643743,
+      "names": [
+        {
+          "text": "London",
+          "language": "en",
+          "usage": "standard"
+        },
+        {
+          "text": "런던",
+          "language": "ko",
+          "usage": "standard"
+        }
+      ],
+      "latitude": 51.50853,
+      "longitude": -0.12574,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2643743/",
+      "sourceCountryCode": "GB",
+      "defaultDisplayNameKo": "런던",
+      "shortDescriptionKo": "영국의 수도",
+      "displayTimeline": [],
+      "historicalDisplayCoverage": "reviewed-stable-since-1801",
+      "defaultDisplayNameEn": "London",
+      "defaultDisplayNameNative": "London",
+      "defaultNativeLanguage": "en",
+      "nameSelectionNotes": [
+        "London 명칭 유지. City of London과 Greater London은 도시 전체의 과거 개칭이 아님."
+      ]
+    },
+    {
+      "geonameId": 2988507,
+      "names": [
+        {
+          "text": "Paris",
+          "language": "fr",
+          "usage": "standard"
+        },
+        {
+          "text": "파리",
+          "language": "ko",
+          "usage": "standard"
+        }
+      ],
+      "latitude": 48.85341,
+      "longitude": 2.3488,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2988507/",
+      "sourceCountryCode": "FR",
+      "defaultDisplayNameKo": "파리",
+      "shortDescriptionKo": "프랑스의 수도",
+      "displayTimeline": [],
+      "historicalDisplayCoverage": "reviewed-stable-since-1801",
+      "defaultDisplayNameEn": "Paris",
+      "defaultDisplayNameNative": "Paris",
+      "defaultNativeLanguage": "fr",
+      "nameSelectionNotes": [
+        "Paris 명칭 유지. 2019년 Ville de Paris 행정조직 개편은 도시 자체의 개칭이 아님."
+      ]
+    }
+  ],
+  "countryCodeSemantics": "countryCode is GeoNames present-day source metadata only, never historical or computed sovereignty",
+  "territorialAssignment": {
+    "mode": "resolve-at-query-time",
+    "method": "point-in-polygon",
+    "position": "record latitude/longitude",
+    "geometry": "territorial polygons valid at requested historical date",
+    "persistResolvedCountry": false,
+    "notes": "Resolve border and time ambiguities explicitly; do not use countryCode as a fallback for historical ownership."
+  },
+  "coordinateSource": "GeoNames",
+  "coordinateConvention": "Dataset-wide WGS84 (EPSG:4326), decimal degrees; individual records store only latitude and longitude.",
+  "namePolicy": {
+    "storage": "One stable place ID with multilingual and historical variants in names[]",
+    "fields": "text, language (BCP 47), usage; optional variantType, officialPeriod/officialPeriods (year precision), commonlyUsedBeforeApproxYear, note, sourceUrl",
+    "deduplication": "Only one record when local and English spelling is identical; language matching for identical spellings is implicit",
+    "historicalDates": "Official periods are year-level approximations where source-grounded; written variants, transliterations, and names can overlap. Do not imply exclusive usage from start/end dates.",
+    "fallback": "Dates and display-language selection require separate runtime implementation. Do not infer a fixed name from sourceCountryCode.",
+    "koreanMapLabelPolicyFile": "reports/places/korean-map-label-policy.json",
+    "displayConvention": "The shared map-label policy is distinct from multilingual names[] and the factual usage/official periods of local names. Chinese koMapLabels values reference existing ko names[] and are applied after selecting the historically appropriate local toponym.",
+    "runtimeStatus": "Staging data only, no renderer integration.",
+    "preferredNameStage1": {
+      "status": "9-reviewed-of-9-staging-only",
+      "reviewedGeoNamesIds": [
+        1835848,
+        1838524,
+        1850147,
+        1853909,
+        1816670,
+        1796236,
+        1273294,
+        2643743,
+        2988507
+      ],
+      "pendingGeoNamesIds": [],
+      "currentNameFields": [
+        "defaultDisplayNameKo",
+        "defaultDisplayNameEn",
+        "defaultDisplayNameNative",
+        "defaultNativeLanguage"
+      ],
+      "historicalNameFields": "displayTimeline[] has nameKo and, where changed, nameEn/nameNative/nativeLanguage; omitted nameEn/native at transitions inherit the prior selected value.",
+      "rule": "One ko and en preferred name per map date. Native name is one normally or up to three simultaneous official/local forms under documented multilingual exception; each period's names correspond to the same city, not automatic sovereignty changes.",
+      "dates": "Use precise Gregorian fromDate only where verified. fromYear is approximate and is not automatically January 1.",
+      "exclusions": "Pre-1308 Namgyeong remains deferred. All nine first-batch cities have name selections; batches 2–15 are not audited. Delhi Persian official-name evidence is provisional.",
+      "runtimeStatus": "review-only; production place manifest and renderer unchanged",
+      "temporalPreferredFields": "displayTimeline[] holds fromYear or fromDate and only changed ko/en/native fields. For approved multilingual exceptions nativeNames[] replaces the full period's ordered list (1–3 entries), while nameNative/nativeLanguage remain the selected primary for the existing scalar interface.",
+      "newReviewedCities": [
+        1838524,
+        1853909,
+        1816670,
+        1273294
+      ],
+      "extraTimelineKinds": [
+        "governingAuthorityEditorialLabelTransition",
+        "historicalOrthographyEditorialTransition",
+        "postwarEditorialNameRestoration",
+        "englishRomanizationPolicyChange",
+        "postIndependenceEditorialMultilingualTransition",
+        "coOfficialLanguageLegislationCommencement"
+      ]
+    },
+    "multilingualNativeList": {
+      "allowedOnlyUnderApprovedException": true,
+      "maxNativeNames": 3,
+      "defaults": "defaultNativeNames[] is a list of {text,language,script} for the present date. Its first item must match defaultDisplayNameNative/defaultNativeLanguage.",
+      "historicTransitions": "displayTimeline[].nativeNames[] replaces the entire simultaneous local-language set from that transition date; omission means inherit the previously selected set. The scalar nameNative/nativeLanguage remains the first chosen primary if it changes.",
+      "noUnsupportedRuntimeClaims": "Only the staging review supports lists now. Published PLAC v2 still has one nameNative, and current app/web runtime is not changed by this review."
+    }
+  },
+  "historicalNameReview": {
+    "earliestYear": 1801,
+    "latestYear": 2026,
+    "scope": "Includes variants used since the 19th century, including inherited older names when still used in that period.",
+    "exclusions": [
+      "Dongnae-bu IS an administrative predecessor of Busan and Dongnae-gun later supplied incorporated territories; record this as territorial genealogy rather than a same-footprint name alias.",
+      "Busan-po was an historic port/settlement within Dongnae-bu and part of the city's historical formation; its footprint must not be conflated with all of Dongnae-bu or modern Busan.",
+      "Shahjahanabad is Old Delhi, not all modern Delhi",
+      "Shanghai Hu and Shen are abbreviations or nicknames, not official replacements"
+    ],
+    "placeRelationPolicy": "Historical jurisdictions, ports, municipal splitting and annexation are separate linked-place/territorial events, not mere historical names of a fixed point."
+  },
+  "historicalDisplayPolicyFile": "reports/places/historical-display-policy.json",
+  "historicalDisplayStatus": "timeline-staged-not-runtime"
+}
