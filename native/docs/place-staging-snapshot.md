@@ -1,11 +1,11 @@
-# 2026-10-11: 웹/앱 264개 지명 PLAC v3 실행 데이터 동기화
+# 2026-10-11: 웹·앱 지명 검수 264개 / 정식 표시 승인 163개
 
-- `work/places`의 조사 파일을 **22개 차수·고유 GeoNames ID 264개·시대별 명칭 구간 482개**로 확대했다. `reports/places/source-manifest.json`에서 모든 출처 파일의 Git blob SHA를 고정했다.
-- `assets/place/manifest.json`과 `assets/place/places-v1.bin`은 웹 `assets/data/places/`에 있는 것과 **동일한 Git blob**이다. PLAC v3 바이너리는 76,922바이트, SHA-256 `68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6`.
-- 앱 Qt 리소스에 데이터 바이너리를 번들하고 현행/역사 한국어·영어·원어 검색 및 달력 시점별 라벨 표시를 연결했다. 관련 Qt 테스트를 추가했다.
-- 다만 불확실한 이름·도시 형성기간·과거 국가 소속·역사적 다섯 등급은 자동 승인하지 않았다. `temporalEligibility`의 여러 도시활성 구간은 PLAC v3로 아직 직렬화되지 않는다.
-- 변경은 앱 `work/places` 브랜치에 있으며 **앱 `main` 통합 및 빌드된 사용자용 릴리스는 별개**다. 아래 내용은 최초 1~15차 동기화 시기의 누적 개발 기록으로 남긴다.
-
+- 웹·앱이 공유하는 역사 지명 원본은 22개 차수·264개 GeoNames 도시·482개 명칭 구간이다. 출처 파일은 `reports/places/source-manifest.json`에 고정한다.
+- **웹과 앱 지도 배포 데이터에는 검증 승인된 163개 도시·381개 명칭 구간만 포함**한다. 승인 보류 101개는 검색·지도 샤드에서 제외되며 원본 조사 JSON에는 그대로 보존된다.
+- 앱 `assets/place/manifest.json`과 `assets/place/places-v1.bin`은 웹의 승인 전용 배포 자산과 byte-identical이다. 배포 바이너리는 55,176바이트, SHA-256 `43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594`; manifest revision은 `approved-places-a912045657f35026`이다.
+- Qt 리소스에 승인된 PLAC v3 바이너리를 번들하고 한국어·영어·원어 검색 및 지도 시점별 이름 표시를 사용한다. 실제 표시/검색 허용은 Web의 명시적 승인 목록으로 제한한다.
+- 역사적 5등급 도시 중요도, 과거 주권, 일부 도시의 비연속적 생존기간은 **여전히 검증 보류**다. `temporalEligibility.activeIntervals[]`의 복수 존속기간은 PLAC v3 런타임에 직렬화되지 않는다.
+- 현재 변경은 앱 `work/places` 단계이며, `main` 통합 및 배포용 빌드는 별도 승인·검증 절차를 따른다. 아래 1~15차 기록은 조사·동기화 이력으로 유지한다.
 ---
 # 도시 명칭 1~15차 — 웹·앱 검수 자료 동기화
 

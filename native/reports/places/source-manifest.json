@@ -1,9 +1,9 @@
 {
   "schema": "pando-editor-readonly-place-staging-v1",
   "webRepo": "kimjeon-il/Pando",
-  "webCommit": "78624161a708e410254730134dcf0ba74230c404",
+  "webCommit": "3555ba5175a086e4951c666777584ef0cef736c7",
   "appTarget": "assets/place",
-  "status": "source-synced-and-bundled-plac-v3",
+  "status": "source-synced-and-approved-only-plac-v3",
   "files": [
     {
       "path": "reports/places/tier1-major-cities-batch01.json",
@@ -201,14 +201,15 @@
     "format": "PLAC-v3",
     "records": 163,
     "historicalNamePeriods": 381,
+    "stagedResearchRecords": 264,
+    "withheldUnapprovedRecords": 101,
+    "approvalSource": "kimjeon-il/Pando/reports/places/runtime-release-approvals-v1.json",
+    "approvalSha256": "57c4b9e5454d7ea258e9c23ed594984850bd16a7fe064130e0357bc76ff8797a",
     "manifestPath": "assets/place/manifest.json",
     "shardPath": "assets/place/places-v1.bin",
     "manifestGitBlobSha": "0a8dbe8f24a73332e25f5ae2dbd778d497ba2440",
     "shardGitBlobSha": "ef2ca390d9e369a01ca1c19cb5c2094ed5ac49b7",
     "shardSha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
-    "verificationNote": "Byte-identical to the curated Web work/places approved-only PLAC v3 binary and manifest: 163 explicitly approved cities, 101 withheld for further verification. Historical rank and uncertain lifetimes are not inferred.",
-    "stagedRecords": 264,
-    "withheldRecords": 101,
-    "manifestRevision": "approved-places-a912045657f35026"
+    "verificationNote": "Runtime binary and manifest are byte-for-byte identical to Web 163 explicitly approved city release at pinned Web commit. The 264 city research corpus remains staging; 101 unapproved records are absent from runtime/search."
   }
 }
