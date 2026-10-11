@@ -53,6 +53,17 @@ test('published PLAC v3 bytes decode every place with historical name transition
   assert.ok(resolvePlaceLabelRows(minsk, triple, '1997-01-01').map(x => x.text).includes('Минск'));
   assert.ok(!hasPlaceNameCoverage(byId.get('2172517'), '1900-01-01'));
   assert.ok(hasPlaceNameCoverage(byId.get('2172517'), '1913-03-12'));
+  // A source-reviewed city cannot appear before its verified modern urban start,
+  // even if the research record's name survey happens to begin in 1801.
+  for (const [id, lastBefore, firstAt] of [
+    ['1835235', '1904-12-31', '1905-01-01'],
+    ['1526273', '1829-12-31', '1830-12-31'],
+    ['1528675', '1867-12-31', '1868-12-31'],
+    ['162183', '1880-12-31', '1881-12-31'],
+  ]) {
+    assert.equal(hasPlaceNameCoverage(byId.get(id), lastBefore), false, id + ' appeared before urban founding');
+    assert.equal(hasPlaceNameCoverage(byId.get(id), firstAt), true, id + ' missing after founding');
+  }
 });
 
 test('all selected present and historic languages are searchable without custom project labels', async () => {
@@ -91,6 +102,9 @@ test('approval rules fail closed on provisional evidence or unresolved identity'
     candidatePolicyException: { autoPromoted: false } }, 17), /Unresolved city identity/);
   assert.throws(() => validateRuntimeApproval({ ...base,
     urbanIdentityReview: { autoTierApproved: false } }, 17), /Unresolved city identity/);
+  assert.throws(() => validateRuntimeApproval({ ...base,
+    temporalEligibility: { activeIntervals: [{ untilYear: 1873 }] } }, 17),
+    /Multi-episode urban eligibility/);
   assert.throws(() => validateRuntimeApproval({ ...base, geonameId: 3046446 }, 7),
     /Former Pest city requires/);
 });
