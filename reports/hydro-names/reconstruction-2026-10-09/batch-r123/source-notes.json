@@ -1,0 +1,769 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r123",
+  "sources": [
+    {
+      "title": "Mapa Municipal: Nova Esperança do Piriá – PA, 1504950",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências / Coordenação de Estruturas Territoriais",
+      "collection_year": 2020,
+      "printed_edition": "04/2021",
+      "source_kind": "primary_original_municipal_cartography",
+      "actually_read": "Complete original overview, selected headward corridor, upper/northeastern channel details and readable margin/notice. Selected hydrology observations come from original pixels, not the discovery snippets.",
+      "cartographic_notes": "SIRGAS2000 geographic coordinates; displayed scale bar0–4000–8000m. Semi-automated municipal compilation; no hydrological-survey or formal registry claim.",
+      "copyright_and_use_notice": "Printed IBGE reproduction rights reserved. Printed note describes a semi-automated compilation from the municipal digital mesh with varied updates, developed for exclusive IBGE collection/tabulation statistical activities, disclaims other uses and responsibility. Factual bounded observations only are reported; originals and crops remain private.",
+      "limits": "Generalized statistical reference cartography. Initial feeder label, exact spring, formal naming status and exact name transitions unestablished.",
+      "source_key": "IBGE_NOVA_ESPERANCA_2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/nova_esperanca_do_piria/1504950_MM.pdf"
+    },
+    {
+      "title": "Mapa Municipal: Viseu – PA,1508308",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências / Coordenação de Estruturas Territoriais",
+      "collection_year": 2020,
+      "printed_edition": "04/2021",
+      "source_kind": "primary_original_municipal_cartography",
+      "actually_read": "Complete original overview and bounded overlapping upper, middle, São José do Piriá, inner estuary and coastal context details; readable title/legend/margin/notice. Map correspondence is visual.",
+      "cartographic_notes": "SIRGAS2000 geographic coordinates; displayed scale bar0–4000–8000m. Includes adjoining territory for context. The separate Gurupi channel and Atlantic receiving water are visible.",
+      "copyright_and_use_notice": "Printed IBGE reproduction rights reserved. Printed note describes a semi-automated compilation from the municipal digital mesh with varied updates, developed for exclusive IBGE collection/tabulation statistical activities, disclaims other uses and responsibility. Factual bounded observations only are reported; originals and crops remain private.",
+      "limits": "Generalized statistical reference cartography, not a navigation chart, bank survey or proof of current tidal connectivity in every side channel. Exact outer mouth and hydronym boundaries not established.",
+      "source_key": "IBGE_VISEU_2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/viseu/1508308_MM.pdf"
+    },
+    {
+      "title": "Macrobenthic community of an estuarine tidal flat on the Amazon coast: spatial variations and presence of polychaetes tubes",
+      "authors": [
+        "Thuareag Monteiro Trindade dos Santos",
+        "Daiane Aviz"
+      ],
+      "publisher": "Papéis Avulsos de Zoologia, Universidade de São Paulo",
+      "year": 2021,
+      "citation": "Santos,T.M.T. dos, and Aviz,D.2021. Papéis Avulsos de Zoologia61:e20216149. Published4June2021.",
+      "doi": "https://doi.org/10.11606/1807-0205/2021.61.49",
+      "landing_url": "https://revistas.usp.br/paz/article/view/174421",
+      "source_kind": "primary_research_article_with_original_study_area_map",
+      "actually_read": "Original Figure1A at printed page2/9 and adjacent Study area prose on pages2–3; title/bibliography and publisher licence section. Figure map visually read after complete original acquisition.",
+      "source_observation": "Figure1A shows the Piriá estuary opening northeast toward the Atlantic Ocean, west of the separately labelled Gurupi River. The selected terminal falls in its inner widening estuarine corridor. Study-area prose describes a tidal muddy-sandy flat in the Piriá estuary, with semidiurnal macrotidal regional conditions.",
+      "copyright_and_use_notice": "Publisher page states copyright2021 Papéis Avulsos de Zoologia, names the authors as copyright holders and identifies Creative Commons Attribution4.0 International. Author responsibility for content is stated. No original article/figure is republished in this task.",
+      "limits": "Regional study-area outline supplies estuary/receiving-water corroboration only, not headwaters or precise tidal-channel boundaries. Its referenced2010 ICMBio plan is marked unpublished and was not acquired or treated as independently read evidence.",
+      "source_key": "SANTOS_AVIZ_2021",
+      "official_url": "https://revistas.usp.br/paz/article/download/174421/172131"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 9, Lambert Land",
+      "author": "Hans F. Jepsen",
+      "publisher": "Geological Survey of Denmark and Greenland (GEUS), Copenhagen",
+      "year": 2000,
+      "scale": "1:500 000",
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/GDCZIS",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16484",
+      "acquired_scope": "Complete original retained from r117, reused locally without any network request. The original map, its printed graticule, legend, imprint and overlapping headward, middle, northern and terminal crops were actually rendered and visually read in r123.",
+      "supports": "Full ordinary generalized geographic correspondence of the single selected mainstem FID 8834: western ice opening; western southern Kronprins Christian Land/Skallingen terrain and valley connectors; western Centrum Sø drainage-valley crossing; northern exposed-land continuation; Fyns Sø/Holbæk Bugt setting and actual ending in the southern Holbæk Bugt arm of Danmark Fjord.",
+      "limits": "Historical geological cartography with an aerial-photograph topographic base, WGS84 UTM zone 27, and 200 m contours. It supports corridor/terrain/water-body setting, not a continuous natural-river trace, a subglacial river, current flow direction, present ice margin, exact surveyed mouth or formal naming status.",
+      "reuse_limit": "The retained official Custom Dataset Terms permit internal use/processing and restrict redistribution and production or transfer of new maps. Original PDF, local crops, orientation/comparison material and all cartographic derivatives remain private. Only independently written facts and ordinary bibliography are prepared for consolidation.",
+      "source_key": "r123-geus-lambert-land-sheet9-2000-retained"
+    },
+    {
+      "title": "Delta del Orinoco. Paisaje natural: Hidrografía: entre islas y caños. Unidad natural 7, lámina 173",
+      "author_publisher": "Ediciones Fundación Empresas Polar; investigación Alejandro Reyes y Nelson Olmos",
+      "year": 2012,
+      "scale": "1:1,633,000",
+      "isbn": "978-980-379-308-1",
+      "material_read": "Original complete cartographic sheet, hydrographic legend, credits and supporting prose. Río Arature, Río Grande, Boca Grande and separate neighboring waterways were visually read.",
+      "coverage_limit": "Regional-scale map resolves the lower delta setting but simplifies the upper southern tributary and connecting network. Its credits to GeoVenezuela cartographic material and an official SAGECAN Delta Amacuro map do not mean those underlying originals were acquired.",
+      "source_use_notice": "Fundación Empresas Polar publication with printed 2012 attribution; original and derivatives remain private. Official or publisher hosting is not treated as redistribution permission.",
+      "source_key": "fep-delta173-2012",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/16960/geo_u7_l173_delta_hidrografia.pdf"
+    },
+    {
+      "title": "Estado Delta Amacuro. GeoVenezuela, tomo 6, capítulo 45, pp. 126–197",
+      "author_publisher": "Carmen Eleonora Rondón León; Fundación Empresas Polar",
+      "year": null,
+      "year_note": "A publication year was not independently established from the inspected extract.",
+      "material_read": "Original chapter PDF. Relevant physical-geography prose around pp. 135 and 137–141, regional context around p. 145 and p. 185, fig. 9 settlement mapping at pp. 162–163, and original fig. 14 at p. 186 were read. The map images, not merely text extraction, were inspected.",
+      "coverage_limit": "Fig. 9 supplies lower settlement context including Boca de Arature. Fig. 14 is a broad thematic map credited to DCOC–Infrawin y Asociados, 1996, and does not settle the material upper connectors. Prose distinguishes Brazo Imataca, Arature, Basama and Amacuro/Barima; it does not establish a single hydronym for the selected route.",
+      "source_use_notice": "Original chapter and local working figures retained privately; no distribution permission inferred.",
+      "source_key": "fep-delta45",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1045/gv_t6_c45_p126_197_lres_single_preview.pdf"
+    },
+    {
+      "title": "Mapa de geología. Hoja de radar NB-20-4",
+      "author_publisher": "Corporación Venezolana de Guayana, Gerencia General de Desarrollo Industrial y Minero, P.I.R.N.R.G.; interpretado y elaborado por Edixon Salazar y Cruz Briceño S.; revisado por Gustavo Sardi",
+      "date": "August 1987, printed as AGOSTO 87",
+      "scale": "1:250,000",
+      "catalogue_url": "https://commons.wikimedia.org/wiki/File:NB-20-4.jpg",
+      "material_read": "Original high-resolution geological sheet, geographic grid, hydrographic linework and names, title block, conventional signs and marginal base-map notes. Upper selected corridor was read across the sheet.",
+      "coverage_limit": "Covers the selected southern corridor. Geological contacts and fine/discontinuous drainage lines leave the Surumo-to-Santa María relationship unresolved. The geological/alluvial polygons do not establish water-body passages.",
+      "publication_identity": "Independently issued CVG geological map with its own printed title, authors, date and content; not the USGS Bulletin 1960 report and not the JOG (Air) Guasipati NB20-03 chart.",
+      "source_use_notice": "Printed cartographic note attributes the basic radar mosaic to Aero Service Corporation, a division of Litton Industries, and Goodyear Aerospace Corporation. A marginal boundary-recognition disclaimer was read. No limited-distribution notice was observed on the inspected original. Repository public-domain labeling is a hosting claim, not a substitute for the map's identity or authority; source and derivatives remain private.",
+      "source_key": "cvg-nb2004-1987",
+      "official_url": "https://upload.wikimedia.org/wikipedia/commons/d/dc/NB-20-4.jpg"
+    },
+    {
+      "title": "Mapa de geología. Hoja NC-20-16",
+      "author_publisher": "C.V.G. Técnica Minera C.A., Gerencia de Proyectos Especiales, Proyecto Inventario de los Recursos Naturales (P.I.R.N.R.G.); interpretado y elaborado por Miguel Martínez; revisado por Galo Yánez y Alfredo Menéndez; aprobado por Galo Yánez",
+      "year": null,
+      "year_note": "Repository catalogue gives 1987; the original title block's date field is blank, so the printed edition year is not asserted.",
+      "scale": "1:250,000",
+      "catalogue_url": "https://commons.wikimedia.org/wiki/File:NC-20-16.jpg",
+      "material_read": "Original high-resolution sheet, title block, legend, map margins and hydrographic coverage across the selected northern corridor, including Guayocaicara, Arature and the receiving Río Grande/Boca Grande setting.",
+      "coverage_limit": "The lower correspondence is clear. The fine drainage relationship around the Cuyubini/El Terror and Guayocaicara transition remains unresolved; separate branches are not joined solely because the selected model line crosses the setting.",
+      "publication_identity": "CVG–TECMIN primary geological map, independently identified by publisher, sheet, credits and content, distinct from the stopped USGS report and the unrequested restricted JOG chart.",
+      "source_use_notice": "Original credits cite CODESUR radar imagery and other remote-sensing cartographic bases. Conventional signs distinguish permanent and intermittent currents. No limited-distribution notice was observed on the inspected original. Commons public-domain statements are repository licensing assertions; no official hydronym-register status is inferred and no original or derivative is published.",
+      "source_key": "cvg-nc2016",
+      "official_url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/NC-20-16.jpg"
+    },
+    {
+      "title": "Estado Bolívar, edición 4, 1996",
+      "author_publisher": "Ministerio del Ambiente y de los Recursos Naturales Renovables, SAGECAN",
+      "year": 1996,
+      "edition": "4, printed on original",
+      "catalogue_url": "https://commons.wikimedia.org/wiki/File:Estado_Bol%C3%ADvar_-_SAGECAN_1996.jpg",
+      "material_read": "Original full state map, title/edition and northern/eastern corridor coverage. The southern delta setting, Imataca relief and Santa Marta label were inspected.",
+      "coverage_limit": "The map generalizes neighboring Delta Amacuro drainage and does not settle the two fine branch relationships. Its northern extent does not supply the selected Arature terminal; that terminal is established from the other original maps.",
+      "publication_identity": "Distinct Estado Bolívar fourth edition 1996 state map, not the unavailable Estado Delta Amacuro third edition 1994 sheet.",
+      "source_use_notice": "Printed official agency and edition read on the scan; political-territorial note references the Estado Bolívar extraordinary gazette dated 25 January 1996. Repository licensing statements are not treated as source-map facts or permission to redistribute. Original and derivatives remain private.",
+      "source_key": "sagecan-bolivar-1996",
+      "official_url": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Estado_Bol%C3%ADvar_-_SAGECAN_1996.jpg"
+    },
+    {
+      "title": "Apéndice cartográfico de GeoVenezuela, catalogue listing",
+      "author_publisher": "Fundación Empresas Polar",
+      "material_read": "Previously retained successful catalogue HTML, read locally; the Estado Delta Amacuro entry was plain listing text without an original-map link in the inspected entry.",
+      "coverage_limit": "Catalogue discovery only, not original map content. No claim of inspecting the appendix's Delta Amacuro sheet is made.",
+      "source_use_notice": "A listing without a downloadable link is not a publication-wide denial. This observation does not transfer the earlier Monagas listing situation to a separate Delta publication.",
+      "source_key": "fep-appendix-listing",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/publicaciones/colecciones/apendice-cartografico/"
+    },
+    {
+      "title": "Mapa Vial del Distrito de Tanta, Provincia de Yauyos, Departamento de Lima, hoja 151028",
+      "author": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "date": "September 2017",
+      "scale": "1:65,000",
+      "observed_layer": "Original one-page A1 cartography; full page and bounded enlargements inspected",
+      "coverage": "Ticllacocha outlet, lateral Piscococha/Chuspicocha settings, Tanta, Paucarcocha and eastward continuation",
+      "use_limits": "Printed map credits retained: DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP and MINEDU. Generalized road-map hydrography, not a hydronym registry. Original and private working figures are not redistributed.",
+      "source_key": "MTC_TANTA_2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Distritales/Lima/LM_151028%20TANTA.pdf"
+    },
+    {
+      "title": "Mapa Vial del Distrito de Huancaya, Provincia de Yauyos, Departamento de Lima, hoja 151014",
+      "author": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "date": "September 2017",
+      "scale": "1:55,000",
+      "observed_layer": "Original one-page A1 cartography; full page and bounded enlargements inspected",
+      "coverage": "Paucarcocha-to-Vilca continuation, southward Cañete corridor through Huancaya and Vitis",
+      "use_limits": "Printed institutional/input credits preserved. It generalizes some lake-like reaches as river channels; named lake settings are supplemented by the separately acquired PROMPERÚ map. Original and private working figures remain private.",
+      "source_key": "MTC_HUANCAYA_2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Distritales/Lima/LM_151014%20HUANCAYA.pdf"
+    },
+    {
+      "title": "Mapa Vial Lima, hoja 15",
+      "author": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "date": "July 2017",
+      "scale": "1:400,000",
+      "observed_layer": "Original one-page A0 cartography; full page and all selected-corridor enlargements inspected",
+      "coverage": "Whole selected corridor and major lateral junctions; detailed head and coast supplied by district maps",
+      "use_limits": "Generalized map does not individually depict or name every reservoir. Printed input credits retained. No original map, crop or coordinate reconstruction is released.",
+      "source_key": "MTC_LIMA_2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Departamentales/15-LIMA.pdf"
+    },
+    {
+      "title": "Mapa Vial del Distrito de San Vicente de Cañete, Provincia de Cañete, Departamento de Lima, hoja 150501",
+      "author": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "date": "September 2017",
+      "scale": "1:60,000",
+      "observed_layer": "Original one-page A1 cartography; full page, lower valley and mouth enlargements inspected",
+      "coverage": "Ramadilla/lower agricultural valley to actual Pacific coast via Puente Henry Aramayo and Herbay Bajo",
+      "use_limits": "Generalized hydrography; no exact channel-bank or modern mouth-point claim. Printed credits and private-only source-image treatment preserved.",
+      "source_key": "MTC_SANVICENTE_2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Distritales/Lima/LM_150501%20SAN%20VICENTE%20DE%20CA%C3%91ETE.pdf"
+    },
+    {
+      "title": "Mapa Vial Ica, hoja 11",
+      "author": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "date": "July 2017",
+      "scale": "1:300,000",
+      "observed_layer": "Previously retained original cartography; northern Cañete corridor inspected locally without a new acquisition",
+      "coverage": "Supplementary Catahuasi–Zúñiga–Pacarán–Lunahuaná–Socsi corridor; not used alone to establish the actual mouth",
+      "use_limits": "Only bounded northern overlap used. Prior printed credits and private-only source-image boundary preserved.",
+      "source_key": "MTC_ICA_2017_RETAINED",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Departamentales/11-ICA.pdf"
+    },
+    {
+      "title": "Modelización hidrológica de la cuenca del Cañete y evaluación del impacto del cambio climático",
+      "author": "Javier Fluixá Sanmartín and Javier García Hernández, CREALP; edited by CARE Perú, Proyecto Glaciares+",
+      "date": "First edition January 2018; printed February 2018",
+      "observed_layer": "Original 58-page report; bounded primary prose, station table and Figures 2.1, 2.2, 2.5, 2.6, 3.8 and 3.9 actually inspected",
+      "pages_used": "6, 8–10, 15–17",
+      "coverage": "Basin-to-Pacific context; mapped Chavín/Capillucas, Tupe/Cacra and restitution stations; Paucarcocha and Capillucas reservoir roles; El Platanal return to Cañete",
+      "use_limits": "Hydrological modeling report, not a naming register. Its schematic model links are explicitly not independent cartographic proof. The study's capacities, modeled reach lengths and operational values are not imported as current facts or official river lengths. Credits to CARE Perú, COSUDE and the Swiss–Peruvian project consortium preserved; original PDF and figures remain private.",
+      "source_key": "CANETE_MODEL_2018",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-lima/archivos/public/docs/informe-sobre-modelizacion-hidrologica-hidrologica-y-cambio-climatico-en-cuenca-del-canete-2018.pdf"
+    },
+    {
+      "title": "Rutas cortas desde Lima, chapter Escaleras al cielo: Laraos, Huancaya y Vilca",
+      "author": "Comisión de Promoción del Perú para la Exportación y el Turismo, PROMPERÚ",
+      "date": "Copyright 2019; acquired colophon prints Lima, enero 2020 and contains unresolved production placeholders, so a fully finalized edition designation is not asserted",
+      "pages_used": "Printed map p.95 (PDF page99); prose pp.98–99 (PDF pages102–103); source-use notices on PDF pages2 and126",
+      "observed_layer": "Original institutional tourist cartography and bounded accompanying prose",
+      "coverage": "Papacocha/Vilca, Hualhua/Huancaya, Vitis/Piquecocha, Tinco Alis and Llapay; eastern Río Alis distinguished from Río Cañete",
+      "use_limits": "Printed ©PROMPERÚ2019, all rights reserved; free distribution and sale prohibited. These notices are preserved and are not treated as permission to redistribute the PDF or map crops. Tourist routes/maps are generalized; the colophon contains unresolved production placeholders. The report uses only ordinary factual observations and citations.",
+      "source_key": "PROMPERU_RUTAS_CORTAS",
+      "official_url": "https://repositorio.promperu.gob.pe/bitstreams/13911215-c03b-44fe-a702-e73947b08391/download"
+    },
+    {
+      "title": "Inventario Nacional de Recursos Turísticos: Bosque del Amor de Vilca, ficha12098",
+      "author": "MINCETUR; record prepared by Dirección Regional de Comercio Exterior y Turismo, Gobierno Regional de Lima",
+      "observed_layer": "Successfully opened primary official inventory prose; no map observation attributed to this page",
+      "coverage": "Papacocha, Bosque del Amor and Cañete-channel cascade setting at Vilca",
+      "use_limits": "Only bounded physical-setting prose used. Myths, tourism recommendations and the local Huarqo wording are not treated as formal registry naming evidence.",
+      "source_key": "MINCETUR_BOSQUE_12098",
+      "official_url": "https://consultasenlinea.mincetur.gob.pe/fichaInventario/index.aspx?cod_Ficha=12098"
+    },
+    {
+      "title": "Inventario Nacional de Recursos Turísticos: Mirador de Huallhua de Huancaya, ficha12350",
+      "author": "MINCETUR; Dirección Regional de Comercio Exterior y Turismo, Gobierno Regional de Lima",
+      "date": "Record displays 18 September 2023",
+      "observed_layer": "Successfully opened primary official inventory prose",
+      "coverage": "Huallhua and connected river pools separated by cascades/short channels in the Huancaya–Vilca corridor",
+      "use_limits": "Prose corroboration only; no map pixels or exact lake boundary inferred from the page.",
+      "source_key": "MINCETUR_HUALLHUA_12350",
+      "official_url": "https://consultasenlinea.mincetur.gob.pe/fichaInventario/index.aspx?cod_Ficha=12350"
+    },
+    {
+      "title": "Inventario Nacional de Recursos Turísticos: Laguna Huallhua de Huancaya, ficha6543",
+      "author": "MINCETUR; Dirección Regional de Comercio Exterior y Turismo de Lima",
+      "date": "Record displays 12 October 2023",
+      "observed_layer": "Successfully opened primary official inventory prose",
+      "coverage": "Distinct named lake and Huancaya setting",
+      "use_limits": "Only lake identity/context used. Travel directions, nearest-town assertion, dimensions and legend are not used to establish the selected river geometry.",
+      "source_key": "MINCETUR_HUALLHUA_6543",
+      "official_url": "https://consultasenlinea.mincetur.gob.pe/fichaInventario/index.aspx?cod_Ficha=6543"
+    },
+    {
+      "title": "Inventario Nacional de Recursos Turísticos: Río Cañete – Sección Catapalla–Socsi, ficha12263",
+      "author": "MINCETUR; Dirección Regional de Comercio Exterior y Turismo, Gobierno Regional de Lima",
+      "observed_layer": "Successfully opened primary official inventory prose",
+      "coverage": "Ticllacocha source context and named Catapalla–Socsi reach in Lunahuaná",
+      "use_limits": "Supporting prose, not full-route cartography or formal hydronym registration; lengths and tourism details are not imported.",
+      "source_key": "MINCETUR_CANETE_12263",
+      "official_url": "https://consultasenlinea.mincetur.gob.pe/fichaInventario/index.aspx?cod_Ficha=12263"
+    },
+    {
+      "title": "Plan Maestro de la Reserva Paisajística Nor Yauyos Cochas2022–2027, approved by Resolución Presidencial264-2022-SERNANP",
+      "author": "Servicio Nacional de Áreas Naturales Protegidas por el Estado",
+      "date": "15 November 2022; Map1 printed July2022",
+      "pages_used": "Printed pp.8,24,90 and124–125; PDF pages16,32,98,132–133",
+      "observed_layer": "Original primary conservation-plan prose and generalized zoning map; contextual only",
+      "coverage": "Independent distinction of named upper lakes and the Nor Yauyos protected-area setting",
+      "use_limits": "Map1 is an embedded low-resolution1:250,000 zoning map and not used for precise lake connectors. The inspected Annex5 heading is followed by no usable base map before Annex6 on the next page; no missing map is claimed as read or recovered. Existing photographs carry individual copyright credits. All originals and private figures remain private.",
+      "source_key": "SERNANP_PLAN_2022_CONTEXT",
+      "official_url": "https://cdn.www.gob.pe/uploads/document/file/3842785/RESOLUCION%20PRESIDENCIAL%20N%20264-2022-SERNANP.pdf.pdf?v=1668626265"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60471949",
+      "source_keys": [
+        "IBGE_NOVA_ESPERANCA_2020",
+        "IBGE_VISEU_2020",
+        "SANTOS_AVIZ_2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13695
+          ],
+          "component_scope": "Initial headward feeder southwest of Nova Esperança do Piriá",
+          "finding": "The Nova Esperança original shows the corresponding small channel along the Cabeceira do Piriá/Cabeceira setting, through the Novo Horizonte corridor and northeast toward Nova Esperança do Piriá. This is visually followed as a watercourse, distinct from the red road lines. The locality label Cabeceira do Piriá is not itself treated as a hydronym or a surveyed spring. Separate Igarapé Jipuiuba and Pitrol labels are not transferred to the initial selected channel.",
+          "sources": [
+            "IBGE_NOVA_ESPERANCA_2020"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Initial feeder correspondence is established without assigning an individual hydronym.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13695
+          ],
+          "component_scope": "Nova Esperança, Alto Rio Guamá margin and Cristal–Japim corridor",
+          "finding": "The Nova Esperança map traces the connected river northeast through the Água Preta and Sete Barracas setting to Vila do Cristal and Japim. Printed Rio Piriá labels identify the river beside Cristal and Japim. The Igarapé Água Preta, Igarapé Grande and Igarapé Santo Antônio approaches remain distinct tributary settings. Overlapping Viseu cartography follows the same northward channel and the northeast turn toward BR-316 west of Cachoeira do Piriá. The green/brown administrative and protected-area boundaries are not substituted for the watercourse.",
+          "sources": [
+            "IBGE_NOVA_ESPERANCA_2020",
+            "IBGE_VISEU_2020"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Bounded river labels and corridor identity only; no exact headward name-transition point or tributary renaming.",
+          "mapped_component_name": "Rio Piriá"
+        },
+        {
+          "fragments": [
+            13695,
+            13696
+          ],
+          "component_scope": "BR-316 to Curupaiti and the broad lower-river bends",
+          "finding": "The Viseu original overlaps the fragment transition at BR-316 and labels Rio Piriá on the river northwest of Cachoeira do Piriá. It follows the channel north through the Vila Carrapatinho setting to Curupaiti, the BR-308 crossing, Bucuteua and the lower bend beside Porto da Firmiana. The western lateral drainage approaching the Curupaiti corridor remains a tributary; the east-side Gurupi corridor is a separate river. The wide meanders and water-filled side areas in the lower reach are river/estuarine features, not evidence for a separately named lake or reservoir.",
+          "sources": [
+            "IBGE_VISEU_2020"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "The map supports the connected representative river corridor; no name assigned to each unlabelled small tributary or lateral water area.",
+          "mapped_component_name": "Rio Piriá"
+        },
+        {
+          "fragments": [
+            13696,
+            13697
+          ],
+          "component_scope": "São José do Piriá to the Beira Mar do Piriá estuarine approach",
+          "finding": "The Viseu original shows the Rio Piriá-labelled meanders below Porto da Firmiana, the passage beside São José do Piriá and Itaçu, and the continuing channel beside Beira Mar do Piriá and Itamixila. This is the western estuarine river arm, separated from the Rio Gurupi at Viseu town to the east. Several tidal side channels are visible, but the selected northbound corridor remains geographically distinguishable.",
+          "sources": [
+            "IBGE_VISEU_2020"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Estuarine continuation is included in representative identity. No claim that every lateral tidal branch has the same hydronym.",
+          "mapped_component_name": "Rio Piriá"
+        },
+        {
+          "fragments": [
+            13697
+          ],
+          "component_scope": "Selected tidal terminal and Atlantic receiving setting",
+          "finding": "The Viseu original follows the selected continuation east of the Novo Jardim/Ararapá/Conxíndua setting into the wider tidal water west of the Itacupim landmass, with further estuarine water leading to the labelled Oceano Atlântico. Santos and Aviz Figure 1 independently labels this western estuary Piriá River, the eastern estuary Gurupi River and the outer receiving water Atlantic Ocean. The selected terminal is understood at this generalized widening-estuary scale; it is not promoted to an exact outer shoreline or ocean-mouth point.",
+          "sources": [
+            "IBGE_VISEU_2020",
+            "SANTOS_AVIZ_2021"
+          ],
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "name_scope_limit": "Piriá estuarine corridor, separate Atlantic receiving water and adjacent Gurupi system; individual tidal-channel names remain null.",
+          "mapped_component_name": "Rio Piriá",
+          "receiving_water_name": "Oceano Atlântico"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90007952",
+      "source_keys": [
+        "r123-geus-lambert-land-sheet9-2000-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8834
+          ],
+          "component_scope": "Headward ice opening and northward transition",
+          "finding": "The southern opening and long initial northward approach lie in the mapped ice/perennial-snow setting west of Lambert Land. Farther north the route reaches the ice/exposed-land margin and southern western Kronprins Christian Land, west of the Blåsø and Skallingen setting. The source distinguishes the ice area from bedrock and intervening Quaternary-covered valleys. No named river is established for the long model-aligned opening.",
+          "sources": [
+            "r123-geus-lambert-land-sheet9-2000-retained"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "Ice contours and the selected straight segments are not interpreted as a mapped surface or subglacial river.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8834
+          ],
+          "component_scope": "Westward bend and northward western terrain connector",
+          "finding": "The model turns west across the western exposed-land margin south of the Centrum Sø valley, then turns north close to that margin. The full bend, intervening bedrock and small Quaternary-covered valley crossings are visible. The map does not depict these land-crossing model steps as one consistently named natural channel.",
+          "sources": [
+            "r123-geus-lambert-land-sheet9-2000-retained"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "No adjacent geological-unit name, small channel or land label is promoted to a river name.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8834
+          ],
+          "component_scope": "Eastward loop and western Centrum Sø valley",
+          "finding": "The middle route makes an eastward and northward loop through the western Skallingen/Kronprins Christian Land terrain and the mapped valley system southwest and west of Centrum Sø. It reaches and crosses the western valley junction associated with Centrum Sø before returning north. The original explicitly distinguishes the lake body to the east, Quaternary-covered valley floors and exposed bedrock on either side.",
+          "sources": [
+            "r123-geus-lambert-land-sheet9-2000-retained"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "Centrum Sø is a distinct lake-context label. The review does not rename the entire selection after the lake or require pointwise agreement with small valley channels.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8834
+          ],
+          "component_scope": "Northern inland continuation",
+          "finding": "North of the western Centrum Sø valley the selected route proceeds across the mapped exposed-land belt of Kronprins Christian Land toward its westward turn. The entire interval is visible, with relief, local streams and small lakes differentiated from the broad ice area farther east. There is no unread geographic connector in this interval.",
+          "sources": [
+            "r123-geus-lambert-land-sheet9-2000-retained"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "The apparent model alignment is not accepted as evidence of a continuous natural river across the terrain.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8834
+          ],
+          "component_scope": "Northwestern turn and actual Holbæk Bugt ending",
+          "finding": "After the westward turn the selected corridor continues north along the western exposed-land belt, east of the mapped Fyns Sø/Skjoldungeelv context. Its final northeastward approach reaches the southern inner arm labelled Holbæk Bugt, connected northward to Danmark Fjord near Kap Holbæk and Kap Trend. This is the actual northern terminal setting, distinct from the southern Nioghalvfjerdsfjorden/Lambert Land setting and from Centrum Sø.",
+          "sources": [
+            "r123-geus-lambert-land-sheet9-2000-retained"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "Holbæk Bugt is a bay/fjord-arm context, Fyns Sø is a separate lake, and Skjoldungeelv is a separately labelled neighboring watercourse. None is supported as a representative hydronym for the complete selected modeled route.",
+          "mapped_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60022881",
+      "source_keys": [
+        "cvg-nb2004-1987",
+        "cvg-nc2016",
+        "sagecan-bolivar-1996",
+        "fep-delta173-2012",
+        "fep-delta45"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10854
+          ],
+          "component_scope": "Headward Surumo corridor south of Cerro La Salvación and toward La Introducción",
+          "finding": "The original NB-20-4 geological sheet places the selected western headward setting on the Río Surumo corridor and shows nearby Cerro La Salvación, Corre Gente and La Introducción. Surumo remains separately labeled. The headward setting and broad course are readable; the selected onward northward transition toward Santa María is not established from the finer linework.",
+          "sources": [
+            "cvg-nb2004-1987",
+            "sagecan-bolivar-1996"
+          ],
+          "correspondence": "Headward corridor supported; material onward connection pending",
+          "mapped_reach_name": "Río Surumo"
+        },
+        {
+          "fragments": [
+            10854
+          ],
+          "component_scope": "Eastward southern-delta corridor toward Cuyubini",
+          "finding": "The selected eastward course lies along the NB-20-4 corridor labeled Río Santa María, which continues toward the separately labeled Río Cuyubini at the northeastern part of that sheet. Río La Horqueta is a separate tributary corridor to the southeast. The broader SAGECAN map labels Santa Marta along the state-boundary setting but omits the detail needed to settle the preceding Surumo transition. The two Santa-name readings are not silently merged.",
+          "sources": [
+            "cvg-nb2004-1987",
+            "sagecan-bolivar-1996",
+            "fep-delta173-2012"
+          ],
+          "correspondence": "Eastward named corridor and broad Cuyubini relationship read; upstream transition remains pending",
+          "mapped_reach_name": "Río Santa María"
+        },
+        {
+          "fragments": [
+            10854
+          ],
+          "component_scope": "Cuyubini and El Terror transition into the middle northern corridor",
+          "finding": "NB-20-4 and the adjoining NC-20-16 map both show Río Cuyubini crossing their shared northern/southern sheet setting. NC-20-16 labels El Terror on the Cuyubini corridor. The selected route then lies toward the Guayocaicara branch to its west and north, but thin, discontinuous and intersecting source linework does not reliably establish that material connection. This is not treated as proven continuous Cuyubini-to-Guayocaicara flow.",
+          "sources": [
+            "cvg-nb2004-1987",
+            "cvg-nc2016"
+          ],
+          "correspondence": "Cuyubini setting read; material connector to Guayocaicara pending",
+          "mapped_reach_name": "Río Cuyubini"
+        },
+        {
+          "fragments": [
+            10854
+          ],
+          "component_scope": "Middle Guayocaicara corridor and its lower continuation toward Arature",
+          "finding": "NC-20-16 places the selected middle northward corridor along the labeled Río Guayocaicara and maps its lower bend westward into the Arature delta corridor. Río Ibaruma lies separately to the west. The middle-to-lower corridor is readable, while the connection to the selected southern Cuyubini setting remains pending as described above.",
+          "sources": [
+            "cvg-nc2016"
+          ],
+          "correspondence": "Named middle and lower continuation read; southern material connection unresolved",
+          "mapped_reach_name": "Río Guayocaicara"
+        },
+        {
+          "fragments": [
+            10854,
+            10855
+          ],
+          "component_scope": "Northwestern lower Arature course",
+          "finding": "NC-20-16 labels Caño Arature on the northwest-trending channel followed by the selected lower line. Fundación Empresas Polar lámina 173 independently labels this delta corridor Río Arature. The chapter settlement map also locates Boca de Arature and a settlement associated with Arature in the lower setting. Acure, Imataca and Basama are shown separately and are not substituted for the selected Arature reach.",
+          "sources": [
+            "cvg-nc2016",
+            "fep-delta173-2012",
+            "fep-delta45"
+          ],
+          "correspondence": "Supported lower corridor across the selected FID boundary",
+          "mapped_reach_name": "Caño Arature"
+        },
+        {
+          "fragments": [
+            10855
+          ],
+          "component_scope": "Actual selected terminal and receiving channel",
+          "finding": "The original NC-20-16 map and regional hydrography sheet place Arature entering the broad Río Grande/Boca Grande waterway east of the Curiapo and Isla Pagayo setting. This is an internal delta receiving channel of the Orinoco; the Atlantic outlet lies farther east. The selected model sea class is retained as metadata but is not used to claim a direct open-coast mouth.",
+          "sources": [
+            "cvg-nc2016",
+            "fep-delta173-2012",
+            "fep-delta45"
+          ],
+          "correspondence": "Actual terminal setting supported at generalized corridor scale",
+          "mapped_reach_name": "Caño Arature"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61132221",
+      "source_keys": [
+        "MTC_TANTA_2017",
+        "MTC_HUANCAYA_2017",
+        "MTC_LIMA_2017",
+        "MTC_SANVICENTE_2017",
+        "MTC_ICA_2017_RETAINED",
+        "CANETE_MODEL_2018",
+        "PROMPERU_RUTAS_CORTAS",
+        "MINCETUR_BOSQUE_12098",
+        "MINCETUR_HUALLHUA_12350",
+        "MINCETUR_HUALLHUA_6543",
+        "MINCETUR_CANETE_12263",
+        "SERNANP_PLAN_2022_CONTEXT"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13883
+          ],
+          "component_scope": "Ticllacocha headwater and Tanta approach",
+          "finding": "The Tanta original depicts the southern Ticllacocha lake complex with a northward outlet. That channel continues past separate eastern lake-fed branches from the Piscococha and Chuspicocha settings to Tanta. The selected geometry uses this southern approach rather than the northwestern lake chain. The tourism inventory independently identifies Ticllacocha as the Cañete source setting, but the geographic correspondence rests on the original map.",
+          "sources": [
+            "MTC_TANTA_2017",
+            "MTC_LIMA_2017",
+            "MINCETUR_CANETE_12263"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": null,
+          "lake_names": [
+            "Laguna Ticllacocha"
+          ],
+          "lateral_lake_names": [
+            "Laguna Piscococha",
+            "Laguna Chuspicocha"
+          ]
+        },
+        {
+          "fragments": [
+            13883
+          ],
+          "component_scope": "Paucarcocha and the eastward upper bend",
+          "finding": "North of Tanta the mapped channel reaches Laguna Paucarcocha. The original distinguishes the elongated lake from the northwestern and northern incoming drainage, then traces the connecting river east toward Vilca. The study identifies Paucarcocha as an impounded upper-basin lake and describes its outlet/spillway; its Figure 3.8 is a model schematic and is used only as supporting hydrological context, not as independent proof of the chosen geographic connector.",
+          "sources": [
+            "MTC_TANTA_2017",
+            "MTC_HUANCAYA_2017",
+            "CANETE_MODEL_2018"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Río Cañete on the labeled river continuation",
+          "lake_names": [
+            "Laguna Paucarcocha"
+          ]
+        },
+        {
+          "fragments": [
+            13883
+          ],
+          "component_scope": "Vilca, Papacocha and Huancaya lake-and-cascade corridor",
+          "finding": "The MTC originals show the eastward arrival at Vilca and the turn south through the Río Cañete valley to Huancaya. The PROMPERÚ original places Papacocha and Bosque del Amor immediately by Vilca and distinguishes Hualhua on the southward corridor above Huancaya. Its accompanying prose describes the river descending through cascades and lake-like reaches; the MINCETUR records independently describe Papacocha/Bosque del Amor and the connected Huallhua remansos. These are distinct waterbody settings within the selected corridor, not renamed tributaries or lakes.",
+          "sources": [
+            "MTC_HUANCAYA_2017",
+            "PROMPERU_RUTAS_CORTAS",
+            "MINCETUR_BOSQUE_12098",
+            "MINCETUR_HUALLHUA_12350",
+            "MINCETUR_HUALLHUA_6543"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Río Cañete",
+          "lake_names": [
+            "Laguna Papacocha",
+            "Laguna Hualhua / Huallhua"
+          ]
+        },
+        {
+          "fragments": [
+            13883
+          ],
+          "component_scope": "Vitis, Piquecocha, Alis and Laraos junctions",
+          "finding": "South of Huancaya the selected course continues past Vitis and the Piquecocha setting toward Tinco Alis. The original PROMPERÚ map labels the river and Piquecocha and shows the eastern Río Alis branch through Tomas and Alis meeting the selected north-to-south corridor. The course continues through Llapay; the MTC Lima original distinguishes the eastern Laraos drainage and the westward local tributary valleys from the main selected course.",
+          "sources": [
+            "PROMPERU_RUTAS_CORTAS",
+            "MTC_LIMA_2017",
+            "MTC_HUANCAYA_2017"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Río Cañete",
+          "lake_names": [
+            "Laguna Piquecocha"
+          ]
+        },
+        {
+          "fragments": [
+            13883
+          ],
+          "component_scope": "Huantán, Magdalena/Yauyos and Putinza middle corridor",
+          "finding": "The Lima original continues the same river south from the Llapay sector, showing the Huantán tributary from the east and the Yauyos-side tributary from the west. The selected route stays on the main valley near Magdalena and continues through the Putinza corridor, while the Colonia and high-lake drainages join laterally. This correspondence is established from the source river lines and junction settings rather than a basin label alone.",
+          "sources": [
+            "MTC_LIMA_2017",
+            "CANETE_MODEL_2018"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Río Cañete"
+        },
+        {
+          "fragments": [
+            13883
+          ],
+          "component_scope": "Capillucas/Chavín, Tupe, Cacra and El Platanal setting",
+          "finding": "The mapped Cañete corridor proceeds south through the Chavín/Capillucas sector toward Catahuasi, where the Tupe branch joins from the east; farther downstream the Cacra branch is separately drawn. The primary 2018 study's station map and table locate the Chavín/Capillucas and restitution settings on this corridor. Its prose identifies the middle-basin Capillucas reservoir, its supply to El Platanal and the restitution reservoir returning water to the Cañete. The selected natural valley line is not replaced by the hydroelectric diversion or given the reservoir's name. Precise contemporary impoundment margins and diversion-operation details are outside scope.",
+          "sources": [
+            "MTC_LIMA_2017",
+            "CANETE_MODEL_2018",
+            "MTC_ICA_2017_RETAINED"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Río Cañete",
+          "reservoir_names": [
+            "Embalse de Capillucas (Capilluca in the study section heading)"
+          ],
+          "restitution_reservoir_name": null
+        },
+        {
+          "fragments": [
+            13883
+          ],
+          "component_scope": "Lower canyon and agricultural valley",
+          "finding": "The original Lima map and retained Ica map follow the southwestward valley past Zúñiga and Pacarán to Lunahuaná, Catapalla and Socsi. Below Ramadilla the San Vicente district original traces the river into the broad lower valley, south of Nuevo Imperial and the main San Vicente urban area. Regional tourism prose corroborates the named Catapalla–Socsi river reach without substituting for the map reading.",
+          "sources": [
+            "MTC_LIMA_2017",
+            "MTC_ICA_2017_RETAINED",
+            "MTC_SANVICENTE_2017",
+            "MINCETUR_CANETE_12263"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Río Cañete"
+        },
+        {
+          "fragments": [
+            13883
+          ],
+          "component_scope": "Actual Pacific outlet",
+          "finding": "The San Vicente original labels Río Cañete across the lower valley, shows its passage at the Río Cañete bridge and Puente Henry Aramayo, and carries the watercourse to the Pacific shoreline beside Herbay Bajo and the Boca del Río locality. The terminal is read from actual coastal cartography, not merely the stored sea class, a nearby coastal place name or the downstream endpoint metadata.",
+          "sources": [
+            "MTC_SANVICENTE_2017",
+            "MTC_LIMA_2017"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_reach_name": "Río Cañete",
+          "receiving_water_name": "Océano Pacífico"
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:90007952",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 10, Dove Bugt, Niels Henriksen, 1997",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/EPJIGC",
+      "observed_outcome": "Inherited r122 sole catalogue web-reader open returned Internal Error: Failed to fetch the exact URL: Cache miss. No HTTP status, authorization/security reason, substantive catalogue body or original map pixels were exposed. No r123 request was made.",
+      "outcome_layer": "Historical web-tool/cache availability outcome; no origin HTTP status asserted.",
+      "restriction_scope": "Missing whole Sheet 10 publication/map and all equivalent copies, formats, original/reader/cache/mirror/figure and other acquisition routes remain paused. No retry, original fallback or alternate route.",
+      "earlier_lawful_prose_exception": "Discovery metadata only identified title, author, year and DOI; no substantive map evidence is used.",
+      "material_gap_for_current_target": false,
+      "inherited_stop": true
+    },
+    {
+      "aw_id": "hydro-system:90007952",
+      "publication": "Satellite Image Atlas of Glaciers of the World—Greenland, Anker Weidick, 1995; USGS Professional Paper 1386-C",
+      "official_url": "https://pubs.usgs.gov/pp/p1386c/",
+      "observed_outcome": "Inherited r111 web-reader HTTP 403 stop. No r123 request was made and no content from that publication is used.",
+      "outcome_layer": "Historical HTTP 403 reported by web reader; no new origin response asserted.",
+      "restriction_scope": "Entire publication, Plate 1, PDFs, figures and all equivalent copies, formats, mirrors and acquisition routes remain stopped.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_for_current_target": false,
+      "inherited_stop": true
+    },
+    {
+      "aw_id": "hydro-system:60022881",
+      "publication": "Estado Delta Amacuro, SAGECAN, third edition 1994",
+      "official_url": "https://commons.wikimedia.org/wiki/File:Estado_Delta_Amacuro_-_SAGECAN_1994.jpg",
+      "observed_outcome": "The web reader's attempted catalogue open returned Cache miss. No original map, catalogue body or map-use notice was read through that failed request.",
+      "outcome_layer": "Tool/reader availability failure, not an observed origin HTTP denial",
+      "restriction_scope": "The missing 1994 Delta Amacuro sheet and equivalent copies/formats are paused across original, reader/cache, catalogue, mirror and other acquisition routes. No retry or alternate acquisition was made.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "effect": "No geographic claims depend on discovery metadata for this unseen sheet. The separate 1996 Bolívar map was independently identified and read, without treating it as a route to the missing 1994 Delta sheet."
+    },
+    {
+      "aw_id": "hydro-system:60022881",
+      "publication": "Mineral Resource Potential of the NB–20–4 Quadrangle, Eastern Guayana Shield, Bolívar State, Venezuela",
+      "official_url": "https://pubs.usgs.gov/bul/1960/report.pdf",
+      "observed_outcome": "The sole original-file acquisition completed HTTP403 with a blocking response. No report PDF, prose or figures were obtained.",
+      "outcome_layer": "HTTP response from the requested publication endpoint, distinct from reader Cache miss",
+      "restriction_scope": "The entire Bulletin 1960 publication, its figures, equivalent copies, formats, mirrors, caches and other routes are stopped. No retry, find, screenshot, proxy or alternate download was used.",
+      "earlier_lawful_prose_exception": null,
+      "author_publication": "Jeffrey C. Wynn and Gary B. Sidder, 1991, U.S. Geological Survey Bulletin 1960",
+      "limitation_kind": "publication_wide_access_stop",
+      "effect": "Neither search snippets nor the blocked report's unseen cartography are used to settle the selected route. Independently issued CVG geological maps retain their own publication identities."
+    },
+    {
+      "aw_id": "hydro-system:60022881",
+      "publication": "Guasipati, Venezuela. Joint Operations Graphic (Air), series 1501 Air, sheet NB20-03, edition 1, compiled May 1991",
+      "official_url": "https://store.usgs.gov/assets/MOD/StoreFiles/NGA/1501ANB2003_geo.pdf",
+      "observed_outcome": "Search discovery metadata reported LIMITED DISTRIBUTION, described authorized Department of Defense and specified contractor use, and reported a prohibition on reproducing the cover. The original chart was not opened or downloaded, so the printed notice was not personally inspected.",
+      "outcome_layer": "Discovery metadata indicating a distribution restriction; no acquisition response or original inspection",
+      "restriction_scope": "This identifiable JOG chart and equivalent copies remain excluded across all acquisition and substantive-use routes. Its availability at a public-looking URL is not treated as permission.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "restricted_distribution_exclusion",
+      "effect": "No geographic evidence or unseen chart content from this publication is used. The separate CVG NB-20-4 geological sheet has different publisher/credits, edition and content, not merely a punctuation variation in its title."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:90007952",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 9, Lambert Land, Hans F. Jepsen, 2000",
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS",
+      "observed_outcome": "Inherited r117 DOI web-reader route returned Internal Error: URL is not accessible via this tool, without HTTP status or security/authorization reason. The subsequently acquired official landing and exact original PDF succeeded with HTTP 200. In r123 only that complete retained original was used; no failed route or acquisition was repeated.",
+      "outcome_layer": "Historical completed web-tool DOI-routing limitation resolved by successful official original HTTP acquisition; current local reuse only.",
+      "restriction_scope": "Failed DOI-reader route remains recorded and unrepeated. No active publication-wide access denial or availability stop. Custom Dataset Terms keep source originals and all cartographic derivatives private.",
+      "earlier_lawful_prose_exception": "The retained catalogue bibliography/use notice and original map were actually read.",
+      "material_gap_for_current_target": false
+    },
+    {
+      "aw_id": "hydro-system:60022881",
+      "publication": "GeoVenezuela cartographic appendix: Estado Delta Amacuro listing",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/publicaciones/colecciones/apendice-cartografico/",
+      "observed_outcome": "The retained readable catalogue entry did not include an original-map link in the inspected listing.",
+      "outcome_layer": "Readable catalogue content limitation",
+      "restriction_scope": "No publication-wide access stop is inferred. The listing itself is not evidence of original map coverage.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "catalogue_only_no_original_coverage",
+      "effect": "The original appendix state map is not claimed as read."
+    },
+    {
+      "aw_id": "hydro-system:61132221",
+      "publication": "PROMPERÚ, Rutas cortas desde Lima, acquired edition with copyright2019 and January2020 colophon",
+      "official_url": "https://repositorio.promperu.gob.pe/bitstreams/13911215-c03b-44fe-a702-e73947b08391/download",
+      "observed_outcome": "Original acquired normally. Printed all-rights-reserved, free-distribution and sale-prohibited notices; colophon contains unfilled production placeholders.",
+      "outcome_layer": "Printed source-use/edition notice, not HTTP or tool failure",
+      "restriction_scope": "The source and its equivalent reproductions retain the printed rights/use limits. No map/PDF/crop redistribution. No acquisition stop is inferred from the notice.",
+      "earlier_lawful_prose_exception": "The actually read original map and bounded prose remain usable for factual observations."
+    },
+    {
+      "aw_id": "hydro-system:61132221",
+      "publication": "Plan Maestro de la Reserva Paisajística Nor Yauyos Cochas2022–2027, R.P.264-2022-SERNANP",
+      "official_url": "https://cdn.www.gob.pe/uploads/document/file/3842785/RESOLUCION%20PRESIDENCIAL%20N%20264-2022-SERNANP.pdf.pdf?v=1668626265",
+      "observed_outcome": "Original PDF acquired normally. Zoning-map resolution is limited; the inspected Annex5/6 location contains headings without a usable base-map image. No missing annex map was used or separately sought.",
+      "outcome_layer": "Acquired-publication content limitation, not origin HTTP denial or transport failure",
+      "restriction_scope": "Do not attribute a base-map observation to the unillustrated appendix. The acquired report's actual prose and visible zoning map remain usable in their bounded scope; there is no new publication-wide acquisition denial.",
+      "earlier_lawful_prose_exception": "Actually read conservation-plan prose concerning distinct lake ecosystems, plus the visible generalized zoning map."
+    }
+  ]
+}
