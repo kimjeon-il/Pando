@@ -208,7 +208,11 @@ bool ReferenceImageLibrary::previewAutoGeoref(const QVariantList &seeds)
     // OCR is worth the extra cost when symbol-only matching fails or produces
     // a weak consensus. Prefer the OCR-assisted result only when it actually
     // improves consensus quality.
-    const bool weakSymbolResult=!result.ok||result.inlierCount<6||result.rmsMeters>10000.;
+    const bool strongSymbolResult=result.ok&&(
+        (result.inlierCount>=8&&result.rmsMeters<=15000.)
+        ||(result.inlierCount>=6&&result.rmsMeters<=10000.)
+    );
+    const bool weakSymbolResult=!strongSymbolResult;
     if(weakSymbolResult) {
         ocr=detectReferenceImageTextNative(image);
         if(ocr.ok) {
