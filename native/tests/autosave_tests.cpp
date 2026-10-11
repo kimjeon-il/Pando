@@ -4,6 +4,7 @@
 #include "worlddatasetloader.h"
 #include "mapscenebridge.h"
 #include "losslessjson.h"
+#include <pandoeditor/timeline-view.h>
 #include <QCoreApplication>
 #include <QFile>
 #include <QFileInfo>
@@ -118,6 +119,7 @@ private slots:
         QTemporaryDir dir;QVERIFY(dir.isValid());
         const auto root=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
         pandoeditor::Project world;world.replace(*WorldDatasetLoader::canonical(root).document);
+        world.setTimelineCursor("2026-10");
         QVERIFY(world.setColor("DEU",0x123456));
         const auto expected=projectcodec::encode(world);
         EditorControllerConfig config;config.autosaveEnabled=true;config.bootstrapWorld=true;
@@ -247,7 +249,8 @@ private slots:
     void canonicalIdsDoNotReplaceEditedCoordinates() {
         const auto root=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
         auto document=*WorldDatasetLoader::canonical(root).document;
-        const auto ref=staticGeometryBinding(document,document.units.front().id).geometryRef;
+        const auto view=timelineDocumentView(document,"2026-10");
+        const auto ref=view.world.entities.front().geometryRef;
         auto changed=*document.geometries.get(ref);
         changed.polygons.front().front().front().x+=0.000001;
         changed.polygons.front().front().back()=changed.polygons.front().front().front();
@@ -255,7 +258,7 @@ private slots:
         for(const auto& [key,geometry]:document.geometries.versions())
             replacement.insert(key,key==ref?changed:*geometry);
         document.geometries=std::move(replacement);
-        QVERIFY(!WorldDatasetLoader::matchingBaseFrame(document,root));
+        QVERIFY(!WorldDatasetLoader::matchingBaseFrame(document,root,"2026-10"));
     }
     void obsoleteEntityKindRemainsRejected() {
         QFile sample(":/assets/sample.pando.json");QVERIFY(sample.open(QIODevice::ReadOnly));

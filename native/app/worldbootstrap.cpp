@@ -6,6 +6,9 @@
 #include <stdexcept>
 #include <QFile>
 #include <QDir>
+#include <QDate>
+#include <QJsonDocument>
+#include <pandoeditor/timeline-view.h>
 
 namespace {
 struct RecoveredStartup {
@@ -132,10 +135,13 @@ void EditorController::startAutosaveRecovery(bool useWorldBase) {
             const auto bytes=source.restoreDocument();
             if(bytes.isEmpty())throw std::runtime_error("자동저장 파일이 비어 있거나 손상되었습니다. 원본은 보존됩니다.");
             result->project.replace(projectcodec::decode(bytes));
+            if(!pandoeditor::isStaticTimeline(result->project.document()))
+                result->project.setTimelineCursor(pandoeditor::initialTimelineMonth(result->project.document().timelineRecords,
+                    QDate::currentDate().toString("yyyy-MM").toStdString()));
             result->view=source.restoreView();
-            result->projection.rebuild(result->project.document());
+            result->projection.rebuild(result->project.viewDocument(),result->project.inactiveEntityIds());
             if(useWorldBase)try {
-                result->base=WorldDatasetLoader::matchingBaseFrame(result->project.document(),root);
+                result->base=WorldDatasetLoader::matchingBaseFrame(result->project.document(),root,result->project.timelineCursor());
                 if(result->base)try {
                     auto preview=std::make_shared<WorldBaseFrame>(*WorldDatasetLoader::preview(root).frame);
                     if(preview->ranges==result->base->ranges) {
@@ -152,7 +158,7 @@ void EditorController::startAutosaveRecovery(bool useWorldBase) {
             builder.setWorldBase(result->base);builder.setQuality(profile);
             const auto view=result->view.value_or(MapViewState{});
             // Warm the fallback packets on this worker too, including edited/imported shapes.
-            builder.build(result->project.snapshot(),view,{},{});
+            builder.build(result->project.snapshotForView(),view,{},{});
         } catch(const std::exception& error) {result->error=QString::fromUtf8(error.what());}
           catch(...) {result->error=QStringLiteral("지도 복구 중 알 수 없는 오류가 발생했습니다.");}
         return result;
@@ -171,9 +177,19 @@ void EditorController::startWorldBootstrap() {
         try {
             auto prepared=watcher->result();
             if(project_.revision()!=0) {cancelWorldBootstrap();return;}
+            WorldDataset timelineSource(worldDataRoot_);
+            const auto sourceMonth=QJsonDocument::fromJson(timelineSource.read("historicalTimelineManifest")).object()
+                .value("sourceMonth").toString().toStdString();
+            if(pandoeditor::parseTemporal(sourceMonth).precision!="month")throw std::runtime_error("Invalid historical world source month");
+            const bool allowPreview=project_.timelineCursor().empty()||project_.timelineCursor()==sourceMonth;
+            if(!allowPreview) {
+                auto frame=std::make_shared<WorldBaseFrame>(*prepared.frame);frame->documentReady=true;
+                prepared.frame=std::move(frame);
+            }
             worldBase_=std::move(prepared.frame);cacheWorldFrame(worldBase_);
             worldRanges_=worldBase_->ranges;
-            projection_=*prepared.projection;
+            if(allowPreview)projection_=*prepared.projection;
+            else projection_.rebuild(project_.viewDocument(),project_.inactiveEntityIds());
             try {
                 WorldDataset source(worldDataRoot_);
                 const auto terrainRoot=!physicalRoot_.isEmpty()?physicalRoot_:source.optionalDataRoot();
@@ -209,6 +225,7 @@ void EditorController::startWorldBootstrap() {
             emit geometryChanged();
             startCanonicalWorld(generation);
         } catch(const std::exception& error) {
+            cancelWorldBootstrap();refreshTypedScene();emit geometryChanged();
             worldStatus_=QStringLiteral("unavailable");emit worldStatusChanged();
             emit errorOccurred(QStringLiteral("Pinned world preview unavailable: ")+
                 QString::fromUtf8(error.what()));
@@ -229,9 +246,13 @@ void EditorController::startCanonicalWorld(std::uint64_t generation) {
                 throw std::runtime_error("World bootstrap country order or project changed");
             pandoeditor::Project candidate;
             candidate.replace(*prepared.document);
+            candidate.setTimelineCursor(project_.timelineCursor().empty()
+                ?pandoeditor::initialTimelineMonth(candidate.document().timelineRecords,QDate::currentDate().toString("yyyy-MM").toStdString())
+                :project_.timelineCursor());
+            MapProjection nextProjection;nextProjection.rebuild(candidate.viewDocument(),candidate.inactiveEntityIds());
             cancelPreview();cancelStructureMutation();
             project_=std::move(candidate);
-            projection_=*prepared.projection;
+            projection_=std::move(nextProjection);
             auto preview=std::make_shared<WorldBaseFrame>(*worldResources_.get(WorldDetail::Preview));
             preview->documentReady=true;worldBase_=preview;cacheWorldFrame(std::move(preview));
             worldHydroNotice_=prepared.hydroAvailability;
@@ -243,6 +264,7 @@ void EditorController::startCanonicalWorld(std::uint64_t generation) {
             emit geometryChanged();publish(false);ensureHydroBootstrap();syncHydroData();
             startCanonicalWorldMesh(generation);
         } catch(const std::exception& error) {
+            cancelWorldBootstrap();refreshTypedScene();emit geometryChanged();
             worldStatus_=QStringLiteral("unavailable");emit worldStatusChanged();
             emit errorOccurred(QStringLiteral("Canonical world document unavailable: ")+
                 QString::fromUtf8(error.what()));

@@ -1,8 +1,12 @@
 #include "editorcontroller.h"
+#include "placenamedisplay.h"
 #include <QCryptographicHash>
 #include <QDataStream>
 #include <QFontMetricsF>
 #include <QGuiApplication>
+#include <QDate>
+#include <QRegularExpression>
+#include <QFont>
 #include <QUuid>
 #include <algorithm>
 #include <limits>
@@ -53,19 +57,46 @@ void EditorController::refreshBuiltinPlaceLabels() {
     if(const auto primary=selection_.primary();primary&&primary->domain=="placeBuiltin")if(const auto record=placeRuntime_.recordById(QString::fromStdString(primary->id)))append(*record);
     for(const auto& ref:selection_.items())if(ref.domain=="placeBuiltin")if(const auto record=placeRuntime_.recordById(QString::fromStdString(ref.id)))append(*record);
     if(const auto snapshot=placeRuntime_.snapshot())for(const auto& record:snapshot->records)append(record);
-    const QFont font=QGuiApplication::font();const QFontMetricsF metrics(font);
+    QFont primaryFont=QGuiApplication::font();primaryFont.setPixelSize(12);primaryFont.setWeight(QFont::DemiBold);
+    QFont secondaryFont=primaryFont;secondaryFont.setPixelSize(10);secondaryFont.setWeight(QFont::Normal);
+    const QFontMetricsF primaryMetrics(primaryFont),secondaryMetrics(secondaryFont);
+    const auto cursor=QString::fromStdString(project_.timelineCursor());
+    QString mapDate;
+    if(QRegularExpression(QStringLiteral("^[0-9]{4}-[0-9]{2}$")).match(cursor).hasMatch()){
+        const auto first=QDate::fromString(cursor+QStringLiteral("-01"),QStringLiteral("yyyy-MM-dd"));
+        if(first.isValid())mapDate=cursor+QStringLiteral("-")+QString::number(first.daysInMonth()).rightJustified(2,QChar('0'));
+    }
     QByteArray signatureBytes;QDataStream stream(&signatureBytes,QIODevice::WriteOnly);
-    const auto identity=placeRuntime_.sourceIdentity();stream<<quint64(identity?identity->generation:0)<<font.toString()<<quint64(records.size());
+    const auto identity=placeRuntime_.sourceIdentity();
+    stream<<quint64(identity?identity->generation:0)<<primaryFont.toString()<<secondaryFont.toString()<<quint64(records.size());
     std::vector<MapLabelSource> sources;sources.reserve(records.size());
     for(const auto& record:records) {
+        if(cursor.startsWith('-'))continue;
+        if(!mapDate.isEmpty()&&!record.nameTimeline.empty()){
+            const auto& first=record.nameTimeline.front();
+            if(!first.fromDate.isEmpty()?mapDate<first.fromDate:mapDate.left(4).toInt()<first.fromYear)continue;
+        }
+        const auto rows=resolvePlaceDisplayRows(record,placeLanguages_,mapDate);
+        if(rows.empty())continue; // Unavailable language is omitted, never synthesized.
         const auto settings=automaticLabelSettings(record.kind.toStdString());MapLabelSource source;
-        source.ref={"placeBuiltin",record.id.toStdString()};source.text=record.name.toStdString();source.geographic=record.coordinates;
+        source.ref={"placeBuiltin",record.id.toStdString()};
+        source.text=rows.front().text.toStdString();source.geographic=record.coordinates;
         source.collisionGroup=settings.collisionGroup;source.priority=settings.priority.value_or(40);
-        source.minZoom=std::max(record.minZoom,settings.minZoom.value_or(0));source.maxZoom=settings.maxZoom.value_or(std::numeric_limits<double>::infinity());
-        // Native shaping uses the actual application font. Web uses its fixed
-        // Unicode-character estimate; collision boxes can differ across fonts.
-        source.width=std::max(22.,metrics.horizontalAdvance(record.name)+16);source.height=std::max(19.,metrics.height());
-        stream<<record.id<<record.name<<record.kind<<record.coordinates.x<<record.coordinates.y<<source.minZoom<<source.width<<source.height;
+        source.minZoom=std::max(record.minZoom,settings.minZoom.value_or(0));
+        source.maxZoom=settings.maxZoom.value_or(std::numeric_limits<double>::infinity());
+        source.width=22;source.height=std::max(19.,primaryMetrics.height());
+        for(std::size_t i=0;i<rows.size();++i) {
+            const auto& row=rows[i];
+            const auto& metrics=i==0?primaryMetrics:secondaryMetrics;
+            source.width=std::max(source.width,metrics.horizontalAdvance(row.text)+16);
+            if(i>0)source.height+=std::max(14.,secondaryMetrics.height());
+            source.lines.push_back({row.language.toStdString(),row.text.toStdString()});
+            stream<<row.language<<row.text;
+        }
+        // Fonts are measured in Qt, unlike Web's conservative CSS-pixel boxes;
+        // all language rows share one logical label and collision rectangle.
+        stream<<record.id<<record.kind<<record.coordinates.x<<record.coordinates.y<<
+            source.minZoom<<source.width<<source.height<<quint64(source.lines.size());
         sources.push_back(std::move(source));
     }
     const auto signature=QString::fromLatin1(QCryptographicHash::hash(signatureBytes,QCryptographicHash::Sha256).toHex());
@@ -102,12 +133,12 @@ QVariantMap EditorController::placeDataStatus() const {
     const auto identity=placeRuntime_.sourceIdentity();const auto store=placeRuntime_.storeStats();const auto runtime=placeRuntime_.stats();
     return {{"loaded",placeRuntime_.isOpen()},{"revision",identity?identity->revision:QString()},
         {"manifestSha256",identity?identity->manifestSha256:QString()},{"generation",qulonglong(identity?identity->generation:0)},
-        {"stage",!identity?QString("unloaded"):store.manifestTileCount==0?QString("empty-v1"):QString("loaded-v1")},
+        {"stage",!identity?QString("unloaded"):store.manifestTileCount==0?QString("empty-v1"):QString("loaded")},
         {"manifestTileCount",qulonglong(store.manifestTileCount)},{"manifestShardCount",qulonglong(store.manifestShardCount)},
         {"manifestStageCount",qulonglong(store.manifestStageCount)},{"sourceRecordCount",store.sourceRecordCount?QVariant::fromValue(qulonglong(*store.sourceRecordCount)):QVariant()},
         {"snapshotRecords",qulonglong(runtime.snapshotRecords)},{"retainedRecords",qulonglong(runtime.retainedRecords)},
         {"pendingCount",qulonglong(runtime.pendingCount)},{"sourceOpens",qulonglong(runtime.sourceOpens)},
         {"moving",runtime.moving},{"searchTruncated",placeRuntime_.searchTruncated()},
-        {"dataSpecificBlocked",true},{"dataSpecificReason",QStringLiteral("Fixed Web production manifest is empty-v1; explicit synthetic sources verify mechanics only.")},
+        {"dataSpecificBlocked",false},{"dataSpecificReason",QString()},
         {"fontMetrics",QStringLiteral("Qt application font shaping; fixed Web uses Unicode-character estimates")}};
 }

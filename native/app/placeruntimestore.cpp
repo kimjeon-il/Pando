@@ -1,6 +1,7 @@
 #include "placeruntimestore.h"
 #include <pandoeditor/map/projectionengine.h>
 #include <QCryptographicHash>
+#include <QDate>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -9,7 +10,9 @@
 #include <QJsonObject>
 #include <QMap>
 #include <QRegularExpression>
+#include <QSet>
 #include <QStringDecoder>
+#include <QJsonParseError>
 #include <QUrl>
 #include <QtEndian>
 #include <algorithm>
@@ -57,8 +60,16 @@ std::optional<pandoeditor::Point> projected(const PlaceRecord& record,const Plac
 }
 bool inViewport(const PlaceRecord& r,const PlaceViewport& v) {
     const auto p=projected(r,v);if(!p)return false;
-    const double width=std::max(22.,double(r.name.toUcs4().size())*9+16),height=19;
-    return p->x-width/2>=v.safeLeft&&p->x+width/2<=v.view.viewportWidth-v.safeRight&&p->y-height/2>=v.safeTop&&p->y+height/2<=v.view.viewportHeight-v.safeBottom;
+    // A language toggle must not require a fresh tile request. Admit a place if
+    // any recorded language can fit, then measure the chosen rows on the UI thread.
+    QStringList candidateNames{r.name,r.nameEn,r.nameNative};candidateNames.append(r.nameNativeExtras);
+    for(const auto& name:candidateNames) {
+        if(name.isEmpty())continue;
+        const double width=std::max(22.,double(name.toUcs4().size())*9+16),height=19;
+        if(p->x-width/2>=v.safeLeft&&p->x+width/2<=v.view.viewportWidth-v.safeRight&&
+           p->y-height/2>=v.safeTop&&p->y+height/2<=v.view.viewportHeight-v.safeBottom)return true;
+    }
+    return false;
 }
 quint64 integer(const QJsonValue& v,quint64 minimum,quint64 maximum) {
     require(v.isDouble(),"PL-PLACE-MANIFEST: integer required");const double n=v.toDouble();
@@ -149,7 +160,23 @@ struct PlaceRuntimeStore::Data {
 };
 PlaceRuntimeStore::PlaceRuntimeStore(std::unique_ptr<Data> data):data_(std::move(data)){}
 PlaceRuntimeStore::~PlaceRuntimeStore()=default;
-std::size_t PlaceRuntimeStore::recordBytes(const PlaceRecord& r) {return sizeof(PlaceRecord)+textBytes(r.id)+textBytes(r.source)+textBytes(r.sourceId)+textBytes(r.name)+textBytes(r.kind)+textBytes(r.countryCode)+textBytes(r.featureCode);}
+std::size_t PlaceRuntimeStore::recordBytes(const PlaceRecord& r) {
+    std::size_t bytes=sizeof(PlaceRecord)+textBytes(r.id)+textBytes(r.source)+textBytes(r.sourceId)+
+        textBytes(r.name)+textBytes(r.nameEn)+textBytes(r.nameNative)+textBytes(r.kind)+
+        textBytes(r.countryCode)+textBytes(r.featureCode)+
+        std::size_t(r.nameNativeExtras.capacity())*sizeof(QString)+
+        r.nameTimeline.capacity()*sizeof(PlaceNameTransition);
+    for(const auto& extra:r.nameNativeExtras)bytes+=textBytes(extra);
+    for(const auto& transition:r.nameTimeline) {
+        bytes+=textBytes(transition.fromDate)+textBytes(transition.ko)+
+            textBytes(transition.en)+textBytes(transition.native);
+        if(transition.nativeExtras) {
+            bytes+=std::size_t(transition.nativeExtras->capacity())*sizeof(QString);
+            for(const auto& name:*transition.nativeExtras)bytes+=textBytes(name);
+        }
+    }
+    return bytes;
+}
 bool PlaceRuntimeStore::isBuiltinId(const QString& id) {static const QRegularExpression p("^builtin:place:[a-z0-9-]+:.+$");return p.match(id).hasMatch();}
 QString PlaceRuntimeStore::normalizeQuery(const QString& value) {
     const auto normalized=ecmaTrim(value.normalized(QString::NormalizationForm_KC)).toLower();QString result;result.reserve(normalized.size());bool previousSpace=false;
@@ -158,23 +185,123 @@ QString PlaceRuntimeStore::normalizeQuery(const QString& value) {
 std::vector<PlaceRecord> PlaceRuntimeStore::decodeTile(const QByteArray& bytes) {
     require(bytes.size()>=32&&std::size_t(bytes.size())<=PlaceRuntimeLimits::ShardBytes,"PL-PLACE-CODEC: tile byte budget");
     const auto* p=reinterpret_cast<const uchar*>(bytes.constData());
+    const auto u16=[&](std::size_t offset){return qFromLittleEndian<quint16>(p+offset);};
     const auto u32=[&](std::size_t offset){return qFromLittleEndian<quint32>(p+offset);};
-    require(u32(0)==0x43414c50&&qFromLittleEndian<quint16>(p+4)==1&&qFromLittleEndian<quint16>(p+6)==56,"PL-PLACE-CODEC: header");
-    const std::size_t count=u32(8),poolBytes=u32(12),poolStart=32+56*count;
-    require(count<=PlaceRuntimeLimits::TileRecords&&poolStart+poolBytes==std::size_t(bytes.size())&&u32(16)==quint32(bytes.size()),"PL-PLACE-CODEC: table range");
+    // v1/v2 frozen oracle fixtures remain readable, while new publications use
+    // PLAC v3's ninth string field for up to two additional native names.
+    const quint16 version=u16(4);
+    const std::size_t stride=version==3?72:version==2?68:version==1?56:0;
+    require(u32(0)==0x43414c50&&stride&&u16(6)==stride,"PL-PLACE-CODEC: header");
+    const std::size_t count=u32(8),poolBytes=u32(12),poolStart=32+stride*count;
+    require(count<=PlaceRuntimeLimits::TileRecords&&poolStart+poolBytes==std::size_t(bytes.size())&&
+            u32(16)==quint32(bytes.size()),"PL-PLACE-CODEC: table range");
     QMap<quint32,QString> pool;
-    for(std::size_t offset=0;offset<poolBytes;){require(offset+4<=poolBytes,"PL-PLACE-CODEC: string header");const auto length=u32(poolStart+offset);require(length<=1024&&offset+4+length<=poolBytes,"PL-PLACE-CODEC: string length");
-        QStringDecoder decoder(QStringDecoder::Utf8,QStringConverter::Flag::Stateless);const QString value=decoder.decode(QByteArrayView(bytes.constData()+poolStart+offset+4,length));require(!decoder.hasError(),"PL-PLACE-CODEC: invalid UTF-8");pool.insert(quint32(offset),value);offset+=4+length;}
+    for(std::size_t offset=0;offset<poolBytes;) {
+        require(offset+4<=poolBytes,"PL-PLACE-CODEC: string header");
+        const auto length=u32(poolStart+offset);
+        require(length<=(version>=2?16*1024u:1024u)&&offset+4+length<=poolBytes,"PL-PLACE-CODEC: string length");
+        QStringDecoder decoder(QStringDecoder::Utf8,QStringConverter::Flag::Stateless);
+        const QString value=decoder.decode(QByteArrayView(bytes.constData()+poolStart+offset+4,length));
+        require(!decoder.hasError(),"PL-PLACE-CODEC: invalid UTF-8");
+        pool.insert(quint32(offset),value);offset+=4+length;
+    }
     const auto f64=[&](std::size_t offset){const auto bits=qFromLittleEndian<quint64>(p+offset);double value;std::memcpy(&value,&bits,sizeof(value));return value;};
     const auto f32=[&](std::size_t offset){const auto bits=u32(offset);float value;std::memcpy(&value,&bits,sizeof(value));return double(value);};
+    const auto extrasFromJson=[&](const QJsonValue& value,const QString& primary)->QStringList {
+        require(value.isArray(),"PL-PLACE-CODEC: native extra list required");
+        const auto array=value.toArray();
+        require(array.size()<=2&&(array.isEmpty()||!primary.isEmpty()),"PL-PLACE-CODEC: native extra count");
+        QSet<QString> seen;
+        if(!primary.isEmpty())seen.insert(primary.normalized(QString::NormalizationForm_KC).toLower());
+        QStringList names;
+        for(const auto& element:array) {
+            require(element.isString(),"PL-PLACE-CODEC: native extra name");
+            const auto name=text(element.toString(),256,true);
+            const auto key=name.normalized(QString::NormalizationForm_KC).toLower();
+            require(!seen.contains(key),"PL-PLACE-CODEC: duplicate native name");
+            seen.insert(key);names.append(name);
+        }
+        return names;
+    };
     std::vector<PlaceRecord> records;records.reserve(count);
-    for(std::size_t i=0;i<count;++i){const auto base=32+i*56;PlaceRecord r;r.coordinates={f64(base),f64(base+8)};r.population=f64(base+16);r.priority=f32(base+24);r.minZoom=f32(base+28);
-        require(std::isfinite(r.coordinates.x)&&std::abs(r.coordinates.x)<=180&&std::isfinite(r.coordinates.y)&&std::abs(r.coordinates.y)<=90,"PL-PLACE-CODEC: coordinates");
-        require(std::isfinite(r.population)&&r.population>=0&&std::isfinite(r.priority)&&std::isfinite(r.minZoom)&&r.minZoom>=0,"PL-PLACE-CODEC: ranking");
-        const auto kind=p[base+32];require(kind<Kinds.size(),"PL-PLACE-CODEC: kind");r.kind=Kinds[kind];QString* fields[]={&r.sourceId,&r.name,&r.countryCode,&r.source,&r.featureCode};
-        const int max[]={128,256,8,32,32};for(int j=0;j<5;++j){const auto off=u32(base+36+j*4);require(pool.contains(off),"PL-PLACE-CODEC: string offset");*fields[j]=text(pool[off],max[j],j==0||j==1||j==3);}
-        static const QRegularExpression sourcePattern("^[a-z0-9-]+$");require(sourcePattern.match(r.source).hasMatch(),"PL-PLACE-CODEC: source");r.id="builtin:place:"+r.source+":"+r.sourceId;records.push_back(std::move(r));
-    }return records;
+    for(std::size_t i=0;i<count;++i) {
+        const auto base=32+i*stride;
+        PlaceRecord r;r.coordinates={f64(base),f64(base+8)};r.population=f64(base+16);
+        r.priority=f32(base+24);r.minZoom=f32(base+28);
+        require(std::isfinite(r.coordinates.x)&&std::abs(r.coordinates.x)<=180&&
+                std::isfinite(r.coordinates.y)&&std::abs(r.coordinates.y)<=90,"PL-PLACE-CODEC: coordinates");
+        require(std::isfinite(r.population)&&r.population>=0&&std::isfinite(r.priority)&&
+                std::isfinite(r.minZoom)&&r.minZoom>=0,"PL-PLACE-CODEC: ranking");
+        const auto kind=p[base+32];require(kind<Kinds.size(),"PL-PLACE-CODEC: kind");
+        r.kind=Kinds[kind];
+        QString nativeExtrasText,timelineText;
+        QString* fields[]={&r.sourceId,&r.name,&r.countryCode,&r.source,&r.featureCode,
+            &r.nameEn,&r.nameNative,&nativeExtrasText,&timelineText};
+        const int max[]={128,256,8,32,32,256,256,16*1024,16*1024};
+        const int fieldCount=version==3?9:version==2?8:5;
+        for(int j=0;j<fieldCount;++j) {
+            const auto off=u32(base+36+j*4);
+            require(pool.contains(off),"PL-PLACE-CODEC: string offset");
+            const int target=(version==2&&j==7)?8:j;
+            *fields[target]=target>=7?pool[off]:text(pool[off],max[target],j==0||j==1||j==3);
+        }
+        if(version==3) {
+            QJsonParseError error;
+            const auto doc=QJsonDocument::fromJson(nativeExtrasText.toUtf8(),&error);
+            require(error.error==QJsonParseError::NoError&&doc.isArray(),"PL-PLACE-CODEC: native extras JSON");
+            r.nameNativeExtras=extrasFromJson(doc.array(),r.nameNative);
+        }
+        if(version>=2) {
+            QJsonParseError error;
+            const auto doc=QJsonDocument::fromJson(timelineText.toUtf8(),&error);
+            require(error.error==QJsonParseError::NoError&&doc.isArray()&&
+                    doc.array().size()<=16,"PL-PLACE-CODEC: invalid name timeline");
+            QString previous;
+            for(const auto& value:doc.array()) {
+                require(value.isObject(),"PL-PLACE-CODEC: timeline entry");
+                const auto obj=value.toObject();PlaceNameTransition transition;
+                const bool hasYear=obj.contains("fromYear"),hasDate=obj.contains("fromDate");
+                require(hasYear!=hasDate,"PL-PLACE-CODEC: timeline date precision");
+                QString boundary;
+                if(hasDate) {
+                    require(obj.value("fromDate").isString(),"PL-PLACE-CODEC: exact date");
+                    transition.fromDate=obj.value("fromDate").toString();
+                    const auto date=QDate::fromString(transition.fromDate,Qt::ISODate);
+                    require(date.isValid()&&date.toString(Qt::ISODate)==transition.fromDate&&
+                            transition.fromDate.size()==10,"PL-PLACE-CODEC: exact date");
+                    boundary=transition.fromDate;
+                } else {
+                    const auto year=obj.value("fromYear");
+                    require(year.isDouble()&&std::isfinite(year.toDouble())&&
+                            std::floor(year.toDouble())==year.toDouble()&&year.toDouble()>=1&&
+                            year.toDouble()<=9999,"PL-PLACE-CODEC: year-only name date");
+                    transition.fromYear=int(year.toDouble());
+                    boundary=QString("%1-01-01").arg(transition.fromYear,4,10,QChar('0'));
+                }
+                require(previous.isEmpty()||previous<boundary,"PL-PLACE-CODEC: unsorted name dates");
+                previous=boundary;
+                for(const auto* lang:{"ko","en","native"}) {
+                    if(!obj.contains(lang))continue;
+                    require(obj.value(lang).isString(),"PL-PLACE-CODEC: language name");
+                    const auto variant=text(obj.value(lang).toString(),256,true);
+                    if(QString::fromLatin1(lang)=="ko")transition.ko=variant;
+                    if(QString::fromLatin1(lang)=="en")transition.en=variant;
+                    if(QString::fromLatin1(lang)=="native")transition.native=variant;
+                }
+                if(obj.contains("nativeExtras")) {
+                    require(version==3&&!transition.native.isEmpty(),"PL-PLACE-CODEC: native extras require primary");
+                    transition.nativeExtras=extrasFromJson(obj.value("nativeExtras"),transition.native);
+                }
+                require(!transition.ko.isEmpty()||!transition.en.isEmpty()||
+                        !transition.native.isEmpty(),"PL-PLACE-CODEC: empty name transition");
+                r.nameTimeline.push_back(std::move(transition));
+            }
+        }
+        static const QRegularExpression sourcePattern("^[a-z0-9-]+$");
+        require(sourcePattern.match(r.source).hasMatch(),"PL-PLACE-CODEC: source");
+        r.id="builtin:place:"+r.source+":"+r.sourceId;records.push_back(std::move(r));
+    }
+    return records;
 }
 std::shared_ptr<PlaceRuntimeStore> PlaceRuntimeStore::open(const QString& manifestPath,QString& error,std::size_t budget) {
     try {
@@ -233,7 +360,16 @@ PlaceQueryResult PlaceRuntimeStore::search(const QString& value,const Cancellati
     checkpoint(cancelled);std::lock_guard<std::mutex> lock(data_->mutex);Data::PublishOnExit publish{*data_};checkpoint(cancelled);++data_->stats.searchCount;const auto query=normalizeQuery(value);const auto codepoints=query.toUcs4();if(codepoints.size()<2)return {};
     const auto prefix=QString::fromUcs4(codepoints.constData(),2);std::vector<Data::Tile> rows;bool truncated=false;
     for(const auto& page:data_->search.value(prefix))if(page.last>=query&&page.first<=query+QChar(0xffff)){if(rows.size()<PlaceRuntimeLimits::QueryTiles)rows.push_back(page);else truncated=true;}
-    auto result=data_->rows(rows,cancelled,[&](const auto& r){return normalizeQuery(r.name).startsWith(query);},PlaceRuntimeLimits::SearchResults);result.truncated|=truncated;return result;
+    auto result=data_->rows(rows,cancelled,[&](const auto& r){
+        const auto matches=[&](const QString& text){return normalizeQuery(text).startsWith(query);};
+        if(matches(r.name)||matches(r.nameEn)||matches(r.nameNative))return true;
+        for(const auto& name:r.nameNativeExtras)if(matches(name))return true;
+        for(const auto& period:r.nameTimeline){
+            if(matches(period.ko)||matches(period.en)||matches(period.native))return true;
+            if(period.nativeExtras)for(const auto& name:*period.nativeExtras)if(matches(name))return true;
+        }
+        return false;
+    },PlaceRuntimeLimits::SearchResults);result.truncated|=truncated;return result;
 }
 PlaceStoreStats PlaceRuntimeStore::stats() const {std::lock_guard<std::mutex> lock(data_->metricsMutex);return data_->publishedStats;}
 QString PlaceRuntimeStore::revision() const {return data_->revision;}

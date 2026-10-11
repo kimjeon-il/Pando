@@ -1,0 +1,215 @@
+{
+  "schema": "pando-editor-readonly-place-staging-v1",
+  "webRepo": "kimjeon-il/Pando",
+  "webCommit": "3555ba5175a086e4951c666777584ef0cef736c7",
+  "appTarget": "assets/place",
+  "status": "source-synced-and-approved-only-plac-v3",
+  "files": [
+    {
+      "path": "reports/places/tier1-major-cities-batch01.json",
+      "gitBlobSha": "a41fa7d25787dd6b12f3228361fd0de4e3046ece"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "gitBlobSha": "b4434cbd2856a35ae6bd481811ee8606c9ebd361"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+      "gitBlobSha": "9212cbe10cb9337b4cbd2b4eb0574165c3c72393"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
+      "gitBlobSha": "ea845b13fe12d5acde38157a9615f59d5219c2e7"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch05-americas.json",
+      "gitBlobSha": "de8b9e6ce3ef90620e8e3603d9c304c6916de02a"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch06-africa-oceania.json",
+      "gitBlobSha": "49ca9f23d1e634dd9ad72b2b77528dcfc7ba0292"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "gitBlobSha": "b46abcd6860f241b295fcb93802e048483cdebbf"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "gitBlobSha": "c889a9f21f4a3b974588bbedd42bc7b4ed6b0c93"
+    },
+    {
+      "path": "reports/places/historical-display-policy.json",
+      "gitBlobSha": "abde6164dda3732ec4211e50294835d2086683aa"
+    },
+    {
+      "path": "reports/places/korean-map-label-policy.json",
+      "gitBlobSha": "beaa4eeef03b82bccb9e29ed9a7d5cd02e35e413"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch09-baltic-belarus-capitals.json",
+      "gitBlobSha": "0a6d7cbc994787648ddb3112220c81c1a3fe445c"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch10-balkan-southeast-europe.json",
+      "gitBlobSha": "7a6d77ffe74b9113a2087e9564c38408c8ed3cb2"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch11-western-balkans-capitals.json",
+      "gitBlobSha": "089b9f120ae90c758aa46d0ee25ec34a17ba5a7c"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch12-central-eastern-europe-capitals.json",
+      "gitBlobSha": "b7680d86fe5b06ed928945842c1bd02a7fd9be47"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json",
+      "gitBlobSha": "b4eba36b4d728f01df3a417e43005b10d85e7668"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json",
+      "gitBlobSha": "4262744399763184f713f2a248cd135a1e18b1dd"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch15-central-asia-capitals.json",
+      "gitBlobSha": "6bf45c43b9495fae74961ce37220e6b6e031875c"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
+      "gitBlobSha": "d2c7365a43b168316786e8b120b845bc4ec5edcd"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
+      "gitBlobSha": "2a871e09f10737bb9f2fc7f3b6daef97810670b9"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
+      "gitBlobSha": "ece91fcfb1f1196e28d9931b7ce445d09e0d0c83"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
+      "gitBlobSha": "c3746dcbea966ed1205da5e150e1af00fc4fb6bd"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
+      "gitBlobSha": "11d9d23b003227b8b51131b63e485be675559a0c"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
+      "gitBlobSha": "03644302f185d29a43b736c5abc4cf08decac4a8"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
+      "gitBlobSha": "a6b697cb17ecf24d84dbdb4feb79d23b0c185709"
+    }
+  ],
+  "reviewInventory": {
+    "batchCount": 22,
+    "recordCount": 264,
+    "distinctGeoNames": 264,
+    "byBatch": [
+      {
+        "path": "reports/places/tier1-major-cities-batch01.json",
+        "recordCount": 9
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch02-east-asia.json",
+        "recordCount": 9
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+        "recordCount": 7
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
+        "recordCount": 5
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch05-americas.json",
+        "recordCount": 5
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch06-africa-oceania.json",
+        "recordCount": 4
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+        "recordCount": 9
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+        "recordCount": 8
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch09-baltic-belarus-capitals.json",
+        "recordCount": 4
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch10-balkan-southeast-europe.json",
+        "recordCount": 4
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch11-western-balkans-capitals.json",
+        "recordCount": 5
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch12-central-eastern-europe-capitals.json",
+        "recordCount": 4
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json",
+        "recordCount": 5
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json",
+        "recordCount": 5
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch15-central-asia-capitals.json",
+        "recordCount": 5
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
+        "recordCount": 26
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
+        "recordCount": 25
+      }
+    ]
+  },
+  "publishedRuntime": {
+    "format": "PLAC-v3",
+    "records": 163,
+    "historicalNamePeriods": 381,
+    "stagedResearchRecords": 264,
+    "withheldUnapprovedRecords": 101,
+    "approvalSource": "kimjeon-il/Pando/reports/places/runtime-release-approvals-v1.json",
+    "approvalSha256": "57c4b9e5454d7ea258e9c23ed594984850bd16a7fe064130e0357bc76ff8797a",
+    "manifestPath": "assets/place/manifest.json",
+    "shardPath": "assets/place/places-v1.bin",
+    "manifestGitBlobSha": "0a8dbe8f24a73332e25f5ae2dbd778d497ba2440",
+    "shardGitBlobSha": "ef2ca390d9e369a01ca1c19cb5c2094ed5ac49b7",
+    "shardSha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+    "verificationNote": "Runtime binary and manifest are byte-for-byte identical to Web 163 explicitly approved city release at pinned Web commit. The 264 city research corpus remains staging; 101 unapproved records are absent from runtime/search."
+  }
+}

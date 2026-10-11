@@ -57,5 +57,8 @@ tests/fixtures/web-territorial-library-v2/** -text whitespace=-blank-at-eof
 assets/place/** -text
 assets/territorial-library-v2/** -text
 
+# Reviewed city source hashes refer to Git LF bytes on every platform.
+reports/places/*.json text eol=lf
+
 # Production reference calibration modules are pinned Git blob bytes.
 app/reference-web/** text eol=lf

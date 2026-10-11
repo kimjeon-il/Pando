@@ -19,6 +19,21 @@ const currentBytes = readFileSync(join(root, 'manifest.json'));
 const initial = JSON.parse(currentBytes.toString('utf8'));
 const commit = 'f'.repeat(40);
 
+test('historical timeline keeps its pinned bytes when the modern GIS world bundle changes', () => {
+  validateWorldDataset(initial);
+  for (const role of ['historicalTimelineManifest', 'historicalTimeline']) {
+    const bytes = readFileSync(join(root, initial[role].path));
+    assert.equal(validateWorldAssetBytes(initial, role, bytes), true);
+    const invalid = structuredClone(initial);
+    invalid[role].sha256 = '0'.repeat(64);
+    assert.throws(() => validateWorldAssetBytes(invalid, role, bytes), /SHA-256 mismatch/);
+  }
+  const { bundle, raw, buffers } = previewBundle();
+  const plan = buildWorldSyncPlan({ current: initial, webRef: commit, webBundleBytes: raw, webBundle: bundle, downloaded: buffers });
+  assert.deepEqual(plan.candidate.historicalTimelineManifest, initial.historicalTimelineManifest);
+  assert.deepEqual(plan.candidate.historicalTimeline, initial.historicalTimeline);
+});
+
 function previewBundle() {
   const assets = {};
   const buffers = new Map();

@@ -92,5 +92,21 @@
       "ref": "a87f4d27fb1bc16528aa57242ecb52e28e4550b2",
       "path": "assets/data/country-label-anchors-v0.10.1.json"
     }
+  },
+  "historicalTimelineManifest": {
+    "path": "historical-world/v1/manifest.json",
+    "version": "1",
+    "gitBlobSha": "c941d066fa8d9a9c7ac877be0eb0f6defad463b1",
+    "sha256": "e42e29dc7c7a71afc0e6fbaddd135f934a17e6be8ffede16346e84a6cdd6c8ac",
+    "required": true,
+    "bytes": 59586
+  },
+  "historicalTimeline": {
+    "path": "historical-world/v1/world-project.json.gz",
+    "version": "1",
+    "gitBlobSha": "8ee5ee17cd3317e8b52f23446ceaaac7d8997447",
+    "sha256": "1c2fcd0e66ae2726b53946cdbd18d7d7d686ab66eecf285e70cfd3e9df843155",
+    "required": true,
+    "bytes": 6202166
   }
 }
