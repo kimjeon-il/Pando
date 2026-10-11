@@ -1,0 +1,2295 @@
+{
+  "schema": "pando-places-tier1-review-v6",
+  "batch": "18-west-central-africa-capitals",
+  "status": "verified-source-staging-not-runtime",
+  "checkedOn": "2026-10-11",
+  "source": "GeoNames CC BY 4.0 modern place IDs, coordinates, featureCode and names; official city/national government histories, municipal sources, the Library of Congress, scholarly historical research, and current 2026 Equatorial Guinea decree, linked per record/period.",
+  "selection": "26 distinct contemporary West/Central African capital, historical capital, and government-seat urban settlements: old/new Equatorial Guinea capital is a deliberate two-city exception. All records distinct from staged batches 01–17.",
+  "coordinateConvention": "GeoNames 2026 modern representative WGS84 lat/lon points, not historical borders, former town sites, municipal jurisdiction centroids or claims of historical political sovereignty.",
+  "countryCodeSemantics": "present-day GeoNames metadata only; PPLC/PPLG/PPLA must not imply legal/historical capital status at another date.",
+  "historicalDisplayPolicyFile": "reports/places/historical-display-policy.json",
+  "koreanMapLabelPolicyFile": "reports/places/korean-map-label-policy.json",
+  "historicalDisplayStatus": "timeline-staged-not-runtime",
+  "historicNameScope": "Map label names verified only at cited transitions. A-class 1801 labels are modern-name editorial baselines without historical period attestation and must not be interpreted as full no-rename verification.",
+  "reviewMethod": "Validate official GeoNames IDs/coordinates; check 138 previous IDs; separate former/current capital roles; distinguish new-town establishment, precursor village, official renaming and editor-selected language transitions.",
+  "researchClassSummary": {
+    "A": 7,
+    "B": 11,
+    "C": 8
+  },
+  "qualityNotes": [
+    "All 26 IDs are independent P class settlement records and absent from 138 records across batches 01–17; previous files unchanged.",
+    "Equatorial Guinea Decree Law No.1/2026 dated 2026-01-02 (government official source) established Ciudad de la Paz as new capital; Malabo remains an independent extant city. GeoNames now encodes Ciudad de la Paz PPLC 12226438 vs Malabo PPLA 2309527.",
+    "The former village Oyala GeoNames 2306898 is not a synonym ID/coordinate for the new planned capital ID 12226438.",
+    "Benin Porto-Novo PPLC 2392087 (legal capital) and Cotonou PPLG 2394819 (government seat) remain separate; Côte d'Ivoire Yamoussoukro PPLC 2279755 vs Abidjan PPLA 2293538 likewise.",
+    "The city now called Suleja was an older namesake Abuja; it is not the modern planned federal capital Abuja ID 2352778. FCDA sources construction around 1980 distinct from Federal Capital Territory legislation 1976.",
+    "Monrovia's initial Christopolis rename in 1824 based on US Library of Congress; date at year precision. Do not merge older local Cape Mesurado villages with the 1822 city.",
+    "Banjul former Bathurst colonial town from 1816, official rename in 1973; sources disagree February announcement versus April administrative dates, so year-only.",
+    "N'Djamena was Fort-Lamy, renamed in 1973; exact November decision/implementation days remain contested so year-only.",
+    "Kinshasa former Léopoldville, renamed during 1966; a cabinet announcement planned 30 June, while a secondary citation of 1966-10-03 legal instrument claims 1 July retroactive effective date. Hold exact day.",
+    "Yamoussoukro name reportedly established 1919 per national presidency, but alternative municipal/district histories diverge. 1919 selected provisionally and old N'Gokro village linked rather than assigning modern city point and rank to the former settlement.",
+    "Nouakchott urban foundation cornerstone 1958-03-05 from published urban planning research; 1957 planning decision and previous coastal village are distinct.",
+    "Malabo Spanish-era Santa Isabel naming year is contested between colonial accounts; 1855 is a provisional year, NOT independently confirmed statutory efficacy. Santa Isabel -> Malabo in 1973.",
+    "Ciudad de la Paz formerly Oyala as documented in official 2015 appointment decree; 2017 provincial naming law introduced Ciudad de la Paz but exact effectiveness remains year-granular. National capital status starts 2026-01-02, not 2017.",
+    "Existing nativeNames multiform only used if independent contemporaneous official city names are attested. Equal English/native string stored once by default.",
+    "No new population rankings, city five-grade tiers, historic national affiliations, shifting coordinates, runtime manifests, place tiles, app changes or main updates."
+  ],
+  "stats": {
+    "cityCount": 26,
+    "historicalNamePeriods": 34,
+    "additionalTimelinePeriods": 8,
+    "previousBatchCount": 17,
+    "previousStagedCities": 138,
+    "previousTimelinePeriods": 327,
+    "cumulativeStagedCities": 164,
+    "cumulativeTimelinePeriods": 361,
+    "reviewedResearchDifficulty": {
+      "A": 7,
+      "B": 11,
+      "C": 8
+    },
+    "exactDateEntries": 1,
+    "yearEntries": 33
+  },
+  "records": [
+    {
+      "geonameId": 2352778,
+      "names": [
+        {
+          "text": "아부자",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://fcda.gov.ng/the-history-of-abuja/"
+        },
+        {
+          "text": "Abuja",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://fcda.gov.ng/the-history-of-abuja/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 9.05785,
+      "longitude": 7.49508,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2352778/",
+      "sourceCountryCode": "NG",
+      "defaultDisplayNameKo": "아부자",
+      "defaultDisplayNameEn": "Abuja",
+      "defaultDisplayNameNative": "Abuja",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Abuja",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1980년대 건설한 새 계획수도",
+      "displayTimeline": [
+        {
+          "fromYear": 1980,
+          "nameKo": "아부자",
+          "nameEn": "Abuja",
+          "nameNative": "Abuja",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Abuja",
+              "language": "en",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://fcda.gov.ng/the-history-of-abuja/",
+          "note": "연방수도 개발청은 현재의 신계획도시 Abuja 건설",
+          "researchNote": "연방수도 개발청은 현재의 신계획도시 Abuja 건설이 1980년경 시작됐다고 기록한다. 1976년 법적 수도지역 결정과 1991년 수도 이전은 도시 이름 개칭이 아니다. 이전 'Abuja'라는 이름의 옛 도시는 현재 Suleja로서 별도 위치다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1980,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://fcda.gov.ng/the-history-of-abuja/",
+        "note": "1980년경 현재 Abuja 신도시의 물리적 건설 ",
+        "researchNote": "1980년경 현재 Abuja 신도시의 물리적 건설 시작. 1976년 수도 설치 법령은 FCT 지정이고 1991년 수도 이전은 정치 기능 변경이다. 옛 Abuja 도시는 현재 Suleja로 별도 ID/좌표이다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      },
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1976,
+            "type": "federalCapitalTerritoryDesignation",
+            "sourceUrl": "https://fcda.gov.ng/the-history-of-abuja/",
+            "detail": "1976년 신수도지역 지정",
+            "researchDetail": "이 법률은 독립된 기존 Abuja 도시를 현재의 수도 도시로 개칭한 것이 아니며, 당시 Abuja 명칭을 쓰던 기존 마을은 현재 Suleja와 연결된다."
+          },
+          {
+            "fromYear": 1991,
+            "type": "capitalRelocationToAbuja",
+            "sourceUrl": "https://statehouse.gov.ng/presidential-villa/the-villa/",
+            "detail": "1991년 라고스에서 수도 이전",
+            "researchDetail": "도시명 변경이 아니라 연방정부 수도 기능 이전이다."
+          }
+        ],
+        "linkedPlaces": [
+          {
+            "nameEn": "Abuja (renamed Suleja)",
+            "relation": "differentOlderNamesakeTown",
+            "sourceUrl": "https://fcda.gov.ng/the-history-of-abuja/",
+            "researchNote": "1976년 이전 Abuja라는 이름을 사용했던 마을은 오늘날 Suleja다. 현 연방계획수도 Abuja와 합병·좌표 공유·통합 레이블 금지."
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2306104,
+      "names": [
+        {
+          "text": "아크라",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2306104/"
+        },
+        {
+          "text": "Accra",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2306104/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 5.55602,
+      "longitude": -0.1969,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2306104/",
+      "sourceCountryCode": "GH",
+      "defaultDisplayNameKo": "아크라",
+      "defaultDisplayNameEn": "Accra",
+      "defaultDisplayNameNative": "Accra",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Accra",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "기존 지명과 수도 지위 구분",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "아크라",
+          "nameEn": "Accra",
+          "nameNative": "Accra",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Accra",
+              "language": "en",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/2306104/",
+          "note": "선택한 현대 GeoNames 한국어/영어/원어 형태",
+          "researchNote": "선택한 현대 GeoNames 한국어/영어/원어 형태를 역사적 조사 시작용 편집 기준으로 놓는다. 이 형태가 정확히 해당 과거 연도에 공용 법정명이었는지는 아직 입증되지 않았다. 무개칭·지배권·국가 소속·도시 등급을 뜻하지 않는다.",
+          "evidenceStatus": "unverified-historical-baseline-from-modern-source"
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
+      "researchDifficulty": "A",
+      "reviewStatus": "unverified-historical-continuity",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ]
+    },
+    {
+      "geonameId": 2365267,
+      "names": [
+        {
+          "text": "로메",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2365267/"
+        },
+        {
+          "text": "Lomé",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2365267/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 6.12874,
+      "longitude": 1.22154,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2365267/",
+      "sourceCountryCode": "TG",
+      "defaultDisplayNameKo": "로메",
+      "defaultDisplayNameEn": "Lomé",
+      "defaultDisplayNameNative": "Lomé",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Lomé",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "프랑스어 표기 유지",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "로메",
+          "nameEn": "Lomé",
+          "nameNative": "Lomé",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Lomé",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/2365267/",
+          "note": "선택한 현대 GeoNames 한국어/영어/원어 형태",
+          "researchNote": "선택한 현대 GeoNames 한국어/영어/원어 형태를 역사적 조사 시작용 편집 기준으로 놓는다. 이 형태가 정확히 해당 과거 연도에 공용 법정명이었는지는 아직 입증되지 않았다. 무개칭·지배권·국가 소속·도시 등급을 뜻하지 않는다.",
+          "evidenceStatus": "unverified-historical-baseline-from-modern-source"
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
+      "researchDifficulty": "A",
+      "reviewStatus": "unverified-historical-continuity",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ]
+    },
+    {
+      "geonameId": 2392087,
+      "names": [
+        {
+          "text": "포르토노보",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2392087/"
+        },
+        {
+          "text": "Porto-Novo",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2392087/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 6.49646,
+      "longitude": 2.60359,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2392087/",
+      "sourceCountryCode": "BJ",
+      "defaultDisplayNameKo": "포르토노보",
+      "defaultDisplayNameEn": "Porto-Novo",
+      "defaultDisplayNameNative": "Porto-Novo",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Porto-Novo",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "베냉의 법정 수도",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "포르토노보",
+          "nameEn": "Porto-Novo",
+          "nameNative": "Porto-Novo",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Porto-Novo",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/2392087/",
+          "note": "선택한 현대 GeoNames 한국어/영어/원어 형태",
+          "researchNote": "선택한 현대 GeoNames 한국어/영어/원어 형태를 역사적 조사 시작용 편집 기준으로 놓는다. 이 형태가 정확히 해당 과거 연도에 공용 법정명이었는지는 아직 입증되지 않았다. 무개칭·지배권·국가 소속·도시 등급을 뜻하지 않는다.",
+          "evidenceStatus": "unverified-historical-baseline-from-modern-source"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1960,
+            "type": "constitutionalCapitalStatus",
+            "sourceUrl": "https://www.geonames.org/2392087/porto-novo.html",
+            "detail": "베냉의 법정 수도",
+            "researchDetail": "법정 수도 Porto-Novo는 정부청사가 모여 있는 Cotonou와 별도이다. 1960년은 공화국 독립 맥락이며 법정 수도의 최초 지정일을 주장하지 않는다."
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2394819,
+      "names": [
+        {
+          "text": "코토누",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2394819/"
+        },
+        {
+          "text": "Cotonou",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2394819/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 6.36536,
+      "longitude": 2.41833,
+      "featureClass": "P",
+      "featureCode": "PPLG",
+      "sourceUrl": "https://www.geonames.org/2394819/",
+      "sourceCountryCode": "BJ",
+      "defaultDisplayNameKo": "코토누",
+      "defaultDisplayNameEn": "Cotonou",
+      "defaultDisplayNameNative": "Cotonou",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Cotonou",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "베냉 정부 소재 도시",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "코토누",
+          "nameEn": "Cotonou",
+          "nameNative": "Cotonou",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Cotonou",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/2394819/",
+          "note": "선택한 현대 GeoNames 한국어/영어/원어 형태",
+          "researchNote": "선택한 현대 GeoNames 한국어/영어/원어 형태를 역사적 조사 시작용 편집 기준으로 놓는다. 이 형태가 정확히 해당 과거 연도에 공용 법정명이었는지는 아직 입증되지 않았다. 무개칭·지배권·국가 소속·도시 등급을 뜻하지 않는다.",
+          "evidenceStatus": "unverified-historical-baseline-from-modern-source"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1960,
+            "type": "seatOfGovernment",
+            "sourceUrl": "https://www.geonames.org/2394819/cotonou.html",
+            "detail": "정부 소재지, 법정 수도 아님",
+            "researchDetail": "Benin 정부의 실질적 중앙행정 위치이며 헌법상 수도 Porto-Novo의 도시명·좌표·기능과 합치지 않는다."
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2357048,
+      "names": [
+        {
+          "text": "와가두구",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2357048/"
+        },
+        {
+          "text": "Ouagadougou",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2357048/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 12.36566,
+      "longitude": -1.53388,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2357048/",
+      "sourceCountryCode": "BF",
+      "defaultDisplayNameKo": "와가두구",
+      "defaultDisplayNameEn": "Ouagadougou",
+      "defaultDisplayNameNative": "Ouagadougou",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Ouagadougou",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "현지 지명과 프랑스어명 구별",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "와가두구",
+          "nameEn": "Ouagadougou",
+          "nameNative": "Ouagadougou",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Ouagadougou",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/2357048/",
+          "note": "선택한 현대 GeoNames 한국어/영어/원어 형태",
+          "researchNote": "선택한 현대 GeoNames 한국어/영어/원어 형태를 역사적 조사 시작용 편집 기준으로 놓는다. 이 형태가 정확히 해당 과거 연도에 공용 법정명이었는지는 아직 입증되지 않았다. 무개칭·지배권·국가 소속·도시 등급을 뜻하지 않는다.",
+          "evidenceStatus": "unverified-historical-baseline-from-modern-source"
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
+      "researchDifficulty": "A",
+      "reviewStatus": "unverified-historical-continuity",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ]
+    },
+    {
+      "geonameId": 2440485,
+      "names": [
+        {
+          "text": "니아메",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2440485/"
+        },
+        {
+          "text": "Niamey",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2440485/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 13.51366,
+      "longitude": 2.1098,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2440485/",
+      "sourceCountryCode": "NE",
+      "defaultDisplayNameKo": "니아메",
+      "defaultDisplayNameEn": "Niamey",
+      "defaultDisplayNameNative": "Niamey",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Niamey",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "도시명과 수도 지위 구분",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "니아메",
+          "nameEn": "Niamey",
+          "nameNative": "Niamey",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Niamey",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/2440485/",
+          "note": "선택한 현대 GeoNames 한국어/영어/원어 형태",
+          "researchNote": "선택한 현대 GeoNames 한국어/영어/원어 형태를 역사적 조사 시작용 편집 기준으로 놓는다. 이 형태가 정확히 해당 과거 연도에 공용 법정명이었는지는 아직 입증되지 않았다. 무개칭·지배권·국가 소속·도시 등급을 뜻하지 않는다.",
+          "evidenceStatus": "unverified-historical-baseline-from-modern-source"
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
+      "researchDifficulty": "A",
+      "reviewStatus": "unverified-historical-continuity",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ]
+    },
+    {
+      "geonameId": 2460596,
+      "names": [
+        {
+          "text": "바마코",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2460596/"
+        },
+        {
+          "text": "Bamako",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2460596/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 12.60915,
+      "longitude": -7.97522,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2460596/",
+      "sourceCountryCode": "ML",
+      "defaultDisplayNameKo": "바마코",
+      "defaultDisplayNameEn": "Bamako",
+      "defaultDisplayNameNative": "Bamako",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Bamako",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "선택 표기만 잠정 수록",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "바마코",
+          "nameEn": "Bamako",
+          "nameNative": "Bamako",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Bamako",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/2460596/",
+          "note": "선택한 현대 GeoNames 한국어/영어/원어 형태",
+          "researchNote": "선택한 현대 GeoNames 한국어/영어/원어 형태를 역사적 조사 시작용 편집 기준으로 놓는다. 이 형태가 정확히 해당 과거 연도에 공용 법정명이었는지는 아직 입증되지 않았다. 무개칭·지배권·국가 소속·도시 등급을 뜻하지 않는다.",
+          "evidenceStatus": "unverified-historical-baseline-from-modern-source"
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
+      "researchDifficulty": "A",
+      "reviewStatus": "unverified-historical-continuity",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ]
+    },
+    {
+      "geonameId": 2253354,
+      "names": [
+        {
+          "text": "다카르",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://mairiegranddakar.com/article/detail/les-partenaires/92-ville-de-dakar"
+        },
+        {
+          "text": "Dakar",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://mairiegranddakar.com/article/detail/les-partenaires/92-ville-de-dakar",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 14.6937,
+      "longitude": -17.44406,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2253354/",
+      "sourceCountryCode": "SN",
+      "defaultDisplayNameKo": "다카르",
+      "defaultDisplayNameEn": "Dakar",
+      "defaultDisplayNameNative": "Dakar",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Dakar",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1857년 근대 항만도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1857,
+          "nameKo": "다카르",
+          "nameEn": "Dakar",
+          "nameNative": "Dakar",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Dakar",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://mairiegranddakar.com/article/detail/les-partenaires/92-ville-de-dakar",
+          "note": "지역 시청의 1857년 5월 25일 프랑스령 항만도",
+          "researchNote": "지역 시청의 1857년 5월 25일 프랑스령 항만도시 공식 창설 기록. 기존 르부족 어촌과 식민도시의 범위를 자동 동일시하지 않는다. 1857년을 프랑스식 지명의 법정 첫 사용일로 단정하지 않는다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1857,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://mairiegranddakar.com/article/detail/les-partenaires/92-ville-de-dakar",
+        "note": "1857년 5월 25일 현 다카르의 프랑스 식민항구",
+        "researchNote": "1857년 5월 25일 현 다카르의 프랑스 식민항구도시 설립. 이미 존재하던 Lebou 어촌과 동일한 도시 등급·행정 경계가 아니다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      },
+      "historicalGeography": {
+        "linkedPlaces": [
+          {
+            "nameEn": "Dacar (Lébou fishing village)",
+            "relation": "preexistingLocalSettlement",
+            "sourceUrl": "https://mairiegranddakar.com/article/detail/les-partenaires/92-ville-de-dakar",
+            "researchNote": "프랑스 도시가 형성되기 전 해당 연안에 존재한 현지 어촌. 기존 마을의 이름과 프랑스식 행정도시를 자동으로 같은 도시등급으로 연결하지 않는다."
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2422465,
+      "names": [
+        {
+          "text": "코나크리",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.bceao.int/sites/default/files/inline-files/Vol.-I_History_of_WAMU.pdf"
+        },
+        {
+          "text": "Conakry",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.bceao.int/sites/default/files/inline-files/Vol.-I_History_of_WAMU.pdf",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 9.53795,
+      "longitude": -13.67729,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2422465/",
+      "sourceCountryCode": "GN",
+      "defaultDisplayNameKo": "코나크리",
+      "defaultDisplayNameEn": "Conakry",
+      "defaultDisplayNameNative": "Conakry",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Conakry",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1887년 근대도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1887,
+          "nameKo": "코나크리",
+          "nameEn": "Conakry",
+          "nameNative": "Conakry",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Conakry",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.bceao.int/sites/default/files/inline-files/Vol.-I_History_of_WAMU.pdf",
+          "note": "서아프리카 중앙은행 역사 자료에 따른 1887년 코",
+          "researchNote": "서아프리카 중앙은행 역사 자료에 따른 1887년 코나크리 도시 설립. 이전의 섬·취락은 같은 도시 법정 정체와 자동 등치하지 않는다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1887,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.bceao.int/sites/default/files/inline-files/Vol.-I_History_of_WAMU.pdf",
+        "note": "서아프리카 중앙은행 역사 연감은 1887년 Cona",
+        "researchNote": "서아프리카 중앙은행 역사 연감은 1887년 Conakry 도시의 설립을 기록. 주변의 이전 정착지와 동일한 근대 도시 여부는 자동 추정하지 않는다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2374775,
+      "names": [
+        {
+          "text": "비사우",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2374775/"
+        },
+        {
+          "text": "Bissau",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2374775/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 11.86357,
+      "longitude": -15.59767,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2374775/",
+      "sourceCountryCode": "GW",
+      "defaultDisplayNameKo": "비사우",
+      "defaultDisplayNameEn": "Bissau",
+      "defaultDisplayNameNative": "Bissau",
+      "defaultNativeLanguage": "pt",
+      "defaultNativeNames": [
+        {
+          "text": "Bissau",
+          "language": "pt",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "포르투갈어 대표형 유지",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "비사우",
+          "nameEn": "Bissau",
+          "nameNative": "Bissau",
+          "nativeLanguage": "pt",
+          "nativeNames": [
+            {
+              "text": "Bissau",
+              "language": "pt",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/2374775/",
+          "note": "선택한 현대 GeoNames 한국어/영어/원어 형태",
+          "researchNote": "선택한 현대 GeoNames 한국어/영어/원어 형태를 역사적 조사 시작용 편집 기준으로 놓는다. 이 형태가 정확히 해당 과거 연도에 공용 법정명이었는지는 아직 입증되지 않았다. 무개칭·지배권·국가 소속·도시 등급을 뜻하지 않는다.",
+          "evidenceStatus": "unverified-historical-baseline-from-modern-source"
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
+      "researchDifficulty": "A",
+      "reviewStatus": "unverified-historical-continuity",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ]
+    },
+    {
+      "geonameId": 2409306,
+      "names": [
+        {
+          "text": "프리타운",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Freetown"
+        },
+        {
+          "text": "Freetown",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Freetown",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 8.48714,
+      "longitude": -13.2356,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2409306/",
+      "sourceCountryCode": "SL",
+      "defaultDisplayNameKo": "프리타운",
+      "defaultDisplayNameEn": "Freetown",
+      "defaultDisplayNameNative": "Freetown",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Freetown",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1792년 정착촌 설립",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "프리타운",
+          "nameEn": "Freetown",
+          "nameNative": "Freetown",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Freetown",
+              "language": "en",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.britannica.com/place/Freetown",
+          "note": "1792년 근대 프리타운 정착촌 이후 1801년의 ",
+          "researchNote": "1792년 근대 프리타운 정착촌 이후 1801년의 도시명을 지도 대표형으로 선정한다. 1787년 이전 'Province of Freedom' 등의 정착 계획과 동일한 역사적 도시는 아닐 수 있으므로 연결하지 않는다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1792,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.britannica.com/place/Freetown",
+        "note": "1792년 영국인 재정착촌의 근대 Freetown ",
+        "researchNote": "1792년 영국인 재정착촌의 근대 Freetown 설립과 1787년 다른 정착촌·선행 현지 마을을 구별한다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2274895,
+      "names": [
+        {
+          "text": "크리스토폴리스",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.loc.gov/collections/maps-of-liberia-1830-to-1870/articles-and-essays/history-of-liberia/1820-to-1847/"
+        },
+        {
+          "text": "Christopolis",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.loc.gov/collections/maps-of-liberia-1830-to-1870/articles-and-essays/history-of-liberia/1820-to-1847/",
+          "script": "Latn"
+        },
+        {
+          "text": "몬로비아",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.loc.gov/collections/maps-of-liberia-1830-to-1870/articles-and-essays/history-of-liberia/1820-to-1847/"
+        },
+        {
+          "text": "Monrovia",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.loc.gov/collections/maps-of-liberia-1830-to-1870/articles-and-essays/history-of-liberia/1820-to-1847/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 6.30054,
+      "longitude": -10.7969,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2274895/",
+      "sourceCountryCode": "LR",
+      "defaultDisplayNameKo": "몬로비아",
+      "defaultDisplayNameEn": "Monrovia",
+      "defaultDisplayNameNative": "Monrovia",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Monrovia",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1824년 크리스토폴리스 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1822,
+          "nameKo": "크리스토폴리스",
+          "nameEn": "Christopolis",
+          "nameNative": "Christopolis",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Christopolis",
+              "language": "en",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.loc.gov/collections/maps-of-liberia-1830-to-1870/articles-and-essays/history-of-liberia/1820-to-1847/",
+          "note": "1822년 Cape Mesurado에 세운 미국식민",
+          "researchNote": "1822년 Cape Mesurado에 세운 미국식민협회 정착지 Christopolis를 해당 도시 기원으로 선택. 해당 지역의 기존 Dey·Kru 등 토착 마을과 합쳐 하나의 1822년 이전 도시라고 간주하지 않는다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        },
+        {
+          "fromYear": 1824,
+          "kind": "officialColonialSettlementRenaming",
+          "sourceUrl": "https://www.loc.gov/collections/maps-of-liberia-1830-to-1870/articles-and-essays/history-of-liberia/1820-to-1847/",
+          "note": "미국 의회도서관의 리베리아 역사에서는 1824년에 ",
+          "researchNote": "미국 의회도서관의 리베리아 역사에서는 1824년에 정착지 Christopolis를 당시 미국 대통령 James Monroe의 이름을 따 Monrovia로 개칭했다고 기록한다. 법정 정확 일자는 1차 원문 간 차이가 있으므로 연도로만 표기.",
+          "evidenceStatus": "sourced-selected-epoch",
+          "nameKo": "몬로비아",
+          "nameEn": "Monrovia",
+          "nameNative": "Monrovia",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Monrovia",
+              "language": "en",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1822,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.loc.gov/collections/maps-of-liberia-1830-to-1870/articles-and-essays/history-of-liberia/1820-to-1847/",
+        "note": "1822년 Christopolis 정착촌 형성을 근",
+        "researchNote": "1822년 Christopolis 정착촌 형성을 근대 도시 기원으로 선택. 그 이전 Cape Mesurado 토착 거주와 동일 정체 아님.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2377450,
+      "names": [
+        {
+          "text": "누악쇼트",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S026427510700114X"
+        },
+        {
+          "text": "Nouakchott",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S026427510700114X",
+          "script": "Latn"
+        },
+        {
+          "text": "نواكشوط",
+          "language": "ar",
+          "usage": "standard",
+          "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S026427510700114X",
+          "script": "Arab"
+        }
+      ],
+      "latitude": 18.08581,
+      "longitude": -15.9785,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2377450/",
+      "sourceCountryCode": "MR",
+      "defaultDisplayNameKo": "누악쇼트",
+      "defaultDisplayNameEn": "Nouakchott",
+      "defaultDisplayNameNative": "نواكشوط",
+      "defaultNativeLanguage": "ar",
+      "defaultNativeNames": [
+        {
+          "text": "نواكشوط",
+          "language": "ar",
+          "script": "Arab"
+        }
+      ],
+      "shortDescriptionKo": "1958년 계획수도 건설 시작",
+      "displayTimeline": [
+        {
+          "fromDate": "1958-03-05",
+          "nameKo": "누악쇼트",
+          "nameEn": "Nouakchott",
+          "nameNative": "نواكشوط",
+          "nativeLanguage": "ar",
+          "nativeNames": [
+            {
+              "text": "نواكشوط",
+              "language": "ar",
+              "script": "Arab"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S026427510700114X",
+          "note": "학술 연구에서 1958-03-05 신계획수도 누악쇼",
+          "researchNote": "학술 연구에서 1958-03-05 신계획수도 누악쇼트의 기공석을 놓았다고 확인한다. 앞선 어촌과 1957년 수도 부지 지정은 현대 수도 도시 건설일과 구별한다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromDate": "1958-03-05",
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S026427510700114X",
+        "note": "학술 연구에 근거한 1958-03-05 새 수도의 ",
+        "researchNote": "학술 연구에 근거한 1958-03-05 새 수도의 기공석 설치. 1957년 수도 부지 지정·기존 어촌은 별개.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2413876,
+      "names": [
+        {
+          "text": "배서스트",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://thepoint.gm/africa/gambia/headlines/how-bathurst-renamed-banjul-8-years-after-independence"
+        },
+        {
+          "text": "Bathurst",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://thepoint.gm/africa/gambia/headlines/how-bathurst-renamed-banjul-8-years-after-independence",
+          "script": "Latn"
+        },
+        {
+          "text": "반줄",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://thepoint.gm/africa/gambia/headlines/how-bathurst-renamed-banjul-8-years-after-independence"
+        },
+        {
+          "text": "Banjul",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://thepoint.gm/africa/gambia/headlines/how-bathurst-renamed-banjul-8-years-after-independence",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 13.45274,
+      "longitude": -16.57803,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2413876/",
+      "sourceCountryCode": "GM",
+      "defaultDisplayNameKo": "반줄",
+      "defaultDisplayNameEn": "Banjul",
+      "defaultDisplayNameNative": "Banjul",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Banjul",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1973년 배서스트 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1816,
+          "nameKo": "배서스트",
+          "nameEn": "Bathurst",
+          "nameNative": "Bathurst",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Bathurst",
+              "language": "en",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://thepoint.gm/africa/gambia/headlines/how-bathurst-renamed-banjul-8-years-after-independence",
+          "note": "영국이 강어귀 섬에 자리 잡으면서 1816년 Bat",
+          "researchNote": "영국이 강어귀 섬에 자리 잡으면서 1816년 Bathurst 정착지를 조성한 시기를 해당 영국 식민도시의 시작으로 선택. 선행 Banjulo 섬·현지 취락은 별도 역사적 범위로 보존.",
+          "evidenceStatus": "sourced-selected-epoch"
+        },
+        {
+          "fromYear": 1973,
+          "kind": "officialRenamingYear",
+          "sourceUrl": "https://thepoint.gm/africa/gambia/headlines/how-bathurst-renamed-banjul-8-years-after-independence",
+          "note": "감비아 역사학자 Hassoum Ceesay는 197",
+          "researchNote": "감비아 역사학자 Hassoum Ceesay는 1973년 2월 19일 개칭 행사·발표를 기록한다. 다른 자료의 1973년 4월 시행일과 차이가 있어 1973년 연도만 확정하며 특정 일자를 법정 시행일로 입력하지 않는다.",
+          "evidenceStatus": "sourced-selected-epoch",
+          "nameKo": "반줄",
+          "nameEn": "Banjul",
+          "nameNative": "Banjul",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Banjul",
+              "language": "en",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다.",
+        "1973년 Bathurst→Banjul 명칭 전환 정확일은 2월·4월 자료 차이로 보류."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1816,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://thepoint.gm/africa/gambia/headlines/how-bathurst-renamed-banjul-8-years-after-independence",
+        "note": "1816년 영국이 건립한 Bathurst 식민도시 ",
+        "researchNote": "1816년 영국이 건립한 Bathurst 식민도시 정착지. 이전 섬 이름 Banjulo는 동일한 영국 도시 객체로 취급하지 않는다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2279755,
+      "names": [
+        {
+          "text": "야무수크로",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.presidence.ci/en/chairmanship/the-presidential-palaces/giscardium/"
+        },
+        {
+          "text": "Yamoussoukro",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.presidence.ci/en/chairmanship/the-presidential-palaces/giscardium/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 6.82055,
+      "longitude": -5.27674,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2279755/",
+      "sourceCountryCode": "CI",
+      "defaultDisplayNameKo": "야무수크로",
+      "defaultDisplayNameEn": "Yamoussoukro",
+      "defaultDisplayNameNative": "Yamoussoukro",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Yamoussoukro",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "옛 느고크로 마을과 구별",
+      "displayTimeline": [
+        {
+          "fromYear": 1919,
+          "nameKo": "야무수크로",
+          "nameEn": "Yamoussoukro",
+          "nameNative": "Yamoussoukro",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Yamoussoukro",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.presidence.ci/en/chairmanship/the-presidential-palaces/giscardium/",
+          "note": "코트디부아르 대통령실은 옛 N'Gokro 마을이 1",
+          "researchNote": "코트디부아르 대통령실은 옛 N'Gokro 마을이 1919년 Yamoussoukro로 개칭되었다고 밝힌다. 다만 지자체 및 자치구 역사 서술은 1909년 이후·1930년대 등 다른 시점도 제시한다. 1919년은 대통령실 기준의 잠정 연도로 선택하며 법정 일자와 도시 등급을 확정하지 않는다.",
+          "evidenceStatus": "conflicting-official-historical-dates-provisional"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다.",
+        "대통령실 1919년 설과 지자체의 1909년 이후·1930년대 서술 불일치. 현 기준은 1919년 잠정 선택이며 공식 효력일은 미해결."
+      ],
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1983,
+            "type": "nationalCapitalDesignation",
+            "sourceUrl": "https://www.presidence.ci/en/chairmanship/the-presidential-palaces/giscardium/",
+            "detail": "1983년 코트디부아르 수도 지정",
+            "researchDetail": "1983-03-21 대통령실 기록은 Yamoussoukro를 수도로 지정. 1919년 N’Gokro 개칭 연도와 독립된 행정 지위 사건이다."
+          }
+        ],
+        "linkedPlaces": [
+          {
+            "nameNative": "N'Gokro",
+            "relation": "historicalPredecessorVillageDifferentSite",
+            "sourceUrl": "https://www.presidence.ci/en/chairmanship/the-presidential-palaces/giscardium/",
+            "researchNote": "대통령실에 따르면 N'Gokro 옛 마을터는 현 대통령 별장 부지 안에 알려져 있다. 1919년 이름의 선택은 논쟁적이며 옛 마을 좌표·도시등급을 Yamoussoukro 대표점에 이식하지 않는다."
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2293538,
+      "names": [
+        {
+          "text": "아비장",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://digitallibrary.un.org/record/208314/files/TheChallengeOfUrbanization.pdf"
+        },
+        {
+          "text": "Abidjan",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://digitallibrary.un.org/record/208314/files/TheChallengeOfUrbanization.pdf",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 5.35444,
+      "longitude": -4.00167,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2293538/",
+      "sourceCountryCode": "CI",
+      "defaultDisplayNameKo": "아비장",
+      "defaultDisplayNameEn": "Abidjan",
+      "defaultDisplayNameNative": "Abidjan",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Abidjan",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1903년 현대 도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1903,
+          "nameKo": "아비장",
+          "nameEn": "Abidjan",
+          "nameNative": "Abidjan",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Abidjan",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://digitallibrary.un.org/record/208314/files/TheChallengeOfUrbanization.pdf",
+          "note": "유엔 도시화 자료의 1903년 근대 아비장 도시 형",
+          "researchNote": "유엔 도시화 자료의 1903년 근대 아비장 도시 형성 기록. 그 이전 Atchan 어촌의 지명 존재와 1934년 식민지 수도 지위는 분리한다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1903,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://digitallibrary.un.org/record/208314/files/TheChallengeOfUrbanization.pdf",
+        "note": "1903년 식민지 새 항만도시 Abidjan의 성립",
+        "researchNote": "1903년 식민지 새 항만도시 Abidjan의 성립 기준. 동일 지역의 기존 Atchan 어촌은 별도 역사적 장소.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      },
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1934,
+            "type": "colonialCapitalStatus",
+            "sourceUrl": "https://digitallibrary.un.org/record/208314/files/TheChallengeOfUrbanization.pdf",
+            "detail": "1934년 식민지 수도 기능",
+            "researchDetail": "1934년 행정 수도로 지정되었고 이후 Yamoussoukro의 법정 수도 지정과도 다르다. Abidjan의 이름이 자동 개칭되는 것은 아니다."
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2220957,
+      "names": [
+        {
+          "text": "야운데",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Yaounde"
+        },
+        {
+          "text": "Jaunde",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.britannica.com/place/Yaounde",
+          "script": "Latn"
+        },
+        {
+          "text": "Yaoundé",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Yaounde",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 3.86667,
+      "longitude": 11.51667,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2220957/",
+      "sourceCountryCode": "CM",
+      "defaultDisplayNameKo": "야운데",
+      "defaultDisplayNameEn": "Yaoundé",
+      "defaultDisplayNameNative": "Yaoundé",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Yaoundé",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "독일령 Jaunde 표기 전환",
+      "displayTimeline": [
+        {
+          "fromYear": 1889,
+          "nameKo": "야운데",
+          "nameEn": "Jaunde",
+          "nameNative": "Jaunde",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Jaunde",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.britannica.com/place/Yaounde",
+          "note": "독일 제국 식민지 시기 약 1889년 행정·연구 거",
+          "researchNote": "독일 제국 식민지 시기 약 1889년 행정·연구 거점 Jaunde의 독일어 원어명. 1887~1889의 설치 연도는 출처별 차이가 있어 1889년을 편집상 연도 기준으로 사용한다.",
+          "evidenceStatus": "historical-editorial-year-approximate"
+        },
+        {
+          "fromYear": 1922,
+          "kind": "colonialLanguagePreferredSpelling",
+          "sourceUrl": "https://www.britannica.com/place/Yaounde",
+          "note": "제1차대전 이후 프랑스 위임통치 아래 프랑스어 Ya",
+          "researchNote": "제1차대전 이후 프랑스 위임통치 아래 프랑스어 Yaoundé 표기를 지도 대표형으로 선택한 1922년 편집 기준. 1916년 군대 점령만으로 법적 개칭이 발생했다고 간주하지 않으며 영어 사용자 전원의 표기 변경일로도 주장하지 않는다.",
+          "evidenceStatus": "editorial-switch-not-legal-rename",
+          "nameEn": "Yaoundé",
+          "nameNative": "Yaoundé",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Yaoundé",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1889,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.britannica.com/place/Yaounde",
+        "note": "독일령 Jaunde 행정 거점이 1887–1889년",
+        "researchNote": "독일령 Jaunde 행정 거점이 1887–1889년경 형성. 1889년은 근대도시 기준의 잠정 연도이며 일자는 미확정.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2427123,
+      "names": [
+        {
+          "text": "포르라미",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.africabib.org/rec.php?RID=188751149"
+        },
+        {
+          "text": "Fort-Lamy",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.africabib.org/rec.php?RID=188751149",
+          "script": "Latn"
+        },
+        {
+          "text": "은자메나",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.africabib.org/rec.php?RID=188751149"
+        },
+        {
+          "text": "N'Djamena",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.africabib.org/rec.php?RID=188751149",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 12.106718,
+      "longitude": 15.044403,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2427123/",
+      "sourceCountryCode": "TD",
+      "defaultDisplayNameKo": "은자메나",
+      "defaultDisplayNameEn": "N'Djamena",
+      "defaultDisplayNameNative": "N'Djamena",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "N'Djamena",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1973년 포르라미 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1900,
+          "nameKo": "포르라미",
+          "nameEn": "Fort-Lamy",
+          "nameNative": "Fort-Lamy",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Fort-Lamy",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.africabib.org/rec.php?RID=188751149",
+          "note": "1900년 프랑스 식민 행정거점 Fort-Lamy의",
+          "researchNote": "1900년 프랑스 식민 행정거점 Fort-Lamy의 형성 시기. 인근 기존 코토코족 마을을 동일한 현대 행정도시 객체의 전 역사로 이식하지 않는다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        },
+        {
+          "fromYear": 1973,
+          "kind": "officialRenamingYear",
+          "sourceUrl": "https://www.africabib.org/rec.php?RID=188751149",
+          "note": "1973년 Fort-Lamy가 N'Djamena로 ",
+          "researchNote": "1973년 Fort-Lamy가 N'Djamena로 변경. 11월 6일 결정·11월 13일 기념·11월 28일 시행 등 날짜 서술이 일치하지 않으므로 특정 날짜를 단정하지 않고 연도만 확정한다.",
+          "evidenceStatus": "legal-day-unresolved",
+          "nameKo": "은자메나",
+          "nameEn": "N'Djamena",
+          "nameNative": "N'Djamena",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "N'Djamena",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다.",
+        "1973년 이름 변경의 결정·선포·법적 효력일이 출처별로 다르므로 정확한 날은 보류."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1900,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.africabib.org/rec.php?RID=188751149",
+        "note": "1900년 식민 행정·군사 거점 Fort-Lamy의",
+        "researchNote": "1900년 식민 행정·군사 거점 Fort-Lamy의 성립. 해당 지점의 오래된 주변 마을과 혼동하지 않는다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2389853,
+      "names": [
+        {
+          "text": "방기",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.persee.fr/doc/cea_0008-0055_1974_num_14_54_2646?pageId=T1_300"
+        },
+        {
+          "text": "Bangui",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.persee.fr/doc/cea_0008-0055_1974_num_14_54_2646?pageId=T1_300",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 4.36122,
+      "longitude": 18.55496,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2389853/",
+      "sourceCountryCode": "CF",
+      "defaultDisplayNameKo": "방기",
+      "defaultDisplayNameEn": "Bangui",
+      "defaultDisplayNameNative": "Bangui",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Bangui",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1889년 근대 군사거점 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1889,
+          "nameKo": "방기",
+          "nameEn": "Bangui",
+          "nameNative": "Bangui",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Bangui",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.persee.fr/doc/cea_0008-0055_1974_num_14_54_2646?pageId=T1_300",
+          "note": "1889년 Bangui 식민 행정기지의 설립을 프랑",
+          "researchNote": "1889년 Bangui 식민 행정기지의 설립을 프랑스어 현지 도시 이름의 기점으로 선정. 1889년 초·중반의 보고 일자와 시가지 재배치는 별도로 조사해야 하며 구 취락에 현대 좌표를 소급하지 않는다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1889,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.persee.fr/doc/cea_0008-0055_1974_num_14_54_2646?pageId=T1_300",
+        "note": "1889년 프랑스 Bangui 군사거점 형성. 강 ",
+        "researchNote": "1889년 프랑스 Bangui 군사거점 형성. 강 건너·기존 취락 또는 이후 기지 이전 지점과 현대 도시점을 자동 등치하지 않는다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2314302,
+      "names": [
+        {
+          "text": "레오폴드빌",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1966/05/04/leopoldville-prendra-le-nom-de-kinshasha_2694618_1819218.html"
+        },
+        {
+          "text": "Leopoldville",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1966/05/04/leopoldville-prendra-le-nom-de-kinshasha_2694618_1819218.html",
+          "script": "Latn"
+        },
+        {
+          "text": "Léopoldville",
+          "language": "fr",
+          "usage": "historical",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1966/05/04/leopoldville-prendra-le-nom-de-kinshasha_2694618_1819218.html",
+          "script": "Latn"
+        },
+        {
+          "text": "킨샤사",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1966/05/04/leopoldville-prendra-le-nom-de-kinshasha_2694618_1819218.html"
+        },
+        {
+          "text": "Kinshasa",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1966/05/04/leopoldville-prendra-le-nom-de-kinshasha_2694618_1819218.html",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -4.32758,
+      "longitude": 15.31357,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2314302/",
+      "sourceCountryCode": "CD",
+      "defaultDisplayNameKo": "킨샤사",
+      "defaultDisplayNameEn": "Kinshasa",
+      "defaultDisplayNameNative": "Kinshasa",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Kinshasa",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1966년 레오폴드빌 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1881,
+          "nameKo": "레오폴드빌",
+          "nameEn": "Leopoldville",
+          "nameNative": "Léopoldville",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Léopoldville",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1966/05/04/leopoldville-prendra-le-nom-de-kinshasha_2694618_1819218.html",
+          "note": "1881년 벨기에 콩고 기지를 출발점으로 지명 Lé",
+          "researchNote": "1881년 벨기에 콩고 기지를 출발점으로 지명 Léopoldville 선택. 강가의 옛 Kinshasa 마을 등은 별도 지리적 전신이므로 처음부터 Kinshasa 명칭으로 소급하지 않는다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        },
+        {
+          "fromYear": 1966,
+          "kind": "officialRenamingYear",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1966/05/04/leopoldville-prendra-le-nom-de-kinshasha_2694618_1819218.html",
+          "note": "1966년 5월 내각 결정으로 Léopoldvill",
+          "researchNote": "1966년 5월 내각 결정으로 Léopoldville의 Kinshasa 개칭을 발표했다. 보도상 6월 30일 예정일과 10월 3일 서명된 명령의 소급 시행 7월 1일이 차이를 보이므로 현재는 연도 수준으로만 표시한다.",
+          "evidenceStatus": "exact-enforcement-day-disputed",
+          "nameKo": "킨샤사",
+          "nameEn": "Kinshasa",
+          "nameNative": "Kinshasa",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Kinshasa",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1881,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.lemonde.fr/archives/article/1966/05/04/leopoldville-prendra-le-nom-de-kinshasha_2694618_1819218.html",
+        "note": "1881년 제국 시기 Léopoldville 근대 ",
+        "researchNote": "1881년 제국 시기 Léopoldville 근대 통치 거점 창설. 기존 Kinshasa 등 지역 마을 존재 자체로 역사 도시의 등급을 소급하지 않는다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2260535,
+      "names": [
+        {
+          "text": "브라자빌",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.blackpast.org/global-african-history/brazzaville-congo-1880/"
+        },
+        {
+          "text": "Brazzaville",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.blackpast.org/global-african-history/brazzaville-congo-1880/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -4.26613,
+      "longitude": 15.28318,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2260535/",
+      "sourceCountryCode": "CG",
+      "defaultDisplayNameKo": "브라자빌",
+      "defaultDisplayNameEn": "Brazzaville",
+      "defaultDisplayNameNative": "Brazzaville",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Brazzaville",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1880년 새 식민도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1880,
+          "nameKo": "브라자빌",
+          "nameEn": "Brazzaville",
+          "nameNative": "Brazzaville",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Brazzaville",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.blackpast.org/global-african-history/brazzaville-congo-1880/",
+          "note": "1880년 9월 10일 de Brazza의 프랑스 ",
+          "researchNote": "1880년 9월 10일 de Brazza의 프랑스 통치 거점이 Nkuna 토착 취락 부근에 조성되며 Brazzaville라는 이름이 채택됐다. 기존 Nkuna를 자동으로 이 프랑스 식민도시의 별칭으로 삼지 않는다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1880,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.blackpast.org/global-african-history/brazzaville-congo-1880/",
+        "note": "1880년 9월 10일 de Brazza 거점 설립",
+        "researchNote": "1880년 9월 10일 de Brazza 거점 설립. 주변 Nkuna·Téké 마을과 동일시하지 않는다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      },
+      "historicalGeography": {
+        "linkedPlaces": [
+          {
+            "nameNative": "Nkuna",
+            "relation": "preColonialBatekeSettlement",
+            "sourceUrl": "https://www.blackpast.org/global-african-history/brazzaville-congo-1880/",
+            "researchNote": "1880년 프랑스 거점 Brazzaville이 등장하기 전의 Téké 공동체 마을. 현 도시의 옛 이름으로 자동 치환하는 것은 금지한다."
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2399697,
+      "names": [
+        {
+          "text": "리브르빌",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://libreville.ga/municipalite/historique/"
+        },
+        {
+          "text": "Libreville",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://libreville.ga/municipalite/historique/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 0.39241,
+      "longitude": 9.45356,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2399697/",
+      "sourceCountryCode": "GA",
+      "defaultDisplayNameKo": "리브르빌",
+      "defaultDisplayNameEn": "Libreville",
+      "defaultDisplayNameNative": "Libreville",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Libreville",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1849년 자유촌 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1849,
+          "nameKo": "리브르빌",
+          "nameEn": "Libreville",
+          "nameNative": "Libreville",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Libreville",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://libreville.ga/municipalite/historique/",
+          "note": "리브르빌 시청은 1848년 노예선에서 풀려난 사람들",
+          "researchNote": "리브르빌 시청은 1848년 노예선에서 풀려난 사람들의 하선과 1849년 8월 25일 시장 선출을 기록한다. 1849년 신도시 정체의 기준이며 이전 퐁게 취락과는 구별한다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1849,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://libreville.ga/municipalite/historique/",
+        "note": "1848년 해방 노예 거주촌 시작·1849년 지방자",
+        "researchNote": "1848년 해방 노예 거주촌 시작·1849년 지방자치 기초 형성. 선행 Pongoué 어촌에 현대 도시명을 소급하지 않는다.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      }
+    },
+    {
+      "geonameId": 2309527,
+      "names": [
+        {
+          "text": "포트클래런스",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/"
+        },
+        {
+          "text": "Port Clarence",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/",
+          "script": "Latn"
+        },
+        {
+          "text": "산타이사벨",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/"
+        },
+        {
+          "text": "Santa Isabel",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/",
+          "script": "Latn"
+        },
+        {
+          "text": "말라보",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/"
+        },
+        {
+          "text": "Malabo",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 3.75578,
+      "longitude": 8.78166,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2309527/",
+      "sourceCountryCode": "GQ",
+      "defaultDisplayNameKo": "말라보",
+      "defaultDisplayNameEn": "Malabo",
+      "defaultDisplayNameNative": "Malabo",
+      "defaultNativeLanguage": "es",
+      "defaultNativeNames": [
+        {
+          "text": "Malabo",
+          "language": "es",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1973년 개칭·2026년 수도 이전",
+      "displayTimeline": [
+        {
+          "fromYear": 1827,
+          "nameKo": "포트클래런스",
+          "nameEn": "Port Clarence",
+          "nameNative": "Port Clarence",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Port Clarence",
+              "language": "en",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/",
+          "note": "1827년 영국인이 Fernando Pó섬에 세운 ",
+          "researchNote": "1827년 영국인이 Fernando Pó섬에 세운 Port Clarence 군항·시가지를 현재 말라보 근대 도시의 기원으로 선정. 오래된 부비족 정착지는 별도.",
+          "evidenceStatus": "sourced-selected-epoch"
+        },
+        {
+          "fromYear": 1855,
+          "kind": "colonialRenamingYear",
+          "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/",
+          "note": "스페인 지배권 재확립 후 Port Clarence를",
+          "researchNote": "스페인 지배권 재확립 후 Port Clarence를 Santa Isabel로 개칭. 문헌에 1843·1844·1855·1858년이 혼재해 1855년은 스페인 직접통치 개시를 기준으로 한 잠정 대표 연도이며 법정 개칭일 확정이 아니다.",
+          "evidenceStatus": "conflicting-historical-year-provisional",
+          "nameKo": "산타이사벨",
+          "nameEn": "Santa Isabel",
+          "nameNative": "Santa Isabel",
+          "nativeLanguage": "es",
+          "nativeNames": [
+            {
+              "text": "Santa Isabel",
+              "language": "es",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1973,
+          "kind": "officialRenamingYear",
+          "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/",
+          "note": "1973년 독립 후 아프리카 지명 회복 정책에 따라",
+          "researchNote": "1973년 독립 후 아프리카 지명 회복 정책에 따라 Santa Isabel을 Malabo로 변경. 2026년 다른 도시로 수도가 옮겨간 사실과 이 도시 개칭을 구별한다.",
+          "evidenceStatus": "sourced-selected-epoch",
+          "nameKo": "말라보",
+          "nameEn": "Malabo",
+          "nameNative": "Malabo",
+          "nativeLanguage": "es",
+          "nativeNames": [
+            {
+              "text": "Malabo",
+              "language": "es",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다.",
+        "옛 Santa Isabel 명칭의 스페인 명명 시점은 1843/1844/1855/1858년 설이 충돌하므로 1855년 잠정. 법정 확정 불가."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1827,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/",
+        "note": "1827년 Port Clarence 군항의 설립을 ",
+        "researchNote": "1827년 Port Clarence 군항의 설립을 근대 말라보 도시 형성 기준으로 사용. 현지 부비족 이전 정착과 구별.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      },
+      "historicalGeography": {
+        "events": [
+          {
+            "fromDate": "2026-01-02",
+            "type": "ceasesAsNationalCapital",
+            "sourceUrl": "https://www.guineaecuatorialpress.com/index.php/noticias/decreto_ley_por_el_que_se_declara_la_ciudad_de_la_paz_djibloho_capital_de_la_republica_de_guinea_ecuatorial",
+            "detail": "2026년 적도기니 수도 이전",
+            "researchDetail": "Decreto Ley Núm. 1/2026에 따라 법적 수도를 Ciudad de la Paz로 옮겼다. Malabo 자체는 도시로 남으며 지명 표시를 폐기하면 안 된다."
+          }
+        ],
+        "linkedPlaces": [
+          {
+            "nameNative": "Bubi settlements of Bioko",
+            "relation": "preColonialIndigenousSettlements",
+            "sourceUrl": "https://guineaecuatorial.wordpress.com/malabo/historia/",
+            "researchNote": "1827년 Port Clarence와 섬의 선행 부비족 마을들은 서로 다른 도시 정체일 수 있다."
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 12226438,
+      "names": [
+        {
+          "text": "오얄라",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.guineaecuatorialpress.com/noticias/florentino_nkua_ndong_eyang_nombrado_alcalde_de_oyala"
+        },
+        {
+          "text": "Oyala",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.guineaecuatorialpress.com/noticias/florentino_nkua_ndong_eyang_nombrado_alcalde_de_oyala",
+          "script": "Latn"
+        },
+        {
+          "text": "시우다드데라파스",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.guineaecuatorialpress.com/index.php/noticias/el_primer_ministro_presenta_proyectos_de_leyes_ante_la_camara_de_los_diputados"
+        },
+        {
+          "text": "Ciudad de la Paz",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.guineaecuatorialpress.com/index.php/noticias/el_primer_ministro_presenta_proyectos_de_leyes_ante_la_camara_de_los_diputados",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 1.5925,
+      "longitude": 10.82361,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/12226438/",
+      "sourceCountryCode": "GQ",
+      "defaultDisplayNameKo": "시우다드데라파스",
+      "defaultDisplayNameEn": "Ciudad de la Paz",
+      "defaultDisplayNameNative": "Ciudad de la Paz",
+      "defaultNativeLanguage": "es",
+      "defaultNativeNames": [
+        {
+          "text": "Ciudad de la Paz",
+          "language": "es",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "2026년 적도기니 새 수도",
+      "displayTimeline": [
+        {
+          "fromYear": 2015,
+          "nameKo": "오얄라",
+          "nameEn": "Oyala",
+          "nameNative": "Oyala",
+          "nativeLanguage": "es",
+          "nativeNames": [
+            {
+              "text": "Oyala",
+              "language": "es",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.guineaecuatorialpress.com/noticias/florentino_nkua_ndong_eyang_nombrado_alcalde_de_oyala",
+          "note": "적도기니 대통령실 2015년 5월 8일 공문은 신규",
+          "researchNote": "적도기니 대통령실 2015년 5월 8일 공문은 신규 시 Oyala의 시장과 정부 대표 임명을 기록한다. 옛 Oyala 토착 소취락(GeoNames 2306898)과 현대 계획도시(12226438)는 구분한다.",
+          "evidenceStatus": "sourced-selected-epoch"
+        },
+        {
+          "fromYear": 2017,
+          "kind": "officialNewCityNameYear",
+          "sourceUrl": "https://www.guineaecuatorialpress.com/index.php/noticias/el_primer_ministro_presenta_proyectos_de_leyes_ante_la_camara_de_los_diputados",
+          "note": "2017년 Djibloho주 창설 법률안에서 주도 ",
+          "researchNote": "2017년 Djibloho주 창설 법률안에서 주도 명칭 Ciudad de la Paz를 사용한다고 명시한다. 법안 제출일은 2월 24일이나 명칭의 시행일을 증명하지 않아 2017년 연도로만 선택.",
+          "evidenceStatus": "sourced-selected-epoch",
+          "nameKo": "시우다드데라파스",
+          "nameEn": "Ciudad de la Paz",
+          "nameNative": "Ciudad de la Paz",
+          "nativeLanguage": "es",
+          "nativeNames": [
+            {
+              "text": "Ciudad de la Paz",
+              "language": "es",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "historical-selected-periods-source-reviewed",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다.",
+        "현재 국가 수도는 2026-01-02 법령 이후 Ciudad de la Paz. 과거 수도 Malabo의 지명 객체를 삭제·합병하지 않는다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 2015,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.guineaecuatorialpress.com/noticias/florentino_nkua_ndong_eyang_nombrado_alcalde_de_oyala",
+        "note": "2015년 정부 문건이 Oyala 계획도시의 시장 ",
+        "researchNote": "2015년 정부 문건이 Oyala 계획도시의 시장 임명을 확인. 2008년 계획 구상·이웃 토착 마을과 구별하며 시가지는 2015년 이전부터 공사 중일 수 있음.",
+        "lifecycleReviewStatus": "provisional",
+        "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
+      },
+      "historicalGeography": {
+        "events": [
+          {
+            "fromDate": "2026-01-02",
+            "type": "nationalCapitalDesignated",
+            "sourceUrl": "https://www.guineaecuatorialpress.com/index.php/noticias/decreto_ley_por_el_que_se_declara_la_ciudad_de_la_paz_djibloho_capital_de_la_republica_de_guinea_ecuatorial",
+            "detail": "2026년 법정 수도 지정",
+            "researchDetail": "2026-01-02 법령으로 Ciudad de la Paz가 적도기니 수도가 됐다. 수도 지위의 발생은 2017년의 신도시명 채택과 별개이다."
+          }
+        ],
+        "linkedPlaces": [
+          {
+            "nameNative": "Oyala",
+            "sourcePlaceId": "geonames:2306898",
+            "relation": "nearbyHistoricalVillageDistinctFromPlannedCapital",
+            "sourceUrl": "https://www.guineaecuatorialpress.com/noticias/florentino_nkua_ndong_eyang_nombrado_alcalde_de_oyala",
+            "researchNote": "GeoNames 2306898의 마을 Oyala 좌표(1.621619,10.833914)와 계획도시 Ciudad de la Paz ID 12226438(1.59250,10.82361)을 합치지 않는다."
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2410763,
+      "names": [
+        {
+          "text": "상투메",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2410763/"
+        },
+        {
+          "text": "São Tomé",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2410763/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 0.33756,
+      "longitude": 6.7299,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2410763/",
+      "sourceCountryCode": "ST",
+      "defaultDisplayNameKo": "상투메",
+      "defaultDisplayNameEn": "São Tomé",
+      "defaultDisplayNameNative": "São Tomé",
+      "defaultNativeLanguage": "pt",
+      "defaultNativeNames": [
+        {
+          "text": "São Tomé",
+          "language": "pt",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "포르투갈어 원어명 유지",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "상투메",
+          "nameEn": "São Tomé",
+          "nameNative": "São Tomé",
+          "nativeLanguage": "pt",
+          "nativeNames": [
+            {
+              "text": "São Tomé",
+              "language": "pt",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://www.geonames.org/2410763/",
+          "note": "선택한 현대 GeoNames 한국어/영어/원어 형태",
+          "researchNote": "선택한 현대 GeoNames 한국어/영어/원어 형태를 역사적 조사 시작용 편집 기준으로 놓는다. 이 형태가 정확히 해당 과거 연도에 공용 법정명이었는지는 아직 입증되지 않았다. 무개칭·지배권·국가 소속·도시 등급을 뜻하지 않는다.",
+          "evidenceStatus": "unverified-historical-baseline-from-modern-source"
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
+      "researchDifficulty": "A",
+      "reviewStatus": "unverified-historical-continuity",
+      "nameSelectionNotes": [
+        "도시별 선택된 연혁상 한국어·영어·원어만 names[]에 수록; 검색 별칭과 비선택 어형 제외.",
+        "현 GeoNames 국가코드·원천 인구·도시점으로 옛 국경·역사 인구·5등급 도시 중요도를 추정하지 않는다.",
+        "기록된 지명 연혁 및 정치수도·정부 소재지·도시 형성·역사 지리의 판정은 서로 별개이다."
+      ]
+    }
+  ]
+}
