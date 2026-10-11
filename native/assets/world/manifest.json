@@ -45,5 +45,19 @@
     "gitBlobSha": "6f6606ad01be6a9e295995222bfa984876e8caff",
     "sha256": "2bde5c10bdf4d26fd29d2b983b70029022cfaa9fda816a105e6f4338b85f0d24",
     "required": false
+  },
+  "historicalTimelineManifest": {
+    "path": "historical-world/v1/manifest.json",
+    "version": "1",
+    "gitBlobSha": "9e8fddc6e407bf034138efead5c9c3c2114fb3e6",
+    "sha256": "4ff9fcea714c861f23927d692cb3fb0adf4098c2662ceb48bc205b228737668f",
+    "required": true
+  },
+  "historicalTimeline": {
+    "path": "historical-world/v1/world-project.json.gz",
+    "version": "1",
+    "gitBlobSha": "bdc57c38e6fb17949f6e542b3a35a371fc2c4563",
+    "sha256": "c3ce9e9f6a9685e2af07571cd17334f0178461fc091261f4518c7f4a532f98f1",
+    "required": true
   }
 }

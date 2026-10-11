@@ -1,6 +1,11 @@
 #include "worlddatasetloader.h"
 #include "builtinworldpolicy.h"
 #include "hydrodataprovider.h"
+#include "historicalworldtimeline.h"
+#include "webimport.h"
+#include <pandoeditor/timeline-view.h>
+#include <QDate>
+#include <QRegularExpression>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -95,7 +100,26 @@ WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root) {
     WorldDataset source(root);
     CanonicalCountryStore packet(source.decompress("countryCanonical",12*1024*1024));
     auto classified=materializeBuiltinWorld(packet);
-    auto document=std::make_shared<pandoeditor::ProjectDocument>(std::move(classified.document));
+    QJsonParseError manifestError;
+    const auto manifestJson=QJsonDocument::fromJson(source.read("historicalTimelineManifest"),&manifestError);
+    require(manifestError.error==QJsonParseError::NoError&&manifestJson.isObject(),"Invalid historical world manifest JSON");
+    const auto manifest=manifestJson.object(),spec=manifest.value("project").toObject();
+    require(manifest.value("schemaVersion").toInt()==1&&
+        QRegularExpression("^[0-9]{4}-[0-9]{2}$").match(manifest.value("sourceMonth").toString()).hasMatch(),
+        "Invalid historical world manifest envelope");
+    pandoeditor::temporalMonthEnd(manifest.value("sourceMonth").toString().toStdString());
+    for(const auto* key:{"entities","currentWorld","snapshot","policy"})
+        require(QRegularExpression("^[a-f0-9]{64}$").match(manifest.value("inputHashes").toObject().value(key).toString()).hasMatch(),
+            "Invalid historical world input hash");
+    require(spec.value("encoding").toString()=="gzip"&&
+        spec.value("url").toString()=="assets/data/historical-world/generated/v1/world-project.json.gz"&&
+        spec.value("sha256").toString()==source.asset("historicalTimeline").sha256&&
+        source.read("historicalTimeline").size()==spec.value("compressedBytes").toInteger(),
+        "Historical world project identity mismatch");
+    const auto bytes=source.decompress("historicalTimeline",64*1024*1024);
+    require(bytes.size()==spec.value("decodedBytes").toInteger(),"Historical world decoded size mismatch");
+    auto document=std::make_shared<pandoeditor::ProjectDocument>(adaptHistoricalWorldTimeline(
+        webimport::prepare(bytes).document,classified,manifest.value("sourceIdentities").toArray()));
     document->physicalData.dataset="pandolab-water-shards-v5";
     document->physicalData.version="0.13.2";
     QString hydroAvailability=QStringLiteral("Pinned hydro package not installed");
@@ -116,7 +140,9 @@ WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root) {
             }
         }
     }
-    auto projection=std::make_shared<MapProjection>();projection->rebuild(*document);
+    const auto month=pandoeditor::initialTimelineMonth(document->timelineRecords,QDate::currentDate().toString("yyyy-MM").toStdString());
+    const auto view=pandoeditor::timelineDocumentView(*document,month);
+    auto projection=std::make_shared<MapProjection>();projection->rebuild(view.document,view.inactiveIds);
     return {std::move(document),std::move(projection),renderRanges(classified),hydroAvailability};
 }
 std::shared_ptr<const CountryBaseMesh> WorldDatasetLoader::canonicalMesh(const QString& root) {
