@@ -42,7 +42,7 @@ export function normalizeReferenceImagePlaceText(value) {
   text = text.replace(/[\u0300-\u036f]/g, '');
   text = foldSpecialLatin(text);
   text = text
-    .replace(/[\s.,;:!?()[\]{}'"“”‘’/\\|_+=*~<>—–-]+/g, ' ')
+    .replace(/[\s.,;:!?()[\]{}'"\u201c\u201d\u2018\u2019/\\|_+=*~<>\u2014\u2013-]+/g, ' ')
     .trim()
     .replace(/\s+/g, ' ');
   return text;
