@@ -47,6 +47,7 @@ add_library(pandoeditor_editor STATIC
     builtinworldpolicy.cpp builtinworldpolicy.h
     worlddataset.cpp worlddataset.h
     worlddatasetloader.cpp worlddatasetloader.h
+    historicalworldtimeline.cpp historicalworldtimeline.h
     terrainimageprovider.cpp terrainimageprovider.h
     placeruntimestore.cpp placeruntimestore.h
     placenamedisplay.cpp placenamedisplay.h
@@ -186,6 +187,8 @@ qt_add_resources(pandoeditor sample PREFIX "/assets" BASE "${PROJECT_SOURCE_DIR}
 qt_add_resources(pandoeditor world_data BIG_RESOURCES PREFIX "/world" BASE "${PROJECT_SOURCE_DIR}/assets/world"
     FILES
         "${PROJECT_SOURCE_DIR}/assets/world/manifest.json"
+        "${PROJECT_SOURCE_DIR}/assets/world/historical-world/v1/manifest.json"
+        "${PROJECT_SOURCE_DIR}/assets/world/historical-world/v1/world-project.json.gz"
         "${PROJECT_SOURCE_DIR}/assets/world/countries-preview-v0.33.0.geojson.gz"
         "${PROJECT_SOURCE_DIR}/assets/world/world-mesh-preview-v0.33.0.bin.gz"
         "${PROJECT_SOURCE_DIR}/assets/world/countries-canonical-v0.33.0.pcg.gz"
@@ -507,6 +510,10 @@ if(BUILD_TESTING)
     set_tests_properties(map_render_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(world_corpus_tests ../tests/world_corpus_tests.cpp)
     add_executable(builtin_world_policy_tests ../tests/builtin_world_policy_tests.cpp)
+    add_executable(historical_world_timeline_tests ../tests/historical_world_timeline_tests.cpp)
+    target_link_libraries(historical_world_timeline_tests PRIVATE pandoeditor_editor Qt6::Test)
+    target_compile_definitions(historical_world_timeline_tests PRIVATE PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world")
+    add_test(NAME historical_world_timeline_tests COMMAND historical_world_timeline_tests -o -,txt)
     target_link_libraries(builtin_world_policy_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(builtin_world_policy_tests PRIVATE
         PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world")

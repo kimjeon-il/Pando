@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gunzipSync } from 'node:zlib';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(process.argv[2] || join(here, '../assets/world'));
@@ -38,7 +39,24 @@ try {
     requireValue(gitBlob(bytes) === sha, `Git blob mismatch: ${key}`);
     requireValue(digest('sha256', bytes) === asset.sha256, `SHA-256 mismatch: ${key}`);
   }
-  console.log(`World assets: 258 countries, pinned world-map ${manifest.worldMapCommit}, all six identities match`);
+  for (const [key, name] of [['historicalTimelineManifest', 'manifest.json'], ['historicalTimeline', 'world-project.json.gz']]) {
+    const asset = manifest[key];
+    requireValue(asset?.path === `historical-world/v1/${name}` && asset.version === '1' && asset.required === true,
+      `Wrong historical asset identity: ${key}`);
+    const bytes = readFileSync(join(root, asset.path));
+    requireValue(gitBlob(bytes) === asset.gitBlobSha && digest('sha256', bytes) === asset.sha256,
+      `Historical asset hash mismatch: ${key}`);
+  }
+  const history = JSON.parse(readFileSync(join(root, manifest.historicalTimelineManifest.path), 'utf8'));
+  requireValue(history.schemaVersion === 1 && /^\d{4}-(0[1-9]|1[0-2])$/.test(history.sourceMonth)
+    && ['entities', 'currentWorld', 'snapshot', 'policy'].every(key => /^[a-f0-9]{64}$/.test(history.inputHashes?.[key])),
+  'Invalid historical manifest envelope');
+  const stored = readFileSync(join(root, manifest.historicalTimeline.path));
+  requireValue(history.project.encoding === 'gzip' && history.project.sha256 === digest('sha256', stored)
+    && history.project.compressedBytes === stored.length, 'Historical project integrity mismatch');
+  const decoded = gunzipSync(stored, { maxOutputLength: 64 * 1024 * 1024 });
+  requireValue(decoded.length === history.project.decodedBytes, 'Historical decoded length mismatch');
+  console.log(`World assets: six pinned modern identities and historical world ${history.sourceMonth} match`);
 } catch (error) {
   console.error(`World asset verification failed: ${error.message}`);
   process.exitCode = 1;
