@@ -13,6 +13,7 @@ import { normalizePlace, normalizePlaceQuery, PLACE_LIMITS } from '../assets/js/
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const REVIEW_DIR = join(ROOT, 'reports/places');
 const OUTPUT_DIR = join(ROOT, 'assets/data/places');
+const RELEASE_APPROVALS = join(REVIEW_DIR, 'runtime-release-approvals-v1.json');
 const REVIEW_FILE = /^tier1-major-cities-batch\d{2}[-a-z0-9]*\.json$/u;
 
 const hash = (name, bytes) => createHash(name).update(bytes).digest('hex');
@@ -61,13 +62,50 @@ export function projectReviewedPlace(record, reviewFile, batchStatus) {
   return raw;
 }
 
-export function deriveReleaseCatalog(directory = REVIEW_DIR) {
+/** Only explicitly approved city identities may enter either viewport tiles or search. */
+export function validateRuntimeApproval(record, batchNumber) {
+  if (record.featureClass !== 'P' || !Number.isInteger(record.geonameId) || record.geonameId <= 0)
+    throw new Error('Approved record must be a stable P-class GeoNames settlement');
+  if (record.urbanIdentityReview?.autoTierApproved === false
+    || record.candidatePolicyException?.autoPromoted === false)
+    throw new Error('Unresolved city identity/candidate review cannot enter runtime: ' + record.geonameId);
+  if (batchNumber <= 15) {
+    // First 15 batches were individually researched before A/B/C triage was introduced.
+    // Historical Pest has a verified 1873 end date but the current PLAC v3 codec does
+    // not serialize activeIntervals; it must stay out until interval gating is wired.
+    if (record.geonameId === 3046446)
+      throw new Error('Former Pest city requires urban active-interval rendering');
+    return;
+  }
+  const periodWithIndependentEvidence = (record.displayTimeline || []).some(period =>
+    typeof period.sourceUrl === 'string'
+    && period.sourceUrl.startsWith('https://')
+    && !/^https:\/\/(?:www\.)?geonames\.org\//u.test(period.sourceUrl));
+  if (!['B', 'C'].includes(record.researchDifficulty)
+    || /provisional|unverified/iu.test(record.reviewStatus || '')
+    || !periodWithIndependentEvidence)
+    throw new Error('Unverified historical city staging cannot enter runtime: ' + record.geonameId);
+}
+
+export function deriveReleaseCatalog(directory = REVIEW_DIR, approvalsPath = RELEASE_APPROVALS) {
   const files = readdirSync(directory).filter(name => REVIEW_FILE.test(name)).sort();
   if (!files.length) throw new Error('No reviewed place batches');
+  const approvalBytes = readFileSync(approvalsPath);
+  const approvals = JSON.parse(approvalBytes.toString('utf8'));
+  const approvedIds = approvals?.approvedSourceIds;
+  if (approvals?.schema !== 'pando-place-runtime-approval-v1'
+    || !Array.isArray(approvedIds) || !approvedIds.length
+    || approvedIds.some((id, i) => !Number.isInteger(id) || id <= 0 || (i && id <= approvedIds[i - 1])))
+    throw new Error('Invalid or unsorted explicit runtime approvals');
+  const approved = new Set(approvedIds), published = new Set();
+  if (approvals.hardExclusionIds?.some(id => approved.has(id)))
+    throw new Error('Approved ID conflicts with explicit hard exclusion');
   const result = { schema: 'pando-builtin-place-release-v1',
     dataContract: 'PLAC-v3',
     generatedFrom: 'reports/places/tier1-major-cities-batch*.json',
-    status: 'review-derived-runtime-input', reviewBatches: [], records: [] };
+    approval: { file: 'reports/places/runtime-release-approvals-v1.json',
+      sha256: hash('sha256', approvalBytes), approvedIds: approvedIds.length },
+    status: 'curated-verified-city-runtime-input', reviewBatches: [], records: [] };
   const seen = new Set();
   for (const name of files) {
     const reviewFile = 'reports/places/' + name;
@@ -78,17 +116,27 @@ export function deriveReleaseCatalog(directory = REVIEW_DIR) {
     const sourceBlobSha = hash('sha1', Buffer.concat([
       Buffer.from('blob ' + content.byteLength + '\0'), content,
     ]));
-    result.reviewBatches.push({ batch: data.batch || name.replace(/^tier1-major-cities-/u, '').replace(/\.json$/u, ''), file: reviewFile,
-      cityCount: data.records.length, sourceBlobSha });
+    const batchNumber = Number(/^tier1-major-cities-batch(\d{2})/u.exec(name)?.[1]);
+    if (!Number.isInteger(batchNumber)) throw new Error('Invalid batch name: ' + name);
+    const reviewSummary = { batch: data.batch || name.replace(/^tier1-major-cities-/u, '').replace(/\.json$/u, ''), file: reviewFile,
+      cityCount: data.records.length, publishedCount: 0, sourceBlobSha };
+    result.reviewBatches.push(reviewSummary);
     for (const row of data.records) {
       if (seen.has(row.geonameId)) throw new Error('Duplicate GeoNames ID ' + row.geonameId);
       seen.add(row.geonameId);
+      if (!approved.has(row.geonameId)) continue;
+      validateRuntimeApproval(row, batchNumber);
+      published.add(row.geonameId);
+      reviewSummary.publishedCount++;
       result.records.push(projectReviewedPlace(row, reviewFile, data.status));
     }
   }
+  const missing = approvedIds.filter(id => !published.has(id));
+  if (missing.length) throw new Error('Approved GeoNames IDs missing from source batches: ' + missing.join(','));
   result.records.sort((a, b) => Number(a.sourceId) - Number(b.sourceId));
   const timelineEntries = result.records.reduce((sum, place) => sum + place.nameTimeline.length, 0);
   result.stats = { cityCount: result.records.length, timelineEntries,
+    stagedCount: seen.size, withheldCount: seen.size - result.records.length,
     sourceBatchCount: files.length, unrankedCount: result.records.length,
     urbanIdentityFlagged: result.records.filter(place => place.kind === 'town').length };
   if (result.records.length > PLACE_LIMITS.tileRecords)
@@ -121,7 +169,7 @@ export function generatePlaceRelease() {
     prefix, [{ ...row, first: prefix, last: prefix + '\uffff' }],
   ]));
   const manifest = { version: 1,
-    revision: 'reviewed-places-' + hash('sha256', catalogText).slice(0, 16),
+    revision: 'approved-places-' + hash('sha256', catalogText).slice(0, 16),
     stages: [{ id: 0, minZoom: 0, columns: 1, rows: 1 }],
     tiles: { '0/0-0': row },
     shards: { [shard]: { url: 'places-v1.bin', bytes: bytes.length, sha256: sum } },
