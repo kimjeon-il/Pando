@@ -74,6 +74,30 @@ private slots:
         }
     }
 
+    void hardAnchorCountsTowardMinimumAndStaysExact()
+    {
+        QImage image(240,160,QImage::Format_RGB32);image.fill(Qt::white);
+        QPainter painter(&image);painter.setPen(Qt::NoPen);painter.setBrush(Qt::black);
+        const QPointF dot(.78,.22);painter.drawEllipse(QPointF(dot.x()*(image.width()-1),dot.y()*(image.height()-1)),4,4);painter.end();
+
+        const QVariantMap anchor{
+            {"image",QVariantList{.2,.75}},
+            {"coordinate",QVariantList{10.,50.}}
+        };
+        const QVariantList seeds{
+            QVariantMap{{"id","city"},{"name","City"},{"kind","city"},
+                {"expectedUv",QVariantList{.76,.24}},
+                {"coordinate",QVariantList{14.,50.}},
+                {"priority",90}}
+        };
+
+        const auto result=solveReferenceAutoGeoref(image,seeds,anchor,"similarity");
+        QVERIFY2(result.ok,qPrintable(result.reason));
+        QCOMPARE(result.mode,QString("similarity"));
+        QCOMPARE(result.inlierCount,1);
+        QVERIFY2(result.hardMaxMeters<=.01,qPrintable(QString::number(result.hardMaxMeters,'g',16)));
+    }
+
     void failsCleanlyWhenSymbolsAreMissing()
     {
         QImage image(200,120,QImage::Format_RGB32);image.fill(Qt::white);
