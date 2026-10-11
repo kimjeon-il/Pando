@@ -27,7 +27,8 @@
     "Khartoum 1885–1898 destruction/urban decline and nearby Omdurman require a separate verified urban eligibility audit; no unsourced active intervals added.",
     "A-class city timelines are provisional coverage and require source-by-era review before claiming fully verified historical continuity.",
     "No inference of historic national affiliation from GeoNames country code; no urban rank, historical population, tile or runtime release.",
-    "No changes to 1–16 staged batches, main, app or release manifest."
+    "No changes to 1–16 staged batches, main, app or release manifest.",
+    "Lilongwe source point corrected to latest GeoNames PPLC 927967 (-13.966919, 33.787247); earlier non-GeoNames representative point was rejected."
   ],
   "difficultySummary": {
     "A": 5,
@@ -1243,8 +1244,8 @@
           "script": "Latn"
         }
       ],
-      "latitude": -13.987511,
-      "longitude": 33.768144,
+      "latitude": -13.966919,
+      "longitude": 33.787247,
       "featureClass": "P",
       "featureCode": "PPLC",
       "sourceUrl": "https://www.geonames.org/927967/",
@@ -1288,7 +1289,8 @@
         "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
         "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
         "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
-      ]
+      ],
+      "coordinateVerification": "GeoNames PPLC 927967 latest latitude -13.966919 longitude 33.787247, distinguished from alternate map pin -13.987511 / 33.768144"
     },
     {
       "geonameId": 909137,
