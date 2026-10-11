@@ -135,6 +135,21 @@ export function resolvePlaceLabelRows(place, languages = DEFAULT_PLACE_LANGUAGES
   if (languages?.native === true) for (const value of native) add('native', value);
   return rows;
 }
+/** Keep unverified modern labels off dates earlier than their first selected name period. */
+export function hasPlaceNameCoverage(place, mapDate) {
+  if (mapDate == null) return true;
+  if (!/^\d{4}-\d{2}-\d{2}$/u.test(mapDate)) return false;
+  const first = place.nameTimeline?.[0];
+  return !first || (first.fromDate ? mapDate >= first.fromDate
+    : Number(mapDate.slice(0, 4)) >= first.fromYear);
+}
+
+/** Search only selected names, including historically selected slots and native co-official forms. */
+export function selectedPlaceNames(place) {
+  return [place.name, place.nameEn, place.nameNative, ...(place.nameNativeExtras || []),
+    ...(place.nameTimeline || []).flatMap(entry => [entry.ko, entry.en, entry.native,
+      ...(entry.nativeExtras || [])])].filter(value => typeof value === 'string' && value.trim());
+}
 export function comparePlaces(a, b) {
   return b.priority - a.priority || b.population - a.population || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
