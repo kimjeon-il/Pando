@@ -637,6 +637,7 @@ if(BUILD_TESTING)
         target_link_libraries(reference_image_tests PRIVATE windowsapp)
     endif()
     add_test(NAME reference_image_tests COMMAND reference_image_tests -o -,txt)
+    set_tests_properties(reference_image_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(reference_auto_georef_tests
         ../tests/reference_auto_georef_tests.cpp
         referenceautogeoref.cpp referenceautogeoref.h
@@ -644,6 +645,7 @@ if(BUILD_TESTING)
     target_include_directories(reference_auto_georef_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(reference_auto_georef_tests PRIVATE Qt6::Gui Qt6::Test)
     add_test(NAME reference_auto_georef_tests COMMAND reference_auto_georef_tests -o -,txt)
+    set_tests_properties(reference_auto_georef_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     add_executable(territory_selection_tests ../tests/territory_selection_tests.cpp)
     target_link_libraries(territory_selection_tests PRIVATE pandoeditor_editor Qt6::Test)
     add_test(NAME territory_selection_tests COMMAND territory_selection_tests -o -,txt)
