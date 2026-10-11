@@ -279,6 +279,48 @@ test('automatic georeferencing rejects a bad candidate and preserves the hard an
   assert.ok(Math.abs(projectedAnchor[1] - anchor.coordinate[1]) < 1e-9);
 });
 
+test('automatic georeferencing selects affine when cross-validation beats projective', () => {
+  const images = [
+    [0, 0], [1, 0], [0, 1], [1, 1],
+    [0.2, 0.7], [0.75, 0.35], [0.35, 0.2], [0.65, 0.85],
+  ];
+  const coordinate = ([u, v]) => [10 + 2.4 * u + 0.35 * v, 50 + 0.25 * u + 1.8 * v];
+  const result = buildReferenceImageAutoGeoref(
+    images.map((image, index) => ({ ...point(String(index), image, coordinate(image)), confidence: 0.9 })),
+    { mode: REFERENCE_IMAGE_WARP_MODES.AUTO, inlierThresholdMeters: 5000, seed: 13 },
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, REFERENCE_IMAGE_WARP_MODES.AFFINE);
+  assert.equal(result.diagnostics.modelSelection.consensusMode, REFERENCE_IMAGE_WARP_MODES.PROJECTIVE);
+  assert.equal(result.diagnostics.modelSelection.selectedMode, REFERENCE_IMAGE_WARP_MODES.AFFINE);
+  const affine = result.diagnostics.modelSelection.validations.find(item => item.mode === REFERENCE_IMAGE_WARP_MODES.AFFINE);
+  const projective = result.diagnostics.modelSelection.validations.find(item => item.mode === REFERENCE_IMAGE_WARP_MODES.PROJECTIVE);
+  assert.ok(affine);
+  assert.ok(projective);
+  assert.ok(affine.rmsMeters <= projective.rmsMeters * 1.01);
+});
+
+test('automatic georeferencing keeps projective when perspective is real', () => {
+  const images = [
+    [0, 0], [1, 0], [0, 1], [1, 1],
+    [0.2, 0.7], [0.75, 0.35], [0.35, 0.2], [0.65, 0.85],
+  ];
+  const coordinate = ([u, v]) => {
+    const denominator = 1 + 0.12 * u - 0.08 * v;
+    return [
+      (10 + 2.2 * u + 0.4 * v) / denominator,
+      (50 + 0.3 * u + 2.1 * v) / denominator,
+    ];
+  };
+  const result = buildReferenceImageAutoGeoref(
+    images.map((image, index) => ({ ...point(String(index), image, coordinate(image)), confidence: 0.9 })),
+    { mode: REFERENCE_IMAGE_WARP_MODES.AUTO, inlierThresholdMeters: 5000, seed: 17 },
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, REFERENCE_IMAGE_WARP_MODES.PROJECTIVE);
+  assert.equal(result.diagnostics.modelSelection.selectedMode, REFERENCE_IMAGE_WARP_MODES.PROJECTIVE);
+});
+
 test('automatic georeferencing is deterministic for the same seed', () => {
   const candidates = [
     point('a', [0, 0], [10, 50]),
