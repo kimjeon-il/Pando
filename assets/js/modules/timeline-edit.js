@@ -1,4 +1,4 @@
-import { compareTemporal, normalizeTemporalInterval, parseTemporal } from './temporal.js';
+import { compareTemporal, normalizeTemporalInterval, parseTemporal, temporalMonthEnd } from './temporal.js';
 
 const collectionFields = Object.freeze({ geometryBindings: ['geometryRef'], parentRelations: ['parentId', 'coverageMode'] });
 function priorMonth(value) {
@@ -23,8 +23,9 @@ export function replaceTimelineRecordAtMonth(records, collection, entityId, curs
   if (!fields || Object.keys(patch).some(key => !fields.includes(key))) throw new TypeError('Invalid timeline record patch.');
   const month = parseTemporal(cursor, { nullable: false });
   if (month.precision !== 'month') throw Object.assign(new Error('Timeline cursor requires month precision.'), { code: 'INVALID_TIMELINE_CURSOR' });
+  const point = temporalMonthEnd(month);
   const rows = records[collection];
-  const index = rows.findIndex(row => row.entityId === entityId && active(row, month));
+  const index = rows.findIndex(row => row.entityId === entityId && active(row, point));
   if (index < 0) throw Object.assign(new Error(`Entity ${entityId} is inactive at ${cursor}.`), { code: 'TIMELINE_INACTIVE' });
   const original = rows[index];
   if (fields.every(key => !Object.hasOwn(patch, key) || JSON.stringify(original[key]) === JSON.stringify(patch[key]))) return records;

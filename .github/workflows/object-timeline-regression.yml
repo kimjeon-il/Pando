@@ -1,0 +1,25 @@
+name: Objects timeline regression
+
+on:
+  push:
+    branches: [work/objects]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web-timeline:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check month-end, resolution and timeline edits
+        run: |
+          node --test \
+            tests/unit/temporal.test.mjs \
+            tests/unit/timeline-edit.test.mjs \
+            tests/unit/timeline-resolver.test.mjs \
+            tests/unit/timeline-objects-parity.test.mjs
