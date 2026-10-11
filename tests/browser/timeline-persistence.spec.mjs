@@ -88,8 +88,10 @@ test('complex timeline file opens and month controls resolve its historical worl
   await expect(page.locator('#timelineMonthInput')).toHaveValue('1916-01');
   const autosaveBefore = await readAutosave(page);
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('B').properties.parentId)).toBe('C');
+  await page.locator('#timelineMonthButton').click();
   await page.locator('#timelineMonthInput').fill('1914-07');
-  await page.locator('#timelineMonthInput').dispatchEvent('change');
+  await page.locator('#timelineMonthInput').press('Enter');
+  await expect(page.locator('#timelineMonthButton')).toBeVisible();
   await expect(page.locator('#timelineMonthLabel')).toHaveText('1914년 7월');
   expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('B').properties.parentId)).toBe('A');
   await page.locator('#timelinePreviousMonth').click();
