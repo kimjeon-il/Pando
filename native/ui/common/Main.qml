@@ -43,14 +43,14 @@ ApplicationWindow {
             id: timelineControls
             objectName: "timelineControls"
             visible: editor.timelineMonth !== ""
-            height: visible ? 40 : 0
+            height: visible ? (editor.mobileMode ? 44 : 40) : 0
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: editor.mobileMode ? 4 : 8
             property bool editing: false
             property bool invalid: false
             function displayMonth(month) {
                 if (editor.mobileMode) return month
-                const parts = /^([+-]?\\d{4,6})-(\\d{2})$/.exec(month)
+                const parts = /^([+-]?[0-9]{4,6})-([0-9]{2})$/.exec(month)
                 if (!parts) return month
                 const year = Number(parts[1])
                 return (year < 0 ? "기원전 " + -year : String(year)) + "년 " + Number(parts[2]) + "월"
@@ -94,21 +94,21 @@ ApplicationWindow {
             }
             Button {
                 objectName: "timelinePreviousYear"
-                text: "«"; width: editor.mobileMode ? 38 : 40; height: 36
+                text: "«"; width: editor.mobileMode ? 44 : 40; height: timelineControls.height
                 Accessible.name: "1년 이전"
                 ToolTip.text: Accessible.name; ToolTip.visible: hovered && !editor.mobileMode
                 onClicked: timelineControls.navigate(-12)
             }
             Button {
                 objectName: "timelinePreviousMonth"
-                text: "‹"; width: editor.mobileMode ? 38 : 40; height: 36
+                text: "‹"; width: editor.mobileMode ? 44 : 40; height: timelineControls.height
                 Accessible.name: "1개월 이전"
                 ToolTip.text: Accessible.name; ToolTip.visible: hovered && !editor.mobileMode
                 onClicked: timelineControls.navigate(-1)
             }
             Item {
                 width: editor.mobileMode ? 140 : 172
-                height: 36
+                height: timelineControls.height
                 Button {
                     id: timelineMonthButton
                     objectName: "timelineMonthButton"
@@ -157,14 +157,14 @@ ApplicationWindow {
             }
             Button {
                 objectName: "timelineNextMonth"
-                text: "›"; width: editor.mobileMode ? 38 : 40; height: 36
+                text: "›"; width: editor.mobileMode ? 44 : 40; height: timelineControls.height
                 Accessible.name: "1개월 이후"
                 ToolTip.text: Accessible.name; ToolTip.visible: hovered && !editor.mobileMode
                 onClicked: timelineControls.navigate(1)
             }
             Button {
                 objectName: "timelineNextYear"
-                text: "»"; width: editor.mobileMode ? 38 : 40; height: 36
+                text: "»"; width: editor.mobileMode ? 44 : 40; height: timelineControls.height
                 Accessible.name: "1년 이후"
                 ToolTip.text: Accessible.name; ToolTip.visible: hovered && !editor.mobileMode
                 onClicked: timelineControls.navigate(12)
