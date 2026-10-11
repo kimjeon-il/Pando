@@ -40,28 +40,138 @@ ApplicationWindow {
     footer: Column {
         width: window.width
         Row {
+            id: timelineControls
             objectName: "timelineControls"
             visible: editor.timelineMonth !== ""
-            height: visible ? 40 : 0
+            height: visible ? (editor.mobileMode ? 44 : 40) : 0
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: editor.mobileMode ? 4 : 8
-            Label {text: editor.mobileMode ? "시점" : "현재 시점"; anchors.verticalCenter: parent.verticalCenter; color: window.uiColors.text}
-            Button {objectName:"timelinePreviousMonth";text:"‹";onClicked:editor.shiftTimelineMonth(-1)}
-            TextField {
-                id: timelineMonthInput
-                objectName: "timelineMonthInput"
-                width: editor.mobileMode ? 94 : 110
-                text: editor.timelineMonth
-                inputMethodHints: Qt.ImhNoPredictiveText
-                onEditingFinished: if(text !== editor.timelineMonth) editor.setTimelineMonth(text)
+            property bool editing: false
+            property bool invalid: false
+            function displayMonth(month) {
+                if (editor.mobileMode) return month
+                const parts = /^([+-]?[0-9]{4,6})-([0-9]{2})$/.exec(month)
+                if (!parts) return month
+                const year = Number(parts[1])
+                return (year < 0 ? "기원전 " + -year : String(year)) + "년 " + Number(parts[2]) + "월"
             }
-            Label {
-                objectName: "timelineMonthEndBasis"
-                text: editor.mobileMode ? "월말" : "월말 기준"
-                anchors.verticalCenter: parent.verticalCenter
-                color: window.uiColors.muted
+            function validMonth(month) {
+                // Mirror the core temporal month grammar; keep BCE and extended years.
+                const parts = /^([+-]?)([0-9]{4,6})-(0[1-9]|1[0-2])$/.exec(month)
+                return parts !== null && (parts[1] !== "" || parts[2].length === 4) && Number(parts[2]) !== 0
             }
-            Button {objectName:"timelineNextMonth";text:"›";onClicked:editor.shiftTimelineMonth(1)}
+            function beginEdit() {
+                timelineMonthInput.text = editor.timelineMonth
+                invalid = false
+                editing = true
+                Qt.callLater(function() {
+                    if (!timelineControls.editing) return
+                    timelineMonthInput.forceActiveFocus()
+                    timelineMonthInput.selectAll()
+                    if (editor.mobileMode && Qt.platform.os === "android") Qt.inputMethod.show()
+                })
+            }
+            function cancelEdit(restoreFocus) {
+                if (!editing) return
+                editing = false
+                invalid = false
+                timelineMonthInput.text = editor.timelineMonth
+                if (restoreFocus) timelineMonthButton.forceActiveFocus()
+            }
+            function acceptEdit() {
+                if (!editing || timelineMonthInput.inputMethodComposing) return
+                const requested = timelineMonthInput.text.trim()
+                if (!validMonth(requested)) {
+                    invalid = true
+                    window.notify("시점은 YYYY-MM 형식으로 입력하세요. 0년은 사용할 수 없습니다.", "error")
+                    return
+                }
+                if (editor.setTimelineMonth(requested)) cancelEdit(true)
+            }
+            function navigate(offset) {
+                cancelEdit(false)
+                editor.shiftTimelineMonth(offset)
+            }
+            Button {
+                objectName: "timelinePreviousYear"
+                text: "«"; width: editor.mobileMode ? 44 : 40; height: timelineControls.height
+                Accessible.name: "1년 이전"
+                ToolTip.text: Accessible.name; ToolTip.visible: hovered && !editor.mobileMode
+                onClicked: timelineControls.navigate(-12)
+            }
+            Button {
+                objectName: "timelinePreviousMonth"
+                text: "‹"; width: editor.mobileMode ? 44 : 40; height: timelineControls.height
+                Accessible.name: "1개월 이전"
+                ToolTip.text: Accessible.name; ToolTip.visible: hovered && !editor.mobileMode
+                onClicked: timelineControls.navigate(-1)
+            }
+            Item {
+                width: editor.mobileMode ? 140 : 172
+                height: timelineControls.height
+                Button {
+                    id: timelineMonthButton
+                    objectName: "timelineMonthButton"
+                    anchors.fill: parent
+                    visible: !timelineControls.editing
+                    text: "▦  " + timelineControls.displayMonth(editor.timelineMonth)
+                    Accessible.name: "시점 직접 입력"
+                    Accessible.description: "월말 기준. 날짜를 누르면 직접 입력할 수 있습니다."
+                    ToolTip.text: "시점 직접 입력"
+                    ToolTip.visible: hovered && !editor.mobileMode
+                    onClicked: timelineControls.beginEdit()
+                }
+                TextField {
+                    id: timelineMonthInput
+                    objectName: "timelineMonthInput"
+                    anchors.fill: parent
+                    visible: timelineControls.editing
+                    selectByMouse: true
+                    horizontalAlignment: TextInput.AlignHCenter
+                    inputMethodHints: Qt.ImhNoPredictiveText
+                    EnterKey.type: Qt.EnterKeyDone
+                    Accessible.name: "시점 입력"
+                    Accessible.description: timelineControls.invalid ? "YYYY-MM 형식으로 입력하세요. 0년은 사용할 수 없습니다." : "Enter 또는 키보드 완료로 이동"
+                    background: Rectangle {
+                        radius: 6
+                        color: window.uiColors.input
+                        border.width: timelineControls.invalid || timelineMonthInput.activeFocus ? 2 : 1
+                        border.color: timelineControls.invalid ? "#c43c3c" : timelineMonthInput.activeFocus ? window.resolvedAccent : window.uiColors.border
+                    }
+                    onTextEdited: timelineControls.invalid = false
+                    onAccepted: timelineControls.acceptEdit()
+                    // Delay blur cancellation to let the IME's Done/Return accepted signal finish.
+                    onActiveFocusChanged: if (!activeFocus && timelineControls.editing) {
+                        Qt.callLater(function() {
+                            if (timelineControls.editing && !timelineMonthInput.activeFocus) timelineControls.cancelEdit(false)
+                        })
+                    }
+                    Keys.priority: Keys.BeforeItem
+                    Keys.onPressed: function(event) {
+                        if (event.key === Qt.Key_Escape || event.key === Qt.Key_Back) {
+                            timelineControls.cancelEdit(true)
+                            event.accepted = true
+                        } else {
+                            // Let TextField receive Return/IME Done and normal text input.
+                            event.accepted = false
+                        }
+                    }
+                }
+            }
+            Button {
+                objectName: "timelineNextMonth"
+                text: "›"; width: editor.mobileMode ? 44 : 40; height: timelineControls.height
+                Accessible.name: "1개월 이후"
+                ToolTip.text: Accessible.name; ToolTip.visible: hovered && !editor.mobileMode
+                onClicked: timelineControls.navigate(1)
+            }
+            Button {
+                objectName: "timelineNextYear"
+                text: "»"; width: editor.mobileMode ? 44 : 40; height: timelineControls.height
+                Accessible.name: "1년 이후"
+                ToolTip.text: Accessible.name; ToolTip.visible: hovered && !editor.mobileMode
+                onClicked: timelineControls.navigate(12)
+            }
         }
         Label {
         objectName: "documentFormatNotice"

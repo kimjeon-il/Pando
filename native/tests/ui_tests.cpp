@@ -130,15 +130,55 @@ private slots:
             window->resize(mobile?360:1100,760);exposeForTest(window);
             auto* controls=visualItem(window->contentItem(),"timelineControls");
             QVERIFY(controls&&controls->isVisible());
-            auto* basis=visualItem(window->contentItem(),"timelineMonthEndBasis");
-            QVERIFY(basis&&basis->isVisible());
-            QCOMPARE(basis->property("text").toString(), mobile ? QStringLiteral("월말") : QStringLiteral("월말 기준"));
+            const auto* priorBasis=visualItem(window->contentItem(),"timelineMonthEndBasis");
+            QVERIFY(!priorBasis); // No permanent helper labels in the compact navigator.
+            auto* button=visualItem(window->contentItem(),"timelineMonthButton");
+            auto* input=visualItem(window->contentItem(),"timelineMonthInput");
+            QVERIFY(button&&button->isVisible()&&input&&!input->isVisible());
+            const auto left=controls->mapToScene(QPointF()).x();
+            QVERIFY(left>=-0.5&&left+controls->width()<=window->width()+0.5);
             const auto revision=editor.revision();const auto dirty=editor.dirty();
             QVERIFY(clickControl(window,"timelineNextMonth"));
             QTRY_COMPARE(editor.timelineMonth(),QStringLiteral("1914-08"));
-            QCOMPARE(editor.revision(),revision);QCOMPARE(editor.dirty(),dirty);
             QVERIFY(clickControl(window,"timelinePreviousMonth"));
             QTRY_COMPARE(editor.timelineMonth(),QStringLiteral("1914-07"));
+            QVERIFY(clickControl(window,"timelineNextYear"));
+            QTRY_COMPARE(editor.timelineMonth(),QStringLiteral("1915-07"));
+            QVERIFY(clickControl(window,"timelinePreviousYear"));
+            QTRY_COMPARE(editor.timelineMonth(),QStringLiteral("1914-07"));
+            QCOMPARE(editor.revision(),revision);QCOMPARE(editor.dirty(),dirty);
+            // The same inline control handles desktop Return and the mobile IME Done action.
+            QVERIFY(clickControl(window,"timelineMonthButton"));
+            QTRY_VERIFY(input->isVisible());
+            QTRY_VERIFY(input->hasActiveFocus());
+            QTest::keyClick(window,Qt::Key_A,Qt::ControlModifier);
+            typeText(window,"1915-09");
+            QTest::keyClick(window,Qt::Key_Return);
+            QTRY_COMPARE(editor.timelineMonth(),QStringLiteral("1915-09"));
+            QTRY_VERIFY(button->isVisible());
+            QVERIFY(!input->isVisible());
+            QCOMPARE(editor.revision(),revision);QCOMPARE(editor.dirty(),dirty);
+            // Moving with arrows discards any unfinished draft, without an implicit commit.
+            QVERIFY(clickControl(window,"timelineMonthButton"));
+            QTRY_VERIFY(input->hasActiveFocus());
+            QTest::keyClick(window,Qt::Key_A,Qt::ControlModifier);
+            typeText(window,"1918-11");
+            QVERIFY(clickControl(window,"timelineNextMonth"));
+            QTRY_COMPARE(editor.timelineMonth(),QStringLiteral("1915-10"));
+            QTRY_VERIFY(button->isVisible());
+            // Invalid month remains editable; Escape cancels without changing the date.
+            QVERIFY(clickControl(window,"timelineMonthButton"));
+            QTRY_VERIFY(input->hasActiveFocus());
+            QTest::keyClick(window,Qt::Key_A,Qt::ControlModifier);
+            typeText(window,"1915-13");
+            QTest::keyClick(window,Qt::Key_Return);
+            QCOMPARE(editor.timelineMonth(),QStringLiteral("1915-10"));
+            QVERIFY(input->isVisible());
+            QVERIFY(controls->property("invalid").toBool());
+            QTest::keyClick(window,Qt::Key_Escape);
+            QTRY_VERIFY(button->isVisible());
+            QCOMPARE(editor.timelineMonth(),QStringLiteral("1915-10"));
+            QCOMPARE(editor.revision(),revision);QCOMPARE(editor.dirty(),dirty);
             QVERIFY2(warnings.isEmpty(),qPrintable(warnings.join('\n')));
             window->setProperty("allowClose",true);window->close();
         }
