@@ -37,9 +37,9 @@ test.describe('mobile country-border handoff', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, deviceScaleFactor: 2, trace: 'off' });
 
   for (const renderer of ['webgl2', 'canvas']) {
-    test(\`keeps a presented shared boundary through mesh changes (\${renderer})\`, async ({ page }) => {
+    test(`keeps a presented shared boundary through mesh changes (${renderer})`, async ({ page }) => {
       test.setTimeout(150_000);
-      await page.goto(\`/?renderer=\${renderer}&demTerrain=raster&debug=1\`);
+      await page.goto(`/?renderer=${renderer}&demTerrain=raster&debug=1`);
       await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
       await expect.poll(() => page.evaluate(() =>
         window.__PANDOLAB_GPU_METRICS__?.countrySharedBoundarySegmentCount || 0),
