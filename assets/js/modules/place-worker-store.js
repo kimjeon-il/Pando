@@ -1,6 +1,6 @@
 import { createHydroTileWindow, hydroTileSpecsForWindow } from './hydro-tile-window.js';
 import { decodePlaceTile } from './place-codec.js';
-import { comparePlaces, normalizePlaceQuery, resolvePlaceLabelRows, PLACE_LIMITS } from './place-contract.js';
+import { comparePlaces, normalizePlaceQuery, resolvePlaceLabelRows, hasPlaceNameCoverage, selectedPlaceNames, PLACE_LIMITS } from './place-contract.js';
 import { createFrameProjectors } from './map-visual-frame.js';
 import { placeLabelDimensions, automaticLabelSettings } from './label-layout.js';
 const noCancellation = Object.freeze({ throwIfCancelled() {} });
@@ -18,7 +18,7 @@ function viewportPredicate(view) {
   const {projectVisibleCoordinate}=createFrameProjectors(frame);
   return record => {
     const point=projectVisibleCoordinate(record.coordinates); if (!point) return false;
-    const rows=resolvePlaceLabelRows(record, { ko: true, en: true, native: true }), safe=frame.safeInset;
+    const rows=resolvePlaceLabelRows(record, { ko: true, en: true, native: true }, view.mapDate || null), safe=frame.safeInset;
     // Keep a superset regardless of UI language mode. Final multi-line bounds belong to main layout.
     return rows.some(row => {
       const {width,height}=placeLabelDimensions(row.text);
@@ -140,7 +140,7 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
     if (specs.length > PLACE_LIMITS.queryTiles) throw new RangeError('Place viewport tile budget exceeded');
     const rows=specs.map(spec => manifest.tiles[`${spec.stage}/${spec.x}-${spec.y}`]).filter(Boolean);
     const inViewport=viewportPredicate(view);
-    const {records}=await loadRows(rows,context,record => Math.max(record.minZoom,automaticLabelSettings(record.kind).minZoom) <= Number(view.threshold || 0) && inViewport(record),PLACE_LIMITS.candidates);
+    const {records}=await loadRows(rows,context,record => hasPlaceNameCoverage(record, view.mapDate || null) && Math.max(record.minZoom,automaticLabelSettings(record.kind).minZoom) <= Number(view.threshold || 0) && inViewport(record),PLACE_LIMITS.candidates);
     metrics.lastTileCount=rows.length; metrics.lastCandidateCount=records.length;
     return { signature: `${manifest.revision}:${tileWindow?.signature || 'empty'}`, records, tileCount: rows.length, cacheBytes: used, peakWorkingRecords:metrics.peakWorkingRecords };
   }
@@ -148,7 +148,7 @@ export function createPlaceWorkerStore({ manifest: raw, baseUrl = 'http://localh
     const query=normalizePlaceQuery(value); if ([...query].length < 2) return { records: [], truncated: false };
     const prefix=[...query].slice(0,2).join(''), pages=(manifest.search[prefix] || []).filter(row => row.last >= query && row.first <= `${query}\uffff`);
     const selected=pages.slice(0,PLACE_LIMITS.queryTiles);
-    const {records,truncated}=await loadRows(selected,context,record=>normalizePlaceQuery(record.name).startsWith(query),PLACE_LIMITS.searchResults);
+    const {records,truncated}=await loadRows(selected,context,record=>selectedPlaceNames(record).some(name => normalizePlaceQuery(name).startsWith(query)),PLACE_LIMITS.searchResults);
     return { records, truncated: pages.length > selected.length || truncated };
   }
   return Object.freeze({ queryViewport, search, stats: () => ({ ...metrics, cacheBytes: used, cacheBudget: budget, cachedTiles: [...cache.keys()].filter(key => key.startsWith('tile:')).length, inflight: inflight.size }) });
