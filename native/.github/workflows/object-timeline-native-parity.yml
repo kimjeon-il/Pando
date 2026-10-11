@@ -1,0 +1,46 @@
+name: Objects timeline native parity
+
+on:
+  push:
+    branches: [work/objects]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-timeline:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install native build dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          cache: true
+      - name: Ensure shared web/app historical cases are identical
+        run: |
+          curl --fail --silent --show-error --location --retry 3 \
+            https://raw.githubusercontent.com/kimjeon-il/Pando/work/objects/tests/fixtures/portability/timeline-resolution.json \
+            -o web-timeline-resolution.json
+          curl --fail --silent --show-error --location --retry 3 \
+            https://raw.githubusercontent.com/kimjeon-il/Pando/work/objects/tests/fixtures/portability/timeline-edit.json \
+            -o web-timeline-edit.json
+          cmp web-timeline-resolution.json tests/fixtures/portability/timeline-resolution.json
+          cmp web-timeline-edit.json tests/fixtures/portability/timeline-edit.json
+      - name: Build native object timeline tests
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DPANDOEDITOR_BUILD_APP=OFF
+          cmake --build build --parallel 2 --target \
+            temporal_tests timeline_resolver_tests timeline_command_tests timeline_records_tests \
+            timeline_resolution_probe timeline_edit_probe
+      - name: Run native contracts and web golden cases
+        run: |
+          ctest --test-dir build --output-on-failure \
+            -R '^(temporal_tests|timeline_resolver_tests|timeline_command_tests|timeline_records_tests|timeline_resolution_web_parity|timeline_edit_web_parity)$'
