@@ -1,0 +1,298 @@
+{
+  "schema": "hydro-independent-review-pins-v1",
+  "scope_system_ids": [
+    "30624681",
+    "50488324",
+    "40182409"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "package_inputs": [
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1508,
+      "sha256": "63e5995359bc135d3bbb2a6cc315c11cd48fc47646725e6cd7a7a085cc8e4eaf"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 4521,
+      "sha256": "18f1f63c1e49ddc98893c280b59acb023ca07491af3824492aad393be33dd969"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 14476,
+      "sha256": "dda29f9508dea5f110fa871626e7afacd322ef09b536fcb72b91221bb2d6a479"
+    },
+    {
+      "file": "selected-river-metadata.json",
+      "bytes": 26505,
+      "sha256": "13d6d672441080947111b38ae75234b1d1b54025e91c5c0e0195edb6d55fa6e2"
+    },
+    {
+      "file": "source-reach-manifest.json",
+      "bytes": 34120,
+      "sha256": "7c712ac9c5d8764fd11b03cb0566ba61a51443a30b5845a6fabc48c7bf18fcf8"
+    },
+    {
+      "file": "selected-inventory-records.json",
+      "bytes": 3781,
+      "sha256": "46faac003f887e09458b043d21ac104e6eef3da607a145b29f3272917d400f90"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 1367,
+      "sha256": "c5e35e935cb63cf9ae659bd56ec8ffe44a302dadc3a93241da8768d1751d8c80"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 1700,
+      "sha256": "3fe46fdae55bf8a80cf06dfc4e89b5ba4259e896704ca360f7f4b9bb081ce1cb"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 5989,
+      "sha256": "7c12f7151e83da092ca3010f16e42e8212c89bc0c4c5509af438a53808e15dcd"
+    },
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 5680,
+      "sha256": "7c1f70e70cf88872e5ef911fb488e16fec11f600323be7804ea94153bc3d1f6d"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 18378,
+      "sha256": "e9f7e91f965f2654449404aea5d0b348ad1b1d47b3542e724dd6b5035cddf8e6"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 3889,
+      "sha256": "f49ff2839bf70471addc4782ebf10906cc0f3c8cedbe936dbe757ab10b5736bd"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 2326,
+      "sha256": "fe1b66853bdce650e1385ffe3c91ce4e67b8e6e9a2afa7c50956bfba4b864eb8"
+    },
+    {
+      "file": "nura-source-evidence.json",
+      "bytes": 11423,
+      "sha256": "680a3ece92678b6a27ed4b73eb54ff772ca67ce7c42aaa711f57a2a1dc4986cd"
+    },
+    {
+      "file": "flinders-source-evidence.json",
+      "bytes": 8536,
+      "sha256": "ae6038d6a3e7b10c5aa09d37675f9be737a29f71fbe8e8a56e970d385f1c5c94"
+    },
+    {
+      "file": "sarysu-source-evidence.json",
+      "bytes": 11997,
+      "sha256": "c0fba3f255d17cd67865a125fb3b8e792e9b3dfc3eb8504ce254661923633760"
+    },
+    {
+      "file": "nura-findings.json",
+      "bytes": 9327,
+      "sha256": "04d3a8f8816123a422eccba9399b909c265c9e7b41fd2b736149e115e173748d"
+    },
+    {
+      "file": "flinders-findings.json",
+      "bytes": 12233,
+      "sha256": "528135e39c0bc6fa5284420318ba2c54990fc56a9676619977c762841927728c"
+    },
+    {
+      "file": "sarysu-findings.json",
+      "bytes": 11773,
+      "sha256": "474dfe5f9b4dc7eb4ff34684b937f3e5829fef2e9778fb40f07c763c5a10aca9"
+    }
+  ],
+  "local_evidence_assets": [
+    {
+      "id": "world-bank-e591",
+      "sha256": "5d139f68038bd52d58a98c4afb04ef50b11814c101f96df4d50c9316589996c7",
+      "bytes": 68484,
+      "hash_scope": "tool_returned_text_capture",
+      "url": "https://documents1.worldbank.org/curated/en/634331468753306920/pdf/multi0page.pdf",
+      "published_raw": false
+    },
+    {
+      "id": "gov-nura-2021-design",
+      "sha256": "474617bbd21471ca5777f122e20d367a455a06c5cb8d8f8cf1b9797c1ca6ad1f",
+      "bytes": 42367,
+      "hash_scope": "tool_returned_text_capture",
+      "url": "https://www.gov.kz/uploads/2022/1/27/ff71f404d29166f7b482ca244637344b_original.5201679.pdf",
+      "published_raw": false
+    },
+    {
+      "id": "ministry-nura-kk",
+      "sha256": "4181a3852239a828d7ea387a3b8472ff7cb0276487ca19f47c976e421d704594",
+      "bytes": 5929,
+      "hash_scope": "tool_returned_text_capture",
+      "url": "https://www.gov.kz/memleket/entities/water/press/news/details/742332",
+      "published_raw": false
+    },
+    {
+      "id": "nasa-terminal-lakes",
+      "sha256": "78db912fd7b9ad103011381f67cd169b78ad75c35afc4b707417235462111707",
+      "bytes": 15941,
+      "hash_scope": "tool_returned_text_capture",
+      "url": "https://science.nasa.gov/earth/earth-observatory/tengiz-and-korgaljinski-lakes-kazakhstan-9027/",
+      "published_raw": false
+    },
+    {
+      "id": "FLINDERS-BOM-FLOOD-2026",
+      "sha256": "766e194aae16a9815117c99909ea2c0a9caf35bb020832d1e7841106d49999f6",
+      "bytes": 36681,
+      "hash_scope": "original_response_bytes",
+      "url": "https://www.bom.gov.au/qld/flood/brochures/flinders/flinders.shtml",
+      "published_raw": false
+    },
+    {
+      "id": "FLINDERS-BOM-MAP-2020",
+      "sha256": "f766614638d7c9fbd8b46aa6ba951b241e6f9c12edd4753ca405744052fa832b",
+      "bytes": 473670,
+      "hash_scope": "original_response_bytes",
+      "url": "https://www.bom.gov.au/qld/flood/brochures/flinders/FlindersMorning_map.png",
+      "published_raw": false
+    },
+    {
+      "id": "FLINDERS-QLD-BASIN-MAP",
+      "sha256": "b5b8fbe1f0ba77d523fb145af48aaf2f65c9fbc1e02984fcaaef0df009e26b0a",
+      "bytes": 3491540,
+      "hash_scope": "original_response_bytes",
+      "url": "https://www.disaster.qld.gov.au/__data/assets/pdf_file/0028/338077/BEW553_Basin_Priority_A1_Flinders_-_sml.pdf",
+      "published_raw": false
+    },
+    {
+      "id": "SARYSU-GEOSYSTEMS-2017",
+      "sha256": "038dcae081441fdbf6160ef1b3565331b13c6023710876272e9a0f875cdf730a",
+      "bytes": 193732,
+      "hash_scope": "original_response_bytes",
+      "url": "https://journal.kazhydromet.kz/kazgidro/article/download/1123/1137/6693",
+      "published_raw": false
+    },
+    {
+      "id": "SARYSU-GEOECOLOGY-2013",
+      "sha256": "106ac12ce64362d5bccd1eea75cb248d57849fa9bcbb1717f83464e53faeb821",
+      "bytes": 1264364,
+      "hash_scope": "original_response_bytes",
+      "url": "https://bulletin-geography.kaznu.kz/index.php/1-geo/article/download/682/568/",
+      "published_raw": false
+    },
+    {
+      "id": "SARYSU-PM-FLOOD-2024",
+      "sha256": "72e1a6ad30944e354c5b2838337306f11e14efd811b6b84a0a81e367b72dc3bb",
+      "bytes": 72332,
+      "hash_scope": "original_response_bytes",
+      "url": "https://primeminister.kz/ru/news/na-94-vodokhranilishchakh-sozdany-svobodnye-emkosti-dlya-prinyatiya-pavodkovykh-vod-i-ee-propuska-27931",
+      "published_raw": false
+    },
+    {
+      "id": "FLINDERS-BOM-MAP-VIEW",
+      "bytes": 473670,
+      "sha256": "f766614638d7c9fbd8b46aa6ba951b241e6f9c12edd4753ca405744052fa832b",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "complete_original_map",
+      "published_raw": false
+    },
+    {
+      "id": "FLINDERS-QLD-FULL-VIEW",
+      "bytes": 4932028,
+      "sha256": "891c89c99ea9bbb063891605ff88814a2db2e84fff4c2b8d0c5edcd3eb661206",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "complete_pdf_map_render",
+      "published_raw": false
+    },
+    {
+      "id": "FLINDERS-QLD-WEST-VIEW",
+      "bytes": 1673632,
+      "sha256": "be96cb090858d337a41e20e619180923ec4c13b59a592bf4240f71f5613fcd2c",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "pdf_map_detail",
+      "published_raw": false
+    },
+    {
+      "id": "FLINDERS-QLD-UPPER-VIEW",
+      "bytes": 3257017,
+      "sha256": "f0336f80ca78520f49aa25678d6fc53ee0a87c02a28924446c0d5ffe6f5dd603",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "pdf_map_detail",
+      "published_raw": false
+    },
+    {
+      "id": "FLINDERS-QLD-LOWER-VIEW",
+      "bytes": 2144638,
+      "sha256": "5042d1dc26cdab861bc0702db64a08bddb2910d420edc2b0cc2bdd692e116485",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "pdf_map_detail",
+      "published_raw": false
+    },
+    {
+      "id": "FLINDERS-QLD-CREDITS-VIEW",
+      "bytes": 509856,
+      "sha256": "260b56367c0babd8dad6cc5bc41c21363d3f4ce6e47322403257e8319f68aa85",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "pdf_map_credits",
+      "published_raw": false
+    },
+    {
+      "id": "SARYSU-2017-P158-VIEW",
+      "bytes": 9793,
+      "sha256": "ee8451fdc91859fef199e3dbb6bbf0a012854871a6fe0594a248b3e80e71360d",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "blank_pdf_page_not_map",
+      "published_raw": false
+    },
+    {
+      "id": "SARYSU-2013-P78-VIEW",
+      "bytes": 587232,
+      "sha256": "1669fb6ba502b97b4bc5dfe034f1e9c3d197290f87f2b15de71928ea6bd99a8d",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "complete_thematic_map_page",
+      "published_raw": false
+    },
+    {
+      "id": "SARYSU-2013-P80-VIEW",
+      "bytes": 2173203,
+      "sha256": "50c79ffa8cd709043f6ee5a5fac65ef3307542811895773ca89e230ce2fc281c",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "complete_field_site_map_page",
+      "published_raw": false
+    },
+    {
+      "id": "SARYSU-2013-P82-VIEW",
+      "bytes": 696440,
+      "sha256": "58e1ca94650fe3641c5f7b53d0d9336917e75d68c714a0e5d71223a117aabedb",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "site_table_not_map",
+      "published_raw": false
+    },
+    {
+      "id": "SYSTEM-30624681-FULL-VIEW",
+      "bytes": 112297,
+      "sha256": "6407042220d5e080befbd280f91e168554c6c8bd299d7d6f1c4926cd51d34995",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "complete_baseline_plot",
+      "published_raw": false
+    },
+    {
+      "id": "SYSTEM-50488324-FULL-VIEW",
+      "bytes": 132367,
+      "sha256": "94267ff891541ddc754d7ed455df30de5b5e04b8125718773d160781ebc8c628",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "complete_baseline_plot",
+      "published_raw": false
+    },
+    {
+      "id": "SYSTEM-40182409-FULL-VIEW",
+      "bytes": 101558,
+      "sha256": "4eabe67de5817b5b837e5fedaa791665928c8f434484b3e9a4f7e1fe9b7cbe79",
+      "hash_scope": "retained_local_view_bytes",
+      "view_kind": "complete_baseline_plot",
+      "published_raw": false
+    }
+  ],
+  "unpublished_full_geometry": {
+    "bytes": 105406,
+    "sha256": "870ffe2536994d9577c8c6e70391ff6f07afb81a9461d1b3e19fadcc5ee1de0a"
+  },
+  "pin_scope": "Public metadata and hashes are durable. Source bodies, tool-text captures, map images and complete licensed coordinates remain local and are rechecked only with optional local inputs.",
+  "automatic_application": false
+}

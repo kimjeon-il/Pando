@@ -1,0 +1,110 @@
+{
+  "schema": "hydro-public-source-evidence-v2",
+  "batch": "r13",
+  "created_at_utc": "2026-10-09T16:05:34.412357+00:00",
+  "sources": [
+    {
+      "source_key": "cpra_fy2024_plan",
+      "publisher": "Coastal Protection and Restoration Authority of Louisiana",
+      "title": "Fiscal Year 2024 Annual Plan: Integrated Ecosystem Restoration and Hurricane Protection in Coastal Louisiana",
+      "edition": "Fiscal Year 2024",
+      "publication_date": null,
+      "publication_date_note": "No printed calendar publication date was established. The URL contains 20230418; that path is not treated as a printed publication date.",
+      "kind": "official_coastal_plan_with_regional_maps",
+      "url": "https://coastal.la.gov/wp-content/uploads/2023/04/CPRA_FY24-AP_20230418-compressed.pdf",
+      "retrieved_at_utc": "2026-10-09T16:01:32.772392+00:00",
+      "retrieved_this_batch": true,
+      "original_map_visually_inspected": true,
+      "map_locations": [
+        {
+          "physical_pdf_page": 29,
+          "printed_page": "18",
+          "scope": "Regional coastal program map, complete Maurepas and Salvador-area water footprints, readable lake labels."
+        },
+        {
+          "physical_pdf_page": 96,
+          "printed_page": "85",
+          "scope": "Map 3 Southeast Region; whole regional water silhouettes, limited small-label legibility."
+        },
+        {
+          "physical_pdf_page": 98,
+          "printed_page": "87",
+          "scope": "Continuation of Map 3; repeats the same basemap and is not an independent map source."
+        }
+      ],
+      "short_labels": [
+        "Lake Maurepas",
+        "Lake Salvador"
+      ],
+      "independence_group": "cpra_fy2024_annual_plan",
+      "source_limit": "Coastal-project overview cartography, rather than a gazetteer or surveyed shoreline. Project overlays and compressed map resolution limit narrow connections and small labels."
+    },
+    {
+      "source_key": "louisiana_celcp2011",
+      "publisher": "Louisiana Department of Natural Resources, Office of Coastal Management; hosted by NOAA",
+      "title": "Louisiana Coastal and Estuarine Land Conservation Program Plan",
+      "publication_date": "2011-05",
+      "kind": "official_coastal_conservation_plan",
+      "url": "https://coast.noaa.gov/data/czm/landconservation/media/celcpplanlafinal.pdf",
+      "retrieved_at_utc": "2026-10-09T15:59:56.185318+00:00",
+      "retrieved_this_batch": true,
+      "original_map_visually_inspected": true,
+      "inspection_scope": "Text on physical PDF pages 9–10, printed 7–8, supports coastal basin context. Appendix B regional planning maps were inspected but do not resolve the target name boundaries.",
+      "identity_map_evidence": false,
+      "independence_group": "louisiana_celcp2011",
+      "source_limit": "Basin-level ecological description from 2011; it does not establish current salinity at an individual site, a whole-feature name partition or current shoreline."
+    }
+  ],
+  "independent_source_count": 2,
+  "independent_cartographic_identity_source_count": 1,
+  "independence_note": "One CPRA map publication supports naming observations. The independently authored CELCP plan supports coastal context only. Pages and repeated maps are not counted as independent sources.",
+  "unused_acquisition_outcomes": [
+    {
+      "url": "https://www.wlf.louisiana.gov/page/maurepas-swamp",
+      "publication": "LDWF Maurepas Swamp overview",
+      "access_outcome": "405 Method Not Allowed",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://www.wlf.louisiana.gov/page/salvador-timken",
+      "publication": "LDWF Salvador/Timken WMA overview",
+      "access_outcome": "405 Method Not Allowed",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://pubs.usgs.gov/fs/fs25-00/fs025-00.pdf",
+      "publication": "USGS Fact Sheet 025-00",
+      "access_outcome": "403 Forbidden",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://lacoast.gov/reports/project/3891523~1.pdf",
+      "publication": "Lake Salvador Shoreline Protection Demonstration Project BA-15 project review, revised 2002-09-24",
+      "access_outcome": "403 Forbidden",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://pubs.usgs.gov/of/2002/of02-206/geology/maurepas.html",
+      "publication": "USGS OFR02-206 Lake Maurepas shoreline-types chapter",
+      "access_outcome": "403 Forbidden",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://www.wlf.louisiana.gov/assets/Resources/Publications/Freshwater_Inland_Fish/Aquatic-Vegetation-Control-Plans/Barataria-Basin-AVCP-2021.pdf",
+      "publication": "LDWF Barataria Basin Aquatic Vegetation Control Plan 2021",
+      "access_outcome": "403 Forbidden",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    }
+  ],
+  "search_snippets_used_as_identity_evidence": false,
+  "included_evidence_limit": "The included files retain bibliographic references, own factual observations and selected public-domain geometry. Original publications and inspection materials are not included. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false,
+  "availability_scope_note": "Failed auxiliary publications were not used. The acquired CPRA map covers both complete target footprints; the Salvador-area restriction is unresolved name scope, rather than absent whole-feature map coverage."
+}

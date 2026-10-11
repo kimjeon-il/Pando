@@ -1,0 +1,465 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r57",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r56",
+    "commit": "7593bcc3180e37633ba1f5eff7984c798e1920dd",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r56/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:90050999",
+    "hydro-system:90003983",
+    "hydro-system:70869371",
+    "hydro-system:61117809",
+    "hydro-system:70011099"
+  ],
+  "distinct_increment": 5,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:90050999",
+      "category": "river_group",
+      "system_id": "90050999",
+      "baseline_logical_fid": 2837,
+      "geometry_fids": [
+        8848
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -56.130442,
+        74.225,
+        -43.991667,
+        75.427083
+      ],
+      "rendered_mainstem_length_km": 606.902,
+      "rendered_network_length_km": 606.902,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -56.130442,
+          74.225,
+          -43.991667,
+          75.427083
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for the complete modeled Inland Ice path. This completed feature-class and naming-scope hold does not claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "Western Greenland Inland Ice around 74–75°N, extending west toward the Kullorsuaq–Kiatassuaq coastal sector. These labels supply regional context only.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "Readable coverage supports the completed scope hold. Positive natural-river identity evidence would be required before any later name assignment; no further acquisition is pending now.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 606.902,
+        "length_limit": "Model display length, not a measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:90003983",
+      "category": "river_group",
+      "system_id": "90003983",
+      "baseline_logical_fid": 2821,
+      "geometry_fids": [
+        8830
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -56.503872,
+        77.44375,
+        -49.266667,
+        81.377083
+      ],
+      "rendered_mainstem_length_km": 604.897,
+      "rendered_network_length_km": 604.897,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -56.503872,
+          77.44375,
+          -49.266667,
+          81.377083
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for the complete modeled Inland Ice path. This completed feature-class and naming-scope hold does not claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "Northern Greenland Inland Ice, with a long northward interior course and a western turn near the northern ice/land margin. No particular marginal glacier or fjord is assigned as its river identity.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "Readable coverage supports the completed scope hold. Positive natural-river identity evidence would be required before any later name assignment; no further acquisition is pending now.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 604.897,
+        "length_limit": "Model display length, not a measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:70869371",
+      "category": "river_group",
+      "system_id": "70869371",
+      "baseline_logical_fid": 3247,
+      "geometry_fids": [
+        10405,
+        10404
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -105.507499,
+        21.753299,
+        -104.25625,
+        24.3375
+      ],
+      "rendered_mainstem_length_km": 599.438,
+      "rendered_network_length_km": 599.438,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -105.507499,
+          21.753299,
+          -104.25625,
+          24.3375
+        ]
+      },
+      "candidate_name": "Río San Pedro–Mezquital (Durango–Nayarit)",
+      "candidate_names": [
+        "Río San Pedro-Mezquital"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "San Pedro–Mezquital is supported as the representative system identity of the two-piece selected corridor. Its northwest Río Chico approach, Guadalupe Victoria impoundment passage, El Tunal/Durango corridor, Mezquital reaches, lower San Pedro and coastal-estuary setting are distinguished rather than given one uniform reach name.",
+      "geographic_disambiguation": "The complete selected route was compared with original INEGI municipal and state maps: southeastward upper approach, northeastward loop past Durango, southward descent, southwestward mountain bend, lower north–south course, westward turn past Tuxpan and final southwestward coastal channel. Durango–Nayarit is an editorial qualifier.",
+      "source_keys": [
+        "r57-inegi-durango-municipal-2010",
+        "r57-inegi-durango-2015",
+        "r57-inegi-nayarit-2015",
+        "r57-inegi-santiago-2010",
+        "r57-conagua-dof-2014"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Durango and Nayarit, western Mexico, from the Río Chico approach northwest of Victoria de Durango through the Sierra Madre Occidental to the Tuxpan–Mexcaltitán coastal setting.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence for both selected pieces. Independent readable official maps and direct CONAGUA text suffice; unsuccessful optional sources leave no access-pending requirement. Exact headwater, reach-name transitions, reservoir limits and current estuary/mouth geometry remain outside this finding.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río San Pedro-Mezquital",
+        "upper_scope": "Río Chico is the selected northwest approach. La Sauceda is a separate conventional source route, not a blanket alias for the selected upper path. Exact source and Chico/Tunal transition remain unassigned.",
+        "reservoir_scope": "Presidente Guadalupe Victoria (El Tunal) is impoundment context. Its name is not substituted for the river, and neither inundation limits nor present water level is inferred.",
+        "tributary_scope": "El Tunal's southern approach, La Sauceda, Santiago Bayacora and Nombre de Dios/Poanas–Súchil–Graseros are kept as separate contributing corridors. The selection contains no additional modeled tributary fragments.",
+        "terminal_scope": "Lower San Pedro and the Mexcaltitán coastal-estuary network belong to the supported representative system. Individual lagoon, distributary and estero names, contemporary channel choice and precise mouth boundaries are not allocated.",
+        "model_limits": "The model's mainstem designation and display length do not establish a uniform natural-river hydronym, surveyed source-to-mouth length or current flow. An unassigned local name is not evidence that a reach is unnamed."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61117809",
+      "category": "river_group",
+      "system_id": "61117809",
+      "baseline_logical_fid": 3478,
+      "geometry_fids": [
+        13881,
+        13880
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -42.00625,
+        -13.04375,
+        -38.915531,
+        -12.360417
+      ],
+      "rendered_mainstem_length_km": 591.25,
+      "rendered_network_length_km": 591.25,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -42.00625,
+          -13.04375,
+          -38.915531,
+          -12.360417
+        ]
+      },
+      "candidate_name": "Rio Paraguaçu (Bahia)",
+      "candidate_names": [
+        "Rio Paraguaçu"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Paraguaçu is supported as the representative identity of this selected connected corridor in Bahia. The western feeder and Cochó–Santo Antônio approach retain separate scope; they are not all renamed Paraguaçu. Reservoir passages, Marimbus wetland and the upper estuarine approach are distinct contexts, with no exact naming-transition vertices assigned.",
+      "geographic_disambiguation": "The actual two selected pieces were read throughout against original INEMA maps. Their western feeder approach, northward Seabra leg, southward Santo Antônio leg, large southern bend, northeastward Iaçu passage and east-to-south lower course distinguish this correspondence. Bahia is an editorial qualifier.",
+      "source_keys": [
+        "r57-inema-paraguacu-2014-map",
+        "r57-inema-paraguacu-nt7-2025",
+        "r57-inema-paraguacu-plan-page"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central and eastern Bahia, Brazil, from the western Boninal–Seabra feeder setting through Santo Antônio and Andaraí, then the Paraguaçu corridor to the Cachoeira–São Félix and upper Iguape setting.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence for both selected modeled-mainstem pieces, including the upstream feeder, named-river change, impounded reaches and terminal estuarine setting. Readable official maps and direct official text suffice. Exhaustive feeder naming, surveyed sources, exact name boundaries and modern shoreline/channel delineation are outside this completed finding.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rio Paraguaçu",
+        "geographic_qualifier": "Bahia, Brazil; editorial disambiguation only.",
+        "upper_scope": "The selection approaches through a western feeder and Cochó–Santo Antônio, rather than the named Paraguaçu source-to-Mucugê reach. Exact feeder and name-transition vertices remain unassigned.",
+        "wetland_scope": "Marimbus is wetland context along the Santo Antônio approach, not a replacement river name.",
+        "reservoir_scope": "Bandeira de Melo and Pedra do Cavalo are impoundment contexts. Apertado belongs to the separate named Paraguaçu headwater route outside this selection. No reservoir boundaries or infrastructure aliases are applied.",
+        "tributary_scope": "Preto, Utinga, Una, Piranhas and Jacuípe remain distinct tributary context; nearby names are not distributed onto the selected line.",
+        "terminal_scope": "The selected lower end reaches the upper estuarine approach. Baía de Iguape and Baía de Todos-os-Santos remain separate water-body context; exact mouth and tidal transition are not resolved.",
+        "model_limits": "Modeled mainstem status and display length do not establish one official hydronym for every reach, natural-river length, perennial flow or contemporary channel geometry."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70011099",
+      "category": "river_group",
+      "system_id": "70011099",
+      "baseline_logical_fid": 2904,
+      "geometry_fids": [
+        8948,
+        8947,
+        8946,
+        8949
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -100.90625,
+        58.064583,
+        -94.822875,
+        59.135417
+      ],
+      "rendered_mainstem_length_km": 589.579,
+      "rendered_network_length_km": 706.131,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -100.90625,
+          58.45,
+          -94.822875,
+          59.135417
+        ]
+      },
+      "candidate_name": "Seal River (Manitoba)",
+      "candidate_names": [
+        "Seal River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Seal River is supported as the group's representative drainage identity. The modeled western trunk includes a headwater feeder, the North Seal approach and lake passages before Shethanei Lake; the named Seal proper is the downstream Shethanei-to-Hudson Bay river. The southern South Seal approach remains a separate tributary, not an alias for the whole selection.",
+      "geographic_disambiguation": "All three modeled-mainstem pieces and the southern tributary were compared with readable original provincial mapping. The western northward bend and eastward lake corridor, southern Tadoule approach, Shethanei connection, island-channel setting and lower northward coastal elbow agree with the Seal drainage. Manitoba is an editorial qualifier, not part of the mapped hydronym.",
+      "source_keys": [
+        "r57-mgs-bedrock-of2024-4",
+        "r57-seal-monitoring-2014-2024",
+        "r57-manitoba-heritage-rivers"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Manitoba, Canada, from the western North Seal lake country through Shethanei Lake and the Great Island setting to Hudson Bay north of Churchill.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence for all four selected fragments. Official maps and direct text are sufficient; no further acquisition is pending. Exact feeder names, river/lake transition vertices and individual island or estuary channels are outside this finding.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Seal River",
+        "geographic_qualifier": "Manitoba, Canada; editorial disambiguation only.",
+        "upper_scope": "Western feeder and North Seal lake-chain approach are included in the selected drainage but are not uniformly named Seal River.",
+        "lake_scope": "Stony, Tadoule and Shethanei lake settings retain their separate waterbody character. Exact named extents and river/lake transitions are not assigned.",
+        "tributary_scope": "South Seal remains separate. The report also names Wolverine as a tributary; that does not establish a Wolverine fragment within this four-piece selection.",
+        "terminal_scope": "Great Island and Hudson Bay estuary context are supported; individual branch-channel names and present shoreline positions are not established.",
+        "model_limits": "Model roles, stages and display lengths do not establish official names, natural-river lengths, surveyed sources or contemporary channel geometry. No formal naming decision or naming date was verified."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90050999",
+      "hydro-system:90003983"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 5,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 171,
+    "non_pending_records": 166,
+    "source_access_pending": 3,
+    "source_material_pending": 2,
+    "source_any_pending": 5,
+    "scope_holds": 57,
+    "river_groups": 73,
+    "lakes": 98,
+    "unrecorded": 3894,
+    "unrecorded_river_groups": 3382,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r57-inegi-durango-municipal-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10005.pdf"
+    },
+    {
+      "source_key": "r57-inegi-durango-2015",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/anuarios_2015/702825076160.pdf"
+    },
+    {
+      "source_key": "r57-inegi-nayarit-2015",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/anuarios_2015/702825076108.pdf"
+    },
+    {
+      "source_key": "r57-inegi-santiago-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/18/18015.pdf"
+    },
+    {
+      "source_key": "r57-conagua-dof-2014",
+      "official_url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5351765"
+    },
+    {
+      "source_key": "r57-inema-paraguacu-2014-map",
+      "official_url": "https://www.ba.gov.br/inema/servicos/mapas-tematicos"
+    },
+    {
+      "source_key": "r57-inema-paraguacu-nt7-2025",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/2025-09/NT7%20%E2%80%93%20QUALIDADE%20DAS%20%C3%81GUAS_PARAGUA%C3%87U.pdf"
+    },
+    {
+      "source_key": "r57-inema-paraguacu-plan-page",
+      "official_url": "https://www.ba.gov.br/inema/planos-de-bacias/rio-paraguacu-3"
+    },
+    {
+      "source_key": "r57-mgs-bedrock-of2024-4",
+      "official_url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf"
+    },
+    {
+      "source_key": "r57-seal-monitoring-2014-2024",
+      "official_url": "https://www.gov.mb.ca/sd/parks/_resources/en/pdf/sealriver-monitoringreport.pdf"
+    },
+    {
+      "source_key": "r57-manitoba-heritage-rivers",
+      "official_url": "https://www.gov.mb.ca/sd/parks/park-facilities-and-services/heritage-rivers/index.html"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "7593bcc3180e37633ba1f5eff7984c798e1920dd",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "next_unrecorded_id": "hydro-system:61519656",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

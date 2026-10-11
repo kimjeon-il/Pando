@@ -1,0 +1,34 @@
+{
+  "schema": "hydro-representative-name-findings-v1",
+  "batch": "r07",
+  "aw_id": "hydro-system:50552041",
+  "review_status": "representative_system_mainstem_supported",
+  "representative_name": "Ashburton River",
+  "representative_name_scope": "Generalized representative-system/mainstem identity only",
+  "name_ko": null,
+  "confidence": "high at regional representative-system scale; unestablished at individual-reach scale",
+  "evidence_ids": [
+    "ASH-WA-AGRICULTURE-1988",
+    "ASH-DWER-HG34-2009"
+  ],
+  "reason": "Official main-corridor cartography, a complete retained-route overview and independent lower-river usage converge. Identity was not assigned from centroid, bounding box or the initial name hint.",
+  "distinct_names_not_assigned_to_selected_parts": [
+    "Angelo River",
+    "Turee Creek",
+    "Seven-Mile Creek",
+    "Henry River",
+    "Irregully Creek"
+  ],
+  "headwater_handling": "The far-upstream naming transition has not been separately resolved. Do not extend the representative label automatically to every headwater part.",
+  "tributary_handling": "Names documented for tributaries remain distinct; no part-by-part tributary assignment is proposed.",
+  "connector_handling": "No independent name evidence for rendering connectors or the terminal coastal adjustment.",
+  "whole_group_scalar_name_applicable": false,
+  "per_reach_scalar_name_applicable": false,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_name_registry_verdict": null,
+  "whole_route_name_uniqueness_established": false,
+  "remaining_scope": "Hold any blanket or reach-level application pending reach-specific evidence; regional representative review can proceed.",
+  "source_evidence_file": "ashburton-source-evidence.json",
+  "geometry_comparison_file": "ashburton-geometry-comparison.json"
+}

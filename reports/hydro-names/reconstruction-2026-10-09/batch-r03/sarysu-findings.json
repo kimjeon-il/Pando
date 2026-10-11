@@ -1,0 +1,257 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r03",
+  "created_at_utc": "2026-10-09T12:08:00.874924+00:00",
+  "target": {
+    "aw_id": "hydro-system:40182409",
+    "system_id": "40182409",
+    "logical_fid": 1070,
+    "geometry_fids": [
+      3103,
+      3104
+    ],
+    "source_reach_count": 255,
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "historical_bbox": [
+      66.935417,
+      45.135417,
+      73.608333,
+      48.702083
+    ],
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Сарысу / Sarysu representative main-river system",
+    "status": "Qualified representative river-system identity supported; exact reach-name application held.",
+    "identity_confidence": "Moderate-to-high at regional representative-system scale; exact named-river extent and headwater boundaries are unresolved.",
+    "name_original": "Сарысу",
+    "name_original_languages": [
+      "kk",
+      "ru"
+    ],
+    "name_en": "Sarysu",
+    "name_ko": null,
+    "scope": "The selected two-fragment mainstem group is geographically consistent with the Sarysu system, including separately named upstream river components and a seasonally active lower continuation. This is a system-level identification, not a claim that every selected line part is named Sarysu.",
+    "formal_naming_authority_verified": false,
+    "official_russian_usage_supported": true,
+    "kazakh_scientific_usage_supported": true,
+    "english_scientific_usage_supported": true,
+    "korean_note": "No direct Korean naming source was acquired; no Korean transliteration or product display name is cleared."
+  },
+  "source_supported_names": [
+    {
+      "name": "Сарысу",
+      "language": "ru",
+      "role": "Official operational and scientific river usage",
+      "evidence_ids": [
+        "SARYSU-PM-FLOOD-2024",
+        "SARYSU-GEOSYSTEMS-2017",
+        "SARYSU-GEOECOLOGY-2013"
+      ]
+    },
+    {
+      "name": "Сарысу",
+      "language": "kk",
+      "role": "River usage in acquired Kazakh article titles, not an inspected gazetteer record",
+      "evidence_ids": [
+        "SARYSU-GEOSYSTEMS-2017",
+        "SARYSU-GEOECOLOGY-2013"
+      ]
+    },
+    {
+      "name": "Sarysu",
+      "language": "en",
+      "role": "English scientific title usage",
+      "evidence_ids": [
+        "SARYSU-GEOSYSTEMS-2017",
+        "SARYSU-GEOECOLOGY-2013"
+      ]
+    }
+  ],
+  "separately_named_components": [
+    {
+      "name": "Жаман-Сарысу",
+      "language": "ru",
+      "relation": "One constituent river upstream of the named Sarysu confluence.",
+      "application_limit": "Not an alias for the entire system and not assigned to particular selected source IDs.",
+      "evidence_ids": [
+        "SARYSU-GEOSYSTEMS-2017"
+      ]
+    },
+    {
+      "name": "Жаксы-Сарысу",
+      "language": "ru",
+      "relation": "The other constituent river at the named Sarysu confluence.",
+      "application_limit": "Its presence in basin literature does not prove that this selected mainstem follows it.",
+      "evidence_ids": [
+        "SARYSU-GEOSYSTEMS-2017",
+        "SARYSU-GEOECOLOGY-2013"
+      ]
+    },
+    {
+      "name": "Кайракты",
+      "language": "ru",
+      "relation": "The 2017 study identifies this as an upstream component used when measuring the longer hydrological main path via Жаман-Сарысу.",
+      "application_limit": "The eastern selected headwater is geographically compatible with that system description, but the exact source-reach/name join is unverified.",
+      "evidence_ids": [
+        "SARYSU-GEOSYSTEMS-2017"
+      ]
+    },
+    {
+      "name": "Каракенгир / Кенгир",
+      "language": "ru",
+      "relation": "A separately named major tributary and middle-basin context.",
+      "application_limit": "Not renamed Sarysu and not assumed to be a selected tributary fragment; both selected FIDs have baseline role mainstem.",
+      "evidence_ids": [
+        "SARYSU-GEOSYSTEMS-2017",
+        "SARYSU-GEOECOLOGY-2013",
+        "SARYSU-PM-FLOOD-2024"
+      ]
+    }
+  ],
+  "geometry_integrity": {
+    "reference_file": "geometry-reference.json",
+    "ordered_source_reach_reference": "source-reach-manifest.json",
+    "complete_baseline_fragment_count": 2,
+    "complete_line_part_count": 255,
+    "complete_coordinate_count": 1406,
+    "source_ids_sha256": "4ded058ac025b4e65a0c6f1d3ecffdcf369373790a542507abea72ff09b9ee1e",
+    "canonical_ordered_group_geometry_sha256": "566cb65669c73251b58d8adb9a4cf58c1466dc3a219636a2884fc7c9923961d0",
+    "geometry_hashes_independently_recomputed": true,
+    "ordered_source_ids_independently_checked": true,
+    "canonical_hash_serialization": "UTF-8 compact JSON with sorted object keys and unescaped Unicode; group geometry hash is the fragmentIndex-ordered list of complete geometry objects.",
+    "full_group_plot_visually_inspected": true,
+    "all_fragments_and_parts_included": true,
+    "full_coordinates_in_public_package": false,
+    "original_hydrorivers_geometry_equality_verified": false,
+    "reach_id_to_original_geometry_mapping_verified": false,
+    "ids_roles_part_order_and_coordinates_changed": false,
+    "fragment_observations": [
+      {
+        "fid": 3103,
+        "fragment_index": 0,
+        "role": "mainstem",
+        "stage": 3,
+        "geometry_type": "MultiLineString",
+        "part_count": 176,
+        "coordinate_count": 934,
+        "source_reach_count": 176,
+        "ordered_source_ids_csv_sha256": "064f8d8d7d9efd8ff15a8b53ed6a5507db58c2ad99d54fd58d1d06123869e36f",
+        "canonical_geometry_sha256": "3283dcf15b82134f2be1891b8ff3bd91b653d099cc4022d9e0fda7aa1207dbac",
+        "bbox": [
+          67.99375,
+          47.38125,
+          73.608333,
+          48.702083
+        ],
+        "endpoints": [
+          [
+            73.608333,
+            48.50625
+          ],
+          [
+            67.99375,
+            47.38125
+          ]
+        ],
+        "full_fragment_inspected": true,
+        "all_line_parts_included": true,
+        "source_id_order_preserved": true,
+        "geographic_observation": "The eastern start lies near 73.61°E,48.51°N. The complete upper path initially bends south of 48.5°N, then crosses westward near 48.3–48.7°N before curving southwest to the fragment junction near 67.99°E,47.38°N. This is consistent with the regional Sarysu upper-system pattern, including a separately named eastern headwater; no exact headwater name boundary was determined."
+      },
+      {
+        "fid": 3104,
+        "fragment_index": 1,
+        "role": "mainstem",
+        "stage": 2,
+        "geometry_type": "MultiLineString",
+        "part_count": 79,
+        "coordinate_count": 472,
+        "source_reach_count": 79,
+        "ordered_source_ids_csv_sha256": "e723a494e5533c1ee39edb173a7474f07c5f44d60b94e6e2c103f71fcc9b2657",
+        "canonical_geometry_sha256": "6c89f80474d243c317e6bec70a028f0d8128a9047e127aac97a249a65d58e9e6",
+        "bbox": [
+          66.935417,
+          45.135417,
+          67.99375,
+          47.38125
+        ],
+        "endpoints": [
+          [
+            67.99375,
+            47.38125
+          ],
+          [
+            66.939583,
+            45.135417
+          ]
+        ],
+        "full_fragment_inspected": true,
+        "all_line_parts_included": true,
+        "source_id_order_preserved": true,
+        "geographic_observation": "The entire second fragment continues from the first junction south-southwest, near 67°E, through the lower valley to the endorheic endpoint near 66.94°E,45.14°N. The full lower path agrees at regional scale with the mapped southern basin arm; its terminal coordinate is not a proven named mouth, lake-membership point or contemporary shoreline."
+      }
+    ]
+  },
+  "spatial_identity_check": {
+    "method": "Read both complete decoded MultiLineStrings and all ordered source-ID lists, verify counts and canonical hashes, and inspect the full-group plot against the complete regional basin maps and geographic narrative. This is full-path qualitative comparison, not centroid proximity matching or an exact cartographic overlay.",
+    "source_map_evidence_id": "SARYSU-GEOECOLOGY-2013",
+    "map_read_locations": [
+      "Figure 1, printed 78 / PDF 3",
+      "Figure 2, printed 80 / PDF 5"
+    ],
+    "observations": [
+      "The full east–west upper path, southwest bend and long southward lower path jointly fit the Sarysu basin geometry. Both fragments were assessed; the southern part was not inferred from the upper fragment alone.",
+      "The source basin maps include tributary catchments and a boundary much wider than the selected line group. This finding does not give the Sarysu name to that entire polygon, every tributary, or an unselected network.",
+      "The thematic maps show a named basin and numbered field sites, rather than names attached to every reach. Their evidence supports regional representative identity while leaving precise headwater naming unresolved.",
+      "The shared fragment junction is a baseline packaging boundary. It is not established as a hydronym boundary.",
+      "The study distinguishes a 761 km named-river convention from a longer hydrological path exceeding 950 km through an upstream component. The inventory length 909.906 km is therefore not used as an exact named-river match."
+    ],
+    "centroid_only_matching_used": false,
+    "map_georeferenced_or_exact_overlay_performed": false,
+    "exact_headwater_name_boundaries_verified": false
+  },
+  "clearance": {
+    "representative_system_identity_candidate": true,
+    "scalar_product_name_cleared": false,
+    "name_cleared_for_every_source_reach": false,
+    "name_cleared_for_tributaries": false,
+    "exact_headwater_or_terminal_reach_names_cleared": false,
+    "korean_name_cleared": false,
+    "automatic_application": false,
+    "product_changes_allowed": false
+  },
+  "limits": [
+    "This is a fresh evidence reconstruction, not restoration of a previous verdict.",
+    "The current live deployment and equality to it were not checked.",
+    "The underlying HydroRIVERS shapefile was not acquired, so metadata reach order does not establish original per-reach coordinate equality.",
+    "No naming-register decision or formal naming-effective date was acquired.",
+    "The two research publications share leading authors; they are distinct documents but not wholly independent naming authorities.",
+    "Regional maps are thematic and generalized; they do not prove an exact named mouth, present-day water boundary, or individual headwater transition.",
+    "The unsuccessful 2022 yearbook was excluded, and its contents or search snippets were not used as acquired evidence.",
+    "No topology, geometry, terminal snapping or source-ID repairs were made."
+  ],
+  "evidence_reference": {
+    "file": "sarysu-source-evidence.json",
+    "sha256": "c0fba3f255d17cd67865a125fb3b8e792e9b3dfc3eb8504ce254661923633760"
+  },
+  "automatic_application": false,
+  "endorheic_terminal_scope": {
+    "baseline_class": "endorheic",
+    "render_endpoint_quantized": [
+      66.939583,
+      45.135417
+    ],
+    "endpoint_semantics": "Retained baseline metadata, not independent proof of a named mouth.",
+    "source_names": [
+      "Телеколь",
+      "Теликоль"
+    ],
+    "source_context": "The research sources describe lower-system losses and episodic delivery to the terminal-lake region; the 2024 government announcement supplies a dated managed-flood connection.",
+    "terminal_lake_context_supported": true,
+    "exact_endpoint_in_named_lake_verified": false,
+    "contemporary_flow_continuity_verified": false,
+    "perennial_flow_claimed": false,
+    "coastline_or_shoreline_exactness_claimed": false
+  }
+}

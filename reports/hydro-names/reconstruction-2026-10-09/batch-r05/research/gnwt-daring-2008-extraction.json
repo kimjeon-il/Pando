@@ -1,0 +1,14 @@
+{
+  "source_key": "GNWT-TERS-2010",
+  "factual_extraction": [
+    "The station report treats the research area as containing two named lakes and includes a photograph caption identifying a narrows between them.",
+    "This separately corroborates distinct connected waters at the southwestern portion of the selected regional lake shape, while the photo itself provides no coordinate-level polygon boundary."
+  ],
+  "locator": "PDF pages 34-35, printed pages 28-29; Photo 14 on page 35; cover gives 2010 publication and 2008 reporting period.",
+  "quoted_names_only": [
+    "Yamba Lake",
+    "Daring Lake"
+  ],
+  "extent_limit": "The photograph is an observed narrows with a caption; it is not a map, geospatial survey or exact match for a generalized digital outline.",
+  "raw_source_republished": false
+}

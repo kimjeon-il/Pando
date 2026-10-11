@@ -1,0 +1,209 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r21",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three logical MAIN_RIV inventory groups; not three uniformly named channels or scalar-name approvals.",
+  "counts": {
+    "supported_representative_system_identity": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 4,
+  "river_line_part_count": 203,
+  "distinct_source_reach_count": 203,
+  "river_rendered_coordinate_count": 1530,
+  "part_counts_in_target_order": [
+    66,
+    75,
+    62
+  ],
+  "position_counts_in_target_order": [
+    515,
+    587,
+    428
+  ],
+  "fragment_part_counts_in_target_order": [
+    [
+      40,
+      26
+    ],
+    [
+      75
+    ],
+    [
+      62
+    ]
+  ],
+  "fragment_position_counts_in_target_order": [
+    [
+      329,
+      186
+    ],
+    [
+      587
+    ],
+    [
+      428
+    ]
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50701991",
+      "category": "river_group",
+      "system_id": "50701991",
+      "baseline_logical_fid": 2041,
+      "geometry_fids": [
+        6998,
+        6999
+      ],
+      "candidate_name": "Clarence River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "Both selected fragments were viewed in full: a southwestern upper course curves east and north into a high northern bend, then the lower path turns southeast and northeast toward the coast. The direct blue Clarence label on the mapped lower/eastern river line supports Clarence River as the representative system identity. The long western and southwestern feeder course is not individually named; nearby Boyd wording does not establish its exact name partition. Both fragments carry modeled mainstem roles, which do not make every part Clarence. Coastal and feeder-to-main-river transitions remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The direct blue Clarence river-line label is identity evidence; the black Clarence River catchment leader alone is not.",
+        "Western and southwestern upper feeder names and their transitions remain unverified; nearby Boyd wording is not promoted to a reach assignment.",
+        "The original publication is a coarse regional assessment, not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name mapping are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Clarence River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:50760625",
+      "category": "river_group",
+      "system_id": "50760625",
+      "baseline_logical_fid": 2115,
+      "geometry_fids": [
+        7076
+      ],
+      "candidate_name": "Hunter River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path starts on a far-western feeder, turns north and east through the western Goulburn corridor, and continues southeast along the lower Hunter through the Singleton, Greta and Maitland area toward Newcastle. The mapped Hunter River at Greta station and direct Hunter line label support Hunter River as a representative system identity. Figure 4.46 separately labels Goulburn and Munmurra along the western corridor, so this modeled mainstem is not uniformly Hunter. These are regional channel associations, not exact source-reach assignments. Feeder junctions, storage-related boundaries and the coastal ending remain unassigned at reach level; the northeastern Glenbawn/Pages branch is not the selected upper path.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The mapped Hunter River at Greta station and Hunter river-line label anchor the name; the Hunter catchment title alone does not.",
+        "Separately mapped Goulburn and Munmurra show a naming distinction within the western corridor; exact part boundaries and a uniform Hunter name are not established.",
+        "Glenbawn, Lake St Clair and Lostock are basin storage context. Their presence does not place all these storages on the selected path.",
+        "The original publication is a coarse regional assessment, not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name mapping are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Hunter River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [
+          {
+            "mapped_name": "Goulburn",
+            "scope": "Western mapped river corridor upstream of lower Hunter; no exact rendered-part partition."
+          },
+          {
+            "mapped_name": "Munmurra",
+            "scope": "Far-western feeder corridor in Figure 4.46; no exact rendered-part partition."
+          }
+        ],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:50781500",
+      "category": "river_group",
+      "system_id": "50781500",
+      "baseline_logical_fid": 2134,
+      "geometry_fids": [
+        7097
+      ],
+      "candidate_name": "Shoalhaven River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path runs north from the southern inland headwater, bends northeast and north through the interior, then turns east across the Tallowa vicinity toward the coast. Direct blue Shoalhaven river-line wording, the mapped storage location and explicit text placing Tallowa on the Shoalhaven River support Shoalhaven River as a representative system identity. The southern headwater or feeder nomenclature, exact river/storage transitions and coastal ending remain individually unassigned. The modeled mainstem role does not establish a uniform name for every part or name the storage water separately.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The direct blue Shoalhaven river-line label and Tallowa-on-river text support the association; catchment and storage names alone do not.",
+        "Tallowa is storage context, not an exact river-reservoir boundary or permission to apply Shoalhaven to every southern feeder or coastal segment.",
+        "The original publication is a coarse regional assessment, not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name mapping are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Shoalhaven River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "bfbd7920e7a9e486fb0658af589db0d09dbf7c58a7be4a2650a1c09302597a2e",
+  "publication_contents": "Own factual findings, bounded identity/count/bounds/name-state summaries and included-file validation. Full river paths, original reports, maps and private review materials are not distributed.",
+  "previous_reconstruction_commit": "2f97b453f50c96e3c41dcdd5907c2ce7fae0907e"
+}

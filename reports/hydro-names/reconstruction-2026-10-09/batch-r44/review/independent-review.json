@@ -1,0 +1,386 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "batch": "r44",
+  "reviewed_at_utc": "2026-10-10T03:00:59.210867+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159112265",
+    "lakes_base:1159112279",
+    "lakes_base:1159112305"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Independent original map pixels, complete source and baseline-rendered ring plots, fresh independently registered outlines, wider context, endpoint detail, imprint and credits. All 163 ordered positions across three single-ring Polygons were compared with freshly reopened complete source geometry, decoded geometry and exact original inventory/core/detail joins; minimum stage is 2 for all three. The successful retained original-body receipt was rechecked against the original bytes. The original primary viewport, projected coordinate system and full-precision GPTS/LPTS controls were reopened. A separately fitted full six-parameter EPSG:26914 affine retains both cross terms and explicitly handles original MediaBox/CropBox offsets. All 163 placements agree with fresh GDAL registration within 0.000001 PDF point; maximum original-control residual is below 0.01 PDF point, measuring affine consistency rather than shoreline accuracy. Six detail/context, three endpoint and one imprint/credit pixel arrays match fresh PDF renders. First original-pixel observations preceded source-research comparison. Original white water and colored geological land were distinguished before final conclusions. Three full-feature source-scope reviews are complete, supporting three generalized identities. The production decoder was not independently replayed by this reviewer.",
+  "prior_distinct_targets": 126,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 129,
+  "duplicate_targets": 0,
+  "counted_unit": "Distinct logical inventory lake target IDs; repeated map labels do not increase the target count.",
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "current_batch_follow_up_required_targets": 0,
+  "current_batch_scope_hold_targets": 0,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803",
+    "lakes_base:1159108469",
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087",
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201",
+    "hydro-system:50738894",
+    "hydro-system:50691388",
+    "hydro-system:50443984",
+    "hydro-system:50442438",
+    "hydro-system:50442579",
+    "hydro-system:50487926",
+    "hydro-system:50503092",
+    "lakes_base:1159111345",
+    "lakes_base:1159107899",
+    "lakes_base:1159108505",
+    "lakes_base:1159106799",
+    "lakes_base:1159107747",
+    "lakes_base:1159109455",
+    "lakes_base:1159109439",
+    "lakes_base:1159109395",
+    "lakes_base:1159112221",
+    "lakes_base:1159112237",
+    "lakes_base:1159109819",
+    "lakes_base:1159109421",
+    "lakes_base:1159110041",
+    "lakes_base:1159108693",
+    "lakes_base:1159108673",
+    "lakes_base:1159123751"
+  ],
+  "new_pending_access_ids": [],
+  "new_scope_hold_ids": [],
+  "pending_access_reassessment_performed": false,
+  "prior_target_source_or_geometry_reaudit_performed": false,
+  "automatic_application": false,
+  "product_application": false,
+  "scalar_product_name_approvals": 0,
+  "geometry_modified": false,
+  "topology_repaired": false,
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "private_original_packed_decoder_independently_replayed": false,
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159112265",
+      "source_id": "1159112265",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 51,
+      "category": "lake",
+      "baseline_logical_fid": 4234,
+      "geometry_fids": [
+        15609
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Gauer Lake",
+      "candidate_names": [
+        "Gauer Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "supported_generalized_identity_with_material_extent_limits",
+      "candidate_name_role": "generalized_research_identity_not_product_scalar",
+      "directly_supported_name_forms": [
+        "Gauer Lake"
+      ],
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "Supported generalized research identity is complete; exact shores, formal registry status, Korean form and product naming are not approved.",
+      "supported_name_scope": "The complete generalized ring follows the north arm, central basin, southwestern limb and southeastern lobe of Gauer Lake. The northeastern tip reaches the narrow connection but stops before the separately labelled Thorsteinson basin; the southwestern tip stops near the Gauer River approach. Coarse margins cross geological land, omit bays and narrow connecting waters, and do not preserve detailed island exclusions. Exact Gauer/Thorsteinson and river/lake transitions and the entire detailed named-lake extent remain unverified. This supports a bounded generalized research identity only; no product scalar name is approved.",
+      "source_observation_id": "lakes_base:1159112265",
+      "limits": [
+        "The complete generalized ring follows the north arm, central basin, southwestern limb and southeastern lobe of Gauer Lake. The northeastern tip reaches the narrow connection but stops before the separately labelled Thorsteinson basin; the southwestern tip stops near the Gauer River approach. Coarse margins cross geological land, omit bays and narrow connecting waters, and do not preserve detailed island exclusions. Exact Gauer/Thorsteinson and river/lake transitions and the entire detailed named-lake extent remain unverified.",
+        "Official thematic cartography supports only the stated bounded association. Its printed hydrographic base credit does not establish an independently checked hydrographic dataset or formal naming-registry status.",
+        "No Korean form, additional alias, exact name partition or geometry repair is certified; surrounding labels remain contextual."
+      ],
+      "geographic_disambiguation": "Northern Manitoba, Canada, at the Gauer Lake basin southwest of Thorsteinson Lake and east of Chapman Lake",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Gauer Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Gauer Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete generalized ring follows the north arm, central basin, southwestern limb and southeastern lobe of Gauer Lake. The northeastern tip reaches the narrow connection but stops before the separately labelled Thorsteinson basin; the southwestern tip stops near the Gauer River approach. Coarse margins cross geological land, omit bays and narrow connecting waters, and do not preserve detailed island exclusions. Exact Gauer/Thorsteinson and river/lake transitions and the entire detailed named-lake extent remain unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high",
+        "whole_selected_single_name": "supported_generalized_identity",
+        "exact_named_extent": "unverified",
+        "basis": "Fresh original pixels and all 51 registered positions associate the full generalized north/central/south basin with the printed Gauer Lake label. White water bounded in blue was distinguished from blue, cyan, peach, green and grey geological land. The northeastern endpoint lies near a narrow linkage before the separately labelled Thorsteinson basin; the southwest endpoint meets the Gauer River approach. Chapman, Torrance and Wernham lakes remain outside contexts. No distinct second named lake is established within the selected footprint, while substantial land overshoot and omitted shoreline detail prevent exact extent certification."
+      },
+      "source_material_pending": false,
+      "complete_geometry_inspection_performed": true,
+      "complete_source_map_coverage_available": true,
+      "minimum_stage": 2,
+      "accepted_name": null
+    },
+    {
+      "aw_id": "lakes_base:1159112279",
+      "source_id": "1159112279",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 68,
+      "category": "lake",
+      "baseline_logical_fid": 4235,
+      "geometry_fids": [
+        15610
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Lake St. Martin",
+      "candidate_names": [
+        "Lake St. Martin"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "supported_generalized_identity_with_material_extent_limits",
+      "candidate_name_role": "generalized_research_identity_not_product_scalar",
+      "directly_supported_name_forms": [
+        "Lake St. Martin"
+      ],
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "Supported generalized research identity is complete; exact shores, formal registry status, Korean form and product naming are not approved.",
+      "supported_name_scope": "The complete generalized ring follows the main southern Lake St. Martin basin and its northeastern lobe. Its northern tip reaches the mouth area beside the Dauphin River corridor but does not include that long northward corridor. The ring cuts across geological land on the north and east, omits the southernmost lake tip and western bays, and simplifies islands and the narrow inter-lobe neck. Exact lake/river transitions and the entire detailed named-lake extent remain unverified. This supports a bounded generalized research identity only; no product scalar name is approved.",
+      "source_observation_id": "lakes_base:1159112279",
+      "limits": [
+        "The complete generalized ring follows the main southern Lake St. Martin basin and its northeastern lobe. Its northern tip reaches the mouth area beside the Dauphin River corridor but does not include that long northward corridor. The ring cuts across geological land on the north and east, omits the southernmost lake tip and western bays, and simplifies islands and the narrow inter-lobe neck. Exact lake/river transitions and the entire detailed named-lake extent remain unverified.",
+        "Official thematic cartography supports only the stated bounded association. Its printed hydrographic base credit does not establish an independently checked hydrographic dataset or formal naming-registry status.",
+        "No Korean form, additional alias, exact name partition or geometry repair is certified; surrounding labels remain contextual."
+      ],
+      "geographic_disambiguation": "Southern Manitoba, Canada, at Lake St. Martin south of the Dauphin River corridor",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Lake St. Martin"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Lake St. Martin",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete generalized ring follows the main southern Lake St. Martin basin and its northeastern lobe. Its northern tip reaches the mouth area beside the Dauphin River corridor but does not include that long northward corridor. The ring cuts across geological land on the north and east, omits the southernmost lake tip and western bays, and simplifies islands and the narrow inter-lobe neck. Exact lake/river transitions and the entire detailed named-lake extent remain unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high",
+        "whole_selected_single_name": "supported_generalized_identity",
+        "exact_named_extent": "unverified",
+        "basis": "Fresh original pixels and all 68 registered positions associate the southern main basin, connecting neck and northeastern lobe with the blue Lake St. Martin water label. The black Lake St. Martin Structure label denotes geological context and was not used as another water name. White lake water is distinct from the large cyan, pink and grey geological units. The northern endpoint stops at the mouth area before the long Dauphin River corridor, with coarse land overshoot near the river approach. Western bays and the southern tip extend beyond the selected ring. One generalized lake identity is supported, not an exact named-water partition."
+      },
+      "source_material_pending": false,
+      "complete_geometry_inspection_performed": true,
+      "complete_source_map_coverage_available": true,
+      "minimum_stage": 2,
+      "accepted_name": null
+    },
+    {
+      "aw_id": "lakes_base:1159112305",
+      "source_id": "1159112305",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 44,
+      "category": "lake",
+      "baseline_logical_fid": 4237,
+      "geometry_fids": [
+        15612
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Waterhen Lake",
+      "candidate_names": [
+        "Waterhen Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "supported_generalized_identity_with_material_extent_limits",
+      "candidate_name_role": "generalized_research_identity_not_product_scalar",
+      "directly_supported_name_forms": [
+        "Waterhen Lake"
+      ],
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "Supported generalized research identity is complete; exact shores, formal registry status, Korean form and product naming are not approved.",
+      "supported_name_scope": "The complete generalized ring follows the north-south Waterhen Lake basin and its two short southern lobes. The southern tips end above the long connecting reach; the separately labelled Lake Winnipegosis water, Inland Lake and Chitek Lake are surrounding context. The coarse western edge omits bays and shoreline water, eastern margins overshoot onto geological land, and narrow southern margins cut both water and land. Exact connecting-water name transitions and the entire detailed named-lake extent remain unverified. This supports a bounded generalized research identity only; no product scalar name is approved.",
+      "source_observation_id": "lakes_base:1159112305",
+      "limits": [
+        "The complete generalized ring follows the north-south Waterhen Lake basin and its two short southern lobes. The southern tips end above the long connecting reach; the separately labelled Lake Winnipegosis water, Inland Lake and Chitek Lake are surrounding context. The coarse western edge omits bays and shoreline water, eastern margins overshoot onto geological land, and narrow southern margins cut both water and land. Exact connecting-water name transitions and the entire detailed named-lake extent remain unverified.",
+        "Official thematic cartography supports only the stated bounded association. Its printed hydrographic base credit does not establish an independently checked hydrographic dataset or formal naming-registry status.",
+        "No Korean form, additional alias, exact name partition or geometry repair is certified; surrounding labels remain contextual."
+      ],
+      "geographic_disambiguation": "Southern Manitoba, Canada, at Waterhen Lake east of Lake Winnipegosis and southeast of Inland Lake",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Waterhen Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Waterhen Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete generalized ring follows the north-south Waterhen Lake basin and its two short southern lobes. The southern tips end above the long connecting reach; the separately labelled Lake Winnipegosis water, Inland Lake and Chitek Lake are surrounding context. The coarse western edge omits bays and shoreline water, eastern margins overshoot onto geological land, and narrow southern margins cut both water and land. Exact connecting-water name transitions and the entire detailed named-lake extent remain unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high",
+        "whole_selected_single_name": "supported_generalized_identity",
+        "exact_named_extent": "unverified",
+        "basis": "Fresh original pixels and all 44 registered positions associate the elongated main basin, north tip and short forked southern lobes with the Waterhen Lake label. White blue-shored water is distinct from tan and grey geological land. The southern endpoints do not extend along the long connecting line toward outside Lake Winnipegosis water. Inland Lake and Chitek Lake are separate northern/western contexts. The eastern side overshoots land, the western line omits water, and southern branches cut fine shorelines. One generalized identity is supported, without assigning adjacent lake names or certifying exact connecting-water boundaries."
+      },
+      "source_material_pending": false,
+      "complete_geometry_inspection_performed": true,
+      "complete_source_map_coverage_available": true,
+      "minimum_stage": 2,
+      "accepted_name": null
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-10T03:00:59.210867+00:00",
+    "available_source_inspection_completed": true,
+    "full_feature_correspondence_review_completed": true,
+    "original_source_material_included": false,
+    "full_selected_geometry_included": false,
+    "historical_results_recomputed_by_public_validator": false,
+    "full_feature_correspondence_review_completed_count": 3,
+    "source_material_pending_count": 0
+  },
+  "included_evidence_limit": "Public factual observations and bibliography are consolidated in source-observations.json. Checks validate included records, bounded geometry summaries, arithmetic and included-file integrity. Omitted original PDFs, map pixels, complete polygons, registration and visual judgments are not replayed.",
+  "independent_source_comparison_completed": true,
+  "current_batch_source_material_pending_targets": 0,
+  "new_pending_material_ids": [],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285"
+  ]
+}

@@ -1,0 +1,792 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r121",
+  "sources": [
+    {
+      "source_key": "r121-geus-greenland-national-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "year": 1995,
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "acquired_scope": "Complete official single-sheet PDF acquired normally. Full-sheet overview, northern regional and overlapping headward-connector views, geographic graticule, Inland Ice legend and imprint were actually rendered and visually read.",
+      "supports": "The entire southern headward and northward interior-ice corridor, including the area south of the 81°N edge of Sheet 8; overlap into the Vildtland/Academy Gletscher/Independence Fjord setting.",
+      "limits": "National-scale historical geological cartography is used for broad Inland Ice geographic setting, not a mapped river channel, a subglacial route, present hydrology or a contemporary glacier front. Surface contours, ice-thickness isopachs and bedrock contours are distinct symbols and are not river traces.",
+      "reuse_limit": "Custom Dataset Terms permit internal use/processing while restricting redistribution and production or transfer of new maps. Original and all local crops or derivatives remain private. Own factual observations and ordinary bibliography only."
+    },
+    {
+      "source_key": "r121-geus-peary-land-sheet8-1986",
+      "title": "Geological map of Greenland, 1:500 000, Sheet 8, Peary Land",
+      "authors": "Hans Jørgen Bengaard and Niels Henriksen",
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "year": 1986,
+      "official_url": "https://doi.org/10.22008/FK2/Q7HIDY",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/Q7HIDY",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16494",
+      "acquired_scope": "Complete official single-sheet PDF, full-sheet overview and overlapping southwestern, Vildtland–Academy and terminal views, bottom graticule, ice/Quaternary-cover legend and imprint were actually rendered and visually read.",
+      "supports": "Selected northward ice approach from the sheet's southern edge, the turn along southern Vildtland, the eastward ice/land-margin connector with scattered exposed areas, and the Academy Gletscher–inner Independence Fjord terminal corridor between Vildtland and Academy Land.",
+      "limits": "This detailed sheet begins at 81°N; the farther-south opening is covered separately by the original 1995 national map. The original imprint records geological compilation in 1984; official bibliographic publication year is 1986. Historical settings do not establish a continuous natural river, current shoreline or current glacier front.",
+      "reuse_limit": "Custom Dataset Terms restrict redistribution and production or transfer of new maps. Original, crops and any derived cartographic comparison material remain private."
+    },
+    {
+      "source_key": "r111-geus-bulletin18-2009-retained",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000. 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf",
+      "pages": "Printed page 4 regional map, printed pages 64–65 Glaciology prose, and bibliography entry for Bengaard and Henriksen 1986.",
+      "acquired_scope": "Retained r111 official original reused locally, without another external acquisition. Page 4 original map pixels and bounded Glaciology prose were read. The separately inspected page 14 figure was not used as selected-route correspondence.",
+      "supports": "Supporting regional Inland Ice context, distinction between continental Inland Ice and local glaciers, and correct bibliographic identification of Sheet 8.",
+      "limits": "Supporting context only; the 1995 and 1986 original maps supply corridor correspondence. Historical numerical ice and climate statements are not asserted as current, and the prose does not establish a selected hydronym.",
+      "reuse_limit": "Copyright GEUS 2009. Original and local working material remain private; own factual paraphrase only."
+    },
+    {
+      "source_key": "r117-geus-lambert-land-sheet9-2000-extent-check",
+      "title": "Geological map of Greenland, 1:500 000, Sheet 9, Lambert Land",
+      "author": "Hans F. Jepsen",
+      "publisher": "Geological Survey of Denmark and Greenland",
+      "year": 2000,
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16484",
+      "acquired_scope": "Retained r117 original full-sheet overview and coverage context inspected locally without external reacquisition.",
+      "supports": "Negative coverage finding only: the selected corridor lies west/north of the retained Lambert Land sheet's coverage. This sheet is not positive evidence for the current FID.",
+      "limits": "The useful map from a previous Greenland selection does not establish current-target coverage merely because it is Greenland cartography.",
+      "reuse_limit": "Retained Custom Dataset Terms restrict redistribution and new maps; original and crops remain private."
+    },
+    {
+      "source_key": "MX1",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "title": "Condensado Estatal Puebla",
+      "edition_and_scale": "First edition 2020; copyright 2021; scale 1:420,000; planimetry derived from INEGI 1:250,000 series III; roads updated from 2017 network; 2018 statistical framework.",
+      "original_cartography_observed": true,
+      "visual_pages": [
+        1
+      ],
+      "supporting_prose_pages": [],
+      "observation_scope": "Continuous selected corridor from the Tlaxcala headwater/storage setting through Ixtacamaxtitlán, Santiago Zautla, the western Zacapoaxtla corridor, Laguna la Soledad, the lower Apulco–Necaxa junction, Espinal and the Tecolutla coastal outlet. Original page and multiple local enlarged views inspected.",
+      "limits": "Historical generalized cartography; no exact vertex, present water level, bank, canal-operation, name-transition boundary or formal registry claim. Original files and local views remain private.",
+      "source_use_notice": "INEGI authorship retained. The state sheet explicitly requires prior written authorization for total or partial reproduction; no source pixels or derivatives are shared.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/pue/889463837039.pdf"
+    },
+    {
+      "source_key": "MX2",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "title": "Compendio de información geográfica municipal 2010. Tlaxco, Tlaxcala.",
+      "edition_and_scale": "2010; Relief map based on 1:250,000 series II/III topography, 2007 INEGI–CONAGUA hydrography and 2010 statistical framework.",
+      "original_cartography_observed": true,
+      "visual_pages": [
+        7
+      ],
+      "supporting_prose_pages": [
+        3
+      ],
+      "observation_scope": "Southeastern Tlaxco terrain, Lázaro Cárdenas waterbody and the short headward setting adjoining Lázaro Cárdenas/Emiliano Zapata. Hydrography prose is supporting context only.",
+      "limits": "Historical generalized cartography; no exact vertex, present water level, bank, canal-operation, name-transition boundary or formal registry claim. Original files and local views remain private.",
+      "source_use_notice": "INEGI authorship and printed source credits retained; no redistribution permission inferred from public hosting.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/29/29034.pdf"
+    },
+    {
+      "source_key": "MX3",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "title": "Compendio de información geográfica municipal 2010. Lázaro Cárdenas, Tlaxcala.",
+      "edition_and_scale": "2010; Relief map based on 1:250,000 series III topography, 2007 INEGI–CONAGUA hydrography and 2010 statistical framework.",
+      "original_cartography_observed": true,
+      "visual_pages": [
+        6
+      ],
+      "supporting_prose_pages": [
+        3
+      ],
+      "observation_scope": "El Gachupin and Tenexac local channels around Lázaro Cárdenas, and links toward the adjoining municipalities. Their separate labels are not promoted into a whole-route name.",
+      "limits": "Historical generalized cartography; no exact vertex, present water level, bank, canal-operation, name-transition boundary or formal registry claim. Original files and local views remain private.",
+      "source_use_notice": "INEGI authorship and printed source credits retained; no redistribution permission inferred from public hosting.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/29/29047.pdf"
+    },
+    {
+      "source_key": "MX4",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "title": "Compendio de información geográfica municipal 2010. Emiliano Zapata, Tlaxcala.",
+      "edition_and_scale": "2010; Relief map based on 1:250,000 series III topography, 2007 INEGI–CONAGUA hydrography and 2010 statistical framework.",
+      "original_cartography_observed": true,
+      "visual_pages": [
+        6
+      ],
+      "supporting_prose_pages": [
+        3
+      ],
+      "observation_scope": "Northward Apulco corridor west of the Emiliano Zapata urban area and continuation toward Puebla; distinct La Mancera approach. Page 3 table has awkward perennial/intermittent wording, so no present flow regime inferred.",
+      "limits": "Historical generalized cartography; no exact vertex, present water level, bank, canal-operation, name-transition boundary or formal registry claim. Original files and local views remain private.",
+      "source_use_notice": "INEGI authorship and printed source credits retained; no redistribution permission inferred from public hosting.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/29/29046.pdf"
+    },
+    {
+      "source_key": "MX5",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "title": "Compendio de información geográfica municipal 2010. Terrenate, Tlaxcala.",
+      "edition_and_scale": "2010; Relief map based on 1:250,000 series II/III topography, 2007 INEGI–CONAGUA hydrography and 2010 statistical framework.",
+      "original_cartography_observed": true,
+      "visual_pages": [
+        6
+      ],
+      "supporting_prose_pages": [
+        3
+      ],
+      "observation_scope": "Northern Terrenate/Tenexac side-branch and storage setting adjoining Lázaro Cárdenas and Emiliano Zapata. Distinguishes the southern Tenexac waterbody/feeder from the selected northern Lázaro Cárdenas approach.",
+      "limits": "Historical generalized cartography; no exact vertex, present water level, bank, canal-operation, name-transition boundary or formal registry claim. Original files and local views remain private.",
+      "source_use_notice": "INEGI authorship and printed source credits retained; no redistribution permission inferred from public hosting.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/29/29030.pdf"
+    },
+    {
+      "source_key": "MX6",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "title": "Compendio de información geográfica municipal 2010. Ixtacamaxtitlán, Puebla.",
+      "edition_and_scale": "2010; Relief map based on 1:250,000 series III topography, 2007 INEGI–CONAGUA hydrography and 2010 statistical framework.",
+      "original_cartography_observed": true,
+      "visual_pages": [
+        6
+      ],
+      "supporting_prose_pages": [
+        3
+      ],
+      "observation_scope": "Apulco across the Ixtacamaxtitlán canyon, Los Lobos western junction and eastward continuation toward Zautla. No Los Lobos name assigned to the southern selected approach.",
+      "limits": "Historical generalized cartography; no exact vertex, present water level, bank, canal-operation, name-transition boundary or formal registry claim. Original files and local views remain private.",
+      "source_use_notice": "INEGI authorship and printed source credits retained; no redistribution permission inferred from public hosting.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/21/21083.pdf"
+    },
+    {
+      "source_key": "MX7",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "title": "Compendio de información geográfica municipal 2010. Espinal, Veracruz de Ignacio de la Llave.",
+      "edition_and_scale": "2010; Relief map based on 1:250,000 series II/III topography, 2007 INEGI–CONAGUA hydrography and 2010 statistical framework.",
+      "original_cartography_observed": true,
+      "visual_pages": [
+        6
+      ],
+      "supporting_prose_pages": [
+        3
+      ],
+      "observation_scope": "Apulco southern approach, Zempoala/Tecacan and other separate tributary settings, the selected short western Necaxa approach, their material junction and downstream Tecolutla.",
+      "limits": "Historical generalized cartography; no exact vertex, present water level, bank, canal-operation, name-transition boundary or formal registry claim. Original files and local views remain private.",
+      "source_use_notice": "INEGI authorship and printed source credits retained; no redistribution permission inferred from public hosting.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30066.pdf"
+    },
+    {
+      "source_key": "MX8",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "title": "Compendio de información geográfica municipal 2010. Tecolutla, Veracruz de Ignacio de la Llave.",
+      "edition_and_scale": "2010; Relief map based on 1:250,000 series II/III topography, 2007 INEGI–CONAGUA hydrography and 2010 statistical framework.",
+      "original_cartography_observed": true,
+      "visual_pages": [
+        6
+      ],
+      "supporting_prose_pages": [
+        3
+      ],
+      "observation_scope": "Lower Tecolutla tidal/coastal setting and Gulf of Mexico outlet; Estero Lagartos and Estero La Victoria shown separately.",
+      "limits": "Historical generalized cartography; no exact vertex, present water level, bank, canal-operation, name-transition boundary or formal registry claim. Original files and local views remain private.",
+      "source_use_notice": "INEGI authorship and printed source credits retained; no redistribution permission inferred from public hosting.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30158.pdf"
+    },
+    {
+      "source_key": "r121-usgs-topo-firth-headwaters",
+      "title": "The National Map, USGSTopo MapServer: Davidson Mountains headwaters and Alaska–Yukon Firth River border corridor",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "acquired_scope": "One complete original PNG export, HTTP200, inspected with private source-only crops and an orientation overlay.",
+      "supports": "Complete selected Alaska opening, the separate southern labeled Firth joining sequence, broad southern bend, braided border reach and nearby independent tributaries.",
+      "use_notice": "Online composite cartography; no standalone source-use or sheet-marginalia panel was supplied in this bounded view. Original maps, crops, working overlays and dynamic acquisition details remain private. Only own factual observations, bounded metadata and ordinary bibliography are public-ready. Official hosting is not treated as blanket redistribution permission.",
+      "limits": "Independent USGSTopo cartography, not recovery of any stopped USGS report or Canadian basemap. Rendering date does not establish field-survey or shoreline date. Canadian lower coverage is supplied by the independent original NLUIS sheets."
+    },
+    {
+      "source_key": "r121-nluis-davidson-117b",
+      "title": "Northern Land Use Information Series, Davidson Mountains, Canada–United States of America, sheet 117B, 1:250,000",
+      "publisher": "Government of Canada, Department of the Environment, for Indian and Northern Affairs; original hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "publication_year": 1976,
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_117b.jpg",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquired_scope": "Complete official original JPEG returned HTTP200. Original pixels, the selected corridor, relevant adjoining context and readable source margins inspected locally.",
+      "supports": "Upper selected Alaska valley, Firth and Mancha border sequence, Canadian British Mountains course and northern sheet seam.",
+      "edition_and_production": "1976 edition. Produced by the Lands Directorate, Environmental Management Service, Department of the Environment. Base map derived from Surveys and Mapping Branch material with minor Department of the Environment modifications.",
+      "use_notice": "Series introduction identifies interim information derived partly from incomplete/preliminary/reconnaissance work. Wildlife and land-use boundaries are approximate; adjoining information may differ. These are historical, generalized maps. Original maps, crops, working overlays and dynamic acquisition details remain private. Only own factual observations, bounded metadata and ordinary bibliography are public-ready. Official hosting is not treated as blanket redistribution permission.",
+      "limits": "Primary original cartography and actually read marginal prose only. No modern formal registry status is established. The maps are independent historical publications, not equivalent retrieval routes for the stopped CBMT service, Toporama or CGN naming records."
+    },
+    {
+      "source_key": "r121-nluis-demarcation-117c",
+      "title": "Northern Land Use Information Series, Demarcation Point, Canada–United States of America, sheet 117C, 1:250,000",
+      "publisher": "Government of Canada, Department of the Environment, for Indian and Northern Affairs; original hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "publication_year": 1972,
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_117c.jpg",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquired_scope": "Complete official original JPEG returned HTTP200. Original pixels, the selected corridor, relevant adjoining context and readable source margins inspected locally.",
+      "supports": "Canadian middle Firth, Joe Creek and Sheep Creek joining settings, and eastward continuation to sheet117D.",
+      "edition_and_production": "Map produced in1972 by the Land Use Planning Branch of the Lands Directorate, Lands, Forests and Wildlife Service, Department of the Environment; research credited to S.G.de Belle, P.H.Beaubier and S.D.Thomson. The base map carries a provisional-map warning that some names are not yet official.",
+      "use_notice": "Series introduction identifies interim information derived partly from incomplete/preliminary/reconnaissance work. Wildlife and land-use boundaries are approximate; adjoining information may differ. These are historical, generalized maps. Original maps, crops, working overlays and dynamic acquisition details remain private. Only own factual observations, bounded metadata and ordinary bibliography are public-ready. Official hosting is not treated as blanket redistribution permission.",
+      "limits": "Primary original cartography and actually read marginal prose only. No modern formal registry status is established. The maps are independent historical publications, not equivalent retrieval routes for the stopped CBMT service, Toporama or CGN naming records."
+    },
+    {
+      "source_key": "r121-nluis-herschel-117d",
+      "title": "Northern Land Use Information Series, Herschel Island, Yukon Territory, sheet 117D, 1:250,000",
+      "publisher": "Government of Canada, Department of the Environment, for Indian and Northern Affairs; original hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "publication_year": 1976,
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_117d.jpg",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquired_scope": "Complete official original JPEG returned HTTP200. Original pixels, the selected corridor, relevant adjoining context and readable source margins inspected locally.",
+      "supports": "Complete lower Firth gorge, coastal-plain and actual delta/Beaufort receiving-water context. Marginal R4 prose corroborates the gorge-to-plain sequence.",
+      "edition_and_production": "1976 edition. Produced by the Lands Directorate, Environmental Management Service, Department of the Environment. Base-map nomenclature notice says the names had not been submitted to the Canadian Board on Geographical Names and might be revised.",
+      "use_notice": "Series introduction identifies interim information derived partly from incomplete/preliminary/reconnaissance work. Wildlife and land-use boundaries are approximate; adjoining information may differ. These are historical, generalized maps. Original maps, crops, working overlays and dynamic acquisition details remain private. Only own factual observations, bounded metadata and ordinary bibliography are public-ready. Official hosting is not treated as blanket redistribution permission.",
+      "limits": "Primary original cartography and actually read marginal prose only. No modern formal registry status is established. The maps are independent historical publications, not equivalent retrieval routes for the stopped CBMT service, Toporama or CGN naming records."
+    },
+    {
+      "source_key": "r121-nluis-retained-index",
+      "title": "Northern Land Use Information Series, 1:250,000 land use maps, official index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquired_scope": "Previously lawfully retained official HTML index read locally; no new request.",
+      "supports": "Exact titles, sheet numbers and original JPEG links for117B,117C and117D.",
+      "limits": "Catalogue metadata only; not cartographic correspondence."
+    },
+    {
+      "author": "T. C. Anderson",
+      "title": "The Rivers of Labrador",
+      "series": "Canadian Special Publication of Fisheries and Aquatic Sciences 81",
+      "publisher": "Department of Fisheries and Oceans, Scientific Information and Publications Branch, Ottawa",
+      "year": 1985,
+      "catalogue_number": "Fs 41-31/81E",
+      "isbn": "0-660-11971-4",
+      "inspected_scope": "Printed pages300–302, especially Notakwanon River account, Table376 and Figure107 on printed page301 (PDF page310). Separately read printed page303 for the adjacent Kogaluk/Mistastin distinction. Title/copyright pages inspected.",
+      "evidence_type": "Original official PDF newly acquired HTTP200 and locally rendered; Figure107 directly visually read. Not merely search snippets, parsed map labels or a prior-batch summary.",
+      "supports": "Notakwanon system identity; full branched network context; river-to-Merrifield Bay terminal; unnamed upper steady/lake structure.",
+      "limits": "Historical fisheries synthesis and generalized network figure. Historical distances, habitat numbers and fishery statements are not adopted as current facts. No uniform formal name scope or exact endpoint is established.",
+      "use_notice": "Copyright Minister of Supply and Services Canada1985 appears in the original. Source PDF and working renders remain private; only factual observations and citation are supplied.",
+      "source_key": "anderson-1985-notakwanon",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    },
+    {
+      "author": "J. D. Hill, compiler",
+      "title": "Notakwanon River Area, Labrador",
+      "map_number": "81-137",
+      "publisher": "Government of Newfoundland and Labrador, Department of Mines and Energy, Mineral Development Division",
+      "year": 1982,
+      "year_basis": "Official catalogue lists Hill1982b; map accompanies Report82-6.",
+      "scale": "1:100,000",
+      "sheet_scope": "NTS13M/9,10,15,16",
+      "catalogue_url": "https://www.gov.nl.ca/em/mines/maps/13m-ne/",
+      "evidence_type": "Independent original geological cartography, directly visually inspected from the completed HTTP200 PDF; map title, labels, graticule and margins read.",
+      "supports": "Explicitly named Notakwanon middle valley, northward turn, eastward lower-valley continuation and separately mapped tributary/Sango geography.",
+      "limits": "Covers the middle corridor only. Geological overlays and historical topographic background are used at generalized corridor scale, not as present hydrographic survey or formal hydronym registry. This is a separately issued1982 geological publication, not a copy or format recovery of the denied CanMatrix013M archive.",
+      "use_notice": "Margin states that the map accompanies Report82-6 and is subject to revision and correction. PDF permits viewing/printing but marks copying/changing/annotation as disallowed. No original or derivative is redistributed.",
+      "source_key": "hill-1982-81-137",
+      "official_url": "https://www.gov.nl.ca/em/files/81-137.pdf"
+    },
+    {
+      "author": "R. J. Wardle",
+      "title": "Geology of the Naskaupi River Region, Central Labrador (13NW)",
+      "map_number": "93-16",
+      "publisher": "Newfoundland Department of Mines and Energy, Geological Survey Branch",
+      "year": 1993,
+      "scale": "1:500,000",
+      "catalogue_url": "https://www.gov.nl.ca/em/mines/maps/13m-ne/",
+      "evidence_type": "Independent original regional geological map newly acquired HTTP200; whole sheet, northern western and eastern sectors, headwater detail and title/compilation margins visually inspected.",
+      "supports": "Western feeder/lake-country setting and connected eastern lake chain, overlap with the named middle valley, lower eastern valley and surrounding Merrifield/Sango/Labrador Sea receiving geography.",
+      "limits": "Regional historical map; the top neatline does not independently show the entire small terminal river continuation. Anderson supplies that connection. Minor feeder names, exact lake centerlines and current shoreline positions are not established. Compilation from earlier geology does not make this independent regional map an alternate acquisition of the denied013M CanMatrix sheet.",
+      "use_notice": "Margin credits Wardle’s1991 compilation and gives the1993 recommended citation. No broader reproduction permission is inferred from official hosting. Source original, crops and working views remain private.",
+      "source_key": "wardle-1993-93-16",
+      "official_url": "https://www.gov.nl.ca/em/files/93-016_Map.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90002144",
+      "source_keys": [
+        "r121-geus-greenland-national-1995",
+        "r121-geus-peary-land-sheet8-1986"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8825
+          ],
+          "component_scope": "Headward opening, southern bend and northeastward continuation",
+          "finding": "The opening and southern/eastward bend lie in the mapped Inland Ice south and southwest of Vildtland. The following northeastward approach remains in the broad continental-ice setting. The national map covers the whole selected area south of the detailed sheet's 81°N edge.",
+          "sources": [
+            "r121-geus-greenland-national-1995"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "The map's surface contours, ice-thickness bands and bedrock contours are not natural-river traces or proof of subglacial drainage.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8825
+          ],
+          "component_scope": "Long northward approach toward southern Vildtland",
+          "finding": "The northward connector continues through Inland Ice and enters the southern Vildtland margin setting. National and detailed map coverage overlap before the major eastward turn. The detailed sheet distinguishes the broad ice area from exposed terrain and superficial-deposit margins.",
+          "sources": [
+            "r121-geus-greenland-national-1995",
+            "r121-geus-peary-land-sheet8-1986"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "No named river or natural source point is established. No unseen segment is inferred solely from the model's connectivity.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8825
+          ],
+          "component_scope": "Eastward connector along the southern Vildtland margin",
+          "finding": "The selected eastward and southeastward steps occupy the southern Vildtland ice/land-margin corridor, with mapped superficial deposits and scattered exposed areas, before approaching the western side of Academy Gletscher. The original sheet covers the complete connector.",
+          "sources": [
+            "r121-geus-peary-land-sheet8-1986",
+            "r121-geus-greenland-national-1995"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "This describes the corridor setting, not an exact surveyed channel, uniform surface cover at every model vertex or a continuous natural-river name. No selected through-lake passage or separately named tributary is established.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8825
+          ],
+          "component_scope": "Northward lower approach and actual terminal corridor",
+          "finding": "The lower route turns north in the Academy Gletscher setting, between Vildtland to the west and Academy Land to the east, and ends in its inner-Independence-Fjord glacier/front corridor. The original detailed map distinguishes this from Marie Sophie Gletscher farther north and the Hagen Bræ/Hagen Fjord corridor farther east.",
+          "sources": [
+            "r121-geus-peary-land-sheet8-1986",
+            "r121-geus-greenland-national-1995"
+          ],
+          "correspondence": "complete at ordinary generalized terminal-corridor scale",
+          "limits": "Retained model terminal class sea is metadata. Historical mapped glacier/fjord geography does not establish a current river mouth, exact contemporary front position, flow direction or glacier name as a river hydronym.",
+          "mapped_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70879598",
+      "source_keys": [
+        "MX1",
+        "MX2",
+        "MX3",
+        "MX4",
+        "MX5",
+        "MX6",
+        "MX7",
+        "MX8"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10422
+          ],
+          "component_scope": "Headward storage and initial Tlaxcala corridor",
+          "finding": "The selected initial southward approach occupies the southeastern Tlaxco/Lázaro Cárdenas storage setting, then curves east and north into the Emiliano Zapata Apulco corridor. The state sheet and adjoining municipal maps show the small Lázaro Cárdenas waterbody, its downstream channel setting, El Gachupin and Tenexac reach labels and the northward exit. The southern Tenexac reservoir is a separately mapped feeder/storage setting and is not claimed as a selected crossing. The first feeder and exact transitions among these local labels remain unnamed in this finding; geographic correspondence does not require one name for them.",
+          "sources": [
+            "MX1",
+            "MX2",
+            "MX3",
+            "MX4",
+            "MX5"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10422
+          ],
+          "component_scope": "Emiliano Zapata–Ixtacamaxtitlán–Zautla upper Apulco",
+          "finding": "The route runs northeast from the western Emiliano Zapata channel into Puebla, meets the independently mapped Los Lobos western approach, turns east through the Ixtacamaxtitlán canyon and bends northeast/north by Las Barrancas, Tlamanca and Santiago Zautla. Direct Apulco labels and the mapped course support this reach identity. The western Los Lobos branch is not substituted for the selected southern approach.",
+          "sources": [
+            "MX1",
+            "MX4",
+            "MX6"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Apulco"
+        },
+        {
+          "fragments": [
+            10422
+          ],
+          "component_scope": "Middle Apulco and Laguna la Soledad",
+          "finding": "North of Santiago Zautla the selected course follows the valley west of Cinco de Mayo and Zacapoaxtla, turns northeast by Huahuaxtla, then east south of Cuetzalan via the San Juan Tahitic–Calatepec–Tepetzintla corridor. Original state cartography shows entry into Laguna la Soledad, its eastward outlet and the subsequent northward river corridor east of Cuetzalan. The waterbody passage is retained separately rather than called Tecolutla throughout. The mapped hydroelectric setting is context only; current operations and diversion proportions were not established.",
+          "sources": [
+            "MX1"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Apulco; Laguna la Soledad is a separate waterbody identity"
+        },
+        {
+          "fragments": [
+            10422
+          ],
+          "component_scope": "Lower Apulco approach and lateral junctions",
+          "finding": "Below the Soledad setting the route turns north and northwest through the lower valley west of Ayotoxco de Guerrero and Tenampulco, passing the San Antonio Rayón/Buena Vista area toward the Espinal junction. Municipal cartography distinguishes the southern Apulco approach from Zempoala and the western Tecacan/El Zapote channels. The selected mainstem reaches the material western-branch junction just before the downstream Tecolutla corridor.",
+          "sources": [
+            "MX1",
+            "MX7"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Apulco"
+        },
+        {
+          "fragments": [
+            10424
+          ],
+          "component_scope": "Short selected western tributary",
+          "finding": "The entire short western selected component follows the lower Necaxa approach through southern Espinal municipality, eastward then southeastward to meet the selected Apulco approach. The original Espinal relief map directly labels Necaxa on that western corridor and Tecolutla downstream. This finding identifies only the retained short component, not an unselected full Necaxa system, and does not rename it Tecolutla.",
+          "sources": [
+            "MX1",
+            "MX7"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Necaxa"
+        },
+        {
+          "fragments": [
+            10423
+          ],
+          "component_scope": "Lower Tecolutla river and coastal terminal",
+          "finding": "From the Apulco–Necaxa junction the selected river turns east and northeast by Espinal, continues north through the Paso de Valencia–San Gotardo–Agua Dulce corridor, then meanders east past the Carrillo Puerto/Lomas de Arena setting to Gutiérrez Zamora and Tecolutla. The original state map and municipal relief map show the actual Gulf of Mexico outlet at Barra de Tecolutla. The neighboring Estero Lagartos and Estero La Victoria are not substituted for this outlet. No exact modeled extension, bank position or contemporary mouth-bar state is asserted.",
+          "sources": [
+            "MX1",
+            "MX7",
+            "MX8"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Tecolutla"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80040811",
+      "source_keys": [
+        "r121-usgs-topo-firth-headwaters",
+        "r121-nluis-davidson-117b",
+        "r121-nluis-demarcation-117c",
+        "r121-nluis-herschel-117d"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2358
+          ],
+          "component_scope": "Davidson Mountains headward branch",
+          "finding": "The selected opening is an unlabeled mountain stream northwest of the later Firth junction. The original USGSTopo view shows its entire initial southeastward valley, joining minor branches, the eastward valley continuation and the further southeastward descent. The selection remains in the same mapped channel corridor through those changes of direction. NLUIS117B corroborates the mountain-valley setting and the lower part of this branch.",
+          "sources": [
+            "r121-usgs-topo-firth-headwaters",
+            "r121-nluis-davidson-117b"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "The opening branch has no securely read hydronym in these originals. It is not assigned the names of nearby Mancha Creek or of the separate southern Firth headwater. No exact natural source or exhaustive minor-branch inventory is established.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2358
+          ],
+          "component_scope": "Southern bend and joining with the labeled Firth",
+          "finding": "At the broad southern bend, the selected northwestern valley joins a separate stream arriving from the south that USGSTopo labels Firth River. The joined braided corridor turns east and northeast, where repeated Firth River labels occur in USGSTopo and NLUIS117B. The separate southern headwater is contextual and is not the selected opening.",
+          "sources": [
+            "r121-usgs-topo-firth-headwaters",
+            "r121-nluis-davidson-117b"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "The junction and valley sequence are read at normal corridor scale; the exact naming-transition vertex and individual active braids are not assigned.",
+          "mapped_component_name": "Firth River"
+        },
+        {
+          "fragments": [
+            2358
+          ],
+          "component_scope": "Alaska–Yukon border and upper Canadian valley",
+          "finding": "The joined river continues northeast through the broad valley to the international boundary. Mancha Creek is shown as a separate western/northwestern branch entering the Firth near the border setting. The selected river crosses into Yukon and continues northeast along the labeled Firth corridor in the British Mountains. Side channels and wet alluvial flats are drawn, rather than a selected lake or reservoir.",
+          "sources": [
+            "r121-usgs-topo-firth-headwaters",
+            "r121-nluis-davidson-117b"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "Mancha Creek, its separate upstream tributaries and the unselected southern Firth source valley are not included as alternative scalar names for the selected feature.",
+          "mapped_component_name": "Firth River"
+        },
+        {
+          "fragments": [
+            2358
+          ],
+          "component_scope": "British Mountains northward course and Joe Creek junction",
+          "finding": "NLUIS117B follows the Firth northeast and then north, including the eastern Muskeg Creek joining system. The northward river crosses the sheet boundary into NLUIS117C, makes a westward bend and meets the separately labeled Joe Creek from the southwest/west. It then turns northeast again. Both sides of the sheet seam and the full joining sequence are visible in the originals.",
+          "sources": [
+            "r121-nluis-davidson-117b",
+            "r121-nluis-demarcation-117c"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "Muskeg Creek and Joe Creek remain distinct tributaries. An administrative or wildlife overlay is not treated as hydrography. The cartographic seam is covered without requiring an exact model vertex match.",
+          "mapped_component_name": "Firth River"
+        },
+        {
+          "fragments": [
+            2358
+          ],
+          "component_scope": "Middle northeastward corridor and Sheep Creek setting",
+          "finding": "The selected route continues northeast down the labeled Firth valley. Sheep Creek, including its separate Porcupine Creek branch, joins from the northwest in NLUIS117C. The main river then continues east toward the Herschel Island sheet. The adjoining NLUIS117D original shows the same eastward entry and the subsequent northeastward and northward river course.",
+          "sources": [
+            "r121-nluis-demarcation-117c",
+            "r121-nluis-herschel-117d"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "The neighboring Malcolm River is separately mapped and is not a Firth alias or selected tributary. Porcupine Creek is contextual within the Sheep Creek branch; its whole course is not part of the selected mainstem.",
+          "mapped_component_name": "Firth River"
+        },
+        {
+          "fragments": [
+            2358
+          ],
+          "component_scope": "Lower gorge, foothills and coastal-plain transition",
+          "finding": "NLUIS117D follows the complete selected lower river from the mountain gorge, with mapped rapids/falls, into the foothill and coastal plain. Loney Creek is shown joining from the west. The river becomes a broad, divided channel corridor on the plain. Its own marginal R4 description independently describes the Firth gorge between the Sheep Creek setting and the coastal plain.",
+          "sources": [
+            "r121-nluis-herschel-117d"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "The historic map establishes the corridor and historical named context, not current whitewater conditions, a particular active braid or a present-day bank. No inland lake or reservoir passage is depicted along the selected route.",
+          "mapped_component_name": "Firth River"
+        },
+        {
+          "fragments": [
+            2358
+          ],
+          "component_scope": "Actual coastal delta and receiving-water setting",
+          "finding": "The selected northward river reaches the broad delta and coastal-water margin south of Nunaluk Spit and southwest of Herschel Island. Original NLUIS117D pixels show the river continuing into its divided delta, the barrier-spit coast, nearby Workboat Passage, Herschel Island and the Beaufort Sea setting. The separate Malcolm River delta lies to the west. This is direct terminal-context reading, not a sea assignment from basin association alone.",
+          "sources": [
+            "r121-nluis-herschel-117d"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "No exact modern mouth point, shoreline, distributary choice or bank fit is claimed. The selected generalized terminal extension is read within the actual delta/coastal setting. Workboat Passage, Nunaluk Spit and Herschel Island are distinct geographic context, not river aliases; no separately verified lagoon name is assigned.",
+          "mapped_component_name": "Firth River / Beaufort Sea coastal waters"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70065022",
+      "source_keys": [
+        "anderson-1985-notakwanon",
+        "hill-1982-81-137",
+        "wardle-1993-93-16"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9109
+          ],
+          "component_scope": "western headward setting and initial feeder",
+          "finding": "Wardle’s map shows the lake-and-stream country beside the Quebec–Labrador divide southeast of the Lac Machault area. The selected headward leg lies in that small-waterbody setting, turns northwest and then northeast into the eastward chain. The individual selected feeder and pond names are not established. Anderson’s whole-system figure independently depicts this western branched headwater setting.",
+          "sources": [
+            "wardle-1993-93-16",
+            "anderson-1985-notakwanon"
+          ],
+          "correspondence": "observed at ordinary generalized headwater scale",
+          "limits": "The regional map is used for component/corridor correspondence, not a claim of precise source-pond identity, legal provincial-boundary placement or exact small-channel vertices.",
+          "local_reach_name": null,
+          "lake_names": null
+        },
+        {
+          "fragments": [
+            9109
+          ],
+          "component_scope": "western lake and steady chain into the middle valley",
+          "finding": "Wardle’s northern map sector follows the connected, irregular eastward lake/stream chain south of Mistastin Lake into the broader middle valley. The chain continues into the overlapping western edge of Hill’s Notakwanon area sheet. Anderson’s upper river network and prose describe a long upstream series of steadies. No name is assigned to the individual lake passages.",
+          "sources": [
+            "wardle-1993-93-16",
+            "hill-1982-81-137",
+            "anderson-1985-notakwanon"
+          ],
+          "correspondence": "observed",
+          "local_reach_name": null,
+          "lake_names": null
+        },
+        {
+          "fragments": [
+            9109
+          ],
+          "component_scope": "north-turning middle reach and long eastward valley",
+          "finding": "Hill’s 1:100,000 map directly shows the marked Notakwanon River valley turning north through the middle of its map, then bending east through the broad lower-relief corridor. These successive turns correspond to the selected middle reach. Side valleys and north- and south-side tributary/lake systems are separately drawn and are not renamed as the selected mainstem.",
+          "sources": [
+            "hill-1982-81-137",
+            "wardle-1993-93-16",
+            "anderson-1985-notakwanon"
+          ],
+          "correspondence": "observed",
+          "local_reach_name": "Notakwanon River"
+        },
+        {
+          "fragments": [
+            9109
+          ],
+          "component_scope": "eastern bend and lower river approaching the coast",
+          "finding": "The overlapping Hill and Wardle maps distinguish the main valley from the southern Sango drainage. Wardle’s northern margin continues the selected northeastward bend and east-running lower valley toward the coastal sector, while Anderson Figure107 depicts the lower main river separately from incoming branches and carries it onward to Merrifield Bay.",
+          "sources": [
+            "hill-1982-81-137",
+            "wardle-1993-93-16",
+            "anderson-1985-notakwanon"
+          ],
+          "correspondence": "observed at corridor scale",
+          "local_reach_name": "Notakwanon River"
+        },
+        {
+          "fragments": [
+            9109,
+            9110
+          ],
+          "component_scope": "short terminal continuation and receiving-water setting",
+          "finding": "Anderson’s original Figure107 traces the lower main river into the explicitly labelled Merrifield Bay. The accompanying account and Table376 identify the same river mouth setting. Wardle’s regional original supplies the surrounding named Merrifield Bay, Sango Bay and Labrador Sea geography. The short final selected fragment is a continuation of this terminal river setting, not a separately established tributary hydronym.",
+          "sources": [
+            "anderson-1985-notakwanon",
+            "wardle-1993-93-16"
+          ],
+          "correspondence": "observed at ordinary river-to-bay scale",
+          "limits": "Wardle’s neatline ends at the northern coastal margin; Anderson supplies the actual river-to-bay connection. Exact modern shoreline, tidal limits and the selected render endpoint are not validated.",
+          "local_reach_name": "Notakwanon River",
+          "receiving_water_name": "Merrifield Bay",
+          "larger_receiving_water": "Labrador Sea"
+        },
+        {
+          "fragments": [
+            9109,
+            9110
+          ],
+          "component_scope": "material lake and tributary scope",
+          "finding": "The original maps show an upper chain of small lakes/steadies, an intervening river valley and tributary junctions, then the lower river ending in a coastal bay. No reservoir or passage through the separate northern Mistastin Lake is invoked to connect the selected route. All unestablished local feeder, tributary and lake names remain null.",
+          "sources": [
+            "wardle-1993-93-16",
+            "hill-1982-81-137",
+            "anderson-1985-notakwanon"
+          ],
+          "correspondence": "observed"
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70879598",
+      "publication": "Puebla, SICT state cartographic sheet, 2023",
+      "official_url": "https://micrs.sct.gob.mx/images/DireccionesGrales/DGP/Atlas/Mapas_2023/20-Puebla_2023.pdf",
+      "observed_outcome": "The original request completed with HTTP502 and HTML rather than the PDF. No original map pixels were obtained.",
+      "outcome_layer": "Original-file HTTP response; availability failure rather than an inferred access denial.",
+      "restriction_scope": "Missing whole publication/map content and all equivalent copies, formats, original/reader/cache/mirror/screenshot and other acquisition routes paused for availability. No retry or alternative request made. Independently published INEGI state and municipal maps are distinct sources, not recovery copies of this SICT sheet.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:70065022",
+      "publication": "Mistastin Lake, NTS013M, CanMatrix1:250,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/013/m/canmatrix_013m_tif.zip",
+      "observed_outcome": "The official directory completed HTTP200 and supplied the exact archive link. Its sole acquisition completed HTTP403 and HTML; no map pixels were obtained.",
+      "outcome_layer": "Completed HTTP403 response on the original archive request, not a web-reader cache/format error; no separate origin-versus-intermediary attribution is established.",
+      "restriction_scope": "Whole013M CanMatrix sheet publication and all equivalent copies, formats, editions offered as that same source, viewers, mirrors and acquisition routes stopped. No retry or alternate sheet recovery.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no substantive map content.",
+      "impact": "Optional unavailable source. Independent Wardle, Hill and Anderson originals leave no material corridor gap."
+    },
+    {
+      "aw_id": "hydro-system:70065022",
+      "publication": "BaseMaps/CBMT3978 and equivalent Toporama routes",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "observed_outcome": "Inherited publication/service stop after transport/tunnel403 on original image acquisition; origin image-server HTTP status unobserved.",
+      "outcome_layer": "inherited transport/tunnel denial",
+      "restriction_scope": "Entire service and equivalents excluded from new acquisition. No request made in this review.",
+      "earlier_lawful_prose_exception": null,
+      "impact": "Not used; no material gap after independent mapping.",
+      "inherited_stop": true
+    },
+    {
+      "aw_id": "hydro-system:90002144",
+      "publication": "Satellite Image Atlas of Glaciers of the World—Greenland, Anker Weidick, 1995; USGS Professional Paper 1386-C",
+      "official_url": "https://pubs.usgs.gov/pp/p1386c/",
+      "observed_outcome": "Inherited r111 web-reader HTTP 403 stop. No new request was made.",
+      "outcome_layer": "Historical HTTP 403 reported by web reader; no new origin response asserted.",
+      "restriction_scope": "Entire publication, Plate 1, PDFs, figures and all equivalent copies, formats, mirrors and acquisition routes remain stopped.",
+      "earlier_lawful_prose_exception": "None used. Search snippets excluded.",
+      "inherited_stop": true
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:70879598",
+      "source_key": "MX1",
+      "publication": "INEGI, Condensado Estatal Puebla, first edition 2020, copyright 2021",
+      "url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/pue/889463837039.pdf",
+      "observed_notice": "The printed sheet states that total or partial reproduction requires prior written authorization.",
+      "scope": "Reproduction boundary only; lawful factual reading is not treated as barred. Originals, crops and derivative maps remain private."
+    },
+    {
+      "aw_id": "hydro-system:70065022",
+      "publication": "Energy and Mines,13M/NE catalogue page",
+      "official_url": "https://www.gov.nl.ca/em/mines/maps/13m-ne/",
+      "observed_outcome": "Initial web-reader open returned Internal Error, URL is not accessible via this tool, with no HTTP status or security reason. One sequential normal original HTML fallback completed HTTP200 and supplied the actual map links.",
+      "outcome_layer": "web-reader technical route limitation, followed by successful ordinary original acquisition",
+      "restriction_scope": "The failed reader route was not repeated. This was not an origin denial or publication-wide stop.",
+      "earlier_lawful_prose_exception": "Original catalogue HTML was actually read after its successful completed acquisition.",
+      "impact": "No outstanding source gap."
+    },
+    {
+      "aw_id": "hydro-system:70065022",
+      "publication": "Canadian CGN/geogratis naming API and expanded/name-search records; diffusion.mern service",
+      "official_url": null,
+      "observed_outcome": "Inherited exclusion/pause preserved. Incidental CGN search hits were not opened or used.",
+      "outcome_layer": "inherited policy; no new response claimed",
+      "restriction_scope": "Existing naming-record and service restrictions maintained without retry or bypass.",
+      "earlier_lawful_prose_exception": null,
+      "impact": "Formal registry status remains unverified; representative identity rests on original cartography and bounded fisheries prose."
+    },
+    {
+      "aw_id": "hydro-system:90002144",
+      "publication": "Geological map of Greenland 1:2 500 000, Escher and Pulvertaft, 1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "observed_outcome": "The earlier DOI-reader route had a completed technical routing error without an HTTP denial or security reason and was not repeated. The official Dataverse landing and its linked original PDF subsequently completed HTTP200 and the map was visually read.",
+      "outcome_layer": "Inherited completed web-tool DOI-routing limitation, followed in r121 by successful official origin HTTP responses.",
+      "restriction_scope": "The failed DOI-reader route stays recorded and unrepeated. Missing original-map coverage is resolved through the successfully acquired official original. No publication-wide access denial or active availability stop is inferred.",
+      "earlier_lawful_prose_exception": "Before this acquisition only prior bibliography/use terms and separate retained Bulletin 18 observations were available. The r121 original map was actually rendered and read; search snippets are not map evidence.",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855"
+    },
+    {
+      "aw_id": "hydro-system:90002144",
+      "publication": "Geological map of Greenland 1:2 500 000, Escher and Pulvertaft, 1995: Custom Dataset Terms",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "observed_outcome": "The official landing page opened normally and its Custom Dataset Terms were read. They permit internal use/processing and restrict redistribution and production or transfer of new maps based on processed data. The original imprint displays copyright of Grønlands Geologiske Undersøgelse and Kort- og Matrikelstyrelsen, Danmark.",
+      "outcome_layer": "Successfully read source-use notices, not acquisition refusal.",
+      "restriction_scope": "Original PDF, processed data, all crops and any comparison/derived maps remain private. Public consolidation is limited to independently written factual observations and ordinary bibliography.",
+      "earlier_lawful_prose_exception": "The retained restriction-043 already documented these terms; the actual current landing-page notice and original imprint were read again lawfully."
+    },
+    {
+      "aw_id": "hydro-system:90002144",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 8, Peary Land, Bengaard and Henriksen, 1986: Custom Dataset Terms",
+      "official_url": "https://doi.org/10.22008/FK2/Q7HIDY",
+      "observed_outcome": "The official landing and its linked original PDF completed HTTP200. Custom Dataset Terms and original imprint were read; redistribution and production or transfer of new maps are restricted.",
+      "outcome_layer": "Successful original HTTP acquisitions and source-use notice; no denial.",
+      "restriction_scope": "Original, crops, processed data and any comparison/derived cartographic material remain private. Only independently written facts and ordinary public bibliography may be consolidated.",
+      "earlier_lawful_prose_exception": "Not applicable; the current target was read directly from the newly acquired original map.",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16494"
+    },
+    {
+      "aw_id": "hydro-system:90002144",
+      "publication": "Greenland from Archaean to Quaternary, 2nd edition; GEUS Bulletin 18, 2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf",
+      "observed_outcome": "An earlier PDF-reader size limitation was resolved by a successful original acquisition. The retained original was reused locally, including its GEUS2009 copyright notice.",
+      "outcome_layer": "Historical reader-size limitation resolved by successful original HTTP acquisition; current local reuse only.",
+      "restriction_scope": "No active publication stop. Copyright and private-original/working-material restrictions remain; factual paraphrase only.",
+      "earlier_lawful_prose_exception": "Actually read retained original page 4 cartography, bounded Glaciology prose and bibliography, with limited contextual role."
+    },
+    {
+      "aw_id": "hydro-system:90002144",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 9, Lambert Land, Jepsen, 2000",
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS",
+      "observed_outcome": "Inherited r117 DOI web-reader routing error had no HTTP status/security reason; its normal official landing and linked original later succeeded HTTP 200. The original was reused only for a current coverage check. Its Custom Dataset Terms restrict redistribution and production or transfer of new maps.",
+      "outcome_layer": "Historical technical route limitation resolved by original HTTP acquisition, and retained source-use notice.",
+      "restriction_scope": "Failed DOI route not repeated. No active publication denial. Original, crops and derived cartographic materials remain private.",
+      "earlier_lawful_prose_exception": "Previously acquired original and notices; current use is only an actual visual coverage check, not positive current-FID map evidence."
+    }
+  ]
+}

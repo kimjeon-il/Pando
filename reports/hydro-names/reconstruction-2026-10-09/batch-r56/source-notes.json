@@ -1,0 +1,391 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r56",
+  "sources": [
+    {
+      "source_key": "r56-sema-alto-jacui-map",
+      "title": "Mapa da Bacia Hidrográfica do Alto Jacuí, G050",
+      "publisher": "Secretaria do Meio Ambiente e Infraestrutura do Rio Grande do Sul, Departamento de Recursos Hídricos e Saneamento",
+      "attribution": "SEMA/DRHS; map footer credits Base Cartográfica 1:25.000, SEMA/FEPAM 2018; geographic coordinates, SIRGAS 2000.",
+      "page": "Original single-sheet basin map",
+      "supports": "Northern and middle mainstem course, water-body passages, repeated Jacuí labels and separation from Jacuí-Mirim, Colorado, Ivaí and Jacuizinho.",
+      "limits": "Generalized basin sheet derived from the stated cartographic base. The upload directory is not treated as the cartographic survey date. Exact source points and reservoir-name boundaries are not established by its labels.",
+      "official_url": "https://www3.sema.rs.gov.br/g050-bh-alto-jacui"
+    },
+    {
+      "source_key": "r56-sema-baixo-jacui-map",
+      "title": "Mapa da Bacia Hidrográfica do Baixo Jacuí, G070",
+      "publisher": "Secretaria do Meio Ambiente e Infraestrutura do Rio Grande do Sul, Departamento de Recursos Hídricos e Saneamento",
+      "attribution": "SEMA/DRHS; map footer credits Base Cartográfica 1:25.000, SEMA/FEPAM 2018; geographic coordinates, SIRGAS 2000.",
+      "page": "Original single-sheet basin map",
+      "supports": "Continuation through Dona Francisca, lower south-to-east turn, Cachoeira do Sul and successive lower Jacuí reaches toward the delta.",
+      "limits": "The focus is the Baixo Jacuí management basin; surrounding tributary basins and individual delta channels are not exhaustively mapped or named.",
+      "official_url": "https://www.sema.rs.gov.br/g070-bh-baixo-jacui"
+    },
+    {
+      "source_key": "r56-sgb-guaiba-2025",
+      "title": "Nota técnica: características básicas e mapas da bacia hidrográfica do Guaíba, 2ª versão",
+      "authors": "Francisco Fernando Noronha Marcuzzo",
+      "publisher": "Serviço Geológico do Brasil, Diretoria de Hidrologia e Gestão Territorial",
+      "attribution": "Francisco Fernando Noronha Marcuzzo / SGB, revised 23 July 2025. Basin map credits include SEMA basin boundaries and IBGE hydrography and administrative mapping.",
+      "year": 2025,
+      "page": "Printed pp. 11–13, regional map p. 14 and A3 nine-sub-basin map p. 56",
+      "supports": "Whole-system context, Jacuí source-area and delta relationship, and separate Vacacaí and Taquari–Antas approaches.",
+      "limits": "Regional mapping supports representative identity and branch separation, not exact local name-transition vertices or modern delta-channel selection. Source-area coordinates and basin statistics are not transplanted into the selected model.",
+      "reuse_limit": "The publication permits reproduction with attribution. Original maps, local renders and full selected coordinates are nevertheless retained privately under this task's publication boundary.",
+      "official_url": "https://rigeo.sgb.gov.br/handle/doc/25594.2"
+    },
+    {
+      "source_key": "r56-fepam-jacui-description",
+      "title": "Qualidade das águas da bacia hidrográfica do rio Jacuí",
+      "publisher": "Fundação Estadual de Proteção Ambiental Henrique Luis Roessler, Rio Grande do Sul",
+      "attribution": "FEPAM, official water-quality programme page; geographical description and hydropower/tributary context only.",
+      "page": "Descrição da Área",
+      "supports": "Southward then eastward Jacuí course, upper hydropower sequence and separate named tributaries.",
+      "limits": "Historical monitoring page, not a present-day hydrographic survey. Its monitoring results, numerical lengths, population, flow and water-quality claims are outside this finding.",
+      "official_url": "https://ww3.fepam.rs.gov.br/qualidade/qualidade_jacui/jacui.asp"
+    },
+    {
+      "source_key": "r56-tpwd-strategic-planning-river-map",
+      "title": "TPWD Strategic Planning Regions",
+      "authors": "Texas Parks and Wildlife Department GIS Lab",
+      "publisher": "Texas Parks and Wildlife Department",
+      "page": "Single map sheet; Nueces Coastal Bend planning region",
+      "supports": "Distinct West Nueces and upper Nueces branches; labeled downstream Nueces course, separate Frio/Atascosa branches, reservoirs and coastal continuation.",
+      "limits": "Statewide generalized cartography; no coordinate-exact junction, headmost feeder or tidal-channel determination. Compilation date is not asserted.",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/media/pwd_mp_e0100_1070m_34.pdf"
+    },
+    {
+      "source_key": "r56-tsswcb-nueces-watershed-2000",
+      "title": "Nueces River Watershed: Brush Control Planning, Assessment, and Feasibility Study",
+      "authors": "HDR Engineering, Inc., in association with Texas A&M University",
+      "publisher": "Prepared for the Texas State Soil and Water Conservation Board",
+      "year": 2000,
+      "page": "Figure 3-1, printed p. 3-2; Figure 5-1, printed p. 5-4; sections 3.3 and 5.1",
+      "supports": "The county-by-county Nueces bend sequence, Lake Corpus Christi versus the separate Frio/Choke Canyon branch, and West Nueces as a tributary.",
+      "limits": "A watershed study, not a complete river-name gazetteer. Study-area polygons and streamgage boundaries are not channel-name boundaries. Its location map does not cover the entire final coastal reach.",
+      "official_url": "https://www.tsswcb.texas.gov/sites/default/files/files/programs/agency-reports/Nueces%20River%20Watershed.pdf"
+    },
+    {
+      "source_key": "r56-tpwd-west-nueces-2001",
+      "title": "Ecologically Significant River & Stream Segments of Region J (Plateau): West Nueces River",
+      "authors": "Albert El-Hage and Dan W. Moulton",
+      "publisher": "Texas Parks and Wildlife Department",
+      "year": 2001,
+      "page": "Printed p. 31; publication credits on the official Region J report landing page",
+      "supports": "West Nueces headwater setting west of Rocksprings and its confluence with Nueces River northwest of Uvalde.",
+      "limits": "The ecological segment is narrower than the full tributary. Its description does not assign a name to each modeled upper vertex.",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/pwd_rp_t3200_1059d/media/west_nueces.pdf"
+    },
+    {
+      "source_key": "r56-tpwd-waterways-nueces",
+      "title": "An Analysis of Texas Waterways: Nueces River",
+      "publisher": "Texas Parks and Wildlife Department",
+      "page": "Nueces River; State Highway 55 to Nueces Bay",
+      "supports": "Downstream Nueces county sequence, the Frio/Atascosa junction setting and Lake Corpus Christi on the Nueces upstream from Nueces Bay.",
+      "limits": "The lower reach is explicitly not mapped in this waterways account; its prose supplements the separately inspected original maps.",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/pwd_rp_t3200_1047/21_c_tx_medina_navidad_nueces.phtml"
+    },
+    {
+      "source_key": "r56-tpwd-region-n-streams",
+      "title": "Water Planning Data for Region N (Coastal Bend)",
+      "publisher": "Texas Parks and Wildlife Department",
+      "page": "Three Nueces River stream-segment descriptions",
+      "supports": "Distinct named Nueces reaches around Lake Corpus Christi, Calallen and Nueces Bay, including a tidal/estuarine lower setting.",
+      "limits": "Ecological stream-segment descriptions, not a detailed current mouth-channel map. No contemporary flow or structure-condition claim is inferred.",
+      "official_url": "https://tpwd.texas.gov/landwater/water/conservation/water_resources/water_quantity/sigsegs/regionn.phtml"
+    },
+    {
+      "source_key": "r56-nps-gaar-gmp-2014",
+      "title": "Gates of the Arctic National Park and Preserve: General Management Plan Amendment / Wilderness Stewardship Plan / Environmental Assessment",
+      "publisher": "U.S. Department of the Interior, National Park Service",
+      "attribution": "National Park Service, November 2014; original Alternative B management-zones cartography.",
+      "year": 2014,
+      "page": "Alternative B: Management Zones map, PDF page 87, corresponding to listed printed p. 75; Wild and Scenic Rivers text and Table 7",
+      "supports": "Mount Igikpak upper hook, westward upper valley, Lake Matcharak and preserve-boundary connection; separation from adjacent Alatna and Kobuk drainage.",
+      "limits": "Generalized park-planning map. The management-zone colors are not river-name boundaries, present legal advice or proof of a lake crossing. It does not establish the exact natural source or every minor feeder name.",
+      "official_url": "https://www.nps.gov/gaar/learn/management/upload/2014_GAAR_GeneralManagementPlanAmendment_WildernessStewardshipPlan_EA_508.pdf"
+    },
+    {
+      "source_key": "r56-nps-noat-gmp-1986",
+      "title": "Noatak National Preserve General Management Plan: The Region and Preserve",
+      "publisher": "U.S. Department of the Interior, National Park Service",
+      "attribution": "The Preserve sheet, map 189 80018, Alaska Regional Office, February 1985; original map in the 1986 management plan.",
+      "year": 1986,
+      "page": "Printed pp. 34 and 37; The Preserve sheet between them, PDF page 12 of the 40-page chapter file",
+      "supports": "Connected named Noatak corridor from the Lake Matcharak setting through the major central bends and canyon to the western southward turn and lower valley; separate tributary and lake context.",
+      "limits": "Historical regional cartography. The easternmost headwaters require the Gates of the Arctic map, and the coastal outlet context is supplemented by the 2025 map. Historical river-length, designation and ecological statements are not treated as present measurements or current conditions.",
+      "official_url": "https://parkplanning.nps.gov/document.cfm?documentID=38091"
+    },
+    {
+      "source_key": "r56-nps-noat-visitor-use-2025",
+      "title": "Noatak National Preserve: Visitor Use Areas",
+      "publisher": "National Park Service, Alaska Region, U.S. Department of the Interior",
+      "attribution": "Map dated May 28, 2025; official hosting page updated June 20, 2025.",
+      "year": 2025,
+      "page": "Single-sheet map, including western lower-river and outlet sector",
+      "supports": "Lower Noatak orientation, separate named tributary visitor-use sectors and continuation toward the coastal outlet beyond the selected endpoint.",
+      "limits": "Visitor-use polygons are management areas, not channel-name boundaries. The pale generalized drainage does not determine an exact current mouth vertex or individual braid names; this sheet does not cover the eastern headwater hook.",
+      "official_url": "https://www.nps.gov/locations/alaska/noat-vua-map.htm"
+    },
+    {
+      "source_key": "r56-nps-noatak-river-2024",
+      "title": "The Noatak River",
+      "publisher": "National Park Service, Noatak National Preserve",
+      "attribution": "Official webpage, updated November 18, 2024.",
+      "year": 2024,
+      "supports": "Named river beginning in Gates of the Arctic, westward passage through the Noatak landscape and drainage to Kotzebue Sound.",
+      "limits": "Broad description, not a detailed source-to-mouth map. Designated-reach length and promotional superlatives are not assigned to the modeled feature.",
+      "official_url": "https://www.nps.gov/noat/learn/nature/noatakriver.htm"
+    },
+    {
+      "source_key": "r56-riversgov-noatak",
+      "title": "Noatak River",
+      "publisher": "National Wild and Scenic Rivers System, Rivers.gov; official U.S. Fish and Wildlife Service hosting",
+      "supports": "Noatak identity, Kotzebue Sound receiving-water context and distinction between the source-to-Kelly designated reach and the broader river.",
+      "limits": "The designation statement is not a surveyed name-transition or mouth boundary. No linked management-plan acquisition or legal interpretation was needed.",
+      "official_url": "https://www.fws.gov/rivers/river/noatak"
+    },
+    {
+      "source_key": "r56-utah-dwr-bear-basin-2004",
+      "title": "Bear River Basin: Planning for the Future",
+      "publisher": "Utah Department of Natural Resources, Division of Water Resources; Utah State Water Plan",
+      "year": 2004,
+      "page": "Printed p. 2, Figure 1 Bear River Basin Map (PDF p. 20); printed p. 8, Figure 3 Bear River Flow Chart (PDF p. 26); printed p. 4, basin description and historic development",
+      "supports": "Complete named-river corridor, distinctive multi-state bends, separately depicted forks and tributaries, principal impoundments, Bear Lake diversion context and river termination in Great Salt Lake.",
+      "limits": "Generalized basin cartography and a water-budget schematic, not a vertex-level hydrographic survey. Historical flow and development information is not treated as current measured flow or precise shoreline evidence.",
+      "official_url": "https://water.utah.gov/wp-content/uploads/2020/06/Bear-River-2004.pdf"
+    },
+    {
+      "source_key": "r56-utah-dwr-bear-interstate",
+      "title": "Bear River — Interstate Streams",
+      "publisher": "Utah Division of Water Resources",
+      "year": null,
+      "page": "Opening geographic description",
+      "supports": "Bear River begins in the Uinta Mountains, crosses Utah, Wyoming and Idaho, and flows into Great Salt Lake; Bear Lake is connected through diversion, conveyance and storage management.",
+      "limits": "Regional prose supports identity and hydrological context; it does not name every upper feeder or terminal modeled segment.",
+      "official_url": "https://water.utah.gov/interstate-streams/bear-river/"
+    },
+    {
+      "source_key": "r56-ugs-gunnison-cub-2023",
+      "title": "Great Salt Lake's Gunnison and Cub Islands Come into Focus",
+      "publisher": "Utah Geological Survey, Survey Notes, volume 55, number 1; Donald L. Clark and Bonnie K. Baxter",
+      "year": 2023,
+      "page": "Printed pp. 4–5; original overview map on printed p. 4 (PDF p. 6)",
+      "supports": "Bear River entering the lake's eastern bay, the Promontory peninsula, distinct Bear River Bay, Gilbert Bay and Gunnison Bay, the railroad causeway, and lake-level-dependent waterbody extents.",
+      "limits": "The map compares a historical-average extent with the 2022 historical-low extent. It is not a 2026 water-level observation, bathymetric channel survey or proof of connectivity along the selected modeled line.",
+      "official_url": "https://ugspub.nr.utah.gov/publications/survey_notes/snt55-1.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61457989",
+      "source_keys": [
+        "r56-sema-alto-jacui-map",
+        "r56-sema-baixo-jacui-map",
+        "r56-sgb-guaiba-2025",
+        "r56-fepam-jacui-description"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14010
+          ],
+          "finding": "The northern piece begins in the headwater setting east of Passo Fundo, continues south and southwest through the Ernestina water-body setting, then approaches the Espumoso sector. The Alto Jacuí sheet shows this continuous eastern headwater-to-main-river corridor, distinct from the Jacuí-Mirim and Colorado approaches farther west. The SGB report independently locates the Jacuí source in eastern Passo Fundo; the model endpoint is not asserted to be that surveyed or officially fixed source.",
+          "sources": [
+            "r56-sema-alto-jacui-map",
+            "r56-sgb-guaiba-2025"
+          ]
+        },
+        {
+          "fragments": [
+            14011,
+            14012
+          ],
+          "finding": "The next piece continues west and southwest below Espumoso and Alto Alegre into the large branching water-body corridor. The following long piece proceeds south through the Salto do Jacuí setting, bends past the Ivaí approach, and continues through the Pinhal Grande–Ibarama sector toward Dona Francisca. Repeated Rio Jacuí labels, water-body outlines and the river's distinctive bends on the Alto and Baixo sheets correspond to this actual course. Named reservoir settings are not converted into river aliases.",
+          "sources": [
+            "r56-sema-alto-jacui-map",
+            "r56-sema-baixo-jacui-map",
+            "r56-fepam-jacui-description"
+          ]
+        },
+        {
+          "fragments": [
+            14013
+          ],
+          "finding": "From the Dona Francisca sector, the lower piece continues south past Agudo and the Restinga Seca approach, turns southeast toward Cachoeira do Sul, and then runs generally east through Rio Pardo, São Jerônimo–Triunfo and Charqueadas. The Baixo sheet labels Rio Jacuí along these successive reaches and distinguishes the Botucaraí, Pardo and southern arroio networks. This course correspondence is stronger than a nearby-name or basin-box match.",
+          "sources": [
+            "r56-sema-baixo-jacui-map",
+            "r56-sgb-guaiba-2025"
+          ]
+        },
+        {
+          "fragments": [
+            14013
+          ],
+          "finding": "The eastern end reaches the Jacuí delta setting beside the Porto Alegre metropolitan area. The SGB report distinguishes the Jacuí, its delta and the downstream Guaíba water body. Its regional map and text support the terminal system context, but do not establish a unique local name for the model's final channel or justify replacing the entire selection with Lago Guaíba.",
+          "sources": [
+            "r56-sgb-guaiba-2025"
+          ]
+        },
+        {
+          "fragments": [
+            14014,
+            14015,
+            14016
+          ],
+          "finding": "The separate southwestern approach travels north and then east through the Vacacaí drainage setting before joining the Jacuí upstream of Cachoeira do Sul. The SGB full-basin map and direct tributary descriptions distinguish this western branch from the Jacuí trunk. Vacacaí remains branch context; this finding does not allocate an individual official hydronym to every modeled feeder vertex.",
+          "sources": [
+            "r56-sgb-guaiba-2025",
+            "r56-fepam-jacui-description"
+          ]
+        },
+        {
+          "fragments": [
+            14017,
+            14018,
+            14019,
+            14020,
+            14021,
+            14022,
+            14023
+          ],
+          "finding": "The eastern group occupies the Taquari–Antas drainage: a long east-to-west upper approach, intermediate western bends and a southward lower approach that joins the Jacuí near the Triunfo sector. Two northern feeder corridors join that branch, rather than becoming additional Jacuí mainstem pieces. The SGB map distinguishes the Taquari–Antas drainage from the Jacuí and maps its connection. Exact Antas/Taquari naming-transition and feeder names are deliberately left unassigned at this scope.",
+          "sources": [
+            "r56-sgb-guaiba-2025",
+            "r56-fepam-jacui-description"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70826559",
+      "source_keys": [
+        "r56-tpwd-strategic-planning-river-map",
+        "r56-tsswcb-nueces-watershed-2000",
+        "r56-tpwd-west-nueces-2001",
+        "r56-tpwd-waterways-nueces",
+        "r56-tpwd-region-n-streams"
+      ],
+      "correspondence": [
+        "The complete cached route was inspected: its western upper approach descends south, turns southeast into the main southward corridor, makes the broad southern and northeastern bend, then turns southeast through the reservoir setting toward the coast.",
+        "TPWD's original statewide river map separately labels West Nueces River and the upper Nueces River. The selected western approach corresponds to the West Nueces corridor; it does not follow the map's separate upper Nueces branch. TPWD's West Nueces account identifies its downstream junction with the Nueces northwest of Uvalde.",
+        "The TSSWCB report's location and streamgage maps match the downstream Nueces sequence through Uvalde, Zavala and Dimmit counties, the broad La Salle bend and return toward McMullen and Live Oak counties. Its map distinguishes Lake Corpus Christi on this route from Choke Canyon Reservoir on the separate Frio branch.",
+        "The TPWD river map continues the same lower corridor toward the Corpus Christi coastal setting. Its waterways account places Lake Corpus Christi on the Nueces upstream of Nueces Bay. Its Region N descriptions separately identify the Nueces reaches above the reservoir, between its dam and the Calallen barrier, and from Calallen to Nueces Bay."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80082028",
+      "source_keys": [
+        "r56-nps-gaar-gmp-2014",
+        "r56-nps-noat-gmp-1986",
+        "r56-nps-noat-visitor-use-2025",
+        "r56-nps-noatak-river-2024",
+        "r56-riversgov-noatak"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2536
+          ],
+          "finding": "The selected eastern hook lies in the Mount Igikpak headwater setting, turns north and then west, and follows the upper Noatak valley toward Lake Matcharak and the Noatak National Preserve boundary. The 2014 Gates of the Arctic map depicts this continuous branch separately from the Alatna drainage to the east and the Kobuk drainage to the south. Its scale supports the upper-corridor identity without establishing that the first modeled point is the exact named source.",
+          "sources": [
+            "r56-nps-gaar-gmp-2014"
+          ]
+        },
+        {
+          "fragments": [
+            2536
+          ],
+          "finding": "West of the Lake Matcharak setting the line follows the Noatak through the upper preserve, past the separate Aniuk approach and around the southward bend at the Cutler junction before returning north and west. The original preserve map and its geographical text support that succession. The nearby lake is kept distinct; the selected route is not claimed to cross Lake Matcharak merely because its label is close to the river.",
+          "sources": [
+            "r56-nps-noat-gmp-1986",
+            "r56-nps-gaar-gmp-2014"
+          ]
+        },
+        {
+          "fragments": [
+            2536,
+            2537
+          ],
+          "finding": "The central course continues through the Anisak and Nimiuktuk junction settings, follows the broad northern bend and then the canyon corridor, and proceeds west past the Kaluktavik and Kugururok approaches. The map shows the same sequence of bends and junctions as the selected line while depicting those tributaries separately.",
+          "sources": [
+            "r56-nps-noat-gmp-1986"
+          ]
+        },
+        {
+          "fragments": [
+            2538
+          ],
+          "finding": "The western fragment continues along the Noatak below the Kugururok approach, passes the Kelly junction, turns south along the lower valley by Noatak village, and follows the lower bends past the Eli and Agashashok junction settings. The 1985 preserve sheet and the 2025 visitor-use map distinguish this lower river from its tributary valleys and the surrounding management boundaries.",
+          "sources": [
+            "r56-nps-noat-gmp-1986",
+            "r56-nps-noat-visitor-use-2025"
+          ]
+        },
+        {
+          "fragments": [
+            2538
+          ],
+          "finding": "The selected final point is on the lower-river approach north of the coastal outlet. The 2025 map continues the river toward the outlet and coastal water beyond this selected end. Direct NPS and Rivers.gov text identifies Kotzebue Sound as the river's receiving water, but that does not make the modeled endpoint a surveyed mouth or assign a name to every delta branch.",
+          "sources": [
+            "r56-nps-noat-visitor-use-2025",
+            "r56-nps-noatak-river-2024",
+            "r56-riversgov-noatak"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70531480",
+      "source_keys": [
+        "r56-utah-dwr-bear-basin-2004",
+        "r56-utah-dwr-bear-interstate",
+        "r56-ugs-gunnison-cub-2023"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9766
+          ],
+          "scope": "Uinta headwater and upper Bear corridor",
+          "finding": "The southern headwater leg and successive northward bends agree with the Uinta-to-Evanston approach on Utah DWR Figure 1. The original flow chart distinguishes West Fork, East Fork and Hayden Fork near the upper river. The selected source-end leg is retained as headwater/feeder scope; an exact fork-name transition is not assigned from these generalized maps. Farther downstream, the distinctive northward Evanston leg, Woodruff Narrows passage and westward bend toward Woodruff agree with the named Bear River corridor."
+        },
+        {
+          "fragments": [
+            9766
+          ],
+          "scope": "Upper valley to northern Idaho turn",
+          "finding": "The line follows the mapped river north through the Randolph–Cokeville setting, then west into Bear Lake Valley and north past Montpelier toward Soda Springs. Its northern westward turn and subsequent southward descent match the Bear River on the basin map. Bear Lake lies separately to the south of that valley reach; the selected path does not traverse Bear Lake. Official prose and the flow chart distinguish the managed inlet/outlet connection with Bear Lake from the river itself."
+        },
+        {
+          "fragments": [
+            9766
+          ],
+          "scope": "Gem Valley, Cache Valley and lower Bear",
+          "finding": "The southward route from the Soda/Alexander reservoir setting through Gem Valley and Oneida, its entry into Cache Valley, the Cutler approach and westward canyon exit, and the descent through the lower Bear valley correspond to the named river. The maps separately show joining Malad, Cub, Logan and Little Bear routes and irrigation canals. Those joining names are not transferred to the selected line. Reservoir and dam settings support the corridor but do not establish a uniform natural-channel feature class at every vertex."
+        },
+        {
+          "fragments": [
+            9766,
+            9767
+          ],
+          "scope": "River-mouth and Great Salt Lake continuation",
+          "finding": "After the Corinne/lower Bear setting, the selected path continues south beyond the mapped river into the Bear River Bay–Great Salt Lake setting. Its lakeward bend runs around the southern Promontory Mountains and continues northwest into the Gunnison Bay setting. The UGS overview map distinguishes Bear River, Bear River Bay, Gilbert Bay, Gunnison Bay and the railroad causeway. It depicts these lake areas as waterbody extents, not as an onward river channel named Bear River. Fragment 9767 is within this terminal-lake continuation; the tail of fragment 9766 already extends beyond the named river corridor. The model fragment join is therefore not treated as the river mouth."
+        },
+        {
+          "fragments": [
+            9766,
+            9767
+          ],
+          "scope": "Hydrological and temporal limits",
+          "finding": "Utah DWR states that Bear River ends in Great Salt Lake. UGS describes Great Salt Lake as a terminal lake and maps two different water-surface extents, while distinguishing causeways and evaporation ponds. The modeled lake crossing does not establish a present navigable or flowing channel, a current hydraulic passage through a causeway, a fixed shoreline, or an outlet from the endorheic lake. Its geometrical endpoint is not assigned the status of a natural river mouth."
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

@@ -1,0 +1,925 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r138",
+  "sources": [
+    {
+      "bibliography": "Barnett, P.J., Yeung, K.H. and McCallum, J.D. 2016. Surficial geology of the Black Duck River area southwest, northern Ontario. Ontario Geological Survey, Preliminary Map P.3626, scale 1:100,000.",
+      "title": "Surficial Geology of the Black Duck River Area Southwest, Northern Ontario",
+      "publisher": "Ontario Geological Survey",
+      "year": 2016,
+      "scale": "1:100,000",
+      "source_type": "Primary original separately issued provincial surficial-geology map with labelled hydrographic base",
+      "original_map_pixels_inspected": true,
+      "pages_inspected": "PDF page 1 terms; PDF page 2 original full sheet and private corridor crops.",
+      "actual_scope": "Original cartography from the southern map edge at 56 degrees north to the northern edge at 56 degrees 30 minutes north; direct Black Duck labels, middle-valley bends, side-drainage context and wetland/fluvial setting. Marginal prose on mapping method, base provenance, credits and legend also read.",
+      "prose_scope": "Remote predictive terrain mapping uses SPOT imagery, DEM derivatives, Ontario Hydro Network data and limited field/archival checks. The map states that surficial materials are mapped and directs readers elsewhere for better wetland-type definition.",
+      "source_key": "r138-ogs-p3626",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3626/P3626.pdf",
+      "use_notice": "Crown copyright. The source terms allow non-commercial unsubstantial excerpts with credit and Crown-copyright acknowledgement, but require prior written permission for substantial reproduction, any map/figure reproduction, commercial use and value-added products. Originals, crops and comparison material remain private; the research output contains independently written factual observations and ordinary bibliography only. No product application or redistribution permission is inferred.",
+      "limits": "Original map is preliminary thematic cartography, not a current hydronym registry or survey of precise banks. Base mapping is derived from the Land Information Ontario Data Warehouse, modified by ministry staff, with data current to January2014. This separately numbered, imprinted thematic publication is distinct from the stopped live LIO Topographic service and catalogue; independence of its underlying hydrographic dataset is not asserted."
+    },
+    {
+      "bibliography": "Barnett, P.J., Yeung, K.H. and McCallum, J.D. 2014 [printed original]. Surficial geology of the Black Duck River area north, northern Ontario. Ontario Geological Survey, Preliminary Map P.3625, scale 1:100,000.",
+      "title": "Surficial Geology of the Black Duck River Area North, Northern Ontario",
+      "publisher": "Ontario Geological Survey",
+      "year": 2014,
+      "bibliographic_discrepancy": "The downloaded original title block, credits, suggested citation and copyright all say2014; discovery catalogue/index listings say2016. The finding cites the actually inspected printed map and preserves the discrepancy rather than silently normalizing it.",
+      "scale": "1:100,000",
+      "source_type": "Primary original separately issued provincial surficial-geology map with labelled hydrographic base",
+      "original_map_pixels_inspected": true,
+      "pages_inspected": "PDF page 1 terms; PDF page 2 original full sheet and private lower-course/coastal crops.",
+      "actual_scope": "Original cartography covers the selected lower route north of 56 degrees 30 minutes, boundary-adjacent hydrography, side-channel and nearby-river distinctions, and Black Duck terminal branches entering Hudson Bay. Marginal method/provenance/legend prose read.",
+      "source_key": "r138-ogs-p3625",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3625/P3625.pdf",
+      "use_notice": "Crown copyright. The source terms allow non-commercial unsubstantial excerpts with credit and Crown-copyright acknowledgement, but require prior written permission for substantial reproduction, any map/figure reproduction, commercial use and value-added products. Originals, crops and comparison material remain private; the research output contains independently written factual observations and ordinary bibliography only. No product application or redistribution permission is inferred.",
+      "limits": "Published base data are current to January2011 and derived from Ontario Land Information Warehouse with ministry modifications. The original says it had not received a technical edit and discrepancies may occur. No present-day tide, bank position, legal hydronym boundary or exact terminal vertex is established. Independently issued map, not a stopped live-service view; shared underlying data independence is not claimed."
+    },
+    {
+      "bibliography": "Ontario Geological Survey. 2021. Index to maps, bedrock geology1991–2020, northern sheet. Ontario Geological Survey, Index Maps, scale1:1,000,000.",
+      "title": "Index to Maps, Bedrock Geology, 1991–2020, Northern Sheet",
+      "publisher": "Ontario Geological Survey",
+      "year": 2021,
+      "scale": "1:1,000,000",
+      "source_type": "Retained primary original provincial geological-index cartography",
+      "original_map_pixels_inspected": true,
+      "actual_scope": "Private bounded headward-region crop read for Hosea Lake, named Black Duck drainage and adjacent Niskibi context.",
+      "source_key": "r129-ogs-bedrock-index-northern-2021",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf",
+      "use_notice": "Queen’s Printer for Ontario copyright2021. Published with permission of the OGS Director; quoted parts require credit. Source map/crops remain private, and publication does not establish blanket public-domain or product-reuse rights.",
+      "limits": "Generalized index-map hydrography is insufficient to establish the actual selected initial feeder/connector. Hosea Lake is not asserted to lie on this selected path."
+    },
+    {
+      "bibliography": "Ontario Ministry of Energy and Mines. OGS GeoData Listing for BMA561891.",
+      "title": "OGS GeoData Listing for BMA561891",
+      "source_type": "Primary publication listing, bibliography only",
+      "original_map_pixels_inspected": false,
+      "actual_scope": "Title/year/scale and numbered publication links only.",
+      "source_key": "r138-ogs-geodata-bma561891",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mndmfiles/dl/data/records/OGSDataListing_BMA_561_891.html",
+      "limits": "No selected hydrographic correspondence or source-map content is inferred from this listing. It is not the stopped LIO Topographic catalogue."
+    },
+    {
+      "title": "Yonza, Bolivia, 1:50,000; catalogue/file 5932 II, printed heading HOJA 5932 I; edition/date not established",
+      "author_or_publisher": "Instituto Geográfico Militar, Bolivia; original cartographic sheets hosted by the University of Texas Perry-Castañeda Map Collection",
+      "source_type": "primary_original_cartography",
+      "actually_read_scope": "Whole map and enlarged western-valley crop personally inspected. Covers the lower headward valley, Estancia Cuye, Catuyuma Pampa, the southern Uyuni margin and Laguna Charagua Kkota. The printed heading and file/catalogue numbering differ. No uninspected marginal edition is invented.",
+      "original_map_pixels_read": true,
+      "geographic_evidence": true,
+      "source_key": "IGM_YONZA",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5932-ii-yonza.pdf",
+      "limits": [
+        "Historical mapping; no modern discharge, year-round flow or official river length inferred.",
+        "Original maps and all working crops remain private."
+      ]
+    },
+    {
+      "title": "Cerro Chiar Kkollu, Bolivia, 1:50,000, hoja 5932 I; edition/date not established",
+      "author_or_publisher": "Instituto Geográfico Militar, Bolivia; original cartographic sheets hosted by the University of Texas Perry-Castañeda Map Collection",
+      "source_type": "primary_original_cartography",
+      "actually_read_scope": "Whole original map inspected. The selected passage crosses Salar de Uyuni north of the southern margin, west of Cerro Chiar Kkollu and toward the Isla Grande area. Salt-flat surfaces and islands are mapped; no corresponding through river is depicted.",
+      "original_map_pixels_read": true,
+      "geographic_evidence": true,
+      "source_key": "IGM_CHIAR",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5932-i-cerro_chiar_kkollu.pdf",
+      "limits": [
+        "Historical mapping; no modern discharge, year-round flow or official river length inferred.",
+        "Original maps and all working crops remain private."
+      ]
+    },
+    {
+      "title": "Estancia Yani Grande, Bolivia, 1:50,000, hoja 5933 II, H731, edición 1-IGM; field classification IGM-1992; digitized IGM-Cartografía 5-03",
+      "author_or_publisher": "Instituto Geográfico Militar, Bolivia; original cartographic sheets hosted by the University of Texas Perry-Castañeda Map Collection",
+      "source_type": "primary_original_cartography",
+      "actually_read_scope": "Whole original map, legend and imprint inspected. Selected passage is across the Uyuni salt-flat interior east of the shore near Estancia Yani Grande and Cerro Isla Grande/Isla Chica. Copyright/reproduction notice read.",
+      "original_map_pixels_read": true,
+      "geographic_evidence": true,
+      "source_key": "IGM_YANI",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5933-ii-estancia_yani_grande.pdf",
+      "limits": [
+        "Historical mapping; no modern discharge, year-round flow or official river length inferred.",
+        "Original maps and all working crops remain private."
+      ]
+    },
+    {
+      "title": "Estancia Phokher Khaua, Bolivia, 1:50,000, hoja 5933 I, H731, edición 1-IGM; field classification IGM-1992; digitized IGM-Cartografía 2008",
+      "author_or_publisher": "Instituto Geográfico Militar, Bolivia; original cartographic sheets hosted by the University of Texas Perry-Castañeda Map Collection",
+      "source_type": "primary_original_cartography",
+      "actually_read_scope": "Whole original map, legend and imprint inspected. Selected northward passage lies in Salar de Uyuni east of the rocky Phokher Khaua shore. Nearby quebradas entering the shore are not assigned to the modeled salt-flat trunk. Copyright/reproduction notice read.",
+      "original_map_pixels_read": true,
+      "geographic_evidence": true,
+      "source_key": "IGM_PHOKHER",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5933-i-estancia_phokher_khaua.pdf",
+      "limits": [
+        "Historical mapping; no modern discharge, year-round flow or official river length inferred.",
+        "Original maps and all working crops remain private."
+      ]
+    },
+    {
+      "title": "Palaya, Bolivia, 1:50,000, hoja 5934 I; edition/date not established",
+      "author_or_publisher": "Instituto Geográfico Militar, Bolivia; original cartographic sheets hosted by the University of Texas Perry-Castañeda Map Collection",
+      "source_type": "primary_original_cartography",
+      "actually_read_scope": "Whole original map inspected. It establishes the northwestern salt-flat margin east of Palaya, with local shore drainage, salt-affected plains and nearby small lagoons. Only the part of the selected northern turn within the sheet is detailed evidence.",
+      "original_map_pixels_read": true,
+      "geographic_evidence": true,
+      "source_key": "IGM_PALAYA",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5934-i-palaya.pdf",
+      "limits": [
+        "Historical mapping; no modern discharge, year-round flow or official river length inferred.",
+        "Original maps and all working crops remain private."
+      ]
+    },
+    {
+      "title": "Caquena, Bolivia, 1:50,000, hoja 6034 III; edition/date not established",
+      "author_or_publisher": "Instituto Geográfico Militar, Bolivia; original cartographic sheets hosted by the University of Texas Perry-Castañeda Map Collection",
+      "source_type": "primary_original_cartography",
+      "actually_read_scope": "Whole original map inspected. The selected eastward and southeastward interval is across Salar de Uyuni south of the northern shore, west of Caquena and the island/shore relief. No mapped through river or named trunk junction is present in this interval.",
+      "original_map_pixels_read": true,
+      "geographic_evidence": true,
+      "source_key": "IGM_CAQUENA",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/6034-iii-caquena.pdf",
+      "limits": [
+        "Historical mapping; no modern discharge, year-round flow or official river length inferred.",
+        "Original maps and all working crops remain private."
+      ]
+    },
+    {
+      "title": "Yacimientos de Litio Bolivianos, Rendición pública de cuentas final 2019 e inicial 2020, Trinidad, 27 February 2020",
+      "author_or_publisher": "Yacimientos de Litio Bolivianos, Ministerio de Energías, Bolivia",
+      "source_type": "primary_original_agency_cartography",
+      "actually_read_scope": "Cover and original map at PDF page 9, Mapa de ubicación Reserva Fiscal Uyuni, Tierra Fiscal Llipi, Planta Piloto de Llipi y Piscinas Salar - YLB. First twelve pages were visually thumbnail-located; operational/accounting content is not used. Map 9 was read at full rendered size.",
+      "original_map_pixels_read": true,
+      "geographic_evidence": true,
+      "map_observations": "The original gridded satellite-based agency map depicts the continuous western and central Uyuni salar surface and the Llica-Tahua shore setting. The selected lower continuation and interior terminal fall within this broad salt-flat area. Separate western and southern salars are geographically distinct. This location map does not show a continuous channel across the unresolved upper plain.",
+      "source_key": "YLB_2020",
+      "official_url": "https://www.ylb.gob.bo/wp-content/uploads/2025/09/rendicion_inicial_2020.pdf",
+      "limits": [
+        "This is an agency location/reserve map rather than a detailed hydrographic survey.",
+        "No economic, resource, legal-boundary, current operational or mineral-reserve inference is made.",
+        "Original and crops private."
+      ]
+    },
+    {
+      "title": "Ballivián, O. and Risacher, F. (1981), Los salares del Altiplano boliviano: métodos de estudio y estimación económica, ORSTOM, Paris; ISBN 2-7099-0604-X",
+      "author_or_publisher": "Universidad Mayor de San Andrés and ORSTOM",
+      "source_type": "primary_original_research_monograph",
+      "actually_read_scope": "Front matter/reproduction notice; bounded Uyuni prose at printed pp. 112-114 (PDF pp.118-120); Fig.16 at printed p.107/PDF p.113, Fig.18 at printed p.111/PDF p.117, and Fig.20 at printed p.120/PDF p.126 visually inspected. Bounded Empexa/La Laguna/Laguani text near PDF pp.223-224 used only to avoid conflating separate basins. Fig.18 is explicitly after Servant and Fontes (1978), a historical paleolake representation, not independent modern channel evidence.",
+      "original_map_pixels_read": true,
+      "geographic_evidence": true,
+      "map_observations": "Fig.20 depicts one Uyuni salt crust with a western lobe continuous with the central basin. Its plotted internal curves represent chemical concentrations, not streams. Prose describes ephemeral perimeter tributaries and separately locates Río Grande at the southeastern margin; it does not make the selected western route Río Grande.",
+      "source_key": "BALLIVIAN_RISACHER_1981",
+      "official_url": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/pleins_textes_7/divers2/01303.pdf",
+      "limits": [
+        "Study scope and historical salt-flat observations only.",
+        "Regional Fig.16 and paleolake Fig.18 do not establish missing modern connectors.",
+        "French statutory reproduction notice and ORSTOM copyright retained; no source images redistributed."
+      ]
+    },
+    {
+      "title": "Claure Pereira & Asociados (November 1991), Estudio de recursos hídricos para el suministro de agua potable a la población dispersa del Departamento de Potosí, Proyecto Yacupaj, Programa PNUD/Banco Mundial de Agua y Saneamiento",
+      "author_or_publisher": "Claure Pereira & Asociados; Programa PNUD/Banco Mundial de Agua y Saneamiento",
+      "source_type": "primary_commissioned_water_resources_report_prose",
+      "actually_read_scope": "Cover and rights page; map list at PDF p.16; printed pp.101-103 (PDF pp.117-119), especially Daniel Campos hydrography. No report map is used as inspected cartographic evidence.",
+      "original_map_pixels_read": false,
+      "geographic_evidence": false,
+      "prose_observations": "Describes dry channels and fluvio-lacustrine terrain, distinguishes isolated Empexa drainage, and describes small perimeter lagoons associated with rivers reaching the Uyuni margin. These are regional context, not proof of the selected connector.",
+      "source_key": "POTOSI_1991",
+      "official_url": "https://documents1.worldbank.org/curated/en/182301468016756224/pdf/720100WP0SPANI0ricos0Dept0De0Potosi.pdf",
+      "limits": [
+        "Copyright 1991 IBRD/World Bank, all rights reserved; source explicitly permits citation with attribution.",
+        "The report lists 1:500,000 drainage and 1:250,000 provincial plans, but those listed plans are not claimed as read original maps."
+      ]
+    },
+    {
+      "title": "University of Texas Perry-Castañeda Map Collection, Bolivia Topographic Maps 1:50,000",
+      "source_type": "map_catalogue_only",
+      "actually_read_scope": "Named selected sheet links, catalogue scale and collection attribution. Catalogue metadata is not mapped geometry.",
+      "original_map_pixels_read": false,
+      "geographic_evidence": false,
+      "source_key": "UT_50K_CATALOGUE",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia/index-50k.html"
+    },
+    {
+      "title": "Catalogue target 5931 I Estancia Seccicha; actually returned printed Estancia Seccicha, hoja 5931 III",
+      "source_type": "wrong_extent_catalogue_target",
+      "actually_read_scope": "Parsed original title, sheet number and named features only. No map-pixel correspondence is claimed.",
+      "original_map_pixels_read": false,
+      "geographic_evidence": false,
+      "source_key": "UT_WRONG_SHEET",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5931-i-estancia_seccicha.pdf"
+    },
+    {
+      "title": "Precursoras investigaciones científicas en geociencias y limnología: Altiplano boliviano, 1968-1980",
+      "source_type": "bibliographic_discovery_only",
+      "actually_read_scope": "Bounded bibliography and historical research description around PDF pp.57-58,99,107; used only to identify Ballivián/Risacher research. No original map used and no substantive corridor claim derives from it.",
+      "original_map_pixels_read": false,
+      "geographic_evidence": false,
+      "source_key": "RODRIGO_HISTORY",
+      "official_url": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2024-03/010051316.pdf"
+    },
+    {
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "year": 1995,
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "acquired_scope": "Retained lawful complete original reused locally. Full-sheet overview, East Greenland regional and overlapping corridor/headward views, geographic graticule, Inland Ice legend and imprint actually rendered and visually read.",
+      "supports": "The broad Inland Ice opening, northern loop and western/eastward headward connector, including the area obscured by the synoptic inset on detailed Sheet 11; overlap into the Waltershausen-adjacent ice/land sector.",
+      "limits": "National-scale historical geological cartography establishes geographic ice/land context, not a surface or subglacial river trace, present drainage or contemporary ice fronts. Inland Ice surface contours, ice-thickness isopachs and bedrock contours are not river traces.",
+      "reuse_limit": "GEUS Custom Dataset Terms restrict redistribution and creation or transfer of new maps. Original, crops, processed data and any comparison materials stay private; only independently written facts and ordinary bibliography are public-ready.",
+      "source_key": "r138-geus-greenland-national-1995"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 11, Kong Oscar Fjord",
+      "authors": "Jan C. Escher",
+      "publisher": "Geological Survey of Denmark and Greenland (GEUS), Copenhagen",
+      "year": 2001,
+      "official_url": "https://doi.org/10.22008/FK2/NKHZZN",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/NKHZZN",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16521",
+      "acquired_scope": "Official landing page and its exact linked complete original PDF acquired sequentially and successfully. Full-sheet overview, overlapping northwestern and middle/terminal corridor views, north and west graticule, ice/cover legend and imprint actually rendered and visually read.",
+      "supports": "The complete exposed ice/nunatak connector east of the sheet inset: Wilkins Nunatakker and Eyvind Fjeld Gletscher sector, Jakob Kjøde Bjerg and the western Waltershausen-adjacent ice field, the Adolf Hoel/Nunatakgletscher connection and the actual inner Geologfjord terminal corridor between Andrée Land and Strindberg Land.",
+      "limits": "The synoptic tectonic inset masks part of the upper Inland Ice area; it is not used as local geographic coverage. The retained national original supplies that coverage. Historical ice, exposed-rock and fjord cartography does not establish a continuous natural river or exact contemporary glacier-front/channel position. Neighboring names remain contextual.",
+      "reuse_limit": "Official Custom Dataset Terms allow internal use/processing and restrict redistribution and production or transfer of new maps. Copyright GEUS and Kort & Matrikelstyrelsen is visible on the original. Original and all working crops/derivatives remain private; factual observations and ordinary citations only.",
+      "source_key": "r138-geus-kong-oscar-fjord-sheet11-2001"
+    },
+    {
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000. 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf",
+      "acquired_scope": "Retained complete original reused locally. Page 4 regional map and editorial note, page 13 topographic-base discussion and bounded bibliographic text actually read.",
+      "supports": "Supporting identification of North-East Greenland and Inland Ice, national-map scale/topographic representation and the distinction between contextual cartography and river naming.",
+      "limits": "Supporting context only. Page 4 is a national regional diagram, not detailed selected-route evidence. National-map approval of place-name forms does not independently verify any river registry entry for this artificial river group.",
+      "reuse_limit": "Copyright GEUS 2009; original and working figures stay private. Own factual paraphrase only.",
+      "source_key": "r138-geus-bulletin18-2009-retained"
+    },
+    {
+      "title": "Steensby Inlet, District of Franklin, Northwest Territories; Land Use Information Series, sheet37F",
+      "publisher": "Department of the Environment, Lands Directorate, Environmental Conservation Service; Indian and Northern Affairs Canada",
+      "year": 1981,
+      "bibliography": "Sheet37F, scale1:250,000. Thematic cartography by Land Resource Research Institute, Agriculture Canada; base map and printing by Map Reproduction Centre, Department of Energy, Mines and Resources.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_37f.jpg",
+      "evidence_kind": "primary_original_cartography_and_bounded_map_margin_prose",
+      "acquired_scope": "Original JPG completed HTTP200 image/jpeg. Map face, graticule, Maino Lake outlet, Rowley River corridor and lake/junction/terminal areas, imprint and fish-resources margin were visually read.",
+      "supports": "Mapped Rowley River begins on the inspected sheet at the southwestern Maino Lake outlet, follows the southwest-trending valley with several widenings and lateral tributaries, continues through the connected western lake chain, bends east across a short falls/rapids reach into Separation Lake, and leaves its southwest end through the lower Rowley channel to the east shore of Steensby Inlet.",
+      "limits": "Coverage ends at the northern/eastern sheet boundaries, leaving the upper eastern route and Maino Lake entrance outside the inspected sheet. Names are cartographic component labels, not proof that every feeder/lake passage shares a hydronym or of current legal registry status. Historical coast/foreshore flats are generalized; no exact bank or endpoint claim. The margin explicitly characterizes fish information as limited, compiled from reconnaissance, previous studies and local comments, not a complete inventory.",
+      "use_notice": "Printed Crown copyright1981. No redistribution permission inferred from official hosting; originals and crops remain private.",
+      "source_key": "r138-nluis37f"
+    },
+    {
+      "title": "Icebound Lakes, District of Franklin, Northwest Territories; Land Use Information Series, sheet37G",
+      "publisher": "Department of the Environment, Lands Directorate, Environmental Conservation Service; Indian and Northern Affairs Canada",
+      "year": 1981,
+      "bibliography": "Sheet37G, scale1:250,000. Thematic cartography by Land Resource Research Institute, Agriculture Canada; base map and printing by Map Reproduction Centre, Department of Energy, Mines and Resources.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_37g.jpg",
+      "evidence_kind": "primary_original_cartography",
+      "acquired_scope": "Original JPG completed HTTP200 image/jpeg. Southeastern map corner and imprint read.",
+      "supports": "The southeastern map corner labels the western Maino Lake portion immediately north of sheet37F and shows its continuation through the sheet boundary.",
+      "limits": "Only a short Maino Lake margin of the selected route is on this sheet. Its eastern boundary does not cover the northeastern Maino bend or the long upper reach eastward; the Icebound Lakes sheet title is not assigned to this river.",
+      "use_notice": "Printed Crown copyright1981. Source originals and crops remain private; no redistribution permission inferred.",
+      "source_key": "r138-nluis37g"
+    },
+    {
+      "title": "Rowley River",
+      "publisher": "Arctic Odyssey",
+      "authors": null,
+      "year": null,
+      "official_url": "https://arcticodyssey.ca/rowley-river/",
+      "evidence_kind": "primary_expedition_account_overview_prose",
+      "acquired_scope": "HTML article opened normally in web reader. Opening route description and expedition introduction read. No map image claimed.",
+      "supports": "The expedition participants describe the Rowley as beginning in northeastern Baffin Island and flowing southwest to Steensby Inlet and Foxe Basin.",
+      "limits": "Regional prose only; it does not inspect the selected upper feeder, Maino entrance, or every material junction. It is not a current naming-registry record.",
+      "use_notice": "Own concise factual synthesis only; no source photographs or substantial prose reproduced.",
+      "source_key": "r138-arcticodyssey-rowley"
+    },
+    {
+      "title": "The Rowley River",
+      "authors": [
+        "Ted Johnson"
+      ],
+      "publisher": "Arctic Odyssey",
+      "year": null,
+      "bibliography": "First-person account of the1995 canoe expedition; page titled Rowley – Ted Johnson.",
+      "official_url": "https://arcticodyssey.ca/rowley/",
+      "evidence_kind": "primary_first_person_prose",
+      "acquired_scope": "HTML article opened normally in web reader. Opening geographic description, actual upstream landing scope, lake/portage sequence and sea arrival read. No geographic source image acquired.",
+      "supports": "Describes a southwest-flowing river gathering glacier-fed tributaries, major falls/rapids and final arrival at Foxe Basin. The party landed about100 kilometres upstream, explicitly limiting its directly travelled account.",
+      "limits": "The prose does not furnish detailed correspondence for the selected eastern headwater reach. Its Heart-Shaped Lake narrative is not silently equated with a particular unnamed selected lake. Informal distances are not substituted for retained model length.",
+      "use_notice": "Own concise factual synthesis only; original photos and substantial prose are not republished.",
+      "source_key": "r138-johnson-rowley"
+    },
+    {
+      "title": "Northern Land Use Information Series: Northern Land Use map index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "evidence_kind": "retained_catalogue_metadata_only",
+      "acquired_scope": "Previously successful r127 index HTML reused locally, without a new request.",
+      "supports": "Supplied exact37F and37G original links and sheet titles.",
+      "limits": "Not map correspondence; no37E or37H original was inferred from an unlisted path.",
+      "source_key": "r138-nluis-index-retained"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70049998",
+      "source_keys": [
+        "r138-ogs-p3626",
+        "r138-ogs-p3625",
+        "r129-ogs-bedrock-index-northern-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9096
+          ],
+          "component_scope": "Selected beginning south of 56 degrees north, westward bend and northeastward approach to the P.3626 southern edge.",
+          "finding": "The retained regional index shows Hosea Lake and a named Black Duck drainage in the wider headward area. Its generalized linework does not resolve the actual selected southern feeder and connector. The selected geometry is orientation only. No passage through Hosea Lake, named source lake, continuous wetland connector or complete initial channel correspondence is established.",
+          "sources": [
+            "r129-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "material_missing_connector_and_headward_coverage",
+          "selected_component_role": "mainstem, initial southern interval",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9096
+          ],
+          "component_scope": "Southern P.3626 edge near 56 degrees north through the predominantly northward middle valley.",
+          "finding": "The original sheet directly labels the meandering trunk Black Duck River. It follows a narrow fluvial corridor through extensive organic-deposit lowlands, with small side channels and scattered water bodies. The selected route remains in the river valley rather than traversing a major lake.",
+          "sources": [
+            "r138-ogs-p3626"
+          ],
+          "correspondence": "original_map_pixels_at_corridor_scale",
+          "selected_component_role": "mainstem",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Black Duck River"
+        },
+        {
+          "fragments": [
+            9096
+          ],
+          "component_scope": "Middle P.3626 corridor through the eastward bend and subsequent northeastward/northward reaches.",
+          "finding": "The trunk has the selected broad eastward turn followed by its northward continuation, with repeated Black Duck River labels. Mansemeigos Creek is separately labelled on the side-drainage corridor southeast of the trunk. Mistahayo Lake lies off the selected trunk to the east. The map does not support transferring either label to the selected mainstem or claiming a selected through-lake passage.",
+          "sources": [
+            "r138-ogs-p3626"
+          ],
+          "correspondence": "original_map_pixels_at_corridor_scale",
+          "selected_component_role": "mainstem",
+          "name_limits": "An exact source-to-lake itinerary for the side creek is not asserted.",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Black Duck River"
+        },
+        {
+          "fragments": [
+            9096
+          ],
+          "component_scope": "P.3626 northern edge and P.3625 southern edge near 56 degrees 30 minutes north.",
+          "finding": "The separately issued detailed sheets overlap by their common latitude edge and show the same northbound Black Duck valley continuing across the seam. East Kettle River is a separately labelled western corridor; it is not relabelled as part of the selected Black Duck route.",
+          "sources": [
+            "r138-ogs-p3626",
+            "r138-ogs-p3625"
+          ],
+          "correspondence": "both_original_sheet_edges_read",
+          "selected_component_role": "mainstem",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Black Duck River"
+        },
+        {
+          "fragments": [
+            9096
+          ],
+          "component_scope": "Northern sheet from its southern edge through the northeastward border-adjacent lower course.",
+          "finding": "Repeated Black Duck River labels follow the selected lower trunk through broad meanders and the Manitoba–Ontario boundary setting. The sheet retains hydrographic linework on the Manitoba side even where its geological fill stops at the provincial boundary. Little Auntie Creek is separately labelled in the western side-channel network adjacent to the lower Black Duck. Oosteguanako Creek and Mintiagan Creek are separately labelled east-side regional drainage context and are not assigned to the selected trunk.",
+          "sources": [
+            "r138-ogs-p3625"
+          ],
+          "correspondence": "original_map_pixels_at_corridor_scale",
+          "selected_component_role": "mainstem",
+          "name_limits": "No exhaustive inventory or legal naming extent of individual anabranches or tributaries is claimed.",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Black Duck River"
+        },
+        {
+          "fragments": [
+            9096
+          ],
+          "component_scope": "Black Duck River coastal fan immediately west of the provincial-boundary coast, west of the Pen Islands.",
+          "finding": "The directly labelled lower river leads into several coastal distributary/side-channel branches that meet the Hudson Bay shore. The selected terminal setting is that Black Duck coastal outlet. West Pen Island and East Pen Island lie farther east in the same regional coastal sheet. The observation establishes the receiving coastal setting, not one exact modern mouth-point vertex or a uniform name for every coastal branch.",
+          "sources": [
+            "r138-ogs-p3625"
+          ],
+          "correspondence": "original_map_pixels_to_actual_receiving_water",
+          "selected_component_role": "mainstem terminal",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Black Duck River",
+          "receiving_water": "Hudson Bay"
+        },
+        {
+          "fragments": [
+            9096
+          ],
+          "component_scope": "Selected mainstem FID None",
+          "finding": "Across the detailed mapped middle/lower interval, the selected route follows fluvial channels through lowlands mapped extensively as organic deposits; the legend distinguishes bog and fen deposits. No major selected through-lake passage, reservoir or dam is established there. Hosea Lake is only retained regional headward context; its connection to this selected start remains unresolved. Mistahayo Lake is off the observed selected trunk. The absence of a mapped reservoir symbol is not a claim about every minor or present-day structure.",
+          "sources": [
+            "r138-ogs-p3626",
+            "r138-ogs-p3625",
+            "r129-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "detailed_maps_for_middle_lower_only; regional_index_for_headward_context",
+          "selected_component_role": "cross-cutting corridor context",
+          "reason_partial": "Headward lake/wetland/channel linkage is part of the unresolved southern gap.",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61298121",
+      "source_keys": [
+        "IGM_YONZA",
+        "IGM_CHIAR",
+        "IGM_YANI",
+        "IGM_PHOKHER",
+        "IGM_PALAYA",
+        "IGM_CAQUENA",
+        "YLB_2020",
+        "BALLIVIAN_RISACHER_1981",
+        "POTOSI_1991"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13945
+          ],
+          "component_scope": "Southern headward opening",
+          "finding": "The selected opening begins south of Yonza’s southern neatline and enters the valley west of Cerro Caltama. The purported 5931-I catalogue target identifies another quadrant, and the independent Cerro Paruma sheet is excluded for its printed restriction. YLB supplies only regional terrain context. The complete opening-to-valley correspondence is not established.",
+          "sources": [
+            "IGM_YONZA",
+            "YLB_2020"
+          ],
+          "correspondence": "material_pending",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13945
+          ],
+          "component_scope": "Caltama-west valley, Cuye and Catuyuma Pampa to southern Uyuni margin",
+          "finding": "Yonza shows local quebrada branches descending the valley west of Cerro Caltama, branches near Estancia Cuye, and local channels extending into Catuyuma Pampa. The selected line proceeds north through saline plain and into the salar. The map does not establish this through-going connector; local named quebradas are not promoted to a whole-route name. Laguna Charagua Kkota is mapped farther east along the southern margin, but no selected passage through that lagoon is established.",
+          "sources": [
+            "IGM_YONZA"
+          ],
+          "correspondence": "partly_mapped_connector_pending",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13945
+          ],
+          "component_scope": "Southwestern Uyuni salt-flat interior",
+          "finding": "The chosen line runs across the salt-flat surface rather than a named mapped river, past the island setting around Cerro Chiar Kkollu and Isla Grande. The mapping supports the broad continuous salar setting, not a watercourse bearing the island names.",
+          "sources": [
+            "IGM_CHIAR",
+            "IGM_YANI",
+            "YLB_2020"
+          ],
+          "correspondence": "mapped_salt_flat_geography",
+          "mapped_component_name": "Salar de Uyuni",
+          "name_role": "receiving salt-flat terrain, not a representative river hydronym"
+        },
+        {
+          "fragments": [
+            13945
+          ],
+          "component_scope": "West-central salt-flat turn",
+          "finding": "The selected bend is within the western/central continuous Uyuni salt flat. Detailed western sheets and the full-salar original YLB map show its relation to island relief and rocky western shore. No original source depicts the selected grid-like route as one named channel.",
+          "sources": [
+            "IGM_YANI",
+            "IGM_PHOKHER",
+            "BALLIVIAN_RISACHER_1981",
+            "YLB_2020"
+          ],
+          "correspondence": "mapped_salt_flat_geography",
+          "mapped_component_name": "Salar de Uyuni"
+        },
+        {
+          "fragments": [
+            13945
+          ],
+          "component_scope": "Northwestern salar passage and northern turn near Llica/Palaya",
+          "finding": "The selected route remains on the salar side of the rocky western/northwestern shore and turns near the Palaya sector. YLB supplies the continuous whole-salar context across the unavailable Llica-sheet interval. Palaya maps neighboring small lagoons and short local drainage, but does not establish that the selected line passes through or adopts their names. The 5934-II map was not recovered.",
+          "sources": [
+            "IGM_PHOKHER",
+            "IGM_PALAYA",
+            "YLB_2020"
+          ],
+          "correspondence": "broad_salt_flat_geography_mapped_detail_partial",
+          "mapped_component_name": "Salar de Uyuni"
+        },
+        {
+          "fragments": [
+            13945
+          ],
+          "component_scope": "Northern salar eastward and southeastward passage",
+          "finding": "Caquena shows the selected interval across the broad salt flat south of the northern shore, with islands/shore relief nearby. No major through-river junction or named trunk is mapped for that selected passage.",
+          "sources": [
+            "IGM_CAQUENA",
+            "YLB_2020"
+          ],
+          "correspondence": "mapped_salt_flat_geography",
+          "mapped_component_name": "Salar de Uyuni"
+        },
+        {
+          "fragments": [
+            13945
+          ],
+          "component_scope": "Central salar continuation and actual terminal setting",
+          "finding": "The selected southeastward continuation and endpoint are in the central Uyuni salar surface, as read on YLB’s original gridded location map and corroborated by the monograph’s full salt-crust outline. This is an interior salt-flat terminal, without a mapped sea outlet or persistent through-river continuation. Fig.20 chemical contour curves are not waterways. The southeastern Río Grande inlet is a different mapped/prose-described tributary, not a name for this selected route.",
+          "sources": [
+            "YLB_2020",
+            "BALLIVIAN_RISACHER_1981"
+          ],
+          "correspondence": "generalized_original_cartography_supported",
+          "mapped_component_name": "Salar de Uyuni",
+          "name_role": "actual receiving/terminal salt-flat setting"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90053570",
+      "source_keys": [
+        "r138-geus-greenland-national-1995",
+        "r138-geus-kong-oscar-fjord-sheet11-2001",
+        "r138-geus-bulletin18-2009-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8850
+          ],
+          "component_scope": "Headward opening, northern loop and western eastward connector",
+          "finding": "The opening and northward loop occupy the Inland Ice west and northwest of the nunatak belt. The following eastward connector continues through the interior-ice setting. The national original provides the actual local geographic reading for the portion covered by the detailed sheet’s synoptic tectonic inset, then overlaps the detailed sheet’s unobscured ice coverage.",
+          "sources": [
+            "r138-geus-greenland-national-1995",
+            "r138-geus-kong-oscar-fjord-sheet11-2001"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null,
+          "limits": "The inset is not treated as a local map of the selected opening. No named river source or surface/subglacial flow path is inferred from ice contours or modeled connectivity."
+        },
+        {
+          "fragments": [
+            8850
+          ],
+          "component_scope": "Southeastward approach into the Wilkins Nunatakker–Eyvind Fjeld sector",
+          "finding": "After its eastward ice crossing, the selected route turns southeast toward the mapped nunatak and glacier country around Wilkins Nunatakker and Eyvind Fjeld Gletscher. The original detailed sheet distinguishes ice/perennial snow from exposed rock and undifferentiated cover throughout this connector.",
+          "sources": [
+            "r138-geus-kong-oscar-fjord-sheet11-2001",
+            "r138-geus-greenland-national-1995"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null,
+          "limits": "These landmarks locate the ice/land corridor; they are not transferred to the selected river, and uniform surface cover at every modeled vertex is not claimed."
+        },
+        {
+          "fragments": [
+            8850
+          ],
+          "component_scope": "Middle eastward connector and lower eastward bend",
+          "finding": "The eastward middle section traverses the Eyvind Fjeld Gletscher/Jakob Kjøde Bjerg ice-and-nunatak sector and continues toward the western Waltershausen Gletscher ice field, north of the Adolf Hoel Gletscher corridor. The mapped adjoining ice passages and intervening exposed ridges account for the complete broad connector before the selected route bends south.",
+          "sources": [
+            "r138-geus-kong-oscar-fjord-sheet11-2001"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null,
+          "limits": "A modeled line through this mixed glacier/nunatak region is not evidence that all portions form a continuous natural river, or that Eyvind Fjeld, Waltershausen or Adolf Hoel is a representative river hydronym."
+        },
+        {
+          "fragments": [
+            8850
+          ],
+          "component_scope": "Southward lower approach and actual terminal corridor",
+          "finding": "The lower selected route bends south into the Nunatakgletscher–inner Geologfjord setting, with Andrée Land on the west side and Strindberg Land on the east side. The original distinguishes this narrow inner-fjord connection from Waltershausen Gletscher’s separate eastward/southeastward continuation to Nordfjord. The selected terminal belongs to the inner Geologfjord corridor.",
+          "sources": [
+            "r138-geus-kong-oscar-fjord-sheet11-2001"
+          ],
+          "correspondence": "complete at ordinary generalized terminal-corridor scale",
+          "mapped_component_name": null,
+          "limits": "Historical mapped ice-front/fjord context is not a precise present-day river mouth or front survey. Retained terminal class sea is model metadata. Granitsø is a separately mapped nearby lake and is not established as a selected through-lake passage."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80033385",
+      "source_keys": [
+        "r138-nluis37f",
+        "r138-nluis37g",
+        "r138-arcticodyssey-rowley",
+        "r138-johnson-rowley"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2337
+          ],
+          "component_scope": "Eastern headward reach and opening western descent",
+          "finding": "The selected model starts east of the inspected NLUIS sheets and initially trends west/southwest before turning west/northwest. Its actual starting waterbody or terrain, initial river connection, tributaries and any glacier/lake association have not been established from allowed original cartography. Model orientation alone is not correspondence.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2337
+          ],
+          "component_scope": "Upper northwestward return and northeastern Maino Lake approach",
+          "finding": "This eastern upper corridor and its return northward lie beyond the inspected sheets. The actual selected channel connections into Maino Lake, intervening lake passages and material upper tributary junctions remain unresolved. Neither regional expedition prose nor labels from search discovery establish these links.",
+          "sources": [],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2337
+          ],
+          "component_scope": "Maino Lake western passage and southwest outlet",
+          "finding": "The37G southeastern corner and37F northeastern corner depict the western Maino Lake portion crossing their common boundary and continuing into the southwest-flowing Rowley valley. The lake’s eastern approach lies beyond their eastern boundary; this lake component therefore has partial original correspondence only.",
+          "sources": [
+            "r138-nluis37g",
+            "r138-nluis37f"
+          ],
+          "correspondence": "western_lake_and_outlet_mapped_eastern_entrance_pending",
+          "mapped_component_name": "Maino Lake",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2337
+          ],
+          "component_scope": "Southwest Rowley valley and tributary junctions",
+          "finding": "The selected southwest corridor corresponds to the broad valley labeled Rowley River below Maino Lake. Original cartography shows linked narrow/wider river reaches with rapids markings and tributaries entering from both sides. An appreciable western tributary joins before the broader middle lake sequence; unnamed lateral feeders retain unknown names.",
+          "sources": [
+            "r138-nluis37f"
+          ],
+          "correspondence": "supported_at_generalized_component_scale",
+          "mapped_component_name": "Rowley River",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2337
+          ],
+          "component_scope": "Connected middle lake expansions and eastern lateral branch",
+          "finding": "The Rowley valley expands into connected irregular lakes. The selected route follows the western/southern continuation, while an eastern lateral lake and its incoming stream remain distinct adjacent components. The original shows the lake connections and the narrowing between the selected waterbody expansions; no independent lake hydronym is supplied.",
+          "sources": [
+            "r138-nluis37f"
+          ],
+          "correspondence": "supported_at_generalized_component_scale",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2337
+          ],
+          "component_scope": "Southward reach, eastward turn and Separation Lake",
+          "finding": "From the elongated western waterbody the mapped river turns east through a short reach with falls and rapids symbols and enters Separation Lake at its northern part. An eastern stream enters the lake system separately. The selected route turns southwest through the lake toward its outlet. The map, rather than an assumed model connector, establishes this principal lake linkage. The canoe report provides only broad falls/rapids corroboration.",
+          "sources": [
+            "r138-nluis37f",
+            "r138-johnson-rowley"
+          ],
+          "correspondence": "supported_at_generalized_component_scale",
+          "mapped_component_name": "Separation Lake",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2337
+          ],
+          "component_scope": "Lower Rowley River and actual coastal terminal",
+          "finding": "Below Separation Lake, the mapped Rowley River winds west and then southwest into a narrow coastal opening on the eastern side of Steensby Inlet. The map carries the Rowley label along this outlet river. Windless Lake and its separate shoreward valley lie to the southeast and are not the selected terminal route. The foreshore/coast is generalized; no precise modern tidal limit or bank position is claimed.",
+          "sources": [
+            "r138-nluis37f",
+            "r138-arcticodyssey-rowley",
+            "r138-johnson-rowley"
+          ],
+          "correspondence": "supported_at_generalized_component_scale",
+          "mapped_component_name": "Rowley River",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70049998",
+      "publication": "Barnett, Yeung and McCallum2016, Surficial Geology of the Island River Area Northwest, Northern Ontario, OGS Preliminary Map P.3629",
+      "official_url": "https://www.geologyontario.mines.gov.on.ca/persistent-linking?publication=P3629",
+      "observed_outcome": "The sole catalogue-link web-reader request returned Cache miss. No HTTP status, catalogue body or original map was exposed.",
+      "outcome_layer": "Web-reader availability; origin HTTP status unknown",
+      "restriction_scope": "Missing P.3629 publication/map content and all equivalent copies, figures, formats, catalogue/original/reader/cache/mirror and other acquisition routes paused. No retry or original fallback.",
+      "earlier_lawful_prose_exception": "The separate normally read OGS GeoData listing supplies bibliography only.",
+      "material_effect": "Potential detailed southern/headward coverage unavailable; the actual initial route remains unresolved."
+    },
+    {
+      "aw_id": "hydro-system:70049998",
+      "publication": "Barnett, Yeung and McCallum2016 [discovery bibliography], Surficial Geology of the Sturgeon Lake Area North and Kaskattama River Area Southeast, Northern Ontario, OGS Preliminary Map P.3628",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mndmfiles/pub/data/records/P3628.html",
+      "observed_outcome": "The sole web-reader open returned Internal Error: URL is not accessible via this tool. No HTTP status, security reason, catalogue body or original map was exposed.",
+      "outcome_layer": "Web-reader route availability; origin HTTP outcome unknown",
+      "restriction_scope": "Exact failed route not repeated. Missing publication/map and equivalent routes left paused; no known-original technical fallback was established and no alternate acquisition followed. This does not establish a publication-wide HTTP denial or an agency-wide stop.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Potential western headward corroboration unavailable. Search-discovery text is not substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:70049998",
+      "publication": "Geophysical series,53 P/14, District of Kenora, Ontario, airborne magnetic, total field; Ontario catalogue M03761G,1968, scale1:63,360",
+      "official_url": "https://www.geologyontario.mines.gov.on.ca/persistent-linking?publication=M03761G",
+      "observed_outcome": "The sole catalogue-link web-reader request returned Cache miss. No HTTP status, catalogue body or original map was exposed.",
+      "outcome_layer": "Web-reader availability; origin HTTP status unknown",
+      "restriction_scope": "Missing historical M03761G publication/map content and all equivalent copies, figures, formats, catalogue/original/reader/cache/mirror and other acquisition routes paused. No retry or original fallback.",
+      "earlier_lawful_prose_exception": "The separate normally read OGS GeoData listing supplies the publication number, bibliographic title/year/scale only.",
+      "material_effect": "Possible independent initial-corridor corroboration unavailable."
+    },
+    {
+      "aw_id": "hydro-system:70049998",
+      "publication": "Manitoba Geological Survey CANQUA poster, sil_poster_canqua.pdf; full printed title and edition not inspected",
+      "official_url": "https://www.gov.mb.ca/iem/geo/surficial/sil_poster_canqua.pdf",
+      "observed_outcome": "The sole web-reader open returned (400) Timeout fetching. No source body or original map pixels were acquired; origin HTTP status was not exposed.",
+      "outcome_layer": "Web-reader fetch/transport outcome",
+      "restriction_scope": "Missing poster and all equivalent copies, figures, formats, original/reader/cache/catalogue/mirror and other acquisition routes paused. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Optional regional glacial-landscape corroboration unavailable. Discovery excerpts are excluded; this failure is not a separate access-pending count."
+    },
+    {
+      "aw_id": "hydro-system:61298121",
+      "publication": "Llica, Bolivia, 1:50,000, hoja 5934 II, Instituto Geográfico Militar; edition uninspected",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5934-ii-llica.pdf",
+      "observed_outcome": "The sole original-link web-reader click returned (403) Forbidden. No original map pixels were acquired.",
+      "outcome_layer": "Web-reader fetch result reporting HTTP 403; direct origin status not independently observed.",
+      "restriction_scope": "Whole sheet and equivalent copies, figures, editions used as recovery, formats, original/reader/cache/catalogue/mirror and other acquisition routes stopped. No retry or alternate recovery. Not a series-wide or institutional ban.",
+      "earlier_lawful_prose_exception": "Earlier catalogue title/scale only; discovery map-label snippets excluded.",
+      "limitation_kind": "http_403_denial",
+      "material_effect": "Detailed local sheet unavailable; broad salar setting is independently mapped by YLB. This restriction is preserved without making a second access-pending status."
+    },
+    {
+      "aw_id": "hydro-system:61298121",
+      "publication": "Cerro Paruma, Bolivia/Chile, Joint Operations Graphic (Air), SF19-3, Series 1501 Air, Edition 1, compiled May 1996, NIMA reprint 6-99",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/sf-19-3-cerro_paruma-bolivia-chile-1999.pdf",
+      "observed_outcome": "Original-file acquisition completed HTTP 200, application/pdf. The inspected margin bears LIMITED DISTRIBUTION and restricted DoD/authorized-contractor distribution conditions.",
+      "outcome_layer": "Printed source-use restriction on successfully acquired original; not an HTTP denial.",
+      "restriction_scope": "Whole sheet and equivalent copies, formats, crops and maps excluded from substantive correspondence and further acquisition. No alternate edition or mirror sought.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "printed_distribution_restriction",
+      "material_effect": "Potential headward corroboration excluded. No geographic claim in this finding relies on the map, even though its full-sheet render was displayed with the margin. Distinct from the historically stopped Uyuni sheet and excluded Salinas sheet; no blanket JOG ban."
+    },
+    {
+      "aw_id": "hydro-system:61298121",
+      "publication": "UT catalogue target 5931 I Estancia Seccicha",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5931-i-estancia_seccicha.pdf",
+      "observed_outcome": "Successful web PDF parse actually identifies Estancia Seccicha, hoja 5931 III, rather than the requested geographic quadrant.",
+      "outcome_layer": "Catalogue/file content mismatch; no HTTP denial or transport error.",
+      "restriction_scope": "This fetched document supplies no evidence for the selected headward opening. The wrong target was not repeated, and no alternate same-sheet recovery was attempted.",
+      "earlier_lawful_prose_exception": "Parsed title/sheet identity only.",
+      "limitation_kind": "wrong_extent_content_limit",
+      "material_effect": "The intended southern opening remains unestablished by this source."
+    },
+    {
+      "aw_id": "hydro-system:61298121",
+      "publication": "Yonza, Bolivia 1:50,000, catalogue/file 5932 II (printed 5932 I)",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5932-ii-yonza.pdf",
+      "observed_outcome": "Original map read successfully, but the selected southern opening is outside its mapped extent and the mapped local drainage does not establish the selected through-going continuation across Catuyuma Pampa into the Uyuni salar.",
+      "outcome_layer": "Cartographic coverage/connector limit, not HTTP or transport failure.",
+      "restriction_scope": "Only the material headward/connector intervals remain unresolved; successfully mapped local drainage and salt-flat geography remain usable.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_component_coverage_limit",
+      "material_effect": "Actual material pending. Broad endorheic or salt-flat association does not supply the missing connector."
+    },
+    {
+      "aw_id": "hydro-system:80033385",
+      "publication": "Conn Lake, NTS037E, CanMatrix 1:250,000 topographic sheet; printed edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/037/e/canmatrix_037e_tif.zip",
+      "observed_outcome": "The official sheet directory completed HTTP200 and supplied the exact archive link. The sole original archive request completed HTTPError403 Forbidden. No archive or map body acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate transport/tunnel failure reported.",
+      "restriction_scope": "Whole NTS037E CanMatrix 1:250,000 publication and equivalent copies, formats, editions offered as the same source, viewers, mirrors and all acquisition routes stopped. No retry. Independently issued 1:50,000 sub-sheets were identified separately by catalogue number, scale and publication identity.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no map observations.",
+      "limitation_kind": "http_403_denial",
+      "material_effect": "Potential coverage of the eastern headward river corridor was unavailable."
+    },
+    {
+      "aw_id": "hydro-system:80033385",
+      "publication": "Maino Lake, Nunavut, Canadian topographic maps 37-H/4, ed.01 version00 (2011), M116-2/037H04-PDF",
+      "official_url": "https://publications.gc.ca/site/eng/9.585761/publication.html",
+      "observed_outcome": "Sole catalogue open returned web-reader Cache miss. No catalogue body, map pixels or HTTP status supplied.",
+      "outcome_layer": "Web-reader availability outcome; origin HTTP status unknown.",
+      "restriction_scope": "Missing catalogue/map publication and equivalent copies, formats, original/reader/cache/screenshot/mirror and acquisition routes paused. No retry or alternate original.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_effect": "The eastern Maino Lake entrance and upper bend remain without original-map correspondence."
+    },
+    {
+      "aw_id": "hydro-system:80033385",
+      "publication": "Electronic Items in Weekly Checklist of Canadian Government Publications 10-08 (2010)",
+      "official_url": "https://publications.gc.ca/site/eng/weeklyChecklist/issues/2010/10-08-electronic.html",
+      "observed_outcome": "Sole web-reader open reported 502 Bad Gateway. No body acquired.",
+      "outcome_layer": "Web reader reported HTTP502; no independent origin receipt.",
+      "restriction_scope": "This checklist and equivalent checklist acquisition routes paused. This is not a blanket stop on independently issued publications bibliographically listed by the checklist. No retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_502_availability_stop",
+      "material_effect": "Bibliographic landing-page acquisition failed; not itself a map-coverage observation."
+    },
+    {
+      "aw_id": "hydro-system:80033385",
+      "publication": "No title, Nunavut, Canadian topographic maps 37-E/13, ed.01 version00 (2009), M116-2/037E13-PDF",
+      "official_url": "http://dsp-psd.pwgsc.gc.ca/collection_2010/nrcan/topo/M116-2-037E13.pdf",
+      "observed_outcome": "The sole original request to the URL supplied by official bibliographic discovery completed HTTPError502 Bad Gateway. No map body acquired.",
+      "outcome_layer": "Completed original HTTP-client response.",
+      "restriction_scope": "Missing map publication and equivalent copies, formats, editions offered as the same source, catalogue/reader/original/cache/mirror and acquisition routes paused. No retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_502_availability_stop",
+      "material_effect": "The upper western Conn Lake sheet sector remains without original-map correspondence."
+    },
+    {
+      "aw_id": "hydro-system:80033385",
+      "publication": "Utting et al., Glacial history and drift prospecting, Conn Lake and Buchan Gulf, northern Baffin Island, Nunavut; Geological Survey of Canada, Current Research2006-C3, DOI10.4095/222644",
+      "official_url": "https://doi.org/10.4095/222644",
+      "observed_outcome": "The sole DOI web-reader open reported that the URL is not accessible via this tool. No publication body, map pixels, HTTP status or failure reason was supplied.",
+      "outcome_layer": "Web-reader acquisition; origin HTTP outcome unknown.",
+      "restriction_scope": "Exact failed reader route not repeated. Missing publication/map and equivalent routes left paused; no specific technical-only fallback condition was established and no original/mirror acquisition followed. No agency-wide denial inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unexplained_reader_unavailability",
+      "material_effect": "Potential independent original regional coverage was unavailable; discovery snippets are not substantive evidence."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:70049998",
+      "publication": "OGS P.3626 and P.3625 source-use notices",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3626/P3626.pdf",
+      "observed_outcome": "Original front-matter terms and Crown-copyright notices were read after successful PDF acquisition.",
+      "outcome_layer": "Source content/use notice, not access denial",
+      "restriction_scope": "Crown copyright. The source terms allow non-commercial unsubstantial excerpts with credit and Crown-copyright acknowledgement, but require prior written permission for substantial reproduction, any map/figure reproduction, commercial use and value-added products. Originals, crops and comparison material remain private; the research output contains independently written factual observations and ordinary bibliography only. No product application or redistribution permission is inferred.",
+      "earlier_lawful_prose_exception": "The actually read marginal prose and original maps support the bounded factual observations above; no source extracts or source-map images are made public.",
+      "related_urls": [
+        "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3626/P3626.pdf",
+        "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3625/P3625.pdf"
+      ],
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:61298121",
+      "publication": "Estancia Yani Grande, hoja 5933 II, H731 edición 1-IGM, and Estancia Phokher Khaua, hoja 5933 I, H731 edición 1-IGM",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5933-ii-estancia_yani_grande.pdf",
+      "observed_outcome": "Both normally acquired originals state IGM intellectual ownership and prohibit partial or total reproduction.",
+      "outcome_layer": "Printed reproduction-use notice, not a reading/acquisition denial.",
+      "restriction_scope": "Original maps, crops, overlays and derivative source figures remain private; factual observations and ordinary citations only. Reading remains usable.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "additional_url": "https://maps.lib.utexas.edu/maps/topo/bolivia_50k/5933-i-estancia_phokher_khaua.pdf"
+    },
+    {
+      "aw_id": "hydro-system:61298121",
+      "publication": "Ballivián and Risacher (1981), Los salares del Altiplano boliviano: métodos de estudio y estimación económica",
+      "official_url": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/pleins_textes_7/divers2/01303.pdf",
+      "observed_outcome": "Normally acquired original has ORSTOM copyright and a French statutory reproduction notice distinguishing private copying/brief analytical quotation from unauthorized reproduction.",
+      "outcome_layer": "Printed reproduction-use notice; no access or reading denial.",
+      "restriction_scope": "Original pages/maps and working crops remain private. Only bounded original factual observations and attribution enter the public finding.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:61298121",
+      "publication": "Claure Pereira & Asociados (1991), Estudio de recursos hídricos para el suministro de agua potable a la población dispersa del Departamento de Potosí",
+      "official_url": "https://documents1.worldbank.org/curated/en/182301468016756224/pdf/720100WP0SPANI0ricos0Dept0De0Potosi.pdf",
+      "observed_outcome": "Normally acquired original rights page states IBRD/World Bank copyright, all rights reserved, and explicitly permits citation with attribution.",
+      "outcome_layer": "Printed attribution/reproduction-use notice, not a reading denial.",
+      "restriction_scope": "Attribute bounded factual prose to the report/authors. No report pages, maps or crops redistributed.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:90053570",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 11, Kong Oscar Fjord, Escher, 2001: Custom Dataset Terms",
+      "official_url": "https://doi.org/10.22008/FK2/NKHZZN",
+      "observed_outcome": "The sole official landing-page acquisition completed HTTP 200, text/html. Its exact linked original PDF was then acquired in one request that completed HTTP 200, application/pdf. The landing page’s Custom Dataset Terms and original copyright/imprint were actually read.",
+      "outcome_layer": "Successful origin HTTP acquisitions and source-use notice, not an access denial or availability failure.",
+      "restriction_scope": "Terms allow internal use/processing while restricting redistribution and production or transfer of new maps. Original PDF, crops, processed data and any comparison/derived maps stay private across every format and route; public consolidation is limited to own factual observations and ordinary bibliography.",
+      "earlier_lawful_prose_exception": null,
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/NKHZZN",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16521",
+      "material_gap": false,
+      "limitation_kind": "publication_use_notice"
+    }
+  ]
+}

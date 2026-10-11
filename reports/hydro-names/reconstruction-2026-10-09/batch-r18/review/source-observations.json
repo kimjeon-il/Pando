@@ -1,0 +1,57 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "reviewed_at_utc": "2026-10-09T18:06:11.744099+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201"
+  ],
+  "observation_scope": "Past independent original-source observations; present public validation checks included factual linkage only.",
+  "new_external_requests": 0,
+  "distinct_acquired_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "shoreline_overlap_measured": false,
+  "survey_registration_verified": false,
+  "source_publisher_is_government_naming_authority": false,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "observations": [
+    {
+      "source_key": "pont_prespa_ohrid_general_map",
+      "publisher": "Prespa Ohrid Nature Trust (PONT)",
+      "publisher_role": "Conservation trust/fund; not a government naming registry.",
+      "title": "Prespa - Ohrid Eco-Region",
+      "url": "https://www.pont.org/wp-content/uploads/2021/11/General-Map.pdf",
+      "publication_date": null,
+      "date_note": "No printed publication date established; the URL directory and PDF metadata are not used to infer publication date.",
+      "physical_pdf_page": 1,
+      "printed_scale": "1:340,000",
+      "role": "Regional water-shape and conservation-label context for all three complete selected outlines.",
+      "observation": "The entire original map and its three complete water regions were inspected. Lake Ohrid (re-designate) appears over the western water in a conservation overlay. Prespa Lake Monument of Nature is a designation over part of the larger eastern cross-border water. The separate southeastern water lies within the Prespa National Park (GR) setting without a distinct waterbody label. The legend distinguishes lake water from conservation hatching and international boundaries. Those overlays do not establish shorelines or naming partitions.",
+      "independent_underlying_naming_dataset_established": false,
+      "site_boundary_treated_as_shoreline": false,
+      "retrieved_this_batch": true
+    }
+  ],
+  "complete_geometry_observations": [
+    {
+      "aw_id": "lakes_base:1159116675",
+      "position_count": 38,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159118183",
+      "position_count": 58,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159118201",
+      "position_count": 24,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    }
+  ],
+  "included_evidence_limit": "Included files contain factual observations, bibliography and selected public-domain geometry. The original publication and inspection materials are omitted. Public validation checks only included facts and coordinates; it cannot reproduce omitted map interpretation or private original-decoder judgments, establish source independence, or resolve naming-scope holds."
+}

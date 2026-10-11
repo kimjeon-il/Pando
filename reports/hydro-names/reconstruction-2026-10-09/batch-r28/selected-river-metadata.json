@@ -1,0 +1,144 @@
+{
+  "schema": "selected-river-summary-facts-public-v1",
+  "scope_aw_ids": [
+    "hydro-system:50691388",
+    "hydro-system:50738894"
+  ],
+  "scope_system_ids": [
+    "50691388",
+    "50738894"
+  ],
+  "order_convention": "Groups follow selected request order; fragments follow baseline fragmentIndex; position counts follow decoded part order. Counts describe positions, not unique vertices.",
+  "name_state_convention": "Name dictionaries preserve field presence exactly, including an empty dictionary when no name field is present. Placeholder text does not establish a geographic name.",
+  "fragments": [
+    {
+      "aw_id": "hydro-system:50691388",
+      "system_id": "50691388",
+      "fid": 6979,
+      "logical_fid": 2023,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "role": "mainstem",
+      "stage": 3,
+      "geometry_type": "MultiLineString",
+      "part_count": 30,
+      "position_count": 258,
+      "position_counts_by_part": [
+        3,
+        2,
+        4,
+        16,
+        7,
+        10,
+        9,
+        16,
+        11,
+        14,
+        8,
+        5,
+        6,
+        13,
+        6,
+        3,
+        6,
+        16,
+        5,
+        15,
+        11,
+        5,
+        13,
+        14,
+        11,
+        7,
+        2,
+        10,
+        7,
+        3
+      ],
+      "bounds": [
+        152.691667,
+        -29.06875,
+        153.592891,
+        -28.354167
+      ],
+      "source_reach_count": 30,
+      "source_label": "HydroRIVERS 1.0",
+      "baseline_core_name_fields_exact": {
+        "name": "미명명 수계 50691388",
+        "mainstemNameKo": "미명명 수계 50691388"
+      },
+      "baseline_detail_name_fields_exact": {},
+      "baseline_name_fields_exact": {
+        "name": "미명명 수계 50691388",
+        "mainstemNameKo": "미명명 수계 50691388"
+      },
+      "terminal_class": "sea",
+      "research_name_ko": null,
+      "automatic_application": false
+    },
+    {
+      "aw_id": "hydro-system:50738894",
+      "system_id": "50738894",
+      "fid": 7043,
+      "logical_fid": 2085,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "role": "mainstem",
+      "stage": 3,
+      "geometry_type": "MultiLineString",
+      "part_count": 29,
+      "position_count": 192,
+      "position_counts_by_part": [
+        10,
+        7,
+        7,
+        6,
+        2,
+        3,
+        5,
+        12,
+        11,
+        11,
+        3,
+        11,
+        12,
+        4,
+        13,
+        12,
+        2,
+        13,
+        3,
+        4,
+        4,
+        5,
+        4,
+        8,
+        7,
+        2,
+        3,
+        6,
+        2
+      ],
+      "bounds": [
+        152.20625,
+        -31.48125,
+        152.916629,
+        -31.139583
+      ],
+      "source_reach_count": 29,
+      "source_label": "HydroRIVERS 1.0",
+      "baseline_core_name_fields_exact": {
+        "name": "미명명 수계 50738894",
+        "mainstemNameKo": "미명명 수계 50738894"
+      },
+      "baseline_detail_name_fields_exact": {},
+      "baseline_name_fields_exact": {
+        "name": "미명명 수계 50738894",
+        "mainstemNameKo": "미명명 수계 50738894"
+      },
+      "terminal_class": "sea",
+      "research_name_ko": null,
+      "automatic_application": false
+    }
+  ]
+}

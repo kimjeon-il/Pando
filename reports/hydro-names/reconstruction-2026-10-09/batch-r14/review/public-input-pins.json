@@ -1,0 +1,88 @@
+{
+  "schema": "hydro-public-review-input-pins-v4",
+  "batch": "r14",
+  "scope": "included_public_files_only",
+  "files": [
+    {
+      "path": "selected-lake-geometries.geojson",
+      "bytes": 6703,
+      "sha256": "45e8d3a3f51302a266187f85b369ee7cf0d54613efe67953a7ccba6ed05e9e94"
+    },
+    {
+      "path": "selected-baseline-rendered-geometries.geojson",
+      "bytes": 4334,
+      "sha256": "8da34c24cfa6bd7c7014f2708004aa89b6c39c99ffead863733c4d3bf1e4fb38"
+    },
+    {
+      "path": "geometry-reference.json",
+      "bytes": 18761,
+      "sha256": "66040a1f90a6a0aaeae2860bb53a7ad591526a456c778fa684611d19382fbbbd"
+    },
+    {
+      "path": "geometry-component-manifest.json",
+      "bytes": 1613,
+      "sha256": "b17eebc98129216b80831889d7ca979538d822aeb5a9291e41c50575bb5f0f10"
+    },
+    {
+      "path": "research/white-grand/README.md",
+      "bytes": 1408,
+      "sha256": "9295868b690812a3a3e5d4484fb6f5fe49fe8e60badc6f66659c8bdc430abe0c"
+    },
+    {
+      "path": "research/white-grand/findings.json",
+      "bytes": 7376,
+      "sha256": "6c645f6246b1e395b332499a78ec5fb1415acd89a398f8c8615901f7fde8455b"
+    },
+    {
+      "path": "research/white-grand/source-evidence.json",
+      "bytes": 3913,
+      "sha256": "7171bc6996530af224a2a0d085088566cd10acfc586e06491214755ff807768a"
+    },
+    {
+      "path": "research/white-grand/target-identity-facts.json",
+      "bytes": 2658,
+      "sha256": "ec9ec8aa65778efdf4804da484cf3738a5ea0df2c943f631d7dc2d2294b190c2"
+    },
+    {
+      "path": "research/white-grand/map-scope-review.json",
+      "bytes": 4044,
+      "sha256": "52e3f471f49bfee804bdc335a9a2713351bc6293002b66670891ef30d72b8fa3"
+    },
+    {
+      "path": "research/white-grand/research-manifest.json",
+      "bytes": 1094,
+      "sha256": "7d8f4cb844183301f2702a5110b73b0e9cfcdb861e44c5f706da624a2f263735"
+    },
+    {
+      "path": "research/timiskaming/README.md",
+      "bytes": 1143,
+      "sha256": "c39d83c6ad6e4260e3a4896af91fc87a722eed757517ec898e429673b541ce75"
+    },
+    {
+      "path": "research/timiskaming/findings.json",
+      "bytes": 4668,
+      "sha256": "42d532622aced5b8d59f0c95fbe5754a1aa3cefb19eb8dcebdcfe761e5aa2404"
+    },
+    {
+      "path": "research/timiskaming/source-evidence.json",
+      "bytes": 4827,
+      "sha256": "c0625365370236d382786b5d62354620eacd1d23ab28718fa1b77b68a5f19381"
+    },
+    {
+      "path": "research/timiskaming/target-identity-facts.json",
+      "bytes": 1646,
+      "sha256": "9e72c8fdb73389fe8430551afe174f0c72725f9a2e9f3fca708de25b51bab3dd"
+    },
+    {
+      "path": "research/timiskaming/map-scope-review.json",
+      "bytes": 2160,
+      "sha256": "e16c8edf7b3afa6d0c9813e8d73c65ba429b8a6132165d1ae3e2cfc643807a67"
+    },
+    {
+      "path": "research/timiskaming/research-manifest.json",
+      "bytes": 1062,
+      "sha256": "03293bd7e1c553f08029f38022309f9315affbb585754d6da1ed9ee4b122a73a"
+    }
+  ],
+  "automatic_application": false
+}

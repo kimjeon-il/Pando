@@ -1,0 +1,129 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r52",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; central interior around and southwest of Summit, western margin near Anap Nunaa, graticule and Inland Ice legend",
+      "supports": "Inland Ice setting of the complete long interior reach and western glacial-margin setting of its terminal pieces, with a clear distinction between contours, nearby geographical labels and river-name evidence.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. The source supports the feature-class scope conclusion, not proof of flow, connectivity or a formal river name. The historical 1995 ice margin is not asserted to be the current margin.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. Original map and all local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "p. 11 Preface; pp. 64–65 Glaciology and fig. 47; pp. 113–115 place names register",
+      "supports": "The Inland Ice is Greenland’s continental ice sheet; the map depicts surface elevation, ice thickness and sub-ice bedrock contours. The register locates Anap Nunaa, Disko Bugt and Dome GRIP (Summit), without identifying the modeled route as a river.",
+      "limits": "General glaciology and a register of map labels do not identify the modeled mainstem as a named natural river. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical source.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "ibge_maranhao_political_map",
+      "title": "Maranhão (mapas estaduais, político)",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "year": null,
+      "page": "Single-sheet map, PDF page 1",
+      "limits": "Official PDF acquired and whole sheet plus readable Itapecuru corridor crop visually inspected. No publication year is printed on the inspected map; the official directory lists a 2021 file-modification date, which is not asserted as publication year. The map directly labels the upper river and Alpercatas and shows the complete river corridor, towns, adjacent rivers and coast. Its generalized scale cannot define exact reach-name or estuarine boundaries.",
+      "official_url": "https://geoftp.ibge.gov.br/produtos_educacionais/mapas_tematicos/mapas_do_brasil/mapas_estaduais/politico/maranhao.pdf"
+    },
+    {
+      "source_key": "sema_progestao_2025_report_2026",
+      "title": "Relatório Progestão 2025 – 3º Ciclo, 3º Período de Certificação, Maranhão; Annex 03, Relatório Metodológico de Definição de Cotas de Referência",
+      "author": "Governo do Estado do Maranhão, Secretaria de Estado do Meio Ambiente e Recursos Naturais (SEMA), Sala de Situação/CPDAm; hosted by Agência Nacional de Águas e Saneamento Básico (ANA)",
+      "year": 2026,
+      "page": "Cover dated 15 April 2026; Annex 03 Table 1, printed pp. 17–18, PDF pp. 150–151",
+      "limits": "Full original PDF acquired. Table text and rendered page 151 were read. It directly associates Mirador, Colinas, Montevidéu, Caxias, Codó, Coroatá, Cantanhede and Itapecuru-Mirim with Itapecuru and provides their positions. Point evidence supplements the full-route map; it does not name all intervening vertices or establish the precise source or mouth.",
+      "official_url": "https://progestao.ana.gov.br/progestao-1/certificacao/certificacoes-2013-a-2018/certificacao-2025/certificacao-das-metas-federativas-2025/relatorios-progestao-2025/ma_relatorio_progestao_3operiodo_2025.pdf/%40%40download/file/MA_Relatorio_Progestao_3oPeriodo_2025.pdf"
+    },
+    {
+      "source_key": "ports_northeast_basin_2014",
+      "title": "Bacia do Nordeste: Bacia do Itapecurú / Hidrovia do Itapecurú",
+      "author": "Brazilian federal government, Ministério de Portos e Aeroportos, waterway-information page",
+      "year": 2014,
+      "page": "Unpaginated Itapecuru sections; page dated 12 November 2014, modified 17 January 2023",
+      "limits": "Readable official text names the Itapecuru, separately lists tributaries and enumerates towns/bridges along its corridor. Historical navigation lengths and operational statements are not treated as current conditions or as exact modeled lengths; no source map was acquired from this page.",
+      "official_url": "https://www.gov.br/portos-e-aeroportos/pt-br/assuntos/conteudo/portos-e-transporte-aquaviario/bacia-nordeste/"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90087587",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": {
+        "object_scope": "All three actual cached modeled mainstem fragments were read as one complete displayed route, together with the separate short tributary fragment. The group bounding box was not substituted for the path.",
+        "displayed_mainstem_length_km": 871.688,
+        "displayed_length_limit": "Retained model display length, not an independently established natural-river length.",
+        "full_path_finding": "The northeastern interior leg, southwestward staircase-like central reaches, southward bend and westward low-latitude turn occupy the mapped Inland Ice. The final longer fragment turns northwest and north through the western ice-margin region toward the exposed-land corridor east of Qasigiannguit and south of Jakobshavn Isfjord. The map graticule, continuous ice shading, margin and named coastal landmarks make the entire regional route context readable.",
+        "map_interpretation": "Blue surface contours, dashed ice-thickness isopachs and grey sub-ice bedrock contours describe ice and underlying terrain, not river courses. Small marginal waters and nearby Jakobshavn Isfjord do not establish a natural-river identity for the full inland line.",
+        "name_limit": "Neither retained original establishes this complete modeled route as one named surface river, one named subglacial river or one named glacier. A possible local marginal channel or lake cannot supply the name of the full representative path.",
+        "conclusion": "Complete geographical and feature-class scope correspondence is supported by readable originals. Retain null names and no automatic application; a later name requires positive river-identity evidence.",
+        "tributary_scope": "The one short tributary fragment near the western marginal reach was considered separately in the same map context. No tributary name or group-wide name is inferred from the mainstem or nearby geographical labels."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60587404",
+      "source_keys": [
+        "ibge_maranhao_political_map",
+        "sema_progestao_2025_report_2026",
+        "ports_northeast_basin_2014"
+      ],
+      "correspondence": [
+        "All three actual cached pieces, 13740–13742, were inspected in full against the acquired IBGE map and its readable corridor crop. The southwestern east-running headwaters, sharp northward turn, Colinas corridor, pronounced eastward excursion to Caxias, northwestward return through Codó/Coroatá, and northern coastal ending agree. This is complete-route correspondence, not an inference from the bounding box or MAIN_RIV.",
+        "Upper piece 13740 follows the southern headwater branch labeled Rio Itapecuru by IBGE, bends north through the Mirador corridor and reaches Colinas before continuing northeast. IBGE separately labels Rio Alpercatas entering from the west near Colinas; the selected southern headwater branch is not that tributary. SEMA Table 1 explicitly lists Mirador and Colinas stations on Itapecuru at positions corresponding to this upper route.",
+        "Middle piece 13741 continues through the Montevidéu corridor, swings east to Caxias, then returns northwest to the Codó vicinity. SEMA Table 1 names Montevidéu, Caxias and Codó stations on Itapecuru, supporting this distinctive bend and excluding the farther-east Parnaíba corridor.",
+        "Lower piece 13742 follows the mapped course through Coroatá toward Cantanhede and Itapecuru-Mirim, then north past Rosário into the coastal setting south of São Luís. The station table directly assigns Coroatá, Cantanhede and Itapecuru-Mirim to Itapecuru; the federal waterway description separately lists the Colinas–Caxias–Codó–Timbiras–Coroatá–Itapecuru-Mirim–Rosário sequence.",
+        "The IBGE map distinguishes the Mearim/Pindaré system to the west, Munim to the east of the lower route and Parnaíba farther east. Its lower river reaches the coastal embayment near Rosário. The regional map does not establish the exact modern mouth-channel, distributary, tidal or river-to-estuary name boundary, and none is assigned here.",
+        "IBGE prints Rio Itapecuru on the upper course and Rio Itapicuru along the middle corridor. The candidate uses the Itapecuru spelling directly corroborated by the SEMA station table and federal waterway description; the other printed spelling is not independently accepted as a separate river or alias."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90034871",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": {
+        "object_scope": "The single actual cached modeled mainstem fragment was read over its complete displayed route, including the northeastern coastal approach; the group bounding box was not substituted for the route.",
+        "displayed_mainstem_length_km": 801.017,
+        "displayed_length_limit": "Retained model display length, not an independently established natural-river length.",
+        "full_path_finding": "The southern near-northward interior leg, eastward turn and long undulating middle reach occupy the Inland Ice on the official map. The subsequent northeastward reach and stepped northern end approach the Dronning Louise Land glacial-margin belt and the ice/coastal-land corridor west of Dove Bugt. The separate middle-reach and terminal contexts were read from the map graticule, ice shading, coastal outline and regional labels.",
+        "map_interpretation": "The map’s blue surface contours, dashed ice-thickness isopachs and grey sub-ice bedrock contours describe ice and underlying terrain; they are not mapped river courses. Dronning Louise Land, Dove Bugt and Storstrømmen do not name the complete modeled line.",
+        "name_limit": "Neither retained original establishes this full route as one named surface river, one named subglacial river or one named glacier. An ice-margin or bay label cannot be transferred to the modeled representative path.",
+        "conclusion": "The complete geographical and feature-class scope review is supported by readable material. Retain null names and no automatic application; assigning a name later requires positive river-identity evidence.",
+        "tributary_scope": "This group has one displayed mainstem fragment and no additional cached tributary fragments. The finding does not name other watercourses in the surrounding region."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90079167",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": {
+        "object_scope": "Both actual cached modeled mainstem fragments were read together over the complete displayed route, including the short western terminal piece; the group bounding box was not substituted for the path.",
+        "displayed_mainstem_length_km": 776.798,
+        "displayed_length_limit": "Retained model display length, not an independently established natural-river length.",
+        "full_path_finding": "The northeastern near-southward leg, westward interior reach, broad central bends and southwestward descent toward the western end lie on the mapped Inland Ice. The last short fragment is in the ice-margin/coastal-rock corridor northeast of Anap Nunaa. The full long fragment and the short terminal fragment were considered against the map graticule, ice shading, western margin and nearby coastal landmarks.",
+        "map_interpretation": "Blue surface contours, dashed ice-thickness isopachs and grey sub-ice bedrock contours describe ice and underlying terrain rather than river courses. Nearby Anap Nunaa, Disko Bugt and Summit labels do not establish a name for the complete modeled line.",
+        "name_limit": "Neither retained original establishes this full route as one named surface river, one named subglacial river or one named glacier. The western glacial-margin setting alone cannot supply a representative river name.",
+        "conclusion": "The complete geographical and feature-class scope review is supported by readable material. Retain null names and no automatic application; assigning a name later requires positive river-identity evidence.",
+        "tributary_scope": "Both displayed mainstem fragments are covered; no additional tributary fragment occurs in this cached group. The finding does not name other marginal streams or glacier outlets."
+      }
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

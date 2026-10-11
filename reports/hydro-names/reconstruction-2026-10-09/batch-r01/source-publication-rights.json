@@ -1,0 +1,13 @@
+{
+  "file": "sources/becharof-fws-guide-use-areas-2012.pdf",
+  "sha256": "5d37dfd13f863be39cf4d1c0de30dd14476e85c2e50536ad2f6ed7d3fb54e117",
+  "bytes": 2153038,
+  "original_url": "https://www.fws.gov/sites/default/files/documents/2024-04/3.pdf",
+  "official_license_url": "https://www.fws.gov/media/guide-use-areas-within-alaska-peninsula-and-becharof-nwrs",
+  "official_license_field": "Media Usage Rights/License",
+  "official_license_value": "Public Domain",
+  "license_page_original_sha256": "ac036e6975b7120d0caf2e2a32bd55eb444242405b3de027612596c6fcda2d5b",
+  "license_receipt_locator": "becharof-source-evidence.json sources[id=BECHAROF-FWS-GUIDE-2012].rights",
+  "scope": "Only this exact FWS guide-use-area map. No rights assertion for other downloaded maps/PDFs.",
+  "publication_purpose": "Durable primary visual name/extent evidence for Becharof; public-domain original retained without modification."
+}

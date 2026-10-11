@@ -1,0 +1,108 @@
+{
+  "schema": "selected-river-inventory-summary-public-v1",
+  "scope_aw_ids": [
+    "hydro-system:50517279",
+    "hydro-system:50478600",
+    "hydro-system:50464082"
+  ],
+  "scope_system_ids": [
+    "50517279",
+    "50478600",
+    "50464082"
+  ],
+  "records": [
+    {
+      "aw_id": "hydro-system:50517279",
+      "category": "river",
+      "system_id": "50517279",
+      "logical_fid": 1859,
+      "geometry_fids": [
+        6789,
+        6790,
+        6791,
+        6792,
+        6793,
+        6794,
+        6795,
+        6796
+      ],
+      "geometry_count": 8,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50517279"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        144.86875,
+        -21.422917,
+        147.565278,
+        -18.629167
+      ],
+      "minimum_stage": 0,
+      "source_reach_count": 208,
+      "rendered_mainstem_length_km": 657.968,
+      "rendered_network_length_km": 776.567
+    },
+    {
+      "aw_id": "hydro-system:50478600",
+      "category": "river",
+      "system_id": "50478600",
+      "logical_fid": 1826,
+      "geometry_fids": [
+        6740,
+        6741
+      ],
+      "geometry_count": 2,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50478600"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        141.205412,
+        -19.404167,
+        144.627083,
+        -16.689224
+      ],
+      "minimum_stage": 1,
+      "source_reach_count": 112,
+      "rendered_mainstem_length_km": 623.411,
+      "rendered_network_length_km": 623.411
+    },
+    {
+      "aw_id": "hydro-system:50464082",
+      "category": "river",
+      "system_id": "50464082",
+      "logical_fid": 1810,
+      "geometry_fids": [
+        6714,
+        6715,
+        6716,
+        6717,
+        6718,
+        6719,
+        6720,
+        6721
+      ],
+      "geometry_count": 8,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50464082"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        141.604259,
+        -17.352083,
+        145.408333,
+        -15.20322
+      ],
+      "minimum_stage": 0,
+      "source_reach_count": 232,
+      "rendered_mainstem_length_km": 539.107,
+      "rendered_network_length_km": 1201.283
+    }
+  ],
+  "selected_inventory_summary_only": true,
+  "original_inventory_rows_included": false,
+  "historical_names_used_as_identity_evidence": false
+}

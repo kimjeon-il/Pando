@@ -1,0 +1,166 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v2",
+  "batch": "r18",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three actual logical inventory lake features; not a count of newly approved scalar names.",
+  "counts": {
+    "candidate_waterbody_identity_extent_hold": 2,
+    "whole_polygon_scope_hold": 1
+  },
+  "pending_source_only_targets": 0,
+  "historical_name_lead_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "selection_count_note": "All three records are new actual-inventory investigations; no historical verdict or exact-ID lead is restored.",
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 120,
+  "lake_baseline_coordinate_count_including_closures": 120,
+  "position_counts_in_target_order": [
+    38,
+    58,
+    24
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159116675",
+      "category": "lake",
+      "source_id": "1159116675",
+      "baseline_logical_fid": 4483,
+      "geometry_fids": [
+        15858
+      ],
+      "candidate_name": "Lake Ohrid",
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "independent_review_status": "candidate_waterbody_identity_extent_hold",
+      "supported_name_scope": "The entire north-south outline corresponds geographically to mapped water between Struga, Ohrid and Pogradec. Its broad northern cap, northeast shoulder, long east and west sides and rounded southern end were compared. Lake Ohrid is a low-confidence geographic naming candidate from literal wording within a partial conservation overlay, qualified by re-designate. Strong shape correspondence does not establish name coverage or naming authority for the complete selected water polygon. No supported whole-water identity or protected-site/water-boundary equivalence is assigned.",
+      "source_keys": [
+        "pont_prespa_ohrid_general_map"
+      ],
+      "limits": [
+        "The literal Lake Ohrid wording is a low-confidence geographic candidate only. Its conservation-overlay context does not directly establish naming coverage across the complete water polygon.",
+        "PONT is a conservation trust/fund, not a government naming registry. One thematic map and geographic correspondence do not establish independent naming authority or an official waterbody identity.",
+        "Protected-site outlines, hatch lines and international borders are not shorelines or exact name boundaries. No exact named-water extent, scalar product name, Korean form or geometry repair is approved."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_extent_hold",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Name coverage over the complete selected waterbody, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve independent lake-name authority and name coverage over the complete selected waterbody before promoting the Lake Ohrid candidate. Conservation-area wording is insufficient; no geometry repair is prescribed by this hold."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159118183",
+      "category": "lake",
+      "source_id": "1159118183",
+      "baseline_logical_fid": 4570,
+      "geometry_fids": [
+        15945
+      ],
+      "candidate_name": "Prespa Lake",
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "independent_review_status": "candidate_waterbody_identity_extent_hold",
+      "supported_name_scope": "The complete northern basin, indented western shore, elongated southwestern lobe, eastern side and southeastern projection correspond geographically to the large water east of Galicica. Prespa Lake is a low-confidence geographic naming candidate from the literal wording in Prespa Lake Monument of Nature over part of the cross-border water. Conservation-area wording does not establish name coverage or naming authority for the entire selected polygon. Great Prespa, exact named-water extent and protected-site/water-boundary equivalence remain unverified; no supported whole-water identity is assigned.",
+      "source_keys": [
+        "pont_prespa_ohrid_general_map"
+      ],
+      "limits": [
+        "The literal Prespa Lake wording is a low-confidence geographic candidate only. Its conservation-overlay context does not directly establish naming coverage across the complete water polygon.",
+        "PONT is a conservation trust/fund, not a government naming registry. One thematic map and geographic correspondence do not establish independent naming authority or an official waterbody identity.",
+        "Protected-site outlines, hatch lines and international borders are not shorelines or exact name boundaries. No exact named-water extent, scalar product name, Korean form or geometry repair is approved.",
+        "Great Prespa is not an established form from this map; the literal candidate is Prespa Lake only."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_extent_hold",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Name coverage over the complete selected waterbody, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve independent lake-name authority and name coverage over the complete selected waterbody before promoting the Prespa Lake candidate. Conservation-area wording is insufficient; no geometry repair is prescribed by this hold."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159118201",
+      "category": "lake",
+      "source_id": "1159118201",
+      "baseline_logical_fid": 4571,
+      "geometry_fids": [
+        15946
+      ],
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "whole_polygon_scope_hold",
+      "supported_name_scope": "The complete northeastern head, west-side indentation, east edge and long southwestern tail were compared with the separate southeastern water beneath the Prespa National Park (GR) overlay. No distinct waterbody label for that complete water was established. The park label and neighboring northern-lake designation do not establish a Small/Lesser Prespa name or extend the northern designation to this feature. Its whole-target name remains unassigned after full-outline review.",
+      "source_keys": [
+        "pont_prespa_ohrid_general_map"
+      ],
+      "limits": [
+        "The Prespa National Park (GR) designation is surrounding conservation context and cannot be promoted to the unnamed selected waterbody.",
+        "No separate smaller-lake name, precise naming partition or whole-water extent was established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete selected feature, including every source and baseline ring position.",
+        "follow_up_scope": "Obtain evidence that explicitly establishes a waterbody name over the complete selected lake, rather than a park or conservation-designation label, before any name assignment."
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "c8e1199332eec6d05136740a56cf2a605c9b55169875b946498cd67ef6c70385",
+  "publication_contents": "Own factual evidence and review, exact identifier/coordinate/hash facts, three selected public-domain Natural Earth lake polygons and validators. Raw third-party documents, maps and crops are excluded.",
+  "previous_reconstruction_commit": "3df3f9a6eb749d2562ef7c6c324f92355fb0d81d"
+}

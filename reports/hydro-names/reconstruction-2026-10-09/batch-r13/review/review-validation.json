@@ -1,0 +1,171 @@
+{
+  "schema": "hydro-public-review-validation-v4",
+  "checked_at_utc": "2026-10-09T16:11:23.198071+00:00",
+  "public_validation": {
+    "status": "passed",
+    "mode": "included_public_files_only",
+    "scope_aw_ids": [
+      "lakes_base:1159110463",
+      "lakes_base:1159107033",
+      "lakes_base:1159110475"
+    ],
+    "lake_geometry_checks": [
+      {
+        "aw_id": "lakes_base:1159110463",
+        "source_id": "1159110463",
+        "geometry_fid": 15489,
+        "logical_fid": 4114,
+        "position_count": 34,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true,
+        "source_bbox": [
+          -93.4505979721058,
+          29.8333293346125,
+          -93.24822263470277,
+          30.093547222996875
+        ],
+        "baseline_bbox": [
+          -93.450598,
+          29.833329,
+          -93.248223,
+          30.093547
+        ],
+        "maximum_coordinate_rounding_error_degrees": 4.98643387913944e-07
+      },
+      {
+        "aw_id": "lakes_base:1159107033",
+        "source_id": "1159107033",
+        "geometry_fid": 15233,
+        "logical_fid": 3858,
+        "position_count": 26,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true,
+        "source_bbox": [
+          -90.59291102591155,
+          30.176263542720875,
+          -90.40113279708527,
+          30.35405947550842
+        ],
+        "baseline_bbox": [
+          -90.592911,
+          30.176264,
+          -90.401133,
+          30.354059
+        ],
+        "maximum_coordinate_rounding_error_degrees": 4.923410585888632e-07
+      },
+      {
+        "aw_id": "lakes_base:1159110475",
+        "source_id": "1159110475",
+        "geometry_fid": 15490,
+        "logical_fid": 4115,
+        "position_count": 41,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true,
+        "source_bbox": [
+          -90.34696979769303,
+          29.663186869130385,
+          -90.1472437374342,
+          29.874540312410915
+        ],
+        "baseline_bbox": [
+          -90.34697,
+          29.663187,
+          -90.147244,
+          29.87454
+        ],
+        "maximum_coordinate_rounding_error_degrees": 4.854154056488369e-07
+      }
+    ],
+    "included_ordered_position_count": 101,
+    "recorded_historical_full_feature_reviews_completed": 3,
+    "current_source_limited_targets": 0,
+    "current_pending_access_ids": [],
+    "current_scope_hold_ids": [
+      "lakes_base:1159110475"
+    ],
+    "current_follow_up_ids": [
+      "lakes_base:1159110475"
+    ],
+    "preserved_pending_access_ids": [
+      "lakes_base:1159112821"
+    ],
+    "preserved_scope_hold_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159123531",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159112207"
+    ],
+    "recorded_prior_target_count": 36,
+    "current_batch_increment": 3,
+    "recorded_cumulative_distinct_targets": 39,
+    "distinct_acquired_publications": 3,
+    "distinct_cartographic_identity_publications": 2,
+    "original_source_material_reopened": false,
+    "map_judgments_reproduced": false,
+    "prior_target_source_or_geometry_reaudit_performed": false,
+    "formal_registry_verified": false,
+    "automatic_application": false,
+    "network_requests": 0,
+    "limit": "Integrity and factual linkage of included files only. Omitted publications and historical visual judgments are not reproduced.",
+    "public_input_files_checked": 15,
+    "included_component_manifests_checked": 3
+  },
+  "public_corruption_tests": {
+    "status": "passed",
+    "mode": "included_public_files_only",
+    "semantic_corruptions_rejected": 38,
+    "corrupt_fixtures_rejected": 40,
+    "fixtures": [
+      "application",
+      "korean_name",
+      "scalar_name",
+      "scalar_clearance",
+      "label_only_identity",
+      "live_deployment",
+      "restored_history",
+      "fid_domain",
+      "target_order",
+      "cumulative_count",
+      "scope_hold_erased",
+      "scope_follow_up_erased",
+      "invented_compound",
+      "northern_name_invented",
+      "exhaustive_union",
+      "precise_partition",
+      "cold_pending_erased",
+      "previous_holds_erased",
+      "completion_erased",
+      "access_gap_invented",
+      "survey_claim",
+      "freshwater_overclaim",
+      "historical_judgments_reproduced",
+      "source_vertex",
+      "baseline_vertex",
+      "ring_order",
+      "missing_target",
+      "research_scope",
+      "research_completion_count",
+      "source_fact_count",
+      "source_fact_bounds",
+      "noaa_publication_date",
+      "cpra_path_as_date",
+      "repeated_map_as_source",
+      "failed_source_as_evidence",
+      "failed_source_body_claim",
+      "map_scope_completion",
+      "source_observation_count",
+      "included_file_bytes",
+      "nonincluded_pin_path"
+    ],
+    "map_judgments_reproduced": false,
+    "original_source_material_reopened": false,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "historical_assessment_scope": "The recorded past source assessment is separate. These checks do not reopen omitted publications or reproduce visual judgments.",
+  "automatic_application": false
+}

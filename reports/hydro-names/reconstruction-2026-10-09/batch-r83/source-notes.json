@@ -1,0 +1,387 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r83",
+  "sources": [
+    {
+      "source_key": "r83-nrcan-cbmt-ravn",
+      "title": "Canada Base Map - Transportation (CBMT3978), Baffin Island upper Ravn corridor, Angijurjuk–Erichsen lake chain and Steensby Inlet views",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "attribution": "Natural Resources Canada; service copyright identifies His Majesty the King in Right of Canada, as represented by the Minister of Natural Resources Canada.",
+      "year_note": "Undated live cartographic service; feature-specific survey and update dates were not established.",
+      "supports": "Complete selected-route coverage, eastern feeder choice, Angijurjuk passage, Ikiqtuq and Quartz Lake corridor, Erichsen transition, Steensby Inlet ending and separation from adjacent lake/coastal corridors.",
+      "limits": "Four views are one publication. Small channels and through-lake paths are generalized. The views do not carry a readable Ravn River label; independent federal prose and metadata provide the river-name anchors.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r83-water-survey-ravn-index",
+      "title": "Station Reference Index: Baffin Island (Foxe Basin), including station 06SA002",
+      "publisher": "Environment and Climate Change Canada / Water Survey of Canada",
+      "year_note": "Live reference index; page identifies a modification date of 28 February 2025.",
+      "supports": "Direct Ravn name at the mapped western Angijurjuk outlet setting and distinction from the northern Mary River entry.",
+      "limits": "Point and stream-order context only; not whole-route cartography, current flow data, station-operation status or an official alias-history determination.",
+      "official_url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnNum=10UJ001"
+    },
+    {
+      "source_key": "r83-dfo-stewart1994",
+      "title": "A review of the status and harvests of fish, invertebrate, and marine mammal stocks in the Nunavut Settlement Area",
+      "author": "D. B. Stewart",
+      "publisher": "Department of Fisheries and Oceans, Central and Arctic Region",
+      "year_note": "1994 report; the 2026 URL directory is not the publication year.",
+      "supports": "Historical downstream relationship of Erichsen Lake and Ravn River, the Ravn terminal region and distinction from nearby named river entries.",
+      "limits": "Historical geographic context only. No present fishery status, harvest quantity, rule, access advice or exact mouth location is adopted. No report map pixels were used.",
+      "official_url": "https://publications.gc.ca/collections/collection_2026/mpo-dfo/fs97-4/Fs97-4-2262-eng.pdf"
+    },
+    {
+      "source_key": "r83-usgs-topo-umpqua",
+      "title": "The National Map, USGS Topo reference cartography: Umpqua basin, upper river, Fish Lake headwater and lower estuary views",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "year_note": "Undated live reference-map service read 10 October 2026; feature-specific survey and update dates were not established.",
+      "supports": "Complete selected fragment coverage; named upper creek/lake chain, South Umpqua and North Umpqua distinction and confluence, common Umpqua trunk, lower-estuary bend and modeled ending before the ocean entrance.",
+      "limits": "Four images are views of one map service, not four independent naming authorities. Generalization produces local offsets; no precise shoreline, every small feeder, formal hydronym boundary, present flow or navigable channel is inferred.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r83-oregon-deq-umpqua2014",
+      "title": "Umpqua Basin Status Report and Action Plan",
+      "publisher": "Oregon Department of Environmental Quality",
+      "year_note": "30 July 2014 on the report cover; historical report, not a current environmental assessment.",
+      "page": "Printed pp. 8–9, PDF pp. 21–22, section 1.3 Geographic Area.",
+      "supports": "Distinct North Umpqua, South Umpqua and mainstem Umpqua subbasins; South Umpqua west-then-north course after Cow Creek; North/South junction below Roseburg and common receiving route toward Winchester Bay and the Pacific.",
+      "limits": "Geographic prose corroborates the receiving relationship only. It does not identify every selected headwater or place the model endpoint. No historical water-quality, health, regulatory or current-flow statements are adopted.",
+      "official_url": "https://www.oregon.gov/deq/FilterDocs/BasinlUmpquaAssess.pdf"
+    },
+    {
+      "source_key": "r83-igm-mi-patria",
+      "title": "Mi Patria: República del Ecuador, Mapa Físico and Mapa Político, Edición 3-IGM",
+      "publisher": "Instituto Geográfico Militar del Ecuador",
+      "year_note": "PDF metadata dates the digital file to 2021; the maps cite IGM geographic mapping, edition 3, 2012. These are historical maps.",
+      "supports": "Regional receiving name and distinct named branches, coastal endpoint and separation from neighboring drainage systems.",
+      "limits": "Small-scale generalization cannot establish every selected headwater, confluence position or internal hydronym boundary.",
+      "official_url": "https://www.geoportaligm.gob.ec/geoeduca/educacion_basica/mi_patria.pdf"
+    },
+    {
+      "source_key": "r83-oas-inerhi-region1",
+      "title": "Plan de Desarrollo Región I: Esmeraldas–Carchi–Imbabura, chapter 1, section 1.3.5",
+      "publisher": "República del Ecuador, INERHI–CONADE; Secretaría General de la Organización de los Estados Americanos",
+      "year_note": "Historical regional planning report; the inspected section uses late-1970s studies. No exact publication year is asserted.",
+      "supports": "Blanco and Guayllabamba form Esmeraldas proper; Quinindé enters lower Blanco; Guayllabamba is a distinct inter-Andean drainage.",
+      "limits": "Prose supports network relationships, not full selected-line correspondence or present flow conditions.",
+      "official_url": "https://www.oas.org/dsd/publications/unit/oea60s/ch03.htm"
+    },
+    {
+      "source_key": "r83-igm-dma-sigchos",
+      "title": "Sigchos, Ecuador 1:50,000, Series J721, sheet 3891-IV, Edition 1-DMA",
+      "publisher": "Prepared by IGM Ecuador with the Defense Mapping Agency Inter American Geodetic Survey; published by DMA Hydrographic/Topographic Center; preserved by University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled in 1989 from 1988 aerial photography; cartographic compilation completed in 1991, as printed on the acquired sheet.",
+      "supports": "Direct Toachi label in the selected Sigchos–Isinliví valley and separate neighboring streams.",
+      "limits": "Covers only a bounded portion of fragment 11649. It cannot complete southern headwater or northern continuation correspondence.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/ecuador/txu-pclmaps-oclc-869565072-sigchos-3891-iv.jpg"
+    },
+    {
+      "source_key": "r83-dma-tpc-l26d",
+      "title": "Tactical Pilotage Chart L-26D, Colombia–Ecuador, Edition 3, scale 1:500,000",
+      "publisher": "U.S. Defense Mapping Agency Aerospace Center; original government chart preserved by University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled October 1992; lithographed March 1993.",
+      "supports": "Esmeraldas coastal corridor, Rosa Zárate setting and Quinindé approach.",
+      "limits": "Dense relief and incomplete-data areas limit upper-channel reading. The lower Guayllabamba label conflicts with the preferred IGM/OAS component scope and is not adopted as a whole-course label. Historical aeronautical chart, not for navigation.",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_l-26d.jpg"
+    },
+    {
+      "source_key": "r83-dma-tpc-m25a",
+      "title": "Tactical Pilotage Chart M-25A, Colombia–Ecuador–Peru, Edition 2, scale 1:500,000",
+      "publisher": "U.S. Defense Mapping Agency Aerospace Center; original government chart preserved by University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled June 1987, revised September 1992; lithographed February 1993.",
+      "supports": "Distinct Blanco and Toachi labels near Santo Domingo and the northbound Quinindé regional setting.",
+      "limits": "Upper Andean linework is not sufficiently readable/complete for full-route correspondence; not used to assign the unresolved headwater names.",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_m-25a.jpg"
+    },
+    {
+      "source_key": "r83-dma-tpc-k27d",
+      "title": "Tactical Pilotage Chart K-27D, Netherlands Antilles, Venezuela, Edition 4, scale 1:500,000",
+      "publisher": "U.S. Defense Mapping Agency Aerospace Center; original government chart preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled February 1973; revised February 1990, explicitly limited to aeronautical information; printed May 1995. The later print is not evidence of a new hydrological survey.",
+      "supports": "Western mesa approach, directly labeled upper Río Guanipa, Guanipa settlement setting and distinction from Río Mería, Pao and Tigre.",
+      "limits": "Historical regional aeronautical/topographic chart, not current navigation or channel-condition evidence. No exact minor-feeder naming or formal source point is established. Source pixels remain local.",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_k-27d.jpg"
+    },
+    {
+      "source_key": "r83-dma-tpc-k27c",
+      "title": "Tactical Pilotage Chart K-27C, Grenada, Guyana, Trinidad and Tobago, Venezuela, Edition 4, scale 1:500,000",
+      "publisher": "U.S. Defense Mapping Agency Aerospace Center; original government chart preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled June 1990; lithographed November 1990, as read on the original imprint.",
+      "supports": "Repeated Guanipa labels by El Cedral and on the lower broad channel, connected regional route, neighboring Tonoro, Amana, Guarapiche and San Juan distinctions, marsh context, Boca Bagre, Isla Venado and adjacent Mánamo/Pedernales channels.",
+      "limits": "Generalized historic cartography cannot fix each wetland branch, current tidal flow, channel migration or a formal river-mouth boundary. Aeronautical, road, pipeline and vegetation symbols are not interpreted as waterways. Source pixels remain local.",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_k-27c.jpg"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80031846",
+      "source_keys": [
+        "r83-nrcan-cbmt-ravn",
+        "r83-water-survey-ravn-index",
+        "r83-dfo-stewart1994"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2325
+          ],
+          "component_scope": "Eastern initial feeder and upper river corridor",
+          "finding": "The actual eastern endpoint lies on a small south-side approach to an east–west watercourse. The modeled line goes north to that receiving course, then west and northwest around the broad northern bend and southwest toward the eastern Angijurjuk approach. The eastern federal map shows this full river-and-small-lake corridor and surrounding alternative branches. No separate name is established for the initial feeder, and the longer unselected eastern headwater is not substituted for the model beginning.",
+          "sources": [
+            "r83-nrcan-cbmt-ravn"
+          ]
+        },
+        {
+          "fragments": [
+            2325
+          ],
+          "component_scope": "Angijurjuk passage and western outlet",
+          "finding": "The selected long westward middle course enters the mapped Angijurjuk lake from the east, crosses its generalized interior and exits toward the western lake chain. Water Survey station 06SA002 identifies Ravn River at the outlet in this same western setting, using Angajurjualuk Lake in its station name. This supports the Ravn receiving identity; it is not treated as proof of a formal lake-renaming date or a complete alias history. The separately listed Mary River is a northern incoming system rather than the selected eastern beginning.",
+          "sources": [
+            "r83-nrcan-cbmt-ravn",
+            "r83-water-survey-ravn-index"
+          ]
+        },
+        {
+          "fragments": [
+            2325
+          ],
+          "component_scope": "Western connected lakes and southward Quartz Lake reach",
+          "finding": "West of Angijurjuk the selection follows the connected small-lake and channel corridor through the Ikiqtuq setting, bends southwest and then south through Quartz Lake. The federal western enlargement shows the full connection and distinguishes the large Nina Bang Lake drainage farther east. Some model segments cut across lake interiors or lie locally beside mapped channels because of generalization; lake labels are not extended into river aliases, and no claim is made about every small connecting waterbody.",
+          "sources": [
+            "r83-nrcan-cbmt-ravn"
+          ]
+        },
+        {
+          "fragments": [
+            2325,
+            2326
+          ],
+          "component_scope": "Erichsen Lake transition and lower receiving river",
+          "finding": "South of Quartz Lake the modeled course winds into the northern Erichsen Lake setting and crosses its northeastern lake-to-outlet corridor before continuing southeast. The two selected model fragments meet in this lake setting; that model split is not a formal river-name boundary. The federal fisheries report independently distinguishes Erichsen Lake from the Ravn River downstream of it. The selected route does not follow the separate southward Neergard Lake corridor.",
+          "sources": [
+            "r83-nrcan-cbmt-ravn",
+            "r83-dfo-stewart1994"
+          ]
+        },
+        {
+          "fragments": [
+            2326
+          ],
+          "component_scope": "Southeastern lower course and coastal ending",
+          "finding": "The final fragment follows the southeastward lake-and-channel corridor from Erichsen to the northwestern shore of Steensby Inlet. The coastal federal view labels the inlet and distinguishes Tariujaq Arm to the east and Neergard Lake to the south. The historical DFO Ravn entry agrees with this terminal region and separately lists nearby Harder and Neergard rivers. No exact present-day mouth channel, tidal limit, shoreline vertex or river continuation inside the inlet is assigned.",
+          "sources": [
+            "r83-nrcan-cbmt-ravn",
+            "r83-dfo-stewart1994"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70468154",
+      "source_keys": [
+        "r83-usgs-topo-umpqua",
+        "r83-oregon-deq-umpqua2014"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9730
+          ],
+          "finding": "The small eastern beginning follows the directly labeled Highrock Creek approach into Fish Lake. The selected generalized line passes through the Fish Lake and Beaver Swamp setting and leaves west along Fish Lake Creek, which joins South Umpqua downstream of the Black Rock/Castle Rock fork setting. Those northern forks, the southern Buckeye/Cliff lake approaches and Jackson Creek farther south are distinct and are not substituted for the selected beginning.",
+          "sources": [
+            "r83-usgs-topo-umpqua"
+          ]
+        },
+        {
+          "fragments": [
+            9730
+          ],
+          "finding": "The receiving South Umpqua continues southwest past the Dumont and Jackson creek junction settings, then west through the Tiller/Days Creek corridor. Near the Cow Creek arrival it turns north through the Myrtle Creek and Winston valley to Roseburg. Repeated South Umpqua labels and the distinctive west-then-north shape establish the selected trunk; incoming Cow, Jackson, Myrtle and Lookingglass creeks are not renamed or added as selected tributary fragments.",
+          "sources": [
+            "r83-usgs-topo-umpqua",
+            "r83-oregon-deq-umpqua2014"
+          ]
+        },
+        {
+          "fragments": [
+            9731
+          ],
+          "finding": "The short middle mainstem fragment follows South Umpqua from the Roseburg setting northwest to the North Umpqua junction. The city-side Deer Creek arrival is distinct. The model fragment boundaries are not treated as surveyed name-change points.",
+          "sources": [
+            "r83-usgs-topo-umpqua"
+          ]
+        },
+        {
+          "fragments": [
+            9733
+          ],
+          "finding": "The separately selected east-to-west tributary is a bounded middle/lower North Umpqua River reach, following the named canyon/trail corridor and western bends to its South Umpqua junction. Its eastern starting point is already within that river corridor; the model does not include the entire North Umpqua headwater system. Little River enters separately from the south and is not the selected side branch.",
+          "sources": [
+            "r83-usgs-topo-umpqua",
+            "r83-oregon-deq-umpqua2014"
+          ]
+        },
+        {
+          "fragments": [
+            9732
+          ],
+          "finding": "The shared receiving trunk is labeled Umpqua River. It follows the large northward inland bends west of Sutherlin, then the looping Coast Range course toward Elkton and the long westbound valley along the Umpqua highway to Reedsport. Calapooya, Elk and Smith river/creek arrivals remain separate contextual waterways.",
+          "sources": [
+            "r83-usgs-topo-umpqua",
+            "r83-oregon-deq-umpqua2014"
+          ]
+        },
+        {
+          "fragments": [
+            9732
+          ],
+          "finding": "Below Reedsport the selected line bends north and around the broad Gardiner estuary, then turns south along the Umpqua/River channel west of The Point and the Double Cove setting. Its terminal point is near the Army Hill/North Spit shore setting, still upstream of Winchester Bay and the Pacific entrance. This is a generalized estuary centerline, not proof of an exact current navigable channel, shoreline endpoint or full ocean-mouth coverage.",
+          "sources": [
+            "r83-usgs-topo-umpqua"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60353070",
+      "source_keys": [
+        "r83-igm-mi-patria",
+        "r83-oas-inerhi-region1",
+        "r83-igm-dma-sigchos",
+        "r83-dma-tpc-l26d",
+        "r83-dma-tpc-m25a"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11652
+          ],
+          "finding": "The downstream selected corridor reaches the Esmeraldas city/Pacific setting. OAS/INERHI defines Esmeraldas proper below the Blanco–Guayllabamba union. This model fragment starts farther upstream, at the Quinindé/Blanco setting, so the fragment boundary is not the hydronym boundary.",
+          "sources": [
+            "r83-oas-inerhi-region1",
+            "r83-igm-mi-patria",
+            "r83-dma-tpc-l26d"
+          ]
+        },
+        {
+          "fragments": [
+            11651,
+            11650
+          ],
+          "finding": "The northbound route through the La Concordia–Puerto Quito–Rosa Zárate setting corresponds to the receiving Blanco corridor. A model mainstem designation does not extend Esmeraldas upstream over this separately named river.",
+          "sources": [
+            "r83-igm-mi-patria",
+            "r83-oas-inerhi-region1",
+            "r83-dma-tpc-m25a"
+          ]
+        },
+        {
+          "fragments": [
+            11649
+          ],
+          "finding": "The southern modeled mainstem approaches the Blanco corridor through Toachi country. The detailed Sigchos sheet directly labels Río Toachi in the selected valley east of Sigchos and west of Isinliví. Only that bounded middle-upper interval is detailed-map supported; southern headwaters and the onward interval toward Alluriquín are not fully resolved.",
+          "sources": [
+            "r83-igm-dma-sigchos",
+            "r83-igm-mi-patria"
+          ]
+        },
+        {
+          "fragments": [
+            11653
+          ],
+          "finding": "This is a separate eastern approach to the Blanco junction, not the southern Toachi continuation. The IGM national map supports the upper Blanco branch arrangement, but does not resolve all its upper component names or the entire selected easternmost approach.",
+          "sources": [
+            "r83-igm-mi-patria"
+          ]
+        },
+        {
+          "fragments": [
+            11654,
+            11655,
+            11656
+          ],
+          "finding": "The western branch approaches the Blanco at Rosa Zárate through the Quinindé corridor. The DMA charts show the northbound Quinindé setting. The far-western headwater hook in fragment 11654 is not confidently matched throughout and remains material pending, rather than being named Quinindé solely by downstream continuity.",
+          "sources": [
+            "r83-dma-tpc-l26d",
+            "r83-dma-tpc-m25a",
+            "r83-oas-inerhi-region1"
+          ]
+        },
+        {
+          "fragments": [
+            11657,
+            11658,
+            11659
+          ],
+          "finding": "The long eastern branch occupies the Guayllabamba corridor and meets the receiving route upstream of Esmeraldas proper. This is a separate tributary branch; its detailed upper-channel correspondence and internal name limits are not claimed from the small national map.",
+          "sources": [
+            "r83-igm-mi-patria",
+            "r83-oas-inerhi-region1"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60008920",
+      "source_keys": [
+        "r83-dma-tpc-k27d",
+        "r83-dma-tpc-k27c"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10825
+          ],
+          "finding": "The southwestern selected beginning lies in the mesa headwater approach north of El Tigre. The mapped channel runs northeast into the directly labeled Río Guanipa corridor and continues east through the oil-field plain toward Guanipa settlement. Río Mería on the west and Río Pao and Río Tigre to the south are separate mapped waterways. The initial minor approach is not assigned an additional hydronym or declared the official source.",
+          "sources": [
+            "r83-dma-tpc-k27d"
+          ]
+        },
+        {
+          "fragments": [
+            10825
+          ],
+          "finding": "Across the sheet join, the selected northeastward river passes the Guanipa/Los Palos Blancos setting and continues south of Aguasay by El Cedral, where Río Guanipa is directly labeled. The western Caris approach, northern Tonoro corridor and southern Ñato/Tigre drainage are distinguishable. The long middle section and its bends correspond to the receiving Guanipa route rather than to a similarly named settlement or the neighboring Tigre.",
+          "sources": [
+            "r83-dma-tpc-k27d",
+            "r83-dma-tpc-k27c"
+          ]
+        },
+        {
+          "fragments": [
+            10825
+          ],
+          "finding": "The modeled route bends east and then northeast through the Tonoro receiving vicinity and remains south of the separate Amana route and Maturín. The chart depicts branching wetland waters and a marsh fringe farther east. Regional corridor correspondence is retained without claiming that every generalized model vertex follows a specific small wetland channel.",
+          "sources": [
+            "r83-dma-tpc-k27c"
+          ]
+        },
+        {
+          "fragments": [
+            10825
+          ],
+          "finding": "The lower selected course follows the broad channel explicitly labeled Río Guanipa, bends northward and then eastward before its final northward approach to the western side of Boca Bagre. This is the marsh-fringed Guanipa coastal arrival near Isla Venado and west of Pedernales, rather than the separate San Juan mouth or the eastern Mánamo/Pedernales distributary route.",
+          "sources": [
+            "r83-dma-tpc-k27c"
+          ]
+        },
+        {
+          "fragments": [
+            10825
+          ],
+          "finding": "The complete single-fragment selection is covered, with no additional selected tributary fragment. The endpoint is retained as a generalized river-to-coastal-water transition at Boca Bagre in the southern Gulf of Paria setting. The gulf, islands and adjoining marsh/delta channels keep their own feature classes and names; neither present-day flow nor a precise shoreline crossing is inferred from historical cartography.",
+          "sources": [
+            "r83-dma-tpc-k27c"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

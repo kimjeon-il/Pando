@@ -1,0 +1,239 @@
+{
+  "schema": "hydro-name-source-evidence-v1",
+  "batch": "r08",
+  "target_aw_id": "hydro-system:50538951",
+  "checked_at_utc": "2026-10-09T14:07:15.157994+00:00",
+  "sources": [
+    {
+      "evidence_id": "FORTESCUE-BOM-AWRA2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "agency_or_publisher": "Australian Government, Bureau of Meteorology",
+      "publication_date": "2013",
+      "official_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "acquisition": {
+        "method": "Original PDF GET followed by local text extraction and visual selected-page review",
+        "retrieval_scope": "Reused previously acquired original bytes; no external re-request",
+        "http_status": 200,
+        "requested_at_utc": "2026-10-09T13:39:38.842251+00:00",
+        "original_pdf": {
+          "bytes": 26172797,
+          "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+          "hash_scope": "Complete original PDF response bytes",
+          "included_in_public_package": false
+        },
+        "local_text": {
+          "bytes": 1390063,
+          "sha256": "ed69c9922a19c33f1527e70a2b1eba3d402e90706e2629024f74e53cc0fa3ff4",
+          "hash_scope": "Complete local pdftotext -layout derivative",
+          "included_in_public_package": false
+        },
+        "viewed_map_or_text_renders": [
+          {
+            "label": "bom-awra2012-p530.png",
+            "bytes": 1066437,
+            "sha256": "a28416e6ab718921ccc3987ae534648505e12b2cc577f63aa8e3b66a0c8b202e",
+            "hash_scope": "Local selected-page PNG rendering, not publisher image bytes",
+            "included_in_public_package": false
+          },
+          {
+            "label": "bom-awra2012-p552.png",
+            "bytes": 1145527,
+            "sha256": "ca42fd7d481b958ce1911fc7e502484e038134148f7a62bbb89ab29af599d005",
+            "hash_scope": "Local selected-page PNG rendering, not publisher image bytes",
+            "included_in_public_package": false
+          }
+        ]
+      },
+      "locators": [
+        {
+          "pdf_page_one_based": 530,
+          "printed_page": "Pilbara–Gascoyne chapter 5",
+          "figure": "11.1",
+          "title": "Major rivers and urban centers in the Pilbara–Gascoyne region"
+        },
+        {
+          "pdf_page_one_based": 533,
+          "printed_page": "Pilbara–Gascoyne chapter 8",
+          "section": "11.3.3 Slopes"
+        },
+        {
+          "pdf_page_one_based": 552,
+          "printed_page": "Pilbara–Gascoyne chapter 27",
+          "figure": "11.22",
+          "title": "Rivers and catchments in the Pilbara–Gascoyne region"
+        }
+      ],
+      "own_factual_extraction": "Regional cartography labels the Fortescue corridor separately from Ashburton and nearby coast-draining rivers, including its interior-to-coast orientation. The slopes text associates the flat Fortescue corridor north of the Hamersley Range with Fortescue Marsh.",
+      "limitations": [
+        "The map raster is regional and low-resolution, with no coordinate grid sufficient for an exact reach crosswalk.",
+        "The assessment title year is 2012; the copyright publication year is 2013.",
+        "Two figures from one assessment are one publication, not independent evidence."
+      ],
+      "map_visually_reviewed": true,
+      "formal_registry_status_established": false,
+      "raw_source_republished": false,
+      "publication_rights_note": "Assessment copyright states 2013 and CC BY Australia 3.0 with exclusions. Figure-specific third-party rights were not separately resolved; no source map or report is distributed."
+    },
+    {
+      "evidence_id": "FORTESCUE-DOW-HG34-2009",
+      "title": "The Pilbara coast water study, Hydrogeological record series HG34",
+      "agency_or_publisher": "Western Australian Department of Water",
+      "publication_date": "2009-03",
+      "official_url": "https://www.wa.gov.au/system/files/2022-04/Pilbara-coast-water-study.pdf",
+      "acquisition": {
+        "method": "Original PDF GET followed by local text extraction and visual selected-page review",
+        "retrieval_scope": "Reused previously acquired original bytes; no external re-request",
+        "http_status": 200,
+        "requested_at_utc": "2026-10-09T13:40:04.521980+00:00",
+        "original_pdf": {
+          "bytes": 25303279,
+          "sha256": "ad18a47f680e13180f23fe950883e5c14ae2e6e03313db5c3f865dab95fabbd6",
+          "hash_scope": "Complete original PDF response bytes",
+          "included_in_public_package": false
+        },
+        "local_text": {
+          "bytes": 393702,
+          "sha256": "a20d16fa091d761e0280e269e52fc630d663b1543549fe5bd03ed03507a63923",
+          "hash_scope": "Complete local pdftotext -layout derivative",
+          "included_in_public_package": false
+        },
+        "viewed_map_or_text_renders": [
+          {
+            "label": "dwer-pilbara-p47.png",
+            "bytes": 809405,
+            "sha256": "4d87f55aa44b616b7846b22f9aa01513b56b4f1d7608534049a7b7b0be6f3222",
+            "hash_scope": "Local selected-page PNG rendering, not publisher image bytes",
+            "included_in_public_package": false
+          },
+          {
+            "label": "dwer-pilbara-p70.png",
+            "bytes": 1162257,
+            "sha256": "a931322a71d0cb25434714f79594ec62ec74e3a41bd7e80bb5876e5479b50503",
+            "hash_scope": "Local selected-page PNG rendering, not publisher image bytes",
+            "included_in_public_package": false
+          }
+        ]
+      },
+      "locators": [
+        {
+          "pdf_page_one_based": 46,
+          "printed_page": "34",
+          "section": "4.2.1 The Millstream aquifer"
+        },
+        {
+          "pdf_page_one_based": 47,
+          "printed_page": "35",
+          "figure": "8",
+          "title": "Millstream borefield"
+        },
+        {
+          "pdf_page_one_based": 68,
+          "printed_page": "56",
+          "section": "4.3.1 Lower Fortescue River alluvium"
+        },
+        {
+          "pdf_page_one_based": 70,
+          "printed_page": "58",
+          "figure": "15",
+          "title": "Lower Fortescue River"
+        }
+      ],
+      "own_factual_extraction": "Figure8 labels Fortescue River through the Millstream reach. Section4.3.1 and Figure15 independently use Lower Fortescue River for its coastal-plain course southwest of Karratha. This establishes ordinary official lower-corridor usage.",
+      "limitations": [
+        "The coastal study cannot determine the selected eastern headwater name or the marsh crossing.",
+        "No original map pixels, report pages or coordinate traces are republished."
+      ],
+      "map_visually_reviewed": true,
+      "formal_registry_status_established": false,
+      "raw_source_republished": false,
+      "publication_rights_note": "Report retains copyright; unaltered personal/non-commercial/organisation use is permitted. No raw report or map redistribution is attempted."
+    },
+    {
+      "evidence_id": "FORTESCUE-DBCA-JMP2025",
+      "title": "Fortescue Marsh Nature Reserve (Nyiyaparli Country) joint management plan 2025",
+      "agency_or_publisher": "Western Australia Department of Biodiversity, Conservation and Attractions; Conservation and Parks Commission; Karlka Nyiyaparli Aboriginal Corporation RNTBC",
+      "publication_date": "2025-09",
+      "official_url": "https://www.dbca.wa.gov.au/media/6162/download",
+      "acquisition": {
+        "method": "Original PDF GET followed by local text extraction and visual selected-page review",
+        "retrieval_scope": "One new independent original PDF acquisition",
+        "http_status": 200,
+        "requested_at_utc": "2026-10-09T14:03:57.472840+00:00",
+        "original_pdf": {
+          "bytes": 27943519,
+          "sha256": "bed244468acb8daca5d745e70c9d0894285e8590f286ad607506f52a16c911d9",
+          "hash_scope": "Complete original PDF response bytes",
+          "included_in_public_package": false
+        },
+        "local_text": {
+          "bytes": 171680,
+          "sha256": "6123c1b94810e1076283361d9b60f8c6d209901016a655a9cf21a15372031a7d",
+          "hash_scope": "Complete local pdftotext -layout derivative",
+          "included_in_public_package": false
+        },
+        "viewed_map_or_text_renders": [
+          {
+            "label": "dbca-joint-plan-p10.png",
+            "bytes": 208647,
+            "sha256": "65041df6d98360f27a6a53a3222d8a8d9d115a27eb2dbf2b33c2b63a5de5b15f",
+            "hash_scope": "Local selected-page PNG rendering, not publisher image bytes",
+            "included_in_public_package": false
+          },
+          {
+            "label": "dbca-joint-plan-p25.png",
+            "bytes": 407381,
+            "sha256": "067f9192bb96fab5142d8c091002e9cef3659e75b1ed052e6d4b0f94fc31f186",
+            "hash_scope": "Local selected-page PNG rendering, not publisher image bytes",
+            "included_in_public_package": false
+          },
+          {
+            "label": "dbca-joint-plan-p55.png",
+            "bytes": 253103,
+            "sha256": "eae6897b2b1682ce27abd3b3d5b7e6b687a9fff27d800a999bd765e431be6324",
+            "hash_scope": "Local selected-page PNG rendering, not publisher image bytes",
+            "included_in_public_package": false
+          }
+        ]
+      },
+      "locators": [
+        {
+          "pdf_page_one_based": 9,
+          "printed_page": "1",
+          "section": "Overview"
+        },
+        {
+          "pdf_page_one_based": 10,
+          "printed_page": "2",
+          "map": "1",
+          "title": "Fortescue Marsh Nature Reserve: Locality"
+        },
+        {
+          "pdf_page_one_based": 25,
+          "printed_page": "17",
+          "section": "10. Papa (water), Hydrology"
+        },
+        {
+          "pdf_page_one_based": 55,
+          "printed_page": "47",
+          "map": "2",
+          "title": "Fortescue Marsh Nature Reserve: Plan area"
+        }
+      ],
+      "own_factual_extraction": "The locality map names the broad Fortescue corridor. Hydrology distinguishes the lower river from the upper river and Marsh across Goodiadarrie Hills; transfer from the Marsh is expected only in extreme floods. Weeli Wolli, Coondiner and Mindi Mindi creeks are separately named inflows.",
+      "limitations": [
+        "Generalized locality mapping does not prove ordinary through-flow, an exact marsh path or every source-reach name.",
+        "Only bibliographic and non-cultural hydrological facts are summarized; traditional knowledge, quotations, artwork and photographs are not reproduced."
+      ],
+      "map_visually_reviewed": true,
+      "formal_registry_status_established": false,
+      "raw_source_republished": false,
+      "publication_rights_note": "Copyright and Indigenous cultural/intellectual property notices on PDF page2 are retained privately. Public output contains only independently written factual findings, bibliographic locators and hashes; no full text, images or traditional knowledge."
+    }
+  ],
+  "independence": "Three distinct official publications: national assessment, state hydrogeological study, and reserve management plan. Sources have separate purposes and dates; figures within each are not counted independently.",
+  "distinct_supporting_publications": 3,
+  "new_supporting_publications_acquired": 1,
+  "acquisition_stop": "Bounded representative support and hydrological qualification established; source acquisition stopped.",
+  "new_failed_resource_requests": [],
+  "automatic_application": false
+}

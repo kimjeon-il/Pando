@@ -1,0 +1,63 @@
+{
+  "schema": "hydro-public-source-evidence-v2",
+  "batch": "r14",
+  "created_at_utc": "2026-10-09T16:25:13.335844+00:00",
+  "sources": [
+    {
+      "source_key": "cpra_fy2024_plan",
+      "publisher": "Coastal Protection and Restoration Authority of Louisiana",
+      "title": "Fiscal Year 2024 Annual Plan: Integrated Ecosystem Restoration and Hurricane Protection in Coastal Louisiana",
+      "edition": "Fiscal Year 2024",
+      "publication_date": null,
+      "publication_date_note": "No printed calendar publication date was established. The URL contains 20230418; that path is not treated as a printed publication date.",
+      "kind": "official_coastal_plan_with_regional_maps",
+      "url": "https://coastal.la.gov/wp-content/uploads/2023/04/CPRA_FY24-AP_20230418-compressed.pdf",
+      "retrieved_at_utc": "2026-10-09T16:01:32.772392+00:00",
+      "retrieved_this_batch": false,
+      "original_map_visually_inspected": true,
+      "map_locations": [
+        {
+          "physical_pdf_page": 28,
+          "printed_page": "17",
+          "scope": "Completed-project coastal overview with Grand Lake and White Lake labels and full target-area coverage."
+        },
+        {
+          "physical_pdf_page": 90,
+          "printed_page": "79",
+          "scope": "Map 1, Active Projects in FY 2024, Southwest Region; complete target-area coverage with both lake labels."
+        }
+      ],
+      "short_labels": [
+        "Grand Lake",
+        "White Lake"
+      ],
+      "independence_group": "cpra_fy2024_annual_plan",
+      "source_limit": "Regional coastal-project maps with compressed shorelines and project overlays. Pages and repeated basemaps form one naming-map publication; small water connections and individual name partitions are unresolved."
+    },
+    {
+      "source_key": "louisiana_celcp2011",
+      "publisher": "Louisiana Department of Natural Resources, Office of Coastal Management; hosted by NOAA",
+      "title": "Louisiana Coastal and Estuarine Land Conservation Program Plan",
+      "publication_date": "2011-05",
+      "kind": "official_coastal_conservation_plan",
+      "url": "https://coast.noaa.gov/data/czm/landconservation/media/celcpplanlafinal.pdf",
+      "retrieved_at_utc": "2026-10-09T15:59:56.185318+00:00",
+      "retrieved_this_batch": false,
+      "original_map_visually_inspected": true,
+      "inspection_scope": "Physical PDF page 12, printed page 10, supports Mermentau basin and coastal-marsh context. Appendix B Figure 4 (PDF page 30, printed page 28) and Figure 14 (PDF page 40, printed page 38) support regional basin/planning context; they do not provide readable target lake names or name partitions.",
+      "identity_map_evidence": false,
+      "independence_group": "louisiana_celcp2011",
+      "source_limit": "2011 regional hydrologic and conservation-planning context, not current site salinity or precise lake-name boundaries."
+    }
+  ],
+  "independent_source_count": 2,
+  "independent_cartographic_identity_source_count": 1,
+  "independence_note": "Two official publications; only the CPRA Annual Plan supplies direct lake-name map evidence. Repeated panels in that plan count once.",
+  "unused_acquisition_outcomes": [],
+  "new_source_requests_this_batch": 0,
+  "search_snippets_used_as_identity_evidence": false,
+  "availability_scope_note": "Existing acquired originals provide whole-target-area map coverage. No new or failed auxiliary request was made for this component. The Grand Lake-area hold concerns unresolved naming scope, rather than missing whole-feature map coverage.",
+  "included_evidence_limit": "Included records retain official bibliography, own factual observations and geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

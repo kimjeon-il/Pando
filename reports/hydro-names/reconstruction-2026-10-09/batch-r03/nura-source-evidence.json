@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "system_id": "30624681",
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "sources": [
+    {
+      "source_id": "world-bank-e591",
+      "official_url": "https://documents1.worldbank.org/curated/en/634331468753306920/pdf/multi0page.pdf",
+      "title": "Environmental Impact Assessment: Nura River Clean-up Project, Republic of Kazakhstan",
+      "document_id": "E591",
+      "agency": "Committee for Water Resources, Ministry of Natural Resources and Environment, Republic of Kazakhstan; World Bank disclosure repository",
+      "author": "Timothy D. Van Epp, Environmental Consultant",
+      "publication_date": "2002-04",
+      "document_status": "Draft Final, as printed",
+      "source_type": "Primary project environmental assessment",
+      "language": "en",
+      "capture": {
+        "retrieved_on_utc": "2026-10-09",
+        "observed_capture_completed_at_utc": "2026-10-09T11:58:53Z",
+        "timestamp_scope": "Tool-return observation time; exact origin HTTP response time is not available.",
+        "capture_kind": "Exact tool-returned text segments grouped by source; not original HTTP response/PDF bytes",
+        "capture_sha256": "5d139f68038bd52d58a98c4afb04ef50b11814c101f96df4d50c9316589996c7",
+        "capture_bytes": 68484,
+        "raw_original_sha256": null,
+        "raw_original_bytes_acquired": false,
+        "raw_source_in_public_package": false
+      },
+      "factual_extraction": {
+        "name_as_observed": "Nura River",
+        "geographic_context": "The river lies wholly in Kazakhstan. Section 3.1.5 describes headwaters on the northern slopes of Keregetas and Zhaman-Karazhal in southeastern Karaganda region, with the river ending at Korgalzhino Lake. It separately treats the connected wetland/lake cascade through Tengiz.",
+        "reach_context": "Samarkand Reservoir to Intumak Reservoir is identified as a Nura River segment; Oshagandy, Sherubai-Nuru and Sokyr are separate incoming rivers.",
+        "length_reported_km": 899,
+        "length_scope": "River to Korgalzhino Lake in the 2002 assessment; not assumed equivalent to the lake-linked system extending to Tengiz."
+      },
+      "locators": [
+        "Cover, PDF page 1",
+        "Section 3.1.5, printed page 3-4, PDF page 26",
+        "Section 3.1.6, printed page 3-5, PDF page 27"
+      ],
+      "map": {
+        "locator": "Figure 3-1, printed page 3-2, PDF page 24",
+        "caption": "Area of Influence of Nura River Basin Mercury Cleanup",
+        "visual_inspection_completed": false,
+        "extent_verified": false,
+        "limitation": "Two rendering attempts returned internal errors. OCR does not establish readable river labels, map extent, or whole-course agreement; this figure is not used as acquired visual map evidence."
+      },
+      "naming_authority_status": "Officially disclosed project usage, not an acquired gazetteer or naming-registry determination."
+    },
+    {
+      "source_id": "gov-nura-2021-design",
+      "official_url": "https://www.gov.kz/uploads/2022/1/27/ff71f404d29166f7b482ca244637344b_original.5201679.pdf",
+      "title": "Санация реки Нура от несанкционированной дороги рядом с п. Г. Мустафина до Самаркандского водохранилища",
+      "document_id": "22-2021/ОПЗ, general explanatory note",
+      "agency": "Commissioned by the Karaganda Region Department of Natural Resources and Environmental Management; hosted on Kazakhstan government portal",
+      "author": "ТОО «Корпорация Асыл-Строй»",
+      "publication_date": "2021",
+      "host_path_date": "2022-01-27",
+      "source_type": "Primary river-sanitation engineering project",
+      "language": "ru",
+      "capture": {
+        "retrieved_on_utc": "2026-10-09",
+        "observed_capture_completed_at_utc": "2026-10-09T11:59:45Z",
+        "timestamp_scope": "Tool-return observation time; exact origin HTTP response time is not available.",
+        "capture_kind": "Exact tool-returned text segments grouped by source; not original HTTP response/PDF bytes",
+        "capture_sha256": "474617bbd21471ca5777f122e20d367a455a06c5cb8d8f8cf1b9797c1ca6ad1f",
+        "capture_bytes": 42367,
+        "raw_original_sha256": null,
+        "raw_original_bytes_acquired": false,
+        "raw_source_in_public_package": false
+      },
+      "factual_extraction": {
+        "name_as_observed": "Нура",
+        "geographic_context": "Sections Introduction and 2.1 describe the principal river of the Tengiz–Korgalzhyn depression, beginning in western spurs of the Kzyltas/Karkaraly–Aktau uplands and reaching Lake Tengiz.",
+        "length_reported_km": 978,
+        "separately_named_tributaries": [
+          "Шерубай-Нура",
+          "Улькенкундызды",
+          "Акбастау"
+        ],
+        "project_scope": "A short sanitation reach near G. Mustafina and Samarkand Reservoir; its basin overview is broader than its surveyed engineering reach."
+      },
+      "locators": [
+        "PDF page 3, project title and author",
+        "PDF page 9, Introduction",
+        "PDF page 16, section 2.1",
+        "PDF page 17, figure caption and upstream catchment scope"
+      ],
+      "map": {
+        "locator": "Figure 1.1, PDF page 17, printed sheet 15",
+        "extent_as_captioned": "Upper Nura basin to the project calculation section, 285 km from the source; does not claim whole-course coverage.",
+        "visual_inspection_completed": false,
+        "extent_verified": false,
+        "limitation": "Render returned a cache-miss error; only the caption and accompanying text were acquired."
+      },
+      "independence": "Different, 2021 engineering project and commissioned work; not treated as a second hydrometric yearbook edition. Underlying bibliographic independence of generic basin description has not been established.",
+      "naming_authority_status": "Government-hosted primary project usage; no formal naming-register status demonstrated."
+    },
+    {
+      "source_id": "ministry-nura-kk",
+      "official_url": "https://www.gov.kz/memleket/entities/water/press/news/details/742332",
+      "title": "СУ РЕСУРСТАРЫ ЖӘНЕ ИРРИГАЦИЯ МИНИСТРЛІГІ НҰРА ӨЗЕНІНІҢ БАССЕЙНІНДЕ ТАСҚЫН СУЫН АПАТСЫЗ ӨТКІЗУ БОЙЫНША ІС-ШАРАЛАР ӨТКІЗДІ",
+      "agency": "Ministry of Water Resources and Irrigation, Republic of Kazakhstan",
+      "publication_date": null,
+      "date_limitation": "Publication date is absent from the acquired page extract; event references April 2–3 without a visible year.",
+      "source_type": "Official operational news report",
+      "language": "kk",
+      "capture": {
+        "retrieved_on_utc": "2026-10-09",
+        "observed_capture_completed_at_utc": "2026-10-09T11:58:53Z",
+        "timestamp_scope": "Tool-return observation time; exact origin HTTP response time is not available.",
+        "capture_kind": "Exact tool-returned text segments grouped by source; not original HTTP response/PDF bytes",
+        "capture_sha256": "4181a3852239a828d7ea387a3b8472ff7cb0276487ca19f47c976e421d704594",
+        "capture_bytes": 5929,
+        "raw_original_sha256": null,
+        "raw_original_bytes_acquired": false,
+        "raw_source_in_public_package": false
+      },
+      "factual_extraction": {
+        "name_as_observed": "Нұра",
+        "context": "The ministry describes Nura basin flood-management work, reservoir releases from Karaganda toward Akmola, and operation of Preobrazhensky and Kenbidayyk facilities.",
+        "evidence_scope": "Direct Kazakh official usage of the river/basin name; no complete river map, exact reach attribution, or registry entry."
+      },
+      "locators": [
+        "Title",
+        "Body paragraphs 1–5"
+      ],
+      "map": null,
+      "naming_authority_status": "Direct government Kazakh usage, not formal designation evidence."
+    },
+    {
+      "source_id": "nasa-terminal-lakes",
+      "official_url": "https://science.nasa.gov/earth/earth-observatory/tengiz-and-korgaljinski-lakes-kazakhstan-9027/",
+      "title": "Tengiz and Korgaljinski Lakes, Kazakhstan",
+      "agency": "NASA Earth Observatory",
+      "author": "Image: Jesse Allen using USGS Landsat data; caption: Michon Scott",
+      "publication_date": "2008-08-24",
+      "page_last_updated": "2026-01-31",
+      "image_observation_date": "2001-07-29",
+      "source_type": "Official Earth-observation image commentary",
+      "language": "en",
+      "capture": {
+        "retrieved_on_utc": "2026-10-09",
+        "observed_capture_completed_at_utc": "2026-10-09T11:58:53Z",
+        "timestamp_scope": "Tool-return observation time; exact origin HTTP response time is not available.",
+        "capture_kind": "Exact tool-returned text segments grouped by source; not original HTTP response/PDF bytes",
+        "capture_sha256": "78db912fd7b9ad103011381f67cd169b78ad75c35afc4b707417235462111707",
+        "capture_bytes": 15941,
+        "raw_original_sha256": null,
+        "raw_original_bytes_acquired": false,
+        "raw_source_in_public_package": false
+      },
+      "factual_extraction": {
+        "name_as_observed": "Nura River",
+        "geographic_context": "Describes Nura east of the Korgaljinski freshwater lakes/marshes, their meandering connections west toward outletless saltwater Lake Tengiz, and a separate Zhaksy-Kon inflow from the south.",
+        "evidence_scope": "Independent terminal-lake context and English usage; the text does not assign the Nura name to every lake passage."
+      },
+      "locators": [
+        "Article body paragraphs 1–3",
+        "Image/data credit and publication date"
+      ],
+      "map": {
+        "type": "Landsat image described by the article",
+        "image_url": "https://assets.science.nasa.gov/dynamicimage/assets/science/esd/eo/images/imagerecords/9000/9027/tengiz_l7_2001210_lrg.jpg?crop=faces%2Cfocalpoint&fit=clip&h=2700&w=3600",
+        "visual_inspection_completed": false,
+        "extent_verified": false,
+        "limitation": "Text and linked image URL acquired, but no locally viewable image bytes retained; not counted as visually inspected map evidence."
+      },
+      "independence": "NASA-produced Landsat visualization and caption. Its references include the World Bank cleanup project, so all background prose is not assumed fully independent.",
+      "naming_authority_status": "Official English descriptive usage; no national naming-registry claim."
+    }
+  ],
+  "evidence_standard": {
+    "search_snippets_used_as_acquired_original_evidence": false,
+    "raw_pdf_hashes_claimed": false,
+    "map_visual_match_claimed": false,
+    "source_count_is_not_independence_count": true
+  },
+  "unacquired_source": [
+    {
+      "url": "https://www.kazhydromet.kz/uploads/files/1876/file_kk/67c55a509e914eds-vyp-8-nura-i-sarysu-2022-g.pdf",
+      "title": "Kazhydromet annual river data for 2022, Issue 8, Nura and Sarysu basins",
+      "retrieved_at_utc": "2026-10-09T11:57:08.074308+00:00",
+      "acquisition_result": "Tunnel connection failed: 403 Forbidden",
+      "source_body_acquired": false,
+      "used_as_evidence": false,
+      "retry_or_equivalent_retrieval": false
+    }
+  ],
+  "automatic_application": false,
+  "scalar_product_name_approved": false,
+  "korean_name": null
+}

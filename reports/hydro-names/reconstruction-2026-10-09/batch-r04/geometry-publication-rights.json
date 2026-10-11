@@ -1,0 +1,45 @@
+{
+  "schema": "mixed-geometry-rights-v1",
+  "lake": {
+    "scope": "Selected Natural Earth lake source and baseline geometries only.",
+    "source_attribution": "Natural Earth 5.0.0 1:10m lake data, as attributed by the pinned Pando manifest and original feature properties. Made with Natural Earth.",
+    "official_terms_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "original_retrieved_at_utc": "2026-10-09T10:54:05.958532+00:00",
+    "original_http_status": 200,
+    "original_html_bytes": 38013,
+    "original_html_sha256": "9bc9cbc663b0e6298b7a8cc216a92b5b223efe87796ba5d74c99a64ed6c12db8",
+    "reuse_hash_checked_at_utc": "2026-10-09T12:31:59Z",
+    "retrieved_this_batch": false,
+    "short_excerpt": "All versions of Natural Earth raster + vector map data found on this website are in the public domain.",
+    "interpretation": "The retained official terms place all versions of Natural Earth vector/raster data in the public domain and permit modification and electronic dissemination. Only the selected lake features are retained here.",
+    "exclusions": "No rights assertion is made for unrelated documents or maps. Full upstream assets and decoder dependencies are not republished."
+  },
+  "river": {
+    "schema": "hydrorivers-publication-rights-check-v1",
+    "product_url": "https://www.hydrosheds.org/products/hydrorivers",
+    "official_license_url": "https://data.hydrosheds.org/file/technical-documentation/HydroSHEDS_TechDoc_v1_4.pdf",
+    "license_locator": "Appendix A, sections 2.1.2 and 2.2, printed pages 24–25; Exhibit B, printed page 29.",
+    "checked_at_utc": "2026-10-09T12:07:50Z",
+    "official_product_original_bytes": 31468,
+    "official_product_original_sha256": "ea8ca5f29c27452ff1fa972bef481576756f091b7070b004a84112595eb4bd9f",
+    "official_product_http_status": 200,
+    "license_access": "Official PDF text was read through web extraction. Original PDF download returned HTTP 403 and was not retried. No complete PDF-byte checksum is claimed.",
+    "finding": "HydroRIVERS points to the HydroSHEDS license. It allows specified derivative use and distribution subject to protective end-user terms and attribution, and restricts stand-alone distribution. Open redistribution of a selected GeoJSON has not been established.",
+    "public_package_scope": "Own factual findings, identifiers, bounded coordinate facts, counts, hashes, citations and offline validation code. No complete coordinate arrays, binary packs, raw source maps or third-party documents.",
+    "complete_coordinate_arrays_in_public_package": false,
+    "open_redistribution_permission_claimed": false,
+    "source_attribution": "HydroRIVERS v1.0, HydroSHEDS. Lehner, B. and Grill, G. (2013), Hydrological Processes 27(15), 2171–2186, https://doi.org/10.1002/hyp.9740.",
+    "disclaimer": "WWF has not reviewed this audit. The audit does not establish contemporary accuracy, suitability or legal clearance for redistribution.",
+    "reuse_hash_checked_at_utc": "2026-10-09T12:31:59Z",
+    "license_capture": {
+      "kind": "previously saved tool text extraction, not original PDF bytes",
+      "bytes": 30275,
+      "sha256": "b3c692ad44a5bb4d2242b55b5d2a3893d8ebb7547a4716616b010349d149255e",
+      "original_pdf_byte_checksum_available": false
+    },
+    "new_external_request_in_r04": false
+  },
+  "complete_lake_coordinates_in_public_package": true,
+  "complete_river_coordinates_in_public_package": false,
+  "river_pack_bytes_in_public_package": false
+}

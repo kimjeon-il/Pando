@@ -1,0 +1,78 @@
+{
+  "schema": "hydro-independent-source-observations-v1",
+  "scope_system_ids": [
+    "30624681",
+    "50488324",
+    "40182409"
+  ],
+  "method": "Local re-reading of pinned evidence, original response bodies or exactly scoped text captures, and independent image-tool inspection of retained full maps and detail views. No external acquisition was performed during review.",
+  "observations": [
+    {
+      "system_id": "30624681",
+      "written_forms": {
+        "kk": "Нұра",
+        "ru": "Нура",
+        "en": "Nura River",
+        "ko": null
+      },
+      "source_scope": "The 2002 E591 assessment explicitly ends its river description at Korgalzhino; the 2021 government-hosted design describes its river through to Tengiz. NASA separately describes the wetland/lake connections. The ministry directly uses the Kazakh form.",
+      "inspected_locators": [
+        "E591 section 3.1.5, PDF page 26, and section 3.1.6, PDF page 27",
+        "2021 design section 2.1, PDF pages 16–17",
+        "Ministry title and body",
+        "NASA article body and source credits"
+      ],
+      "original_pdf_bytes_inspected": false,
+      "text_capture_hash_scope": "Exact tool-returned text segments; not original PDF or HTTP response bytes.",
+      "visually_verified_external_map_count": 0,
+      "map_observation": "None of the retained Nura map attempts contains an inspectable map image. Captions, an image URL, and failed renders do not establish visual agreement.",
+      "independence": "Four distinct published items, not four demonstrated independent name authorities. NASA references the World Bank project; the engineering overview may synthesize existing geography.",
+      "naming_limit": "Written regional usage is strong; exact whole-course, terminal-lake passage, and per-reach naming boundaries remain unresolved."
+    },
+    {
+      "system_id": "50488324",
+      "written_forms": {
+        "en": "Flinders River",
+        "ko": null
+      },
+      "source_scope": "BOM describes headwaters northeast of Hughenden, a westward course toward Julia Creek, a northward lower course, and the Gulf delta west of Karumba. Cloncurry and Corella are explicitly separate tributaries.",
+      "inspected_locators": [
+        "BOM Flood Risk paragraphs 1–2 and July 2026 update statement",
+        "Complete BOM map 914/915, network dated 2020-10-30",
+        "Complete Queensland Flinders Basin Appendix I Rev. 0 map and upper, western, lower and credit detail views"
+      ],
+      "original_response_bodies_inspected": true,
+      "visually_verified_external_map_count": 2,
+      "map_observation": "Both complete maps span the eastern headwaters, westward principal course, western tributaries and coast. The Queensland map repeats Flinders River labels in the Hughenden–Richmond corridor and lower northward course. Western Cloncurry, Corella and Dugald paths are separately named; Bynoe River and Armstrong Creek also remain separate in the coastal network.",
+      "map_limit": "These are generalized regional maps. Visual correspondence does not define exact source-reach name boundaries or surveyed outlet coordinates.",
+      "independence": "BOM page and map are one agency's related hydrological products. The Queensland/KBR original is a distinct cartographic product; shared base mapping is possible.",
+      "naming_limit": "Representative Flinders-system support cannot rename every western branch Flinders River."
+    },
+    {
+      "system_id": "40182409",
+      "written_forms": {
+        "ru": "Сарысу",
+        "kk": "Сарысу",
+        "en": "Sarysu",
+        "ko": null
+      },
+      "source_scope": "The 2017 article distinguishes the river beginning at the Zhaman-Sarysu/Zhaksy-Sarysu confluence from a longer hydrological path through Kairakty. It states that floodwater reaches Telekol only in some years. The 2024 government report supplies independent dated official usage and an operational flow toward Telikol.",
+      "inspected_locators": [
+        "2017 article printed pages 155 and 157, and visually checked page 158",
+        "2013 article printed pages 77–78, 80 and 82, including whole-basin Figures 1 and 2",
+        "2024-04-02 Prime Minister article's Kengir–Sarysu–Telikol paragraph"
+      ],
+      "original_response_bodies_inspected": true,
+      "visually_verified_external_map_count": 2,
+      "distinct_external_map_publication_count": 1,
+      "map_observation": "2013 Figure 1 is a full-basin thematic map with a 66–74°E graticule and a long southward lower-basin extension. Figure 2 covers the full basin with 12 numbered field sites. The page 82 table keys field sites. The acquired 2017 page 158 is blank apart from its page number and supplies no map evidence.",
+      "map_limit": "The 2013 maps lack individual reach labels, headwater-name transitions, or exact lake-shore endpoint delineation.",
+      "independence": "The 2013 and 2017 research publications share leading authors and are not wholly independent naming authorities; the 2024 government operational report is a separate source.",
+      "naming_limit": "Whole-basin orientation supports comparison, while headwater names and the seasonal terminal reach remain explicit holds."
+    }
+  ],
+  "denied_source_evidence_count": 0,
+  "new_external_requests": 0,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0
+}

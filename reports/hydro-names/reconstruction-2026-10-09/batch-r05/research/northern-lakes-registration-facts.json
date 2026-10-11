@@ -1,0 +1,165 @@
+{
+  "schema": "hydro-regional-map-registration-v1",
+  "source_key": "GNWT-CARIBOU-MAP-2018",
+  "pdf_page_one_based": 2,
+  "map_printed_scale_denominator": 400000,
+  "page_dimensions_pdf_points": [
+    3456,
+    2592
+  ],
+  "source_embedded_viewport_bbox_pdf_coordinates": [
+    35.27965,
+    2550.23939,
+    3387.56598,
+    48.92306
+  ],
+  "source_embedded_lpts": [
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    1.0
+  ],
+  "projection": {
+    "name": "NWT Lambert",
+    "ellipsoid": "GRS 1980",
+    "semi_major_axis_m": 6378137.0,
+    "inverse_flattening": 298.257222101,
+    "central_meridian_deg": -115,
+    "standard_parallels_deg": [
+      60,
+      66
+    ],
+    "latitude_of_origin_deg": 0,
+    "false_easting_m": 0,
+    "false_northing_m": 0
+  },
+  "four_embedded_corner_controls": [
+    {
+      "longitude": -115.78085,
+      "latitude": 62.82566,
+      "pdf_point": [
+        35.27965,
+        2543.07694
+      ]
+    },
+    {
+      "longitude": -115.87528,
+      "latitude": 65.99483,
+      "pdf_point": [
+        35.27965,
+        41.760609999999815
+      ]
+    },
+    {
+      "longitude": -105.52583,
+      "latitude": 65.71027,
+      "pdf_point": [
+        3387.56598,
+        41.760609999999815
+      ]
+    },
+    {
+      "longitude": -106.53558,
+      "latitude": 62.5711,
+      "pdf_point": [
+        3387.56598,
+        2543.07694
+      ]
+    }
+  ],
+  "projected_xy_plus_one_to_top_left_pdf_xy_matrix": [
+    [
+      0.007085657454913393,
+      7.362156544849056e-09
+    ],
+    [
+      8.354198868332306e-10,
+      -0.007085819457790093
+    ],
+    [
+      316.9165676637101,
+      61143.17828381599
+    ]
+  ],
+  "four_corner_fit_residual_pdf_points": [
+    0.00012751514023737312,
+    0.00012751511174167397,
+    0.0001275151575329762,
+    0.00012751514645192508
+  ],
+  "independent_ground_control_used": false,
+  "baseline_crs_assumption": "Baseline longitude/latitude coordinates are treated as compatible with the map geographic coordinates for a regional comparison; no sub-meter datum equivalence is claimed.",
+  "accuracy_limit": "The tiny corner-fit residual measures algebraic consistency with the embedded rounded controls only. It is not independently measured positional or shoreline accuracy. Printed scale, source generalization, line widths and possible datum differences remain.",
+  "comparison_method": "Whole original rings projected onto the regional map and visually inspected together with actual blue water shapes and labels. No nearest-centroid name assignment.",
+  "baseline_file_sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+  "inventory_gzip_sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+  "records": [
+    {
+      "aw_id": "lakes_base:1159110371",
+      "source_id": "1159110371",
+      "coordinate_count_including_ring_closures": 114,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "all_coordinates_transformed": true,
+      "simplification_applied": false,
+      "projected_pdf_point_bbox": [
+        2664.292246024199,
+        1893.9424265074485,
+        2952.406855259843,
+        2401.505606344246
+      ],
+      "all_vertices_inside_map_viewport": true,
+      "local_review_overlay_sha256": "f8d34782d3aecd1322d050cc70e78ff9e288ad2301dc1b739d824a695e694845",
+      "overlay_hash_scope": "Locally rendered original page crop plus complete projected baseline rings. Image is excluded from the public package.",
+      "geometry_sha256": "322a6ba68f7a8b05ce6adb18e93249bfce0433b2f42c304456147c4ad76e31a8",
+      "geometry_hash_scope": "Canonical geometry JSON only: sorted keys, compact separators, UTF-8."
+    },
+    {
+      "aw_id": "lakes_base:1159109471",
+      "source_id": "1159109471",
+      "coordinate_count_including_ring_closures": 205,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "all_coordinates_transformed": true,
+      "simplification_applied": false,
+      "projected_pdf_point_bbox": [
+        1600.736286198454,
+        980.6479627235312,
+        2142.934364214627,
+        1298.300108919073
+      ],
+      "all_vertices_inside_map_viewport": true,
+      "local_review_overlay_sha256": "48a363a1823341dd36db3904913f84cffe4549853cb203e19fc12fb640eb2f9c",
+      "overlay_hash_scope": "Locally rendered original page crop plus complete projected baseline rings. Image is excluded from the public package.",
+      "geometry_sha256": "30258165f3e3b5162fc64df1a81bd7b802f28c4a7afe5d3f1fcad416d7ae93f0",
+      "geometry_hash_scope": "Canonical geometry JSON only: sorted keys, compact separators, UTF-8."
+    },
+    {
+      "aw_id": "lakes_base:1159111751",
+      "source_id": "1159111751",
+      "coordinate_count_including_ring_closures": 104,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "all_coordinates_transformed": true,
+      "simplification_applied": false,
+      "projected_pdf_point_bbox": [
+        1425.9644044091074,
+        700.2020658818437,
+        1644.0386081949011,
+        937.8756586994787
+      ],
+      "all_vertices_inside_map_viewport": true,
+      "local_review_overlay_sha256": "7339de5210ab1f0e1eaa62435b92986eb7a7b72e5272e51c37302ddf90195eaf",
+      "overlay_hash_scope": "Locally rendered original page crop plus complete projected baseline rings. Image is excluded from the public package.",
+      "geometry_sha256": "06e4ee70e7b60368e068b2ffa0b589729a399baa69199b1846df8a5b96aec0d3",
+      "geometry_hash_scope": "Canonical geometry JSON only: sorted keys, compact separators, UTF-8."
+    }
+  ],
+  "measured_shoreline_overlap_or_iou": null,
+  "pixel_label_overlap_used_as_inclusion_proof": false,
+  "public_map_image_republication": false
+}

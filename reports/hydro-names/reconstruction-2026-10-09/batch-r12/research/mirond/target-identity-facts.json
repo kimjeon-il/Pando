@@ -1,0 +1,88 @@
+{
+  "schema": "hydro-public-target-identity-facts-v2",
+  "batch": "r12",
+  "aw_id": "lakes_base:1159112207",
+  "source_id": "1159112207",
+  "baseline_fid": 15604,
+  "baseline_logical_fid": 4229,
+  "source_geometry": {
+    "type": "Polygon",
+    "polygon_part_count": 1,
+    "ring_counts_by_part": [
+      1
+    ],
+    "coordinate_counts_by_part_and_ring": [
+      [
+        151
+      ]
+    ],
+    "total_coordinates_including_closure": 151,
+    "bbox": [
+      -103.4691338569686,
+      55.002934025005885,
+      -102.62460317622784,
+      55.49128411191734
+    ],
+    "all_rings_closed": true,
+    "ordered_parts": [
+      {
+        "part_index": 0,
+        "ordered_rings": [
+          {
+            "ring_index": 0,
+            "coordinate_count_including_closure": 151
+          }
+        ]
+      }
+    ]
+  },
+  "baseline_rendered_geometry": {
+    "type": "Polygon",
+    "polygon_part_count": 1,
+    "ring_counts_by_part": [
+      1
+    ],
+    "coordinate_counts_by_part_and_ring": [
+      [
+        151
+      ]
+    ],
+    "total_coordinates_including_closure": 151,
+    "bbox": [
+      -103.469134,
+      55.002934,
+      -102.624603,
+      55.491284
+    ],
+    "all_rings_closed": true,
+    "ordered_parts": [
+      {
+        "part_index": 0,
+        "ordered_rings": [
+          {
+            "ring_index": 0,
+            "coordinate_count_including_closure": 151
+          }
+        ]
+      }
+    ]
+  },
+  "historical_rendered_area_km2": 500.698,
+  "source_to_baseline_comparison": {
+    "same_geometry_type": true,
+    "same_part_ring_and_vertex_order": true,
+    "every_coordinate_matches_source_rounded_to_6_decimals": true,
+    "maximum_absolute_coordinate_difference_degrees": 4.99257481578752e-07
+  },
+  "area_scope": "Inventory area is not a surveyed lake area or an identity test.",
+  "korean_name": null,
+  "whole_feature_scalar_name": null,
+  "automatic_application": false,
+  "product_application": false,
+  "included_geometry_files": [
+    "selected-lake-geometries.geojson",
+    "selected-baseline-rendered-geometries.geojson"
+  ],
+  "included_geometry_file_path_base": "Package root",
+  "geometry_note": "Complete included source and baseline ordered positions agree at six-decimal precision. Counts, bounding boxes and inventory areas are generalized geometry facts, not surveyed or official lake dimensions."
+}

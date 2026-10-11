@@ -1,0 +1,469 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r75",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r74",
+    "commit": "afeca9a6771a69dad580611243c5bebdeabe98f5",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r74/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:80026392",
+    "hydro-system:70847445",
+    "hydro-system:70793312",
+    "hydro-system:60189196"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:80026392",
+      "category": "river_group",
+      "system_id": "80026392",
+      "baseline_logical_fid": 835,
+      "geometry_fids": [
+        2316
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -116.818267,
+        71.097917,
+        -110.279167,
+        71.964583
+      ],
+      "rendered_mainstem_length_km": 367.239,
+      "rendered_network_length_km": 367.239,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -116.818267,
+          71.097917,
+          -110.279167,
+          71.964583
+        ]
+      },
+      "candidate_name": "Kuujjua River",
+      "candidate_names": [
+        "Kuujjua River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Readable Natural Resources Canada cartography repeatedly prints Kuujjua River along the actual selected upper-middle, middle and lower trunk. The northeastern modeled beginning follows a northern stream and lake-bearing valley that joins that trunk; its individual hydronym is not established. A separate named continuation arriving from farther east is visible and is not substituted for the selected northern beginning.",
+      "geographic_disambiguation": "Northern lake-bearing approach in the eastern Shaler Mountains; westward connection into the Kuujjua corridor; the large southward then northwestward eastern bend; southwestward and westward middle reaches; lower elongated lake and north-turning lake chain; final outlet at the southern shore of Minto Inlet. Burns Lake and Tahiryuak Lake lie off the selected route.",
+      "source_keys": [
+        "r75-nrcan-cbmt-kuujjua",
+        "r75-dfo-2234-kuujjua"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western Victoria Island, Canadian Arctic; Shaler Mountains, lower Kuujjua lake corridor and southern Minto Inlet shore",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "The complete single selected modeled mainstem was compared with five readable original NRCan map windows, including a closer view of the actual northern beginning and its connection, overlapping eastern/middle/western coverage, the lower lake sequence and the Minto Inlet endpoint. The DFO original supplies additional historical lower-river and Tatik/Fish Lake context. No substantial route interval is left without readable cartography. Small modeled connectors and line-to-map offsets are generalized; exact stream-centre registration, shoreline crossings, hydronym limits and a definitive source point are not adjudicated.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Kuujjua River",
+        "feeder_scope": "The substantive northern beginning is a connected stream/lake approach with no hydronym established by the inspected map pixels. It is qualified separately rather than described as a uniformly named Kuujjua source reach. The small initial modeled connector is generalized and is not asserted to define an official source point.",
+        "named_trunk_scope": "The actual selected trunk after its northern approach joins the east-to-west Kuujjua corridor, its large eastern bend, middle southwestward valley, lower lake passages and final westward outlet. Repeated labels and corresponding bends/connections support a representative drainage identity.",
+        "alternative_headwater_scope": "A separate eastern/southeastern continuation carries Kuujjua River labels on the official map. It is not part of the selected northern approach and is not silently exchanged for it.",
+        "lake_scope": "Prominent northern feeder waters and the lower connected lake basins retain lake roles. The DFO report supports Tatik Lake/Fish Lake usage in the lower-river setting but does not establish each modern basin boundary or justify applying that name to the whole lower chain. Burns Lake and Tahiryuak Lake are off-route context. No individual lake name is adopted as the representative river name.",
+        "tributary_scope": "The selection consists of one modeled mainstem fragment and no separately selected tributary fragment. This inventory role does not convert every contributing approach into a uniformly named river reach.",
+        "terminal_scope": "Final Kuujjua outlet at the southern Minto Inlet shore. Minto Inlet is receiving coastal water; the selection is not a traversing line through the inlet and does not continue to Prince Albert Sound.",
+        "source_authority_limit": "NRCan Canada Base Map - Transportation supplies CanVec-derived reference labels and hydrographic/terrain context, not formal naming decisions or a field survey. Its five windows are views of one publication. The 1998 DFO report is a fishery study; its regional map credits Lewis and colleagues (1989), and is used only at its historical, generalized scope.",
+        "model_limits": "Modeled MAIN_RIV membership, the single fragment boundary and the 367.239 km modeled length do not establish official naming limits, surveyed channel position, definitive river source or official river length. No Korean form, formal naming date or complete alias chronology is established.",
+        "candidate_names_scope": "Only Kuujjua River is proposed as the bounded representative system name. Feeder waters, lakes, off-route branches and Minto Inlet retain distinct roles."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70847445",
+      "category": "river_group",
+      "system_id": "70847445",
+      "baseline_logical_fid": 3225,
+      "geometry_fids": [
+        10365
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -108.501107,
+        25.288046,
+        -107.19375,
+        26.302083
+      ],
+      "rendered_mainstem_length_km": 364.683,
+      "rendered_network_length_km": 364.683,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -108.501107,
+          25.288046,
+          -107.19375,
+          26.302083
+        ]
+      },
+      "candidate_name": "Río Sinaloa",
+      "candidate_names": [
+        "Río Sinaloa"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Sinaloa directly names the receiving river in northern Badiraguato, above and below the selected reservoir in Sinaloa municipality, and on the Guasave plain. The upper selected course is separately labeled Basonopita on the Guadalupe y Calvo map; the first short feeder remains unnamed. The river name is not assigned indiscriminately to that feeder, the separately named upper component, reservoir water or coastal lagoons.",
+      "geographic_disambiguation": "The selected headward approach comes from the west into the Basonopita corridor, travels southeast, then turns west and northwest along the receiving Sinaloa river before the southwestern approach to Bacurato reservoir. It continues through Sinaloa de Leyva and Guasave to Boca del Río beside Las Glorias. The separate Baborigame/San José approach, Juan de Haro tributary, Ocoroni–El Sabinal reservoir corridor, Humaya–Adolfo López Mateos drainage and neighboring coastal lagoons are not substituted for the selected path.",
+      "source_keys": [
+        "r65-inegi-sinaloa-state",
+        "r75-inegi-guadalupe-calvo-2010",
+        "r75-inegi-badiraguato-2010",
+        "r75-inegi-sinaloa-2010",
+        "r75-inegi-guasave-2010"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southwestern Chihuahua and north-central Sinaloa, Mexico, from Guadalupe y Calvo through northern Badiraguato and Sinaloa municipality to Guasave and the Gulf of California coast.",
+      "candidate_name_role": "bounded_representative_system_identity_with_distinct_initial_feeder_upper_component_reservoir_and_coastal_terminal",
+      "completion_scope": "Completed for bounded representative identity, the distinct upper approach, major mountain bends, mapped reservoir passage, lower river and coastal receiving setting. Actual readable primary map pixels cover every major selected section. Exact hydronym transition vertices, a surveyed source or mouth, current impoundment extent, operational connectivity and modern delta channels are not established.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río Sinaloa",
+        "distinct_selected_upstream_route": "Short unnamed western feeder followed by the Basonopita-labeled channel in Guadalupe y Calvo, before the receiving Sinaloa river and its northern Badiraguato bend.",
+        "feeder_scope": "The initial small feeder is visible in primary municipal cartography and joins the selected upper channel from the west. No separate name or official source point is assigned. Baborigame/San José and Juan de Haro are distinct neighboring upstream approaches.",
+        "river_scope": "Río Sinaloa is directly printed on the corresponding river in the Badiraguato, Sinaloa and Guasave municipal maps. It is a supported representative identity for this modeled system, not a claim that every upstream or impounded section bears that single name. Basonopita is retained only as the upper component label visible in the Guadalupe y Calvo source.",
+        "reservoir_scope": "Gustavo Díaz Ordaz (Bacurato) is the selected historical reservoir passage. The model follows its principal river corridor; no assertion is made about every arm, current storage or modern shorelines. Guillermo Blake/El Sabinal and Adolfo López Mateos are excluded neighboring reservoirs.",
+        "terminal_scope": "The selected endpoint corresponds regionally to the Boca del Río–Las Glorias river-mouth setting on the Gulf of California. The nearby Uyaqui, Jupabampo and Playa Colorada waters are separately scoped coastal waterbodies, not selected terminal-lake passages. Exact present-day distributary or shoreline geometry is not established.",
+        "nearby_exclusions": "The San José/Baborigame approach, northern Juan de Haro tributary, western Ocoroni–Guillermo Blake/El Sabinal corridor, southern Humaya–Adolfo López Mateos drainage and adjacent coastal lagoons remain distinct. Straight irrigation canals do not replace the mapped lower Sinaloa river.",
+        "historical_source_scope": "The Sinaloa state sheet is first edition 2020, copyright 2021; its planimetry derives from 1:250,000 series III coverage. Municipal compendia date to 2010. They support historical mapped identities and geographic connections, not current flow, reservoir operation, shoreline positions or modern delta connectivity.",
+        "model_limits": "One modeled mainstem piece and 364.683 modeled km are not an official river length, an official source-to-mouth definition, permanent-flow evidence or a single hydronym for every constituent section. No Korean name, formal renaming date or alias history is established.",
+        "candidate_names_scope": "Only the representative river appears in candidate_names. The upper Basonopita component, reservoir and coastal-waterbody labels remain separately scoped."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70793312",
+      "category": "river_group",
+      "system_id": "70793312",
+      "baseline_logical_fid": 3160,
+      "geometry_fids": [
+        9965
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -112.985321,
+        30.385417,
+        -110.452083,
+        31.183333
+      ],
+      "rendered_mainstem_length_km": 361.815,
+      "rendered_network_length_km": 361.815,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -112.985321,
+          30.385417,
+          -110.452083,
+          31.183333
+        ]
+      },
+      "candidate_name": "Río Asunción",
+      "candidate_names": [
+        "Río Asunción"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Asunción is directly printed along the selected lower river in the Caborca relief map; Asunción is also printed on its northern Pitiquito continuation and A. Asunción on the state sheet near the coast. It represents the modeled system without renaming its separately mapped El Carrizo, Cocospera, Babasac and Magdalena reaches or the adjacent Comaquito waterbody.",
+      "geographic_disambiguation": "The selected course begins east of Sierra El Chivato, follows the eastern Cocospera valley rather than the western Bambuto approach, turns west at the northern Comaquito junction, then continues southwest through Magdalena and Santa Ana. Its southern Trincheras bend precedes a northwest approach to Pitiquito and Caborca. West of Caborca it first bends southwest, then northwest around the northern side of Sierra El Álamo, and finally southwest to the coast. This is distinct from the Santa Cruz, Sonora, Sonoyta and San Ignacio drainages.",
+      "source_keys": [
+        "r51-inegi-sonora-state-2024-2025",
+        "r75-inegi-santa-cruz-2010",
+        "r75-inegi-imuris-2010",
+        "r75-inegi-magdalena-2010",
+        "r75-inegi-santa-ana-2010",
+        "r75-inegi-trincheras-2010",
+        "r75-inegi-pitiquito-2010",
+        "r75-inegi-caborca-2010"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern and northwestern Sonora, Mexico, from the eastern Sierra El Chivato drainage through Ímuris, Magdalena, Santa Ana and Trincheras, then Pitiquito and Caborca to the Gulf of California southeast of Desemboque.",
+      "candidate_name_role": "bounded_representative_system_identity_with_distinct_named_upstream_reaches_and_coastal_terminal",
+      "completion_scope": "Completed for bounded representative river identity and every major selected route section, including the eastern headward approach, Ímuris junction, southern middle bend, Caborca lowland bends and coastal mouth setting. The maps do not establish a surveyed source, exact hydronym-transition points, a full Comaquito reservoir crossing, a separately named estuary, modern mouth position or present continuous flow.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río Asunción",
+        "distinct_selected_upstream_route": "El Carrizo headward approach east of Sierra El Chivato; mapped Cocospera valley; westward Río Babasac label in the 2010 Ímuris sheet; Magdalena valley and Trincheras bend; lower Asunción. These are geographically scoped channel labels, not a list of interchangeable aliases for the whole system.",
+        "feeder_scope": "The model selects the Cocospera side of the Ímuris junction rather than the northern Bambuto branch. The mapped side approaches at Comaquito, Magdalena and Trincheras, the northern Altar/Oquitoa approach and the lower El Coyote feeder are not additional selected tributary fragments. No distinct hydronym is forced onto the very first short model segment.",
+        "river_scope": "The lower Asunción labels have direct line correspondence in Caborca and northern Pitiquito. Magdalena has direct middle-course correspondence. The Ímuris relief map prints Cocospera and Río Babasac on the selected upper route. Exact upstream-to-downstream naming boundaries, formal nomenclatural status and historical alias equivalence are not established.",
+        "concepcion_scope": "Concepción was an initial regional lead and occurs in municipal basin/subbasin terminology. No readable map inspected in this pass directly established it as the preferred label of the actual selected lower trunk or proved whole-route alias equivalence. It is therefore not promoted to candidate_names.",
+        "waterbody_scope": "Comaquito is a connected northern-junction/edge setting, labeled P. Comaquito in the 2010 municipal map and Laguna Comaquito in the state map. The modeled route turns west at its northern side and does not support a full impoundment crossing. Ignacio R. Pesqueira (El Yeso), La Cebolla and other off-route waters remain separate.",
+        "coastal_terminal_scope": "Asunción reaches the Gulf of California near the Caborca locality Desemboque. The selected final line corresponds to the narrow coastal mouth approach southeast of that locality. No separate estuary hydronym or modern tidally active extent is established. The San Ignacio outlet at the more southerly Desemboque de los Seris is distinct.",
+        "historical_source_scope": "The state original is fourth edition 2024, copyright 2025, with planimetry derived from sixth-edition 2023 1:250,000 coverage. The municipal compendia date to 2010 and cite older INEGI topographic series II/III and INEGI–CONAGUA 2007 hydrography. They support identities and mapped connections rather than current discharge, permanence, water quality, reservoir operations or modern shorelines.",
+        "model_limits": "One modeled mainstem piece and 361.815 modeled km do not establish an official river length, source, perennial connection or one hydronym for every constituent reach. No Korean name is established. Graticule-based local visual orientation is approximate and was not treated as surveyed georeferencing.",
+        "candidate_names_scope": "Only the representative lower-river name appears in candidate_names. Upstream channel labels and nearby waterbodies remain separately scoped."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60189196",
+      "category": "river_group",
+      "system_id": "60189196",
+      "baseline_logical_fid": 3382,
+      "geometry_fids": [
+        11541,
+        11542,
+        11543,
+        11544,
+        11545,
+        11546,
+        11547,
+        11548,
+        11549,
+        11550,
+        11551,
+        11535,
+        11536,
+        11537,
+        11538,
+        11539,
+        11540,
+        11533,
+        11534,
+        11553,
+        11524,
+        11525,
+        11526,
+        11527,
+        11528,
+        11529,
+        11530,
+        11531,
+        11532,
+        11552,
+        11554
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -53.295833,
+        2.173253,
+        -51.596657,
+        4.202344
+      ],
+      "rendered_mainstem_length_km": 360.68,
+      "rendered_network_length_km": 566.18,
+      "geometry_summary": {
+        "fragment_count": 31,
+        "mainstem_fragment_count": 28,
+        "mainstem_bbox": [
+          -53.2625,
+          2.173253,
+          -51.596657,
+          4.202344
+        ]
+      },
+      "candidate_name": "Fleuve Oyapock / Rio Oiapoque",
+      "candidate_names": [
+        "Fleuve Oyapock",
+        "Rio Oiapoque"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The representative river is printed as Oyapock in the French report and Rio Oiapoque on the Brazilian municipal map. These source wordings describe the same border corridor; they are not names for all selected tributary pieces. The upper Kérindioutou wording and the separate Camopi route retain their own scope.",
+      "geographic_disambiguation": "The international Oyapock/Oiapoque river, with a separate western Camopi tributary corridor. French territorial administration does not assign this geographic object to Europe in the research order.",
+      "source_keys": [
+        "r75-ibge-oiapoque-2022",
+        "r75-deal-oyapock-camopi-2018"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "French Guiana–Amapá, Brazil, in South America; upper border river through Trois-Sauts, Camopi/Vila Brasil and Saint-Georges/Oiapoque to the lower estuarine approach.",
+      "candidate_name_role": "representative_cross_border_river_identity_with_separate_camopi_tributary",
+      "completion_scope": "All 28 modeled mainstem pieces and three tributary pieces were considered as one generalized selection. The full mainstem corridor, two-piece western Camopi approach and short eastern upper tributary connection are supported at regional naming scale. No name is invented for the short eastern tributary or every small headwater branch.",
+      "naming_scope_details": {
+        "representative_name": "Fleuve Oyapock and Rio Oiapoque are the French and Brazilian source wordings for the representative border-river corridor; no formal alias register is claimed.",
+        "upper_scope": "Selected western upper corridor to Trois-Sauts; the French report's upper-course wording Kérindioutou is retained as component context, with source spelling variation visible in its park map. No exact hydronym transition point is assigned.",
+        "tributary_scope": "Two western pieces form the Camopi approach and receiving junction; one short eastern upper approach remains unnamed. None is uniformly renamed Oyapock/Oiapoque.",
+        "terminal_scope": "Lower river/estuarine approach beyond Oiapoque and the Galibi/Jumina setting, but short of the complete bay and Atlantic mouth. No precise tidal or present-day shoreline limit is assigned.",
+        "source_scope": "IBGE municipal statistical edition 2022, copyright 2023. French report cover says version 2, October 2018; many page footers retain February 2018. Its maps have separate park/Scan 500 credits and historical input dates. These dates are not present-day channel-operation evidence.",
+        "model_limits": "MAIN_RIV grouping and rendered mainstem length do not establish one name for every piece or the official river length. The several rendered pieces are segmentation of the selected group, not separate whole rivers. No Korean name is invented."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 4,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 243,
+    "non_pending_records": 235,
+    "source_access_pending": 3,
+    "source_material_pending": 5,
+    "source_any_pending": 8,
+    "scope_holds": 73,
+    "river_groups": 145,
+    "lakes": 98,
+    "unrecorded": 3822,
+    "unrecorded_river_groups": 3310,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r75-nrcan-cbmt-kuujjua",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r75-dfo-2234-kuujjua",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/247261.pdf"
+    },
+    {
+      "source_key": "r65-inegi-sinaloa-state",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf"
+    },
+    {
+      "source_key": "r75-inegi-guadalupe-calvo-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08029.pdf"
+    },
+    {
+      "source_key": "r75-inegi-badiraguato-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25003.pdf"
+    },
+    {
+      "source_key": "r75-inegi-sinaloa-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25017.pdf"
+    },
+    {
+      "source_key": "r75-inegi-guasave-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25011.pdf"
+    },
+    {
+      "source_key": "r51-inegi-sonora-state-2024-2025",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/son/794551162958.pdf"
+    },
+    {
+      "source_key": "r75-inegi-santa-cruz-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26059.pdf"
+    },
+    {
+      "source_key": "r75-inegi-imuris-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26035.pdf"
+    },
+    {
+      "source_key": "r75-inegi-magdalena-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26036.pdf"
+    },
+    {
+      "source_key": "r75-inegi-santa-ana-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26058.pdf"
+    },
+    {
+      "source_key": "r75-inegi-trincheras-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26064.pdf"
+    },
+    {
+      "source_key": "r75-inegi-pitiquito-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26047.pdf"
+    },
+    {
+      "source_key": "r75-inegi-caborca-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26017.pdf"
+    },
+    {
+      "source_key": "r75-ibge-oiapoque-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/AP/oiapoque/A0_1600501_MM.pdf"
+    },
+    {
+      "source_key": "r75-deal-oyapock-camopi-2018",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/dossier_aeu_sauts_oyapock_octobre2018f-compressed.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "afeca9a6771a69dad580611243c5bebdeabe98f5",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      99,
+      100,
+      101,
+      102
+    ],
+    "next_unrecorded_id": "hydro-system:60111852",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

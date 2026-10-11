@@ -1,0 +1,36 @@
+{
+  "schema": "hydro-frozen-research-manifest-v1",
+  "batch": "r11",
+  "frozen_at_utc": "2026-10-09T15:08:48.216804+00:00",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "baf6e68fb36d58ca1a53ca9c801879934a0fd84e12806b97a2972e1a11ad2f70",
+      "bytes": 1100
+    },
+    {
+      "path": "findings.json",
+      "sha256": "d995c6b4438311534d997d7966a85bc058d4618126d449cb38e95c2b84bb6bf3",
+      "bytes": 2708
+    },
+    {
+      "path": "map-scope-review.json",
+      "sha256": "1e7edf220db5cb72c156b50111d00bed4389d19929d60ddb4c221265c213fb94",
+      "bytes": 3314
+    },
+    {
+      "path": "source-evidence.json",
+      "sha256": "8cdafae95b93f3e5bc973638292df6ecce8848b53c1682cb2cd3700f7508f3b2",
+      "bytes": 5627
+    },
+    {
+      "path": "target-identity-facts.json",
+      "sha256": "f76b7379b81bc71d5ab718f0f59853f8ae06aea04a3e4b9c57536e1068095d5d",
+      "bytes": 3231
+    }
+  ],
+  "self_hash_included": false,
+  "original_bodies_included": false,
+  "source_body_hashes_location": "source-evidence.json",
+  "automatic_application": false
+}

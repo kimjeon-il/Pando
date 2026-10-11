@@ -1,0 +1,172 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r08",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r08",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "fef2fb3fc52a276fb0059ce66474116de08137d1",
+  "scope": "Three bounded new actual-inventory representative river identities. Headwater/reach limits and Fortescue upper-Marsh-lower hydrologic separation remain explicit. Complete cumulative index and pinned initial inventory recover the fresh-reconstruction remainder, not the unavailable historical504 ledger.",
+  "automatic_application": false,
+  "product_changes": false,
+  "full_river_coordinates_included": false,
+  "selected_public_domain_lake_features": 0,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 38,
+  "bytes_excluding_self": 360826,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 4822,
+      "sha256": "c28b0b8b42a3848d1099977603d841aa1eeb611e066cbca924a7c32d2d2ab701"
+    },
+    "extract-baseline-geometries.mjs": {
+      "bytes": 5569,
+      "sha256": "db7a747265bd7b2aa5434883e9439a981b67a20026cfaebe91a04c38c28d9ea7"
+    },
+    "geometry-README.md": {
+      "bytes": 6949,
+      "sha256": "fd2c60f29385f947a890de39c520f9630fe662c088051f1d2b8488ef90a73f5d"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1841,
+      "sha256": "c626797d43889c14955012d38dd3743d15d5ea05c7350d97454ed49d7c9966c4"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 1300,
+      "sha256": "6a7453a5a85b9689181a35e5fdab50dc6283c039469a42748dabbd831e2bbd60"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 2319,
+      "sha256": "037857aabe9874f40155d1ad55f60be74f4cbbc18921eaa678a4a3e855dc8870"
+    },
+    "geometry-reference.json": {
+      "bytes": 15689,
+      "sha256": "11954c7a215e70e343fb78dc380e4614566bf2c9fd97ddcd6d1c3e27dbea58eb"
+    },
+    "geometry-request-receipts.json": {
+      "bytes": 5552,
+      "sha256": "4024ff8648511b1e8a696caeca31e5a8db91ff1d615dbd27c2ce1f172842cb00"
+    },
+    "geometry-support.py": {
+      "bytes": 2259,
+      "sha256": "5427afc9c6d1ed13947f6ca08b3fe7532dd7884717d44f691b50d0d5f479bd12"
+    },
+    "geometry-validation.json": {
+      "bytes": 7235,
+      "sha256": "82f10abc721b25ed4aef71c482f24ec3343f051154965d4b4859b21f3b534fc7"
+    },
+    "queue-recovery-validation.json": {
+      "bytes": 1580,
+      "sha256": "3c6bc52d378d17be7bde4be482d5dde08006d832c958b361790a4e28b07a53df"
+    },
+    "reconstruction-index.json": {
+      "bytes": 14275,
+      "sha256": "9456f5722d69d90a890bc2b77ee517c8022306b28e51d7f6e10a8f9a4634a5a5"
+    },
+    "recover-remaining-queue.py": {
+      "bytes": 3121,
+      "sha256": "2d2d85529f6550e0ad79a0be1596bb5701dbeab2333d14257a8ae42e79fa1d61"
+    },
+    "research/fortescue/fortescue-findings.json": {
+      "bytes": 2029,
+      "sha256": "42e03cafcbf8cdff725bfbf59ef3ee27aa962ecbc05b96c52f2e1827bf9144bd"
+    },
+    "research/fortescue/fortescue-geometry-comparison.json": {
+      "bytes": 2467,
+      "sha256": "3653d1aa9aab087f82091b227a8f81f82a5bbe5cc13373760cee7e66acbfa6de"
+    },
+    "research/fortescue/fortescue-research-manifest.json": {
+      "bytes": 787,
+      "sha256": "6ccda24062eb997bce5ced64177ea58b51f90577c8465778724edd890c9c5b2d"
+    },
+    "research/fortescue/fortescue-source-evidence.json": {
+      "bytes": 11541,
+      "sha256": "d133835f9930437983d2d532fc3333eef946dcd0590cff8905e75439a6cd9fbc"
+    },
+    "research/southern-western-rivers/greenough-findings.json": {
+      "bytes": 5728,
+      "sha256": "41bea6baade047b9fd3741d52b4aeb7328b7382d9ab7207cb4264fd8d106afd1"
+    },
+    "research/southern-western-rivers/source-evidence.json": {
+      "bytes": 9373,
+      "sha256": "1493108fa8de6bff2eead424e01b928e458e67eda29a595cd22eb82617978c3d"
+    },
+    "research/southern-western-rivers/wooramel-findings.json": {
+      "bytes": 5723,
+      "sha256": "be768b564aa25834222a52da6dbc1789196a81af1300f51e707d048a3aabb955"
+    },
+    "results.json": {
+      "bytes": 6938,
+      "sha256": "7e5bc35fe1d6a728191334e4143bb6c7c560ddabd0ae3b7e3b3f295641d22d7b"
+    },
+    "review/README.md": {
+      "bytes": 6430,
+      "sha256": "c4d67cd4069ebc1caf655358b9d65bbf5050b7ab798d2c4f212395a66122526b"
+    },
+    "review/frozen-input-pins.json": {
+      "bytes": 14110,
+      "sha256": "9f1fd8526eb2f99ecaa1923b7235886497d6ac6fe8a21bd45f8aa3d3c1c5c6c2"
+    },
+    "review/independent-review.json": {
+      "bytes": 8407,
+      "sha256": "791d768c60c49f07386285bb1fe2f9b5379a6096422b662fd8c7ef812ea52747"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1401,
+      "sha256": "044714bf6a7922d554d21bcf30623155aeca65630252449d1b9bab7c98dcaff1"
+    },
+    "review/review-validation.json": {
+      "bytes": 9191,
+      "sha256": "75a07ef418a6c4a3d3056b494c78a7ce9de12675c34661267b46bc46943bed51"
+    },
+    "review/source-observations.json": {
+      "bytes": 8373,
+      "sha256": "bae5fefc3add1a493889e06ea23e27d155817e5f3cb707600170127e10744734"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 6331,
+      "sha256": "80704ff5724c64977a8d3aeeb438e1689125bf7f774dbafda31d263d613d52ea"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 27275,
+      "sha256": "37df21d443703d67d5377e52b5cf73d8b26ca6aef562a7eae802b6f3e8a55455"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 4721,
+      "sha256": "ac52546d9933638c1b368416994920cf14d283c1acf9074214395b033f9facb4"
+    },
+    "selected-pack-receipts.json": {
+      "bytes": 666,
+      "sha256": "1a1785f74cea813ebef9a8d4609077244c2872bd98f031bc7378880d2e0f1034"
+    },
+    "selected-river-metadata.json": {
+      "bytes": 101205,
+      "sha256": "c7a5038125b927e3a1b91fb49b1e9141aea0b691360b26553043638b4e997498"
+    },
+    "source-publication-rights.json": {
+      "bytes": 921,
+      "sha256": "d19ddf2a975bd8f7b129724185a3b2c0fb7a3074f7bc7ae6ec1e8ab7a42e8edf"
+    },
+    "source-reach-manifest.json": {
+      "bytes": 19263,
+      "sha256": "73a38c758aaaab4e35fb12b82101284325b33114180924c69dcf39b3b24bb0e7"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 6750,
+      "sha256": "183dbca38992feecd9853781691f7a89c178ab3b0fd31332d00c75fafd1c13ad"
+    },
+    "test-remaining-queue.py": {
+      "bytes": 2820,
+      "sha256": "6f99857d5d9890a2376807b4e3d4057f2d2b23e2b71222405ba25e2fcbfb4757"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 18810,
+      "sha256": "b1457b40bfa35df29f8d620a2c44b8010842b842a87a11716e9ad9736f31a922"
+    },
+    "validate-package.py": {
+      "bytes": 7055,
+      "sha256": "12a29657a21f832c72569a7553f3310c9c258c997fda359e437e55fee64b85cf"
+    }
+  }
+}

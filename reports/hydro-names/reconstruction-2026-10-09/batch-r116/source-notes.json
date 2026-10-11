@@ -1,0 +1,703 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r116",
+  "sources": [
+    {
+      "source_key": "r116-uy-plan-2023",
+      "title": "Plan de Cuenca del Río Santa Lucía",
+      "publisher": "Ministerio de Ambiente, Dirección Nacional de Aguas, with participating national and departmental bodies",
+      "edition": "March 2023",
+      "official_url": "https://www.gub.uy/ministerio-ambiente/sites/ministerio-ambiente/files/documentos/publicaciones/Plan%20de%20Cuenca%20del%20Rio%20Santa%20Luc%C3%ADa%20-%20Marzo%202023.pdf",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Complete original PDF acquired normally with HTTP 200 application/pdf. Original map pixels inspected privately.",
+      "cartographic_evidence": "Figure 3.3, printed p35/PDF p45, Cuenca y las principales subcuencas; Figure 4.8, printed p64/PDF p74, OSE surface-water intakes; Figure 4.9, printed p66/PDF p76, OSE reservoirs, printed scale 1:1,000,000; Figure 5.4, printed p129/PDF p139, DINAGUA/DINACEA monitoring network; Figure 2.20, printed p31/PDF p41, DINAMA Humedales del Santa Lucía map. Figure 2.19, printed p30, inspected for regional context.",
+      "prose_evidence": "Section 3.1.1, printed p35, regional river course and terminal; Table 4-5, printed p65, reservoir identities; section 2.6.6, printed pp29–30, lower corridor/mouth setting.",
+      "source_use_limits": "Primary institutional synthesis; OSE and DINAMA maps retain their printed attribution. Overview scale does not establish precise hydronym boundaries, minor-channel names or shoreline geometry. No redistribution permission inferred; no original PDF, map, crop or derivative included in public output."
+    },
+    {
+      "source_key": "r116-uy-minas-iae-2023",
+      "title": "Plan Local de Ordenamiento Territorial y Desarrollo Sostenible de la ciudad de Minas y su entorno: Informe Ambiental Estratégico",
+      "publisher": "Intendencia Departamental de Lavalleja – MVOT-DINOT",
+      "edition": "Avance Agosto 2023, as printed on cover; official file path uploaded December 2024",
+      "official_url": "https://www.gub.uy/intendencia-lavalleja/sites/intendencia-lavalleja/files/2024-12/Anexo%20II%20_IAE_FINAL_compressed.pdf",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Complete original PDF acquired HTTP 200 application/pdf.",
+      "cartographic_evidence": "Not relied upon for headward cartographic coverage; its small thematic maps are not substituted for detailed original hydrography.",
+      "prose_evidence": "Printed pp11–12/PDF pp17–18: separate San Francisco and Campanero Grande routes, direction changes, roads, Blanes Viale setting and receiving-channel sequence.",
+      "source_use_limits": "Own institutional planning prose provides bounded route context. Its treatment of the common lower reach differs from the Arequita map and is preserved rather than silently harmonized. No publication redistribution permission inferred."
+    },
+    {
+      "source_key": "r116-uy-arequita-2023",
+      "title": "Proceso de ingreso de “Arequita” al Sistema Nacional de Áreas Naturales Protegidas: Proyecto de selección y delimitación del área, Fase 1",
+      "publisher": "Ministerio de Ambiente, Sistema Nacional de Áreas Protegidas",
+      "edition": "May 2023; Figure 3 cartographic date February 2023",
+      "official_url": "https://www.gub.uy/ministerio-ambiente/sites/ministerio-ambiente/files/documentos/publicaciones/Proyecto%20de%20selecci%C3%B3n%20y%20delimitaci%C3%B3n%20Arequita.pdf",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Complete original PDF acquired HTTP 200 application/pdf. Figure 3 original pixels and its marginal source details read privately.",
+      "cartographic_evidence": "Figure 3, printed/PDF p10, Ámbito de planificación; departmental/IDE hydrographic base, locality Minas and Blanes Viale, San Francisco/Campanero approach, Santa Lucía and Arequita/Cuervos setting. Figure 3 credits DSNAP/DINABISE/MA, sources DSNAP, IL, IDEuy, DNC and MTOP.",
+      "prose_evidence": "Printed/PDF pp9–10,14,17: microcuenca sequence, Blanes Viale location, tributary nomenclature, Santa Lucía own northern headwaters and river-widening pools.",
+      "source_use_limits": "Original institutional planning map supports the joining corridor, not the entire selected southeastern head. Laguna de los Cuervos/Arequita upstream Santa Lucía setting is not automatically selected by this model route. The common lower feeder is called San Francisco here. No formal gazetteer decision inferred."
+    },
+    {
+      "source_key": "r116-uy-minas-memoria-2024",
+      "title": "Plan Local de Ordenamiento Territorial y Desarrollo Sostenible de la ciudad de Minas y su entorno: Memoria de Información",
+      "publisher": "Intendencia Departamental de Lavalleja – MVOT-DINOT",
+      "edition": "August 2024",
+      "official_url": "https://www.gub.uy/intendencia-lavalleja/sites/intendencia-lavalleja/files/2024-12/Anexo%20I%20PLMinas_Memo%20Informaci%C3%B3n_2024%20%281%29_compressed.pdf",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Complete original PDF acquired HTTP 200 application/pdf.",
+      "cartographic_evidence": "Not relied upon as independent corridor-map evidence; its general relief image is attributed to an external topographic-map provider.",
+      "prose_evidence": "Printed p10/PDF p18 and printed p53/PDF p61: San Francisco–Campanero Grande–Santa Lucía relationship and Campanero east/north of Minas.",
+      "source_use_limits": "Corroborating bounded local planning prose only; no claim of independent detailed headward map coverage."
+    },
+    {
+      "source_key": "r116-uy-pvd-context",
+      "title": "Caminos que conectan: Programa Vial Departamental, Lavalleja",
+      "publisher": "Oficina de Planeamiento y Presupuesto; geographic information credited to Dirección Nacional de Topografía, MTOP",
+      "edition": "2018, as printed on title page",
+      "official_url": "https://www.opp.gub.uy/sites/default/files/2019-10/PVD_Lavalleja.pdf",
+      "access_date_utc": "2026-10-10",
+      "acquired_scope": "Complete original PDF acquired HTTP 200 application/pdf. Map 14, printed/PDF p41, inspected.",
+      "cartographic_evidence": "Regional road map supplies road/locality context only and lacks the needed hydrographic detail; excluded from substantive river correspondence.",
+      "prose_evidence": "Page 41 identifies Camino Paso Espiga as a connection from the Maldonado-border hills to Minas, ancillary orientation only.",
+      "source_use_limits": "Printed p4 permits reproduction with attribution and digital web dissemination, but prohibits commercial use. This notice is preserved without assuming broader rights. No original or crop redistributed."
+    },
+    {
+      "source_key": "r116-uy-atlas-unavailable",
+      "title": "Atlas de la cuenca del río Santa Lucía",
+      "publisher": "MVOTMA-DINOT",
+      "edition": "2016 according to the 2023 basin-plan bibliography; ministry landing page dated 23 December 2015",
+      "official_url": "https://sit.mvot.gub.uy/descargas/pdf/Atlas.pdf",
+      "catalogue_url": "https://www.gub.uy/ministerio-vivienda-ordenamiento-territorial/comunicacion/publicaciones/atlas-cuenca-del-rio-santa-lucia",
+      "observed_outcome": "Official landing page opened normally. Its PDF download link returned web-reader Internal Error: Failed to fetch the exact Atlas.pdf URL: (400) OK. After that completed technical route error, the sole sequential normal original request received HTTP 200 application/pdf but ended with curl error 28, timeout after 75000 milliseconds with 63578112 of 198516744 bytes received. The incomplete original was not used or rendered.",
+      "observation_layer": "Initial status-ambiguous reader/transport failure, followed by an observed HTTP 200 response and incomplete-transfer timeout. No HTTP 401/403, access challenge or origin denial was observed.",
+      "restriction_scope": "The failed reader route was not repeated. After the incomplete original transfer, all further acquisition of missing Atlas content and equivalent copies, formats, figures, map services offered as recovery of that Atlas, mirrors and routes remains paused for availability. No retry or further fallback.",
+      "earlier_lawful_prose": "Only the ministry landing-page description of the atlas was read earlier; it is bibliographic/contextual and provides no selected-channel correspondence.",
+      "evidence_use": "No original Atlas maps or substantive river evidence used. This optional missing source leaves no material geographic gap."
+    },
+    {
+      "source_key": "r116-uy-geology-unavailable",
+      "title": "Carta Geológica del departamento de Lavalleja",
+      "publisher": "Ministerio de Industria, Energía y Minería, Dinamige / Facultad de Ciencias",
+      "edition": "Landing page dated 1 November 2019; advertised scale 1:100,000",
+      "official_url": "https://www.gub.uy/ministerio-industria-energia-mineria/comunicacion/publicaciones/carta-geologica-del-departamento-lavalleja",
+      "observed_outcome": "The web-reader landing-page request returned Internal Error: (400) Timeout fetching. No page body, linked original or map pixels were acquired.",
+      "observation_layer": "Web-reader timeout; origin HTTP status unobserved. No access denial inferred.",
+      "restriction_scope": "Missing publication/cartographic content and equivalent original, reader, mirror or replacement-format acquisition remains paused for availability. No retry or fallback. Distinct local-planning and basin-plan publications are not covered by this publication-specific pause.",
+      "earlier_lawful_prose": null,
+      "evidence_use": "Discovery title and advertised scale only; search excerpts and unseen map excluded. Optional source with no remaining material gap."
+    },
+    {
+      "source_key": "mma-simbio-hydro",
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrográfica Nacional, layer0 Red Hidrografica",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "date": "Undated active cartographic service; inspected10 October2026",
+      "type": "Primary original hydrographic cartography",
+      "acquisition": "Service/layer metadata opened normally. Five sequential bounded original map exports returned HTTP200 image/png: upper, middle, southern branch, lower/estuary and detailed headwater settings. No full vector source dataset was acquired.",
+      "actually_inspected": "All five original rendered map images; full selected six-fragment corridor and both terminals.",
+      "cartographic_method": "The service has no default labels. Map exports used its own NOMBRE field for server-rendered labels; this is a requested rendering of the official hydrographic layer, not a claim that the default published layout labels every reach. No downloaded whole-dataset geometry or inferred name matching.",
+      "use_notice": "Copyright field is blank in the service metadata; this does not establish redistribution permission. Originals, crops and private orientation figures remain private.",
+      "evidence_limit": "Generalized national hydrographic linework; no field verification, official registry certification or current seasonal shoreline precision asserted.",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "source_key": "dga-itata-2004",
+      "title": "Diagnóstico y clasificación de los cursos y cuerpos de agua según objetivos de calidad. Cuenca del río Itata",
+      "author": "Dirección General de Aguas",
+      "publisher": "Ministerio de Obras Públicas; original PDF hosted by Ministerio del Medio Ambiente",
+      "date": "December2004",
+      "type": "Primary basin-report prose and segment table",
+      "actually_inspected": "Title; printed pages1–4 including Table2.1; original Figure2.2 on printed page9; report references on page121.",
+      "supports": "Formative Cholguán/Huépil naming; Ñuble headward Buraleo setting, Los Sauces/Cato/Chillán/Changaral sequence; Itata Diguillín/Larqui/Ñuble/Lonquén sequence and Pacific terminal.",
+      "evidence_limit": "Figure2.2 is a red-X placeholder. This report supplies no successfully viewed substantive map; no external GIS plate claimed. Report river lengths and basin areas are not substituted for model metadata.",
+      "distinct_publication": "The Itata basin report of December2004 is a precisely identified publication, independent of stopped Loa/DGA2014 figures, MOP Vialidad portal content, Pedernales report and northern atlas material.",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Itata.pdf"
+    },
+    {
+      "source_key": "pinto-prc-2023",
+      "title": "Plan Regulador Comunal de Pinto, Región de Ñuble. Memoria Explicativa",
+      "author": "Municipalidad de Pinto",
+      "date": "April2023",
+      "type": "Primary municipal planning report with own thematic cartographic compilation and an attributed reproduced regional figure",
+      "acquisition": "Sole official original retrieval HTTP200 application/pdf.",
+      "actually_inspected": "Printed page50 hydrology; Figure3-26 on page51; Figure3-27 Sistema Hídrico, Comuna de Pinto on page52; Figure3-34 protected-area map on page60.",
+      "supports": "Regional Itata/Ñuble/Diguillín distinction; Buraleo and adjacent Nevados de Chillán mountain setting; neighboring Polcura drainage distinguished from Itata tributaries.",
+      "cartographic_attribution": "Figure3-27: Capas IDE y BCN, Elaboración Propia,1:300,000. Figure3-26 explicitly reproduces Universidad de Concepción2013 regional study and is not counted as an independent original river survey. Figure3-34 credits Registro Nacional de Áreas Protegidas/IDE and displays third-party Esri and other basemap credits.",
+      "use_notice": "Official hosting and compilation do not establish source-map redistribution rights; original maps/derivatives remain private.",
+      "evidence_limit": "Regional/thematic context; the MMA hydrographic originals, not this reproduced overview alone, establish corridor continuity.",
+      "official_url": "https://eae.mma.gob.cl/storage/documents/04_Anteproyecto_Memoria_Explicativa_PRC_Pinto.pdf.pdf"
+    },
+    {
+      "source_key": "mma-itata-estuary-2021",
+      "title": "Humedal de la Desembocadura del río Itata se convertirá en el primer Santuario de la Naturaleza de Ñuble",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "26November2021; page also displays11July2022",
+      "type": "Primary official coastal-estuary prose",
+      "actually_inspected": "Article body identifying the lower Itata coastal/estuarine wetland between Trehuaco and Coelemu, Boca Itata and Vegas de Itata.",
+      "supports": "Actual estuarine/coastal receiving setting of FID14486.",
+      "evidence_limit": "No map from this article used. Historical proposal-stage legal statements are not treated as current sanctuary-status verification.",
+      "official_url": "https://mma.gob.cl/humedal-de-la-desembocadura-del-rio-itata-se-convertira-en-el-primer-santuario-de-la-naturaleza-de-nuble/"
+    },
+    {
+      "source_key": "r116-nluis-98b",
+      "title": "Northern Land Use Information Series: Lennie River, sheet 98B",
+      "publisher": "Department of Fisheries and the Environment, Lands Directorate, Environmental Management Service, with Indian and Northern Affairs; hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "year": 1977,
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98b.jpg",
+      "acquired_scope": "One normal official JPG-original request succeeded HTTP 200. Original pixels were read at overall and local corridor scales, including the lower Big River and coastal outlet.",
+      "supports": "The western selected lower corridor is represented by the named Big River, with a multiple-channel lower river across a ponded lowland and a Beaufort Sea coastal outlet in the Siksik Point and Sea Otter Island sector. Lennie River is separately mapped to the south.",
+      "limits": "The sheet ends at 124 degrees west and cannot supply the long inland central course east of that edge. It is historical cartography, with base-map information current as of 1960 and base printing in 1965; its 1977 thematic edition does not establish current official naming, surveyed mouths or a whole-feature name. The thematic overprint is distinguished from hydrographic channels. Original images and working crops are withheld."
+    },
+    {
+      "source_key": "r116-nluis-97h",
+      "title": "Northern Land Use Information Series: De Salis Bay, sheet 97H",
+      "publisher": "Department of Fisheries and the Environment, Lands Directorate, Environmental Management Service, with Indian and Northern Affairs; hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "year": 1977,
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_97h.jpg",
+      "acquired_scope": "One normal official JPG-original request succeeded HTTP 200. Original pixels were read in the northern headward area and source marginalia.",
+      "supports": "The southern headward setting is an inland upland containing many unnamed lakes and streams. An upper course is labelled Big River, and separate east-draining waters lead toward Prince of Wales Strait.",
+      "limits": "Area coverage and an upper Big River label are not treated as full identification of the selected initial feeder or every lake link. The selected route continues north beyond the sheet edge; source coverage does not join that route across the missing central area to the observed lower river. No name is assigned to the initial feeder or lake passages. Historical 1977 thematic map, not current registry evidence."
+    },
+    {
+      "source_key": "r116-nluis-97g",
+      "title": "Northern Land Use Information Series: Sachs Harbour, sheet 97G",
+      "publisher": "Department of Fisheries and the Environment, with Indian and Northern Affairs; hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "year": 1977,
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_97g.jpg",
+      "acquired_scope": "One normal official JPG-original request succeeded HTTP 200; full-sheet overview was inspected.",
+      "supports": "Geographic orientation only: this sheet lies southwest of the relevant inland headward corridor.",
+      "limits": "No selected-route hydronym or connector claim is based on this sheet. Successful acquisition does not make it material route coverage."
+    },
+    {
+      "source_key": "r116-nluis-index-retained",
+      "title": "Northern Land Use Information Series: Northern Land Use, official map index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquired_scope": "The already acquired official HTML index retained from r115 was read locally; no refetch.",
+      "supports": "Exact titles and original links for sheets 98B, 97G and 97H.",
+      "limits": "The index is bibliographic evidence only. Its listing of stopped sheets does not authorize their acquisition or provide geographic observations."
+    },
+    {
+      "source_key": "r116-gsc-cgm133",
+      "title": "Surficial geology, Banks Island, south, Northwest Territories, NTS 97-H, 98-A, and parts of 88-B, 97-G, 98-B; Canadian Geoscience Map 133, preliminary, 2017",
+      "publisher": "Natural Resources Canada, Geological Survey of Canada",
+      "year": 2017,
+      "edition": "Preliminary",
+      "catalogue_number": "M183-1/133-2017E-PDF",
+      "departmental_catalogue_number": "299871",
+      "isbn": "978-0-660-07686-7",
+      "scale": "1:250,000",
+      "official_url": "https://publications.gc.ca/collections/collection_2017/rncan-nrcan/M183-1-133-2017-eng.pdf",
+      "landing_url": "https://publications.gc.ca/site/eng/9.832676/publication.html",
+      "acquired_scope": "Catalogue original read successfully. The exact linked map request provided archived-information HTML, not the map.",
+      "supports": "Bibliographic identity only. The catalogue states a conversion of Map 17-1979, separate from CGM35 and NLUIS cartography.",
+      "limits": "The catalogue original opened HTTP 200. Its exact linked map-original request returned HTTP 200 with Content-Type text/html; charset=utf-8 and 19,312 bytes, redirecting to an archived-information HTML page rather than providing the PDF. No original map pixels were acquired. Missing original map/publication content and all equivalent copies, formats, figures, underlying Map 17-1979 used as replacement content, readers, caches, mirrors and acquisition routes paused. No retry or further fallback followed. Distinct map publications are not covered merely because they share an agency or region."
+    },
+    {
+      "source_key": "r113-nluis-98a-inherited-stop",
+      "title": "Northern Land Use Information Series: Jesse Harbour, sheet98A",
+      "publisher": "Official scan hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98a.jpg",
+      "acquired_scope": "No new request. Inherited earlier web-reader attempt returned Cache miss, with no HTTP status, access-denial reason or source pixels.",
+      "supports": "No map observations; source-limit fact only.",
+      "limits": "Missing sheet map and equivalent copies, formats, crops and all acquisition routes remain paused. The separately successful index supplies bibliographic metadata only. This central source gap is material to the selected route."
+    },
+    {
+      "title": "Lac Fournier, NTS22P, Series A501, edition2",
+      "publisher": "Canada Centre for Mapping, Natural Resources Canada",
+      "year": 1995,
+      "scale": "1:250,000",
+      "source_type": "Original federal topographic map hosted by the Government of Newfoundland and Labrador",
+      "observed_outcome": "Sole normal original PDF acquisition succeeded: HTTP200, application/pdf,15702405 bytes. Original page rendered locally; full overview, headward sector, upper valley, sheet edge and publication credits visually read.",
+      "coverage": "Upper FID9323 north of51°N; not southern FID9323 orFID9324.",
+      "use_notice": "Map credits ©1995 Her Majesty the Queen in Right of Canada. No redistribution permission is inferred; original and private crops are not included in public output.",
+      "source_key": "r116-nts22p-1995",
+      "official_url": "https://www.gov.nl.ca/landuseatlas/documents/topo/250000/022P.pdf"
+    },
+    {
+      "title": "Région des rivières Magpie, Saint-Jean et Romaine (Grenville1970), Rapport géologique163",
+      "authors": [
+        "K. N. M. Sharma",
+        "A. Franconi"
+      ],
+      "publisher": "Québec, Ministère des Richesses naturelles, Service de l’exploration géologique",
+      "year": 1975,
+      "source_type": "Primary geological reconnaissance report; bounded prose only for hydrographic evidence",
+      "observed_outcome": "Original report PDF acquired normally with HTTP200, application/pdf,4201529 bytes. Its report figures and cover were inspected; they do not provide the required selected-route cartographic coverage.",
+      "coverage": "Regional prose and map bibliography only. The missing companion map package is explicitly excluded from evidence.",
+      "use_notice": "Government publication; source originals and local figures kept private. No reuse permission inferred.",
+      "source_key": "r116-rg163-report",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG163/RG163.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61512484",
+      "source_keys": [
+        "r116-uy-plan-2023",
+        "r116-uy-minas-iae-2023",
+        "r116-uy-arequita-2023",
+        "r116-uy-minas-memoria-2024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14447
+          ],
+          "component_scope": "Eastern headward channel and upper/middle westward trunk",
+          "finding": "The eastern feeder in the basin-plan hydrography is on the eastern/southeastern side of Minas and runs north/northwest, then west north of the city. The Arequita original Figure 3 resolves its lower approach past Blanes Viale, the San Francisco junction and the connection to Santa Lucía southwest of the Arequita/Cuervos setting. Beyond that junction the selected route matches the mapped westward Santa Lucía corridor through the Paso Roldán, Fray Marcos, San Ramón and Paso Pache settings, ending at the northern Santa Lucía Chico join.",
+          "sources": [
+            "r116-uy-plan-2023",
+            "r116-uy-minas-iae-2023",
+            "r116-uy-arequita-2023",
+            "r116-uy-minas-memoria-2024"
+          ],
+          "limits": "The basin overview contains the headward watercourse but does not print a name on every small upper channel. Identification combines ordinary corridor cartography and the local plan’s explicit route description, not a nearest label or basin association. Exact micro-headwater vertices and the precise Campanero/San Francisco name boundary are unestablished.",
+          "name_scope": "Campanero Grande is the supported headward-component name. The shared reach has differing Campanero/San Francisco scope in the two primary publications. Neither is converted into the name of the whole selected system. Río Santa Lucía applies to the downstream named trunk as representative identity.",
+          "bounded_primary_prose": "Minas IAE printed page 12 describes Campanero Grande from south of Camino Paso Espiga near the Maldonado boundary, northwest across that road and Route 8, west then northwest behind Blanes Viale, receiving San Francisco before Santa Lucía. The Arequita publication uses San Francisco for the common lower joining reach."
+        },
+        {
+          "fragments": [
+            14448
+          ],
+          "component_scope": "Santa Lucía Chico junction through Santa Lucía/Aguas Corrientes to San José junction",
+          "finding": "The selected route turns south below the Santa Lucía Chico junction, passes the 25 de Agosto/Ituzaingó and Santa Lucía town setting, continues through Aguas Corrientes and the Canelón Grande joining sector, then reaches the San José confluence. Basin-plan Figures 3.3, 4.8, 4.9 and 2.20 show the connected main corridor and distinguish northern/eastern reservoir branches.",
+          "sources": [
+            "r116-uy-plan-2023"
+          ],
+          "limits": "Aguas Corrientes is a material selected impoundment/river passage. No exact impoundment shoreline or point boundary is assigned.",
+          "name_scope": "Representative Santa Lucía trunk. Paso Severino on Santa Lucía Chico and Canelón Grande reservoir are distinct tributary features, not selected lake passages.",
+          "bounded_primary_prose": "The plan’s surface-water description separates Santa Lucía, Santa Lucía Chico, Canelón Grande/Canelón Chico and San José. Table 4-5 specifically identifies the Aguas Corrientes impoundment with Río Santa Lucía."
+        },
+        {
+          "fragments": [
+            14449
+          ],
+          "component_scope": "Lower estuarine corridor and actual Río de la Plata terminal",
+          "finding": "Below the San José join, the corridor bends through the lower Santa Lucía wetlands toward the Delta del Tigre and Santiago Vázquez mouth setting. The original DINAMA map reproduced as Figure 2.20 resolves the river, adjoining channels, settlements and Río de la Plata shoreline; Figure 3.3 gives the wider receiving-water setting. The selected final eastward/southward approach and terminal bend belong to this estuarine mouth sector rather than to a nearby coastal stream.",
+          "sources": [
+            "r116-uy-plan-2023"
+          ],
+          "limits": "Generalized mouth-sector correspondence only; no exact bank, individual delta channel, rendered endpoint or coastal vertex agreement claimed.",
+          "name_scope": "Santa Lucía is the representative lower river. Río de la Plata is the receiving waterbody; small delta branches are not independently named here.",
+          "bounded_primary_prose": "Printed pages 30 and 35 explicitly connect the lower Santa Lucía corridor and its delta/island mouth to Río de la Plata west of Montevideo."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61524629",
+      "source_keys": [
+        "mma-simbio-hydro",
+        "dga-itata-2004",
+        "pinto-prc-2023",
+        "mma-itata-estuary-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14483
+          ],
+          "component_scope": "Selected mainstem fragment 14483",
+          "finding": [
+            "The selected head lies in the Paso Buraleo–upper Ñuble setting east of the Nevados de Chillán. DGA describes the Ñuble as originating at the foot of Paso Buraleo, and the municipal map locates this pass at the eastern mountain margin.",
+            "The detailed primary hydrographic view shows a continuous natural Río Ñuble headwater channel, receiving Estero Renegado, Estero Los Pajaritos, Quebrada El Chico and Quebrada El Feo, and then Estero Los Tábanos. These are distinct named channels, not alternate names for the whole selected system.",
+            "The retained metadata explicitly marks this fragment border_aligned. Much of its northward selected line does not follow the mapped natural Ñuble channel; it cuts or skirts that channel and the Los Tábanos headwater pattern. No separate hydronym is established for this selected non-channel detour.",
+            "This is a fully inspected mapped mismatch. The real headwater channels and their receiving Ñuble valley are visible and connected in the same primary map. It is not an unread interval, an unknown lake outlet, or a transfer to an unestablished receiving river. No claim is made that absence from this map proves no small ephemeral channel can ever exist."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "dga-itata-2004",
+            "pinto-prc-2023"
+          ],
+          "correspondence": "Full corridor inspected; border-aligned modeled detour lacks a matching named natural channel; known surrounding drainage leads to Ñuble.",
+          "coverage": "Headward setting and entire selected fragment inspected in the original MMA upper-corridor view and the separate detailed headwater view.",
+          "name_scope": "Unspecified selected spur; do not assign either Ñuble or Itata uniformly.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14484
+          ],
+          "component_scope": "Selected mainstem fragment 14484",
+          "finding": [
+            "The fragment initially links the border-aligned headward detour into the mapped Ñuble valley near the Los Tábanos junction. That first short connector does not itself have a matching named channel on the source map.",
+            "The natural Ñuble course is independently visible continuing from its headwater valley through the Los Tábanos sector, north past the Las Minas/Gato tributary setting and the Los Sauces junction, then northwest and west through the San Fabián corridor into the broad central-valley river.",
+            "The long selected valley course corresponds at ordinary corridor scale to the Río Ñuble. Overlapping primary views cover the entire intervening middle, not only isolated name labels. The southern Río Cato joins the Ñuble in the lower central-valley reach, with the Río Chillán/Changaral setting near the downstream end and the following fragment.",
+            "DGA prose and Table 2.1 distinguish the upper Ñuble–Los Sauces junction, San Fabián, Cato, Chillán and Changaral before the Itata confluence. No selected lake or reservoir passage is required in these viewed corridors."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "dga-itata-2004"
+          ],
+          "correspondence": "Valley reaches supported throughout; initial modeled detour fully observed and excluded from a uniform natural-river naming claim.",
+          "coverage": "Initial detour, upper valley, entire middle course and downstream end inspected using overlapping headwater, upper and middle primary map views.",
+          "name_scope": "Ñuble is supported for the mapped valley, not automatically for the initial detour or downstream Itata.",
+          "mapped_component_name": "Río Ñuble (mapped valley reach after the initial modeled detour)"
+        },
+        {
+          "fragments": [
+            14485
+          ],
+          "component_scope": "Selected mainstem fragment 14485",
+          "finding": [
+            "The selected route continues southwest along the lower Río Ñuble from the Chillán/Changaral junction region toward Confluencia.",
+            "The southern Itata branch and eastern Ñuble meet at the selected junction with FIDs14488 and14486. The primary map depicts both approaches and the downstream combined river, while DGA prose explicitly identifies Confluencia as the Ñuble–Itata junction.",
+            "The selected end is an actual river confluence, not an ocean mouth or lake outlet. The river name downstream changes to the receiving Itata."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "dga-itata-2004"
+          ],
+          "correspondence": "Supported at component/corridor scale.",
+          "coverage": "Entire lower Ñuble fragment and actual Itata confluence setting inspected in the overlapping middle and lower primary map views.",
+          "name_scope": "Ñuble for this component; not a whole-system scalar.",
+          "mapped_component_name": "Río Ñuble"
+        },
+        {
+          "fragments": [
+            14486
+          ],
+          "component_scope": "Selected mainstem fragment 14486",
+          "finding": [
+            "Below the Ñuble–Itata confluence, the selected northwestward corridor follows the mapped Río Itata through the coastal-range corridor, with the Chudal and Lonquén tributary settings visible.",
+            "The map shows the continuous lower Itata turning westward and broadening into the branched estuarine mouth setting. The entire course between Confluencia and the coast was inspected.",
+            "DGA Table 2.1 explicitly carries the lower Itata from the Ñuble junction to Lonquén and then the Pacific Ocean. MMA describes the mouth as the coastal/estuarine wetland between Trehuaco and Coelemu, with Boca Itata and Vegas de Itata on the two municipal sides.",
+            "The rendered endpoint reaches the same estuary/Pacific receiving setting at generalized scale. No exact shoreline, bank, seasonal mouth position or individual delta branch agreement is asserted."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "dga-itata-2004",
+            "mma-itata-estuary-2021"
+          ],
+          "correspondence": "Supported through actual Pacific terminal setting.",
+          "coverage": "Entire lower course, intervening tributary junctions and estuarine/Pacific terminal inspected in the original lower map view and corroborated by primary prose.",
+          "name_scope": "Itata is supported for the receiving lower course and as the bounded receiving-system candidate.",
+          "mapped_component_name": "Río Itata"
+        },
+        {
+          "fragments": [
+            14487
+          ],
+          "component_scope": "Selected tributary fragment 14487",
+          "finding": [
+            "The selected eastern approach is on the mapped Río Cholguán corridor, flowing generally west from the precordillera. DGA describes its headward setting on the western slope of Cerro Calas; the selected fragment is not assumed to include the entire source river.",
+            "The viewed route continues through the Cholguán–Huépil formative junction and then turns northwest and north into the upper Itata. DGA explicitly describes Itata as forming near Cholguán station from the eastern Cholguán and southern Huépil.",
+            "The MMA hydrographic rendering contains a Río Huépil label on part of the lower formative approach where the DGA prose distinguishes the formers from Itata. This source-label scope difference is retained rather than forcing one scalar over every section.",
+            "The entire intervening Itata corridor, including the Danicalqui/Trilaleo setting and the approach to the Diguillín junction, is shown. The selected fragment ends around the Diguillín–Itata junction region and continues through FID14488; it is not a terminal river mouth.",
+            "No major selected lake/reservoir transit is shown or required by the available primary geography. No unselected tributary is renamed Itata."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "dga-itata-2004",
+            "pinto-prc-2023"
+          ],
+          "correspondence": "Supported full southern formative/upper-Itata corridor.",
+          "coverage": "Initial eastern approach, all intervening westward and northward course, Huépil junction and Diguillín junction covered by the south and middle primary map views.",
+          "name_scope": "Multiple river-name scopes; model tributary role does not make the upper Itata a tributary named Ñuble.",
+          "mapped_component_name": "Río Cholguán to upper Río Itata corridor"
+        },
+        {
+          "fragments": [
+            14488
+          ],
+          "component_scope": "Selected tributary fragment 14488",
+          "finding": [
+            "The selected branch continues north along the Río Itata downstream of the Diguillín confluence, passing the Larqui receiving setting and the minor western tributaries.",
+            "Both the northward Itata approach and the eastward Ñuble approach are visible at Confluencia, where this selected tributary fragment ends and FID14486 carries the combined lower Itata.",
+            "DGA Table 2.1 explicitly separates the Itata reaches Diguillín–Larqui and Larqui–Ñuble. This establishes the actual terminal receiver without relying only on model connectivity."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "dga-itata-2004"
+          ],
+          "correspondence": "Supported through actual Ñuble–Itata confluence.",
+          "coverage": "Entire Diguillín-to-Ñuble reach and actual terminal confluence inspected in the middle and lower primary views.",
+          "name_scope": "Itata at component scale; not a common name for all modeled mainstem fragments.",
+          "mapped_component_name": "Río Itata"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80019756",
+      "source_keys": [
+        "r116-nluis-98b",
+        "r116-nluis-97h"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2307
+          ],
+          "component_scope": "Headward uplands and initial unnamed feeder",
+          "finding": "The selected model begins in the inland southeastern uplands and runs west and northwest. The acquired 97H map shows the corresponding general lake-and-stream setting and an upper Big River course, but the selected initial feeder and its lake or stream links have not been established as one fully read route.",
+          "sources": [
+            "r116-nluis-97h"
+          ],
+          "correspondence": "Partial original-map area reading; initial feeder and material links unresolved."
+        },
+        {
+          "fragments": [
+            2307
+          ],
+          "component_scope": "Northward upper continuation beyond the southern sheet",
+          "finding": "The selected model leaves the southern mapped area northward before bending northwest. No acquired independent original establishes the chosen connecting stream and junctions across this transition.",
+          "sources": [
+            "r116-nluis-97h",
+            "r113-nluis-98a-inherited-stop",
+            "r116-gsc-cgm133"
+          ],
+          "correspondence": "Material connector/source coverage gap; no name propagated from either observed end."
+        },
+        {
+          "fragments": [
+            2307
+          ],
+          "component_scope": "Long northwestward and westward central corridor",
+          "finding": "The retained geometry bends northwest then runs west through the inland part of southern Banks Island. The long central route and its material tributary, lake and channel connections lack an acquired original map.",
+          "sources": [
+            "r113-nluis-98a-inherited-stop",
+            "r116-gsc-cgm133"
+          ],
+          "correspondence": "Material source gap, not an unresolved naming scope on a completed geographic review."
+        },
+        {
+          "fragments": [
+            2307
+          ],
+          "component_scope": "Western lower river",
+          "finding": "On 98B the named Big River continues west from the eastern sheet edge across low relief, with multiple channels and numerous adjacent ponds. Its broad westward course and coastal approach correspond to the selected western lower corridor. Lennie River is a separately mapped river to the south.",
+          "sources": [
+            "r116-nluis-98b"
+          ],
+          "correspondence": "Supported lower-corridor geographic and cartographic-name correspondence at generalized scale."
+        },
+        {
+          "fragments": [
+            2307
+          ],
+          "component_scope": "Actual coastal terminal setting",
+          "finding": "The lower Big River reaches the Beaufort Sea coastal channel and shore setting in the Siksik Point and Sea Otter Island sector. The source supports the selected coastal outlet at ordinary generalized scale; no inland terminal lake is asserted.",
+          "sources": [
+            "r116-nluis-98b"
+          ],
+          "correspondence": "Supported actual coastal terminal setting at generalized scale; no precise modern branch, bank or mouth vertex claim."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70244256",
+      "source_keys": [
+        "r116-nts22p-1995",
+        "r116-rg163-report"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9323
+          ],
+          "component_scope": "actual selected headward sector and east-running feeder",
+          "finding": "The selected opening is in the east-running outlet-stream corridor east of Lac Bellanca. Original pixels show connected small channels and ponds toward the Saint-Jean lake/channel setting. The northern arm from Lac Kaministukuakamaht is a separate mapped arm; it is not substituted for the selected western opening.",
+          "sources": [
+            "r116-nts22p-1995"
+          ],
+          "correspondence": "bounded headward setting observed; exact feeder hydronym unestablished",
+          "limits": "The source does not establish one scalar river name for the selected western feeder or every intervening lake passage. No natural-source claim for all of Saint-Jean is made.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9323
+          ],
+          "component_scope": "upper Saint-Jean lake and river corridor",
+          "finding": "Original pixels show the selected upper corridor joining the lake/channel setting near Lac Mista Uauahk and the Saint-Jean-labeled bend around Mont Kapiskupusteht, then the southward channel alongside the Lac Kapatahkatnahiu Uauahk setting. The large neighboring lake body is not renamed after the river or assumed to be wholly traversed by the selection.",
+          "sources": [
+            "r116-nts22p-1995"
+          ],
+          "correspondence": "bounded upper corridor supported",
+          "limits": "Some generalized selected positions lie against the eastern sheet margin; no exact vertex or bank agreement is claimed. Historical map evidence does not establish current official nomenclature.",
+          "mapped_component_name": "Rivière Saint-Jean"
+        },
+        {
+          "fragments": [
+            9323
+          ],
+          "component_scope": "Labône–Rapide–Poisset junction sequence and northern middle valley",
+          "finding": "The map shows Labône entering from the west in the upper valley, the southwest-running Saint-Jean valley past a separate Rapide tributary, the major valley turn, and the distinct Poisset tributary toward the southern edge of the sheet. These mapped junction settings correspond to the selected broad upper/middle corridor.",
+          "sources": [
+            "r116-nts22p-1995"
+          ],
+          "correspondence": "bounded corridor supported to the southern map edge",
+          "limits": "Tributary names apply to their own mapped branches and do not become aliases for the selected mainstem.",
+          "mapped_component_name": "Rivière Saint-Jean"
+        },
+        {
+          "fragments": [
+            9323
+          ],
+          "component_scope": "southern middle corridor and stage-fragment junction",
+          "finding": "The retained route continues south of the acquired sheet, changes direction through the southern middle corridor and reaches the FID9324 junction. Original cartography for this continuation was not acquired.",
+          "sources": [],
+          "correspondence": "source material pending",
+          "limits": "Neither source prose nor model connectivity fills this coverage gap.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9324
+          ],
+          "component_scope": "entire lower component and actual coastal terminal",
+          "finding": "The selected lower fragment trends southwest and includes coastal meanders before its modeled sea terminal. This is retained-geometry orientation only. Failed sources supplied no original-map observations of the actual terminal.",
+          "sources": [],
+          "correspondence": "source material pending",
+          "limits": "The river mouth, lower junctions and coastal connection remain unverified cartographically.",
+          "mapped_component_name": null
+        }
+      ],
+      "bounded_primary_prose": [
+        {
+          "source_key": "r116-rg163-report",
+          "pages": "printed introduction pp.1–2 and physiography p.4",
+          "observations": "The1975 Québec geological report describes reconnaissance mapping between the northern St. Lawrence shore and52°N, lists Saint-Jean among the principal generally south-draining rivers, and notes rough courses with many rapids. This is regional study context only, not a correspondence test of this selected route."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61512484",
+      "publication": "Atlas de la cuenca del río Santa Lucía",
+      "official_url": "https://sit.mvot.gub.uy/descargas/pdf/Atlas.pdf",
+      "observed_outcome": "Official landing page opened normally. Its PDF download link returned web-reader Internal Error: Failed to fetch the exact Atlas.pdf URL: (400) OK. After that completed technical route error, the sole sequential normal original request received HTTP 200 application/pdf but ended with curl error 28, timeout after 75000 milliseconds with 63578112 of 198516744 bytes received. The incomplete original was not used or rendered.",
+      "outcome_layer": "Initial status-ambiguous reader/transport failure, followed by an observed HTTP 200 response and incomplete-transfer timeout. No HTTP 401/403, access challenge or origin denial was observed.",
+      "restriction_scope": "The failed reader route was not repeated. After the incomplete original transfer, all further acquisition of missing Atlas content and equivalent copies, formats, figures, map services offered as recovery of that Atlas, mirrors and routes remains paused for availability. No retry or further fallback.",
+      "earlier_lawful_prose_exception": "Only the ministry landing-page description of the atlas was read earlier; it is bibliographic/contextual and provides no selected-channel correspondence.",
+      "catalogue_url": "https://www.gub.uy/ministerio-vivienda-ordenamiento-territorial/comunicacion/publicaciones/atlas-cuenca-del-rio-santa-lucia",
+      "evidence_use": "No original Atlas maps or substantive river evidence used. This optional missing source leaves no material geographic gap."
+    },
+    {
+      "aw_id": "hydro-system:61512484",
+      "publication": "Carta Geológica del departamento de Lavalleja",
+      "official_url": "https://www.gub.uy/ministerio-industria-energia-mineria/comunicacion/publicaciones/carta-geologica-del-departamento-lavalleja",
+      "observed_outcome": "The web-reader landing-page request returned Internal Error: (400) Timeout fetching. No page body, linked original or map pixels were acquired.",
+      "outcome_layer": "Web-reader timeout; origin HTTP status unobserved. No access denial inferred.",
+      "restriction_scope": "Missing publication/cartographic content and equivalent original, reader, mirror or replacement-format acquisition remains paused for availability. No retry or fallback. Distinct local-planning and basin-plan publications are not covered by this publication-specific pause.",
+      "earlier_lawful_prose_exception": null,
+      "evidence_use": "Discovery title and advertised scale only; search excerpts and unseen map excluded. Optional source with no remaining material gap."
+    },
+    {
+      "aw_id": "hydro-system:61524629",
+      "publication": "CONAF (2022), Plan de manejo de la Reserva Nacional Ñuble; catalogue published 28 June 2024",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-de-la-rn-nuble/?filename=CONAF-2022_Plan-de-manejo-Reserva-Nacional-Nuble.pdf&ind=1719587258856&refresh=19c6af90&wpdmdl=60167",
+      "observed_outcome": "Landing-page text opened normally. The subsequent single linked download request returned web-reader Cache miss. No HTTP status, source PDF body or original map pixels were exposed.",
+      "outcome_layer": "web-reader availability; origin HTTP outcome unobserved",
+      "restriction_scope": "Missing plan/map content and equivalent copies, formats, viewers and acquisition routes remain paused; no retry or original fallback after the cache-miss stop.",
+      "earlier_lawful_prose_exception": "Only bibliographic landing-page text; no substantive hydrographic plan prose or maps.",
+      "catalogue_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-de-la-rn-nuble/",
+      "material_gap_remaining": false
+    },
+    {
+      "aw_id": "hydro-system:61524629",
+      "publication": "Instituto Geográfico Militar, Río Ñuble, June 2009, 1:50,000; Biblioteca Nacional Digital record651533, digital objectMP0007101",
+      "official_url": "https://www.bibliotecanacionaldigital.gob.cl/bnd/631/w3-article-651533.html",
+      "observed_outcome": "Catalogue opened normally and explicitly states access in Biblioteca Nacional with reproduction restriction and contact IGM. No map viewer, thumbnail, original image, alternative edition or equivalent map route was requested.",
+      "outcome_layer": "Explicit publisher/catalogue access and use notice; no HTTP denial inferred",
+      "restriction_scope": "Map content remains excluded from substantive correspondence evidence and is not acquired through alternative/equivalent routes. Catalogue metadata only.",
+      "earlier_lawful_prose_exception": "Catalogue title, edition, access notice and coverage metadata only; listed feature names are not original map observations.",
+      "material_gap_remaining": false
+    },
+    {
+      "aw_id": "hydro-system:80019756",
+      "publication": "Surficial geology, Banks Island, south, Northwest Territories, NTS 97-H, 98-A, and parts of 88-B, 97-G, 98-B; Canadian Geoscience Map 133, preliminary, 2017",
+      "official_url": "https://publications.gc.ca/collections/collection_2017/rncan-nrcan/M183-1-133-2017-eng.pdf",
+      "observed_outcome": "The catalogue original opened HTTP 200. Its exact linked map-original request returned HTTP 200 with Content-Type text/html; charset=utf-8 and 19,312 bytes, redirecting to an archived-information HTML page rather than providing the PDF. No original map pixels were acquired.",
+      "outcome_layer": "Original HTTP success with wrong-content/archive redirect, an availability outcome; no HTTP 401/403, security challenge or authorization denial observed.",
+      "restriction_scope": "Missing original map/publication content and all equivalent copies, formats, figures, underlying Map 17-1979 used as replacement content, readers, caches, mirrors and acquisition routes paused. No retry or further fallback followed. Distinct map publications are not covered merely because they share an agency or region.",
+      "earlier_lawful_prose_exception": "Earlier successfully read catalogue describes the preliminary 2017 publication, its nominal geographic coverage, and conversion of Map 17-1979. This is bibliographic metadata only and does not establish selected-route map correspondence.",
+      "catalogue_url": "https://publications.gc.ca/site/eng/9.832676/publication.html"
+    },
+    {
+      "aw_id": "hydro-system:70244256",
+      "publication": "Portrait du bassin versant Saint-Jean, OBV Duplessis",
+      "official_url": "https://obvd.qc.ca/fiches-portraits/riviere-saint-jean/fiche-portrait.pdf",
+      "observed_outcome": "Sole original request returned HTTP202, text/html,226 bytes. The returned HTML redirects by meta-refresh to a /.well-known/sgcaptcha/ challenge instead of the PDF.",
+      "outcome_layer": "Observed original-request HTTP response and challenge body",
+      "restriction_scope": "Whole portrait publication, maps and all equivalent copies/formats/routes stopped; no challenge followed, retry or reader/cache fallback.",
+      "earlier_lawful_prose_exception": null,
+      "evidence_use": "None; search excerpts are discovery only."
+    },
+    {
+      "aw_id": "hydro-system:70244256",
+      "publication": "Commission de toponymie du Québec, Rivière Saint-Jean, record56850",
+      "official_url": "https://toponymie.gouv.qc.ca/ct/ToposWeb/fiche.aspx?no_seq=56850&v=imprimable",
+      "observed_outcome": "Web reader returned Cache miss; no HTTP status or source body exposed.",
+      "outcome_layer": "Web-reader availability",
+      "restriction_scope": "Missing record content and equivalent print/standard/reader routes paused; no retry.",
+      "earlier_lawful_prose_exception": null,
+      "evidence_use": "None; formal registry status unverified."
+    },
+    {
+      "aw_id": "hydro-system:70244256",
+      "publication": "RG163 complementary maps, No.1774 Lac Fournier,1775 Lac De Morhiban,1780 Lac Manitou and1781 Havre-Saint-Pierre, packageRG163PLAN_1-4.pdf",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG163/RG163PLAN_1-4.pdf",
+      "observed_outcome": "Original response was HTTP200 application/pdf; transfer ended with curl28 client timeout after180002ms,27721728 of120263215 bytes received. No complete map original obtained or used.",
+      "outcome_layer": "Successful origin response followed by incomplete client-transfer timeout; not an HTTP denial",
+      "restriction_scope": "Missing companion map content and equivalent individual sheets, mirrors, reader/screenshot and other routes paused; no retry.",
+      "earlier_lawful_prose_exception": "Earlier completely acquired RG163 report prose remains bounded regional study context only.",
+      "evidence_use": "Incomplete package excluded."
+    },
+    {
+      "aw_id": "hydro-system:70244256",
+      "publication": "Plan régional des milieux humides et hydriques de la MRC de Minganie, version2024-04-10",
+      "official_url": "https://mrc.minganie.org/wp-content/uploads/2024/05/PRMHH-Minganie_2024.04.10.pdf",
+      "observed_outcome": "Sole original request followed a redirect and ended with HTTP403, text/html; no source PDF acquired. Exact final redirect URL was not captured.",
+      "outcome_layer": "HTTP403 reported by original acquisition tool; final responding endpoint not retained",
+      "restriction_scope": "Whole publication, maps, equivalent copies/formats and all acquisition routes stopped. No retry.",
+      "earlier_lawful_prose_exception": null,
+      "evidence_use": "None; discovery excerpts excluded."
+    },
+    {
+      "aw_id": "hydro-system:70244256",
+      "publication": "Lac Manitou, NTS22I,1:250,000 CanMatrix sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/022/i/canmatrix_022i_tif.zip",
+      "observed_outcome": "Exact original archive link was read from the successful official directory. Sole archive request returned HTTP403, text/html, no map body.",
+      "outcome_layer": "HTTP403 reported by original acquisition tool",
+      "restriction_scope": "Whole22I sheet publication and equivalent map copies/formats/routes stopped; no alternate NTS22I acquisition. Distinct22P original had already succeeded independently.",
+      "earlier_lawful_prose_exception": "Only directory metadata, which is not geographic evidence.",
+      "evidence_use": "None from22I."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:61524629",
+      "publication": "DGA, Diagnóstico y clasificación de los cursos y cuerpos de agua según objetivos de calidad: Cuenca del río Itata, December2004",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Itata.pdf",
+      "observed_outcome": "The sole official original retrieval succeeded with HTTP200 application/pdf. Rendered PDF page15 (printed page9), Figure2.2, contains a large red-X placeholder instead of hydrogeological map pixels.",
+      "outcome_layer": "Source-content omission in the successfully obtained original, not an HTTP/access denial",
+      "restriction_scope": "The absent Figure2.2 is not map evidence and was not recovered through another route. Actually read report prose and tables remain usable. Referenced external plates were not claimed as viewed.",
+      "earlier_lawful_prose_exception": "Pages1–4 and Table2.1 were read directly from the acquired original before/alongside visual inspection.",
+      "material_gap_remaining": false
+    },
+    {
+      "aw_id": "hydro-system:70244256",
+      "publication": "RG163 official companion-file directory",
+      "url": "https://gq.mines.gouv.qc.ca/documents/examine/RG163/",
+      "observed_outcome": "Web reader reported URL not accessible via this tool, without HTTP or authorization reason. One permitted sequential normal original-directory request succeeded HTTP200 and exposed the exact map-package link.",
+      "scope": "Failed technical reader route not retried; it was not treated as a publication denial. Later map-transfer stop is separately recorded."
+    },
+    {
+      "aw_id": "hydro-system:70244256",
+      "publication": "Rivière Saint-Jean (Minganie), French Wikipedia discovery page",
+      "url": "https://fr.wikipedia.org/wiki/Rivi%C3%A8re_Saint-Jean_%28Minganie%29",
+      "observed_outcome": "Web open returned Internal Error and no page body.",
+      "scope": "No retry, no substantive evidence from this discovery source or its snippets."
+    }
+  ]
+}

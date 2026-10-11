@@ -1,0 +1,531 @@
+{
+  "schema": "hydro-reconstruction-geometry-reference-v2",
+  "batch": "r02",
+  "created_at_utc": "2026-10-09T11:34:08Z",
+  "scope_source_ids": [
+    "1159115267",
+    "1159123531",
+    "1159107099"
+  ],
+  "baseline": {
+    "repository": "kimjeon-il/Pando",
+    "git_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "hydro_version": "0.13.1",
+    "manifest_sha256": "c10eaffd375d5f0d90955fa253b02ec73d9daeff261fa5cfde1f73ca89d2bd80",
+    "baseline_assets_retrieved_this_batch": false,
+    "baseline_cached_assets_hash_checked_this_batch": true,
+    "historical_deployment_relation": "Recovered 2026-10-08 README and summary report this manifest equal to the then-observed deployment. Reused immutable repository assets match those retained historical hashes.",
+    "current_live_deployment_checked": false,
+    "current_live_deployment_equality_claimed": false,
+    "current_live_deployment_commit": null
+  },
+  "join_convention": {
+    "source": "Exact decimal string of source properties.source_id equals detail sourceId. Source feature JSON objects are copied byte-for-byte within the selected FeatureCollection; collection selection order is scope_source_ids.",
+    "metadata": "Core and detail joined by fid; awId, fid, logicalFid, bounds, stage and source-ID digest checked against the recovered priority candidates; CSV checks its available fields. All three fragmentCount values are 1.",
+    "identity_domains": "source_id, awId, fid and logicalFid are distinct. FIDs apply to this immutable baseline only."
+  },
+  "source_assets": {
+    "baseline-manifest.json": {
+      "repository_path": "assets/data/hydro/v0.13.1/manifest.json",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.1/manifest.json",
+      "bytes": 52975,
+      "sha256": "c10eaffd375d5f0d90955fa253b02ec73d9daeff261fa5cfde1f73ca89d2bd80",
+      "git_blob_sha": "9a9cdb719351e51d2ff509c410cae8741ac36a0a",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:50:35.839Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    },
+    "lakes_base.geojson": {
+      "repository_path": "assets/data/hydro/lakes_base.geojson",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/lakes_base.geojson",
+      "bytes": 7016832,
+      "sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+      "git_blob_sha": "02ec805c9ec3347b81b7b6ec3aba5ed5eb0028a8",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:51:11.619Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    },
+    "metadata-core.json.gz": {
+      "repository_path": "assets/data/hydro/v0.13.1/metadata-core.json.gz",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.1/metadata-core.json.gz",
+      "bytes": 729625,
+      "sha256": "700b886134bbc44fa7686f8f2c131be53a73a5c2ebaabb468b50ea3e4000cee5",
+      "git_blob_sha": "625ce46f50ae0c0fccee1c878cf8f36280dba7f4",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:51:48.623Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    },
+    "metadata-detail.json.gz": {
+      "repository_path": "assets/data/hydro/v0.13.0/metadata-detail.json.gz",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/metadata-detail.json.gz",
+      "bytes": 1670972,
+      "sha256": "1416c6932976427e9cb8140f171f4ccb54704111bce49fb8b8260819ce54b2bd",
+      "git_blob_sha": "b00fa5d7414582f8021446e286e36bed517a166f",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:52:45.496268+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    },
+    "index.bin.gz": {
+      "repository_path": "assets/data/hydro/v0.13.0/index.bin.gz",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/index.bin.gz",
+      "bytes": 32632,
+      "sha256": "a68aff611d2be202dbf31ef1fbce476386e1d49b1619b68e9219279be7896906",
+      "git_blob_sha": "c9113f4e6b22d652799c64f8e09cd6b900df4624",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:53:19.166Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    },
+    "shard-s0.bin": {
+      "repository_path": "assets/data/hydro/v0.13.0/shards/s0.bin",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/shards/s0.bin",
+      "bytes": 4169624,
+      "sha256": "1ae657ac378ae4fb441425a8ce52c38348541717b363b3a8189d3bd7249702a8",
+      "git_blob_sha": "65e3556a787b094cd83626f550072301c0bb9713",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:54:02.416252+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    },
+    "worker.js": {
+      "repository_path": "assets/js/workers/hydro-tile-worker.js",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/workers/hydro-tile-worker.js",
+      "bytes": 32253,
+      "sha256": "14399a8454fb980fb2adc78b7c52bcd32ea5e1b1f313dcfba301886a6b9ddfec",
+      "git_blob_sha": "2974a78862ce0eb1386061c06341b55c8eabb7ca",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:53:59.639Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    },
+    "boundary.js": {
+      "repository_path": "assets/js/workers/geographic-boundary-core.js",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/workers/geographic-boundary-core.js",
+      "bytes": 3928,
+      "sha256": "b9017382fcc828924608c8a32ddbf2831800475a725b432cad9e6445d33bc8ea",
+      "git_blob_sha": "3c97ed6732be0c51308f33199a8c7138abe2c515",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:54:01.552Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    },
+    "earcut.js": {
+      "repository_path": "assets/js/vendor/earcut.min.js",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/vendor/earcut.min.js",
+      "bytes": 7131,
+      "sha256": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3",
+      "git_blob_sha": "79cf67e1001350a4da6d9e51c6421da06cd7b556",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:54:03.196Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    }
+  },
+  "historical_inputs": [
+    {
+      "repository_path": "reports/hydro-names/current-web-2026-10-08/README.md",
+      "bytes": 8970,
+      "sha256": "1dc5bf7cbbab91e6d6e72707cfc95139a96d7764da70773ecd5d7e488eb54378",
+      "git_blob_sha": "e9e19652477f74969de08c02b37ff0ecd040776d",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/README.md",
+      "original_recovery_date_utc": "2026-10-09",
+      "original_retrieved_at_utc": null,
+      "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false,
+      "in_publishable_package": false
+    },
+    {
+      "repository_path": "reports/hydro-names/current-web-2026-10-08/summary.json",
+      "bytes": 4359,
+      "sha256": "4af18507bee586d97a113f903014019d8c8bffa7bf1f4329de0ce95c16d4f4fd",
+      "git_blob_sha": "9319efd4b3bd4c3cd17594ef9130ad1489c0b18d",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/summary.json",
+      "original_recovery_date_utc": "2026-10-09",
+      "original_retrieved_at_utc": null,
+      "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false,
+      "in_publishable_package": false
+    },
+    {
+      "repository_path": "reports/hydro-names/current-web-2026-10-08/priority-candidates.json",
+      "bytes": 77514,
+      "sha256": "427b74322a4878762d02be116eaade4e70789e4d00f5eecc78a3e3ee82cce0fe",
+      "git_blob_sha": "d9c5c25e151dd364b73433610c157d7b2df27f3b",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/priority-candidates.json",
+      "original_recovery_date_utc": "2026-10-09",
+      "original_retrieved_at_utc": null,
+      "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false,
+      "in_publishable_package": false
+    },
+    {
+      "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+      "bytes": 441711,
+      "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+      "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+      "original_recovery_date_utc": "2026-10-09",
+      "original_retrieved_at_utc": null,
+      "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false,
+      "in_publishable_package": false
+    },
+    {
+      "repository_path": "tools/inventory-hydro-names.py",
+      "bytes": 9326,
+      "sha256": "7fbfcb739be473b19d79a4c1dea36d6fdbe78f1536ed5b69ac3cae6aa0407e8d",
+      "git_blob_sha": "2f900b7c36d8ce8a9eb700ed462a6b16b5d6b44d",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/tools/inventory-hydro-names.py",
+      "original_recovery_date_utc": "2026-10-09",
+      "original_retrieved_at_utc": null,
+      "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false,
+      "in_publishable_package": false
+    }
+  ],
+  "selected_features": [
+    {
+      "source_id": "1159115267",
+      "aw_id": "lakes_base:1159115267",
+      "source_feature_zero_based_index": 596,
+      "baseline_fid": 15789,
+      "baseline_logical_fid": 4414,
+      "baseline_metadata_exact": {
+        "fid": 15789,
+        "logicalFid": 4414,
+        "awId": "lakes_base:1159115267",
+        "name": "lake-597",
+        "layerId": "lakes_natural_earth",
+        "category": "lake",
+        "bounds": [
+          85331307,
+          30747624,
+          85902963,
+          31081139
+        ],
+        "stage": 0,
+        "flags": 0,
+        "fragmentIndex": 0,
+        "fragmentCount": 1,
+        "width": 1,
+        "sourceId": "1159115267",
+        "source": "Natural Earth 5.0.0 1:10m"
+      },
+      "historical_priority_join_matches": true,
+      "historical_inventory_csv_join_matches": true,
+      "source_ids_sha256": "fc9277b81ac28d4f3f7ba3365aa0fa96444254d99e91bdc7c99b56b5c96eb86f",
+      "source_feature_canonical_sha256": "3ffa946d5568e2f1b8491b45568877a16f70462d0b41271273d995f102ffc837",
+      "source_feature_original_json_bytes": 4090,
+      "source_feature_original_json_sha256": "1cfb45d29b9a5adbd66a1bfb959de085fe63c9604e7c27703ebe5dad0dc1385a",
+      "baseline_feature_canonical_sha256": "3ed376774717f0052e1b514d048d15c5922c37358aa81f69afb52c2c580b757c",
+      "source_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            95
+          ]
+        ],
+        "total_coordinates_including_closure": 95,
+        "bbox": [
+          85.33130745925007,
+          30.747624313483442,
+          85.90296259413981,
+          31.08113886952364
+        ],
+        "all_rings_closed": true,
+        "canonical_geometry_sha256": "73d1b718ef7f8e4cf1d093ef1f88b5d7fe111d5bd05c79cc3dcbe6387fe1b501"
+      },
+      "baseline_rendered_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            95
+          ]
+        ],
+        "total_coordinates_including_closure": 95,
+        "bbox": [
+          85.331307,
+          30.747624,
+          85.902963,
+          31.081139
+        ],
+        "all_rings_closed": true,
+        "canonical_geometry_sha256": "d63392709a6a156c2f816e92aae69ab607e032ab5278c9533bac29969682dd24"
+      },
+      "source_to_baseline_comparison": {
+        "same_geometry_type": true,
+        "same_part_ring_and_vertex_order": true,
+        "every_coordinate_matches_source_rounded_to_6_decimals": true,
+        "maximum_absolute_coordinate_difference_degrees": 4.999980696140938e-07
+      },
+      "historical_rendered_area_km2": 1009.819,
+      "name_verdict": "Not evaluated; original placeholders and blank name fields are preserved."
+    },
+    {
+      "source_id": "1159123531",
+      "aw_id": "lakes_base:1159123531",
+      "source_feature_zero_based_index": 1074,
+      "baseline_fid": 16267,
+      "baseline_logical_fid": 4892,
+      "baseline_metadata_exact": {
+        "fid": 16267,
+        "logicalFid": 4892,
+        "awId": "lakes_base:1159123531",
+        "name": "lake-1075",
+        "layerId": "lakes_natural_earth",
+        "category": "lake",
+        "bounds": [
+          -51271162,
+          -21108149,
+          -50303440,
+          -20591834
+        ],
+        "stage": 2,
+        "flags": 0,
+        "fragmentIndex": 0,
+        "fragmentCount": 1,
+        "width": 1,
+        "sourceId": "1159123531",
+        "source": "Natural Earth 5.0.0 1:10m"
+      },
+      "historical_priority_join_matches": true,
+      "historical_inventory_csv_join_matches": true,
+      "source_ids_sha256": "41d788ebaf0a1d91494da1794c6516f9c62f08ad113f96313cb7da513fdfec99",
+      "source_feature_canonical_sha256": "b7d15b6f7afb5b1ecf7e51ee954256c2dbc05487d50559bbf161a3508e813690",
+      "source_feature_original_json_bytes": 7942,
+      "source_feature_original_json_sha256": "7ec7d3fb059a59c7f93c73cd0eb0de100fb4fda237acaae97a17d7e4d87b8099",
+      "baseline_feature_canonical_sha256": "b98eab83db73d86b2e021fd01acdaa74cfb12972c3e1dc7906929c1ce589d920",
+      "source_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            184
+          ]
+        ],
+        "total_coordinates_including_closure": 184,
+        "bbox": [
+          -51.27116219540888,
+          -21.108149050285704,
+          -50.30344012746352,
+          -20.591834371296756
+        ],
+        "all_rings_closed": true,
+        "canonical_geometry_sha256": "5676fc044d6e7215838f2b5fedac547c9ea6c02269cc771b2933ce8af685bdf8"
+      },
+      "baseline_rendered_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            184
+          ]
+        ],
+        "total_coordinates_including_closure": 184,
+        "bbox": [
+          -51.271162,
+          -21.108149,
+          -50.30344,
+          -20.591834
+        ],
+        "all_rings_closed": true,
+        "canonical_geometry_sha256": "9b1b6a2f1bb0b1106481465f58e1d0b310cc5a304b6e502a1c19befc3ee75045"
+      },
+      "source_to_baseline_comparison": {
+        "same_geometry_type": true,
+        "same_part_ring_and_vertex_order": true,
+        "every_coordinate_matches_source_rounded_to_6_decimals": true,
+        "maximum_absolute_coordinate_difference_degrees": 4.996883049557255e-07
+      },
+      "historical_rendered_area_km2": 946.448,
+      "name_verdict": "Not evaluated; original placeholders and blank name fields are preserved."
+    },
+    {
+      "source_id": "1159107099",
+      "aw_id": "lakes_base:1159107099",
+      "source_feature_zero_based_index": 46,
+      "baseline_fid": 15239,
+      "baseline_logical_fid": 3864,
+      "baseline_metadata_exact": {
+        "fid": 15239,
+        "logicalFid": 3864,
+        "awId": "lakes_base:1159107099",
+        "name": "lake-47",
+        "layerId": "lakes_natural_earth",
+        "category": "lake",
+        "bounds": [
+          -115941195,
+          60093079,
+          -115050596,
+          60368015
+        ],
+        "stage": 0,
+        "flags": 0,
+        "fragmentIndex": 0,
+        "fragmentCount": 1,
+        "width": 1,
+        "sourceId": "1159107099",
+        "source": "Natural Earth 5.0.0 1:10m"
+      },
+      "historical_priority_join_matches": true,
+      "historical_inventory_csv_join_matches": true,
+      "source_ids_sha256": "e5d9bfd91459010a1a1100e7f93512fcddcbd251d62822e8b72fa68d3530e2b7",
+      "source_feature_canonical_sha256": "3455e89e9989ef28c4426c094f7ee10d488c2ee80d3cb3d287176874a9e0d867",
+      "source_feature_original_json_bytes": 3954,
+      "source_feature_original_json_sha256": "0f29c3cb64f0fe107b3108615c5b71e93baa50f47afff7317246818e7ea329e7",
+      "baseline_feature_canonical_sha256": "b43e624d22e0305610cfb3e5b236d199fab4a8d0befd98e810f25f7a543a4634",
+      "source_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            88
+          ]
+        ],
+        "total_coordinates_including_closure": 88,
+        "bbox": [
+          -115.94119474147388,
+          60.09307851136671,
+          -115.050596074837,
+          60.36801460610769
+        ],
+        "all_rings_closed": true,
+        "canonical_geometry_sha256": "753148d4fac687f28f5de2b6863d6470d38a446a51813ebb8775f901be9b14a2"
+      },
+      "baseline_rendered_geometry": {
+        "type": "Polygon",
+        "polygon_part_count": 1,
+        "ring_counts_by_part": [
+          1
+        ],
+        "coordinate_counts_by_part_and_ring": [
+          [
+            88
+          ]
+        ],
+        "total_coordinates_including_closure": 88,
+        "bbox": [
+          -115.941195,
+          60.093079,
+          -115.050596,
+          60.368015
+        ],
+        "all_rings_closed": true,
+        "canonical_geometry_sha256": "558458ffc1ae0020ad64ba48e41e80122b788ae6d328511aa7cef7831ab1517b"
+      },
+      "source_to_baseline_comparison": {
+        "same_geometry_type": true,
+        "same_part_ring_and_vertex_order": true,
+        "every_coordinate_matches_source_rounded_to_6_decimals": true,
+        "maximum_absolute_coordinate_difference_degrees": 4.981387249358704e-07
+      },
+      "historical_rendered_area_km2": 621.549,
+      "name_verdict": "Not evaluated; original placeholders and blank name fields are preserved."
+    }
+  ],
+  "selected_baseline_packs": [
+    {
+      "id": 1,
+      "shard": 0,
+      "offset": 26736,
+      "length": 174465,
+      "stage": 0,
+      "sha256": "7a2efc67054d38ac0e70408474e33c91a119e5f06c4fe2c2813d4875267526f4"
+    },
+    {
+      "id": 15,
+      "shard": 0,
+      "offset": 1320273,
+      "length": 107649,
+      "stage": 0,
+      "sha256": "e754f3cf384dfded8bc81299bf5858adc20fc75cac48d68173b23b615758b74c"
+    },
+    {
+      "id": 148,
+      "shard": 0,
+      "offset": 3611460,
+      "length": 24223,
+      "stage": 2,
+      "sha256": "06f44b7d4d4bf3f28135348af6d3bb7ef1eac8c3a54a9f9b5dd4efefbbea5d95"
+    }
+  ],
+  "artifacts": {
+    "selected-lake-geometries.geojson": {
+      "bytes": 16031,
+      "sha256": "8ea152040c35d213855c96e2b07d1bd61b3be66eda3157d894f05901929adedb",
+      "git_blob_sha": "a1020844d533dcc554e7fcbecab6d48421898a5a"
+    },
+    "selected-baseline-rendered-geometries.geojson": {
+      "bytes": 9839,
+      "sha256": "778cb5fab315b001992400910c4ce3d50684fe1549eae2b12a78287a14c9ced2",
+      "git_blob_sha": "8df09e9dfd31b23834b5ec0f6a783e723dbc3748"
+    },
+    "selected-pack-receipts.json": {
+      "bytes": 543,
+      "sha256": "4cc36339dbecbb245a4c4fdc0277a69157b4a52c27a1812cf1feecd0b9944657",
+      "git_blob_sha": "5a4bebb608177931c54ca67ff0ef77dd418d16ba"
+    },
+    "extract-baseline-geometries.mjs": {
+      "bytes": 4030,
+      "sha256": "020a337934da59aabb7ead301fc0c40ad32471209e0f8eb23b932f03c01bb6a5",
+      "git_blob_sha": "615b16938c147342f1d0df61a93fc3fb4f8bf713"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 1217,
+      "sha256": "a1a6736036b71f03669abcd5133bad8226e9eb806768529ff5016ea4da85d75a",
+      "git_blob_sha": "f3b76db207f4e0dcc5dd8bed9ee5d34bf813af4d"
+    },
+    "geometry-request-receipts.json": {
+      "bytes": 10608,
+      "sha256": "316a614a399ad3b21eefcc2fb46272147e56cc51946bf3e06fb4d624a084cc84",
+      "git_blob_sha": "76e2f92fa2bccf9800ee1d319f3f5dd926d87dcc"
+    }
+  },
+  "rights": {
+    "scope": "Three selected Natural Earth-derived source polygons and decoded baseline polygons, plus original factual extraction and validation.",
+    "source_attribution": "Natural Earth 5.0.0 1:10m lake data, as attributed by the pinned Pando manifest and original feature properties. Made with Natural Earth.",
+    "official_terms_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "original_retrieved_at_utc": "2026-10-09T10:54:05.958532+00:00",
+    "original_http_status": 200,
+    "original_html_bytes": 38013,
+    "original_html_sha256": "9bc9cbc663b0e6298b7a8cc216a92b5b223efe87796ba5d74c99a64ed6c12db8",
+    "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+    "retrieved_this_batch": false,
+    "short_excerpt": "All versions of Natural Earth raster + vector map data found on this website are in the public domain.",
+    "interpretation": "The retained official terms place all versions of Natural Earth vector/raster data in the public domain and permit modification and electronic dissemination. Only the three selected lake features are retained here.",
+    "exclusions": "No rights assertion is made for unrelated documents or maps. Full upstream assets and decoder dependencies are not republished."
+  },
+  "limits": [
+    "No lake-name identity verdict is established by geometry extraction, bounding boxes, centers or placeholder matching.",
+    "Complete source feature JSON tokens, numeric precision and ring/vertex order are preserved. Actual baseline pack bytes are decoded with the pinned production decoder; their coordinates are quantized to 1e-6 degrees.",
+    "Current live deployment was not checked.",
+    "Coordinate and ring checks are not a complete OGC topological-validity test.",
+    "Only selected features and factual provenance are republished. Complete upstream inputs remain external to the compact package."
+  ]
+}

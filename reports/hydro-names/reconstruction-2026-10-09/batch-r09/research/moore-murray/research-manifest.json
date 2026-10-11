@@ -1,0 +1,33 @@
+{
+  "schema": "hydro-name-reconstruction-research-manifest-v1",
+  "batch": "r09",
+  "target_aw_ids": [
+    "hydro-system:50737565",
+    "hydro-system:50756799"
+  ],
+  "created_at_utc": "2026-10-09T14:30:32.951272+00:00",
+  "status": "Frozen bounded representative-identity research",
+  "automatic_application": false,
+  "files": [
+    {
+      "path": "moore-findings.json",
+      "bytes": 5608,
+      "sha256": "1f05e0024c81e8439b8a3fc8a13f9a98366b11b1513450cf7f2b5a9eaaec3e02"
+    },
+    {
+      "path": "murray-findings.json",
+      "bytes": 6956,
+      "sha256": "d5e93f84d71203092aea5f36119e6fda357d2ca9e63af2001e5469098e21cdd3"
+    },
+    {
+      "path": "source-evidence.json",
+      "bytes": 13450,
+      "sha256": "dbbf7c3fff9b61e19ea8da77ee34c0b02683e73ea541e5ef46597195bd14490b"
+    }
+  ],
+  "hash_scope": "SHA-256 over exact UTF-8 file bytes. Manifest excludes itself.",
+  "source_originals_hash_scope": "Original response bodies; not search snippets, local text extraction, crops or rendered pages.",
+  "raw_originals_or_full_geometry_published": false,
+  "all_new_original_requests_http_200": true,
+  "per_reach_or_whole_group_scalar_application_cleared": false
+}

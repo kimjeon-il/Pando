@@ -1,0 +1,167 @@
+{
+  "schema": "hydro-canada-source-evidence-v1",
+  "created_at_utc": "2026-10-09T11:02:45.832026+00:00",
+  "content_kind": "Own factual extraction and original-byte provenance, not a raw-source capture",
+  "automatic_application": false,
+  "product_application": false,
+  "sources": [
+    {
+      "source_id": "CA-GNWT-20181218",
+      "title": "Mobile Core Bathurst Caribou Management Zone",
+      "agency": "Government of the Northwest Territories, Environment and Natural Resources",
+      "publication_date": "2018-12-18",
+      "locator": "PDF page 2, 1:400,000 map; complete lake and southwest adjoining waters",
+      "original_retrieval": {
+        "status": 200,
+        "url": "https://www.gov.nt.ca/sites/ecc/files/resources/publication_text_fsu_caribou_management_zone_messaging_dec_18_2018.pdf",
+        "content_type": "application/pdf",
+        "bytes": 2521327,
+        "sha256": "5aac878c13156f298024181f73255789cf115638f1959f6989e9a11655d96f3a",
+        "retrieved_utc": "2026-10-09T10:52:39.613517+00:00"
+      },
+      "short_quote": "MacKay Lake",
+      "publication_identity_preflight": "A dated GNWT wildlife-management map with a regional hydrological basemap. It is a distinct cartographic publication, not a CGN name-search or expanded record, gazetteer, or mirror of one.",
+      "own_factual_extraction": [
+        "Multiple labels place MacKay Lake on the western basin and the northeast arm. The map also separately labels Courageous Lake, Matthews Lake, Dumbell Lake, Snake Lake, King Lake, and the Lockhart River/Lake corridor.",
+        "The full source exterior, projected through the embedded NWT Lambert registration, follows the principal MacKay basins but is strongly generalized and omits islands including Big Island.",
+        "The southwest source extension includes the Lockhart River label and adjoining water corridor. Lockhart Lake labels are outside, nearby. This leaves whole-polygon name scope unresolved."
+      ],
+      "limitations": [
+        "This historical wildlife map is evidence of mapped name usage, not a current naming-registry decision.",
+        "Map labels are not legally delimited feature polygons. No shoreline-distance, overlap, or area equality claim."
+      ],
+      "raw_original_published": false
+    },
+    {
+      "source_id": "CA-NUNAVIK-TURSUJUQ-CURRENT",
+      "title": "Tursujuq",
+      "agency": "Nunavik Parks / Kativik Regional Government",
+      "publication_date": null,
+      "locator": "Park overview and The Goulet sections",
+      "original_retrieval": {
+        "status": 200,
+        "url": "https://www.nunavikparks.ca/en/parks/tursujuq",
+        "content_type": "text/html; charset=UTF-8",
+        "bytes": 66813,
+        "sha256": "d2c96363a0762a5b76ab6d066902ceff24c57f2792dff63497f01ab4b792c642",
+        "retrieved_utc": "2026-10-09T10:52:05.105032+00:00"
+      },
+      "short_quote": "The brackish tidal waters of Lake Tasiujaq are a haven for seal and beluga",
+      "publication_identity_preflight": "A park operator’s original visitor/natural-history page. Independent of gazetteer records and naming press releases; not their alternate presentation.",
+      "own_factual_extraction": [
+        "The current park page uses Lac Tasiujaq and Lake Tasiujaq for the park water near Umiujaq.",
+        "It describes brackish water subject to tides, a connection to Hudson Bay through Le Goulet, and both saltwater and freshwater fish.",
+        "This supports lake-name usage for a marine-connected waterbody; it does not support classifying the feature as an ordinary isolated freshwater lake."
+      ],
+      "limitations": [
+        "No publication date is stated; timestamp records this retrieval only.",
+        "No legal naming decision date, registry identifier, or formal feature-type code is supplied."
+      ],
+      "raw_original_published": false
+    },
+    {
+      "source_id": "CA-NUNAVIK-FISHING-2024",
+      "title": "Règlementation sur la pêche dans les parcs nationaux du Nunavik: Parc national Tursujuq 2024–2025",
+      "agency": "Nunavik Parks; Annex 1 map produced by Québec Ministère des Forêts, de la Faune et des Parcs, Direction des parcs nationaux",
+      "publication_date": "2024–2025 guide; Annex 1 map copyright fourth quarter 2015",
+      "locator": "PDF page 6, Annex 1; map at 1:850,000",
+      "original_retrieval": {
+        "status": 200,
+        "url": "https://nunavikparks.ca/assets/documents/Fishing_Tursujuq_2024_FR.pdf",
+        "content_type": "application/pdf",
+        "bytes": 914555,
+        "sha256": "cb5bb35b29490d15d9d0823a13822341f4559eacfdf7f3a354276770de1a0ae1",
+        "retrieved_utc": "2026-10-09T10:55:00.585049+00:00"
+      },
+      "short_quote": "Lac Guillaume-Delisle",
+      "publication_identity_preflight": "An independently authored park fishing guide containing a provincial park-zoning map. Not a gazetteer record or naming-release reproduction. The map itself is dated 2015 and is not represented as 2024 naming data.",
+      "own_factual_extraction": [
+        "The map labels the entire coast-adjacent triangular water Lac Guillaume-Delisle, south of Umiujaq. It shows a narrow northern reach, broad southern basin, and southwest passage to Hudson Bay at Le Goulet.",
+        "The complete 105-coordinate source outline has that same topology and orientation, including its southwest channel spur. This is a whole-outline visual comparison, not a centroid or nearest-label lookup.",
+        "Baie d’Hudson is outside the main basin; Lac à l’Eau Claire is a separate inland two-basin water. The map shows internal islands absent from the source ring."
+      ],
+      "limitations": [
+        "Rasterized map, 1:850,000. No geospatial registration was recovered from this embedded image; comparison is qualitative across the full extent.",
+        "Naming is 2015-era; the current alias is established separately by the DFO text and park page. Exact mouth and island boundaries are not verified."
+      ],
+      "raw_original_published": false
+    },
+    {
+      "source_id": "CA-DFO-SEAL-2018",
+      "title": "Recovery Strategy for the Harbour Seal, Lacs des Loups Marins subspecies (Phoca vitulina mellonae)",
+      "agency": "Fisheries and Oceans Canada; Species at Risk Act Recovery Strategy Series",
+      "publication_date": "2018",
+      "locator": "Section 6.1.1, Tursujuq National Park",
+      "original_retrieval": {
+        "status": 200,
+        "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/recovery-strategies/harbour-seal-lacs-loups-marins.html",
+        "content_type": "text/html;charset=utf-8",
+        "bytes": 128590,
+        "sha256": "03277a39ecfe7b03a3e8b70faf60bb9a413a87dfb46cf0d62e313df73c358a24",
+        "retrieved_utc": "2026-10-09T10:56:40.478468+00:00"
+      },
+      "short_quote": "Tasiujaq lake and Wiyâshâkimî lake (formerly called Guillaume-Deslisle and à l’Eau Claire)",
+      "publication_identity_preflight": "Independent species-recovery strategy, not a CGN/name record, gazetteer, naming press release, UNECE article, or alternate representation of a stopped publication. Acquired only to bridge the map’s old name to current park usage.",
+      "own_factual_extraction": [
+        "Section 6.1.1 explicitly pairs Tasiujaq and Wiyâshâkimî with the older Guillaume-Deslisle and à l’Eau Claire names in that order.",
+        "The source spells the first older name Guillaume-Deslisle, while the park map spells Guillaume-Delisle. The source typo is preserved in the quotation and is not silently corrected.",
+        "The text therefore independently links the current park-used Tasiujaq name to the mapped older name, with the spelling limitation stated."
+      ],
+      "limitations": [
+        "This is not the official naming decision and supplies no registration date or naming-record ID.",
+        "No ecological conclusions about the lake are taken from the seal report."
+      ],
+      "raw_original_published": false
+    }
+  ],
+  "failed_publications": [
+    {
+      "url": "https://www.nunavikparks.ca/en/documents",
+      "failure": "web open returned Internal Error; no HTTP status was exposed",
+      "observed_utc": "2026-10-09T10:51:32Z",
+      "retried": false,
+      "used_as_evidence": false,
+      "stop": "Documents index publication stopped; no alternate route used."
+    },
+    {
+      "url": "https://www.nunavikparks.ca/assets/documents/2017-network-Map_2021-05-07-182152.pdf",
+      "failure": "urllib.request: HTTPError HTTP Error 502: Bad Gateway",
+      "observed_utc": "2026-10-09T10:56:21Z",
+      "retried": false,
+      "used_as_evidence": false,
+      "stop": "2017 network-map publication stopped; no alternate host/path/format/tool acquisition."
+    }
+  ],
+  "excluded_ambiguous_publications": [
+    {
+      "url": "https://toponymie.gouv.qc.ca/ct/salle-de-presse/communiques-de-presse/20160226_quatre-entites-geographiques-nord-quebec.aspx",
+      "reason": "Relationship of this2016 naming release to incomplete historical access exclusions was not resolved; it was not requested or used as evidence."
+    },
+    {
+      "scope": "All Canadian CGN/geogratis expanded/name-search records, ambiguous Canadian gazetteers and UNECE naming publications",
+      "reason": "Preserved historical stops. Incidental search hits were not opened or used as evidence."
+    }
+  ],
+  "non_supporting_originals": [
+    {
+      "title": "Réserve de territoire aux fins d’aire protégée Tursujuq-Nord, Tursujuq-Centre et Tursujuq-Sud",
+      "receipt": {
+        "status": 200,
+        "url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-territoires/nunavik/carte-tursujuq-nord-centre-sud-en.pdf",
+        "content_type": "application/pdf",
+        "bytes": 1429152,
+        "sha256": "f4abc5ad2d354ac97c76ec5c376166ad85d7679e813f754cec63d9d163040017",
+        "retrieved_utc": "2026-10-09T10:53:30.120256+00:00"
+      },
+      "publication_date": "April 2021",
+      "reason": "Three original provincial reserve maps were inspected; they cover eastern/northern park additions and do not show the target water at useful scope. Excluded from lake-name proof.",
+      "raw_original_published": false
+    }
+  ],
+  "rights": {
+    "raw_documents": "Original PDFs, HTML, rendered map excerpts, and registered overlays retained only in excluded local research cache. No redistribution permission inferred.",
+    "durable_package": "Own factual extraction, exact original hashes/URLs, limited quotations, and source-geometry provenance. Geometry redistribution is governed separately by geometry-reference.json."
+  },
+  "public_access_record": "access-policy-at-reconstruction.json",
+  "public_access_record_sha256": "9a8bbade942dcfd9a68bd4fd6970d57528d12937c6ba22227912353fe1297672"
+}

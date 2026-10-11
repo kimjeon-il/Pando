@@ -1,0 +1,292 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r69",
+  "sources": [
+    {
+      "source_key": "r69-wwf-upper-berbice-maps",
+      "title": "Biodiversity Assessment Survey of the Upper Berbice Region, Guyana — BAT Survey Report No. 3",
+      "publisher": "WWF-Guianas and Global Wildlife Conservation",
+      "attribution": "Editors Leeanne E. Alonso, Juliana Persaud and Aiesha Williams. Figure A: Oronde Drakes, November 2014, hydrological data credited to Guyana Lands and Surveys Commission. Figure B: Map of Guyana, Guyana Lands and Surveys Commission, 2006.",
+      "year": 2018,
+      "page": "Printed pp. 13 and 17; PDF pp. 14 and 18, Figures A and B; publication credits on PDF pp. 3–4.",
+      "supports": "Upper Berbice continuity, neighboring-river separation, Kwakwani sequence and lower-river coastal setting.",
+      "limits": "Generalized historical cartography does not resolve every initial channel detail or exact terminal boundary. Ecological findings and present-day infrastructure status are outside this naming result.",
+      "official_url": "https://wwfeu.awsassets.panda.org/downloads/biodiversity_assessment_survey_of_the_upper_berbice_region_2018.pdf"
+    },
+    {
+      "source_key": "ign-sanluis-physical-2016",
+      "title": "Provincia de San Luis — Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "year": 2016,
+      "page": "Single sheet, edition September 2016; whole sheet and enlarged upper reservoir corridor.",
+      "supports": "Upper impoundment sequence, southward connection, southeast Quinto trunk and separation from neighboring systems.",
+      "limits": "Generalized provincial mapping; initial feeder unnamed and Córdoba terminal terrain outside useful coverage. Historical map, not current flow evidence.",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/SAN-LUIS/SAN-LUIS-FISICO-WEB.jpg"
+    },
+    {
+      "source_key": "ign-cordoba-physical-2016",
+      "title": "Provincia de Córdoba — Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "year": 2016,
+      "page": "Single sheet, edition September 2016; whole sheet and enlarged southern receiving country.",
+      "supports": "Quinto trunk, La Amarga receiving geography and the distinction between drawn river and wetlands.",
+      "limits": "Generalized wetland edges and lake location cannot establish the southern modeled connection, present inundation or exact endpoint identity.",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/CORDOBA/CORDOBA-FISICO-WEB.jpg"
+    },
+    {
+      "source_key": "sanluis-aguero-2016",
+      "title": "Maniobras en las compuertas del dique Antonio E. Agüero",
+      "publisher": "Agencia de Noticias San Luis; Prensa San Luis Agua, Gobierno de la Provincia de San Luis",
+      "year": 2016,
+      "page": "Article dated 29 September 2016, subsection Dique Antonio Esteban Agüero.",
+      "supports": "Agüero impounds Río Grande and arroyo Los Manantiales, supporting the upper reservoir's drainage identity.",
+      "limits": "Text does not map the starting feeder or delimit the river-name transition. Historical operational details are outside this finding.",
+      "official_url": "https://agenciasanluis.com/2016/09/29/365864-maniobras-en-las-compuertas-del-dique-antonio-e-aguero/"
+    },
+    {
+      "source_key": "ssrh-basin95-text-2008",
+      "title": "Cuenca del Río Quinto y arroyos menores de San Luis — Cuenca Nº 95",
+      "publisher": "Subsecretaría de Recursos Hídricos, Argentina; prepared by Carla Lupano",
+      "year": 2008,
+      "page": "Printed pp. 1–3, especially Aspectos hidrológicos on pp. 2–3; prepared May 2008.",
+      "supports": "Northern Grande versus western Trapiche approaches, La Florida before Paso de las Carretas, and La Amarga as historical receiving area with exceptional downstream overflows.",
+      "limits": "Only earlier acquired prose supports these relationships. Its map-label extraction is not topology evidence, and its entire publication is now stopped.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/95_nueva.pdf"
+    },
+    {
+      "source_key": "r65-inegi-chihuahua-state",
+      "title": "Condensado Estatal Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "year": 2024,
+      "page": "Single state sheet, PDF p. 1; southern approach, Casas Grandes–Ascensión valley, northern loop and terminal corridor.",
+      "supports": "Continuous geographic comparison from Ignacio Zaragoza through the Casas Grandes valley and Ascensión to the northern loop and inland receiving depression; separation from adjacent lakes and drainage corridors.",
+      "limits": "Scale 1:1,000,000. Generalized state cartography does not fix the first feeder, stream-name transitions, individual terminal component boundaries or current flow and lake extent.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/chih/794551162774.pdf"
+    },
+    {
+      "source_key": "r69-inegi-ignacio-zaragoza-2010",
+      "title": "Compendio de información geográfica municipal 2010: Ignacio Zaragoza, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; enlarged southern feeder and northwestern route.",
+      "supports": "Southern approach to the Peñitas corridor, Ignacio Zaragoza passage, San José and Junta de los Arroyos tributary separation, and selected continuation west of Laguna Escondida.",
+      "limits": "Municipal extent ends before the downstream Casas Grandes trunk; small initial feeder and exact name-change boundaries are not resolved.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08034.pdf"
+    },
+    {
+      "source_key": "r69-inegi-casas-grandes-2010",
+      "title": "Compendio de información geográfica municipal 2010: Casas Grandes, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; whole map and enlarged eastern upper-river corridor.",
+      "supports": "Selected Palanganas approach along the eastern municipal corridor, its northward continuation and separation from the western Piedras Verdes headwaters.",
+      "limits": "Municipal map supports the upstream route, not every downstream name transition or the distant inland terminal.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08013.pdf"
+    },
+    {
+      "source_key": "r69-inegi-ascension-2010",
+      "title": "Compendio de información geográfica municipal 2010: Ascensión, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; full map and enlarged Casas Grandes loop–Laguna de Guzmán connection.",
+      "supports": "Casas Grandes name on the northern loop, continuity to Laguna de Guzmán and distinction from the Santa María river/lake corridor.",
+      "limits": "The mapped waterbody identifies the bounded receiving-lake setting, not a surveyed inlet, individual component boundaries, current water extent, permanent through-flow or an onward outlet.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08005.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; southeastern Inland Ice and coastal-margin context, readable graticule and Inland Ice legend.",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology; regional map-label context.",
+      "supports": "Explains ice-contour classes and regional map context without establishing a natural river identity for this selected route.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60087125",
+      "source_keys": [
+        "r69-wwf-upper-berbice-maps"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11376
+          ],
+          "finding": "The southern selection follows the mapped upper Berbice east of the Essequibo. The national map continues that channel farther south, so the modeled beginning is not the river's mapped source.",
+          "sources": [
+            "r69-wwf-upper-berbice-maps"
+          ]
+        },
+        {
+          "fragments": [
+            11376
+          ],
+          "finding": "The northward upper course and its bends agree with the detailed field map, including the Duck River junction setting. The Essequibo and Corentyne remain separate surrounding corridors.",
+          "sources": [
+            "r69-wwf-upper-berbice-maps"
+          ]
+        },
+        {
+          "fragments": [
+            11377,
+            11378
+          ],
+          "finding": "The selection turns northeast through the Kwakwani corridor and continues along the same trunk. The map distinguishes Demerara to the west and Canje to the east.",
+          "sources": [
+            "r69-wwf-upper-berbice-maps"
+          ]
+        },
+        {
+          "fragments": [
+            11378
+          ],
+          "finding": "The northern fragment follows lower Berbice into the New Amsterdam–Rosignol setting. It does not select the Canje branch or establish a complete Atlantic outlet.",
+          "sources": [
+            "r69-wwf-upper-berbice-maps"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61512430",
+      "source_keys": [
+        "ign-sanluis-physical-2016",
+        "ign-cordoba-physical-2016",
+        "sanluis-aguero-2016",
+        "ssrh-basin95-text-2008"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14445
+          ],
+          "scope": "Northern headwater and reservoir approach",
+          "finding": "The selected north–south approach matches the corridor entering Antonio Esteban Agüero from the north, then continuing southeast toward La Florida. San Luis Agua identifies Río Grande and Los Manantiales as waters impounded by Agüero. This supports the Río Grande reservoir approach; the regional map does not establish the first selected feeder's name or a precise Grande–Manantiales boundary. The western Trapiche approach is not substituted for it.",
+          "sources": [
+            "ign-sanluis-physical-2016",
+            "sanluis-aguero-2016",
+            "ssrh-basin95-text-2008"
+          ]
+        },
+        {
+          "fragments": [
+            14445
+          ],
+          "scope": "La Florida and Paso de las Carretas",
+          "finding": "The southward selected reach follows the mapped La Florida–Paso de las Carretas connection before turning southeast. The federal description likewise places Paso de las Carretas downstream of La Florida. These are reservoir passages and intervening river reaches, not proof that one natural-channel name applies through every impounded vertex.",
+          "sources": [
+            "ign-sanluis-physical-2016",
+            "ssrh-basin95-text-2008"
+          ]
+        },
+        {
+          "fragments": [
+            14445
+          ],
+          "scope": "Named southeast trunk",
+          "finding": "The sustained southeast course through the Vulpiani setting and into southern Córdoba agrees with the Quinto line on both adjoining IGN sheets. The Córdoba sheet labels that trunk Río Quinto (Popopis) and draws it into Bañados de la Amarga, separately from the Cuarto/Chocancharava system farther north.",
+          "sources": [
+            "ign-sanluis-physical-2016",
+            "ign-cordoba-physical-2016"
+          ]
+        },
+        {
+          "fragments": [
+            14445
+          ],
+          "scope": "Receiving wetland and southern terminal continuation",
+          "finding": "The Córdoba map changes from a continuous named Quinto line to wetland depiction in Bañados de la Amarga, with Laguna La Amarga shown separately farther east. The selection continues southeast and south beyond that mapped continuous channel and south of the named lake. The map therefore supports receiving-lowland context, but not that every remaining segment is river, canal, lake passage or a continuous present flow path. The modeled endpoint is not assigned to Laguna La Amarga or declared the Quinto's natural mouth.",
+          "sources": [
+            "ign-cordoba-physical-2016"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70778390",
+      "source_keys": [
+        "r65-inegi-chihuahua-state",
+        "r69-inegi-ignacio-zaragoza-2010",
+        "r69-inegi-casas-grandes-2010",
+        "r69-inegi-ascension-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9936
+          ],
+          "finding": "The southern selected beginning lies southeast of Cerro Cincho and turns west and then north into the Peñitas corridor toward Ignacio Zaragoza. The municipal relief map supports this eastern approach rather than a route beginning in the western Junta de los Arroyos branch. The first short feeder has no asserted hydronym, and the selected start is not declared an official river source.",
+          "sources": [
+            "r69-inegi-ignacio-zaragoza-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9936
+          ],
+          "finding": "Beyond Ignacio Zaragoza the selected route turns northwest, passes the San José tributary junction and runs west of Laguna Escondida into the channel identified as Palanganas on the Casas Grandes relief sheet. It continues north through the eastern Casas Grandes valley. The western Piedras Verdes headwater route is separately mapped and is not substituted for the selected approach.",
+          "sources": [
+            "r69-inegi-ignacio-zaragoza-2010",
+            "r69-inegi-casas-grandes-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9936
+          ],
+          "finding": "The selection continues through the Casas Grandes–Nuevo Casas Grandes valley toward Ascensión, then turns north past the western side of Sierra Boca Grande. Its long eastward northern bend matches the stream labeled Casas Grandes on the Ascensión relief map, followed by the southward leg on the eastern side of the intervening uplands.",
+          "sources": [
+            "r65-inegi-chihuahua-state",
+            "r69-inegi-casas-grandes-2010",
+            "r69-inegi-ascension-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9936
+          ],
+          "finding": "The actual final southward leg reaches the mapped Laguna de Guzmán inland waterbody. Ascensión cartography shows this connection and separates it from Laguna Santa María and its river farther southeast. The model endpoint does not establish an outlet, a complete lake crossing or a connection onward to Santa María or other nearby depressions.",
+          "sources": [
+            "r69-inegi-ascension-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90109016",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete single selected mainstem fragment was inspected. It runs almost south from the northern interior, takes a westward step near its middle, and continues south before a small southeastward terminal turn. No separate tributary fragment is selected.",
+        "The retained map graticule and regional ice/land arrangement place the long upper and middle portions on the Inland Ice, with the lower continuation approaching the glaciated southeastern margin west of the Tasiilaq–Sermilik coastal country. The regional map does not establish an exact terminal stream, glacier or fjord boundary.",
+        "No natural river hydronym is established for this complete modeled path. Nearby glacier, mountain or fjord names cannot be transferred to the whole line, and the modeled continuity does not demonstrate a present surface or subglacial river connection. The conclusion does not claim that every local marginal waterway is unnamed.",
+        "Ice-surface contours, dashed ice-thickness isopachs, sub-ice bedrock contours and the mapped aeromagnetic lineaments south of 68°N have their own legend meanings. They are not river-name evidence, and the historical map does not establish current ice margins or flow along the model path."
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

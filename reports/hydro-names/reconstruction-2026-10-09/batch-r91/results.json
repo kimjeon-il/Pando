@@ -1,0 +1,407 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r91",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r90",
+    "commit": "6257fc49b77521ee1a022f3dedbca6d76a038e90",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r90/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:90060803",
+    "hydro-system:80064632",
+    "hydro-system:70545986",
+    "hydro-system:70796101"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:90060803",
+      "category": "river_group",
+      "system_id": "90060803",
+      "baseline_logical_fid": 2842,
+      "geometry_fids": [
+        8853
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -30.53125,
+        72.614583,
+        -26.780588,
+        73.94375
+      ],
+      "rendered_mainstem_length_km": 295.708,
+      "rendered_network_length_km": 295.708,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -30.53125,
+          72.614583,
+          -26.780588,
+          73.94375
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The retained official originals support a completed geographic and feature-class review and a whole-route natural-river naming hold. They do not establish a named natural river corresponding to the complete selection. This is not a claim that every marginal stream or glacial watercourse in this country is unnamed.",
+      "geographic_disambiguation": "The selected line begins at its western side, goes nearly north to a compact northern hook, then descends southeast through a long stepped limb. A westward kink interrupts that limb before the route continues southeast and then east. The southern course makes a broad trough and turns east-northeast to its actual ending. The original graticule places this in East Greenland, with its northern and substantial upper course on the Inland Ice west of the Andrée Land region. The southern and eastern course approaches the glaciated mountain belt in the general Fraenkel Land, Suess Land and Goodenough Land setting, inland of Kong Oscar Fjord and southwest of the main Kejser Franz Joseph Fjord corridor. Charcot Land lies farther south. These are regional disambiguation labels, not proposed hydronyms or exact endpoint assignments. The ice-interior setting must not be extended uncritically over the final marginal section: the original sheet distinguishes surrounding exposed rock, glacier corridors and fjords, but does not resolve the precise ice/rock/water relation of every selected vertex or identify a named river at the ending.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "East Greenland Inland Ice and its mountainous eastern margin, inland of the Kejser Franz Joseph Fjord and Kong Oscar Fjord region.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded source-object correspondence for the single selected mainstem geometry, including the western beginning, northern hook, long southeastward limb, western kink, southern trough and eastern ending. The complete pinned selection plot and actual cached coordinate sequence were compared with the retained original geological sheet, readable graticule, fresh East Greenland regional and marginal enlargements, original Inland Ice legend and bulletin pages 64–65. This is a completed geographic and naming-scope determination, not an acquisition gap. A positive natural-river identity spanning the selected route would be required before later name assignment. Exact present ice-front and coastline positions are outside the scope of this historical regional comparison.",
+      "naming_scope_details": {
+        "representative_receiving_system": null,
+        "selected_mainstem_sequence": "Western interior beginning → nearly northward opening → northern hook → long southeastward stepped limb → western kink → southeastward and eastward course → southern trough → east-northeastward ending.",
+        "tributary_scope": "No tributary geometry is selected. Internal MultiLineString coordinate parts do not create separately evidenced natural tributaries.",
+        "feature_class_scope": "Northern and substantial upper course on the East Greenland Inland Ice, followed by an approach to and passage into the eastern glaciated mountain-margin setting. The sources do not establish one continuous natural river or one named glacier for the complete modeled selection.",
+        "terminal_scope": "Regional glaciated mountain-margin setting in the Fraenkel Land–Suess Land–Goodenough Land country, inland of the Kong Oscar Fjord region. Exact terminal feature and final ice/rock/water boundary remain unassigned.",
+        "nearby_name_scope": "Andrée Land, Fraenkel Land, Suess Land, Goodenough Land, Charcot Land, Kejser Franz Joseph Fjord and Kong Oscar Fjord are source-map geographic context only. None is a proposed river candidate, alias, representative receiving river or assigned endpoint.",
+        "ice_symbol_scope": "Blue ice-surface contours, dashed ice-thickness contours and gray sub-ice bedrock contours cannot be read as river courses. The legend’s southern aeromagnetic lineaments are likewise not rivers.",
+        "displayed_mainstem_length_km": 295.708,
+        "length_limit": "Modeled inventory display length, not an official or measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false,
+        "name_evidence_limit": "Historical regional geological cartography and general glaciology establish setting and naming limits, not a river gazetteer, contemporary ice-front survey or direct observation of surface/subglacial connectivity."
+      }
+    },
+    {
+      "aw_id": "hydro-system:80064632",
+      "category": "river_group",
+      "system_id": "80064632",
+      "baseline_logical_fid": 901,
+      "geometry_fids": [
+        2508
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -103.860417,
+        66.125,
+        -102.64375,
+        67.922358
+      ],
+      "rendered_mainstem_length_km": 295.476,
+      "rendered_network_length_km": 295.476,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -103.860417,
+          66.125,
+          -102.64375,
+          67.922358
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "MacAlpine Lake is directly labeled on the traversed large lake. Atkinson Point and Queen Maud Gulf locate the terminal setting. No inspected original labels the entire selected river corridor with a supported hydronym.",
+      "geographic_disambiguation": "The selected start is on a small lake-and-stream approach southwest of MacAlpine Lake and north of the separately mapped Bullen River country. It turns east along smaller lakes south of the large lake, bends north into its southeastern/western-arm passage, and travels northwest through MacAlpine Lake. Beyond the western/northwestern arm it follows a river and short lake-chain approach, bends west then northeast and continues generally north through the tundra lowlands. Its delta reaches Queen Maud Gulf southwest of Atkinson Point, east of the Ceron Bay setting. The 1994 field-study map depicts this coastal river separately west of Perry River; therefore the MacAlpine Lake association alone cannot identify the selection as Perry.",
+      "source_keys": [
+        "r91-nrcan-macalpine-atkinson-map",
+        "r91-alisauskas-boyd-1994"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Kitikmeot, Nunavut, Canada: the lake-and-stream country southwest of MacAlpine Lake, its western lake passage and the northward coastal river ending southwest of Atkinson Point on Queen Maud Gulf.",
+      "candidate_name_role": "No whole-group river name established by the inspected maps. The coastal receiving channel is distinct from Perry River and is described as unnamed in the 1994 primary field study.",
+      "completion_scope": "Completed bounded whole-fragment geographic review using three original official base-map views and the independent primary field-study figure and text. The route, lake passage and coastal outlet are visible, but an unambiguous whole-system river name is not established. This is a naming-scope hold, not a claim that the river has no current local or official name. Optional inaccessible publications are excluded.",
+      "naming_scope_details": {
+        "representative_receiving_identity": null,
+        "headward_component": "Unnamed small-lake and stream approach southwest of MacAlpine Lake.",
+        "lake_component": "MacAlpine Lake, as labeled on the original base map.",
+        "terminal_component": "Northward coastal river and delta southwest of Atkinson Point, Queen Maud Gulf; no exact hydronym assigned.",
+        "excluded_inferences": [
+          "Do not label the selection Perry River merely because it traverses MacAlpine Lake.",
+          "Do not convert the nearby point name into a river name without actual matching name evidence.",
+          "The 1994 description as unnamed is not a present-day registry or local-name determination.",
+          "No exact source, current coastline, surveyed lake outlet direction or exhaustive feeder nomenclature is established."
+        ],
+        "model_limits": "The 295.476 km modeled mainstem is not an official river-length measurement. Coarse routing simplifies lake arms, small channels, bends and the coastal delta."
+      },
+      "follow_up_scope": "Resolve a representative name for this specific western MacAlpine–Atkinson Point coastal route using a distinct permitted source. Do not revisit stopped publications or silently transfer the Perry River name."
+    },
+    {
+      "aw_id": "hydro-system:70545986",
+      "category": "river_group",
+      "system_id": "70545986",
+      "baseline_logical_fid": 3072,
+      "geometry_fids": [
+        9777
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -119.052083,
+        40.864583,
+        -117.727083,
+        42.23125
+      ],
+      "rendered_mainstem_length_km": 294.724,
+      "rendered_network_length_km": 294.724,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -119.052083,
+          40.864583,
+          -117.727083,
+          42.23125
+        ]
+      },
+      "candidate_name": "Quinn River",
+      "candidate_names": [
+        "Quinn River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The official map repeatedly labels Quinn River from the McDermitt valley receiving reach southward, through its broad western bends and southwestward across the Black Rock Desert to the inland playa terminal. Oregon Canyon Creek and The Slough retain their narrower mapped names upstream.",
+      "geographic_disambiguation": "The northern selection begins on mapped Oregon Canyon Creek within the Oregon Canyon Mountains, runs north past the West Fork and East Fork junction surroundings, and turns east out of the canyon before bending south along Oregon Canyon Creek and The Slough. It crosses the Oregon–Nevada boundary in the McDermitt setting and joins the Quinn River corridor near the Fort McDermitt Indian Reservation. It does not choose the separately mapped East Fork Oregon Canyon Creek, McDermitt Creek arriving from the west, or the eastern Quinn River headward course. Farther south the route bends around the southern Double H Mountains, continues west past the separate Kings River junction setting, bends southwest into the Black Rock Desert, and follows Quinn River to the terminal playa. Jackson Creek Slough remains a separate eastern lower route. The terminal is inland in the Black Rock Desert, not on the separate Humboldt River corridor to the southeast.",
+      "source_keys": [
+        "r91-usgs-quinn-river-map"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southeastern Oregon and northwestern Nevada, United States: Oregon Canyon Mountains, McDermitt valley, the Quinn River corridor and Black Rock Desert.",
+      "candidate_name_role": "Representative receiving-river identity for the selected Oregon Canyon Creek and The Slough approach, continuing along Quinn River to its Black Rock Desert inland terminal.",
+      "completion_scope": "Completed bounded correspondence of the full single selected fragment against four original official raster views: whole regional extent and overlapping upper, middle and lower enlargements. Original map pixels, including local enlarged inspections, cover the initial named stream, the McDermitt receiving junctions, all large middle bends, the lower desert corridor and the terminal playa. Generalized channel, irrigation-area, meander and playa shortcuts are not exact surveyed centerline or shoreline claims.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Quinn River",
+        "headward_component": "Oregon Canyon Creek in the Oregon Canyon Mountains, then the southward Oregon Canyon Creek and The Slough approach through the McDermitt setting.",
+        "terminal_component": "Lower Quinn River entering the Black Rock Desert inland playa and its terminal water/playa feature.",
+        "excluded_inferences": [
+          "Do not rename Oregon Canyon Creek, The Slough, individual irrigation channels or other tributaries uniformly as Quinn River.",
+          "Do not substitute the separate East Fork Oregon Canyon Creek, McDermitt Creek, eastern Quinn River headwaters, Kings River or Jackson Creek Slough for the selected approach.",
+          "No exact official source, precise terminal shoreline, current water coverage, perennial-flow condition or exhaustive tributary inventory is established."
+        ],
+        "model_limits": "The 294.724 km modeled mainstem length is not an official Quinn River length. Generalization simplifies meanders, irrigation and wetland channels, junctions and the terminal playa geometry. Different genuine upstream names do not create a whole-system naming hold."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70796101",
+      "category": "river_group",
+      "system_id": "70796101",
+      "baseline_logical_fid": 3162,
+      "geometry_fids": [
+        9972,
+        9971,
+        9973
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -86.13125,
+        30.389583,
+        -85.55625,
+        32.116667
+      ],
+      "rendered_mainstem_length_km": 294.652,
+      "rendered_network_length_km": 297.578,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -86.13125,
+          30.389583,
+          -85.55625,
+          32.116667
+        ]
+      },
+      "candidate_name": "Choctawhatchee River",
+      "candidate_names": [
+        "Choctawhatchee River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Choctawhatchee River is directly supported for the receiving river below Geneva and the selected short northern approach. Billy Creek, Pea River, Pine Log Creek and East River retain their separately mapped component names. The terminal southern channel network is described by its Bunker Cove receiving setting rather than assigned an unsupported individual channel name.",
+      "geographic_disambiguation": "The northern selected end lies on Billy Creek near Three Notch, west of the upper Pea River and well west of Johnson Creek. It joins Pea River, follows the Pea corridor south and southwest through the Pike–Barbour and Coffee County setting, passes Elba, turns south and then east through the Alabama–Florida border bend, and joins Choctawhatchee River south of Geneva. The short third fragment is the northern Choctawhatchee approach near Eunola, not Double Bridges Creek or Spring Creek. Below their junction the selection follows Choctawhatchee through the Caryville and Ebro settings. In the delta it uses the eastern Pine Log Creek–East River connection around East River Island, rejoins the lower Choctawhatchee corridor, and takes the southern channel network by Bunker Island into Bunker Cove on the eastern Choctawhatchee Bay shore. It does not terminate at East Pass, the Gulf coast, or the more northerly Mitchell, Indian or Cypress River mouths.",
+      "source_keys": [
+        "r91-usgs-choctawhatchee-map",
+        "r91-alabama-pea-overview",
+        "r91-nwfwmd-choctawhatchee-overview"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southeastern Alabama and the Florida Panhandle: Three Notch, Elba and Geneva to the Choctawhatchee floodplain and Bunker Cove on Choctawhatchee Bay.",
+      "candidate_name_role": "Representative receiving-river identity for the selected Billy Creek–Pea River approach, the short northern Choctawhatchee fragment, and the lower river and connected delta route to Choctawhatchee Bay.",
+      "completion_scope": "Completed bounded correspondence for both mainstem fragments and the sole tributary fragment using seven original USGS National Map regional raster views. Three overlapping corridor views cover the full modeled selection, with enlarged views resolving Billy Creek versus upper Pea, the Geneva junction, the delta connection, and Bunker Cove. The regional exports use geographic coordinate systems and image aspect ratios matching their requested bounding boxes. Only generalized river-corridor and connected-channel correspondence is asserted, not exact banks, tidal limits or point-by-point alignment.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Choctawhatchee River",
+        "headward_component": "Billy Creek near Three Notch, then Pea River through Elba and its border bend to the Geneva junction.",
+        "selected_tributary_component": "Short northern Choctawhatchee River approach near Eunola and Geneva; model tributary status is not the official hierarchy of river names.",
+        "delta_components": "Pine Log Creek connection, East River, lower Choctawhatchee corridor, and southern connected channels by Bunker Island.",
+        "terminal_component": "Bunker Cove on the eastern shore of Choctawhatchee Bay.",
+        "excluded_inferences": [
+          "Do not apply Choctawhatchee River uniformly to Billy Creek, Pea River, Pine Log Creek, East River or every delta channel.",
+          "Do not substitute upper Pea or Johnson Creek for the selected Billy Creek headward approach.",
+          "Do not extend the small selected northern Choctawhatchee fragment to its unselected headwaters.",
+          "Do not replace the Bunker Cove terminal setting with the principal river mouth, Mitchell River mouth, East Pass or a direct Gulf outlet.",
+          "No exact official source, exhaustive tributary inventory, contemporary channel-flow direction in the delta, or precise coastal boundary is established."
+        ],
+        "model_limits": "The 294.652 km modeled mainstem and 297.578 km network lengths are not official lengths of Choctawhatchee or Pea River. Generalized segments simplify meanders, confluences, narrow channels and delta islands; the complete route has been reviewed at the river-system and channel-connection level."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90060803",
+      "hydro-system:80064632"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 307,
+    "non_pending_records": 296,
+    "source_access_pending": 3,
+    "source_material_pending": 8,
+    "source_any_pending": 11,
+    "scope_holds": 100,
+    "river_groups": 209,
+    "lakes": 98,
+    "unrecorded": 3758,
+    "unrecorded_river_groups": 3246,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r91-nrcan-macalpine-atkinson-map",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r91-alisauskas-boyd-1994",
+      "official_url": "https://pubs.aina.ucalgary.ca/arctic/Arctic47-1-69.pdf"
+    },
+    {
+      "source_key": "r91-usgs-quinn-river-map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r91-usgs-choctawhatchee-map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r91-alabama-pea-overview",
+      "official_url": "https://cpyrwma.alabama.gov/about-watersheds/about-the-watersheds-pea-river/"
+    },
+    {
+      "source_key": "r91-nwfwmd-choctawhatchee-overview",
+      "official_url": "https://nwfwater.com/water-resources/surface-water-improvement-and-management/choctawhatchee-river-and-bay/"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "6257fc49b77521ee1a022f3dedbca6d76a038e90",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      163,
+      164,
+      165,
+      166
+    ],
+    "next_unrecorded_id": "hydro-system:61606963",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "schema": "hydro-name-reconstruction-source-evidence-v1",
+  "batch": "r09",
+  "created_at_utc": "2026-10-09T14:29:31.610625+00:00",
+  "target_aw_ids": [
+    "hydro-system:50782475"
+  ],
+  "sources": [
+    {
+      "evidence_id": "FRANKLAND-BOM-AWRA2012",
+      "publication_id": "BOM-Australian-Water-Resources-Assessment-2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "agency_or_publisher": "Australian Government, Bureau of Meteorology",
+      "official_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "source_date": "2013",
+      "date_basis": "Copyright year 2013; 2012 is the assessment title year.",
+      "retrieval": {
+        "requested_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "started_at_utc": "2026-10-09T13:39:38.842251+00:00",
+        "http_status": 200,
+        "final_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "content_type": "application/pdf",
+        "bytes": 26172797,
+        "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+        "completed_at_utc": "2026-10-09T13:39:46.198340+00:00"
+      },
+      "hash_scope": "Exact original PDF response-body bytes.",
+      "cache_reuse": {
+        "retrieved_this_batch": false,
+        "original_retrieval_unchanged": true,
+        "reuse_hash_checked_at_utc": "2026-10-09T14:29:31.610625+00:00",
+        "reuse_sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+        "matches_original_receipt": true
+      },
+      "pdf_page_count": 777,
+      "source_role": "Regional cartographic context, not detailed reach-name authority.",
+      "locators": [
+        {
+          "pdf_page_one_based": 477,
+          "printed_page": "South West Coast chapter, 5",
+          "figure": "10.1",
+          "title": "Major rivers and urban centres in the South West Coast region",
+          "complete_map_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 499,
+          "printed_page": "South West Coast chapter, 27",
+          "figure": "10.22",
+          "title": "Rivers and catchments in the South West Coast region",
+          "complete_map_visually_inspected": true
+        }
+      ],
+      "own_factual_extraction": [
+        "The maps show the Gordon-labelled inland corridor and its southwestern course to the south coast, west of Albany.",
+        "Figure 10.22 labels the coastal basin Frankland-Deep Rivers; that basin label does not name every contained channel."
+      ],
+      "limits": [
+        "Coarse raster cartography cannot resolve headwater names, exact naming transitions or an estuary boundary.",
+        "Both figures are one publication; regional agreement is not an exact geometric fit."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "full_report_republication_review_completed": false,
+        "published_material": "Own compact facts, short quotation, locators, source URLs, retrieval facts and scoped hashes."
+      },
+      "target_aw_ids": [
+        "hydro-system:50782475"
+      ]
+    },
+    {
+      "evidence_id": "FRANKLAND-WA-WRM44",
+      "publication_id": "WA-DepartmentOfEnvironment-GordonFrankland-WRM44-2004",
+      "title": "Gordon-Frankland catchment compendium",
+      "agency_or_publisher": "Government of Western Australia, Department of Environment; hosted by DBCA Library",
+      "official_url": "https://library.dbca.wa.gov.au/static/Journals/082179/082179-44.pdf",
+      "source_date": "2004-09",
+      "date_basis": "Title page states September 2004; 2019 PDF metadata records scanning rather than publication.",
+      "report_number": "Water Resource Management Series WRM 44",
+      "retrieval": {
+        "requested_url": "https://library.dbca.wa.gov.au/static/Journals/082179/082179-44.pdf",
+        "started_at_utc": "2026-10-09T14:24:25.569145+00:00",
+        "http_status": 200,
+        "final_url": "https://library.dbca.wa.gov.au/static/Journals/082179/082179-44.pdf",
+        "content_type": "application/pdf",
+        "bytes": 26349518,
+        "sha256": "eecba47216090f5102f44fbc6a599b2eb3188f156d225533d9b9841b3475c664",
+        "completed_at_utc": "2026-10-09T14:24:34.029308+00:00"
+      },
+      "hash_scope": "Exact original scanned PDF response-body bytes.",
+      "pdf_page_count": 119,
+      "source_role": "Direct official combined-system usage and upstream/downstream name distinction; catchment and estuary cartography.",
+      "locators": [
+        {
+          "pdf_page_one_based": 2,
+          "printed_page": null,
+          "section": "Title page",
+          "visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 8,
+          "printed_page": "vii",
+          "section": "Introduction",
+          "visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 11,
+          "printed_page": "1:2",
+          "figure": "1.1",
+          "title": "The Gordon-Frankland catchment",
+          "complete_map_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 26,
+          "printed_page": "2:1",
+          "section": "2 Waterways information / 2.1 The river at a glance",
+          "visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 52,
+          "printed_page": "4:1",
+          "section": "4 Estuaries - Walpole-Nornalup Inlet",
+          "visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 53,
+          "printed_page": "4:2",
+          "figure": "4.1",
+          "title": "The landforms of Walpole-Nornalup Inlet",
+          "complete_map_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 72,
+          "printed_page": "6:7",
+          "figure": "6.3",
+          "title": "Foreshore grades from the Gordon River Foreshore survey conducted in 1995",
+          "complete_map_visually_inspected": true
+        }
+      ],
+      "direct_quote": "North of Muir Highway the river becomes the Frankland River",
+      "quote_word_count": 10,
+      "own_factual_extraction": [
+        "The report uses Gordon-Frankland for the combined main channel, distinguishing Gordon upstream from Frankland downstream.",
+        "Figure 6.3 names Gordon along the distinctive westward bend; Figure 1.1 gives catchment context.",
+        "Nornalup Inlet receives Frankland. Figure 4.1 distinguishes the lower river from the inlet and ocean entrance."
+      ],
+      "limits": [
+        "The transition description is regional, not a coordinate or reach-ID boundary.",
+        "Figure 1.1 outlines the catchment rather than assigning a name to every stream. Figure 6.3 covers a surveyed section, not all headwaters.",
+        "Figure 4.1 is credited to Hodgkin and Clark (1999); it is not counted as a separately acquired independent source."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "full_report_republication_review_completed": false,
+        "published_material": "Own compact facts, short quotation, locators, source URLs, retrieval facts and scoped hashes."
+      },
+      "target_aw_ids": [
+        "hydro-system:50782475"
+      ]
+    },
+    {
+      "evidence_id": "FRANKLAND-DBCA-MARINE-PARK",
+      "publication_id": "DBCA-WalpoleNornalupInletsMarinePark",
+      "title": "Walpole and Nornalup Inlets Marine Park",
+      "agency_or_publisher": "Western Australia Department of Biodiversity, Conservation and Attractions",
+      "official_url": "https://exploreparks.dbca.wa.gov.au/park/walpole-and-nornalup-inlets-marine-park",
+      "source_date": null,
+      "date_basis": "No publication date established from the acquired page.",
+      "retrieval": {
+        "requested_url": "https://exploreparks.dbca.wa.gov.au/park/walpole-and-nornalup-inlets-marine-park",
+        "started_at_utc": "2026-10-09T14:24:34.031293+00:00",
+        "http_status": 200,
+        "final_url": "https://exploreparks.dbca.wa.gov.au/park/walpole-and-nornalup-inlets-marine-park",
+        "content_type": "text/html; charset=UTF-8",
+        "bytes": 846686,
+        "sha256": "7a5432720f30a5c9103d1d29434c241b1206ed0f3f76dd5f721976f68f923960",
+        "completed_at_utc": "2026-10-09T14:24:39.095027+00:00"
+      },
+      "hash_scope": "Exact original HTML response-body bytes; page may change.",
+      "source_role": "Independent official ordinary English usage and estuary/river distinction.",
+      "locators": [
+        {
+          "section": "About this park",
+          "paragraph": 1
+        }
+      ],
+      "own_factual_extraction": [
+        "DBCA distinguishes Walpole and Nornalup Inlets from the tidal parts of the Frankland, Deep and Walpole rivers that feed the estuary system."
+      ],
+      "limits": [
+        "The park page is not a formal naming register, exact river-mouth survey or reach-name crosswalk."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "full_report_republication_review_completed": false,
+        "published_material": "Own compact facts, short quotation, locators, source URLs, retrieval facts and scoped hashes."
+      },
+      "target_aw_ids": [
+        "hydro-system:50782475"
+      ]
+    }
+  ],
+  "unique_supporting_publication_count": 3,
+  "shared_report_counted_once": true,
+  "source_acquisition_complete": true,
+  "unused_acquisition_outcomes": [],
+  "acquisition_stop_reason": "Representative system identity and bounded name limits are supported; no further acquisition required.",
+  "name_ko": null,
+  "automatic_application": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false,
+  "publication_note": "No raw PDF, HTML, map image, full coordinate array or per-part endpoint array is included."
+}

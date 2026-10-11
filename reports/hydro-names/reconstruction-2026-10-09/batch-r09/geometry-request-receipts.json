@@ -1,0 +1,99 @@
+{
+  "schema": "selected-river-cache-reuse-v1",
+  "batch": "r09",
+  "new_external_request_count": 0,
+  "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+  "scope": "Immutable baseline assets and previously acquired official HydroRIVERS product page. No current deployment observation.",
+  "receipts": [
+    {
+      "asset_name": "baseline-manifest.json",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.1/manifest.json",
+      "original_retrieved_at_utc": "2026-10-09T10:50:35.839Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+      "new_external_request_in_r09": false,
+      "bytes": 52975,
+      "sha256": "c10eaffd375d5f0d90955fa253b02ec73d9daeff261fa5cfde1f73ca89d2bd80"
+    },
+    {
+      "asset_name": "metadata-core.json.gz",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.1/metadata-core.json.gz",
+      "original_retrieved_at_utc": "2026-10-09T10:51:48.623Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+      "new_external_request_in_r09": false,
+      "bytes": 729625,
+      "sha256": "700b886134bbc44fa7686f8f2c131be53a73a5c2ebaabb468b50ea3e4000cee5"
+    },
+    {
+      "asset_name": "metadata-detail.json.gz",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/metadata-detail.json.gz",
+      "original_retrieved_at_utc": "2026-10-09T10:52:45.496268+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+      "new_external_request_in_r09": false,
+      "bytes": 1670972,
+      "sha256": "1416c6932976427e9cb8140f171f4ccb54704111bce49fb8b8260819ce54b2bd"
+    },
+    {
+      "asset_name": "index.bin.gz",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/index.bin.gz",
+      "original_retrieved_at_utc": "2026-10-09T10:53:19.166Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+      "new_external_request_in_r09": false,
+      "bytes": 32632,
+      "sha256": "a68aff611d2be202dbf31ef1fbce476386e1d49b1619b68e9219279be7896906"
+    },
+    {
+      "asset_name": "worker.js",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/workers/hydro-tile-worker.js",
+      "original_retrieved_at_utc": "2026-10-09T10:53:59.639Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+      "new_external_request_in_r09": false,
+      "bytes": 32253,
+      "sha256": "14399a8454fb980fb2adc78b7c52bcd32ea5e1b1f313dcfba301886a6b9ddfec"
+    },
+    {
+      "asset_name": "boundary.js",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/workers/geographic-boundary-core.js",
+      "original_retrieved_at_utc": "2026-10-09T10:54:01.552Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+      "new_external_request_in_r09": false,
+      "bytes": 3928,
+      "sha256": "b9017382fcc828924608c8a32ddbf2831800475a725b432cad9e6445d33bc8ea"
+    },
+    {
+      "asset_name": "earcut.js",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/js/vendor/earcut.min.js",
+      "original_retrieved_at_utc": "2026-10-09T10:54:03.196Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+      "new_external_request_in_r09": false,
+      "bytes": 7131,
+      "sha256": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3"
+    },
+    {
+      "asset_name": "shard-s1.bin",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/shards/s1.bin",
+      "original_retrieved_at_utc": "2026-10-09T12:03:55.171566+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+      "new_external_request_in_r09": false,
+      "bytes": 4186759,
+      "sha256": "76eb0b3392eb3376d344ebce4cbfdda05de6fee437d25ce5ee7f98e603a28fbf"
+    },
+    {
+      "asset_name": "shard-s2.bin",
+      "original_resource_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/shards/s2.bin",
+      "original_retrieved_at_utc": "2026-10-09T12:03:58.412836+00:00",
+      "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+      "new_external_request_in_r09": false,
+      "bytes": 1184508,
+      "sha256": "f3b651e7a5a1503532701222f3deee658df03757076cd73b62994637fb63e15e"
+    }
+  ],
+  "rights_reuse": {
+    "original_resource_url": "https://www.hydrosheds.org/products/hydrorivers",
+    "original_retrieved_at_utc": "2026-10-09T11:59:24.869465+00:00",
+    "original_http_status": 200,
+    "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+    "new_external_request_in_r09": false,
+    "bytes": 31468,
+    "sha256": "ea8ca5f29c27452ff1fa972bef481576756f091b7070b004a84112595eb4bd9f"
+  }
+}

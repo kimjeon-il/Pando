@@ -1,0 +1,12 @@
+{
+  "schema": "hydro-publication-rights-v1",
+  "batch": "r02",
+  "included": "Original factual extraction, short source quotations, acquisition metadata, source URLs, registration observations, selected Natural Earth-derived geometry, and original validation scripts.",
+  "raw_third_party_sources_included": false,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "geometry_rights_file": "geometry-publication-rights.json",
+  "third_party_copyright_policy": "No original third-party HTML, reports, map rasters, screenshots or cropped map derivatives are included. Factual name/location observations are paraphrased with original sources and acquisition hashes. No general redistribution permission for governmental/operator publications is inferred.",
+  "frontiers_note": "The source evidence records the article’s stated CC BY 4.0 license, but no raw article or figure is included in this package.",
+  "automatic_application": false
+}

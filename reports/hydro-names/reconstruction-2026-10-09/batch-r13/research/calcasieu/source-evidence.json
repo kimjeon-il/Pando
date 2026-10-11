@@ -1,0 +1,54 @@
+{
+  "schema": "hydro-public-source-evidence-v2",
+  "batch": "r13",
+  "created_at_utc": "2026-10-09T16:03:47.720441+00:00",
+  "sources": [
+    {
+      "source_key": "noaa_calcasieu_overview",
+      "publisher": "NOAA, National Geodetic Survey, Remote Sensing Division",
+      "title": "Coastal Mapping Program Project Completion Report: Project LA2212-CS-T, Port of Lake Charles/Cameron, Louisiana",
+      "publication_date": null,
+      "kind": "official_project_report_with_overview_map",
+      "independence_group": "noaa_calcasieu_overview",
+      "url": "https://www.ngs.noaa.gov/desc_reports/LA2212-CS-T.PDF",
+      "retrieved_at_utc": "2026-10-09T15:59:51.488823+00:00",
+      "retrieved_this_batch": true,
+      "inspection_scope": "Complete target outline compared with the page 3 labeled overview, including the upstream narrowing, broad lower lake, western lobe, ship channel and Cameron connection.",
+      "original_map_visually_inspected": true,
+      "short_labels": [
+        "Calcasieu Lake"
+      ],
+      "page": 3,
+      "compilation_and_final_review_date": "2022-05",
+      "publication_date_note": "The report describes May 2022 compilation and final review, but no explicit publication date was verified.",
+      "source_limit": "The labeled project overview is generalized context; its blue project boundary is not a waterbody boundary or a formal name instrument."
+    },
+    {
+      "source_key": "louisiana_celcp2011",
+      "publisher": "Louisiana Department of Natural Resources",
+      "title": "State of Louisiana Coastal and Estuarine Land Conservation Program Plan",
+      "publication_date": "2011-05",
+      "kind": "official_state_conservation_plan",
+      "independence_group": "louisiana_celcp2011",
+      "url": "https://coast.noaa.gov/data/czm/landconservation/media/celcpplanlafinal.pdf",
+      "retrieved_at_utc": "2026-10-09T15:59:56.185318+00:00",
+      "retrieved_this_batch": true,
+      "inspection_scope": "Printed page 10 (PDF page 12) supplies Calcasieu Lake naming and lower-river estuarine/tidal context. Figure 14 supplies regional planning context only and is not a second detailed identity map.",
+      "original_map_visually_inspected": true,
+      "short_labels": [
+        "Calcasieu Lake"
+      ],
+      "pages": [
+        12,
+        40
+      ],
+      "source_limit": "State planning text and regional map do not assign exact extents to each named lake or measure present salinity."
+    }
+  ],
+  "independent_source_count": 2,
+  "identity_map_source_count": 1,
+  "independence_note": "NOAA’s project report and Louisiana’s state plan are distinct publications; only the NOAA overview supplies the detailed cartographic correspondence used here.",
+  "source_access_limited": false,
+  "included_evidence_limit": "The included files retain factual observations and bibliographic references. The original publications and inspection materials are not included. Offline validation checks included records and selected public-domain lake geometry; it does not reopen those publications or reproduce visual map judgments.",
+  "automatic_application": false
+}

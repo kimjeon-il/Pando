@@ -1,0 +1,76 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "reviewed_at_utc": "2026-10-09T16:10:43.964138+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159110463",
+    "lakes_base:1159107033",
+    "lakes_base:1159110475"
+  ],
+  "observation_scope": "Past independent source observations; present validation checks included factual linkage only.",
+  "new_external_requests": 0,
+  "distinct_acquired_publications": 3,
+  "distinct_cartographic_identity_publications": 2,
+  "unused_unavailable_publications": 6,
+  "shoreline_overlap_measured": false,
+  "survey_registration_verified": false,
+  "observations": [
+    {
+      "source_key": "noaa_calcasieu_overview",
+      "url": "https://www.ngs.noaa.gov/desc_reports/LA2212-CS-T.PDF",
+      "publication_date": null,
+      "compilation_and_final_review_date": "2022-05",
+      "pages": [
+        3
+      ],
+      "role": "Calcasieu cartographic identity",
+      "observation": "The complete generalized lake-shaped extent includes the narrowing north, broad lower basin and western lobe. The separately drawn ship channel, upstream waters and blue project footprint limit any exact name-boundary claim."
+    },
+    {
+      "source_key": "cpra_fy2024_plan",
+      "url": "https://coastal.la.gov/wp-content/uploads/2023/04/CPRA_FY24-AP_20230418-compressed.pdf",
+      "publication_date": null,
+      "edition": "Fiscal Year 2024",
+      "pages": [
+        29,
+        96,
+        98
+      ],
+      "role": "Maurepas identity and Salvador whole-feature scope assessment",
+      "observation": "The rounded Maurepas footprint and readable label are separate from Pontchartrain. The entire Salvador-area silhouette is present; its northern lobe is unassigned by the readable southern-basin label. Pages 96 and 98 repeat a map rather than independently corroborating it."
+    },
+    {
+      "source_key": "louisiana_celcp2011",
+      "url": "https://coast.noaa.gov/data/czm/landconservation/media/celcpplanlafinal.pdf",
+      "publication_date": "2011-05",
+      "pages": [
+        9,
+        10,
+        12,
+        40
+      ],
+      "role": "Calcasieu name and tidal-estuarine context; Maurepas and Barataria basin context",
+      "observation": "Printed pages 7, 8 and 10 describe marine/freshwater receiving-basin pathways, varied coastal marsh settings and the tidal lower Calcasieu estuary. The regional planning figure does not establish exact name partitions or present salinity."
+    }
+  ],
+  "complete_geometry_observations": [
+    {
+      "aw_id": "lakes_base:1159110463",
+      "position_count": 34,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159107033",
+      "position_count": 26,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159110475",
+      "position_count": 41,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    }
+  ],
+  "included_evidence_limit": "The included files retain factual observations, bibliographic references and selected public-domain lake geometry. Original publications and inspection materials are not included. Current offline validation checks only included facts and geometry; it cannot reproduce omitted source inspection or visual name-scope judgments."
+}

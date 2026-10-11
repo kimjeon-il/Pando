@@ -1,0 +1,307 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r61",
+  "sources": [
+    {
+      "source_key": "ssrh_santa_cruz_basins_2025",
+      "title": "Cuencas Hidrográficas: Provincia de Santa Cruz",
+      "author": "Argentina, Ministerio de Economía, Secretaría de Obras Públicas, Subsecretaría de Recursos Hídricos; Dirección Nacional de Política Hídrica y Coordinación Federal, Dirección de Sistemas de Monitoreo de los Recursos Hídricos, Área de SIG y Cartografía",
+      "year": 2025,
+      "page": "Single-sheet map, dated March 2025",
+      "supports": "Direct Río Santa Cruz labels; connected Lago Argentino, Lago Viedma and La Leona arrangement; southwestern lake setting; lower-town and coastal-network relationships. The legend groups Río Santa Cruz as unit 4 while distinguishing its river-basin and Lago Argentino components.",
+      "limits": "Generalized province-wide hydrographic map with planimetric information credited to IGN. It establishes representative and regional scope, not exact named headwater, lake-arm, junction or estuarine boundaries. The sheet notes that water-unit limits may change with updates. Original source pixels and all local renderings remain private.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/santa_cruz_proy.pdf"
+    },
+    {
+      "source_key": "apn_los_glaciares_leaflet_2017_text",
+      "title": "Parque Nacional Los Glaciares: Información general",
+      "author": "Administración de Parques Nacionales; map credited to Dirección Nacional de Conservación de Áreas Protegidas, Sistema de Información de Biodiversidad, Coordinación Patagonia Austral",
+      "year": 2017,
+      "page": "Two-page leaflet, map on PDF page 2; information updated October 2017, map credited 2016",
+      "supports": "Supplementary distinction between named glaciers, Lago Argentino and its northern/southern arms, and Lago Viedma.",
+      "limits": "Retained text only. No precise source-pixel correspondence or per-vertex glacier/arm assignment is claimed from this leaflet. Historical visitor advice and changing glacier-front positions are outside this finding. The underlying leaflet and all equivalent routes remain stopped.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/folleto_info_gral_pnlg_espanol_digital.pdf"
+    },
+    {
+      "source_key": "r61-cehq-region10-summer-lowflow",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 10",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011. Cartography: Marie-Lise Paquin and Éric Levasseur; approved by Joëlle Bérubé. BDGA 1:1,000,000 cartographic base; map scale 1:2,300,000; NAD83 Québec Lambert projection.",
+      "year": 2011,
+      "page": "Single-sheet regional map",
+      "supports": "Full representative corridor; distinction of Minto lake, Feuilles trunk, named contributing branches, adjoining drainage systems and Lac aux Feuilles/Tasiujaq terminal setting.",
+      "limits": "Regional cartography supports corridor identity, not exact model-to-hydronym boundary vertices or the name of every small feeder. Numerical low-flow values and present-day regulatory or protection status were not used.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r61-qc-viennaux-conservation",
+      "title": "Réserve de biodiversité projetée des Drumlins-du-Lac-Viennaux — Plan de conservation",
+      "publisher": "Gouvernement du Québec, Ministère du Développement durable, de l’Environnement et des Parcs, Direction du patrimoine écologique et des parcs",
+      "attribution": "February 2009; Annex 1 credits the Base de données topographiques et administratives (BDTA).",
+      "year": 2009,
+      "page": "Annexe 1, Carte de la réserve de biodiversité projetée des Drumlins-du-Lac-Viennaux, printed p. 13 (PDF p. 15); basin context on printed p. 2.",
+      "supports": "Distinctive lower-middle Feuilles river course along the southern side of the Lac Viennaux reserve setting and separation of the lake from the selected river trunk.",
+      "limits": "Local sheet covers only one portion of the route. The original protection status was not independently updated and is not a naming conclusion.",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-bio/viennaux/PSC_Viennaux.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; east-central Inland Ice, Summit/GRIP, Charcot Land and Nordvestfjord regional setting, graticule and Inland Ice legend",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description, pp. 64–65 Glaciology, and map-label register including Charcot Land and Nordvestfjord",
+      "supports": "Explains ice-contour classes and locates the mapped Charcot Land and Nordvestfjord regional labels without establishing a river identity for the selected path.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "argentina_deseado_basin68",
+      "title": "Cuenca del Río Deseado, Cuenca Nº 68",
+      "author": "Government of Argentina, official water-resources basin profile; institutional author not printed on the consulted pages",
+      "year": null,
+      "page": "PDF pages 1 and 3; Hidrografía de la cuenca and accompanying basin map",
+      "supports": "Deseado name and river course; separate Botello, Fénix Grande, Pinturas and El Pluma labels and junction relationships; full lower-route shape.",
+      "limits": "Generalized basin illustration based on the federal digital water-resources atlas; no graticule or surveyed hydronym boundaries. The map supports route correspondence and distinct tributary names, not an exact first named vertex or river–ría boundary. No publication year is inferred from file metadata. Original and rendered material remain local.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/68.pdf"
+    },
+    {
+      "source_key": "argentina_santa_cruz_basins_2025",
+      "title": "Cuencas Hidrográficas, Provincia de Santa Cruz",
+      "author": "Secretaría de Obras Públicas, Subsecretaría de Recursos Hídricos, Dirección de Sistemas de Monitoreo de Recursos Hídricos, Área de SIG y Cartografía",
+      "year": 2025,
+      "page": "Single-sheet map; footer dated March 2025",
+      "supports": "Río Deseado's regional course, tributary and basin context, town and road sequence, lower bends and Puerto Deseado outlet setting.",
+      "limits": "Province-scale map with dense labels and thick basin boundaries. It is insufficient for fine headwater, confluence or tidal boundaries. Its source note identifies IGN planimetric information; that attribution is not treated as a separate independently inspected IGN map. Original and derived images remain local.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/santa_cruz_proy.pdf"
+    },
+    {
+      "source_key": "ianigla_deseado_superior_2018",
+      "title": "Informe de la subcuenca del río Deseado Superior, Cuenca del río Deseado, Provincia de Santa Cruz",
+      "author": "Ministerio de Ambiente y Desarrollo Sustentable; IANIGLA–CONICET, Inventario Nacional de Glaciares",
+      "year": 2018,
+      "page": "Printed pages 9–10, PDF pages 14–15; Figure 1; institutional page dated May 2018",
+      "supports": "Independent upper-system context and the Fénix/Pinturas/Pluma sequence; Figure 1 locates the Deseado Superior drainage east of the Andes and differentiates the broader recharge area from the selected route.",
+      "limits": "The glacier-study subcuenca is a study partition, not a river-name boundary. Its map does not label Botello and is not used as evidence for that feeder name. The report covers the upper basin, not the terminal ría.",
+      "official_url": "https://www.glaciaresargentinos.gob.ar/wp-content/uploads/provincias/Santa_Cruz/docs/informes/informe_final_rio_deseado_20-04-2018.pdf"
+    },
+    {
+      "source_key": "santa_cruz_municipios",
+      "title": "Municipios: Puerto Deseado and Perito Moreno",
+      "author": "Gobierno de la Provincia de Santa Cruz",
+      "year": null,
+      "page": "Unpaginated municipal descriptions",
+      "supports": "Puerto Deseado on the north bank of Ría Deseado and Fénix Grande's Perito Moreno setting.",
+      "limits": "Used only for stable geographical context. Population, officeholders, navigation conditions and naming history are not asserted from this page. It does not locate an exact river–ría boundary.",
+      "official_url": "https://www.santacruz.gob.ar/nuestra-provincia/municipios/"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61603772",
+      "source_keys": [
+        "ssrh_santa_cruz_basins_2025",
+        "apn_los_glaciares_leaflet_2017_text"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14654
+          ],
+          "finding": "The northwestern modeled mainstem descends southward through the glaciated western headwater setting and the elongated northern-arm setting of Lago Argentino, then bends southeast toward the lake's central body. The federal map depicts the matching western lake geometry. APN's successfully read leaflet text separately identifies glaciers, northern lake arms and Lago Argentino in this area. This supports headwater/lake scope but does not establish a continuous river named Santa Cruz from the modeled start or identify an exact glacier-origin vertex.",
+          "sources": [
+            "ssrh_santa_cruz_basins_2025",
+            "apn_los_glaciares_leaflet_2017_text"
+          ]
+        },
+        {
+          "fragments": [
+            14655,
+            14656,
+            14660
+          ],
+          "finding": "The nearly straight eastward modeled passages cross the broad main body of Lago Argentino toward its eastern outlet region north of El Calafate. The federal map labels the lake and begins the eastward Santa Cruz river corridor beyond it. These display connectors and their shared junctions are lake/outlet-network structure, not evidence that the open-water passages are themselves uniformly named Río Santa Cruz.",
+          "sources": [
+            "ssrh_santa_cruz_basins_2025"
+          ]
+        },
+        {
+          "fragments": [
+            14658,
+            14659
+          ],
+          "finding": "The southwestern contribution occupies the Frías glacial/lake setting and turns north through the southern and southwestern Lago Argentino arm setting before reaching the main lake connection. The map separately shows Lago Frías, Lago Roca and the branching southwestern lake waters, while APN's text distinguishes Brazo Sur, Brazo Rico and Canal de los Témpanos. The contribution belongs to the same lake-drainage system; no single tributary name or exact arm-transition vertex is assigned to both fragments.",
+          "sources": [
+            "ssrh_santa_cruz_basins_2025",
+            "apn_los_glaciares_leaflet_2017_text"
+          ]
+        },
+        {
+          "fragments": [
+            14661,
+            14662
+          ],
+          "finding": "The northern contribution descends from the Lago del Desierto/El Chaltén setting into Lago Viedma, crosses toward its eastern outlet and then follows the southward La Leona corridor to the northeastern Lago Argentino/outlet setting. The map directly labels Lago Viedma and R. La Leona and shows their relationship to Lago Argentino. These distinct lake and connecting-river identities are retained; the model's lower junction does not by itself establish the natural mouth or a hydronym boundary.",
+          "sources": [
+            "ssrh_santa_cruz_basins_2025"
+          ]
+        },
+        {
+          "fragments": [
+            14657
+          ],
+          "finding": "The long eastern fragment follows the river repeatedly labeled R. Santa Cruz: an east-running sinuous valley south of the Chico–Chalía drainage, followed by a northeastward lower approach to Comandante Luis Piedrabuena. The selected end lies in the lower-river/upper-estuarine setting downstream of that town and upstream of the outer Puerto Santa Cruz coastal mouth. The map depicts the separate Río Chico approach and wider estuary, so neither the Chico trunk nor the entire outer estuary and Atlantic shoreline is assigned to this selected fragment.",
+          "sources": [
+            "ssrh_santa_cruz_basins_2025"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70014971",
+      "source_keys": [
+        "r61-cehq-region10-summer-lowflow",
+        "r61-qc-viennaux-conservation"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8953
+          ],
+          "finding": "The southern selected piece approaches the Lac Minto setting from the south, then turns north and northeast through the branched lake corridor toward the river outflow. The CEHQ sheet identifies Minto as a separate lake within this drainage. The small headward approach is left unassigned, and Minto is not treated as an alias of the river.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            8953,
+            8954
+          ],
+          "finding": "Beyond the Minto setting, the selected route follows the long northeastward outlet corridor labeled Rivière aux Feuilles on the hydrological map. The separately depicted Charpentier branch to the southeast is not substituted for the actual headward route, and the neighboring rivers draining west toward Hudson Bay are outside this connected corridor.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            8954,
+            8955
+          ],
+          "finding": "The middle pieces continue along the same northeast-trending trunk through the mapped tributary setting: La Goudalie and Vizien approach from the northern side, while Nedlouc and Vernot occupy the southern contributing drainage. The selected route stays on the connecting Feuilles corridor rather than following these separately named branches or turning into the more southerly Mélèzes system.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            8956
+          ],
+          "finding": "After the central eastward bend, the lower piece resumes its northeastward course south and southeast of Lac Viennaux. The independent conservation sheet shows the broad Rivière aux Feuilles reach bending northeast and then east along the reserve's southern side. Its outline and placement agree with this actual part of the selected route; Lac Viennaux remains a separate off-route lake.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r61-qc-viennaux-conservation"
+          ]
+        },
+        {
+          "fragments": [
+            8956
+          ],
+          "finding": "The terminal piece turns north and then east toward the western Lac aux Feuilles entrance, northwest of Tasiujaq. The regional map separates this river approach from Lac aux Feuilles and the wider Ungava coastal waters. The selection does not trace the whole estuarine waterbody or the full onward passage to Ungava Bay, and no exact tidal or surveyed mouth boundary is assigned.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90065584",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete single selected fragment was inspected from its western interior endpoint: it first runs south, then bends east, undulates northeast and southeast, and finishes with a short northeastward approach. No separately selected tributary fragment is present.",
+        "The long western and central path crosses mapped Inland Ice. Its eastern approach reaches the glacier and inner-fjord setting north of Charcot Land, in the broader Nordvestfjord region. The original graticule, ice contours and land/fjord arrangement distinguish this corridor; the exact terminal natural-feature boundary remains unassigned.",
+        "The readable geological sheet supplies ice-sheet and marginal feature classes, but does not establish the entire modeled line as a named natural surface river, subglacial river or glacier. Nearby land, fjord and ice labels are not a uniform hydronym for the complete route.",
+        "The map legend distinguishes surface elevation, ice-thickness and sub-ice bedrock contours from river channels. Historical mapping does not establish current ice-front position, present flow or connectivity along this modeled route."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61596500",
+      "source_keys": [
+        "argentina_deseado_basin68",
+        "argentina_santa_cruz_basins_2025",
+        "ianigla_deseado_superior_2018",
+        "santa_cruz_municipios"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14641
+          ],
+          "finding": "The northwestern start runs southeast before joining the upper eastward trunk. On the enlarged official basin map, this is the Cañadón Botello feeder, upstream of the Pinturas junction. It is not the farther-west Fénix Grande route through Perito Moreno, nor the separate northern El Pluma branch. Exact headwater naming limits remain unassigned.",
+          "sources": [
+            "argentina_deseado_basin68",
+            "argentina_santa_cruz_basins_2025"
+          ]
+        },
+        {
+          "fragments": [
+            14641
+          ],
+          "finding": "After the western junction setting, the selected route continues toward the Pinturas and then El Pluma junctions before turning southeast. The basin map distinguishes both contributing corridors. The glacier inventory independently places the Fénix and Pinturas contributions upstream of the Pluma connection, keeping those wider headwaters separate from the selected start.",
+          "sources": [
+            "argentina_deseado_basin68",
+            "ianigla_deseado_superior_2018"
+          ]
+        },
+        {
+          "fragments": [
+            14641
+          ],
+          "finding": "The long middle section runs generally east, south of Las Heras and the Koluel Kaike–Pico Truncado corridor, with a shallow northward bend followed by a marked southeast turn. This matches the connected river labeled Río Deseado on the provincial map, rather than the coastal drainages around Caleta Olivia.",
+          "sources": [
+            "argentina_santa_cruz_basins_2025"
+          ]
+        },
+        {
+          "fragments": [
+            14641
+          ],
+          "finding": "Farther east the route crosses the RN 3 corridor south of Fitz Roy/Jaramillo, turns south and then southeast, and makes a broad southern bend before returning northeast toward the coast. Both official hydrographic maps show this distinctive lower-valley sequence, separating it from the more southerly Chico and Santa Cruz systems.",
+          "sources": [
+            "argentina_deseado_basin68",
+            "argentina_santa_cruz_basins_2025"
+          ]
+        },
+        {
+          "fragments": [
+            14641
+          ],
+          "finding": "The terminal approach reaches the coastal inlet at Puerto Deseado. The province map locates the town at that inlet, and the provincial government explicitly places it on the north shore of Ría Deseado. The endpoint therefore includes a ría-mouth setting; it does not establish the precise freshwater or tidal boundary.",
+          "sources": [
+            "argentina_santa_cruz_basins_2025",
+            "santa_cruz_municipios"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

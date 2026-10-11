@@ -1,0 +1,30 @@
+{
+  "schema": "frozen-mixed-geometry-component-v1",
+  "batch": "r04",
+  "scope_aw_ids": [
+    "hydro-system:70152112",
+    "lakes_base:1159123163",
+    "lakes_base:1159123567"
+  ],
+  "frozen_at_utc": "2026-10-09T12:33:09Z",
+  "full_lake_coordinates_in_public_package": true,
+  "full_river_coordinates_in_public_package": false,
+  "new_external_requests": 0,
+  "files": {
+    "geometry-README.md": "baa1ede8989d5c0357f08282e47505e1f22068ef2f11eb5c6576563f1263137f",
+    "geometry-reference.json": "6bf1436a39640c8366b8ec10d7c4e3cc5f9515ccc99cf29e7e4877c811d9caff",
+    "geometry-support.py": "fb250b6d49b20387121831e95e8e5801b1e7bb40fbb06e694004282ce74b1e10",
+    "selected-lake-geometries.geojson": "b036584d04224b1b5156e6ac408dee52fa8f433567f057696f913423e961ba9d",
+    "selected-baseline-lake-geometries.geojson": "e4572affcee9172306d126a86cd6981e53f4417b152fcc83024ff122a297648b",
+    "selected-river-metadata.json": "9cd131f1d93b2947eb16746cc8f8538d3e00359e4c13d35c894bc40e10c5b8dd",
+    "source-reach-manifest.json": "47c6086cc14b58bfe64d77e328582d3da18378734f691adba6e93fd7c7bf25c7",
+    "selected-inventory-records.json": "745166991804088c6fbf42ea3e06a156f78e7e8d0f59381e1185eddf58615474",
+    "selected-pack-receipts.json": "7c5c1e49d5978091f69080bca67ce067cb186c57edc8bf3397e9541cf9312cf8",
+    "extract-baseline-geometries.mjs": "fdf5dd62071115f7f0618e804b9ee5eb3eb4af624245c65af09a813bf6a3e5b0",
+    "geometry-publication-rights.json": "fbd97f444b81d8b7092a38c9f6d3a106f9e11e04c4bcc3ec8e22badd5f3f80f3",
+    "geometry-request-receipts.json": "930d88652adec0bc5f0296aab2046a44cdf886fc06ad7b87f7d5bb5621800eb6",
+    "validate-geometry-reference.py": "602ce6308c167c84b2ff39abbf4eb8805506e65bdb577d0f95088c25ca071f9a",
+    "test-geometry-reference.py": "06fb66abc7b167e462b892be1993c166b44d1902e37ba0193655e76211852ccf",
+    "geometry-validation.json": "c4254a3d351e2275535a920c5b9de82564e0d490ef79e041dd131cb81dfa2584"
+  }
+}

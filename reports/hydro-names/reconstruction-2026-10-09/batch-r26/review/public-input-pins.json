@@ -1,0 +1,57 @@
+{
+  "batch": "r26",
+  "scope": "included_public_files_only",
+  "automatic_application": false,
+  "files": [
+    {
+      "path": "geometry-README.md",
+      "bytes": 2433,
+      "sha256": "6a3a067e580ae18cf75ac735ccb8e7022e01cd78edd55676c66b1c394abfab4c"
+    },
+    {
+      "path": "geometry-component-manifest.json",
+      "bytes": 1428,
+      "sha256": "c9de6f6513b352a66845968ea1492c96e810338c5de17a5683acf30cdf122388"
+    },
+    {
+      "path": "geometry-duplicate-check.json",
+      "bytes": 4454,
+      "sha256": "8c1a382d61aaa37b52417f55fd978076d329fb0b018ac3a8d7a736ff40974004"
+    },
+    {
+      "path": "geometry-publication-rights.json",
+      "bytes": 669,
+      "sha256": "3cf97a780d10867f47311a09d72fb24149c2715652e5ffb6cf3dea36186f8d93"
+    },
+    {
+      "path": "geometry-reference.json",
+      "bytes": 4828,
+      "sha256": "424cb9ecebd00734bb7a42642b50b0bde7100d24c5b79513541ed6e7449af507"
+    },
+    {
+      "path": "geometry-validation.json",
+      "bytes": 9713,
+      "sha256": "5967237023bfdb11bfefbcb5395e7e986d71b2f654b09c055b544caa17077a77"
+    },
+    {
+      "path": "selected-inventory-records.json",
+      "bytes": 2074,
+      "sha256": "b3c787efbff330c0809062a5c8e1a699c24a66b6211030380d708c8fe1d250f4"
+    },
+    {
+      "path": "selected-river-metadata.json",
+      "bytes": 8481,
+      "sha256": "451d5d3dc0d173acc87730aa7231fe8da8f6ccfbb4820669ea72f5d362b7a9dc"
+    },
+    {
+      "path": "test-geometry-reference.py",
+      "bytes": 6803,
+      "sha256": "f27d4e4466cb9dae0982152d9e5d880b70376f75fb40829c999e186cc1d2e829"
+    },
+    {
+      "path": "validate-geometry-reference.py",
+      "bytes": 10968,
+      "sha256": "8f8723aa07cbb3702861015e17d56531631e5390f4d9e05e255e4591c9319556"
+    }
+  ]
+}

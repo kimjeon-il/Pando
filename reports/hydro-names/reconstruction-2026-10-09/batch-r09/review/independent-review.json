@@ -1,0 +1,176 @@
+{
+  "schema": "hydro-independent-river-review-v2",
+  "reviewed_at_utc": "2026-10-09T14:35:02.485745+00:00",
+  "scope_aw_ids": [
+    "hydro-system:50737565",
+    "hydro-system:50756799",
+    "hydro-system:50782475"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Read retained original publications and receipts, view complete regional maps and independently plotted whole baseline paths, independently decode immutable binary inputs and verify ordered rendered coordinates and metadata. No external requests or registered overlay.",
+  "prior_distinct_targets": 24,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 27,
+  "duplicate_targets": 0,
+  "automatic_application": false,
+  "whole_group_scalar_application_approved": false,
+  "scalar_product_name_approvals": 0,
+  "geometry_modified": false,
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "findings": [
+    {
+      "aw_id": "hydro-system:50737565",
+      "system_id": "50737565",
+      "logical_fid": 2081,
+      "geometry_fids": [
+        7039
+      ],
+      "candidate_name": "Moore River",
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete northern inland loop and long southward route turn west and southwest to Guilderton, agreeing with official Moore regional mapping and course descriptions. Moore River is a representative system identity only. Marchagee, Coonderoo, Moore River North and East Branch retain distinct names; the northern extension and exact branch transitions are unresolved.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "WA-SLUI38-2005",
+        "MOORE-DWER-HEALTHYRIVERS"
+      ],
+      "limits": [
+        "Regional maps and monitoring-site names do not assign one name to all 103 parts.",
+        "The documented Marchagee-Coonderoo-North/East branch distinctions and Gingin Brook inflow are retained without assigning selected-part boundaries.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "part_count": 103,
+      "coordinate_count": 561,
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "scalar_product_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "complete_baseline_path_compared": true,
+      "label_overlap_alone_used_as_identity": false,
+      "associated_distinct_river_names": [
+        "Marchagee River",
+        "Coonderoo River",
+        "Moore River North",
+        "Moore River East Branch",
+        "Gingin Brook"
+      ],
+      "continuous_hydrological_flow_established": false,
+      "estuary_or_inlet_connectors_individually_named": false
+    },
+    {
+      "aw_id": "hydro-system:50756799",
+      "system_id": "50756799",
+      "logical_fid": 2112,
+      "geometry_fids": [
+        7072,
+        7073
+      ],
+      "candidate_name": "Murray River",
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete Western Australian route agrees regionally with the Hotham-to-Murray corridor through the Darling Range toward Pinjarra and Peel Inlet. Both joined baseline mainstem fragments are reviewed, including the short northward terminal continuation. Murray River is a representative identity; Hotham, Williams, estuary and ocean-connector naming remain separate and no exact name boundary is assigned.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "WA-SLUI38-2005",
+        "MURRAY-DWER-HEALTHYRIVERS",
+        "DWER-PEEL-HARVEY2021-PAGE"
+      ],
+      "limits": [
+        "This is the Western Australian Murray, not the Murray-Darling river in southeastern Australia.",
+        "The upstream Hotham association is a regional map inference, not a verified reach-name crosswalk.",
+        "FID7073 remains metadata mainstem. Its short northward path is consistent with the Mandurah estuary-to-ocean corridor, but neither its exact channel name nor the river-to-estuary boundary is verified.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "part_count": 71,
+      "coordinate_count": 423,
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "scalar_product_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "complete_baseline_path_compared": true,
+      "label_overlap_alone_used_as_identity": false,
+      "associated_distinct_river_names": [
+        "Hotham River",
+        "Williams River",
+        "Dandalup River"
+      ],
+      "continuous_hydrological_flow_established": false,
+      "estuary_or_inlet_connectors_individually_named": false,
+      "jurisdiction": "Western Australia",
+      "murray_darling_identity": false,
+      "baseline_fragment_roles": [
+        "mainstem",
+        "mainstem"
+      ],
+      "short_fragment_role_reinterpreted": false
+    },
+    {
+      "aw_id": "hydro-system:50782475",
+      "system_id": "50782475",
+      "logical_fid": 2136,
+      "geometry_fids": [
+        7099
+      ],
+      "candidate_name": "Gordon-Frankland River",
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete inland-to-southwest route and distinctive middle westward bend agree with Gordon mapping and the downstream Frankland corridor. Gordon-Frankland River is the source wording for the combined main channel and supports representative combined-system identity. Gordon River, Frankland River and Nornalup Inlet remain distinct; the northern starting extension and exact named transitions are unresolved.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "FRANKLAND-WA-WRM44",
+        "FRANKLAND-DBCA-MARINE-PARK"
+      ],
+      "limits": [
+        "The source uses Gordon-Frankland River for the combined main channel; this does not establish one formal official name across every selected part.",
+        "The source places the Gordon-to-Frankland transition north of Muir Highway, without a verified selected-part boundary.",
+        "The river discharges into Nornalup Inlet; the inlet and terminal connector do not inherit the river name.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "part_count": 66,
+      "coordinate_count": 412,
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "scalar_product_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "complete_baseline_path_compared": true,
+      "label_overlap_alone_used_as_identity": false,
+      "associated_distinct_river_names": [
+        "Gordon River",
+        "Frankland River"
+      ],
+      "continuous_hydrological_flow_established": false,
+      "estuary_or_inlet_connectors_individually_named": false,
+      "combined_channel_wording_source": "FRANKLAND-WA-WRM44",
+      "uniform_frankland_name_for_group": false
+    }
+  ],
+  "shared_limits": [
+    "Representative identity is distinct from one name across every headwater, tributary, estuary, inlet or reach.",
+    "All four fragments, 240 rendered parts and 1396 coordinate positions are retained locally. Public facts cannot substitute for omitted full coordinates.",
+    "Source reach IDs and rendered part counts agree; this does not independently prove the original reach-coordinate crosswalk.",
+    "All 27 IDs occur as unique eligible targets in the initial inventory. Remaining 4,038 means absent from the fresh index, not historically never researched."
+  ]
+}

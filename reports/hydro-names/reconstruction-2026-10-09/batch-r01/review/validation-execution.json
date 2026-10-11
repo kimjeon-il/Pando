@@ -1,0 +1,46 @@
+{
+  "performed_at_utc": "2026-10-09T11:09:46.966740+00:00",
+  "author_validator_read_and_inspected": true,
+  "original_durable_validator": {
+    "status": "passed",
+    "selected_source_ids": [
+      "1159109497",
+      "1159106899",
+      "1159107065"
+    ],
+    "source_feature_count": 3,
+    "baseline_rendered_feature_count": 3,
+    "all_original_input_hashes_and_exact_feature_joins_checked": false,
+    "current_live_deployment_checked": false
+  },
+  "original_full_input_validator": {
+    "status": "passed",
+    "selected_source_ids": [
+      "1159109497",
+      "1159106899",
+      "1159107065"
+    ],
+    "source_feature_count": 3,
+    "baseline_rendered_feature_count": 3,
+    "all_original_input_hashes_and_exact_feature_joins_checked": true,
+    "current_live_deployment_checked": false
+  },
+  "independent_decoder_rerun": {
+    "command": "node extract-baseline-geometries.mjs .input-cache TEMP/redecoded.geojson",
+    "exit_code": 0,
+    "output": "Validated immutable baseline manifest, metadata, index, shard and decoder: 3 selected features / 3 packs / 1 shard.",
+    "byte_for_byte_cmp_exit_code_rendered": 0,
+    "byte_for_byte_cmp_exit_code_pack_receipts": 0,
+    "redecoded_file": {
+      "bytes": 10259,
+      "sha256": "1b98d7bb09a0b2b21df3295f5bd803ba401a462a21d52342ff5917a44bd143c3"
+    },
+    "pack_receipts": {
+      "bytes": 533,
+      "sha256": "47bd88fd2e7e53c56fcea1a04630c915e9a79e1fe54d31046ad0c6887d3ceb87"
+    }
+  },
+  "independent_validator_durable_status": "passed",
+  "independent_validator_full_inputs_status": "passed",
+  "limits": "No external requests or live-deployment test; no complete OGC topology, exact shoreline, geodetic accuracy or legal name-boundary finding."
+}

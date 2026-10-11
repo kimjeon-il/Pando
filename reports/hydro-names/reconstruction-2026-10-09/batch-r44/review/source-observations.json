@@ -1,0 +1,152 @@
+{
+  "schema": "hydro-original-source-observations-v3",
+  "batch": "r44",
+  "scope_aw_ids": [
+    "lakes_base:1159112265",
+    "lakes_base:1159112279",
+    "lakes_base:1159112305"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "The retained original Manitoba bedrock map was read locally. No external search, original-body request or source acquisition occurred in this batch.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": null,
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "source_group_definition": "One Manitoba Geological Survey thematic publication. Its credited hydrographic base is not independently inspected as a separate source.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All 163 ordered positions were independently registered from original full-precision EPSG:26914 controls using a six-parameter affine with both cross terms and explicit MediaBox/CropBox handling. Placements agree with fresh GDAL registration within 0.000001 PDF point. Maximum original-control residual is below 0.01 PDF point; this measures affine consistency, not shoreline or name-boundary accuracy. Six original detail/context, three endpoint and one imprint/credit arrays match fresh renders. No manual shoreline fitting was used. Readable whole-footprint hydrography and white-water/colored-geological-land distinction were confirmed visually, not inferred from crop containment.",
+  "observations": [
+    {
+      "source_key": "manitoba_bedrock_geology_of2024_4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Economic Development, Investment, Trade and Natural Resources, Manitoba Geological Survey",
+      "url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf",
+      "original_acquired_at_utc": "2026-10-10T00:02:56.872607+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2024",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The publication imprint explicitly says published by Manitoba Geological Survey, 2024. No month or day of publication is established; PDF modification and HTTP dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r34",
+      "directly_read_water_labels": [
+        "Gauer Lake",
+        "Lake St. Martin",
+        "Waterhen Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Thorsteinson Lake",
+        "Chapman Lake",
+        "Torrance Lake",
+        "Wernham Lake",
+        "Gauer River",
+        "Dauphin River",
+        "Lake Winnipegosis",
+        "Inland Lake",
+        "Chitek Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Complete readable footprints and connecting-water contexts support three generalized research lake identities with material extent limits.",
+      "authority_scope": "Official provincial thematic cartographic usage supports these bounded associations. It is not a formal naming-registry decision and does not certify exact shorelines or name partitions.",
+      "registered_overlay_performed": true,
+      "own_observations": "Fresh original pixels and all 51 registered positions associate the full generalized north/central/south basin with the printed Gauer Lake label. White water bounded in blue was distinguished from blue, cyan, peach, green and grey geological land. The northeastern endpoint lies near a narrow linkage before the separately labelled Thorsteinson basin; the southwest endpoint meets the Gauer River approach. Chapman, Torrance and Wernham lakes remain outside contexts. No distinct second named lake is established within the selected footprint, while substantial land overshoot and omitted shoreline detail prevent exact extent certification. Fresh original pixels and all 68 registered positions associate the southern main basin, connecting neck and northeastern lobe with the blue Lake St. Martin water label. The black Lake St. Martin Structure label denotes geological context and was not used as another water name. White lake water is distinct from the large cyan, pink and grey geological units. The northern endpoint stops at the mouth area before the long Dauphin River corridor, with coarse land overshoot near the river approach. Western bays and the southern tip extend beyond the selected ring. One generalized lake identity is supported, not an exact named-water partition. Fresh original pixels and all 44 registered positions associate the elongated main basin, north tip and short forked southern lobes with the Waterhen Lake label. White blue-shored water is distinct from tan and grey geological land. The southern endpoints do not extend along the long connecting line toward outside Lake Winnipegosis water. Inland Lake and Chitek Lake are separate northern/western contexts. The eastern side overshoots land, the western line omits water, and southern branches cut fine shorelines. One generalized identity is supported, without assigning adjacent lake names or certifying exact connecting-water boundaries.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "The digital topographic base credits the CanVec+ data model, Natural Resources Canada for hydrographic features, and the Manitoba Land Initiative, Manitoba Environment, Climate and Parks.",
+      "original_requested_at_utc": "2026-10-10T00:02:49.675330+00:00",
+      "printed_bibliographic_citation_year": "2024",
+      "printed_copyright_year": null,
+      "hydrographic_base_provider": "CanVec+ data model, Natural Resources Canada (hydrographic features); Manitoba Land Initiative, Manitoba Environment, Climate and Parks"
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159112265",
+      "aw_id": "lakes_base:1159112265",
+      "source_id": "1159112265",
+      "geometry_fids": [
+        15609
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 51,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Fresh original pixels and all 51 registered positions associate the full generalized north/central/south basin with the printed Gauer Lake label. White water bounded in blue was distinguished from blue, cyan, peach, green and grey geological land. The northeastern endpoint lies near a narrow linkage before the separately labelled Thorsteinson basin; the southwest endpoint meets the Gauer River approach. Chapman, Torrance and Wernham lakes remain outside contexts. No distinct second named lake is established within the selected footprint, while substantial land overshoot and omitted shoreline detail prevent exact extent certification."
+    },
+    {
+      "observation_id": "lakes_base:1159112279",
+      "aw_id": "lakes_base:1159112279",
+      "source_id": "1159112279",
+      "geometry_fids": [
+        15610
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 68,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Fresh original pixels and all 68 registered positions associate the southern main basin, connecting neck and northeastern lobe with the blue Lake St. Martin water label. The black Lake St. Martin Structure label denotes geological context and was not used as another water name. White lake water is distinct from the large cyan, pink and grey geological units. The northern endpoint stops at the mouth area before the long Dauphin River corridor, with coarse land overshoot near the river approach. Western bays and the southern tip extend beyond the selected ring. One generalized lake identity is supported, not an exact named-water partition."
+    },
+    {
+      "observation_id": "lakes_base:1159112305",
+      "aw_id": "lakes_base:1159112305",
+      "source_id": "1159112305",
+      "geometry_fids": [
+        15612
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 44,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Fresh original pixels and all 44 registered positions associate the elongated main basin, north tip and short forked southern lobes with the Waterhen Lake label. White blue-shored water is distinct from tan and grey geological land. The southern endpoints do not extend along the long connecting line toward outside Lake Winnipegosis water. Inland Lake and Chitek Lake are separate northern/western contexts. The eastern side overshoots land, the western line omits water, and southern branches cut fine shorelines. One generalized identity is supported, without assigning adjacent lake names or certifying exact connecting-water boundaries."
+    }
+  ],
+  "source_group_limit": "Official thematic cartography supports the recorded bounded associations. Printed hydrographic attribution does not establish an independent dataset comparison, formal naming-registry status or exact named extents.",
+  "independent_review_and_source_research_agree": true,
+  "request_accounting": {
+    "search_tool_calls": 0,
+    "search_queries": 0,
+    "explicit_web_open_requests": 0,
+    "original_body_requests": 0,
+    "new_original_bodies_acquired": 0,
+    "new_source_access_denials": 0,
+    "new_source_availability_failures": 0,
+    "stopped_resource_requests": 0,
+    "additional_source_acquisitions_planned": false
+  }
+}

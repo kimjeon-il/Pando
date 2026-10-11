@@ -1,0 +1,125 @@
+{
+  "schema": "hydro-reconstruction-index-v1",
+  "scope": "Fresh reconstructed research only; the unavailable historical504-target ledger is not restored. Lake features and MAIN_RIV groups are logical inventory units, not counts of physical named waters.",
+  "total_distinct_reconstructed_targets": 9,
+  "previous_batch_distinct_targets": 6,
+  "current_batch_increment": 3,
+  "duplicate_targets": 0,
+  "previous_index_sha256": "deb077c0f3d956bfac0928206981ca3b533681693b3023a22a5aa5d701099561",
+  "prior_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+  "current_batch": "r03",
+  "current_batch_commit_note": "The commit containing this file identifies r03; no self-referential commit hash is embedded.",
+  "target_types": {
+    "lake": 6,
+    "river_group": 3
+  },
+  "categories": {
+    "whole_polygon_scope_hold": 1,
+    "supported_generalized_water_identity": 4,
+    "supported_reservoir_association_geometry_hold": 1,
+    "candidate_representative_system_identity": 1,
+    "supported_representative_system_identity": 2
+  },
+  "records": [
+    {
+      "source_id": "1159109497",
+      "aw_id": "lakes_base:1159109497",
+      "batch": "r01",
+      "candidate_name": "MacKay Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159106899",
+      "aw_id": "lakes_base:1159106899",
+      "batch": "r01",
+      "candidate_name": "Becharof Lake",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159107065",
+      "aw_id": "lakes_base:1159107065",
+      "batch": "r01",
+      "candidate_name": "Lac Tasiujaq",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r01/results.json",
+      "fixed_commit": "4300128a1298222a430464b1899d7a1a141f1ab3",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159115267",
+      "aw_id": "lakes_base:1159115267",
+      "batch": "r02",
+      "candidate_name": "扎日南木错 / Zhari Namco",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159123531",
+      "aw_id": "lakes_base:1159123531",
+      "batch": "r02",
+      "candidate_name": "Represa Três Irmãos",
+      "research_category": "supported_reservoir_association_geometry_hold",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "source_id": "1159107099",
+      "aw_id": "lakes_base:1159107099",
+      "batch": "r02",
+      "candidate_name": "Buffalo Lake",
+      "research_category": "supported_generalized_water_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r02/results.json",
+      "fixed_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+      "automatic_application": false,
+      "category": "lake"
+    },
+    {
+      "system_id": "30624681",
+      "aw_id": "hydro-system:30624681",
+      "category": "river_group",
+      "batch": "r03",
+      "candidate_name": "Nura River",
+      "research_category": "candidate_representative_system_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r03/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    },
+    {
+      "system_id": "50488324",
+      "aw_id": "hydro-system:50488324",
+      "category": "river_group",
+      "batch": "r03",
+      "candidate_name": "Flinders River system",
+      "research_category": "supported_representative_system_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r03/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    },
+    {
+      "system_id": "40182409",
+      "aw_id": "hydro-system:40182409",
+      "category": "river_group",
+      "batch": "r03",
+      "candidate_name": "Сарысу / Sarysu system",
+      "research_category": "supported_representative_system_identity",
+      "evidence_locator": "reports/hydro-names/reconstruction-2026-10-09/batch-r03/results.json",
+      "fixed_commit": null,
+      "automatic_application": false
+    }
+  ],
+  "automatic_application": false
+}

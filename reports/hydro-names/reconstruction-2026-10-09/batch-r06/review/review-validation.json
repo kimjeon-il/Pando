@@ -1,0 +1,282 @@
+{
+  "schema": "hydro-independent-lake-review-validation-v1",
+  "checked_at_utc": "2026-10-09T13:29:49.155469+00:00",
+  "durable_only": {
+    "status": "passed",
+    "mode": "durable_only",
+    "scope_aw_ids": [
+      "lakes_base:1159109553",
+      "lakes_base:1159110303",
+      "lakes_base:1159108091"
+    ],
+    "public_input_files_checked": 25,
+    "lake_geometry_checks": [
+      {
+        "aw_id": "lakes_base:1159109553",
+        "logical_fid": 4050,
+        "geometry_fid": 15425,
+        "position_count": 101,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      },
+      {
+        "aw_id": "lakes_base:1159110303",
+        "logical_fid": 4105,
+        "geometry_fid": 15480,
+        "position_count": 192,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      },
+      {
+        "aw_id": "lakes_base:1159108091",
+        "logical_fid": 3937,
+        "geometry_fid": 15312,
+        "position_count": 96,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      }
+    ],
+    "independent_binary_decoder_replayed": false,
+    "original_inventory_rechecked": false,
+    "original_prior_index_rechecked": false,
+    "original_prior_target_count": 15,
+    "current_batch_increment": 3,
+    "cumulative_distinct_targets": 18,
+    "duplicate_targets": 0,
+    "local_evidence_assets_rehashed_by_kind": {},
+    "local_evidence_assets_rehashed": 0,
+    "visual_inspection_repeated": false,
+    "formal_registry_verified": false,
+    "automatic_application": false,
+    "network_requests": 0,
+    "source_joins": {
+      "complete_three_source_shapes_joined": true,
+      "map_publications_viewed": 5,
+      "two_adjacent_ennadai_sheets_one_source_group": true,
+      "registered_overlay_claimed": false,
+      "shoreline_overlap_measured": false
+    },
+    "source_provenance_keys_checked": [
+      "wsa_dore_map",
+      "eccc_dore_usage",
+      "nluis_index",
+      "nluis_65c_ennadai_map",
+      "nluis_65f_ennadai_map",
+      "cirnac_ennadai_usage",
+      "NPS-KATM-MAPS",
+      "NPS-KATM-CLASSIC-MAP",
+      "NPS-NAKNEK-BOATING-GUIDE-2013",
+      "NPS-KATM-BOATING",
+      "NPS-KATM-WATER",
+      "USGS-ILIUK-STATION"
+    ],
+    "geometry_component": {
+      "status": "passed",
+      "scope_aw_ids": [
+        "lakes_base:1159109553",
+        "lakes_base:1159110303",
+        "lakes_base:1159108091"
+      ],
+      "source_coordinate_counts_including_closure": [
+        101,
+        192,
+        96
+      ],
+      "all_complete_source_and_baseline_coordinates_rechecked": true,
+      "part_ring_vertex_order_and_hashes_rechecked": true,
+      "source_feature_original_JSON_tokens_rechecked": true,
+      "actual_metadata_and_name_states_rechecked": true,
+      "prior15_duplicate_count": 0,
+      "original_source_cache_and_metadata_rechecked": false,
+      "production_decoder_replayed": false,
+      "original_selected_inventory_rows_rechecked": false,
+      "original_previous_index_rechecked": false,
+      "frozen_component_hashes_rechecked": true,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limit": "Complete selected features and independent pins are checked; omitted full upstream inputs and production decoder replay require the optional verified local cache."
+    }
+  },
+  "full_local": {
+    "status": "passed",
+    "mode": "full_local",
+    "scope_aw_ids": [
+      "lakes_base:1159109553",
+      "lakes_base:1159110303",
+      "lakes_base:1159108091"
+    ],
+    "public_input_files_checked": 25,
+    "lake_geometry_checks": [
+      {
+        "aw_id": "lakes_base:1159109553",
+        "logical_fid": 4050,
+        "geometry_fid": 15425,
+        "position_count": 101,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      },
+      {
+        "aw_id": "lakes_base:1159110303",
+        "logical_fid": 4105,
+        "geometry_fid": 15480,
+        "position_count": 192,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      },
+      {
+        "aw_id": "lakes_base:1159108091",
+        "logical_fid": 3937,
+        "geometry_fid": 15312,
+        "position_count": 96,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      }
+    ],
+    "independent_binary_decoder_replayed": true,
+    "original_inventory_rechecked": true,
+    "original_prior_index_rechecked": true,
+    "original_prior_target_count": 15,
+    "current_batch_increment": 3,
+    "cumulative_distinct_targets": 18,
+    "duplicate_targets": 0,
+    "local_evidence_assets_rehashed_by_kind": {
+      "original_source_body": 12,
+      "acquisition_receipt": 12,
+      "local_text_extraction": 5,
+      "viewed_map_derivative": 10,
+      "independent_map_detail": 2,
+      "complete_geometry_comparison_view": 3
+    },
+    "local_evidence_assets_rehashed": 44,
+    "visual_inspection_repeated": false,
+    "formal_registry_verified": false,
+    "automatic_application": false,
+    "network_requests": 0,
+    "source_joins": {
+      "complete_three_source_shapes_joined": true,
+      "map_publications_viewed": 5,
+      "two_adjacent_ennadai_sheets_one_source_group": true,
+      "registered_overlay_claimed": false,
+      "shoreline_overlap_measured": false
+    },
+    "source_provenance_keys_checked": [
+      "wsa_dore_map",
+      "eccc_dore_usage",
+      "nluis_index",
+      "nluis_65c_ennadai_map",
+      "nluis_65f_ennadai_map",
+      "cirnac_ennadai_usage",
+      "NPS-KATM-MAPS",
+      "NPS-KATM-CLASSIC-MAP",
+      "NPS-NAKNEK-BOATING-GUIDE-2013",
+      "NPS-KATM-BOATING",
+      "NPS-KATM-WATER",
+      "USGS-ILIUK-STATION"
+    ],
+    "geometry_component": {
+      "status": "passed",
+      "scope_aw_ids": [
+        "lakes_base:1159109553",
+        "lakes_base:1159110303",
+        "lakes_base:1159108091"
+      ],
+      "source_coordinate_counts_including_closure": [
+        101,
+        192,
+        96
+      ],
+      "all_complete_source_and_baseline_coordinates_rechecked": true,
+      "part_ring_vertex_order_and_hashes_rechecked": true,
+      "source_feature_original_JSON_tokens_rechecked": true,
+      "actual_metadata_and_name_states_rechecked": true,
+      "prior15_duplicate_count": 0,
+      "original_source_cache_and_metadata_rechecked": true,
+      "production_decoder_replayed": true,
+      "original_selected_inventory_rows_rechecked": true,
+      "original_previous_index_rechecked": true,
+      "frozen_component_hashes_rechecked": true,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limit": "Complete selected features and independent pins are checked; omitted full upstream inputs and production decoder replay require the optional verified local cache."
+    }
+  },
+  "durable_corruption_tests": {
+    "status": "passed",
+    "scope_aw_ids": [
+      "lakes_base:1159109553",
+      "lakes_base:1159110303",
+      "lakes_base:1159108091"
+    ],
+    "durable_only_truthful_reporting": true,
+    "corrupt_fixtures_rejected": 24,
+    "fixtures": [
+      "automatic_application",
+      "unsupported_korean_name",
+      "whole_polygon_scalar_name",
+      "scalar_product_clearance",
+      "whole_polygon_clearance",
+      "label_overlap_promoted",
+      "history_restoration_claim",
+      "target_order_reversed",
+      "wrong_identifier_domain",
+      "cumulative_count_inflated",
+      "formal_name_registry_claim",
+      "local_subbasin_erased",
+      "independent_second_lake_asserted",
+      "unsupported_accent_added",
+      "source_ring_reversed",
+      "source_interior_coordinate_changed",
+      "rendered_interior_coordinate_changed",
+      "source_target_dropped",
+      "rendered_source_id_changed",
+      "frozen_source_evidence_bytes",
+      "pdf_hash_replaced_by_text_hash",
+      "whole_shape_evidence_wrong_geometry",
+      "map_date_replaced_by_metadata_date",
+      "prior_duplicate_introduced"
+    ],
+    "local_original_byte_fixture_run": false,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "full_local_corruption_tests": {
+    "status": "passed",
+    "scope_aw_ids": [
+      "lakes_base:1159109553",
+      "lakes_base:1159110303",
+      "lakes_base:1159108091"
+    ],
+    "durable_only_truthful_reporting": true,
+    "corrupt_fixtures_rejected": 25,
+    "fixtures": [
+      "automatic_application",
+      "unsupported_korean_name",
+      "whole_polygon_scalar_name",
+      "scalar_product_clearance",
+      "whole_polygon_clearance",
+      "label_overlap_promoted",
+      "history_restoration_claim",
+      "target_order_reversed",
+      "wrong_identifier_domain",
+      "cumulative_count_inflated",
+      "formal_name_registry_claim",
+      "local_subbasin_erased",
+      "independent_second_lake_asserted",
+      "unsupported_accent_added",
+      "source_ring_reversed",
+      "source_interior_coordinate_changed",
+      "rendered_interior_coordinate_changed",
+      "source_target_dropped",
+      "rendered_source_id_changed",
+      "frozen_source_evidence_bytes",
+      "pdf_hash_replaced_by_text_hash",
+      "whole_shape_evidence_wrong_geometry",
+      "map_date_replaced_by_metadata_date",
+      "prior_duplicate_introduced",
+      "original_source_byte_changed"
+    ],
+    "local_original_byte_fixture_run": true,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  }
+}

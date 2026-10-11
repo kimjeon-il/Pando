@@ -1,0 +1,25 @@
+{
+  "schema": "frozen-river-geometry-component-v1",
+  "batch": "r03",
+  "scope_system_ids": [
+    "30624681",
+    "50488324",
+    "40182409"
+  ],
+  "frozen_at_utc": "2026-10-09T12:09:36.881264+00:00",
+  "complete_coordinates_in_public_package": false,
+  "files": {
+    "geometry-README.md": "18f1f63c1e49ddc98893c280b59acb023ca07491af3824492aad393be33dd969",
+    "geometry-reference.json": "dda29f9508dea5f110fa871626e7afacd322ef09b536fcb72b91221bb2d6a479",
+    "selected-river-metadata.json": "13d6d672441080947111b38ae75234b1d1b54025e91c5c0e0195edb6d55fa6e2",
+    "source-reach-manifest.json": "7c712ac9c5d8764fd11b03cb0566ba61a51443a30b5845a6fabc48c7bf18fcf8",
+    "selected-inventory-records.json": "46faac003f887e09458b043d21ac104e6eef3da607a145b29f3272917d400f90",
+    "selected-pack-receipts.json": "c5e35e935cb63cf9ae659bd56ec8ffe44a302dadc3a93241da8768d1751d8c80",
+    "geometry-publication-rights.json": "3fe46fdae55bf8a80cf06dfc4e89b5ba4259e896704ca360f7f4b9bb081ce1cb",
+    "geometry-request-receipts.json": "7c12f7151e83da092ca3010f16e42e8212c89bc0c4c5509af438a53808e15dcd",
+    "extract-baseline-geometries.mjs": "7c1f70e70cf88872e5ef911fb488e16fec11f600323be7804ea94153bc3d1f6d",
+    "validate-geometry-reference.py": "e9f7e91f965f2654449404aea5d0b348ad1b1d47b3542e724dd6b5035cddf8e6",
+    "test-geometry-reference.py": "f49ff2839bf70471addc4782ebf10906cc0f3c8cedbe936dbe757ab10b5736bd",
+    "geometry-validation.json": "fe1b66853bdce650e1385ffe3c91ce4e67b8e6e9a2afa7c50956bfba4b864eb8"
+  }
+}

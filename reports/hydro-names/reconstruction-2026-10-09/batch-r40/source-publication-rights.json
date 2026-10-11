@@ -1,0 +1,31 @@
+{
+  "schema": "hydro-lake-publication-rights-v2",
+  "batch": "r40",
+  "included": "Own factual observations, brief geographic labels, public publisher and hosting URLs, bounded selected identifier/name-state/count/bounds metadata, included public-file validation hashes and necessary already-public continuity or payload declarations. No private source, coordinate, derivative, registration, receipt or cache fingerprints are included.",
+  "selected_lake_feature_count": 3,
+  "full_lake_coordinates_published": false,
+  "full_river_coordinates_published": false,
+  "raw_third_party_sources_published": false,
+  "raw_pdf_html_map_crop_count": 0,
+  "private_source_derivative_coordinate_registration_receipt_cache_fingerprints_included": false,
+  "cartographic_attribution": "The original credits index-map compilation and editing to the Ontario Geological Survey Publication Services Unit, map-outline compilation and cartographic production to J. Rose, and Queen’s Printer for Ontario copyright 2021. Underlying hydrographic data independence is not established. Government hosting and these credits do not establish public-domain status.",
+  "rights_scope": "Official maps are retained only for private source inspection. Government hosting does not establish public-domain status or unrestricted republication rights. No original map, crop, overlay, coordinate-bearing geometry or private source/coordinate/derivative fingerprint is included. This component contains original factual extracts and public bibliography only; no redistribution license for source cartography is asserted.",
+  "reproducibility_limit": "Public included-file checks can verify the retained factual record and its bounded metadata, but cannot replay the omitted source-map and complete-polygon visual comparison.",
+  "automatic_application": false,
+  "product_application": false,
+  "new_original_source_acquisitions_this_batch": 1,
+  "source_authority_scope": "Official geological map-index cartographic usage supports bounded water-name and footprint observations, not formal naming-registry decisions or exact name partitions. One target-evidence publication and publisher group are used.",
+  "geographic_scope_limit": "Three selected generalized lake features in northern Ontario. Exact detailed lake extents and name partitions are not certified.",
+  "source_hosts": [
+    "Ontario Geological Survey, Government of Ontario"
+  ],
+  "source_urls": [
+    "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf"
+  ],
+  "sources_acquired_in_current_batch": true,
+  "retained_sources_reused": false,
+  "retained_source_acquisition_batch": null,
+  "retained_source_acquisition_note": "The target-evidence map was acquired in r40 after publication-identity access preflight. A retained Pipestone park plan was screened but is not used as target naming or geometry evidence.",
+  "new_high_level_external_request_count": 4,
+  "new_external_request_accounting": "Three official-source search calls containing five queries and one original-body GET. One PDF original acquired; no web-open calls, access denials, failed acquisitions or prohibited-resource requests."
+}

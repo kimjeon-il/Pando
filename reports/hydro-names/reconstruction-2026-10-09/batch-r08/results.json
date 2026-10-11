@@ -1,0 +1,136 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r08",
+  "research_completed_targets": 3,
+  "independently_reviewed_targets": 3,
+  "counting_unit": "Three actual logical MAIN_RIV inventory groups, not a count of fully named reaches.",
+  "counts": {
+    "supported_representative_system_identity": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 3,
+  "river_line_part_count": 376,
+  "distinct_source_reach_count": 376,
+  "river_rendered_coordinate_count": 2043,
+  "part_counts_in_target_order": [
+    209,
+    79,
+    88
+  ],
+  "position_counts_in_target_order": [
+    1038,
+    483,
+    522
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50538951",
+      "category": "river_group",
+      "system_id": "50538951",
+      "baseline_logical_fid": 1882,
+      "geometry_fids": [
+        6821
+      ],
+      "candidate_name": "Fortescue River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete southeastern-interior path turns northwest along the Fortescue valley and north into the coastal plain southwest of Karratha. Regional DBCA and BoM maps plus Millstream and lower-river cartography support Fortescue River as its representative identity. Upper river, Marsh and lower river are hydrologically distinct; the easternmost headwater, marsh crossing and coastal connector have no established individual name assignments.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "FORTESCUE-DOW-HG34-2009",
+        "FORTESCUE-DBCA-JMP2025"
+      ],
+      "limits": [
+        "A continuous generalized line does not establish ordinary through-flow across the Goodiadarrie Hills divide or an exact channel through Fortescue Marsh.",
+        "Weeli Wolli Creek, Coondiner Creek and Mindi Mindi Creek retain distinct source names; none is assigned to a selected part here.",
+        "The local HG34 aquifer maps cannot by themselves support the whole upstream route.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:50631583",
+      "category": "river_group",
+      "system_id": "50631583",
+      "baseline_logical_fid": 1956,
+      "geometry_fids": [
+        6900
+      ],
+      "candidate_name": "Wooramel River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete long westward route south of the Gascoyne system, including its coastward south bend, agrees with the Wooramel-labelled regional river course. The separate WA resource inventory corroborates this regional location and official usage. The eastern initial channel and exact interior joining-channel or headwater transitions remain unverified.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "WA-WATER-RESOURCES-INVENTORY2014"
+      ],
+      "limits": [
+        "Regional rasters cannot certify 79 individual part names, the eastern headwater start or exact joining-channel transitions.",
+        "The Wooramel River management-area label is not a blanket name for every stream in its polygon.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "hydro-system:50691033",
+      "category": "river_group",
+      "system_id": "50691033",
+      "baseline_logical_fid": 2022,
+      "geometry_fids": [
+        6978
+      ],
+      "candidate_name": "Greenough River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete inland-to-southwest route and its final west/northwest coastal turn agree with the Greenough course on regional maps and DWER prose linking plateau headwaters, Waterloo Range and Cape Burney. This supports representative mainstem identity, while exact headwater and joining-channel name boundaries remain unresolved.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "WA-WATER-RESOURCES-INVENTORY2014",
+        "GREENOUGH-DWER-HEALTHYRIVERS"
+      ],
+      "limits": [
+        "The DWER regional course description and regional rasters cannot certify 88 individual part names or exact upper-channel transitions.",
+        "The Greenough management-area label includes tributaries and does not establish their names.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "791d768c60c49f07386285bb1fe2f9b5379a6096422b662fd8c7ef812ea52747",
+  "publication_contents": "Own factual evidence and review, identifier/role/count/hash facts, a few whole-fragment bounds/endpoints and original validators. Complete river coordinates, raw packs and all third-party document/map bodies are omitted.",
+  "previous_reconstruction_commit": "fef2fb3fc52a276fb0059ce66474116de08137d1"
+}

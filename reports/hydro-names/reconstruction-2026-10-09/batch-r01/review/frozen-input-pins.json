@@ -1,0 +1,25 @@
+{
+  "scope": "All three research inputs fixed before final independent review; no historical verdict inherited",
+  "files": {
+    "geometry-component-manifest.json": {
+      "sha256": "08bcddf4237a3ade423a4e4f3cc4297fd877a0904b579e61369f5fcfa39841e7",
+      "bytes": 1028
+    },
+    "becharof-findings.json": {
+      "sha256": "ee3e46023f311d8c75b551a6c68e3d34ebda59d2a05665b2d718fb4c30b12705",
+      "bytes": 7556
+    },
+    "becharof-source-evidence.json": {
+      "sha256": "b45b33f4f461f3e23f32d64fe34f548e705629a1d06cdd84b7daf37263c5168c",
+      "bytes": 10148
+    },
+    "canada-findings.json": {
+      "sha256": "65ea57ccd9db8b7fc0707873386e1dc29ebb5fbf9efa4fb558df726b18da9401",
+      "bytes": 9752
+    },
+    "canada-source-evidence.json": {
+      "sha256": "5934b79f042a5b2afe89641044978c09134fc1d79fdac3dfa6658db6f6e18ef5",
+      "bytes": 10805
+    }
+  }
+}

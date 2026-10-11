@@ -1,0 +1,124 @@
+{
+  "schema": "hydro-independent-source-observations-v2",
+  "scope_aw_ids": [
+    "hydro-system:50668155",
+    "hydro-system:50611851",
+    "hydro-system:50552041"
+  ],
+  "new_external_requests": 0,
+  "source_body_republication_permitted": false,
+  "original_naming_source_bodies_rehashed": 5,
+  "independent_registered_overlay_claimed": false,
+  "exact_source_reach_name_transitions_verified": false,
+  "observations": [
+    {
+      "source_key": "WESTERN-BOM-AWRA2012",
+      "body_id": "WESTERN-BOM-AWRA2012-BODY",
+      "source_body_sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+      "checked_asset_ids": [
+        "WESTERN-BOM-AWRA2012-BODY",
+        "WESTERN-BOM-AWRA2012-RECEIPT",
+        "WESTERN-BOM-AWRA2012-TEXT",
+        "WESTERN-BOM-AWRA2012-VIEW-1",
+        "WESTERN-BOM-AWRA2012-VIEW-2"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "Two low-resolution regional maps distinguish the named Murchison, Gascoyne and neighboring drainage. The full paths agree at representative corridor scale. Section 11.5.1 separately identifies Hope, Roderick and Sandford as Murchison-joining rivers. Regional basin labels and the line labels are not treated as interchangeable.",
+      "printed_date": null,
+      "assessment_year": 2012,
+      "copyright_year": 2013
+    },
+    {
+      "source_key": "MURCHISON-DBCA-KALBARRI",
+      "body_id": "MURCHISON-DBCA-KALBARRI-BODY",
+      "source_body_sha256": "585c2d564d9804028589add645fc99da4291704d283c105bac119d203d362450",
+      "checked_asset_ids": [
+        "MURCHISON-DBCA-KALBARRI-BODY",
+        "MURCHISON-DBCA-KALBARRI-RECEIPT",
+        "MURCHISON-DBCA-KALBARRI-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "The official park prose associates the Murchison lower gorge with Kalbarri and locates Kalbarri town at its mouth. This is independent lower-course usage, not an upper-branch naming map.",
+      "printed_date": null,
+      "assessment_year": null,
+      "copyright_year": null
+    },
+    {
+      "source_key": "GASCOYNE-WA-FACTSHEET2015",
+      "body_id": "GASCOYNE-WA-FACTSHEET2015-BODY",
+      "source_body_sha256": "2cfcbe179b06da994fed195ad3e3867915dfb3421bce6cf099e462c00c6276e5",
+      "checked_asset_ids": [
+        "GASCOYNE-WA-FACTSHEET2015-BODY",
+        "GASCOYNE-WA-FACTSHEET2015-RECEIPT",
+        "GASCOYNE-WA-FACTSHEET2015-TEXT",
+        "GASCOYNE-WA-FACTSHEET2015-VIEW-1"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "The February 2015 factsheet places the Lower Gascoyne alluvial corridor around Carnarvon and upstream horticultural areas. The page 2 aquifer map was viewed; its colored areas are water-management units, not river-name boundaries.",
+      "printed_date": "2015-02",
+      "assessment_year": null,
+      "copyright_year": null
+    },
+    {
+      "source_key": "ASH-WA-AGRICULTURE-1988",
+      "body_id": "ASH-WA-AGRICULTURE-1988-BODY",
+      "source_body_sha256": "60e2298701646345510d95006ee26dd877ab0a4c39e89b225a9de12b0cb12c5b",
+      "checked_asset_ids": [
+        "ASH-WA-AGRICULTURE-1988-BODY",
+        "ASH-WA-AGRICULTURE-1988-RECEIPT",
+        "ASH-WA-AGRICULTURE-1988-TEXT",
+        "ASH-WA-AGRICULTURE-1988-VIEW-1",
+        "ASH-WA-AGRICULTURE-1988-VIEW-2"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "The revised June 1988 survey maps show the full southeast-to-northwest Ashburton corridor ending toward Onslow, matching the complete retained path broadly. Text separates named northern and southern tributaries from that corridor. Figure 9 is a geomorphic-province map, not a formal name-boundary instrument.",
+      "printed_date": "1988-06",
+      "assessment_year": null,
+      "copyright_year": null
+    },
+    {
+      "source_key": "ASH-DWER-HG34-2009",
+      "body_id": "ASH-DWER-HG34-2009-BODY",
+      "source_body_sha256": "ad18a47f680e13180f23fe950883e5c14ae2e6e03313db5c3f865dab95fabbd6",
+      "checked_asset_ids": [
+        "ASH-DWER-HG34-2009-BODY",
+        "ASH-DWER-HG34-2009-RECEIPT",
+        "ASH-DWER-HG34-2009-TEXT",
+        "ASH-DWER-HG34-2009-VIEW-1"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "HG34 Figure 52 labels the lower Ashburton along its northward coastal-plain corridor. The full study is dated March 2009 in its title/imprint, while the exterior cover shows February 2009. The lower-river map supports the downstream association without establishing eastern headwater names.",
+      "printed_date": "2009-03",
+      "assessment_year": null,
+      "copyright_year": null
+    }
+  ],
+  "complete_path_observations": [
+    {
+      "aw_id": "hydro-system:50668155",
+      "geometry_canonical_sha256": "184dc37b3deb2b40155c3cc25255842718e804607964ee0a94c863932d3b5131",
+      "part_count": 314,
+      "coordinate_count": 1406,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The selected generalized route has the lower southwest Murchison corridor and coastal setting at Kalbarri. Its full shape is consistent with the regional system. The eastern initial branch, its southward turn and subsequent northern arc are not established as Murchison-named throughout; exact transitions with joining rivers remain unresolved."
+    },
+    {
+      "aw_id": "hydro-system:50611851",
+      "geometry_canonical_sha256": "1eda1ca5d52aea38767aa56668ca088d2ec2c26da3d0f8b645a447507fb26c4a",
+      "part_count": 252,
+      "coordinate_count": 1246,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The long westward route, marked northward middle bend and Carnarvon coastal approach agree with the mapped Gascoyne corridor. Lyons remains a separately mapped river. Exact names and transitions along the selected eastern headwater branch remain unverified."
+    },
+    {
+      "aw_id": "hydro-system:50552041",
+      "geometry_canonical_sha256": "62601512fd4d0af5de09320303053c0817098b99d130badc20c1b6a9055f65a4",
+      "part_count": 181,
+      "coordinate_count": 1029,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The full eastern-interior route bends south then west, crosses the northwest-trending Ashburton valley, and turns north across the coastal plain toward Onslow. The 1988 whole-corridor maps and 2009 lower-river map support this representative identity; far-upstream name boundaries and the rendered coastal connector remain unestablished."
+    }
+  ],
+  "excluded_acquisition_note": "The generic HTML returned for a monitoring-network report was not treated as that report, a map, or naming evidence. It was not requested again.",
+  "map_independence_note": "Two BoM figures are one publication. The Ashburton survey and lower-river study have distinct authorship and purposes. A factsheet aquifer map has narrower scope than a full river map."
+}

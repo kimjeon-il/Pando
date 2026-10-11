@@ -1,0 +1,213 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r39",
+  "scope_aw_ids": [
+    "lakes_base:1159109819",
+    "lakes_base:1159109421",
+    "lakes_base:1159109285"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "No new external source requests or original acquisitions in r39. Manitoba, WSA and Cumberland originals were retained from earlier work. Receipt statuses and timestamps describe those successful earlier acquisitions. The independent reviewer made zero external requests.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": 0,
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 3,
+  "distinct_cartographic_identity_publications": 2,
+  "independent_source_groups": 3,
+  "source_group_definition": "Three official publisher organizations: Manitoba Geological Survey, Saskatchewan Water Security Agency and Elections Saskatchewan. Organization count does not establish independent underlying hydrographic datasets. Manitoba provides the partial Loon association and WSA the partial Primrose association; Cumberland provides context only.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All 120 WSA, 30 Cumberland and 34 Manitoba ordered position registrations were independently recomputed using full original embedded affines. Every selected position falls inside its inspected crop, but this does not establish map coverage: the Alberta-side Primrose tip is unmapped. Both sides of the Saskatchewan-Manitoba ring are covered by complementary maps; exact naming partitions remain unresolved.",
+  "observations": [
+    {
+      "source_key": "manitoba_bedrock_geology_of2024_4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Economic Development, Investment, Trade and Natural Resources, Manitoba Geological Survey",
+      "url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf",
+      "original_acquired_at_utc": "2026-10-10T00:02:56.872607+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2024",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The publication imprint explicitly says published by Manitoba Geological Survey, 2024. No month or day of publication is established; PDF modification and HTTP dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r34",
+      "directly_read_water_labels": [
+        "Loon Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Britton Lake",
+        "Sisipuk Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Bounded eastern Loon Lake association and surrounding Manitoba context for the second target.",
+      "authority_scope": "Official provincial thematic cartographic usage supports the bounded eastern association. It does not establish the complete cross-border water identity, a formal naming-registry decision or exact named-water boundary.",
+      "registered_overlay_performed": true,
+      "own_observations": "Original Manitoba pixels support Loon Lake as an eastern local association in the complete 34-position ring. Complementary WSA pixels show the western selected continuation but provide no name there. The long southwest arm and north tip beside Britton Lake remain unresolved name scope; neither a Britton component nor a whole-ring Loon identity is certified. Sisipuk Lake is southern context. Name-scope hold.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "The digital topographic base credits the CanVec+ data model, Natural Resources Canada for hydrographic features, and the Manitoba Land Initiative, Manitoba Environment, Climate and Parks."
+    },
+    {
+      "source_key": "wsa_completed_watershed_plans_2014",
+      "title": "Completed Watershed Plans / WSA Watershed Planning Areas",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "original_acquired_at_utc": "2026-10-09T13:17:20.296694+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": null,
+      "publication_date_precision": "unknown",
+      "publication_date_verified": false,
+      "printed_production_date": "2014-11-25",
+      "printed_production_date_precision": "day",
+      "printed_production_date_verified": true,
+      "publication_date_note": "The original imprint explicitly says Map Produced: Nov. 25, 2014. This establishes a production date only; actual release/publication date is unknown. The upload URL year and HTTP modification dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": null,
+      "original_acquisition_batch_note": "Receipt timestamp verified; the original acquisition batch is not established here. An earlier retained original supplies the inspected map.",
+      "directly_read_water_labels": [
+        "Primrose Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Otter Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Partial Primrose Lake naming association for the third target; geographic shape context for the first and western side of the second.",
+      "authority_scope": "Official provincial thematic cartography supports a bounded Primrose association and surrounding context. The Alberta-side selected tip has no hydrographic map coverage; this publication does not establish whole-feature identity or exact partitions.",
+      "registered_overlay_performed": true,
+      "own_observations": "The first selected ring follows east-west water beside the Stanley Mission settlement, with no established selected-water name. WSA shows the western arm of the second cross-border ring without a water-name label. Original WSA pixels clearly label Primrose Lake in the rounded main Saskatchewan basin followed by the complete 56-position ring. The visible southwest arm is also compared, but the far southwest tip extends into blank Alberta map space. All geometry is inspected, yet original naming evidence does not cover it all. Partial Primrose association with source-material pending; whole-feature identity review remains incomplete.",
+      "printed_scale": "1:1,750,000",
+      "cartographic_credit_observed": "Map produced by Water Security Agency, Geomatics; map and all datasets credited to Government of Saskatchewan, 2014."
+    },
+    {
+      "source_key": "elections_saskatchewan_cumberland_ge30",
+      "title": "Cumberland GE30 constituency map",
+      "publisher": "Elections Saskatchewan",
+      "url": "https://cdn.elections.sk.ca/maps-ge30/Cumberland_GE30.pdf",
+      "original_acquired_at_utc": "2026-10-09T17:19:27.981345+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": null,
+      "publication_date_precision": "unknown",
+      "publication_date_verified": false,
+      "publication_date_note": "The printed creation-date string is 02/10/2023. Its month/day order is ambiguous, and the actual publication date is unknown; PDF metadata is not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": null,
+      "original_acquisition_batch_note": "The retained receipt timestamp is verified; the original acquisition batch is not independently established.",
+      "directly_read_water_labels": [],
+      "nearby_distinct_water_labels": [
+        "Forrester Lake",
+        "Coghill Lake",
+        "Baldwin Lake",
+        "Penney Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Complementary water shape and surrounding label context for the first target; no selected-water name established.",
+      "authority_scope": "Official electoral cartography provides complementary context rather than a hydrographic naming-registry determination.",
+      "registered_overlay_performed": true,
+      "own_observations": "The complete selected east-west ring lies immediately east of Stanley Mission settlement and partly beneath its large black text. Nearby Forrester, Coghill, Baldwin and Penney lakes are labelled separately. No selected-water name or exact partition is established; settlement text and electoral lines do not establish naming identity.",
+      "printed_scale": null,
+      "cartographic_credit_observed": "The imprint credits Information Services Corporation of Saskatchewan, cadastral and administrative datasets, OpenStreetMap and ESRI software.",
+      "original_acquisition_timestamp_basis": "Receipt recorded-at time; no separately recorded response-completion timestamp.",
+      "original_requested_at_utc": "2026-10-09T17:19:23.772516+00:00",
+      "printed_creation_date_text": "02/10/2023",
+      "printed_creation_date_order": "ambiguous",
+      "printed_creation_date_normalized": null,
+      "printed_creation_date_verified": true
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159109819",
+      "aw_id": "lakes_base:1159109819",
+      "source_id": "1159109819",
+      "geometry_fids": [
+        15445
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 30,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [],
+      "context_source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_saskatchewan_cumberland_ge30"
+      ],
+      "independent_observation": "Both original maps and full 30-position outline/filled overlays show selected east-west water immediately east of Stanley Mission settlement. No water-name label is established for it. The coarse ring crosses mapped land and omits branching continuations. Stanley Mission is settlement text; nearby Otter, Forrester, Coghill, Baldwin and Penney labels cannot be transferred. Unnamed identity/extent scope hold."
+    },
+    {
+      "observation_id": "lakes_base:1159109421",
+      "aw_id": "lakes_base:1159109421",
+      "source_id": "1159109421",
+      "geometry_fids": [
+        15416
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 34,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "independent_observation": "Original Manitoba pixels support Loon Lake as an eastern local association in the complete 34-position ring. Complementary WSA pixels show the western selected continuation but provide no name there. The long southwest arm and north tip beside Britton Lake remain unresolved name scope; neither a Britton component nor a whole-ring Loon identity is certified. Sisipuk Lake is southern context. Name-scope hold."
+    },
+    {
+      "observation_id": "lakes_base:1159109285",
+      "aw_id": "lakes_base:1159109285",
+      "source_id": "1159109285",
+      "geometry_fids": [
+        15404
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 56,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": false,
+      "full_feature_source_identity_review_completed": false,
+      "source_material_pending": true,
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original WSA pixels clearly label Primrose Lake in the rounded main Saskatchewan basin followed by the complete 56-position ring. The visible southwest arm is also compared, but the far southwest tip extends into blank Alberta map space. All geometry is inspected, yet original naming evidence does not cover it all. Partial Primrose association with source-material pending; whole-feature identity review remains incomplete."
+    }
+  ],
+  "source_group_limit": "Three reviewed official publications; two provide bounded selected-water associations. Hydrographic dataset independence is unverified, and no formal naming registry was checked.",
+  "independent_review_and_source_research_agree": true
+}

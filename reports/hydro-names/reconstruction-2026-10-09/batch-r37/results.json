@@ -1,0 +1,281 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v3",
+  "batch": "r37",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three actual logical inventory lake features, not a count of approved scalar names.",
+  "counts": {
+    "compound_feature_name_scope_hold": 1,
+    "candidate_waterbody_identity_extent_hold": 2
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "distinct_target_increment": 3,
+  "existing_inventory_reassessment_targets": 0,
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 257,
+  "lake_baseline_coordinate_count_including_closures": 257,
+  "position_counts_in_target_order": [
+    115,
+    40,
+    102
+  ],
+  "polygon_counts_in_target_order": [
+    1,
+    1,
+    1
+  ],
+  "ring_counts_in_target_order": [
+    1,
+    1,
+    1
+  ],
+  "scope_aw_ids": [
+    "lakes_base:1159109455",
+    "lakes_base:1159109439",
+    "lakes_base:1159109395"
+  ],
+  "current_live_deployment_checked": false,
+  "latest_live_packed_data_correspondence_verified": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159109455",
+      "candidate_name": null,
+      "research_category": "compound_feature_name_scope_hold",
+      "supported_name_scope": "The single selected ring combines Highrock Lake and Nelson Lake associations, which are non-exhaustive. The northern arm has unresolved named-water scope; proximity to the Suwannee Lake label does not establish a Suwannee component. Western Highrock bays and detailed southern and eastern continuations lie outside the selected ring, while coarse margins cross mapped land. Exact component partitions and complete detailed named-lake extents remain unverified. Exact extent and product-name application are not approved.",
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "limits": [
+        "The single selected ring combines Highrock Lake and Nelson Lake associations, which are non-exhaustive. The northern arm has unresolved named-water scope; proximity to the Suwannee Lake label does not establish a Suwannee component. Western Highrock bays and detailed southern and eastern continuations lie outside the selected ring, while coarse margins cross mapped land. Exact component partitions and complete detailed named-lake extents remain unverified.",
+        "Suwannee Lake is a nearby label, not an established third component or alias. Flatrock Lake lies southwest; Granville Lake, Costello Lake and Laurie River lie north. Geological colors and symbols do not define water-name boundaries.",
+        "The retained official Manitoba Geological Survey publication provides the direct water labels. The retained Saskatchewan WSA map provides complementary western shape context only for the border target. Two provincial-government publisher groups are represented; underlying hydrographic dataset independence and formal naming-registry authority are unverified.",
+        "No Korean form or whole-feature alias is certified; registered overlays do not establish surveyed shores or exact name partitions."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "category": "lake",
+      "source_id": "1159109455",
+      "baseline_logical_fid": 4043,
+      "geometry_fids": [
+        15418
+      ],
+      "independent_review_status": "multiple_named_waters_scalar_name_hold",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Highrock Lake",
+          "Nelson Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": true,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Highrock Lake",
+            "scope": "Central and southern named-water association in the single 115-position selected ring"
+          },
+          {
+            "name": "Nelson Lake",
+            "scope": "Eastern named-water association in the single 115-position selected ring"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The single selected ring combines Highrock Lake and Nelson Lake associations, which are non-exhaustive. The northern arm has unresolved named-water scope; proximity to the Suwannee Lake label does not establish a Suwannee component. Western Highrock bays and detailed southern and eastern continuations lie outside the selected ring, while coarse margins cross mapped land. Exact component partitions and complete detailed named-lake extents remain unverified.",
+        "supported_component_names_exhaustive": false,
+        "unresolved_named_extents": [
+          "Northern arm near Suwannee Lake; no exact name assignment established"
+        ],
+        "unresolved_selected_parts": [],
+        "candidate_name_role": "no_single_candidate_for_compound_footprint",
+        "directly_supported_name_forms": [
+          "Highrock Lake",
+          "Nelson Lake"
+        ],
+        "follow_up_scope": "Resolve the northern-arm attribution and Highrock/Nelson component partitions before any whole-feature scalar naming. This is a name-scope hold, not an access failure.",
+        "geographic_disambiguation": "Northwestern Manitoba, Canada, in the Highrock and Nelson lake region south of Granville Lake"
+      },
+      "candidate_names": [
+        "Highrock Lake",
+        "Nelson Lake"
+      ],
+      "context_source_keys": []
+    },
+    {
+      "aw_id": "lakes_base:1159109439",
+      "candidate_name": null,
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "supported_name_scope": "Sisipuk Lake is supported for the eastern Manitoba basin only. The western selected portion is outside Manitoba-map hydrographic coverage. The complementary Saskatchewan WSA map shows branching western border waters without a selected water-name label; its Manitoba side is blank. Neither map establishes the whole cross-border named extent. Exact western named-water scope, islands, shoreline and detailed lake coverage remain unverified. Exact extent and product-name application are not approved.",
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "limits": [
+        "Sisipuk Lake is supported for the eastern Manitoba basin only. The western selected portion is outside Manitoba-map hydrographic coverage. The complementary Saskatchewan WSA map shows branching western border waters without a selected water-name label; its Manitoba side is blank. Neither map establishes the whole cross-border named extent. Exact western named-water scope, islands, shoreline and detailed lake coverage remain unverified.",
+        "Loon Lake and Britton Lake are separately labelled northern waters. Sandy Bay is a black settlement label on the Saskatchewan map and does not name the selected water. Blank areas beyond each map's provincial coverage are not evidence of dry land.",
+        "The retained official Manitoba Geological Survey publication provides the direct water labels. The retained Saskatchewan WSA map provides complementary western shape context only for the border target. Two provincial-government publisher groups are represented; underlying hydrographic dataset independence and formal naming-registry authority are unverified.",
+        "No Korean form or whole-feature alias is certified; registered overlays do not establish surveyed shores or exact name partitions."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "category": "lake",
+      "source_id": "1159109439",
+      "baseline_logical_fid": 4042,
+      "geometry_fids": [
+        15417
+      ],
+      "independent_review_status": "partial_identity_unresolved_extent_scalar_name_hold",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Sisipuk Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Sisipuk Lake",
+            "scope": "Eastern Manitoba basin of the single 40-position cross-border selected ring"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "Sisipuk Lake is supported for the eastern Manitoba basin only. The western selected portion is outside Manitoba-map hydrographic coverage. The complementary Saskatchewan WSA map shows branching western border waters without a selected water-name label; its Manitoba side is blank. Neither map establishes the whole cross-border named extent. Exact western named-water scope, islands, shoreline and detailed lake coverage remain unverified.",
+        "supported_component_names_exhaustive": false,
+        "unresolved_named_extents": [
+          "Western cross-border portion; water-name scope not established by the complementary maps"
+        ],
+        "unresolved_selected_parts": [],
+        "candidate_name_role": "partial_named_water_association_whole_feature_unresolved",
+        "directly_supported_name_forms": [
+          "Sisipuk Lake"
+        ],
+        "follow_up_scope": "Resolve the western cross-border water-name scope and its relationship to the eastern Sisipuk basin before any whole-feature scalar naming. This is a name-scope hold, not an access failure.",
+        "geographic_disambiguation": "Manitoba-Saskatchewan border, Canada, at the Sisipuk Lake eastern basin northeast of Sandy Bay"
+      },
+      "candidate_names": [
+        "Sisipuk Lake"
+      ],
+      "context_source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159109395",
+      "candidate_name": null,
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "supported_name_scope": "Granville Lake is supported for the main basin, western lobes and northeastern arm only. The pronounced southern prong follows the Laurie-labelled corridor beyond the broad lake basin and crosses mapped land, with no exact lake/river name assignment established. The separately labelled Costello Lake basin lies east and is not a supported component of the prong. Detailed northern and northeastern continuations, islands, bays and exact named-water transitions remain unverified. Exact extent and product-name application are not approved.",
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "limits": [
+        "Granville Lake is supported for the main basin, western lobes and northeastern arm only. The pronounced southern prong follows the Laurie-labelled corridor beyond the broad lake basin and crosses mapped land, with no exact lake/river name assignment established. The separately labelled Costello Lake basin lies east and is not a supported component of the prong. Detailed northern and northeastern continuations, islands, bays and exact named-water transitions remain unverified.",
+        "Leaf Rapids is a black settlement label distinct from the blue italic Granville Lake water label. Chicken Lake and Eden Lake lie north, while Costello Lake and Suwannee Lake are separately labelled waters south and southeast. The Laurie River label provides corridor context, not an exact assignment of the southern prong.",
+        "The retained official Manitoba Geological Survey publication provides the direct water labels. The retained Saskatchewan WSA map provides complementary western shape context only for the border target. Two provincial-government publisher groups are represented; underlying hydrographic dataset independence and formal naming-registry authority are unverified.",
+        "No Korean form or whole-feature alias is certified; registered overlays do not establish surveyed shores or exact name partitions."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "category": "lake",
+      "source_id": "1159109395",
+      "baseline_logical_fid": 4039,
+      "geometry_fids": [
+        15414
+      ],
+      "independent_review_status": "partial_identity_unresolved_extent_scalar_name_hold",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Granville Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": false,
+        "whole_polygon_single_name_supported": false,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Granville Lake",
+            "scope": "Main basin, western lobes and northeastern arm of the single 102-position selected ring"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "Granville Lake is supported for the main basin, western lobes and northeastern arm only. The pronounced southern prong follows the Laurie-labelled corridor beyond the broad lake basin and crosses mapped land, with no exact lake/river name assignment established. The separately labelled Costello Lake basin lies east and is not a supported component of the prong. Detailed northern and northeastern continuations, islands, bays and exact named-water transitions remain unverified.",
+        "supported_component_names_exhaustive": false,
+        "unresolved_named_extents": [
+          "Southern prong along the Laurie-labelled corridor; exact lake/river name assignment unverified"
+        ],
+        "unresolved_selected_parts": [],
+        "candidate_name_role": "partial_named_water_association_whole_feature_unresolved",
+        "directly_supported_name_forms": [
+          "Granville Lake"
+        ],
+        "follow_up_scope": "Resolve the southern-prong lake/river name scope and exact relationship to Granville Lake before any whole-feature scalar naming. This is a name-scope hold, not an access failure.",
+        "geographic_disambiguation": "Northwestern Manitoba, Canada, at Granville Lake southwest of Leaf Rapids"
+      },
+      "candidate_names": [
+        "Granville Lake"
+      ],
+      "context_source_keys": []
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "b4177083f96433ba8f69daa4f6bb8ae6fc328711068504840a0725e940e8e9e8",
+  "publication_contents": "Own factual findings and bibliography, bounded identifier/count/bounds/name-state metadata and included-file checks. Original maps, complete lake coordinate arrays and private-input fingerprints are omitted.",
+  "previous_reconstruction_commit": "79a45a336290eab5373d13d8af2e1f6730ae9dcd",
+  "published_payload_correspondence_note_url": "https://github.com/kimjeon-il/Pando/blob/1a3b4b3437000b4bcf3913a287316d1ab5f65897/reports/hydro-names/reconstruction-2026-10-09/batch-r30/packed-payload-correspondence.json",
+  "payload_correspondence_note_scope": "Previously published check of six compressed components and three r29 IDs; no latest live packed bytes or renderer equivalence claim."
+}

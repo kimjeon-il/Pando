@@ -1,0 +1,232 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r19",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three logical MAIN_RIV inventory groups; not three uniformly named channels or scalar-name approvals.",
+  "counts": {
+    "supported_representative_system_identity": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 18,
+  "river_line_part_count": 552,
+  "distinct_source_reach_count": 552,
+  "river_rendered_coordinate_count": 3360,
+  "part_counts_in_target_order": [
+    208,
+    112,
+    232
+  ],
+  "position_counts_in_target_order": [
+    1034,
+    782,
+    1544
+  ],
+  "fragment_part_counts_in_target_order": [
+    [
+      68,
+      26,
+      48,
+      9,
+      6,
+      12,
+      29,
+      10
+    ],
+    [
+      91,
+      21
+    ],
+    [
+      64,
+      47,
+      2,
+      61,
+      8,
+      17,
+      23,
+      10
+    ]
+  ],
+  "fragment_position_counts_in_target_order": [
+    [
+      323,
+      137,
+      254,
+      37,
+      47,
+      74,
+      125,
+      37
+    ],
+    [
+      580,
+      202
+    ],
+    [
+      455,
+      241,
+      4,
+      417,
+      67,
+      105,
+      179,
+      76
+    ]
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50517279",
+      "category": "river_group",
+      "system_id": "50517279",
+      "baseline_logical_fid": 1859,
+      "geometry_fids": [
+        6789,
+        6790,
+        6791,
+        6792,
+        6793,
+        6794,
+        6795,
+        6796
+      ],
+      "candidate_name": "Burdekin River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected northern inland course, southeastward middle course, northward lower bend and southern tributary were considered against the directly labelled Burdekin channel and regional drainage pattern. Burdekin River is supported as a representative system identity. This does not assign Burdekin to the selected southern tributary, all headwater reaches, storage passages, coastal continuation or every rendered part.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "Direct channel labelling, surrounding coastline and the complete southward-then-coastward course support representative identity; the catchment title alone is not the basis.",
+        "The selected southern tributary is not given a specific river name. Nearby Cape and Bowen labels are contextual distinctions, not selected-fragment assignments.",
+        "The original publication is a regional assessment, not a formal naming-register decision or surveyed mouth map.",
+        "Original HydroRIVERS source-coordinate equality, exact source reach-to-rendered-part mapping and exact contemporary mouth are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Burdekin River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require: Resolve the southern feeder name and reach-level name scope, including storage transitions and coastal/delta ending, before any per-reach or group scalar name application."
+      }
+    },
+    {
+      "aw_id": "hydro-system:50478600",
+      "category": "river_group",
+      "system_id": "50478600",
+      "baseline_logical_fid": 1826,
+      "geometry_fids": [
+        6740,
+        6741
+      ],
+      "candidate_name": "Gilbert River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path runs from the southeastern inland extension through the long westward middle course and then northwest toward the Gulf. The directly labelled lower Gilbert channel and the distinct upstream Einasleigh corridor support Gilbert River as the representative system identity. The upper selected route is a coarse geographic association with Einasleigh; the exact transition and individual reach names are unassigned. The modeled mainstem role does not establish uniform Gilbert naming.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The lower Gilbert and distinct Einasleigh labels must remain separate. No exact confluence, name transition or upstream headwater name is assigned.",
+        "A baseline mainstem role is a model property, not proof that every selected part has the same geographic name.",
+        "The original publication is a regional assessment, not a formal naming-register decision or surveyed mouth map.",
+        "Original HydroRIVERS source-coordinate equality, exact source reach-to-rendered-part mapping and exact contemporary mouth are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Gilbert River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require: Resolve the Einasleigh/Gilbert name transition and endpoint/distributary scope against sufficiently detailed direct naming evidence before any per-reach or group scalar name application."
+      }
+    },
+    {
+      "aw_id": "hydro-system:50464082",
+      "category": "river_group",
+      "system_id": "50464082",
+      "baseline_logical_fid": 1810,
+      "geometry_fids": [
+        6714,
+        6715,
+        6716,
+        6717,
+        6718,
+        6719,
+        6720,
+        6721
+      ],
+      "candidate_name": "Mitchell River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The entire selected group includes the northern east-to-west modeled mainstem, its lower northwestward course, the long southern branch and the shorter northern tributary. Direct Mitchell labelling on the lower channel supports Mitchell River as the representative system identity. The upper modeled mainstem follows the regional Palmer corridor and the southern branch follows the Walsh corridor. These are geographic associations, not exact reach-name assignments. The shorter northern tributary, precise transitions and coastal continuation remain individually unnamed.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "Mitchell-Coleman is a regional catchment grouping, not a compound name assigned to this selected system.",
+        "Palmer and Walsh remain distinct regional channel names. The upper modeled mainstem is not uniformly named Mitchell, and the shorter northern tributary receives no name.",
+        "The original publication is a regional assessment, not a formal naming-register decision or surveyed mouth map.",
+        "Original HydroRIVERS source-coordinate equality, exact source reach-to-rendered-part mapping and exact contemporary mouth are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Mitchell River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require: Resolve Palmer/Mitchell and Walsh/Mitchell naming transitions, the northern feeder identity and coastal terminal scope before any per-reach or group scalar name application."
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "f9f538c1fc97eaf17ad505ffc37a7a3141b133788d5ba6eb4f8abe718d2adf3f",
+  "publication_contents": "Own factual findings, bounded identity/count/bounds/name-state summaries and included-file validation. Full river paths, original reports, maps and private review materials are not distributed.",
+  "previous_reconstruction_commit": "6badfae989089b3d54cd5ced22302ff125c61d14"
+}

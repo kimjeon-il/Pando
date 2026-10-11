@@ -1,0 +1,362 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r79",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; southeastern Inland Ice and glaciated margin around 65.5–68.5°N near 40°W, full graticule context and Inland Ice legend.",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology; regional map-label context.",
+      "supports": "Explains ice-contour classes and regional map context without establishing a natural river identity for this selected route.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r79-inegi-candelaria-2010",
+      "title": "Compendio de información geográfica municipal 2010: Candelaria, Campeche",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year_note": "2010 compilation; hydrology mapping sources include INEGI topographic information and INEGI–CONAGUA 2007.",
+      "page": "PDF page 6, Relieve.",
+      "supports": "Direct Candelaria labels on the actual southern-to-western selected corridor; separate Caribe, Arroyo Negro and eastern tributary settings; surrounding natural lagoons.",
+      "limits": "Coverage ends at the international boundary and municipal edges. Generalized geometry does not establish every lake crossing, an official river source, current flow or precise shoreline.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/04/04011.pdf"
+    },
+    {
+      "source_key": "r79-inegi-carmen-2010",
+      "title": "Compendio de información geográfica municipal 2010: Carmen, Campeche",
+      "publisher": "INEGI",
+      "year_note": "2010 compilation.",
+      "page": "PDF page 6, Relieve.",
+      "supports": "Named lower Candelaria course, separate Chumpán and Mamantel approaches, Laguna Panlao and Laguna de Términos receiving setting.",
+      "limits": "Municipal-scale generalized coastal cartography does not fix the precise tidal boundary, modern shoreline or a river hydronym for all lagoon-interior modeling.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/04/04003.pdf"
+    },
+    {
+      "source_key": "r79-inegi-e1509-2023",
+      "title": "Información Topográfica 1:250 000: E1509 Tenosique de Pino Suárez, Chiapas, Tabasco y Campeche",
+      "publisher": "INEGI, Dirección General de Geografía y Medio Ambiente",
+      "year_note": "Sixth edition 2023, copyright 2024, verified in map marginal information.",
+      "page": "Single sheet; northeastern Mexican border strip and marginal technical information.",
+      "supports": "Mexican Candelaria border reach, California/El Toro wetland surroundings and the distinct Arroyo del Julubal/Paisbán border context.",
+      "limits": "Guatemalan territory is largely blank on this Mexican sheet. It is not evidence for the eastern Guatemalan connector and was supplemented by CONRED and the primary karst study.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154458_geo.pdf"
+    },
+    {
+      "source_key": "r79-conred-san-andres-2015",
+      "title": "Amenaza por deslizamientos e inundaciones: Departamento de Petén, Municipio de San Andrés, código 1704",
+      "publisher": "Coordinadora Nacional para la Reducción de Desastres (CONRED), SIG–SE-CONRED; basic cartography from Instituto Geográfico Nacional (IGN)",
+      "year_note": "Map explicitly gives edition 2015 and IGN basic cartography 2010–2015; the 2025 upload directory is not its publication date.",
+      "page": "Single sheet, scale 1:230,000; northern Petén and adjacent Mirador/San José extent.",
+      "supports": "Western Guatemalan Candelaria labels, distinct Julubal and southern Xan/Chocop/San Pedro corridors, and full eastern selected-region context through Paxbán, Mirador and Los Lagartos.",
+      "limits": "Hazard shading is not surface hydrography. The map does not label or establish a continuous river across the entire eastern model route. Municipal boundaries are explicitly non-authoritative; no boundary determination is made.",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2025/11/PETEN%201704.pdf"
+    },
+    {
+      "source_key": "r79-ensley-mirador-karst-2021",
+      "title": "Geomorphology of the Mirador-Calakmul Karst Basin: A GIS-based approach to hydrogeologic mapping; S2 Map, Drainage Map, Mirador-Calakmul Karst Basin",
+      "publisher": "Ensley, Hansen, Morales-Aguilar and Thompson; PLOS ONE 16(8), e0255496",
+      "year_note": "Published 2 August 2021. Primary research cartography, separate from government mapping.",
+      "page": "Article sections Lack of streams and Springs; original single-sheet S2 drainage map.",
+      "supports": "Distinguishes seasonal swamps, intermittent streams, springs and inferred subsurface routes along the eastern karst approach.",
+      "limits": "Groundwater arrows are inferred and cannot validate a continuous named surface channel or an exact modeled connection. This is primary scientific interpretation, not an official nomenclature authority.",
+      "official_url": "https://doi.org/10.1371/journal.pone.0255496"
+    },
+    {
+      "source_key": "r63-nhn-suriname-rivers-map-2003",
+      "title": "Index of vernacular plant names of Suriname — Figure 1, Map of Suriname and its rivers",
+      "publisher": "Nationaal Herbarium Nederland, Universiteit Leiden branch; repository hosted by Naturalis Biodiversity Center",
+      "attribution": "Charlotte I. E. A. van ’t Klooster, Jan C. Lindeman and Marion J. Jansen-Jacobs; map drawing by Hendrik Rypkema.",
+      "year_note": "Published 2003 in Blumea Supplement 15; institutional river illustration, not a modern naming-register decision.",
+      "year": 2003,
+      "page": "Printed p. 3, PDF p. 9, Figure 1",
+      "supports": "Nickerie label and broad upper northeastward, middle northward and lower northwestward route, positioned east of Corantijn and west of Coppename.",
+      "limits": "Simplified national illustration; does not name minor feeders or establish exact confluences, official source points or coastal limits.",
+      "official_url": "https://repository.naturalis.nl/pub/603310/Blumea_supplement_15.pdf"
+    },
+    {
+      "source_key": "r67-naturalis-holthuis-suriname-map",
+      "title": "The Crustacea Decapoda of Suriname (Dutch Guiana) — Map 1, Suriname, and 1900 Nickerie Expedition account",
+      "publisher": "Rijksmuseum van Natuurlijke Historie, Leiden; Zoologische Verhandelingen 44; repository hosted by Naturalis Biodiversity Center",
+      "attribution": "L. B. Holthuis.",
+      "year_note": "Historical institutional study published 1959. The expedition account describes 1900 travel; neither is treated as current operational or boundary information.",
+      "year": 1959,
+      "page": "PDF p. 311, Map 1, national sheet and enlarged Nickerie details; introductory account of the 1900 Nickerie Expedition",
+      "supports": "Bakhuis-side upper Nickerie and Van Eeden Falls corridor; northeastward upper limb; separately drawn and labelled Fallawatra branch and Wajombo connection; lower course toward Nieuw-Nickerie; distinction from Corantijn, Nanni Creek and the separate western lower tributary.",
+      "limits": "Historical generalized map. Does not establish the first modeled feeder’s separate name, the unnamed western lower tributary’s hydronym, exact modern reach boundaries or a surveyed estuary endpoint.",
+      "official_url": "https://repository.naturalis.nl/pub/317569/ZV1959044001.pdf"
+    },
+    {
+      "source_key": "r67-hydromet-water-quality-2024q1",
+      "title": "Water quality technical report for surface water resources in Suriname — January–March 2024",
+      "publisher": "Suriname Ministry of Public Works, Directorate Research and Services, Sub-Directorate Research and Innovation, Hydraulic Research Division",
+      "attribution": "Goncalves Vanity, Sheonarain Kereshma and Owen Shannon.",
+      "year_note": "Reporting period January–March 2024; report finalized May 2024. Official-host URL is in a June 2025 upload directory; this does not change the reporting year.",
+      "year": 2024,
+      "page": "PDF/printed pp. 46–47, Figure 16 and Table 17",
+      "supports": "Official Nickerie River usage; lower meanders and northwestward corridor with Wageningen, Henar, Ingas and Ramdien context; Bakhuis origin statement and coastal tidal setting.",
+      "limits": "Map covers the lower river and does not resolve the southern headmost feeder. Not all listed sampling sites are on the selected mainstem. Water-quality values, dimensions and present navigation advice are outside this finding; no exact tidal boundary is inferred.",
+      "official_url": "https://hydromet.sr/wp-content/uploads/2025/06/WQ-FINAL-Jan-Mar-2024_compressed.pdf"
+    },
+    {
+      "source_key": "r79-usgs-topo-amargosa",
+      "title": "USGS Topo, The National Map: Amargosa River and Death Valley regional and detailed views",
+      "publisher": "U.S. Geological Survey",
+      "year_note": "Agency service viewed 10 October 2026; service directory reports a September 2026 refresh, which is not treated as the survey date of each feature.",
+      "supports": "Repeated Amargosa River labels, complete regional route, separately labeled tributaries, East and West Fork Thirsty Canyon settings, Badwater playa and the distinct central Death Valley Salt Creek corridor.",
+      "limits": "Cartographic hydrography and labels establish geographic correspondence, not current wetness, exact channel alignment, continuous flow, or one river name across modeled salt-pan connections. Canyon landform labels are not promoted to verified stream names.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r79-nps-deva-backcountry",
+      "title": "Death Valley Backcountry & Wilderness Access",
+      "publisher": "National Park Service, Death Valley National Park",
+      "year_note": "Official PDF obtained 10 October 2026; file metadata records 2019 creation and 2022 modification. Exact cartographic survey dates are not established.",
+      "supports": "Independent park cartography locates the southern Amargosa bend, Saratoga Spring, southern Death Valley and Badwater Basin; road descriptions recognize condition-dependent river crossings.",
+      "limits": "Visitor-access map is generalized and does not cover or name the full northern headwater branch. Historic map contents are not used as current road or travel advice.",
+      "official_url": "https://www.nps.gov/deva/planyourvisit/upload/508-Backcountry-and-Wilderness-Access-map_.pdf"
+    },
+    {
+      "source_key": "r79-nps-deva-gmp",
+      "title": "Death Valley National Park General Management Plan, Water Resources background",
+      "publisher": "National Park Service",
+      "year_note": "Historical general management plan read 10 October 2026; exact issue year not independently established in this bounded review.",
+      "supports": "Distinguishes named park streams and limits the extent of perennial surface flow in the Amargosa River.",
+      "limits": "Historical regional prose, not current discharge data, exact stream-name boundaries or evidence that the two terminal channels form a continuous named river.",
+      "official_url": "https://www.nps.gov/deva/general-management-plan.htm"
+    },
+    {
+      "source_key": "r79-blm-amargosa-canyon",
+      "title": "Amargosa Canyon Information Guide",
+      "publisher": "Bureau of Land Management, Barstow Field Office",
+      "year_note": "Undated guide in an October 2022 upload path; read 10 October 2026. Upload path is not treated as a verified publication date.",
+      "supports": "Amargosa River identity in the canyon, its southward course from Nevada and continuation into Death Valley National Park.",
+      "limits": "Brief recreation prose centered on the canyon and protected reaches; does not establish a name for the upper canyon branch or Badwater playa extension, or perennial flow along the whole modeled selection.",
+      "official_url": "https://www.blm.gov/sites/default/files/docs/2022-10/Public%20Room_CA_Amargosa%20Canyon.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90109409",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete selected one-piece mainstem was inspected. Its northern beginning is near 68.5°N, with a short southwestward approach followed by long nearly straight southward legs and small westward offsets. A short southeastward final segment ends near 65.5°N. No separate tributary fragment is selected. These are descriptions of the generalized model, not proof of a natural channel.",
+        "The original geological sheet, its visible longitude and latitude graticule, and a newly rendered southeastern regional view place the long northern and middle route within the mapped Inland Ice. The southern continuation approaches the southeastern glaciated margin west of the Tasiilaq/Ammasalik coastal region. Nearby settlement, glacier and fjord names are orientation anchors only; none is transferred to the complete modeled line.",
+        "No readable source establishes a natural-river hydronym for this complete ice-sheet path. Its very long modeled interior legs cannot be treated as a named river merely because a downstream ice-margin area contains natural drainage. This is a completed feature-class and name-scope assessment, not a claim that every surface, subglacial or marginal watercourse is unnamed.",
+        "The original Inland Ice legend distinguishes ice-surface contours, dashed thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments south of 68°N. The retained descriptive bulletin explains these mapped classes. Such lines do not establish current surface-water or subglacial flow along the selected geometry. The historical map margin is not asserted to be its current position."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70896641",
+      "source_keys": [
+        "r79-inegi-candelaria-2010",
+        "r79-inegi-carmen-2010",
+        "r79-inegi-e1509-2023",
+        "r79-conred-san-andres-2015",
+        "r79-ensley-mirador-karst-2021"
+      ],
+      "correspondence": [
+        {
+          "selected_fids": [
+            10459
+          ],
+          "finding": "The easternmost modeled fragment runs west through the Los Lagartos–Mirador lowland setting toward Paxbán. CONRED cartography covers this full reach and depicts its surrounding inundation-prone lowlands, settlements and intermittent drainage context, but does not label the complete selected line Candelaria or Julubal. Flood-hazard shading alone is not a mapped river or proof of continuous surface flow.",
+          "sources": [
+            "r79-conred-san-andres-2015"
+          ]
+        },
+        {
+          "selected_fids": [
+            10460
+          ],
+          "finding": "The short east–west fragment is a nearly straight, border-aligned model connection in the Paxbán sector. The official map locates this sector east of the separately labeled Río Julubal. Neither a boundary line nor surrounding lowland shading establishes that the full straight model segment is a natural, continuously connected river channel. Laguna El Paisban is nearby context; the selected line is not asserted to cross the whole lake.",
+          "sources": [
+            "r79-conred-san-andres-2015",
+            "r79-inegi-e1509-2023"
+          ]
+        },
+        {
+          "selected_fids": [
+            10459,
+            10460,
+            10461
+          ],
+          "finding": "The primary drainage study maps the eastern Mirador-region approach as karst valleys containing seasonal swamps and intermittent streams, with springs and inferred subsurface flow distinguished from rivers. Its evidence supports treating this modeled approach as a mixed karst-drainage corridor; it does not establish one continuous surface channel or transfer Candelaria to every selected vertex.",
+          "sources": [
+            "r79-ensley-mirador-karst-2021",
+            "r79-conred-san-andres-2015"
+          ]
+        },
+        {
+          "selected_fids": [
+            10461
+          ],
+          "finding": "In western northern Petén, the selected westward and northwestward course corresponds to the channel repeatedly labeled Río Candelaria on the CONRED map, then crosses into Mexico on that corridor. The selected broad southern dip is generalized and is not promoted to a surveyed thalweg. Río Julubal enters the wider setting from the north, while Xan and Chocop lie farther south; no unsupported Julubal alias or San Pedro substitution is made.",
+          "sources": [
+            "r79-conred-san-andres-2015",
+            "r79-inegi-e1509-2023"
+          ]
+        },
+        {
+          "selected_fids": [
+            10461
+          ],
+          "finding": "The Mexican continuation matches Candelaria northward from the international boundary, past the California–El Toro wetland setting, through the San Miguel lake surroundings and onto the westward middle course. The municipal map directly labels this river repeatedly. Río Caribe and Arroyo Negro approach from the northeast; Las Golondrinas and the Arroyo de Cuba setting are separate eastern approaches. Adjacent lagoons are not all treated as model crossings.",
+          "sources": [
+            "r79-inegi-candelaria-2010",
+            "r79-inegi-e1509-2023"
+          ]
+        },
+        {
+          "selected_fids": [
+            10462
+          ],
+          "finding": "The downstream selected fragment turns north on the separately labeled Candelaria course across Carmen, east of Chumpán and south of the Mamantel approach. Its end lies in the Laguna Panlao–eastern Laguna de Términos receiving setting. This supports a coastal-lagoon terminus, not an assertion that the selected line reaches the open Gulf shoreline or names the entire lagoon interior.",
+          "sources": [
+            "r79-inegi-carmen-2010"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60098487",
+      "source_keys": [
+        "r63-nhn-suriname-rivers-map-2003",
+        "r67-naturalis-holthuis-suriname-map",
+        "r67-hydromet-water-quality-2024q1"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11379
+          ],
+          "finding": "The selected southern piece follows a Bakhuis-side approach northward, bends west and then northeast. Holthuis Map 1 depicts the corresponding upper Nickerie corridor west of the Bakhuis Range, with Van Eeden Falls on its southern limb. The associated expedition account identifies the river above the falls as Nickerie. The first small modeled feeder and its exact source point are not separately named or fixed by this generalized map.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map"
+          ]
+        },
+        {
+          "fragments": [
+            11379,
+            11380,
+            11381
+          ],
+          "finding": "The long northeastward upper limb enters the northward trunk at the setting where the historical map separately draws and labels Fallawatra River from the south. The selected route arrives from the southwest; it does not trace the Fallawatra branch. The short model stage-transition piece does not by itself establish a natural confluence or hydronym boundary.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map"
+          ]
+        },
+        {
+          "fragments": [
+            11381
+          ],
+          "finding": "The selected trunk continues north and through pronounced middle bends rather than turning east along the separately shown Wajombo connection toward Coppename. Both institutional national maps identify this connected western corridor as Nickerie and show Corantijn farther west.",
+          "sources": [
+            "r63-nhn-suriname-rivers-map-2003",
+            "r67-naturalis-holthuis-suriname-map"
+          ]
+        },
+        {
+          "fragments": [
+            11381
+          ],
+          "finding": "The ministry map reproduces the selected lower meander pattern and the turn northwest toward the Wageningen, Henar bridge, Steiger Ingas and Pier Ramdien settings. A separate sinuous western tributary joins the lower corridor on the map, but the selected group contains no tributary fragments and does not follow that branch southward. Its name is not assigned from the preliminary Maratakka lead or from proximity alone.",
+          "sources": [
+            "r67-hydromet-water-quality-2024q1",
+            "r67-naturalis-holthuis-suriname-map"
+          ]
+        },
+        {
+          "fragments": [
+            11381
+          ],
+          "finding": "The selected terminal is in the lower Nickerie coastal/estuarine approach near Nieuw-Nickerie. The historical map and ministry report distinguish this river from Corantijn and from Nanni Creek or swamp waters. The selection is not extended into a complete Corantijn estuary or an open-ocean reach; no surveyed mouth, tidal-limit or shoreline vertex is asserted.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map",
+            "r67-hydromet-water-quality-2024q1"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70660085",
+      "source_keys": [
+        "r79-usgs-topo-amargosa",
+        "r79-nps-deva-backcountry",
+        "r79-nps-deva-gmp",
+        "r79-blm-amargosa-canyon"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9852
+          ],
+          "finding": "The northern modeled beginning runs into East Fork Thirsty Canyon and then Thirsty Canyon, joining the Amargosa River corridor near the Oasis Valley springs. West Fork Thirsty Canyon is a separate fork; Rocket Wash enters from the east. Canyon labels establish geographic correspondence without proving that the complete upper modeled line bears the Amargosa River name.",
+          "sources": [
+            "r79-usgs-topo-amargosa"
+          ]
+        },
+        {
+          "fragments": [
+            9852
+          ],
+          "finding": "The main selected route follows repeated Amargosa River labels through Oasis Valley and Beatty, then southeast across the Amargosa Desert. Beatty Wash, Fortymile Wash and Topopah Wash are separately shown approaching from the east. The selection does not follow those tributaries as its long upstream route.",
+          "sources": [
+            "r79-usgs-topo-amargosa"
+          ]
+        },
+        {
+          "fragments": [
+            9852
+          ],
+          "finding": "The middle and southern sections correspond to the Amargosa River through the Death Valley Junction, Shoshone, Tecopa and canyon settings. The modeled line bends west near Dumont Dunes and returns northwest past the Saratoga Spring and Confidence Hills surroundings into southern Death Valley. Federal map labels and BLM's canyon description support this distinctive route.",
+          "sources": [
+            "r79-usgs-topo-amargosa",
+            "r79-nps-deva-backcountry",
+            "r79-blm-amargosa-canyon"
+          ]
+        },
+        {
+          "fragments": [
+            9852
+          ],
+          "finding": "In Badwater Basin the selected line diverges from the mapped Amargosa channel, crosses a substantial playa interior, and continues into the separately labeled central Death Valley Salt Creek corridor. The detailed map does not show one continuously named Amargosa channel along that entire modeled connection. No through-river, exact natural terminus, or flow direction through the modeled playa extension is inferred.",
+          "sources": [
+            "r79-usgs-topo-amargosa",
+            "r79-nps-deva-backcountry"
+          ]
+        },
+        {
+          "fragments": [
+            9852
+          ],
+          "finding": "The NPS water-resources account distinguishes Salt Creek and the Amargosa River and describes perennial Amargosa flow as limited to short, seasonally varying stretches. The mapped network therefore cannot be treated as evidence of continuous surface flow. BLM's year-round-flow description concerns the river's spring-supported canyon context and does not resolve the modeled playa naming problem.",
+          "sources": [
+            "r79-nps-deva-gmp",
+            "r79-blm-amargosa-canyon"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

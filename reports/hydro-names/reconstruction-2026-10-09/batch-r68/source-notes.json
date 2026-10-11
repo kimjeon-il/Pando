@@ -1,0 +1,351 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r68",
+  "sources": [
+    {
+      "source_key": "r65-cehq-regions0713-annual",
+      "title": "Débits spécifiques d'étiage annuels — Régions hydrographiques 07 et 13",
+      "publisher": "Gouvernement du Québec, Centre d'expertise hydrique du Québec",
+      "attribution": "July 2011; updated December 2014. Cartography: Marie-Lise Paquin and Eric Levasseur; approved by Joëlle Bérubé. BDGA 1:1,000,000 base; map scale 1:2,250,000; NAD83 Québec Lambert.",
+      "year": 2011,
+      "page": "Single regional sheet; whole map and enlarged Pékans–Moisie–Nipissis corridor.",
+      "supports": "Regional continuity of the Pékans and Moisie, separation from Carheil and the eastern Moisie headwaters, named Nipissis corridor and Sept-Îles coastal context.",
+      "limits": "Generalized regional map cannot resolve the first small feeder or exact lake and terminal boundaries. Low-flow values are outside the finding.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_07_13specifique_annuel.pdf"
+    },
+    {
+      "source_key": "r68-mrnf-moisie-public-land-map",
+      "title": "Utilisation du territoire public — Réserve aquatique projetée de la rivière Moisie / Réserve de biodiversité projetée du lac Gensart (DB7a-c)",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune, Direction régionale de la gestion du territoire public de la Côte-Nord; deposited with the Bureau d'audiences publiques sur l'environnement",
+      "attribution": "Second quarter 2005. Scale 1:250,000; UTM zone 19, NAD83. BDTA 250k base dated 2002 and public-land management data dated 2004. The sheet explicitly disclaims legal effect.",
+      "year": 2005,
+      "page": "Single large map sheet, PDF p. 1; complete corridor with enlarged headwater, upper, middle, lower and imprint sections.",
+      "supports": "Bouteille versus Germaine headwater distinction, selected western Pékans route and Moisie connection, separate Carheil/eastern source approaches, continuous middle and lower Moisie, lower Nipissis confluence and separation from Nipisso and Matamec.",
+      "limits": "Historical planning cartography supports route identity, not current conservation status or exact naming and shoreline boundaries. Small initial waters remain unnamed.",
+      "official_url": "https://archives.bape.gouv.qc.ca/sections/mandats/moisie-et-lacs/documents/DB7a-c.pdf"
+    },
+    {
+      "source_key": "r68-nps-glaciers-2012",
+      "title": "Alaskan National Park Glaciers: Status and Trends — Second Progress Report, NPS/AKR/NRDS—2012/404",
+      "publisher": "National Park Service, Natural Resource Stewardship and Science",
+      "year": 2012,
+      "page": "Printed p. 30, Figure 16 (PDF p. 42), plus title page.",
+      "supports": "Glacial mountain setting of the northern selected approach, with Tlikakila Glacier Fork, Tlikakila North Fork and Tanaina terrain distinguished regionally.",
+      "limits": "Glacier-focused map does not name the selected first stream, prove a Summit Lake traversal, or provide present glacier margins. No ice-change values are used.",
+      "official_url": "https://irma.nps.gov/DataStore/DownloadFile/459297"
+    },
+    {
+      "source_key": "r68-nps-rafting",
+      "title": "Rafting — Lake Clark National Park & Preserve",
+      "publisher": "National Park Service",
+      "page": "Tlikakila National Wild and Scenic River section; displayed update September 11, 2023.",
+      "supports": "Explicit Tlikakila-to-Lake Clark connection and distinction between the Summit Lake access setting and the boatable river.",
+      "limits": "Does not establish the selected initial feeder or the Lake Clark–Sixmile–Newhalen–Iliamna middle topology. No rafting advice or river-length substitution is made.",
+      "official_url": "https://home.nps.gov/lacl/planyourvisit/rafting.htm"
+    },
+    {
+      "source_key": "r68-nps-lake-clark-map-text",
+      "title": "Lake Clark National Park and Preserve brochure map (LACL Map)",
+      "publisher": "National Park Service; official copy hosted by Alaska Department of Fish and Game",
+      "page": "Single sheet, readable web-extracted labels only.",
+      "supports": "Presence of the separate Lake Clark, Sixmile Lake, Newhalen River and Iliamna Lake names in the official brochure text; naming context only.",
+      "limits": "An extracted label list does not establish label placement, waterbody connections, selected line correspondence or lake-entry vertices. No original map pixels were inspected. Entire brochure is now stopped across equivalent routes.",
+      "official_url": "https://www.adfg.alaska.gov/static/viewing/bears/pdfs/lake_clark_map.pdf"
+    },
+    {
+      "source_key": "r06-nps-katmai-map",
+      "title": "Katmai National Park and Preserve — Park Map",
+      "publisher": "National Park Service",
+      "page": "Single sheet; northwestern Iliamna–Igiugig–Kvichak–Levelock–Alagnak panel.",
+      "supports": "Iliamna outlet, named Kvichak trunk, separately named Alagnak lower branch, confluence and downstream broadening.",
+      "limits": "Regional map does not delimit the selected endpoint or a tidal boundary and does not cover the northern glacial feeder. Nearby Alagnak headwater lakes remain outside the actual selected tributary.",
+      "official_url": "https://www.nps.gov/katm/learn/photosmultimedia/upload/KATM_Park-Map_for_web.pdf"
+    },
+    {
+      "source_key": "r61-cehq-region10-summer-lowflow",
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 10",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011. Cartography: Marie-Lise Paquin and Eric Levasseur; approved by Joëlle Bérubé. BDGA 1:1,000,000 base; map scale 1:2,300,000; NAD83 Québec Lambert.",
+      "year": 2011,
+      "page": "Single regional sheet; complete Innuksuac corridor in western Nunavik and readable lake, neighboring-river and coastal enlargements.",
+      "supports": "Innuksuac river name, southern and eastern lake-country setting, neighboring drainage distinctions and the westward Hudson Bay approach.",
+      "limits": "Regional generalized cartography does not name every initial feeder, precisely delimit lake passages or establish surveyed terminal boundaries. Low-flow estimates are outside this finding.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r68-krg-innuksuac-map-2020",
+      "title": "Plan directeur de la région Kativik 2020 — Rivière-Innuksuac territory map and hydrographic description",
+      "publisher": "Administration régionale Kativik; embedded maps by the Québec Ministère de l’Environnement et de la Lutte contre les changements climatiques, Direction des aires protégées",
+      "attribution": "Administration régionale Kativik plan titled 2020. Embedded map credited to MELCC, Direction des aires protégées, July 2020, using Base de données topographiques et administratives (BDTA).",
+      "year": 2020,
+      "page": "Printed pp. 86–87 (PDF pp. 94–95), including the ministry map dated July 2020.",
+      "supports": "Distinctive southern-to-northern and then westward Innuksuac corridor, middle-upper lake setting, Qamaniruaq lower-lake setting and Inukjuak coastal approach.",
+      "limits": "Generalized regional map with an administrative-territory overlay; not evidence that every selected feeder has one hydronym or that the displayed legal designation remains current.",
+      "official_url": "https://www.krg.ca/en-CA/assets/renewable-resources/MasterPlan%28FR%29.pdf"
+    },
+    {
+      "source_key": "r68-unicauca-sanjorge-2023",
+      "title": "Zonificación y codificación de la subzona río San Jorge alto/medio",
+      "author": "Anyi Dayana Narváez Pechené",
+      "publisher": "Universidad del Cauca, Programa de Geografía del Desarrollo Regional y Ambiental; professional-practice report with CRC supervision",
+      "year": 2023,
+      "page": "Printed pp. 21–23, 36–39; especially Map 1 on p. 23 and Map 10 on p. 39 (PDF pp. 33 and 49).",
+      "supports": "Eastern San Jorge route shape, distinction from Sambingo/Hato Viejo, and membership in the Guachicono hydrographic subzone.",
+      "limits": "The mapped principal line does not establish the name of the entire initial selected feeder. This is institutional research cartography, not an official hydronym gazetteer or a surveyed naming-boundary determination.",
+      "official_url": "https://repositorio.unicauca.edu.co/bitstream/handle/123456789/9133/Zonificaci%C3%B3n%20y%20codificaci%C3%B3n%20de%20la%20subzona%20r%C3%ADo%20San%20Jorge%20alto%20medio.pdf?isAllowed=y&sequence=1"
+    },
+    {
+      "source_key": "r68-upme-telembi-2024-2025",
+      "title": "Diagnóstico Distrito Minero Especial para la Diversificación Productiva del Triángulo de Telembí",
+      "publisher": "Unidad de Planeación Minero-Energética (UPME), Subdirección de Minería, with Ministerio de Minas y Energía",
+      "edition": "Document updated April 2025; inspected hydrographic figures dated July 2024.",
+      "year": 2024,
+      "page": "Printed/PDF pp. 76–77, Illustrations 32–33 and adjoining hydrographic description.",
+      "supports": "Telembí branch setting, the Patía Medio–Patía Bajo receiving context, and separation from the Mira drainage.",
+      "limits": "Regional thematic figures do not reliably label each small feeder. Subzone names are not assigned wholesale to individual selected lines. Mining, demographic and land-rights content was not used for the river-name conclusion.",
+      "official_url": "https://docs.upme.gov.co/SIMEC/SIMCO/Cifras-Sectoriales/EstudiosPublicaciones/Diagnostico_distrito_minero_especial_para_la_diversificacion_productiva_del_triangulo_de_telembi.pdf"
+    },
+    {
+      "source_key": "r68-pnn-sanquianga-plan",
+      "title": "Actualización Plan de Manejo Parque Nacional Natural Sanquianga, Territorio Ancestral y Colectivo, 2018–2023",
+      "publisher": "Parques Nacionales Naturales de Colombia; Equipo Mixto PNN Sanquianga",
+      "edition": "Internal running title dated 2017; cover planning period 2018–2023.",
+      "year": 2017,
+      "page": "Printed pp. 35–37 and 141–143; Map 5 on p. 35 (PDF p. 36), hydrography p. 36, and Figure 48 on p. 143 (PDF p. 144).",
+      "supports": "Patía valley-to-Pacific direction, Naranjo connection with Sanquianga, northern delta setting and Guascama versus Sanquianga/Amarales/Salahonda disambiguation.",
+      "limits": "Historical management cartography is not a present-day shoreline or flow-allocation survey. Precise hydronym transition vertices, hydraulic percentages and current legal conservation status are not asserted.",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2020/10/plan-de-manejo-pnn-sanquianga.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70245716",
+      "source_keys": [
+        "r65-cehq-regions0713-annual",
+        "r68-mrnf-moisie-public-land-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9326
+          ],
+          "finding": "The selected beginning approaches from the west, turns northeast through the southern Lac de la Bouteille headwater corridor, then turns southeast along upper Rivière aux Pékans west of Fermont. The detailed MRNF map separates Bouteille from Lac Germaine immediately to its north. The first small feeder remains unnamed; the selected start is not declared the official source of either the Pékans or the Moisie.",
+          "sources": [
+            "r68-mrnf-moisie-public-land-map",
+            "r65-cehq-regions0713-annual"
+          ]
+        },
+        {
+          "fragments": [
+            9326,
+            9327
+          ],
+          "finding": "The long southeast upper piece follows the mapped Pékans corridor to its connection with the Moisie. Both maps distinguish this western approach from the Carheil corridor and the eastern Moisie route associated with Ménistouc and Opocopa. Consequently, a description beginning the selected line at those eastern source lakes would describe a different route.",
+          "sources": [
+            "r68-mrnf-moisie-public-land-map",
+            "r65-cehq-regions0713-annual"
+          ]
+        },
+        {
+          "fragments": [
+            9327,
+            9328
+          ],
+          "finding": "Below the upper junction, the selection continues southeast and then south along the river repeatedly labeled Moisie. The sustained valley alignment and lower westward bend agree with the primary maps. The parallel Taoti, Nipissis and Sainte-Marguerite corridors remain distinct rather than being merged into the selected mainstem.",
+          "sources": [
+            "r68-mrnf-moisie-public-land-map",
+            "r65-cehq-regions0713-annual"
+          ]
+        },
+        {
+          "fragments": [
+            9329
+          ],
+          "finding": "The short eastern fragment follows lower Rivière Nipissis south to its confluence with the Moisie. The detailed map distinguishes this corridor from Rivière Nipisso and its lake farther east and from the separate Matamec drainage. The selected fragment is only a lower portion of the Nipissis; neither its northern endpoint nor its modeled role establishes the river's source.",
+          "sources": [
+            "r68-mrnf-moisie-public-land-map",
+            "r65-cehq-regions0713-annual"
+          ]
+        },
+        {
+          "fragments": [
+            9328
+          ],
+          "finding": "The downstream selection stays on the lower Moisie beyond the Nipissis junction and reaches its coastal approach east of Sept-Îles. The maps support this lower-river identity and its Saint-Laurent setting, while the selected endpoint is not asserted to delimit the complete estuary, exact mouth or freshwater–tidal transition.",
+          "sources": [
+            "r68-mrnf-moisie-public-land-map",
+            "r65-cehq-regions0713-annual"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80282111",
+      "source_keys": [
+        "r68-nps-glaciers-2012",
+        "r68-nps-rafting",
+        "r68-nps-lake-clark-map-text",
+        "r06-nps-katmai-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2761
+          ],
+          "finding": "The actual selected beginning occupies northern glacial terrain. NPS glacier cartography provides Tlikakila/Tanaina regional context, and NPS rafting prose explicitly says the Tlikakila flows southwest into Lake Clark. These sources do not name the selected initial feeder or establish every selected upper reach. The first feeder remains unnamed; the selected endpoint is not replaced with the commonly cited Summit Lake setting.",
+          "sources": [
+            "r68-nps-glaciers-2012",
+            "r68-nps-rafting"
+          ]
+        },
+        {
+          "fragments": [
+            2761,
+            2762
+          ],
+          "finding": "The middle selected pieces occupy the apparent Lake Clark–Sixmile Lake–Newhalen corridor by their model position. The extracted brochure text supplies those names only: it does not prove their connections or that the selected line traverses each named feature. Neither the inspected glacier map nor the Katmai map covers this middle topology. This portion remains positional/model context, with exact lake passages and connecting reaches unverified.",
+          "sources": [
+            "r68-nps-lake-clark-map-text"
+          ]
+        },
+        {
+          "fragments": [
+            2762,
+            2763
+          ],
+          "finding": "The model extension proceeds southwest into the Iliamna setting toward the outlet near Igiugig. The retained Katmai map directly shows the Iliamna outlet and the separately labeled Kvichak continuing west and southwest toward Levelock. It supports this outlet-to-river portion, not the upstream Newhalen connection or the complete modeled passage across Iliamna Lake.",
+          "sources": [
+            "r06-nps-katmai-map"
+          ]
+        },
+        {
+          "fragments": [
+            2765
+          ],
+          "finding": "The sole extra branch matches the lower Alagnak River: an eastern approach with a broad northern bend and a west-southwestern continuation into the lower Kvichak. The retained NPS map labels this corridor independently. Only the selected lower branch is included; the much farther upstream Kukaklek and Nonvianuk lake system is not silently added.",
+          "sources": [
+            "r06-nps-katmai-map"
+          ]
+        },
+        {
+          "fragments": [
+            2764
+          ],
+          "finding": "The last short mainstem piece continues below the Alagnak junction along the widening lower Kvichak corridor. The regional map supports the downstream relationship, but the selected endpoint is not asserted to be a surveyed river mouth, freshwater–tidal limit, or the complete continuation through Kvichak Bay and Bristol Bay.",
+          "sources": [
+            "r06-nps-katmai-map"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70019706",
+      "source_keys": [
+        "r61-cehq-region10-summer-lowflow",
+        "r68-krg-innuksuac-map-2020"
+      ],
+      "correspondence": [
+        {
+          "finding": "The southern selected beginning lies in the lake-and-feeder country west of the Descareaux–Bacqueville watershed setting. It continues north rather than joining the separately mapped Boniface corridor to the southwest. The first small feeder remains unnamed.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r68-krg-innuksuac-map-2020"
+          ]
+        },
+        {
+          "finding": "The long eastern part of the selection follows the northward Innuksuac lake-country corridor, in the Kakiattuq, Chavigny, Gélissen and Le Roy regional sequence shown by the ministry cartography. These lake labels are positional context; an exact passage through every named waterbody is not asserted.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r68-krg-innuksuac-map-2020"
+          ]
+        },
+        {
+          "finding": "Near its northern bend the route turns west into the mapped Innuksuac trunk, remaining south of the separately drawn Koktac and other northern coastal systems. It then crosses the central lake-rich corridor and continues through the lower Qamaniruaq setting toward Inukjuak.",
+          "sources": [
+            "r68-krg-innuksuac-map-2020"
+          ]
+        },
+        {
+          "finding": "The last selected section bends southwest into the Inukjuak/Hudson Bay coastal approach. The source maps label the receiving river Innuksuac and separate it from Kongut and Gladel to the south. The selected endpoint is not claimed to be a surveyed mouth, tidal limit or complete marine continuation.",
+          "sources": [
+            "r61-cehq-region10-summer-lowflow",
+            "r68-krg-innuksuac-map-2020"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60266404",
+      "source_keys": [
+        "r68-unicauca-sanjorge-2023",
+        "r68-upme-telembi-2024-2025",
+        "r68-pnn-sanquianga-plan"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11607
+          ],
+          "scope": "Actual eastern upper route",
+          "finding": "The selected eastern line descends from a short northeastern feeder, makes the southern San Sebastián-side bend and then turns northwest and west. The Universidad del Cauca maps distinguish this characteristic San Jorge corridor from the more southerly Sambingo and Hato Viejo branches. Its initial feeder extends beyond the explicitly drawn principal river on those maps and remains unnamed. The report places San Jorge within the Guachicono hydrographic subzone; this basin classification is not a claim that every selected San Jorge reach bears the name Guachicono.",
+          "sources": [
+            "r68-unicauca-sanjorge-2023"
+          ]
+        },
+        {
+          "fragments": [
+            11616,
+            11608,
+            11610
+          ],
+          "scope": "Northern junction, Patía valley and short southern branch",
+          "finding": "The separate northern piece meets the eastern selected corridor before the modeled mainstem runs south and bends west. The park plan describes the Patía valley continuing south toward the Juanambú–Guáitara receiving sector and then crossing the Cordillera Occidental toward the Pacific. That directional sequence is consistent with the actual selected route. The northern piece and short southern feeder are retained as separately selected contributors; their individual hydronyms and precise transition points are not established here. Neither is renamed San Jorge or Patía merely because of its modeled role.",
+          "sources": [
+            "r68-unicauca-sanjorge-2023",
+            "r68-pnn-sanquianga-plan"
+          ]
+        },
+        {
+          "fragments": [
+            11611,
+            11612,
+            11613,
+            11614,
+            11615
+          ],
+          "scope": "Entire southwestern grouped tributary corridor",
+          "finding": "Four connected pieces run from the southeastern side of the southwestern branch generally westward and then north into the selected lowland trunk. A fifth short piece joins this branch from the south; it is not a fifth consecutive trunk segment. UPME’s subzone and watercourse maps place this branching setting in the Telembí-to-lower-Patía drainage context, separately from the Mira basin farther southwest. They support the receiving-system correspondence but do not securely name the initial eastern feeder, the short southern side feeder, or every transition along this chain. Those component hydronyms are left unassigned.",
+          "sources": [
+            "r68-upme-telembi-2024-2025"
+          ]
+        },
+        {
+          "fragments": [
+            11608,
+            11609
+          ],
+          "scope": "Westward lowland trunk and modified northward connection",
+          "finding": "The selection continues west across the Pacific plain and then turns north. The UPME hydrographic maps distinguish the Patía Medio, Telembí and Patía Bajo settings. The park plan separately documents the connection from the Patía through the Naranjo diversion setting into Sanquianga. This supports the selected northbound receiving route without assuming that the older westward/southwestern Patía outlet or every distributary is included. Exact vertices separating Patía, canal and Sanquianga names are not assigned.",
+          "sources": [
+            "r68-upme-telembi-2024-2025",
+            "r68-pnn-sanquianga-plan"
+          ]
+        },
+        {
+          "fragments": [
+            11609
+          ],
+          "scope": "Guascama terminal distributary scope",
+          "finding": "Inspection of the park location map, its geographic grid and the delta figure places the selected northwestern terminal approach on the Guascama side of the northern delta complex. The park publication distinguishes Guascama, Sanquianga and Amarales outlets from the southern Salahonda lobe. The endpoint is treated as a modeled coastal approach, not a surveyed mouth, present shoreline, freshwater–tidal boundary or complete estuarine channel.",
+          "sources": [
+            "r68-pnn-sanquianga-plan"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

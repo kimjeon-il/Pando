@@ -1,0 +1,117 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r10",
+  "created_at_utc": "2026-10-09T14:49:18.332591+00:00",
+  "target": {
+    "aw_id": "hydro-system:50782443",
+    "system_id": "50782443",
+    "logical_fid": 2135,
+    "geometry_fids": [
+      7098
+    ],
+    "historical_baseline_bbox": [
+      117.508333,
+      -35.014368,
+      118.08125,
+      -34.427083
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Kalgan River system; representative mainstem identity only",
+    "candidate_name": "Kalgan River",
+    "supported_name_scope": "Representative selected river-system identity; not a uniform name for every constituent part.",
+    "category": "representative_system_support",
+    "name_original": "Kalgan River",
+    "name_original_language": "en",
+    "name_en": "Kalgan River",
+    "name_ko": null,
+    "status": "Supported representative system identity; whole-group and per-reach scalar naming are not cleared.",
+    "identity_confidence": "High for representative regional system association; exact upstream channel names and river-to-harbour transition remain unresolved.",
+    "scope": "Selected pinned historical baseline group only, with explicit upstream and receiving-water limitations.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming evidence acquired.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "../../geometry-reference.json",
+    "fragment_facts_file": "../../selected-river-metadata.json",
+    "ordered_source_ids_file": "../../source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 1,
+    "all_line_parts_reviewed": 31,
+    "all_coordinate_positions_reviewed": 181,
+    "distinct_source_reach_ids": 31,
+    "canonical_fragment_geometry_sha256": "468c05bd7554499d7292b5f81aa315af0e71c44839760163f6797ae9c915f78d",
+    "ordered_source_id_csv_sha256": "e7c544ab373e799c25c0158b4e6d28643b3bdabaa52d42b3cf584f0713e39c58",
+    "canonical_ordered_group_geometry_sha256": "c9e4575a4a49948f5efbf1bfe17ee7c46e99ce09a51b2550fed1843f513d2c34",
+    "source_ids_sha256": "c7335a7216bec3bd5f9d39864bccd2c05f0d3bed753a1225f2bacc4d923c579f",
+    "fragment_and_all_part_geometry_hashes_independently_recomputed": true,
+    "source_id_hashes_independently_recomputed": true,
+    "discontinuous_adjacent_part_joins_detected": 0,
+    "complete_geometry_published": false,
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "All decoded parts were included in the complete-route view and count, bounds, continuity and individual-part hash checks. Equal counts do not prove the original source-reach-to-rendered-part crosswalk."
+  },
+  "spatial_identity_check": {
+    "method": "Side-by-side visual comparison of all decoded baseline parts with the complete DWER catchment map and BOM regional maps, supported by inspected DWER source bodies. No georegistered overlay or exact line fit.",
+    "evidence_ids": [
+      "KALGAN-BOM-AWRA2012",
+      "KALGAN-DWER-NUTRIENT2019",
+      "KALGAN-DWER-RIVERHEALTH"
+    ],
+    "baseline_role": "mainstem",
+    "baseline_role_is_not_a_name_authority": true,
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false,
+    "per_reach_name_assignment_cleared": false,
+    "regional_course_comparison": "The selected path starts in the western inland portion, follows a broad eastward corridor and bends south, then southwest toward the Albany coast. This configuration agrees at catchment scale with the mapped Kalgan drainage, including the lower route toward Stevens Farm and Oyster Harbour.",
+    "upstream_limit": "The selected western starting extension is within the compared regional drainage pattern, but the inspected map leaves individual waterways unnamed. No exact point where all upstream parts become Kalgan River is established.",
+    "tributary_limit": "Named tributaries remain distinct. The selected mainstem metadata and catchment-level agreement do not assign Kalgan River to every source reach.",
+    "coastal_limit": "The receiving Oyster Harbour and any terminal harbour connector do not inherit the river name. The tidal lower river is distinguished from the harbour, but no selected-part boundary is established."
+  },
+  "outlet_scope": {
+    "regional_receiving_water": "Oyster Harbour, near Albany, Western Australia",
+    "documented_entry_region": "Northeastern Oyster Harbour",
+    "baseline_terminal_class": "sea",
+    "source_endpoint_lonlat": [
+      117.94791666666649,
+      -34.99791666666686
+    ],
+    "render_endpoint_before_quantization_lonlat": [
+      117.94972915139527,
+      -35.014367792234076
+    ],
+    "decoded_render_endpoint_lonlat": [
+      117.949729,
+      -35.014368
+    ],
+    "source_endpoint_equals_render_endpoint": false,
+    "endpoint_interpretation": "The source and rendered terminal positions differ. The sea-terminal category describes the baseline drainage continuation; it does not establish the surveyed mouth of the named river or a direct open-ocean discharge.",
+    "documented_tidal_river_length_approx_km": 9,
+    "tidal_length_applied_to_geometry": false,
+    "surveyed_outlet_verified": false,
+    "exact_river_harbour_transition_verified": false,
+    "harbour_or_terminal_connector_name_application": false
+  },
+  "evidence_package": {
+    "source_evidence_file": "source-evidence.json",
+    "source_evidence_sha256": "f5dc0d7bfc419242ee7e43b5399701bb96254ee76d32f0bb44cc81faf6e8d05f",
+    "distinct_supporting_publications_for_this_target": 3,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Representative identity alone does not clear uniform whole-group or per-reach naming.",
+    "Exact upstream channel names and river-to-harbour boundaries require finer authoritative evidence and a verified reach crosswalk.",
+    "Current deployment and equality with original continental HydroRIVERS coordinate geometry remain unverified."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

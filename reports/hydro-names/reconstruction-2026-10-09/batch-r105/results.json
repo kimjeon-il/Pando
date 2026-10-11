@@ -1,0 +1,613 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r105",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r104",
+    "commit": "25c56c2ec9d59b3259cb66e747797f7da45163ca",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r104/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70894151",
+    "hydro-system:61280005",
+    "hydro-system:70865140",
+    "hydro-system:61552151"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70894151",
+      "category": "river_group",
+      "system_id": "70894151",
+      "baseline_logical_fid": 3268,
+      "geometry_fids": [
+        10437
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -104.377083,
+        18.864376,
+        -103.80625,
+        20.425
+      ],
+      "rendered_mainstem_length_km": 262.124,
+      "rendered_network_length_km": 262.124,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -104.377083,
+          18.864376,
+          -103.80625,
+          20.425
+        ]
+      },
+      "candidate_name": "Ayuquila–Armería",
+      "candidate_names": [
+        "Ayuquila–Armería"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Complete bounded generalized mainstem correspondence; names of tributaries, individual upper components and reservoirs are not extended to the entire object.",
+      "geographic_disambiguation": "The northern Atengo-side start feeds the Tacotán–Ramón Corona reservoir sequence and western Ayuquila approach through El Corcovado/El Grullo. It joins the separate Tuxcacuesco approach west of Tolimán, continues south west of Comala and Colima, and ends near Boca de Pascuales, distinct from the Marabasco, Coahuayana and adjacent coastal-lagoon systems.",
+      "source_keys": [
+        "r105-sgm-atengo-2014",
+        "r105-inegi-atengo-2010",
+        "r105-inegi-jalisco-2020",
+        "r105-inegi-colima-2024",
+        "r105-dof-armeria-technical",
+        "r105-jira-territorio"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western Mexico, Jalisco and Colima: Atengo/Ayutla headward corridor, Ayuquila valley, Armería and the Pacific coast near Boca de Pascuales.",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Complete bounded original-source correspondence for the initial feeder, upper tributary junctions, two-reservoir sequence, middle Ayuquila, Tuxcacuesco junction, lower Armería and actual coastal terminal setting. The detailed SGM sheet resolves the opening connector; regional generalization and source-specific component labels do not leave a material route gap. No exact pointwise alignment, geometry revalidation, current flow, shoreline or legal hydronym transition is asserted.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Ayuquila–Armería",
+        "initial_twig_name": null,
+        "upper_components": "El Tacote-labelled drainage, Río San Pedro and Río de Atengo on SGM; El Pedregoso and Atenco on the municipal sheet. These are bounded map observations, not formal synonym declarations.",
+        "reservoir_components": [
+          "Tacotán",
+          "General Ramón Corona (Trigomil)"
+        ],
+        "middle_component": "Río Ayuquila",
+        "lower_component": "Río Armería; the more recent Colima map prints A. Armería on several stretches.",
+        "separate_major_joining_river": "Río Tuxcacuesco, not the selected headward route.",
+        "terminal_setting": "Boca de Pascuales, Océano Pacífico, between the Cuyutlán/Palo Verde surroundings and the Tecuanillo/Amela coastal setting.",
+        "source_name_variation": "The municipal Atenco spelling and SGM/state Atengo spelling are recorded without formally adjudicating aliases. No precise San Pedro/Atengo/Ayuquila/Armería transition coordinate is supplied.",
+        "model_limits": "262.124 km is the supplied modeled length, not an official source-to-mouth river measurement. All existing MultiLineString parts of feature10437 were viewed for source orientation without geometry modification or revalidation.",
+        "excluded_inferences": [
+          "No official source point or Korean name invented.",
+          "No mineral-prospect, fault, settlement or administrative-boundary label treated as a hydronym.",
+          "No current reservoir water level, exact dam-wall crossing or continuously flowing headwater asserted.",
+          "No whole-system synonym made from every tributary/reservoir name."
+        ],
+        "source_availability_limits": [
+          {
+            "publication": "Nivel de alteración ecohidrológica en ríos perennes de la cuenca del río Ayuquila-Armería, 2020",
+            "url": "https://www.scielo.org.mx/scielo.php?lng=es&nrm=is&pid=S1665-14562020000200028&script=sci_arttext",
+            "observed_limit": "Optional article reader timed out. No content used; independent original maps establish the corridor."
+          }
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:61280005",
+      "category": "river_group",
+      "system_id": "61280005",
+      "baseline_logical_fid": 3512,
+      "geometry_fids": [
+        13921
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -69.360417,
+        -19.189583,
+        -68.122917,
+        -18.15
+      ],
+      "rendered_mainstem_length_km": 261.61,
+      "rendered_network_length_km": 261.61,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -69.360417,
+          -19.189583,
+          -68.122917,
+          -18.15
+        ]
+      },
+      "candidate_name": "Río Lauca",
+      "candidate_names": [
+        "Río Lauca"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The main named receiving trunk is Río Lauca in both countries. Upstream Desaguadero, Cotacotani lakes and Parinacota bofedal are differentiated components. The lower selected corridor is the western Lauca branch, distinct from the Mamañica and Barras channels east of it.",
+      "geographic_disambiguation": "The complete single selected mainstem feature was inspected from its northern lake-cluster opening, southwestward lake outlet and southbound Chilean valley to the eastward frontier crossing, Carangas northern bend, Bolivian eastward trunk, southward Huachacalla–Escara reach and terminal western Chipaya delta. It does not trace the separate Lago Chungará surface basin, the westbound Canal Lauca transfer, the northward Cosapa approach or the eastern Mamañica/Barras routes. No historical candidate was used as identification evidence.",
+      "source_keys": [
+        "r105-igm-chile-hydrocourses",
+        "r105-igm-chile-waterbodies",
+        "r105-conaf-lauca2008",
+        "r105-jog-nevado-sajama",
+        "r105-cebem-chipaya2018"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Arica and Parinacota, Chile, and western Oruro, Bolivia: Cotacotani–Parinacota headwater setting, the transboundary Lauca valley, Carangas, Huachacalla–Escara and the Coipasa salar margin west of Chipaya.",
+      "candidate_name_role": "Supported representative identity of the selected Lauca drainage system, not a uniform name for lake passages, the Desaguadero feeder or every modeled reach.",
+      "completion_scope": "All of feature13921, including every retained subline in its displayed route, was reviewed at generalized component/corridor scale against actual original source pixels. Complementary originals cover the headwater lakes and drainage, Chilean valley, frontier connection, Bolivian bend and junctions, lower western branch and terminal salar setting. The result does not require a permanent interlake channel, present shoreline, exact naming transition or pointwise river alignment. No unlocated selected branch or required geographic connection remains at this bounded scope. No geometry revalidation or application was performed.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_name": "Río Lauca",
+        "bounded_upstream_feeder_name": "Río Desaguadero, upstream Parinacota context; exact modeled name boundary unassigned.",
+        "lake_wetland_and_terminal_components": [
+          "Lagunas Cotacotani",
+          "Bofedal de Parinacota",
+          "Salar de Coipasa"
+        ],
+        "separate_neighboring_or_joining_components": [
+          "Lago Chungará",
+          "Río Guallatire",
+          "Río Paquisa",
+          "Río Cosapa",
+          "Mamañica",
+          "Barras",
+          "Canal Lauca"
+        ],
+        "seasonality_and_feature_class": "A generalized river-system route includes a seasonal lake-complex drainage at the opening and an alluvial/deltaic salar margin at the termination. Neither lake names nor canal names are aliases for the representative river.",
+        "excluded_inferences": [
+          "No formal naming date, Indigenous alternative, Korean name, unnamed status or official source/mouth coordinate established.",
+          "The retained display length is not asserted as an official river length.",
+          "No present canal operation, lake level, permanent interlake flow or contemporary fixed delta channel is inferred.",
+          "Exact small-lake names and local name-transition locations remain unassigned; those are not an unresolved system identity."
+        ],
+        "source_availability_limits": [
+          {
+            "publication": "Joint Operations Graphic SE 19-15 Salinas de Garci-Mendoza, Edition 2, 1998 reprint",
+            "url": "https://maps.lib.utexas.edu/maps/jog/latin_america/se-19-15-salinas_de_garci-mendoza-bolivia-chile-1998.pdf",
+            "observed_limit": "Printed LIMITED DISTRIBUTION caveat. Whole sheet and equivalents excluded from correspondence evidence."
+          },
+          {
+            "publication": "Joint Operations Graphic SE 19-10 Arica, Edition 2",
+            "url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-224571178-se19-10.jpg",
+            "observed_limit": "Printed LIMITED DISTRIBUTION with DECLASSIFIED overprint. Separate distribution status was not established; whole sheet and equivalents conservatively excluded."
+          },
+          {
+            "publication": "Cortez 2018 Plan de manejo de la parte baja de la cuenca del río Lauca",
+            "url": "http://chipaya.org/wp-content/uploads/2018/07/GVC-LIBRO-MANEJO-DE-CUENCAS-1-1.pdf",
+            "observed_limit": "The returned PDF was incomplete and unreadable. No plan text or maps were used."
+          }
+        ],
+        "coverage_effect": "Stopped optional sheets and the corrupt plan remain excluded. Independently acquired public IGM, CONAF, Nevado Sajama and CEBEM mapping covers the complete bounded geographic scope, so those outcomes do not create an additional pending count."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70865140",
+      "category": "river_group",
+      "system_id": "70865140",
+      "baseline_logical_fid": 3244,
+      "geometry_fids": [
+        10387
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -105.685325,
+        22.339583,
+        -105.041667,
+        23.85625
+      ],
+      "rendered_mainstem_length_km": 261.51,
+      "rendered_network_length_km": 261.51,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -105.685325,
+          22.339583,
+          -105.041667,
+          23.85625
+        ]
+      },
+      "candidate_name": "Río Acaponeta",
+      "candidate_names": [
+        "Río el Cigarrero",
+        "Río San Diego",
+        "Río Acaponeta"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "The actual eastern headward branch, its westward Cigarrero course, southward mountain trunk, joining streams, Huajicori–Acaponeta corridor, and lower river through the Tecuala and Quimichis surroundings are supported. A continuous source-mapped connection for the final selected westward passage across the coastal wetland and barrier to the open Pacific is not established.",
+      "geographic_disambiguation": "The selected start is east of El Salto in the San Juan Aguinaldo surroundings, not merely any source described for the Acaponeta basin. It runs west through Cigarrero before turning south into San Diego. Río las Cañas to the west and the eastern San Pedro/Mezquital corridor are distinct. Near the coast, the source distinguishes the river, wetland branches, Estero Cuautla, Puerta del Río and Teacapán; those names cannot be substituted for an unestablished direct coastal connector south of Novillero.",
+      "source_keys": [
+        "r105-inegi-el-salto-topo-2020",
+        "r105-inegi-escuinapa-topo-2020",
+        "r105-dof-acaponeta-canas-2016"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western Mexico, from the San Juan Aguinaldo and El Salto surroundings in Durango, through the San Diego mountain corridor to Huajicori, Acaponeta, Tecuala and the Quimichis–Novillero coastal plain of Nayarit.",
+      "candidate_name_role": "Supported upper-component and lower receiving-river correspondence; Acaponeta is a representative-system candidate, not a completed whole-selection identity while the last wetland-to-open-coast connection remains unresolved.",
+      "completion_scope": "The entire bounded extent of the one selected feature was inspected in two original adjacent topographic sheets, including headward and terminal details, all intervening corridor sections and neighboring waterways. Most of the source-to-route correspondence is established, but the final marsh-to-open-coast connector is a material remaining gap. This is not a pointwise geometry fit, geometry revalidation, a present-day channel survey, or an official-source/mouth determination.",
+      "material_pending_reason": "The selected route is substantially supported as a Cigarrero–San Diego approach into Río Acaponeta. The final wetland-to-open-coast connection south of Novillero remains unestablished, so the whole-selection identity stays material pending and no name is applied.",
+      "naming_scope_details": {
+        "supported_component_sequence": [
+          "Río el Cigarrero",
+          "Río San Diego",
+          "Río Acaponeta"
+        ],
+        "material_gap": {
+          "fragments": [
+            10387
+          ],
+          "scope": "Final selected westward passage from the El Caminín/Quimichis marsh, across the Estero Cuautla and coastal-barrier setting, to the open coast south of Novillero.",
+          "needed": "Independent permitted original cartography or an equivalent primary description that establishes the actual branch-to-coast connection represented by this final limb, rather than simply naming the surrounding Acaponeta basin or a different Teacapán outlet.",
+          "not_a_gap": "The exact first-twig name, precise Cigarrero–San Diego–Acaponeta name boundaries and normal cartographic generalization do not themselves cause the pending status."
+        },
+        "source_availability_limits": [
+          {
+            "publication": "INEGI historical geographic synthesis, chapter 702825220532_2",
+            "url": "https://internet.contenidos.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/2104/702825220532/702825220532_2.pdf",
+            "observed_limit": "Optional prose source was unavailable; no content used."
+          },
+          {
+            "publication": "SciELO geographic article S0188-46112012000200006",
+            "url": "https://www.scielo.org.mx/scielo.php?pid=S0188-46112012000200006&script=sci_arttext",
+            "observed_limit": "Optional prose source was unavailable; no content used."
+          }
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:61552151",
+      "category": "river_group",
+      "system_id": "61552151",
+      "baseline_logical_fid": 3618,
+      "geometry_fids": [
+        14534,
+        14533,
+        14532,
+        14537,
+        14531,
+        14535,
+        14536
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -73.374397,
+        -40.16875,
+        -71.220833,
+        -39.364583
+      ],
+      "rendered_mainstem_length_km": 261.456,
+      "rendered_network_length_km": 433.679,
+      "geometry_summary": {
+        "fragment_count": 7,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -73.374397,
+          -40.16875,
+          -71.220833,
+          -39.74375
+        ]
+      },
+      "candidate_name": "Río Valdivia",
+      "candidate_names": [
+        "Río Valdivia"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Complete generalized correspondence from the selected Argentine eastern feeder through Lácar, Nonthué, Hua Hum, Pirihueico, Fuy/Fui, Llanquihue, Panguipulli, Enco, Riñihue, San Pedro, Calle Calle and Valdivia, with all selected Cruces and lake branches accounted for.",
+      "geographic_disambiguation": "The eastern path belongs to the west-draining San Martín–Lácar system, not the adjacent Lolog–Quilquihue Atlantic drainage. The Chilean mainstem passes the southern Panguipulli outlet and Enco–Riñihue connector, not Lago Neltume or the Calafquén–Pullinque route. The northern selected arm is Cruces rather than Leufucade, Pichoy or Lingue. The final feature occupies the Valdivia estuarine channel toward Corral, distinct from southern Tornagaleones.",
+      "source_keys": [
+        "r105-sernatur-los-rios",
+        "r105-ign-lacar250k",
+        "r105-ign-head100k",
+        "r105-igm-public-rivers",
+        "r105-igm-public-water",
+        "r105-argentina-basin74",
+        "r105-argentina-pocahullo",
+        "r105-bcn-los-rios",
+        "r105-conaf-cruces"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Neuquén, Argentina, and Araucanía/Los Ríos, Chile: San Martín de los Andes, the cross-Andean lake chain, Loncoche–Lanco–San José de la Mariquina, Los Lagos–Valdivia and the lower Valdivia estuarine approach to Bahía de Corral.",
+      "candidate_name_role": "Supported representative identity of the complete selected connected system; not a common scalar name for every river reach or lake crossing.",
+      "completion_scope": "All seven selected features reviewed from opening through selected termination, including lake-interior paths, actual connecting rivers, northern tributary and estuarine setting. Generalized component/corridor correspondence is complete. No material unresolved connector or branch remains. This is not pointwise georegistration, geometry revalidation, a survey, a current shoreline/flow assessment or an assignment of every local hydronym boundary.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Valdivia",
+        "initial_headward_component_name": null,
+        "initial_headward_scope": "Mapped Chapelco Chico–Vega Maipú connection into lower Calbuco/Pocahullo; exact individual reach-name transitions unassigned.",
+        "selected_lakes": [
+          "Lago Lácar",
+          "Lago Nonthué",
+          "Lago Pirihueico/Pirehueico",
+          "Lago Panguipulli",
+          "Lago Riñihue"
+        ],
+        "selected_tributary_scope": "Feature 14535 is a Panguipulli internal lake branch. Features 14536–14537 represent the upper-to-lower Cruces arm.",
+        "receiving_waterbody_name": "Lower Río Valdivia estuary; ultimate continuation to Bahía de Corral and Océano Pacífico.",
+        "terminal_limit": "The selected endpoint is not identified as an exact seaward mouth coordinate or open-ocean extension.",
+        "excluded_inferences": [
+          "No scalar river name applied to every selected feature.",
+          "No inclusion of the whole Calafquén, Neltume, Leufucade, Pichoy or other unselected tributary course.",
+          "No official river length inferred from the rendered mainstem.",
+          "No current reservoir, river discharge, water-level or channel condition asserted."
+        ],
+        "source_availability_limits": [
+          {
+            "publication": "APN Plan de Gestión Parque Nacional Lanín",
+            "url": "https://sib.gob.ar/archivos/PlanGestionPNLanin.pdf",
+            "observed_limit": "Reader size limit; no source content acquired or used."
+          },
+          {
+            "publication": "BCN Provincia Valdivia map landing",
+            "url": "https://www.bcn.cl/siit/mapoteca/provincia_view?dato=Valdivia",
+            "observed_limit": "Reader HTTP500; no page or underlying map acquired."
+          },
+          {
+            "publication": "Panguipulli 2026 tourist map on Google Drive",
+            "url": "https://drive.google.com/file/d/1xg8AqWacQ1Cm2Y9LUHfiUK_HpRtaohWD/view?usp=drive_link",
+            "observed_limit": "No readable map was returned; no source fact used."
+          },
+          {
+            "publication": "Riesgos San Martín de los Andes, Informe de Avance I",
+            "url": "https://www.argentina.gob.ar/sites/default/files/riesgos_san_martin_de_los_andes.pdf?%3Cfont+color=",
+            "observed_limit": "Reader size limit; no source content acquired or used."
+          },
+          {
+            "publication": "SEGEMAR Estudio geocientífico aplicado al ordenamiento territorial, San Martín de los Andes 2016",
+            "url": "https://repositorio.segemar.gob.ar/handle/308849217/298",
+            "observed_limit": "Reader timeout followed by original HTTP502; no source content acquired or used."
+          }
+        ],
+        "model_limits": "Selected cached geometry used only for bounded orientation and left unchanged. Source maps and the model generalize channels and lake axes differently; small lateral differences and exact lake centerlines do not invalidate the established component connections."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70865140"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 363,
+    "non_pending_records": 331,
+    "source_access_pending": 3,
+    "source_material_pending": 29,
+    "source_any_pending": 32,
+    "scope_holds": 112,
+    "river_groups": 265,
+    "lakes": 98,
+    "unrecorded": 3702,
+    "unrecorded_river_groups": 3190,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r105-sgm-atengo-2014",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/997_F13-D73_GM.pdf"
+    },
+    {
+      "source_key": "r105-inegi-atengo-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/14/14011.pdf"
+    },
+    {
+      "source_key": "r105-inegi-jalisco-2020",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/jal/889463836964.pdf"
+    },
+    {
+      "source_key": "r105-inegi-colima-2024",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/col/794551162750.pdf"
+    },
+    {
+      "source_key": "r105-dof-armeria-technical",
+      "official_url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5280549"
+    },
+    {
+      "source_key": "r105-jira-territorio",
+      "official_url": "https://jira.org.mx/territorio/"
+    },
+    {
+      "source_key": "r105-igm-chile-hydrocourses",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r105-igm-chile-waterbodies",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r105-conaf-lauca2008",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-del-pn-lauca/?filename=PN-Lauca.pdf&ind=1719522698671&refresh=6214db36&wpdmdl=60043"
+    },
+    {
+      "source_key": "r105-jog-nevado-sajama",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/se-19-11-nevado_sajama-bolivia-chile-1996.pdf"
+    },
+    {
+      "source_key": "r105-cebem-chipaya2018",
+      "official_url": "https://cebem.org/wp-content/uploads/2018/12/chipaya-1994.pdf"
+    },
+    {
+      "source_key": "r105-inegi-el-salto-topo-2020",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/889463835950_geo.pdf"
+    },
+    {
+      "source_key": "r105-inegi-escuinapa-topo-2020",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/889463835974_geo.pdf"
+    },
+    {
+      "source_key": "r105-dof-acaponeta-canas-2016",
+      "official_url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5439952"
+    },
+    {
+      "source_key": "r105-sernatur-los-rios",
+      "official_url": "https://sietelagos.cl/wp-content/uploads/2022/07/MAPA-RUTERO-REGION-DE-LOS-RIOS.pdf"
+    },
+    {
+      "source_key": "r105-ign-lacar250k",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r105-ign-head100k",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r105-igm-public-rivers",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r105-igm-public-water",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r105-argentina-basin74",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/74.pdf"
+    },
+    {
+      "source_key": "r105-argentina-pocahullo",
+      "official_url": "https://www.argentina.gob.ar/noticias/avanza-la-obra-del-parque-lineal-en-el-arroyo-pocahullo-en-san-martin-de-los-andes"
+    },
+    {
+      "source_key": "r105-bcn-los-rios",
+      "official_url": "https://www.bcn.cl/siit/nuestropais/region14/hidrografia.htm"
+    },
+    {
+      "source_key": "r105-conaf-cruces",
+      "official_url": "https://www.conaf.cl/parque_nacionales/santuario-de-la-naturaleza-rio-cruces-y-chorocamayo/"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "25c56c2ec9d59b3259cb66e747797f7da45163ca",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      220,
+      221,
+      222,
+      223
+    ],
+    "next_unrecorded_id": "hydro-system:70246192",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

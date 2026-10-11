@@ -1,0 +1,588 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r108",
+  "sources": [
+    {
+      "source_key": "r108-nrcan-cbmt-paalliq",
+      "title": "Canada Base Map – Transportation (CBMT3978): Victoria Island interior lakes, Paalliq and Byron Bay",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Full selected geographic extent, lake/channel sequence, repeated Paalliq labels, Byron Bay terminal, and source-visible limits of the northwest connection.",
+      "limits": "Independent public cartography, not excluded CGN/geogratis naming records or stopped Canadian publications. No source vector data acquired. Map area coverage is not proof of the unresolved connector; no legal naming boundary or surveyed endpoint claimed. Dynamic export parameters and all source pixels remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r108-dfo-cambridge2021",
+      "title": "Cambridge Bay Arctic Char, Salvelinus alpinus, Commercial Fishery, Nunavut: Integrated Fisheries Management Plan, effective 2021",
+      "publisher": "Fisheries and Oceans Canada",
+      "supports": "Association of Paalik/Paalliq with Lauchlan River and the Byron Bay fishery, and its mouth-oriented setting.",
+      "limits": "Source-attributed local and fisheries-regulation terminology only, not formal gazetteer adjudication or full headwater-route evidence. No plan figure or PDF pages reproduced. Different spellings are retained as printed rather than silently standardized.",
+      "official_url": "https://www.dfo-mpo.gc.ca/fisheries-peches/ifmp-gmp/arctic-char-omble-chev/arctic-char-omble-chev-eng.html"
+    },
+    {
+      "source_key": "r108-kristofferson2002",
+      "title": "Identification of Arctic char stocks in the Cambridge Bay Area, Nunavut Territory, and evidence of stock mixing during overwintering",
+      "author": "Allan H. Kristofferson",
+      "publisher": "University of Manitoba, PhD thesis, 2002",
+      "supports": "Independent Lauchlan/Byron Bay basin and lower river context, lake-rich interior, lower sampling lakes and outlet into Dease Strait.",
+      "limits": "Historical regional field-study figure does not establish the selected northwest connector or present legal name. The prose compass-direction wording is not used to orient the route; the actual figure and modern national cartography supply geographic context. Author reserves publication rights and disallows reproduction of the thesis or extensive extracts without written permission; only own concise factual synthesis is provided, with no pages, figure or extensive text reproduced.",
+      "official_url": "https://mspace.lib.umanitoba.ca/bitstream/handle/1993/19912/Kristofferson_Identification_of.pdf"
+    },
+    {
+      "source_key": "r108-dfo-cambridge2021-inuinnaqtun",
+      "title": "Cambridge Bay Arctic Char Integrated Fisheries Management Plan, effective2021, Inuinnaqtun edition",
+      "publisher": "Fisheries and Oceans Canada",
+      "page": "Section1.2, Table1",
+      "supports": "Direct printed pairing of Paalliq with Lauchlan River in the Inuinnaqtun table.",
+      "limits": "Source-attributed spelling and fisheries context only, not a legal name adjudication or evidence closing the northwest selected connector. No source pages or images reproduced.",
+      "official_url": "https://www.dfo-mpo.gc.ca/fisheries-peches/ifmp-gmp/arctic-char-omble-chev/doc/arctic-char-omble-chev-inuinnaqtun.pdf"
+    },
+    {
+      "source_key": "r108-igm-rivers",
+      "title": "SIIE_v3 Quebradas ríos, public MapServer layer40",
+      "publisher": "Instituto Geográfico Militar de Chile",
+      "supports": "All seven selected river components, opening corridors, distinct feeder branches and intervening junction connections.",
+      "limits": "Public Map rendering of the existing nombre attribute, not a scanned sheet or externally fetched source vectors. Some local labels vary between Lumaco and Cholchol on the upper southward course. Generalized correspondence only; no pointwise fit or exact naming-boundary assertion. Gated IGM250K access was not used.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r108-igm-water",
+      "title": "SIIE_v3 Cuerpos de agua, public MapServer layer37",
+      "publisher": "Instituto Geográfico Militar de Chile",
+      "supports": "Imperial terminal within the estuary, distinct northern Moncul/Trovolhue setting, unselected southward estuary continuation and separate Lago Budi.",
+      "limits": "Generalized waterbody depiction; no present waterline, depth, flow or dam-operation claim. No lake or reservoir is inserted where the continuous river maps show selected corridors.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r108-esri-imagery",
+      "title": "World Imagery: lower Imperial and Moncul estuary",
+      "publisher": "Esri; service credits Esri, Vantor, Earthstar Geographics and the GIS User Community",
+      "supports": "Selected terminal inside the broad estuarine channel opposite Nehuentúe, before Moncul convergence and the southward barrier-backed continuation to the ocean outlet.",
+      "limits": "The image acquisition date and local contributing vendor were not resolved. Naming comes from independent Chilean sources. No claim of current mouth position. exportTilesAllowed=false respected; no bulk tile export. Source pixels and derivatives remain private.",
+      "official_url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r108-bcn-araucania",
+      "title": "Hidrografía Región de la Araucanía",
+      "publisher": "Biblioteca del Congreso Nacional de Chile",
+      "supports": "Imperial formation near Nueva Imperial from the eastern Cautín and northern Cholchol-side river.",
+      "limits": "Regional descriptive corroboration only; the page spells the northern river Cholchón. Detailed components and terminal supplied by original maps. Numeric discharge and unrelated current-information sections not used.",
+      "official_url": "https://www.bcn.cl/siit/nuestropais/region9/hidrografia.htm"
+    },
+    {
+      "source_key": "r108-sernatur2012",
+      "title": "Atractivos turísticos 2012, Región de la Araucanía, R09267 Estuario Moncul–Imperial",
+      "publisher": "Servicio Nacional de Turismo, Chile",
+      "supports": "Named Moncul–Imperial estuary near Nehuentúe, where the two rivers meet, with the coastal barrier setting.",
+      "limits": "Only stable local geographical text used; no present tourism services, contact details or bathing-safety claims. No PDF original download or map screenshot requested.",
+      "official_url": "https://www.sernatur.cl/wp-content/uploads/2018/09/IX-REGION-DE-LA-ARAUCANIA.pdf"
+    },
+    {
+      "source_key": "r108-chileestuyo-cautin",
+      "title": "Río Cautín — Chile es TUYO",
+      "publisher": "Servicio Nacional de Turismo, Chile es TUYO",
+      "supports": "Cautín association with Lonquimay and the Malalcahuello–Nalcas headwater setting.",
+      "limits": "General geographical context only; no tourism recommendation, current access claim or inference that the model starts at the exact natural source.",
+      "official_url": "https://chileestuyo.cl/destacado/rio-cautin/"
+    },
+    {
+      "source_key": "r108-usgs-national-map-ochlockonee",
+      "title": "The National Map USGS Topo: Ochlockonee River from Worth County to Ochlockonee Bay",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Directly mapped names, full selected channel order, headward-feeder selection, major tributary junctions, reservoir passage, dam outlet and terminal main-channel/estuarine setting.",
+      "limits": "Independent national cartographic service, not a route to recover stopped USGS reports, state reports, their maps or reproductions. Dynamic requests, original pixels, crops, orientation derivatives and full coordinates remain private. No vector acquisition, pointwise fit or map republication.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r108-georgia-ochlockonee-plan2002",
+      "title": "Ochlockonee River Basin Management Plan, 2002",
+      "publisher": "Georgia Department of Natural Resources, Environmental Protection Division",
+      "supports": "Worth County headwater setting and the Georgia river corridor; separately named upper river and tributary reaches.",
+      "limits": "Historical public-information summary. Its planning basin includes separately draining Aucilla, Wards Creek and North Mosquito areas, so basin membership is not evidence that those rivers belong to the selected route. Distinct from stopped Oconee and Ogeechee materials and Fecal Coliform TMDL Report 2017-3; none was reacquired.",
+      "official_url": "https://epd.georgia.gov/document/publication/ochlockonee-river-basin-management-planpdf/download"
+    },
+    {
+      "source_key": "r108-nwfwmd-ochlockonee-swim2017",
+      "title": "Ochlockonee River and Bay Surface Water Improvement and Management Plan, September 2017; official June 2021 errata file",
+      "publisher": "Northwest Florida Water Management District",
+      "supports": "Descriptive corroboration of the Worth County-to-Talquin-to-bay river sequence, Jackson Bluff impoundment/outlet, and separate Little River, Telogia, Crooked and Sopchoppy relationships.",
+      "limits": "Historical planning text, not present-day flow or legal advice. No claim to have inspected the failed figure. No original GET or later equivalent retrieval; independent national source pixels supply the actual route correspondence.",
+      "official_url": "https://nwfwater.com/content/download/18958/127421/Ochlockonee%20River%20and%20Bay%20SWIM%20Plan%20June2021_errata.pdf"
+    },
+    {
+      "source_key": "r108-nrcan-cbmt-lorillard",
+      "title": "Canada Base Map – Transportation (CBMT3978): Lorillard River and the surrounding northern lakes and coastal outlet",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Complete generalized selected route, actual northern feeder and northwest-branch junction, direct Lorillard labels, middle and lower connected waters, coastal outlet passages and nearby Connery/Smoke distinction.",
+      "limits": "Independent public national cartography, not Canadian gazetteer/CGN records or a copy of the stopped Nunavut inventory, PCSP or NRCan publications. No source vectors acquired. No exact formal naming boundaries, surveyed endpoints or current flow conditions inferred. Source images, crops, orientation copies, dynamic parameters and receipts remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r108-eccc-lorillard-station-index",
+      "title": "Hydrometric Station Number Index, 06: station 06OA001",
+      "publisher": "Environment and Climate Change Canada, Water Survey of Canada",
+      "supports": "Independent hydrometric usage of Lorillard River above Daly Bay.",
+      "limits": "Station-name evidence only. The linked station-reference detail was unavailable and no exact station coordinates or full-route identity are derived from the index.",
+      "official_url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=06&type=stationNumber"
+    },
+    {
+      "source_key": "r108-gsc8149-tehery-wager-prose",
+      "title": "Report of 2016 Activities for the Bedrock Geology and Economic Potential of the Tehery-Wager Area: GEM 2 Rae Project, Geological Survey of Canada Open File 8149",
+      "authors": "N. Wodicka, H.M. Steenkamp, O.M. Weller, J. Kendrick, V.L. Tschirhart, T.D. Peterson and É. Girard",
+      "publisher": "Geological Survey of Canada, Natural Resources Canada",
+      "supports": "Independent field-use corroboration of Lorillard River in the northern 56G area.",
+      "limits": "Acquired prose only, no original map observation from this report. Commercial reproduction requires permission; no source pages, images, extracts or derivative maps republished. This independently authored 2016 geological report is not a naming-record route, PCSP 2014 report or stopped 1914 bulletin.",
+      "official_url": "https://publications.gc.ca/collections/collection_2018/rncan-nrcan/m183-2/M183-2-8149-eng.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80048422",
+      "source_keys": [
+        "r108-nrcan-cbmt-paalliq",
+        "r108-dfo-cambridge2021",
+        "r108-kristofferson2002",
+        "r108-dfo-cambridge2021-inuinnaqtun"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2490
+          ],
+          "component_scope": "Initial northwestern lake and southbound arms",
+          "finding": "The opening occupies an unnamed lobed lake in the northwestern interior. The southward selection traverses additional narrow and broader lake arms within a densely lake-dotted landscape. No individual head lake or feeder name is established; the model start is not adopted as an official source.",
+          "sources": [
+            "r108-nrcan-cbmt-paalliq"
+          ]
+        },
+        {
+          "fragments": [
+            2490
+          ],
+          "component_scope": "Northwestern reversal and unresolved smaller-lake passage",
+          "finding": "The selection turns northeast from the southern western lake arm and then east through smaller lake settings. The focused original view distinguishes those waters, intervening ridges and alternative mapped channels. The actual connector needed to join this selected sequence is not established. Ordinary straight crossings of a lake or small meander offsets are not the reason for pending.",
+          "sources": [
+            "r108-nrcan-cbmt-paalliq"
+          ]
+        },
+        {
+          "fragments": [
+            2490
+          ],
+          "component_scope": "Eastward upper lake country",
+          "finding": "East of the unresolved reversal, successive small waters and channel segments lead toward a broad unnamed lake, followed by a southeastward passage into the next larger waterbody. The source distinguishes nearby northern and southern lake branches. Their individual names remain unassigned.",
+          "sources": [
+            "r108-nrcan-cbmt-paalliq"
+          ]
+        },
+        {
+          "fragments": [
+            2490
+          ],
+          "component_scope": "Connected middle valley and southward lake chain",
+          "finding": "The middle corridor follows a sequence of broader lakes, narrow channel links and north-south elongated waters, then a short southwestward hook within a lake complex. It continues southeast into broad, island-bearing lakes. These components and their surrounding junctions are visible in the original middle coverage; exact banks, meander positions and name transitions are not asserted.",
+          "sources": [
+            "r108-nrcan-cbmt-paalliq"
+          ]
+        },
+        {
+          "fragments": [
+            2490
+          ],
+          "component_scope": "East-west lake country upstream of the named river",
+          "finding": "The route enters elongated lake waters with numerous parallel peninsulas and then a smaller northern lake/channel complex near the western approach to the lower river. Those lakes are not given the river name wholesale. The original distinguishes the larger southern outlet channel from surrounding smaller northern waterbodies.",
+          "sources": [
+            "r108-nrcan-cbmt-paalliq"
+          ]
+        },
+        {
+          "fragments": [
+            2490
+          ],
+          "component_scope": "Paalliq lower corridor and tributary junctions",
+          "finding": "The eastern trunk, its broad widenings and its lower southeastward channel are repeatedly labeled Paalliq. Surrounding small tributaries join from both sides; they are not separately named here. The selected generalized lower corridor corresponds to this river through the terminal approach.",
+          "sources": [
+            "r108-nrcan-cbmt-paalliq"
+          ]
+        },
+        {
+          "fragments": [
+            2490
+          ],
+          "component_scope": "Byron Bay terminal",
+          "finding": "Paalliq is printed immediately inland of the mapped outlet to Byron Bay. The source distinguishes the river channel from the coastal bay and adjacent small coastal streams. The selected terminal corresponds to that outlet setting without establishing an official mouth vertex.",
+          "sources": [
+            "r108-nrcan-cbmt-paalliq",
+            "r108-kristofferson2002"
+          ]
+        },
+        {
+          "fragments": [
+            2490
+          ],
+          "component_scope": "Independent name and basin corroboration",
+          "finding": "The DFO 2021 plan pairs Lauchlan River with Paalik in its English table and Paalliq in its Inuinnaqtun table, placing the fishery near the river mouth. Kristofferson’s original 2002 thesis describes Lauchlan River at Byron Bay and depicts its inland lake-rich drainage basin, lower sampling reaches and outlet into Dease Strait. The regional basin figure does not resolve the selected northwest connection.",
+          "sources": [
+            "r108-dfo-cambridge2021",
+            "r108-kristofferson2002",
+            "r108-dfo-cambridge2021-inuinnaqtun"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61544601",
+      "source_keys": [
+        "r108-igm-rivers",
+        "r108-igm-water",
+        "r108-esri-imagery",
+        "r108-bcn-araucania",
+        "r108-sernatur2012",
+        "r108-chileestuyo-cautin"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14511
+          ],
+          "component_scope": "Selected initial Quino reach and westward continuation",
+          "finding": "The northeastern opening is on the upper Quino-side drainage, south of the separate Quino Chico branch and south of the Traiguén drainage. It continues west on the mapped Río Quino corridor, passing the Quino Chico, Las Toscas/Quilaco, Bolleco, El Salto and Pila tributary surroundings. The small eastern opening is a generalized river-valley approach, not a selected summit, lake outlet or full source-to-mouth claim. No separate name is asserted for every short headward feeder.",
+          "sources": [
+            "r108-igm-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14511
+          ],
+          "component_scope": "Quino–Traiguén/Colpi and Lumaco joining surroundings",
+          "finding": "The selected Quino course makes its broad southwestern bend, then continues northwest toward the Traiguén joining setting. Beyond that junction the source labels the selected westward course Río Colpi o Pangueco. The selection remains on that east-to-west trunk where the distinct Lumaco approaches from the north, then turns south on the Cholchol corridor. Traiguén and the northern Lumaco are neighboring contributors, not selected headward continuations.",
+          "sources": [
+            "r108-igm-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14511,
+            14512
+          ],
+          "component_scope": "Complete southward Cholchol corridor",
+          "finding": "From the Colpi–Lumaco joining surroundings the selected course runs south, receives the separate eastern Quillén drainage, and continues through the Repocura, Pitraco/Danqui and Renaco joining surroundings. It follows the broad lower southward and westward bends to the Cautín junction near Nueva Imperial. The public source uses Cholchol on this corridor, with a Lumaco label also printed on an upper southward segment; the exact local label transition is not equated to the model feature break. The whole selected channel connection is visible despite ordinary bend generalization.",
+          "sources": [
+            "r108-igm-rivers",
+            "r108-bcn-araucania"
+          ]
+        },
+        {
+          "fragments": [
+            14515
+          ],
+          "component_scope": "Selected Cautín headwater and mountain valley",
+          "finding": "The long eastern tributary begins on the north-to-south upper Cautín headwater valley in the Lonquimay/Malalcahuello surroundings and bends west into the Cautín trunk. It does not start in the separate Colorado/Coloradito, Guamachuco, Caracoles, Blanco, Negro or Indio branches. Its full western mountain-valley course and the northern Río Blanco joining setting are visible in the original river rendering. The official tourism source independently locates the Cautín headwaters at Lonquimay in the Malalcahuello–Nalcas setting.",
+          "sources": [
+            "r108-igm-rivers",
+            "r108-chileestuyo-cautin"
+          ]
+        },
+        {
+          "fragments": [
+            14515
+          ],
+          "component_scope": "Cautín through the central valley",
+          "finding": "The same selected feature continues west and southwest down the braided Cautín valley, passes the separate Peu Peu and Muco-side tributaries, turns south through the Lautaro/Pillanlelbún corridor, and passes the Collín, Quintrilpe and Vilcún-side joining surroundings before continuing southwest through the Temuco reach. Its western end is on lower Cautín; the feature break does not create a new river name. The source depicts channels and braids throughout, not an intervening lake or reservoir.",
+          "sources": [
+            "r108-igm-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14516
+          ],
+          "component_scope": "Complete intermediate lower Cautín tributary feature",
+          "finding": "This entire short east-to-west feature continues the lower Cautín downstream from the preceding feature through its braided lower-valley corridor to the Quepe joining setting. It is not an independent tributary with a separate evidenced scalar name. Its endpoints and intervening connecting corridor are covered by the western original river rendering.",
+          "sources": [
+            "r108-igm-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14514
+          ],
+          "component_scope": "Complete selected lower Quepe branch",
+          "finding": "The southern branch begins within lower Río Quepe, in the Quepe/Huichahue joining surroundings, and follows the Quepe west and northwest past the Boroa-side contribution to its Cautín junction. The selected opening is an interior lower-river point. The Llaima headwaters and full upper Quepe course are outside this feature; it must not be described as the whole Quepe.",
+          "sources": [
+            "r108-igm-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14517
+          ],
+          "component_scope": "Complete terminal Cautín connector",
+          "finding": "The smallest tributary feature carries the combined lower Cautín–Quepe corridor northwest from their joining setting to the northern Cholchol approach. It is a visible lower Cautín connection into the Imperial formation setting, not a lake crossing or an unestablished gap. The mainstem/tributary classification is the model role and does not establish relative official river importance.",
+          "sources": [
+            "r108-igm-rivers",
+            "r108-bcn-araucania"
+          ]
+        },
+        {
+          "fragments": [
+            14513
+          ],
+          "component_scope": "Imperial formation and full selected lower course",
+          "finding": "At the Cholchol–Cautín joining setting, the downstream selected mainstem follows Río Imperial west through its broad braided and then increasingly estuarine corridor. The source identifies the Imperial continuation independently of the northern Cholchol and eastern Cautín names. The selected path follows the Carahue–Nehuentúe lower-valley setting, makes the pronounced southward lower bend and then turns west into the broad estuarine channel.",
+          "sources": [
+            "r108-igm-rivers",
+            "r108-bcn-araucania",
+            "r108-igm-water"
+          ]
+        },
+        {
+          "fragments": [
+            14513
+          ],
+          "component_scope": "Exact bounded terminal setting",
+          "finding": "The selected terminal remains inside the broad Imperial estuarine channel opposite Nehuentúe, just east/upstream of the Moncul joining surroundings. Both the labeled waterbody rendering and independent satellite image establish this interior-river setting. The selection does not turn north up Moncul or traverse Laguna Trovolhue, and it ends before the downstream southward estuary and the Pacific outlet beside the coastal sand barrier. SERNATUR independently names the nearby Moncul–Imperial estuary. The full Imperial reaches the ocean, but that unselected downstream continuation is not silently included.",
+          "sources": [
+            "r108-igm-rivers",
+            "r108-igm-water",
+            "r108-esri-imagery",
+            "r108-sernatur2012"
+          ]
+        },
+        {
+          "fragments": [
+            14511,
+            14512,
+            14513,
+            14514,
+            14515,
+            14516,
+            14517
+          ],
+          "component_scope": "Whole selected representative system and waterbody scope",
+          "finding": "All seven selected features form a connected Imperial system through Quino–Colpi/Pangueco–Cholchol, the Cautín trunk and lower Quepe. Río Imperial is supported as its representative identity, without propagating that scalar name across the differently named components. No selected lake or reservoir traversal is shown. The broad terminal water is the lower Imperial estuary; nearby Budi and Trovolhue are outside the selected paths.",
+          "sources": [
+            "r108-igm-rivers",
+            "r108-igm-water",
+            "r108-esri-imagery",
+            "r108-bcn-araucania",
+            "r108-sernatur2012"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70803081",
+      "source_keys": [
+        "r108-usgs-national-map-ochlockonee",
+        "r108-georgia-ochlockonee-plan2002",
+        "r108-nwfwmd-ochlockonee-swim2017"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9987
+          ],
+          "role": "mainstem",
+          "component_scope": "Selected headward Ochlockonee reach in Worth County",
+          "finding": "The selected opening is on the mapped Ochlockonee River corridor near the Herring Road and Brooks Road surroundings, southwest of Sylvester. The original map directly labels this north-south channel Ochlockonee River. Bay Branch arrives from the west, while the smaller northern Little Ochlockonee River approaches from the east near Evergreen Road. The selected line takes the western Ochlockonee headward approach rather than that Little Ochlockonee branch.",
+          "limits": "The selected opening is downstream of additional mapped headwater drainage; it is not asserted to be the surveyed source of the river.",
+          "sources": [
+            "r108-usgs-national-map-ochlockonee"
+          ]
+        },
+        {
+          "fragments": [
+            9987
+          ],
+          "role": "mainstem",
+          "component_scope": "Doerun surroundings and Moultrie bend",
+          "finding": "The same wetland-lined river continues south through the Worth-Colquitt boundary and east of Doerun, crosses the SR 270 setting, and trends southeast toward Moultrie. The selected route follows its bend along the western side of Moultrie before turning southwest. Little Creek and Wolf Pit Branch are separately mapped tributary context, rather than replacement names for the trunk. Small mapped pools and broad wetland stretches remain within this connected upper river corridor.",
+          "limits": "Individual meanders and small pool shorelines are generalized; no pointwise fitting or exact pool-boundary claim is made.",
+          "sources": [
+            "r108-usgs-national-map-ochlockonee"
+          ]
+        },
+        {
+          "fragments": [
+            9987
+          ],
+          "role": "mainstem",
+          "component_scope": "Bridge Creek, southern Little Ochlockonee and Thomas County reaches",
+          "finding": "Southwest of Moultrie the selection follows the repeatedly labeled Ochlockonee River corridor. The original map separates Bridge Creek entering from the northwest, the longer southern Little Ochlockonee River farther west, and distinct Big Creek approaches. It passes the Coolidge and Ochlocknee surroundings without changing to those feeders, then continues toward the US 19 crossing north of Thomasville.",
+          "limits": "The two separately mapped Little Ochlockonee systems are distinguished; neither is assigned to the selected headward line or used as a whole-feature alias.",
+          "sources": [
+            "r108-usgs-national-map-ochlockonee"
+          ]
+        },
+        {
+          "fragments": [
+            9987
+          ],
+          "role": "mainstem",
+          "component_scope": "Thomasville to the Georgia-Florida boundary",
+          "finding": "The selected river remains west of Thomasville, receives the Oquina Creek and Barnetts Creek surroundings, crosses the US 84 setting, and follows the Ochlockonee floodplain southwest. Tired Creek approaches from the Cairo side; Wolf Creek and Hadley Creek are distinct eastern tributaries. The selection crosses the state boundary along the river corridor, east of the separate Attapulgus-Willacoochee drainage.",
+          "limits": "Named tributary junctions establish the main corridor; the selected feature does not include independent rendered tributary fragments.",
+          "sources": [
+            "r108-usgs-national-map-ochlockonee"
+          ]
+        },
+        {
+          "fragments": [
+            9987
+          ],
+          "role": "mainstem",
+          "component_scope": "Northern Florida and the approach to Lake Talquin",
+          "finding": "The selection follows the main river west of Lake Iamonia and then west of Lake Jackson, past the Havana-area US 27 crossing and the I-10/US 90 surroundings west of Tallahassee. The original map shows those lakes east of the river. The line does not cross either lake or substitute the Little River corridor farther west.",
+          "limits": "Nearby lakes are geographic context, not selected lake crossings.",
+          "sources": [
+            "r108-usgs-national-map-ochlockonee"
+          ]
+        },
+        {
+          "fragments": [
+            9987
+          ],
+          "role": "mainstem",
+          "component_scope": "Lake Talquin passage and Jackson Bluff outlet",
+          "finding": "The river enters the eastern arm of Lake Talquin. The selection crosses the connected reservoir westward and southwestward, passing the junction with the northern Little River arm and the separate Bear, Rocky Comfort and Ocklawaha creek arms. It reaches the mapped Jackson Bluff dam/outlet setting near Bloxham and continues into the downstream river. The reservoir corridor is visibly continuous across the complete modeled passage.",
+          "limits": "This is a generalized reservoir crossing, not a claim of an exposed contemporary river channel across open water or a precise submerged-channel alignment.",
+          "sources": [
+            "r108-usgs-national-map-ochlockonee"
+          ]
+        },
+        {
+          "fragments": [
+            9987
+          ],
+          "role": "mainstem",
+          "component_scope": "Lower Ochlockonee and Telogia Creek junction",
+          "finding": "Below Jackson Bluff the selection takes the southwest-trending Ochlockonee corridor through the national-forest setting. Telogia Creek approaches from the northwest and joins at the large southern turn; the selected line instead reaches that junction from the dam-side northeast. It then follows the main river south and southeast past the Smith Creek surroundings. The source map labels the continuing river and distinguishes the adjacent Sopchoppy drainage farther east.",
+          "limits": "The selected southwest-to-southeast turn is established by the actual channel network; the separate Telogia branch is not mistaken for the headward trunk.",
+          "sources": [
+            "r108-usgs-national-map-ochlockonee"
+          ]
+        },
+        {
+          "fragments": [
+            9987
+          ],
+          "role": "mainstem",
+          "component_scope": "Smith Creek to the tidal main channel",
+          "finding": "The full lower corridor follows the forested Ochlockonee floodplain past the Smith Creek settlement, Sanborn surroundings and the downstream meanders toward Curtis Mill. It remains on the principal river through its wider, island-and-slough-rich reaches. Nearby Hitchcock, Sanborn and smaller mapped waters are side features rather than a different selected long-distance outlet.",
+          "limits": "The coarse selected line simplifies floodplain meanders and occasionally crosses mapped bends; these ordinary generalizations do not create an unresolved branch question.",
+          "sources": [
+            "r108-usgs-national-map-ochlockonee"
+          ]
+        },
+        {
+          "fragments": [
+            9987
+          ],
+          "role": "mainstem",
+          "component_scope": "Crooked River junction, estuarine branch and actual endpoint",
+          "finding": "Near McIntyre the selected line reaches the junction with Crooked River, which extends southwest toward the Carrabelle-side drainage. It stays on the Ochlockonee, crosses the downstream US 319 river-bridge setting and follows the southern/western main tidal channel around the marsh-island complex, rather than taking the separate Sopchoppy River approach from the northeast. Its last modeled segment ends at the southern mouth and western head of Ochlockonee Bay, near the Shell Hammock surroundings and west of the bay-crossing US 98 bridge.",
+          "limits": "The endpoint is a generalized river-mouth/estuary transition, not a surveyed mouth point. Its coarse last bend does not reproduce the detailed marsh shoreline. The selection does not extend through the full bay to Apalachee Bay or open Gulf waters.",
+          "sources": [
+            "r108-usgs-national-map-ochlockonee"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80152740",
+      "source_keys": [
+        "r108-nrcan-cbmt-lorillard",
+        "r108-eccc-lorillard-station-index",
+        "r108-gsc8149-tehery-wager-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2577
+          ],
+          "component_scope": "Initial small-lake feeder",
+          "finding": "The detailed original shows the opening in small lake-and-stream country west of a substantially larger eastern lake. Short streams connect the small western waters to a broader downstream waterway; the larger eastern lake has its own outlet joining that waterway. The selected headward corridor belongs to this connected feeder system. The modeled initial hook simplifies individual shore and bank detail, and neither the small lakes nor the feeder receives an unsupported proper name.",
+          "sources": [
+            "r108-nrcan-cbmt-lorillard"
+          ]
+        },
+        {
+          "fragments": [
+            2577
+          ],
+          "component_scope": "Southbound feeder and southwest approach",
+          "finding": "The original upper map follows the common channel south through wider pools, islands, shoals or rapids, and tributary junctions before it bends southwest. This establishes the selected feeder approach as a real connected waterway. Other lakes and small streams east of the valley remain separate incoming branches.",
+          "sources": [
+            "r108-nrcan-cbmt-lorillard"
+          ]
+        },
+        {
+          "fragments": [
+            2577
+          ],
+          "component_scope": "Junction with northwest Lorillard branch",
+          "finding": "A separate northwest branch is repeatedly labeled Lorillard River on the original map and enters the north–south trunk west of the selected feeder. The feeder reaches the same trunk from the northeast through a broad east–west connecting reach. The selection then follows the shared southbound valley. The northwest named headwater branch is not substituted for the selected opening.",
+          "sources": [
+            "r108-nrcan-cbmt-lorillard"
+          ]
+        },
+        {
+          "fragments": [
+            2577
+          ],
+          "component_scope": "Upper trunk and eastward turn",
+          "finding": "The southbound valley below the junction is labeled Lorillard River. It bends southeast and east through successive broad, island-bearing or rapid-marked reaches, around a prominent northern hill and through additional widenings. Repeated Lorillard labels continue along this actual selected corridor; the large lake to the southwest and its approaches are surrounding waters rather than an invented selected detour.",
+          "sources": [
+            "r108-nrcan-cbmt-lorillard"
+          ]
+        },
+        {
+          "fragments": [
+            2577
+          ],
+          "component_scope": "Long middle Lorillard valley",
+          "finding": "Original middle pixels repeatedly label Lorillard River down the north–south to southeastward valley. They distinguish lateral streams from the through-going trunk and show the same sequence of narrow reaches, bends and wider pools. Hazard Hills are mapped west of the lower part of this corridor. No tributary name is extended to the whole selection, and no pointwise meander agreement is required.",
+          "sources": [
+            "r108-nrcan-cbmt-lorillard"
+          ]
+        },
+        {
+          "fragments": [
+            2577
+          ],
+          "component_scope": "Westward lower turn and broad river passage",
+          "finding": "The trunk turns west through a wider east–west reach, then southwest into a long, irregular lake-like river passage. Original pixels show the connected succession of broad waters, narrows and islands continuing south, which the model represents with long straight segments. These are generalized water-body passages within the same drainage, not unexplained connections across separate basins.",
+          "sources": [
+            "r108-nrcan-cbmt-lorillard"
+          ]
+        },
+        {
+          "fragments": [
+            2577
+          ],
+          "component_scope": "Final eastward reach and coastal outlet complex",
+          "finding": "The lower passage turns east into a narrower reach explicitly labeled Lorillard River, then opens into connected island-bearing waters with northern and southeastern coastal passages. The selected eastward terminal corresponds to this outlet complex and its northern coastal opening. The line simplifies banks and islands; its last vertex is not asserted to be a surveyed mouth point or the exact tidal boundary. The connected original water passages establish the outlet relationship without assigning a separate distributary name.",
+          "sources": [
+            "r108-nrcan-cbmt-lorillard"
+          ]
+        },
+        {
+          "fragments": [
+            2577
+          ],
+          "component_scope": "Independent hydrometric and field-use corroboration",
+          "finding": "The ECCC index independently identifies station 06OA001 as Lorillard River above Daly Bay. The GSC 2016 field report places its camp on Lorillard River in the northern map-sheet area. These acquired prose sources corroborate the river and coastal setting only; they do not replace the original raster correspondence or provide a legal whole-route naming boundary.",
+          "sources": [
+            "r108-eccc-lorillard-station-index",
+            "r108-gsc8149-tehery-wager-prose"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

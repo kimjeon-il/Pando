@@ -1,0 +1,55 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "reviewed_at_utc": "2026-10-09T15:34:28.221015+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159108391",
+    "lakes_base:1159112839",
+    "lakes_base:1159112207"
+  ],
+  "observation_scope": "Historical observations from the completed source review; current validation only checks included factual records.",
+  "new_external_requests": 0,
+  "naming_publications": 1,
+  "shoreline_overlap_measured": false,
+  "survey_registration_verified": false,
+  "observations": [
+    {
+      "source_key": "wsa_map",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "printed_date": "2014-11-25",
+      "scale_denominator": 1750000,
+      "counted_as_naming_source": true,
+      "retrieved_this_batch": false,
+      "observation": "Historical full-map review supports generalized Montreal and Wapawekka identities. The third complete ring reaches separately labelled Wood/Mirond waters and unassigned intervening extent."
+    },
+    {
+      "source_key": "unused_eccc_d_index",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName",
+      "page_modified_date": "2026-09-11",
+      "counted_as_naming_source": false,
+      "retrieved_this_batch": false,
+      "target_names_present": [],
+      "observation": "The letter-D station index contains none of the three target names. It supplies no corroboration for these findings."
+    }
+  ],
+  "complete_geometry_observations": [
+    {
+      "aw_id": "lakes_base:1159108391",
+      "position_count": 81,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "official_whole_waterbody_map_correspondence_review_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159112839",
+      "position_count": 45,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "official_whole_waterbody_map_correspondence_review_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159112207",
+      "position_count": 151,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "official_whole_waterbody_map_correspondence_review_completed": true
+    }
+  ],
+  "included_evidence_limit": "The included files retain factual observations, bibliographic references and selected public-domain lake geometry. The original publications and inspection materials are not included. Offline validation checks the included records and geometry; it does not reopen those publications or reproduce visual map judgments."
+}

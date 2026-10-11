@@ -1,0 +1,161 @@
+{
+  "schema": "hydro-independent-lake-review-v1",
+  "reviewed_at_utc": "2026-10-09T13:28:09.091511+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159109553",
+    "lakes_base:1159110303",
+    "lakes_base:1159108091"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Frozen local sources only: original source/body and receipt checks; independent binary decoding; exact source, inventory and rendered-feature joins; every ordered coordinate; complete source/baseline plots and original publication pixel views compared at regional scale. No external requests or registered raster overlay.",
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "geometry_modified": false,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0,
+  "prior_distinct_targets": 15,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 18,
+  "duplicate_targets": 0,
+  "findings": [
+    {
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "generalized_identity_supported_not_product_name_clearance",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "actual_named_water_shapes_compared": true,
+      "label_overlap_alone_used_as_identity": false,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "aw_id": "lakes_base:1159109553",
+      "source_id": "1159109553",
+      "logical_fid": 4050,
+      "geometry_fids": [
+        15425
+      ],
+      "position_count": 101,
+      "candidate_name": "Dore Lake",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "wsa_dore_map",
+        "eccc_dore_usage"
+      ],
+      "candidate_name_kind": "generalized_existing_waterbody_association",
+      "supported_name_scope": "The complete generalized ring agrees with the broad Dore Lake basin and its southern lobes on the WSA regional map, in the arrangement south of Lac La Plonge and west of Smoothstone Lake. The hydrometric index independently uses the unaccented Dore name.",
+      "multiwater_extent_assessment": "no_separate_lake_combination_demonstrated_at_generalized_scale",
+      "limits": [
+        "Only Dore Lake is directly supported here; the accented search lead is not adopted as an established variant.",
+        "The map is printed November 25, 2014 at 1:1,750,000. Its URL folder and later retrieval do not refresh its content.",
+        "Mapped islands and fine shore detail are absent from this one-ring generalized polygon. No surveyed shoreline, exact name extent or formal current registry status is established."
+      ]
+    },
+    {
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "generalized_identity_supported_not_product_name_clearance",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "actual_named_water_shapes_compared": true,
+      "label_overlap_alone_used_as_identity": false,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "aw_id": "lakes_base:1159110303",
+      "source_id": "1159110303",
+      "logical_fid": 4105,
+      "geometry_fids": [
+        15480
+      ],
+      "position_count": 192,
+      "candidate_name": "Ennadai Lake",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "nluis_65c_ennadai_map",
+        "nluis_65f_ennadai_map",
+        "cirnac_ennadai_usage"
+      ],
+      "candidate_name_kind": "generalized_existing_waterbody_association",
+      "supported_name_scope": "The complete generalized footprint follows Ennadai Lake across the 61-degree sheet seam: its southwest body on 65C and both northward arms on 65F. Both arms carry the Ennadai Lake label. Separately mapped North End Lake lies east of the northeastern arm and is not evidence of a second included lake.",
+      "multiwater_extent_assessment": "no_separate_lake_combination_demonstrated_at_generalized_scale",
+      "limits": [
+        "The adjacent 65C and 65F sheets are one 1979 thematic source group with base information current as of 1963, not two independent contemporary naming maps.",
+        "The sheets use NAD27. Comparison is regional and visual; no datum-transformed overlay, shoreline score, island topology or exact name subdivision is certified.",
+        "The 2019 CIRNAC narrative corroborates government usage only, without a formal naming decision, geographic boundary or Indigenous-language equivalent."
+      ]
+    },
+    {
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "generalized_identity_supported_with_named_subbasin_caution",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "actual_named_water_shapes_compared": true,
+      "label_overlap_alone_used_as_identity": false,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "aw_id": "lakes_base:1159108091",
+      "source_id": "1159108091",
+      "logical_fid": 3937,
+      "geometry_fids": [
+        15312
+      ],
+      "position_count": 96,
+      "candidate_name": "Naknek Lake",
+      "source_research_category": "generalized_single_waterbody_supported_with_named_subbasin_caution",
+      "source_keys": [
+        "NPS-KATM-MAPS",
+        "NPS-KATM-CLASSIC-MAP",
+        "NPS-NAKNEK-BOATING-GUIDE-2013",
+        "NPS-KATM-BOATING",
+        "NPS-KATM-WATER",
+        "USGS-ILIUK-STATION"
+      ],
+      "candidate_name_kind": "generalized_existing_waterbody_association",
+      "supported_name_scope": "The whole generalized ring agrees with Naknek Lake’s western basin, North Arm/Bay of Islands and southeastern Iliuk Arm. The guide’s full-lake framing and NPS prose support that ordinary waterbody association. The northwestern lobe includes the locally labeled Johnny’s Lake basin; this remains an explicit scope qualification.",
+      "multiwater_extent_assessment": "named_connected_subbasin_present_independent_lake_status_not_established",
+      "associated_source_name_forms": [
+        "Johnny's Lake",
+        "North Arm",
+        "Bay of Islands",
+        "Iliuk Arm"
+      ],
+      "limits": [
+        "The February 2013 guide warns that many labels use local names. Johnny’s Lake is not erased or silently converted to an alias, and its formal independent-lake status is not established.",
+        "The nearby Lake Brooks and Lake Grosvenor shapes are outside the generalized target; no exact split or surveyed coverage is claimed.",
+        "USGS station usage corroborates Iliuk Arm at one map-interpolated NAD83 point with unknown stated accuracy. It does not validate the full footprint.",
+        "The guide contains a 2011 National Geographic Society/i-cubed copyright notice. No original pages, maps or derivatives are published."
+      ]
+    }
+  ],
+  "shared_limits": [
+    "All three are fresh actual-inventory investigations, not recovered historical verdicts.",
+    "Generalized waterbody identity is separated from product-name clearance, precise shoreline, formal present-day registry status and legal name extent.",
+    "The complete source and rendered geometries contain 389 ordered positions matching after six-decimal quantization.",
+    "Twelve retained original bodies include catalogs, ordinary government usage and five map publications; the two Ennadai sheets belong to one source group.",
+    "No geometry repair, subdivision, simplification, map-image republication, or automatic application occurred."
+  ]
+}

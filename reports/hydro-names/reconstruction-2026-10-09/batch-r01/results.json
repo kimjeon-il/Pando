@@ -1,0 +1,106 @@
+{
+  "schema": "hydro-reconstruction-reviewed-batch-v1",
+  "batch": "r01",
+  "finalized_at_utc": "2026-10-09T11:11:53.679274+00:00",
+  "research_completed_targets": 3,
+  "independently_reviewed_targets": 3,
+  "counts": {
+    "supported_generalized_water_identity": 2,
+    "whole_polygon_scope_hold": 1
+  },
+  "pending_source_only_targets": 0,
+  "source_coordinate_count_including_ring_closures": 382,
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_polygon_product_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159109497",
+      "source_id": "1159109497",
+      "baseline_fid": 15421,
+      "baseline_logical_fid": 4046,
+      "candidate_name": "MacKay Lake",
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "hold_whole_polygon_name_scope",
+      "supported_name_scope": "MacKay Lake is supported for the principal west basin and northeast arm. No scalar name is cleared for the entire supplied feature.",
+      "whole_polygon_scalar_name": null,
+      "korean_name": null,
+      "formal_current_registry_name_verified": false,
+      "exact_shoreline_verified": false,
+      "source_keys": [
+        "CA-GNWT-20181218"
+      ],
+      "limits": [
+        "Southwest connected-water reach attribution remains unresolved; no legal naming boundary or proven two-lake composite.",
+        "2018 official map usage only; current registry and decision date unverified.",
+        "No-hole generalization omits Big Island and other islands."
+      ],
+      "review_wording_correction": "The polygon boundary crosses the two-line Lockhart River label, rather than enclosing the whole label. Lockhart center is inside; River center and three nearby Lockhart Lake centers are outside.",
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159106899",
+      "source_id": "1159106899",
+      "baseline_fid": 15218,
+      "baseline_logical_fid": 3843,
+      "candidate_name": "Becharof Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "supported_generalized_whole_water_identity_manual_review_only",
+      "supported_name_scope": "Generalized Becharof Lake main basin and connected Island Arm.",
+      "whole_polygon_scalar_name": null,
+      "korean_name": null,
+      "formal_current_registry_name_verified": false,
+      "exact_shoreline_verified": false,
+      "source_keys": [
+        "BECHAROF-FWS-ABOUT",
+        "BECHAROF-FWS-GUIDE-2012",
+        "BECHAROF-ALASKA-RDI-2017"
+      ],
+      "limits": [
+        "Official FWS usage verified; formal current GNIS/BGN adjudication not verified.",
+        "Absent island holes and generalized narrow shoreline margins prevent island-exact or surveyed water-mask claim.",
+        "Separate Ugashik lakes, Ruth Lake/outlet and Pacific bays are not renamed as part of this feature."
+      ],
+      "review_wording_correction": null,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159107065",
+      "source_id": "1159107065",
+      "baseline_fid": 15236,
+      "baseline_logical_fid": 3861,
+      "candidate_name": "Lac Tasiujaq",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "supported_generalized_whole_water_identity_manual_review_only",
+      "supported_name_scope": "Park-used Lac Tasiujaq / Lake Tasiujaq for the generalized coast-adjacent brackish tidal water mapped earlier as Lac Guillaume-Delisle.",
+      "whole_polygon_scalar_name": null,
+      "korean_name": null,
+      "formal_current_registry_name_verified": false,
+      "exact_shoreline_verified": false,
+      "source_keys": [
+        "CA-NUNAVIK-TURSUJUQ-CURRENT",
+        "CA-NUNAVIK-FISHING-2024",
+        "CA-DFO-SEAL-2018"
+      ],
+      "limits": [
+        "The source includes a southwest connector; exact Le Goulet/marine name-boundary cutoff is not established.",
+        "2015 map occurs in a 2024–2025 guide; DFO alias spelling is Guillaume-Deslisle. Current park use is not a formal registry decision.",
+        "No formal decision date, registry ID, naming class or precise island/shoreline accuracy. Freshwater/isolation cannot be inferred."
+      ],
+      "review_wording_correction": null,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "ae2ba70264a62a3b8058fd58db688d956466004bd23a790ebcf27bb853907e39",
+  "publication_contents": "Own factual extraction/review, selected public-domain-derived geometry, validators, one explicitly public-domain FWS original. Other raw PDFs/maps/HTML/crops and full asset caches excluded.",
+  "initial_recovery_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8"
+}

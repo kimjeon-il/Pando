@@ -1,0 +1,49 @@
+{
+  "schema": "hydro-public-target-identity-facts-v2",
+  "batch": "r14",
+  "selection_scope": "One new actual inventory ID joined with its complete source and baseline polygon; no historical name verdict restored.",
+  "targets": [
+    {
+      "aw_id": "lakes_base:1159108815",
+      "source_id": "1159108815",
+      "logical_fid": 3990,
+      "baseline_fids": [
+        15365
+      ],
+      "inventory_geometry_count": 1,
+      "inventory_bbox": [
+        -79.655812,
+        46.827265,
+        -79.156129,
+        47.578188
+      ],
+      "inventory_rendered_area_km2": 340.811,
+      "source_bbox": [
+        -79.65581188233436,
+        46.82726475805089,
+        -79.15612877652836,
+        47.5781876463638
+      ],
+      "source_geometry_type": "Polygon",
+      "source_ring_count": 1,
+      "source_positions_including_closure": 62,
+      "source_interior_ring_count": 0,
+      "source_name_fields": {
+        "name": "lake-173",
+        "name_ko": "",
+        "name_en": "",
+        "name_original": ""
+      },
+      "complete_ordered_source_baseline_match_at_six_decimals": true,
+      "maximum_coordinate_rounding_error_degrees": 4.88247636099004e-07,
+      "geometry_modified": false
+    }
+  ],
+  "geometry_note": "Counts, bounding boxes and inventory area describe generalized geometry rather than surveyed or official lake dimensions. Complete ordered source and baseline positions agree at six-decimal precision.",
+  "included_geometry_files": [
+    "selected-lake-geometries.geojson",
+    "selected-baseline-rendered-geometries.geojson"
+  ],
+  "included_geometry_file_path_base": "Package root",
+  "automatic_application": false
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "hydro-bounded-lake-findings-v2",
+  "batch": "r13",
+  "frozen_at_utc": "2026-10-09T16:03:47.720441+00:00",
+  "target_count": 1,
+  "new_actual_inventory_targets": 1,
+  "full_feature_correspondence_review_completed_count": 1,
+  "source_limited_unresolved_count": 0,
+  "compound_named_waterbody_required_by_evidence": false,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159110463",
+      "source_id": "1159110463",
+      "candidate_name": "Calcasieu Lake",
+      "directly_supported_name_forms": [
+        "Calcasieu Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized target is associated with the mapped Calcasieu Lake basin and its western lower lobe. This is bounded cartographic identity, with channel, marsh and northern-edge generalization explicitly retained.",
+      "source_keys": [
+        "noaa_calcasieu_overview",
+        "louisiana_celcp2011"
+      ],
+      "correspondence_observations": [
+        "The full outline has a narrow northern reach, a broader lower eastern basin, a rounded southern end and a substantial west-projecting lower lobe; these features correspond to the NOAA overview waterbody labeled Calcasieu Lake.",
+        "The long western side spans the mapped Calcasieu Ship Channel and adjacent marsh or intervening shoreline details. The northern cap cuts across finer upstream shoreline detail. These deviations are material limits to an exact water-surface or name-boundary interpretation.",
+        "The mapped connection continues south toward Cameron and the coast, while the target ends at the lower lake rather than extending to the open gulf. Lake Charles lies separately upstream.",
+        "The NOAA overview blue outline is the coastal-mapping project footprint and is not treated as a lake boundary."
+      ],
+      "hydrologic_context": {
+        "setting": "tidally influenced estuarine lower Calcasieu River system",
+        "freshwater_classification_verified": false,
+        "measured_salinity_verified": false,
+        "observation": "Louisiana’s 2011 plan lists Calcasieu Lake among lakes traversed by the river and describes the reach from Lake Charles to the gulf as an estuary subject to tidal variation."
+      },
+      "name_scope_limits": [
+        "Only one acquired publication supplies the detailed labeled map; the separate Louisiana plan corroborates the name and estuarine setting, not the fine outline.",
+        "The full generalized outline was inspected, including its northern cap and western lobe. Fine northern connections, channel margins and marsh boundaries are not partitioned into separate official naming extents.",
+        "The NOAA report describes compilation and final review in May 2022; an explicit report publication date was not established. Its overview does not make this target a surveyed shoreline or establish present conditions.",
+        "The evidence does not establish a second whole named lake within the target. That limited finding does not make every included channel or marsh element exclusively named Calcasieu Lake."
+      ],
+      "compound_named_waterbody_required_by_evidence": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No unresolved acquisition gap remains for the bounded generalized identity assessment. Exact named-water boundaries, registry status and shoreline repair are outside this completed scope.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "publication_scope": "Own factual evidence and source metadata only; no raw source bodies or derivative map images.",
+  "recorded_review_scope": "Historical full-feature map assessment. Completion flags report that assessment, not an automated reproduction of the map judgment.",
+  "included_evidence_limit": "The included files retain factual observations and bibliographic references. The original publications and inspection materials are not included. Offline validation checks included records and selected public-domain lake geometry; it does not reopen those publications or reproduce visual map judgments.",
+  "automatic_application": false
+}

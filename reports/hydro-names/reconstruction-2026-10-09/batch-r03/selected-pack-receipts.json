@@ -1,0 +1,71 @@
+[
+  {
+    "id": 83,
+    "shard": 0,
+    "offset": 3007165,
+    "length": 30382,
+    "stage": 1,
+    "sha256": "c2ede62933bbcd806a4224ede97833ae6ae29eafd56170765485e231a33a0dce",
+    "selected_fids": [
+      6750
+    ]
+  },
+  {
+    "id": 206,
+    "shard": 0,
+    "offset": 3944502,
+    "length": 5320,
+    "stage": 2,
+    "sha256": "076e9da13fcf0e228b32eba2dca94afd552ac9d08dadde40aabeb5110f9a990a",
+    "selected_fids": [
+      3104
+    ]
+  },
+  {
+    "id": 211,
+    "shard": 0,
+    "offset": 3965245,
+    "length": 9839,
+    "stage": 2,
+    "sha256": "9e8a658805ce09df0690cfc6df85ce36452a481c8137a9032365497d61a3dfe7",
+    "selected_fids": [
+      15166
+    ]
+  },
+  {
+    "id": 261,
+    "shard": 1,
+    "offset": 192749,
+    "length": 4190,
+    "stage": 2,
+    "sha256": "a6e6bb42c025ec068a9307617330c1fd9de7a4111d4566139f120a9d6af88db2",
+    "selected_fids": [
+      6749,
+      6752
+    ]
+  },
+  {
+    "id": 700,
+    "shard": 1,
+    "offset": 3749425,
+    "length": 13893,
+    "stage": 3,
+    "sha256": "aa82a104a04cb13f173a7914a7eb7cefb7ed52819d519d773b4ada3545a2237c",
+    "selected_fids": [
+      3103,
+      15165
+    ]
+  },
+  {
+    "id": 861,
+    "shard": 2,
+    "offset": 984113,
+    "length": 13658,
+    "stage": 3,
+    "sha256": "39da97b9d32fbd00eabfcfac62a9cd3ed8e9d32a65b0d0e6f5acb5de2d52de84",
+    "selected_fids": [
+      6748,
+      6751
+    ]
+  }
+]

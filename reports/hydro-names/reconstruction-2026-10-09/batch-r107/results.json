@@ -1,0 +1,642 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r107",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r106",
+    "commit": "479e429e94c38520e794cba7471dd64233e21418",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r106/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61504231",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:61249959"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61504231",
+      "category": "river_group",
+      "system_id": "61504231",
+      "baseline_logical_fid": 3571,
+      "geometry_fids": [
+        14088,
+        14087,
+        14089
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -71.857589,
+        -34.41875,
+        -70.035417,
+        -33.902728
+      ],
+      "rendered_mainstem_length_km": 257.424,
+      "rendered_network_length_km": 258.952,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -71.857589,
+          -34.41875,
+          -70.035417,
+          -33.902728
+        ]
+      },
+      "candidate_name": "Río Rapel",
+      "candidate_names": [
+        "Río Rapel"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Rapel is the downstream representative identity. Cachapoal, Gran Cachapoal glacier, Embalse Rapel and the selected lower Tinguiririca joining setting retain separate component scopes.",
+      "geographic_disambiguation": "The headward selection follows the main Gran Cachapoal ice/debris tongue into the Cachapoal valley, not the separate Las Leñas, Los Baños, Pangal, Cortaderal or Cipreses headwater valleys. The western selection traverses Rapel reservoir and continues down Rapel to La Boca; it does not turn east into the Alhué reservoir arm. The short southern feature occupies the terminal Tinguiririca braided/backwater approach, downstream of the separate Las Cadenas contribution.",
+      "source_keys": [
+        "r107-igm-rivers",
+        "r107-igm-water",
+        "r107-esri-imagery",
+        "r107-soza-falaschi2020",
+        "r107-egu2013",
+        "r107-bcn-ohiggins",
+        "r107-sernatur-navidad"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central Chile: Gran Cachapoal glacial headwaters, upper and middle Cachapoal valley, Rapel reservoir, lower Rapel and the La Boca Pacific estuary.",
+      "candidate_name_role": "Supported representative identity of the complete selected connected system, not a scalar name for its glacial opening, Cachapoal reaches, reservoir axis or Tinguiririca mouth branch.",
+      "completion_scope": "All three selected features reviewed from their openings through joining settings and the selected terminal. Generalized component and corridor correspondence is complete, including the glacial head, reservoir passage and coastward terminal. This is not pointwise georegistration, source-vector comparison, geometry revalidation, a current hydrologic survey or an assignment of every exact name transition.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Rapel",
+        "initial_headward_component_name": "Glaciar Gran Cachapoal / Cachapoal",
+        "initial_headward_scope": "Selected axis along the glacier tongue into the westward proglacial Cachapoal valley; not an open river throughout the ice-covered section.",
+        "selected_lakes": [
+          "Embalse Rapel / Lago Rapel"
+        ],
+        "selected_tributary_scope": "Feature14089 is only the small terminal Tinguiririca braided/backwater contribution at the southern reservoir-head junction, not the full Tinguiririca drainage.",
+        "receiving_waterbody_name": "Océano Pacífico, reached through the lower Rapel estuary at La Boca.",
+        "terminal_limit": "The model endpoint is offshore of the observed estuary setting; the last straight leg is a generalized coastward terminal extension, not a surveyed mouth or channel.",
+        "excluded_inferences": [
+          "No scalar river name applied to every feature or glacier/lake crossing.",
+          "No complete Las Leñas, Pangal, Coya, Claro, Tinguiririca, Las Cadenas or Alhué course is included merely because it joins nearby.",
+          "No exact glacier outlet, subglacial flow path, contemporary ice extent, reservoir water level, river flow or present mouth position inferred.",
+          "No original satellite acquisition date inferred from service-request time."
+        ],
+        "model_limits": "Existing cached geometry was used only for bounded orientation and left unchanged. Source and modeled channels differ through ordinary generalization, notably reservoir axes, braids and the straight coastal extension.",
+        "source_availability_limits": [
+          {
+            "publication": "USGS Professional Paper1386-I Chile and Argentina section, including Central Andes",
+            "url": "https://pubs.usgs.gov/pp/p1386i/chile-arg/dry/central.html",
+            "observed_limit": "HTTP403. The publication and equivalents are stopped and excluded from substantive correspondence evidence."
+          },
+          {
+            "publication": "Charrier et al2019 Geomorphologic and glacial evolution of the Cachapoal and southern Maipo catchments, Andean Geology46(2),240–278",
+            "url": "https://scielo.conicyt.cl/scielo.php?pid=S0718-71062019000200240&script=sci_arttext",
+            "observed_limit": "HTTP403. The publication and equivalents are stopped and excluded from substantive correspondence evidence."
+          },
+          {
+            "publication": "Andes Centrales ParteXVIII, Zona Paso de Maipo Pangal",
+            "url": "https://www.andeshandbook.org/media/documents/Andes_Centrales_-_Parte_XVIII-_Zona_Paso_de_Maipo_Pangal.pdf",
+            "observed_limit": "HTTP403. The publication and equivalents are stopped and excluded from substantive correspondence evidence."
+          },
+          {
+            "publication": "Expedición Andina2019 El Gran Cachapoal webpage",
+            "url": "https://glacierexpedition2019.jimdofree.com/proyecto/el-gran-cachapoal/",
+            "observed_limit": "HTTP403. The publication and equivalents are stopped and excluded from substantive correspondence evidence."
+          },
+          {
+            "publication": "Soza and Falaschi2020, Validación de modelos de elevación digital en los Andes Centrales de Chile",
+            "url": "https://ri.conicet.gov.ar/bitstream/handle/11336/138329/CONICET_Digital_Nro.e824f069-2096-4525-a690-41a240715e76_A.pdf?isAllowed=y&sequence=2",
+            "observed_limit": "The original PDF and map pixels were unavailable. Only previously acquired descriptive prose is used; no further acquisition or equivalent recovery."
+          }
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70549678",
+      "category": "river_group",
+      "system_id": "70549678",
+      "baseline_logical_fid": 3074,
+      "geometry_fids": [
+        9786
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -114.885417,
+        38.822917,
+        -114.489583,
+        40.735417
+      ],
+      "rendered_mainstem_length_km": 256.679,
+      "rendered_network_length_km": 256.679,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -114.885417,
+          38.822917,
+          -114.489583,
+          40.735417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Cattle Camp Wash",
+        "Steptoe Creek",
+        "Tailings Creek",
+        "Bassett Lake",
+        "Duck Creek",
+        "Goshute Lake",
+        "McDermid Creek",
+        "Nelson Creek"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Cattle Camp Wash, Steptoe Creek, Tailings Creek, Bassett Lake, Duck Creek, Goshute Lake, McDermid Creek and Nelson Creek supply geographically bounded component evidence. The initial unnamed mountain reach, the Goshute Lake-to-Currie transition and the extension beyond the mapped Nelson Creek termination are not assigned a river name.",
+      "geographic_disambiguation": "The retained southern hook comes from the mountains east of southern Steptoe Valley, turns north down its axis, passes east of Ely and west of the Schell Creek Range, and follows the lower Duck Creek corridor. Spring Valley and Spring Valley Creek lie on the other side of the mountain range and are not this route. The northern course traverses the Goshute Lake setting, approaches McDermid Creek south of the Currie surroundings, and then enters the northeast-trending Nelson Creek corridor between Spruce Mountain and the Dolly Varden Mountains. The final selected part continues onto the broad plain near Flowery Lake rather than the separately mapped waterbodies west of Spruce Mountain.",
+      "source_keys": [
+        "r107-usgs-national-map-steptoe-goshute",
+        "r107-usace-duck-creek-2009",
+        "r107-ndwr-hydrographic-regions"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Eastern Nevada, White Pine and Elko Counties: southern Steptoe Valley through the Ely and McGill surroundings, lower Duck Creek and Goshute Lake, the Currie surroundings, and southern Goshute Valley toward the Flowery Lake vicinity.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "The entire retained feature, all 97 constituent sublines, metadata and path image were read. Two overlapping original federal raster views cover its complete bounded geography; complete images and necessary enlarged local details were inspected. Geographic coverage does not resolve the material aquatic-connection and terminal-corridor gaps. Ordinary map generalization and exact hydronym boundaries are not the reason for pending status.",
+      "material_pending_reason": "The acquired cartography does not establish the modeled through-connection from the Goshute Lake and northern Steptoe drainage through the Currie surroundings into Nelson Creek. It also does not supply a channel, connected waterbody or identified flow corridor for the long final extension beyond Nelson Creek toward and past the Flowery Lake label. The closed-basin context makes it unsafe to infer those connections from the model. Lower Duck Creek-to-Goshute Lake also contains dissipating and playa-margin intervals; a continuous named channel is not established there. These are source-to-feature correspondence gaps, not merely naming detail. No claim is made that no episodic connection can ever occur or that the model has been geometrically disproved.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_named_river_components": [
+          "Cattle Camp Wash",
+          "Steptoe Creek",
+          "Tailings Creek",
+          "Duck Creek",
+          "McDermid Creek",
+          "Nelson Creek"
+        ],
+        "selected_lake_settings": [
+          "Bassett Lake surroundings",
+          "Goshute Lake playa/wetland complex"
+        ],
+        "adjacent_context_names": [
+          "Steptoe Slough",
+          "Phalen Creek",
+          "Indian Creek",
+          "Flowery Lake",
+          "Spring Valley Creek"
+        ],
+        "initial_headward_component_name": null,
+        "terminal_receiving_water": null,
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "No whole-selection Duck Creek, Nelson Creek, Steptoe River or compound name is proposed.",
+          "A hydrographic-basin name is not converted into a river name.",
+          "No active interbasin surface transfer, continuous flow through playa interiors, named lake outlet or groundwater-to-surface-water equivalence is inferred.",
+          "The selected display length is not an official named-creek length.",
+          "No geometry correction, pointwise fitting or revalidation was performed.",
+          "No completed representative identity, completed naming-scope hold or separate access-pending count is claimed."
+        ],
+        "separately_named_corridor_parts": [
+          "Cattle Camp Wash",
+          "Steptoe Creek",
+          "Tailings Creek",
+          "Bassett Lake",
+          "Duck Creek",
+          "Goshute Lake",
+          "McDermid Creek",
+          "Nelson Creek"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "The entire retained feature, all 97 constituent sublines, metadata and path image were read. Two overlapping original federal raster views cover its complete bounded geography; complete images and necessary enlarged local details were inspected. Geographic coverage does not resolve the material aquatic-connection and terminal-corridor gaps. Ordinary map generalization and exact hydronym boundaries are not the reason for pending status."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70566840",
+      "category": "river_group",
+      "system_id": "70566840",
+      "baseline_logical_fid": 3078,
+      "geometry_fids": [
+        9792
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -116.814583,
+        38.5375,
+        -115.902083,
+        40.089583
+      ],
+      "rendered_mainstem_length_km": 255.868,
+      "rendered_network_length_km": 255.868,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -116.814583,
+          38.5375,
+          -115.902083,
+          40.089583
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Meadow Creek",
+        "Pine Creek",
+        "Dry Lake",
+        "Stoneberger Creek",
+        "Slough Creek"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Meadow Creek and Pine Creek label bounded southern Monitor reaches; Dry Lake labels the selected playa passage; Stoneberger Creek labels the northern Monitor and west-to-east Kobeh trunk; Slough Creek labels the southern Kobeh–Devils Gate corridor and its immediate continuation into Diamond Valley. The final receiving feature is the northern Diamond Valley playa, not an ocean, another river, or a surveyed mouth point. Diamond Valley Flow System is a regional groundwater-system designation and is not adopted as the name of this river-group selection.",
+      "geographic_disambiguation": "The complete retained route was read in order against original national raster cartography, including finer initial and inter-Monitor-gap views, and independent Nevada reconnaissance and county planning maps. The selection is west of Antelope Valley and does not follow Antelope Wash; it joins the eastward Kobeh outlet south of Lone Mountain and crosses Devils Gate. In Diamond Valley it uses the county-mapped eastern floodway, distinct from the western/axial floodway that approaches the other side of the same playa. Nearby Wackles, Wadsworth, Crane, Willow, Coils, Roberts, Antelope Wash, Garden Pass, Simpson, Pedrioli and Tafts waters are treated as separate named features rather than aliases for the complete route.",
+      "source_keys": [
+        "r107-usgs-national-map-monitor-diamond",
+        "r107-eureka-water-plan2016",
+        "r107-nevada-recon30-1964"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central Nevada, United States: southern and northern Monitor Valley, southern Kobeh Valley, Devils Gate and Diamond Valley.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "All geographic intervals of the single retained feature were inspected using five successful original National Map raster views, original reconnaissance Plate1 and county Figures4-18,4-19,7-7 and7-9. This provides full area coverage and substantial bounded component correspondence, but does not establish every required surface-water connector. The pending status is not caused by meander offsets, precise hydronym transition uncertainty, an unnamed short tributary, or a generalized line inside the terminal playa.",
+      "material_pending_reason": "The initial selected tract south of Meadow Creek crosses the southern Monitor alluvial floor without an established mapped drainage joining the named Meadow/Pine corridor. The selected continuation from Dry Lake through the Box Spring–Crane Creek bedrock-gap setting to the northern Monitor lowland likewise is not shown as one connected surface-water route in the inspected original cartography. The independent 1964 reconnaissance describes infrequent inter-Monitor drainage as probable, rather than reporting an observed continuous connection. The visible playa, marshes, neighboring channels and common groundwater system do not establish those specific surface-water links. These are substantive connector questions, not requests for pointwise fit or perennial flow. No claim is made that the selected geometry is proved wrong or that an episodic connection can never occur.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_named_river_components": [
+          "Meadow Creek",
+          "Pine Creek",
+          "Stoneberger Creek",
+          "Slough Creek"
+        ],
+        "selected_named_lake_components": [
+          "Dry Lake, southern Monitor Valley"
+        ],
+        "initial_headward_component_name": null,
+        "inter_monitor_connector_name": null,
+        "terminal_receiving_water": "Northern Diamond Valley playa, descriptive receiving-feature identification",
+        "terminal_feature_proper_name": null,
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "No single Meadow, Pine, Stoneberger, Slough or combined hydronym is assigned to the complete selection.",
+          "No groundwater flow-system name is converted to a surface river name.",
+          "No continuous perennial flow, current flood connection, surveyed source or mouth, legal naming boundary, Korean name or alternative-language name is inferred.",
+          "Antelope Wash, Wadsworth Creek and adjacent named drainages are not treated as selected headwaters or whole-feature aliases.",
+          "The retained display length is not an official river length.",
+          "No completed representative identity, completed scope hold or second access-pending count is claimed."
+        ],
+        "model_limits": "Generalized component/corridor comparison only. Geometry was used for private orientation and was not changed, pointwise fitted, rerouted or revalidated.",
+        "source_availability_limits": [
+          {
+            "publication": "USGS Scientific Investigations Report2006-5249, Hydrogeologic Framework and Ground Water in Basin-Fill Deposits of the Diamond Valley Flow System, Central Nevada",
+            "url": "https://pubs.usgs.gov/sir/2006/5249/",
+            "observed_limit": "HTTP403. The entire report, plate and equivalents remain stopped; no content used."
+          },
+          {
+            "publication": "Mount Hope project hydrogeologic report, NDEP responsive brief Exhibit8",
+            "url": "https://sec.nv.gov/uploads/Appeal-Mount-Hope-0212/NDEP_Responsive_Brief_Exhibit_8.pdf",
+            "observed_limit": "The optional report reader timed out. No source content used."
+          }
+        ],
+        "separately_named_corridor_parts": [
+          "Meadow Creek",
+          "Pine Creek",
+          "Dry Lake",
+          "Stoneberger Creek",
+          "Slough Creek"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "All geographic intervals of the single retained feature were inspected using five successful original National Map raster views, original reconnaissance Plate1 and county Figures4-18,4-19,7-7 and7-9. This provides full area coverage and substantial bounded component correspondence, but does not establish every required surface-water connector. The pending status is not caused by meander offsets, precise hydronym transition uncertainty, an unnamed short tributary, or a generalized line inside the terminal playa."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61249959",
+      "category": "river_group",
+      "system_id": "61249959",
+      "baseline_logical_fid": 3499,
+      "geometry_fids": [
+        13907
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -40.814583,
+        -17.547917,
+        -39.187805,
+        -16.860417
+      ],
+      "rendered_mainstem_length_km": 255.261,
+      "rendered_network_length_km": 255.261,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -40.814583,
+          -17.547917,
+          -39.187805,
+          -16.860417
+        ]
+      },
+      "candidate_name": "Rio Itanhém",
+      "candidate_names": [
+        "Rio Itanhém",
+        "Rio Alcobaça"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The full generalized selected corridor is accounted for by overlapping original municipal cartography. The headward creek components remain distinct; repeated Itanhém/Alcobaça labels establish the connected trunk and its representative identity.",
+      "geographic_disambiguation": "The opening follows the Pedra/Jacutinga drainage rather than the eastern Córrego Alcobaça branch through Monte Castelo. It then follows the west-to-southeast Itanhém corridor, receiving the Rio do Norte from the Machacalis side and Rio Umburanas near Umburatiba. The selected lower river passes Medeiros Neto and north of central Teixeira de Freitas before reaching Alcobaça. It is distinct from the northern Jucuruçu/Prado system and the southern Peruípe, Caravelas and Mucuri drainage settings.",
+      "source_keys": [
+        "r107-ibge-fronteira2007",
+        "r107-ibge-machacalis2007",
+        "r107-ibge-umburatiba2007",
+        "r107-sei-itanhem2023",
+        "r107-sei-medeiros2025",
+        "r107-sei-teixeira2014",
+        "r107-sei-alcobaca2014",
+        "r107-inema-rpga2010",
+        "r107-inema-cbh"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northeastern Minas Gerais and the extreme south of Bahia, Brazil: Fronteira dos Vales–Machacalis, Umburatiba, Medeiros Neto, Teixeira de Freitas and Alcobaça.",
+      "candidate_name_role": "Supported representative identity of the complete selected connected river system. Rio Alcobaça is an independently printed alternative for its trunk; neither name is assigned as a scalar to every headward creek.",
+      "completion_scope": "The complete retained feature and all 51 constituent sublines were reviewed from headward opening to coastal terminal against eight successfully acquired original PDFs, supplemented by an official basin overview. All selected intervals have original cartographic coverage. No material unestablished connector or branch remains. This is generalized component and corridor correspondence, not exact pointwise fitting, source/mouth surveying, current shoreline assessment or geometry revalidation.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Rio Itanhém",
+        "mapped_trunk_alternative": "Rio Alcobaça",
+        "initial_headward_component_names": [
+          "Córrego da Pedra",
+          "Córrego Jacutinga"
+        ],
+        "initial_headward_scope": "Connected headward creek corridor shown in the Fronteira dos Vales original; no official source vertex or exact hydronym transition is adopted.",
+        "selected_named_lake_components": [],
+        "selected_reservoir_passage": "No distinct reservoir traversal is depicted along the selected corridor in the inspected maps. This does not establish the absence of every small dam or impoundment in the basin.",
+        "important_unselected_incoming_components": [
+          "Córrego Alcobaça through Monte Castelo",
+          "Rio do Norte",
+          "Rio Umburanas",
+          "Água Fria",
+          "Cachoeira do Mato"
+        ],
+        "terminal_receiving_water": "Alcobaça estuary and Oceano Atlântico",
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "No scalar, accepted or Korean name assigned; no automatic application.",
+          "No claim that the selected opening is the official Itanhém source or the modeled terminal is a surveyed mouth.",
+          "No inclusion of the full Rio do Norte, Umburanas, Jucuruçu, Peruípe or Mucuri courses.",
+          "No official river length derived from the retained display length.",
+          "No current discharge, navigability, water quality, flood condition, reservoir operation or legal-boundary determination."
+        ],
+        "source_availability_limits": [],
+        "model_limits": "Private orientation copies were used alongside original source pixels. Channel simplification, small lateral offsets, source-era differences and exact local name transitions are ordinary limits, not unresolved aquatic links. No geometry was edited, rerouted or revalidated."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70549678",
+      "hydro-system:70566840"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 2,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 2
+  },
+  "totals_after": {
+    "recorded_targets": 371,
+    "non_pending_records": 336,
+    "source_access_pending": 3,
+    "source_material_pending": 32,
+    "source_any_pending": 35,
+    "scope_holds": 112,
+    "river_groups": 273,
+    "lakes": 98,
+    "unrecorded": 3694,
+    "unrecorded_river_groups": 3182,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r107-igm-rivers",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r107-igm-water",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r107-esri-imagery",
+      "official_url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r107-soza-falaschi2020",
+      "official_url": "https://ri.conicet.gov.ar/bitstream/handle/11336/138329/CONICET_Digital_Nro.e824f069-2096-4525-a690-41a240715e76_A.pdf?isAllowed=y&sequence=2"
+    },
+    {
+      "source_key": "r107-egu2013",
+      "official_url": "https://meetingorganizer.copernicus.org/EGU2013/EGU2013-2320.pdf"
+    },
+    {
+      "source_key": "r107-bcn-ohiggins",
+      "official_url": "https://www.bcn.cl/siit/nuestropais/region6/hidrografia.htm"
+    },
+    {
+      "source_key": "r107-sernatur-navidad",
+      "official_url": "https://www.sernatur.cl/interesante-propuesta-de-turismo-aventura-en-el-destino-navidad/"
+    },
+    {
+      "source_key": "r107-usgs-national-map-steptoe-goshute",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r107-usace-duck-creek-2009",
+      "official_url": "https://www.spk.usace.army.mil/Portals/12/documents/regulatory/jd/2009/May/SPK-2001-25033.pdf"
+    },
+    {
+      "source_key": "r107-ndwr-hydrographic-regions",
+      "official_url": "https://tools.water.nv.gov/hydrographicregions.aspx"
+    },
+    {
+      "source_key": "r107-usgs-national-map-monitor-diamond",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r107-eureka-water-plan2016",
+      "official_url": "https://www.eurekacountynv.gov/media/05cb2n2j/water-resources-master-plan-final.pdf"
+    },
+    {
+      "source_key": "r107-nevada-recon30-1964",
+      "official_url": "https://images.water.nv.gov/images/publications/recon%20reports/rpt30-monitor_antelope_kobeh_valley.pdf"
+    },
+    {
+      "source_key": "r107-ibge-fronteira2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/mg/fronteira_dos_vales.pdf"
+    },
+    {
+      "source_key": "r107-ibge-machacalis2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/mg/machacalis.pdf"
+    },
+    {
+      "source_key": "r107-ibge-umburatiba2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/mg/umburatiba.pdf"
+    },
+    {
+      "source_key": "r107-sei-itanhem2023",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2916005.pdf"
+    },
+    {
+      "source_key": "r107-sei-medeiros2025",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2921104.pdf"
+    },
+    {
+      "source_key": "r107-sei-teixeira2014",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2931350.pdf"
+    },
+    {
+      "source_key": "r107-sei-alcobaca2014",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2900801.pdf"
+    },
+    {
+      "source_key": "r107-inema-rpga2010",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/201002_campanha_3.RPGA_RIOS_PERUPE_ITANHM_e_JUCURUU__2C.2010.pdf"
+    },
+    {
+      "source_key": "r107-inema-cbh",
+      "official_url": "https://www.ba.gov.br/inema/gestao-2/comites-de-bacias/comites/cbh-peruipe-itanhem-e-jucurucu"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "479e429e94c38520e794cba7471dd64233e21418",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      228,
+      229,
+      230,
+      231
+    ],
+    "next_unrecorded_id": "hydro-system:80048422",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

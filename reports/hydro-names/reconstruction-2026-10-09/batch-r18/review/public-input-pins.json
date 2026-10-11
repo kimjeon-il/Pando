@@ -1,0 +1,98 @@
+{
+  "schema": "hydro-public-review-input-pins-v4",
+  "batch": "r18",
+  "scope": "included_public_files_only",
+  "files": [
+    {
+      "path": "geometry-support.py",
+      "bytes": 2400,
+      "sha256": "dd6a583181c1527cdd0646f3ce6aee207570042c14e3fa4ebc3d35a36e752d33"
+    },
+    {
+      "path": "selected-lake-geometries.geojson",
+      "bytes": 6032,
+      "sha256": "ebe3faa61ce4f4c2ad7f9b85819f8f7f60a93e738233df838b6718e946719ba6"
+    },
+    {
+      "path": "selected-baseline-rendered-geometries.geojson",
+      "bytes": 3834,
+      "sha256": "6da44f9fb25f3e367e91f01d4595d62ad367df45f445364c664e7e588200a6ca"
+    },
+    {
+      "path": "selected-inventory-records.json",
+      "bytes": 4378,
+      "sha256": "320b0d1d62798cd0b7a5fd0df368b41095f80d641633ab0becd48e09af5410e5"
+    },
+    {
+      "path": "geometry-duplicate-check.json",
+      "bytes": 3584,
+      "sha256": "8cde7045087e9256be14a78eff9d71b41dfe77ecd9485e0b723b01266e055c1d"
+    },
+    {
+      "path": "geometry-publication-rights.json",
+      "bytes": 993,
+      "sha256": "e7d0c1ca001d56354b6bb43ea1d2f03d2610c77fc1bb0be3ff6e433c2ac8b1bd"
+    },
+    {
+      "path": "geometry-README.md",
+      "bytes": 6210,
+      "sha256": "17e678f39417a78619c81056bbf13c2d1e1962bc409a85edc40e8e6b02e7c428"
+    },
+    {
+      "path": "geometry-reference.json",
+      "bytes": 18740,
+      "sha256": "c45676d293fb4d0cb9114a0be43087f6849ff12237f23ce864e1674346db8286"
+    },
+    {
+      "path": "validate-geometry-reference.py",
+      "bytes": 16687,
+      "sha256": "6a1448015ca653f70629c5a8f3ad58c1add40247d366c5c67d1c0deb40bba94c"
+    },
+    {
+      "path": "test-geometry-reference.py",
+      "bytes": 9648,
+      "sha256": "ca806d67c7e8d83095d2a592e386fe61845ff55ab788bef2e110b673ba8e13cf"
+    },
+    {
+      "path": "geometry-validation.json",
+      "bytes": 8655,
+      "sha256": "2f83096f5108f6089790b8d1d25c2f4985bd2a934129e21fa3ab558cea5dc5f1"
+    },
+    {
+      "path": "geometry-component-manifest.json",
+      "bytes": 1613,
+      "sha256": "5827f30fd563b869779828452390d985d017341268c37b627b9dac8100906cd2"
+    },
+    {
+      "path": "research/balkan/README.md",
+      "bytes": 2735,
+      "sha256": "70c86a6aa8baafe92ec3eb5d14f9f080402a1c797513b5d0b46fbae0d33db9df"
+    },
+    {
+      "path": "research/balkan/findings.json",
+      "bytes": 16986,
+      "sha256": "bfffeab9f4d4557b8b569a46f9c92844aec767c15f248935b6b3bd91609f5197"
+    },
+    {
+      "path": "research/balkan/source-evidence.json",
+      "bytes": 6330,
+      "sha256": "84dbbfb2479a10dde167b1798a3ab7150414a78b557713dff754f229460a1fc3"
+    },
+    {
+      "path": "research/balkan/target-identity-facts.json",
+      "bytes": 3620,
+      "sha256": "f14bf72fa1aaab612d8e1002b83ff4a36dac860833ea8c413314a5c367a97020"
+    },
+    {
+      "path": "research/balkan/map-scope-review.json",
+      "bytes": 6716,
+      "sha256": "d7fecac88d51bbbff0a51fceeff09a3c58a1cacc4f58cea21a55198da1cb66d9"
+    },
+    {
+      "path": "research/balkan/research-manifest.json",
+      "bytes": 1095,
+      "sha256": "1486f2d0a718dee8c2db1cc2eaaa7abbd7606e5ebacfb7e13fbe9f9893d58ded"
+    }
+  ],
+  "automatic_application": false
+}

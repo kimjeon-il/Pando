@@ -1,0 +1,115 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r20",
+  "scope_aw_ids": [
+    "hydro-system:50624422",
+    "hydro-system:50663106",
+    "hydro-system:50668362"
+  ],
+  "new_external_requests": 0,
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "figures": [
+        {
+          "figure": "3.1",
+          "physical_pdf_page": 48,
+          "printed_chapter_page": 5,
+          "scope": "Regional geography and coastline context only; no direct target label claimed"
+        },
+        {
+          "figure": "3.22",
+          "physical_pdf_page": 69,
+          "printed_chapter_page": 26,
+          "scope": "Catchment grouping context only; black Mary River, Brisbane River and Logan-Albert titles are not sole river-name evidence"
+        },
+        {
+          "figure": "3.34",
+          "physical_pdf_page": 81,
+          "printed_chapter_page": 38,
+          "scope": "Direct mapped Mary River monitoring-site name at Miva in Great Sandy Strait context"
+        },
+        {
+          "figure": "3.37",
+          "physical_pdf_page": 82,
+          "printed_chapter_page": 39,
+          "scope": "Direct mapped Brisbane River and Logan River monitoring-site names; nearby Nerang is distinct"
+        },
+        {
+          "figure": "3.47",
+          "physical_pdf_page": 94,
+          "printed_chapter_page": 51,
+          "scope": "Regional urban supply storage context only"
+        },
+        {
+          "figure": "3.48",
+          "physical_pdf_page": 96,
+          "printed_chapter_page": 53,
+          "scope": "Southeast Queensland schematic context only; storage symbols and supply arrows are not river-name extent"
+        }
+      ],
+      "observation": "The pages were viewed in original context, including regional scale and legends. Direct river monitoring-site wording was distinguished from catchment titles, city labels, storage names and water-supply arrows. Multiple figures from this one report count as one publication, not independent corroborating sources.",
+      "is_formal_naming_registry": false,
+      "supporting_text_physical_pdf_pages": [
+        81,
+        82
+      ]
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50624422",
+      "geometry_fids": [
+        6893
+      ],
+      "fragment_count": 1,
+      "part_count": 49,
+      "position_count": 326,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path extends north from the southern inland headwater through a long northward course, then bends northeast toward the Great Sandy Strait. The directly mapped Mary River monitoring site at Miva, lower-river course and surrounding coastline support Mary River as a representative system identity. The southern upper reaches, any feeder naming transitions and coastal continuation are not assigned individual names. The selected mainstem role does not establish a uniform name for all 49 parts."
+    },
+    {
+      "aw_id": "hydro-system:50663106",
+      "geometry_fids": [
+        6936
+      ],
+      "fragment_count": 1,
+      "part_count": 76,
+      "position_count": 491,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path includes a western upper extension, a northeastward upper bend, the southward middle corridor and a winding eastward lower course toward Moreton Bay. The directly mapped Brisbane River monitoring site at Savages Crossing and whole-path regional correspondence support Brisbane River as a representative system identity. The upper western feeder remains unnamed. Wivenhoe is storage context; neither reservoir passages nor the exact name transition and coastal endpoint receive reach-level names. The modeled mainstem role is not proof of uniform Brisbane naming."
+    },
+    {
+      "aw_id": "hydro-system:50668362",
+      "geometry_fids": [
+        6947
+      ],
+      "fragment_count": 1,
+      "part_count": 34,
+      "position_count": 251,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path runs from a southwestern upper extension through a northerly inland corridor, then northeast and east toward the southern Moreton Bay margin. The directly mapped Logan River monitoring site at Yarrahappini and surrounding course support Logan River as a representative system identity. Logan-Albert is a regional catchment grouping, not a compound name assigned to this path. Southwestern headwater or feeder reaches, possible storage-related transitions and the coastal ending remain individually unnamed. No Albert reach assignment is made."
+    }
+  ],
+  "source_limit": "Coarse regional and station-map cartography supports representative system identity. It cannot resolve precise name transitions, all feeder names, reservoir boundaries, every part or a contemporary surveyed mouth; neither map bodies nor full river paths are distributed."
+}

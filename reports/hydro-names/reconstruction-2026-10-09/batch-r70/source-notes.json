@@ -1,0 +1,327 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r70",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; southwestern Inland Ice, Isukasia–Ivisartoq–Nuuk marginal region, readable graticule and Inland Ice legend.",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description, pp. 64–65 Glaciology, and label register for Isukasia, Maniitsoq and Nuuk",
+      "supports": "Explains map feature classes and supplies regional label context without establishing a river identity for the selected line.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r70-anderson-rivers-labrador-1985",
+      "title": "The Rivers of Labrador — Canadian Special Publication of Fisheries and Aquatic Sciences 81",
+      "author": "T. C. Anderson",
+      "publisher": "Fisheries and Oceans Canada, Scientific Information and Publications Branch",
+      "year": 1985,
+      "page": "Printed pp. 267–269; PDF pp. 276–278; Figure 96 and Table 338",
+      "supports": "Representative hydronym; upper lake-chain and southern-arc context; separate Shipiskan approach; Snegamook passage; northeast lower course and Kanairiktok Bay ending.",
+      "limits": "Generalized historical fisheries cartography. The first modeled feeder and northern lake-loop connection cannot be discriminated confidently. It does not establish current operating flows or exact shorelines. The map draws on earlier fisheries surveys and is not independent of Murphy for those survey observations.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    },
+    {
+      "source_key": "r70-murphy-labrador-survey",
+      "title": "A Helicopter Reconnaissance Survey of 17 Labrador Rivers, August, 1972 — Progress Report No. 101",
+      "author": "H. P. Murphy",
+      "publisher": "Environment Canada, Fisheries Service, Resource Development Branch, Newfoundland Region",
+      "year": null,
+      "page": "Printed pp. 141–144 and 156; PDF pp. 154–157 and 169; Figures 95–97",
+      "supports": "Historical mapped trunk, Snegamook sequence, lower-river bends and estuary setting; separate upstream tributary structure.",
+      "limits": "Some central map linework is faint; no missing connection is inferred from an extracted label. Canairiktok is the report's spelling. Survey-era hydrological statements and fish information are not treated as current conditions.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/9982.pdf"
+    },
+    {
+      "source_key": "r70-canal-shipiskan-outlet",
+      "title": "Canada Newfoundland Water Quality Station Profile: NF03NG0034, Shipiskan Lake at Outlet",
+      "publisher": "Government of Newfoundland and Labrador, CANAL",
+      "page": "Station location and Description sections",
+      "supports": "Shipiskan outlet location and lake-to-Snegamook system relationship; Kanairiktok River system name.",
+      "limits": "A station and broad system description cannot prove that the selected southwest branch passes through Shipiskan Lake. Its conventional upstream-source account is not substituted for the actual modeled route.",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF03NG0034"
+    },
+    {
+      "source_key": "r70-nl-forest-district-proclamation",
+      "title": "Consolidated Newfoundland and Labrador Regulation 777/96, Forest Management Districts Proclamation",
+      "publisher": "Government of Newfoundland and Labrador, Queen's Printer",
+      "page": "Schedule, Forest Management Districts 22 and 23",
+      "supports": "Explicit Shipiskan River–Kanairiktok River junction southeast of Shipiskan Lake and east/northeast Kanairiktok–Snegamook–Kanairiktok Bay sequence.",
+      "limits": "Used as geographic description, not legal advice or a current land-boundary determination. The older western source account does not resolve the selected initial feeder.",
+      "official_url": "https://www.assembly.nl.ca/legislation/sr/regulations/rc960777.htm"
+    },
+    {
+      "source_key": "r49-quebec-patp-cote-nord-north-2012",
+      "title": "Plan d’affectation du territoire public de la Côte-Nord — Carte 2 : Droits, statuts et activités usuelles — Partie nord",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune",
+      "year": 2012,
+      "page": "Single sheet, PDF page 1; northeastern Labrador margin",
+      "supports": "Unlabeled regional watercourse context north of the Smallwood reservoir setting and the southern arc of the western selection.",
+      "limits": "Sparse, generalized Labrador context does not establish hydronyms or resolve the initial feeder/lake loops; eastern selected river lies beyond this sheet.",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Cote-Nord/CA_02_droits-statuts-activites-nord-PATP_CN_MERN.pdf.pdf?1592922714="
+    },
+    {
+      "source_key": "r70-ingemmet-arequipa-critical-zones",
+      "title": "Región Arequipa: Zonas críticas por peligros geológicos, Mapa N° 01",
+      "publisher": "INGEMMET, Dirección de Geología Ambiental y Riesgo Geológico",
+      "year": 2015,
+      "page": "Single map sheet; scale 1:350,000, UTM WGS 84 zone 19 south.",
+      "supports": "Continuous regional correspondence and the separately labeled feeder, trunk reaches, reservoir settings and Pacific outlet.",
+      "limits": "Generalized channel and infrastructure cartography; no exact source, shoreline or name-transition claim. Extracted labels alone were not connection evidence.",
+      "official_url": "https://portal.ingemmet.gob.pe/documents/73138/1003201/MAPA_ZONAS_CRITICAS_AREQUIPA_2014-2.pdf"
+    },
+    {
+      "source_key": "r70-arma-arequipa-catalogue",
+      "title": "Catálogo de la información básica y temática de la Región Arequipa",
+      "publisher": "Gobierno Regional de Arequipa, Autoridad Regional Ambiental",
+      "page": "Printed/PDF pp. 6–7, river table and Mapa Base.",
+      "supports": "Official representative compound Camaná-Majes-Colca and Colca-canyon context.",
+      "limits": "Regional base map is less discriminating than the INGEMMET sheet; its reported river length is not substituted for modeled length.",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-arequipa/archivos/public/docs/49.pdf"
+    },
+    {
+      "source_key": "r70-quilca-chili-padh-2016",
+      "title": "Plan de aprovechamiento de la disponibilidad hídrica en el ámbito del Consejo de Recursos Hídricos de la Cuenca Quilca-Chili 2016–2017",
+      "publisher": "Consejo de Recursos Hídricos de Cuenca Quilca-Chili, Grupo Técnico de Trabajo de Aprovechamiento de las Disponibilidades Hídricas",
+      "year": 2016,
+      "page": "Printed/PDF pp. 10–12 and 38; related Condoroma control-station text p. 56.",
+      "supports": "Distinct reservoir and interbasin-transfer roles for Los Españoles, Alto Colca, Condoroma and Tuti.",
+      "limits": "Operational context supplements the independently viewed map; it is not treated as visual proof of the selected path or current reservoir operations.",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-arequipa/archivos/public/docs/plan_de_aprovechamiento_quilca_chili_2016-2017.pdf"
+    },
+    {
+      "source_key": "r70-ibge-ladainha-2022",
+      "title": "Ladainha – MG, Mapa Municipal, 3137007",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências",
+      "year": 2022,
+      "page": "Single-sheet map, western Mumbuca junction and southern/eastern Mucuri do Norte corridor.",
+      "supports": "Actual Córrego Mumbuca initial route, its junction with the separately drawn northern Mucuri do Norte continuation, and the downstream Mucuri do Norte course through Ladainha municipality.",
+      "limits": "Municipal coverage does not reach the coast. Model generalization does not establish exact source points or centimeter-level channel coincidence.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/MG/ladainha/A0_3137007_MM.pdf"
+    },
+    {
+      "source_key": "r70-ibge-minas-2015",
+      "title": "Mapa Político do Estado de Minas Gerais",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências / Coordenação de Cartografia",
+      "year": 2015,
+      "page": "Single-sheet map, northeastern Minas Gerais and adjoining southern Bahia.",
+      "supports": "Connection with Mucuri do Sul, Rio Mucuri continuation and turn through the Mucuri district, Carlos Chagas–Nanuque sequence, and separation from Todos os Santos.",
+      "limits": "State-scale generalization cannot resolve every small feeder or exact confluence position. The detailed feeder name comes from the municipal map.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/mg_politico1300k_2015_v3.pdf"
+    },
+    {
+      "source_key": "r70-inema-mucuri-2013",
+      "title": "Relatório de Monitoramento da Qualidade das Águas, RPGA Rio Mucuri, 1ª Campanha – 2013",
+      "publisher": "Governo do Estado da Bahia, Instituto do Meio Ambiente e Recursos Hídricos (INEMA)",
+      "year": 2013,
+      "page": "Printed/PDF pp. 4–6: station table and Figure 1, Mapa da RPGA do rio Mucuri (map dated 2012).",
+      "supports": "Lower Mucuri from below Santa Clara through BR-101 to the Mucuri-town coastal outlet setting.",
+      "limits": "Bahia coverage does not identify the Minas Gerais headwater. Historical monitoring results are not used as present water-quality evidence; exact estuarine boundaries remain unassigned.",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/Relatrio_Mucuri_C1_2013_FINAL.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90114774",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "All three selected mainstem pieces were inspected. The eastern interior beginning runs northwest, the middle makes an undulating westward traverse and then a northwestward rise, and the western portion bends southwest into the marginal region. There is no separately selected tributary piece.",
+        "The long eastern and middle portions correspond to the mapped Inland Ice. The western turn approaches the adjoining marginal terrain in the Isukasia–Ivisartoq and inner Nuup Kangerlua region northeast of Nuuk. The map graticule and regional ice/land arrangement support that feature-class context, not an exact terminal stream, lake, glacier or fjord boundary.",
+        "The readable map does not establish the whole modeled path as a named natural river. A nearby fjord, glacial or marginal-watercourse name cannot be extended across the interior-ice traverse. This scope hold does not assert that every local marginal stream is unnamed.",
+        "The source legend distinguishes ice-surface contours, dashed thickness isopachs, sub-ice bedrock contours and bold blue aeromagnetic lineaments south of 68°N. These are not named river channels. Historical mapping does not establish current ice margins or actual surface/subglacial connectivity along the model line."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70090277",
+      "source_keys": [
+        "r70-anderson-rivers-labrador-1985",
+        "r70-murphy-labrador-survey",
+        "r70-canal-shipiskan-outlet",
+        "r70-nl-forest-district-proclamation",
+        "r49-quebec-patp-cote-nord-north-2012"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9149
+          ],
+          "finding": "The selection starts with a short eastern approach, northward detour and westward lake-loop course before descending south. Anderson's Figure 96 shows the relevant northern lake complex and distinguishes Gates and Ross lakes, but it does not resolve that exact initial modeled connection reliably. Neither lake is assigned as a proven selected passage, and no conventional river-source description replaces the selected beginning.",
+          "sources": [
+            "r70-anderson-rivers-labrador-1985"
+          ],
+          "correspondence_status": "initial_route_material_hold"
+        },
+        {
+          "fragments": [
+            9149
+          ],
+          "finding": "The subsequent southward course corresponds regionally to the mapped upper lake chain containing Morris and Surf lakes, then bends southeast and east north of the Smallwood setting. Its long southern arc and final northeast turn agree with the trunk shown in the Fisheries maps; the retained Quebec sheet supplies additional unlabeled watercourse context. Exact lake entry and exit positions are not assigned.",
+          "sources": [
+            "r70-anderson-rivers-labrador-1985",
+            "r70-murphy-labrador-survey",
+            "r49-quebec-patp-cote-nord-north-2012"
+          ]
+        },
+        {
+          "fragments": [
+            9149,
+            9150
+          ],
+          "finding": "The selected western piece reaches the Shipiskan–Kanairiktok junction from the southwest. Figure 96 places Shipiskan Lake on the separate northern approach, and the provincial district description explicitly locates the junction southeast of that lake. The selection therefore must not be described as traversing Shipiskan Lake merely because the CANAL profile describes that lake within the wider Kanairiktok system.",
+          "sources": [
+            "r70-anderson-rivers-labrador-1985",
+            "r70-nl-forest-district-proclamation",
+            "r70-canal-shipiskan-outlet"
+          ]
+        },
+        {
+          "fragments": [
+            9150
+          ],
+          "finding": "East of the junction, the selected large river loop, eastward Snegamook Lake passage and northeast lower-river course match the readable Fisheries maps. Snegamook is explicitly identified in both map and river description. Pocketknife Lake and the separate northern tributaries are contextual branches, not selected mainstem passages.",
+          "sources": [
+            "r70-anderson-rivers-labrador-1985",
+            "r70-murphy-labrador-survey"
+          ]
+        },
+        {
+          "fragments": [
+            9150
+          ],
+          "finding": "The lower selection follows the distinct bend below the Snegamook corridor and continues to the inner Kanairiktok Bay estuary setting. The Fisheries maps distinguish the lower river, mouth falls and bay; Murphy also provides a labeled estuary photograph. No exact modern river–estuary boundary, tidal limit or full bay traversal is established.",
+          "sources": [
+            "r70-anderson-rivers-labrador-1985",
+            "r70-murphy-labrador-survey",
+            "r70-nl-forest-district-proclamation"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61229753",
+      "source_keys": [
+        "r70-ingemmet-arequipa-critical-zones",
+        "r70-arma-arequipa-catalogue",
+        "r70-quilca-chili-padh-2016"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13903
+          ],
+          "finding": "The southeastern beginning follows the mapped Río Chilamayo east of Imata into the upper Colca corridor. The neighboring Chili/Sumbay route is distinct.",
+          "sources": [
+            "r70-ingemmet-arequipa-critical-zones"
+          ]
+        },
+        {
+          "fragments": [
+            13903
+          ],
+          "finding": "The selection passes the Los Españoles setting, continues northwest through the Condoroma reservoir corridor, then bends toward Tisco and south to Sibayo and Tuti.",
+          "sources": [
+            "r70-ingemmet-arequipa-critical-zones",
+            "r70-quilca-chili-padh-2016"
+          ]
+        },
+        {
+          "fragments": [
+            13903
+          ],
+          "finding": "The westward canyon route agrees through the Yanque–Cabanaconde sector, past the Molloco junction and Choco, toward the Ayo/Mamacocha junction setting. Those tributary branches are not selected.",
+          "sources": [
+            "r70-ingemmet-arequipa-critical-zones"
+          ]
+        },
+        {
+          "fragments": [
+            13903
+          ],
+          "finding": "The southwestern turn continues into the southward Río Majes valley and the Corire corridor.",
+          "sources": [
+            "r70-ingemmet-arequipa-critical-zones"
+          ]
+        },
+        {
+          "fragments": [
+            13903
+          ],
+          "finding": "The lower selection follows Río Camaná to the Pacific coastal setting near Camaná and San José, west of the separate Quilca outlet.",
+          "sources": [
+            "r70-ingemmet-arequipa-critical-zones"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61260166",
+      "source_keys": [
+        "r70-ibge-ladainha-2022",
+        "r70-ibge-minas-2015",
+        "r70-inema-mucuri-2013"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13911
+          ],
+          "finding": "The western start follows the channel labelled Córrego Mumbuca on the Ladainha municipal map and joins Rio Mucuri do Norte. The separately mapped northern continuation of Mucuri do Norte is not the selected initial branch.",
+          "sources": [
+            "r70-ibge-ladainha-2022"
+          ]
+        },
+        {
+          "fragments": [
+            13911
+          ],
+          "finding": "The selection continues east through the Ladainha municipal area, south of the municipal seat, along Mucuri do Norte. The state map shows its connection with the separately named Mucuri do Sul and the ensuing Rio Mucuri course turning northeast past the Mucuri district. The southern Malacacheta source route is not selected.",
+          "sources": [
+            "r70-ibge-ladainha-2022",
+            "r70-ibge-minas-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13911
+          ],
+          "finding": "The subsequent east-to-southeast corridor agrees with Rio Mucuri through the Carlos Chagas and Nanuque settings. Rio Todos os Santos is a distinct incoming tributary, not the selected upstream route.",
+          "sources": [
+            "r70-ibge-minas-2015"
+          ]
+        },
+        {
+          "fragments": [
+            13911
+          ],
+          "finding": "The Bahia continuation follows the Mucuri below the Santa Clara–Nanuque setting, crosses the BR-101 monitoring location, and reaches the lower estuarine corridor beside Mucuri town on the Atlantic coast. The map supports coastal identity without assigning an exact mouth or tidal boundary.",
+          "sources": [
+            "r70-inema-mucuri-2013",
+            "r70-ibge-minas-2015"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

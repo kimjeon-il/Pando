@@ -1,0 +1,52 @@
+{
+  "batch": "r42",
+  "scope": "included_public_files_only",
+  "automatic_application": false,
+  "files": [
+    {
+      "path": "geometry-README.md",
+      "bytes": 2523,
+      "sha256": "3ac364927f27e69c1fcb704009a32356afed5849a814a7564fa18862704f414b"
+    },
+    {
+      "path": "geometry-component-manifest.json",
+      "bytes": 1323,
+      "sha256": "03201ef847a99b64bd2a513a728cbb4935b31cbcea7d0e445dd270fd53b3e13d"
+    },
+    {
+      "path": "geometry-duplicate-check.json",
+      "bytes": 6360,
+      "sha256": "665b892a07346f607346bcd15bf0c1decb786aca1ac2acabf7fb57b50cadc991"
+    },
+    {
+      "path": "geometry-publication-rights.json",
+      "bytes": 1065,
+      "sha256": "56046c5d76424ea1fbd6e750451beb3cdfcf1473b531dd5b5ebd39fa797f1add"
+    },
+    {
+      "path": "geometry-reference.json",
+      "bytes": 8033,
+      "sha256": "90b4a25be3d5c2a0ddfbc91964202e01a7554c68a8ea674ca7c7c0c0549be893"
+    },
+    {
+      "path": "geometry-validation.json",
+      "bytes": 6043,
+      "sha256": "1235822e577445a3b7e4943a7bb9dbedf392f8ac54e8878ae5a6f7dea9f4609a"
+    },
+    {
+      "path": "selected-inventory-records.json",
+      "bytes": 1979,
+      "sha256": "b84ee856cdf21370e0bbe4533d28dc9effff9d7f96641d858e029d96cf9218d6"
+    },
+    {
+      "path": "test-geometry-reference.py",
+      "bytes": 5568,
+      "sha256": "25a0dff6f45ca365ed96352ac98a15625e4e23223bcc71f3c3b04a52e2f3c8eb"
+    },
+    {
+      "path": "validate-geometry-reference.py",
+      "bytes": 14435,
+      "sha256": "434289050747be56c968afe9517ec40d284f53e04a5ceab6bc78f27927764c93"
+    }
+  ]
+}

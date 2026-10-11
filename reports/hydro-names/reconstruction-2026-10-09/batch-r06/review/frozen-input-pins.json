@@ -1,0 +1,545 @@
+{
+  "schema": "hydro-independent-lake-review-pins-v1",
+  "reviewed_at_utc": "2026-10-09T13:28:09.091511+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159109553",
+    "lakes_base:1159110303",
+    "lakes_base:1159108091"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "package_inputs": [
+    {
+      "file": "geometry-support.py",
+      "bytes": 2400,
+      "sha256": "dd6a583181c1527cdd0646f3ce6aee207570042c14e3fa4ebc3d35a36e752d33"
+    },
+    {
+      "file": "selected-lake-geometries.geojson",
+      "bytes": 16933,
+      "sha256": "7b6c9d2b1d66e32bbc38ad706879f472224a069c11d6e1df7fc64c3dfd770c89"
+    },
+    {
+      "file": "selected-baseline-rendered-geometries.geojson",
+      "bytes": 10500,
+      "sha256": "9d02539a9c8177bd9492376d57379fa97dae2be38dc58a6dd10626857cda9ed0"
+    },
+    {
+      "file": "selected-inventory-records.json",
+      "bytes": 4410,
+      "sha256": "ab67efb8d43f56d0e113c4ce64f6e5ab873f8663d459ee1b5b982407b97b5049"
+    },
+    {
+      "file": "geometry-duplicate-check.json",
+      "bytes": 1125,
+      "sha256": "2a889cacc0e7e28c9f47d9b8da6618ff63483fcc0be62e3414523d95b91b8218"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 451,
+      "sha256": "e7f5ea8d941c61c4934a9ae091c00c55a422db8f13b33e1d55ae4037da8ce6be"
+    },
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 5569,
+      "sha256": "3f8714effcf8bd743e3141f2f810853cce7d094cdee21c4c05fadb19c7d62c78"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 1499,
+      "sha256": "5f72fc05c07abed60a14aafc4dc02061a3614f30ba9b00e0bae17415c7d826c5"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 5059,
+      "sha256": "1f6c6a54bd57e0e6a8bc0bbb5e1f8ec2df104cef463eea03651d2acf30aee4ca"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 5609,
+      "sha256": "9be2eae6d9bb4987e20e5128234cbe0747aafa54dc2cabe1ace4ce2d63bcc99a"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 26121,
+      "sha256": "4e54d23adc60e635d316f47873c1c7356ddaeb66a50d9d0054abf962c293b081"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 20615,
+      "sha256": "efaa12419adb2a04116a5e4509d04fbda9232eeaf401090a54aa773dc71a8a36"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 7984,
+      "sha256": "b5243553dc7238ce903d018969a844c58aeabd228957780c21911eb5e3f17e96"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 11703,
+      "sha256": "ee1cef6f6aad4da244c3da332edf158940f5e201f2e66c4d180b84ffd61ca5d5"
+    },
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1861,
+      "sha256": "5e395f0233db9b3f15c30bcd4e301b9e43a633f8829a5491b4e27ff4d5e900e1"
+    },
+    {
+      "file": "research/canadian-lakes/README.md",
+      "bytes": 1738,
+      "sha256": "123205e1aca103b63e59003e65c833183592a28c1c4f0878b058d2171ead893a"
+    },
+    {
+      "file": "research/canadian-lakes/findings.json",
+      "bytes": 5118,
+      "sha256": "7ff5814f7706a943c145d222ac94da1288e6a2587ec3da9bb5da256d409d9681"
+    },
+    {
+      "file": "research/canadian-lakes/source-evidence.json",
+      "bytes": 10755,
+      "sha256": "ca774fa5235205eb609f2e47b661852253b6e5d394057524724f0a19d188171f"
+    },
+    {
+      "file": "research/canadian-lakes/target-identity-facts.json",
+      "bytes": 3196,
+      "sha256": "61ab293f9c0629cbcb3b1a4e3059e06ed9871840eeb32e08af4a87bc217d135b"
+    },
+    {
+      "file": "research/canadian-lakes/research-manifest.json",
+      "bytes": 910,
+      "sha256": "ba775a232aded75d8ff780251feb7bd3bfa13f226edb9a1df6fda67b7f10681a"
+    },
+    {
+      "file": "research/naknek/findings.json",
+      "bytes": 2379,
+      "sha256": "986a8345bbfac98778b5065a40cb3800055b703d077df5bfd590a150891a64e7"
+    },
+    {
+      "file": "research/naknek/map-scope-review.json",
+      "bytes": 2805,
+      "sha256": "e1be4695b61614f18ca1ec68f92be51b4ed4ee64fd9b0096d9c6f6bfddb01b86"
+    },
+    {
+      "file": "research/naknek/source-evidence.json",
+      "bytes": 5695,
+      "sha256": "8141e0b5db2fc0bfd1469d3cf9be24ab51e838f3c0cfc3b399eba088d5b60ac3"
+    },
+    {
+      "file": "research/naknek/source-extraction.json",
+      "bytes": 3680,
+      "sha256": "3a57737345cbf8c01f9510a8ba50dd2ae4346bc299d3f1dbb48a4cfd907c7cd4"
+    },
+    {
+      "file": "research/naknek/research-manifest.json",
+      "bytes": 1138,
+      "sha256": "1dc663851e965087ea405e10ca6939a54ed54143d0bc65fd61efefde90afcb09"
+    }
+  ],
+  "previous_index": {
+    "bytes": 8190,
+    "sha256": "11fe5286dfd75b1b2828bce9e723ffc0770c1e56fae11f487cd73e824ca2ad9c",
+    "aw_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159106899",
+      "lakes_base:1159107065",
+      "lakes_base:1159115267",
+      "lakes_base:1159123531",
+      "lakes_base:1159107099",
+      "hydro-system:30624681",
+      "hydro-system:50488324",
+      "hydro-system:40182409",
+      "hydro-system:70152112",
+      "lakes_base:1159123163",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751"
+    ],
+    "distinct_targets": 15
+  },
+  "local_evidence_assets": [
+    {
+      "id": "wsa_dore_map-BODY",
+      "kind": "original_source_body",
+      "bytes": 5017913,
+      "sha256": "64744b11dbae7381445b12ad0507487a5a38a82c6fe9de446b98814281d92197",
+      "published_raw": false
+    },
+    {
+      "id": "wsa_dore_map-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 1299,
+      "sha256": "ad559e24911545d88720555c04f892e29f25ae9f220ab24acf2ffc148e39abab",
+      "published_raw": false
+    },
+    {
+      "id": "wsa_dore_map-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 11738,
+      "sha256": "11424b481c74bd23aa70cee06f01df95503bd1448cd478dda6d1588945014f2c",
+      "published_raw": false
+    },
+    {
+      "id": "eccc_dore_usage-BODY",
+      "kind": "original_source_body",
+      "bytes": 63599,
+      "sha256": "799d07c905e838f481f30816dd808ce219edcc19ef43380682b3d19f324b6dc5",
+      "published_raw": false
+    },
+    {
+      "id": "eccc_dore_usage-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 1714,
+      "sha256": "829a401b1f12ac0f5e6545aafc05c1de9d07e5a3a08ebaf5732447c29eb37d74",
+      "published_raw": false
+    },
+    {
+      "id": "eccc_dore_usage-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 13537,
+      "sha256": "7c93f6813bef9abc03861f07f628a412b90310a8a4f2a84c25d672ae45fbeb44",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_index-BODY",
+      "kind": "original_source_body",
+      "bytes": 143186,
+      "sha256": "85aa748f994da291132c7dc7142db356a770af60625250cf993affee7ca6acdc",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_index-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 1523,
+      "sha256": "c2560e87dba7d402a1100d3d80619fc47d23ec91c1545e98c823cb67f02e15ee",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65c_ennadai_map-BODY",
+      "kind": "original_source_body",
+      "bytes": 10960672,
+      "sha256": "1cbebbdac09447e7b0d04e86a2cab4587bfc5dc4c0addaf0a1a9e3d6e33ebe5d",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65c_ennadai_map-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 1382,
+      "sha256": "a291541aca80e3c0b2e07735d0617183979b110f294bf6e8e5f263b7b920fabb",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65f_ennadai_map-BODY",
+      "kind": "original_source_body",
+      "bytes": 9763386,
+      "sha256": "6251cc40b3ad1c4a4055eae1b71068386367160c883609205534f8c3a549cf12",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65f_ennadai_map-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 1375,
+      "sha256": "7bba3a5d1769fe3f831c9eab5cbe11d19c1fa067401d046b9176396c3a19ba96",
+      "published_raw": false
+    },
+    {
+      "id": "cirnac_ennadai_usage-BODY",
+      "kind": "original_source_body",
+      "bytes": 16174,
+      "sha256": "3c72e18313dac070e80af45ff56b886c988752925de3ed24f437d87edd166eb1",
+      "published_raw": false
+    },
+    {
+      "id": "cirnac_ennadai_usage-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 1337,
+      "sha256": "e0943f743eb7a561f1095a8248c3ba777cbadacd58bfc28aa965b53155c18bbd",
+      "published_raw": false
+    },
+    {
+      "id": "cirnac_ennadai_usage-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 4109,
+      "sha256": "d5279dca45b7e535a38ceaa1c65030b03407a25136665bc4c1765da4bc062118",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-MAPS-BODY",
+      "kind": "original_source_body",
+      "bytes": 46809,
+      "sha256": "0a97d8241fcc6d267ba1f2e191d807610a26112179dffed96ab166318fd68235",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-MAPS-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 567,
+      "sha256": "583f0f7fa0655487bde8a07d78c7f525e1c036fe18dedb85b00bbb289f008ec8",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-CLASSIC-MAP-BODY",
+      "kind": "original_source_body",
+      "bytes": 482385,
+      "sha256": "bb8225907a6ebdb2f929e501b3a5d93b79d190ff6e26bc04203a51b90c1d6f5d",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-CLASSIC-MAP-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 677,
+      "sha256": "f7f404d0461bfabee7a13817eff5b76dca13aa7ad24bd833b21f9cef140c64cc",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-CLASSIC-MAP-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 35287,
+      "sha256": "7dd5e0198a817adfb88936b37205e22494e10996d675a218a4cc726ade6b2422",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-NAKNEK-BOATING-GUIDE-2013-BODY",
+      "kind": "original_source_body",
+      "bytes": 2440558,
+      "sha256": "9b2f2fd9ba2ead7cae48a8672eb014f2b37406e8990170f196036705a7d71ba1",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-NAKNEK-BOATING-GUIDE-2013-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 658,
+      "sha256": "35dbe2e3d6db740ee67359fb8dc1a2635ac30d2858284fbd4636ec100a1bd84e",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-NAKNEK-BOATING-GUIDE-2013-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 61528,
+      "sha256": "cdab561a010331584c3544e9a891c8807f766464f961970485ad59c5bb011330",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-BOATING-BODY",
+      "kind": "original_source_body",
+      "bytes": 41541,
+      "sha256": "74f63bca5c12af8fe4339d836f06a690eb3663d53e9f09fa070c3e50bd4b8c33",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-BOATING-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 555,
+      "sha256": "bffd7979765525c068b356e18d910b7a3d5a425939183cba57d05dd9a5173027",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-WATER-BODY",
+      "kind": "original_source_body",
+      "bytes": 38725,
+      "sha256": "e7cb461b168aa1e4a3d6e9b0b2b107f9fbd50b727f868e78ec4dcb27f65bc972",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-WATER-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 549,
+      "sha256": "712d19372417c258c979ba08036cf6ffa22938e014bda0ca02e5d1c5d2632bcd",
+      "published_raw": false
+    },
+    {
+      "id": "USGS-ILIUK-STATION-BODY",
+      "kind": "original_source_body",
+      "bytes": 29654,
+      "sha256": "fdf13070df6291a11479ba6a5eef21cf68ea18f5124cb05165afa0e8f613d16a",
+      "published_raw": false
+    },
+    {
+      "id": "USGS-ILIUK-STATION-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 598,
+      "sha256": "f9d131d97b0c9f5da95af224cef23db967cae777af1fe5d5f9e62183467d05f0",
+      "published_raw": false
+    },
+    {
+      "id": "wsa_dore_map-VIEW-1",
+      "kind": "viewed_map_derivative",
+      "bytes": 659857,
+      "sha256": "7f6c4334e5c80614ee80102d2ad57dae653a1aec2b21f5de061ae81904db2a91",
+      "published_raw": false
+    },
+    {
+      "id": "wsa_dore_map-VIEW-2",
+      "kind": "viewed_map_derivative",
+      "bytes": 153651,
+      "sha256": "308d13fe02c281226eb19785a513523f2e7cbd641e587afdde8245fc5f7f615f",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65c_ennadai_map-VIEW-1",
+      "kind": "viewed_map_derivative",
+      "bytes": 2651279,
+      "sha256": "bda8c48141b741b68c9a82aacc6f7bbdbc23fcbfc38af7288a655984818f0450",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65c_ennadai_map-VIEW-2",
+      "kind": "viewed_map_derivative",
+      "bytes": 6413427,
+      "sha256": "a16041cfc07e65b02c0ee34096744b8abfb60628cea2f9dc3c4d2ae92286cada",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65c_ennadai_map-VIEW-3",
+      "kind": "viewed_map_derivative",
+      "bytes": 680778,
+      "sha256": "fb05fcd97b6979b748391b6015fbe21a024f31033b858a3b559ae5c81f8ea962",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65f_ennadai_map-VIEW-1",
+      "kind": "viewed_map_derivative",
+      "bytes": 2516707,
+      "sha256": "ec5e494539d649246911de400d8c900eb19a8fd061e8d5c58520bbb474752db1",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65f_ennadai_map-VIEW-2",
+      "kind": "viewed_map_derivative",
+      "bytes": 5237030,
+      "sha256": "ca62052b0f5d310a11f97f9d38b0b452756406d67627b984fb186e6db9ac0334",
+      "published_raw": false
+    },
+    {
+      "id": "nluis_65f_ennadai_map-VIEW-3",
+      "kind": "viewed_map_derivative",
+      "bytes": 624362,
+      "sha256": "c829c994ec69a2ef65e3e6268bca3e968efe4569978bf100a639a10dc236b3d3",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-KATM-CLASSIC-MAP-VIEW-1",
+      "kind": "viewed_map_derivative",
+      "bytes": 4264653,
+      "sha256": "65d142db69a0182a80454147aef5d926e7e9a46cf855d708bc62e399d7001977",
+      "published_raw": false
+    },
+    {
+      "id": "NPS-NAKNEK-BOATING-GUIDE-2013-VIEW-1",
+      "kind": "viewed_map_derivative",
+      "bytes": 4989327,
+      "sha256": "91f104ac1e5a6d32d028d08ae186fb1ebe6490a820402a2b02f0266b0434f6ec",
+      "published_raw": false
+    },
+    {
+      "id": "ENNADAI-NORTH-TIP",
+      "kind": "independent_map_detail",
+      "bytes": 936947,
+      "sha256": "3e06f4baf0436400182c1bd39428ec0810c2dac84daff857d465edc7e4bf6a51",
+      "published_raw": false
+    },
+    {
+      "id": "NAKNEK-GUIDE-PAGE-2",
+      "kind": "independent_map_detail",
+      "bytes": 1799778,
+      "sha256": "fcdc204933a77de511f6f758d4dc343559ead5de1647285c0edac1098a90f531",
+      "published_raw": false
+    },
+    {
+      "id": "COMPLETE-SOURCE-BASELINE-VIEW",
+      "kind": "complete_geometry_comparison_view",
+      "bytes": 188589,
+      "sha256": "bbb1d254e9e32447ca6224a4deb424b0eccbd9fdbe657b216c1e1750ddc3ec18",
+      "published_raw": false
+    },
+    {
+      "id": "CANADIAN-SOURCE-SHAPES",
+      "kind": "complete_geometry_comparison_view",
+      "bytes": 151667,
+      "sha256": "fc82e470f3b0f6884f8df4833f6947f7ca3681131f926da03497ab35824a1e14",
+      "published_raw": false
+    },
+    {
+      "id": "NAKNEK-SOURCE-SHAPE",
+      "kind": "complete_geometry_comparison_view",
+      "bytes": 98382,
+      "sha256": "3c3aeca08fc4ceb0be94ef57a9b98f05c5228ff9cef0d3f0c1b64adbc0ee5ca0",
+      "published_raw": false
+    }
+  ],
+  "original_source_receipt_links": [
+    {
+      "source_key": "wsa_dore_map",
+      "body_id": "wsa_dore_map-BODY",
+      "receipt_id": "wsa_dore_map-RECEIPT",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf"
+    },
+    {
+      "source_key": "eccc_dore_usage",
+      "body_id": "eccc_dore_usage-BODY",
+      "receipt_id": "eccc_dore_usage-RECEIPT",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName"
+    },
+    {
+      "source_key": "nluis_index",
+      "body_id": "nluis_index-BODY",
+      "receipt_id": "nluis_index-RECEIPT",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "source_key": "nluis_65c_ennadai_map",
+      "body_id": "nluis_65c_ennadai_map-BODY",
+      "receipt_id": "nluis_65c_ennadai_map-RECEIPT",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65c.jpg"
+    },
+    {
+      "source_key": "nluis_65f_ennadai_map",
+      "body_id": "nluis_65f_ennadai_map-BODY",
+      "receipt_id": "nluis_65f_ennadai_map-RECEIPT",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65f.jpg"
+    },
+    {
+      "source_key": "cirnac_ennadai_usage",
+      "body_id": "cirnac_ennadai_usage-BODY",
+      "receipt_id": "cirnac_ennadai_usage-RECEIPT",
+      "url": "https://www.rcaanc-cirnac.gc.ca/eng/1548182132843/1548182152538"
+    },
+    {
+      "source_key": "NPS-KATM-MAPS",
+      "body_id": "NPS-KATM-MAPS-BODY",
+      "receipt_id": "NPS-KATM-MAPS-RECEIPT",
+      "url": "https://www.nps.gov/katm/learn/photosmultimedia/maps.htm"
+    },
+    {
+      "source_key": "NPS-KATM-CLASSIC-MAP",
+      "body_id": "NPS-KATM-CLASSIC-MAP-BODY",
+      "receipt_id": "NPS-KATM-CLASSIC-MAP-RECEIPT",
+      "url": "https://www.nps.gov/katm/learn/photosmultimedia/upload/KATM_Park-Map_for_web.pdf"
+    },
+    {
+      "source_key": "NPS-NAKNEK-BOATING-GUIDE-2013",
+      "body_id": "NPS-NAKNEK-BOATING-GUIDE-2013-BODY",
+      "receipt_id": "NPS-NAKNEK-BOATING-GUIDE-2013-RECEIPT",
+      "url": "https://www.nps.gov/katm/planyourvisit/upload/naknek_lake_20130207.pdf"
+    },
+    {
+      "source_key": "NPS-KATM-BOATING",
+      "body_id": "NPS-KATM-BOATING-BODY",
+      "receipt_id": "NPS-KATM-BOATING-RECEIPT",
+      "url": "https://www.nps.gov/katm/planyourvisit/boating.htm"
+    },
+    {
+      "source_key": "NPS-KATM-WATER",
+      "body_id": "NPS-KATM-WATER-BODY",
+      "receipt_id": "NPS-KATM-WATER-RECEIPT",
+      "url": "https://www.nps.gov/katm/learn/nature/water.htm"
+    },
+    {
+      "source_key": "USGS-ILIUK-STATION",
+      "body_id": "USGS-ILIUK-STATION-BODY",
+      "receipt_id": "USGS-ILIUK-STATION-RECEIPT",
+      "url": "https://www.waterqualitydata.us/provider/NWIS/USGS-AK/USGS-583240155420000/"
+    }
+  ],
+  "pin_scope": "Frozen public source facts and geometry are separate from retained original response bodies, receipts, extracted text and viewed images. Original hashes never substitute for text or derivative hashes. No source bodies or map-derived images are distributed.",
+  "automatic_application": false
+}

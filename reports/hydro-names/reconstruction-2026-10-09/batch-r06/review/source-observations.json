@@ -1,0 +1,193 @@
+{
+  "schema": "hydro-independent-source-observations-v1",
+  "reviewed_at_utc": "2026-10-09T13:28:09.091511+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159109553",
+    "lakes_base:1159110303",
+    "lakes_base:1159108091"
+  ],
+  "new_external_requests": 0,
+  "original_publications_rehashed": 12,
+  "map_publications_pixels_viewed": 5,
+  "source_body_republication_permitted": false,
+  "independent_registered_overlay_claimed": false,
+  "shoreline_overlap_measured": false,
+  "observations": [
+    {
+      "source_key": "wsa_dore_map",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "checked_asset_ids": [
+        "wsa_dore_map-BODY",
+        "wsa_dore_map-RECEIPT",
+        "wsa_dore_map-TEXT",
+        "wsa_dore_map-VIEW-1",
+        "wsa_dore_map-VIEW-2"
+      ],
+      "map_pixels_viewed": true,
+      "inspection": "Viewed the full map, Dore detail, legend and production information; independently read the original PDF text.",
+      "finding": "The broad basin and southern lobes match the complete generalized ring. Adjacent lakes remain visibly separate.",
+      "limitation": "Printed 2014-11-25, scale 1:1,750,000; official thematic use is not a current name registry or survey.",
+      "printed_date": "2014-11-25"
+    },
+    {
+      "source_key": "eccc_dore_usage",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName",
+      "checked_asset_ids": [
+        "eccc_dore_usage-BODY",
+        "eccc_dore_usage-RECEIPT",
+        "eccc_dore_usage-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "inspection": "Read the original HTML station table and the separately hashed text. No map was viewed from this source.",
+      "finding": "Station 06AG003 uses DORE LAKE AT DORE LAKE, corroborating unaccented official usage.",
+      "limitation": "A station-name index row alone does not provide the lake’s precise geography or formal naming status."
+    },
+    {
+      "source_key": "nluis_index",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "checked_asset_ids": [
+        "nluis_index-BODY",
+        "nluis_index-RECEIPT"
+      ],
+      "map_pixels_viewed": false,
+      "inspection": "Read the original HTML catalog and verified the listed 65C and 65F map relationships.",
+      "finding": "The catalog identifies Ennadai Lake and Ennadai sheets in the land-use series.",
+      "limitation": "Catalog provenance is not a separate geographic confirmation or an inspected map."
+    },
+    {
+      "source_key": "nluis_65c_ennadai_map",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65c.jpg",
+      "checked_asset_ids": [
+        "nluis_65c_ennadai_map-BODY",
+        "nluis_65c_ennadai_map-RECEIPT",
+        "nluis_65c_ennadai_map-VIEW-1",
+        "nluis_65c_ennadai_map-VIEW-2",
+        "nluis_65c_ennadai_map-VIEW-3"
+      ],
+      "map_pixels_viewed": true,
+      "inspection": "Viewed the complete map, southwest lake detail, graticule and imprint.",
+      "finding": "The southwestern and central lake shape and label correspond to the target below 61 degrees north.",
+      "limitation": "One complementary historic sheet; fine shoreline and island omissions preclude exact shape equivalence.",
+      "printed_date": "1979",
+      "base_information_year": 1963,
+      "independence_group": "federal_land_use_information_series"
+    },
+    {
+      "source_key": "nluis_65f_ennadai_map",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65f.jpg",
+      "checked_asset_ids": [
+        "nluis_65f_ennadai_map-BODY",
+        "nluis_65f_ennadai_map-RECEIPT",
+        "nluis_65f_ennadai_map-VIEW-1",
+        "nluis_65f_ennadai_map-VIEW-2",
+        "nluis_65f_ennadai_map-VIEW-3",
+        "ENNADAI-NORTH-TIP"
+      ],
+      "map_pixels_viewed": true,
+      "inspection": "Viewed the complete map, both northern arms, imprint and independent northeastern detail.",
+      "finding": "Both arms are labeled Ennadai Lake. The separately drawn North End Lake lies east of the tip, rather than proving an included second lake.",
+      "limitation": "Historic NAD27 mapping was not datum-transformed or registered; both sheets count as one source group.",
+      "printed_date": "1979",
+      "base_information_year": 1963,
+      "independence_group": "federal_land_use_information_series"
+    },
+    {
+      "source_key": "cirnac_ennadai_usage",
+      "url": "https://www.rcaanc-cirnac.gc.ca/eng/1548182132843/1548182152538",
+      "checked_asset_ids": [
+        "cirnac_ennadai_usage-BODY",
+        "cirnac_ennadai_usage-RECEIPT",
+        "cirnac_ennadai_usage-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "inspection": "Read the original government settlement-page HTML and its separately hashed text.",
+      "finding": "The narrative uses Ennadai Lake for the original home location and a later reunion.",
+      "limitation": "The page supports ordinary government name usage, not a formal extent, naming instrument or Indigenous-language equivalent."
+    },
+    {
+      "source_key": "NPS-KATM-MAPS",
+      "url": "https://www.nps.gov/katm/learn/photosmultimedia/maps.htm",
+      "checked_asset_ids": [
+        "NPS-KATM-MAPS-BODY",
+        "NPS-KATM-MAPS-RECEIPT"
+      ],
+      "map_pixels_viewed": false,
+      "inspection": "Read the original NPS map catalog HTML.",
+      "finding": "The catalog links the classic park map and Naknek boating guide as distinct publications.",
+      "limitation": "A catalog link is provenance; it is not a third map view or independent name decision."
+    },
+    {
+      "source_key": "NPS-KATM-CLASSIC-MAP",
+      "url": "https://www.nps.gov/katm/learn/photosmultimedia/upload/KATM_Park-Map_for_web.pdf",
+      "checked_asset_ids": [
+        "NPS-KATM-CLASSIC-MAP-BODY",
+        "NPS-KATM-CLASSIC-MAP-RECEIPT",
+        "NPS-KATM-CLASSIC-MAP-TEXT",
+        "NPS-KATM-CLASSIC-MAP-VIEW-1"
+      ],
+      "map_pixels_viewed": true,
+      "inspection": "Viewed the whole one-page park map and independently read its PDF metadata/text.",
+      "finding": "The broad Naknek basin, North Arm and Iliuk Arm agree with the generalized footprint; Lake Brooks and Lake Grosvenor remain outside it.",
+      "limitation": "No printed publication date was established; metadata creation in 2007 and modification in 2018 are not asserted as cartographic currency."
+    },
+    {
+      "source_key": "NPS-NAKNEK-BOATING-GUIDE-2013",
+      "url": "https://www.nps.gov/katm/planyourvisit/upload/naknek_lake_20130207.pdf",
+      "checked_asset_ids": [
+        "NPS-NAKNEK-BOATING-GUIDE-2013-BODY",
+        "NPS-NAKNEK-BOATING-GUIDE-2013-RECEIPT",
+        "NPS-NAKNEK-BOATING-GUIDE-2013-TEXT",
+        "NPS-NAKNEK-BOATING-GUIDE-2013-VIEW-1",
+        "NAKNEK-GUIDE-PAGE-2"
+      ],
+      "map_pixels_viewed": true,
+      "inspection": "Viewed both pages, including the complete graticule map and Lake Camp/Bay of Islands detail; independently read original PDF text and metadata.",
+      "finding": "The full-lake layout supports Naknek association including both major arms while explicitly showing the connected northwestern Johnny’s Lake basin.",
+      "limitation": "The local-name disclaimer prevents treating that label as proof of a second formal lake or exact name split. February 2013 is the printed map date; 2011 copyright and 2018 PDF modification are distinct.",
+      "printed_date": "2013-02",
+      "local_name_disclaimer_retained": true
+    },
+    {
+      "source_key": "NPS-KATM-BOATING",
+      "url": "https://www.nps.gov/katm/planyourvisit/boating.htm",
+      "checked_asset_ids": [
+        "NPS-KATM-BOATING-BODY",
+        "NPS-KATM-BOATING-RECEIPT"
+      ],
+      "map_pixels_viewed": false,
+      "inspection": "Read the retained original HTML text; no page photographs were used as map evidence.",
+      "finding": "NPS treats Bay of Islands and Iliuk Arm as destinations on Naknek Lake and links the same guide.",
+      "limitation": "Page updated 2024-01-29; descriptive acreage is not an exact geometry target."
+    },
+    {
+      "source_key": "NPS-KATM-WATER",
+      "url": "https://www.nps.gov/katm/learn/nature/water.htm",
+      "checked_asset_ids": [
+        "NPS-KATM-WATER-BODY",
+        "NPS-KATM-WATER-RECEIPT"
+      ],
+      "map_pixels_viewed": false,
+      "inspection": "Read the retained original HTML text and page date.",
+      "finding": "NPS explicitly describes Iliuk Arm as part of Naknek Lake and describes the westward outlet.",
+      "limitation": "Page updated 2016-09-30; regional hydrology does not establish Johnny’s formal status or exact name extent."
+    },
+    {
+      "source_key": "USGS-ILIUK-STATION",
+      "url": "https://www.waterqualitydata.us/provider/NWIS/USGS-AK/USGS-583240155420000/",
+      "checked_asset_ids": [
+        "USGS-ILIUK-STATION-BODY",
+        "USGS-ILIUK-STATION-RECEIPT"
+      ],
+      "map_pixels_viewed": false,
+      "inspection": "Read the original Water Quality Portal station page as text, including provider, coordinate method and accuracy fields.",
+      "finding": "The USGS Alaska Water Science Center record uses Naknek Lake in an Iliuk Arm station name.",
+      "limitation": "The NAD83 position was interpolated from a map, accuracy unspecified; one station cannot establish full-lake coverage. No station map pixels were viewed."
+    }
+  ],
+  "complete_geometry_view_asset_ids": [
+    "COMPLETE-SOURCE-BASELINE-VIEW",
+    "CANADIAN-SOURCE-SHAPES",
+    "NAKNEK-SOURCE-SHAPE"
+  ],
+  "hash_limit": "Original-body, text and view hashes cover different retained bytes. Offline replay can verify the bytes but does not repeat visual inspection. Durable-only mode does not reopen omitted source publications."
+}

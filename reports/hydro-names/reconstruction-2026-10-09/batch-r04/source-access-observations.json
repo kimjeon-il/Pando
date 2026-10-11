@@ -1,0 +1,130 @@
+{
+  "schema": "hydro-source-access-observations-v1",
+  "batch": "r04",
+  "unsuccessful_original_publication_count": 10,
+  "observations": [
+    {
+      "source_evidence_file": "attawapiskat-source-evidence.json",
+      "source_evidence_sha256": "4beeaf54719680c36f367c2c273383c396c683940405012a9cecaa973c3bf332",
+      "url": "https://www.ontario.ca/files/2022-03/mto-orm-map17-2022-03-16.pdf",
+      "title": "Official Road Map of Ontario, Web Map17",
+      "result": "Web open returned Internal Error; HTTP status unavailable.",
+      "http_status": null,
+      "observation_time": "2026-10-09T12:26:24Z",
+      "observation_time_scope": "As stated in source evidence; no more precise timestamp asserted.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    },
+    {
+      "source_evidence_file": "attawapiskat-source-evidence.json",
+      "source_evidence_sha256": "4beeaf54719680c36f367c2c273383c396c683940405012a9cecaa973c3bf332",
+      "url": "https://data.ontario.ca/en/dataset/major-river-systems-in-the-far-north/resource/31ba111b-2f36-4f4b-9d18-d4bd2229f253",
+      "title": "Major river systems in the Far North, catalog resource",
+      "result": "Web open returned Internal Error; HTTP status unavailable.",
+      "http_status": null,
+      "observation_time": "2026-10-09T12:26:24Z",
+      "observation_time_scope": "As stated in source evidence; no more precise timestamp asserted.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    },
+    {
+      "source_evidence_file": "attawapiskat-source-evidence.json",
+      "source_evidence_sha256": "4beeaf54719680c36f367c2c273383c396c683940405012a9cecaa973c3bf332",
+      "url": "https://www.ontario.ca/page/aquatic-ecosystem-assessments-rivers",
+      "title": "Aquatic ecosystem assessments for rivers",
+      "result": "HTTP403 Forbidden; no original source bytes acquired.",
+      "http_status": null,
+      "observation_time": "2026-10-09T12:27:51.321541+00:00",
+      "observation_time_scope": "As stated in source evidence; no more precise timestamp asserted.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    },
+    {
+      "source_evidence_file": "kamianske-source-evidence.json",
+      "source_evidence_sha256": "1bdf751824b3f3d744d954b1b692b8fea52fd78db45883230ddb4be15df97909",
+      "url": "https://www.uhe.gov.ua/media_tsentr/novyny/mizhvidomcha-komisiya-viznachila-rezhimi-roboti-vodoskhovisch-na-cherven",
+      "title": null,
+      "result": "Web extraction returned Internal Error; no HTTP status or original response-body hash available",
+      "http_status": null,
+      "observation_time": null,
+      "observation_time_scope": "As stated in source evidence; no more precise timestamp asserted.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    },
+    {
+      "source_evidence_file": "kamianske-source-evidence.json",
+      "source_evidence_sha256": "1bdf751824b3f3d744d954b1b692b8fea52fd78db45883230ddb4be15df97909",
+      "url": "https://davr.gov.ua/fls18/1-RBMP_Dnipro_February_2025_ENG.pdf",
+      "title": null,
+      "result": "Web extraction returned Internal Error; no HTTP status or original response-body hash available",
+      "http_status": null,
+      "observation_time": null,
+      "observation_time_scope": "As stated in source evidence; no more precise timestamp asserted.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    },
+    {
+      "source_evidence_file": "new-lake-source-evidence.json",
+      "source_evidence_sha256": "5f3acd016706a7f95d59f8d4e460831b88bb62d1a7e82ed08cdac95c59fc27ee",
+      "url": "https://portal.cemig.com.br/wp-content/uploads/2022/10/BOLETIM-INFO-2022.pdf",
+      "title": "Cemig 2022 PACUERA Emborcação bulletin",
+      "result": "<HTTPError 502: 'Bad Gateway'>",
+      "http_status": 502,
+      "observation_time": "2026-10-09T12:29:35.945591+00:00",
+      "observation_time_scope": "Request start time; response time not separately recorded.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    },
+    {
+      "source_evidence_file": "new-lake-source-evidence.json",
+      "source_evidence_sha256": "5f3acd016706a7f95d59f8d4e460831b88bb62d1a7e82ed08cdac95c59fc27ee",
+      "url": "https://portal.cemig.com.br/wp-content/uploads/2022/10/Boletim-Info-2023.pdf",
+      "title": "Cemig 2023 PACUERA Theodomiro Carneiro Santiago bulletin",
+      "result": "<HTTPError 502: 'Bad Gateway'>",
+      "http_status": 502,
+      "observation_time": "2026-10-09T12:30:22.603828+00:00",
+      "observation_time_scope": "Request start time; response time not separately recorded.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    },
+    {
+      "source_evidence_file": "new-lake-source-evidence.json",
+      "source_evidence_sha256": "5f3acd016706a7f95d59f8d4e460831b88bb62d1a7e82ed08cdac95c59fc27ee",
+      "url": "https://www.cemig.com.br/wp-content/uploads/2022/11/PAE_UHE_Emborcacao_revF-1.pdf",
+      "title": "Cemig Emborcação emergency action plan revF",
+      "result": "(404) Not Found",
+      "http_status": 404,
+      "observation_time": "2026-10-09T12:30:39Z",
+      "observation_time_scope": "Tool-return observation, not exact origin response timestamp.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    },
+    {
+      "source_evidence_file": "new-lake-source-evidence.json",
+      "source_evidence_sha256": "5f3acd016706a7f95d59f8d4e460831b88bb62d1a7e82ed08cdac95c59fc27ee",
+      "url": "https://portal.cemig.com.br/wp-content/uploads/2020/12/guia_mobile_ilustrado_avifauna_cemig.pdf",
+      "title": "Cemig illustrated avifauna guide",
+      "result": "(502) Bad Gateway",
+      "http_status": 502,
+      "observation_time": "2026-10-09T12:30:53Z",
+      "observation_time_scope": "Tool-return observation, not exact origin response timestamp.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    },
+    {
+      "source_evidence_file": "new-lake-source-evidence.json",
+      "source_evidence_sha256": "5f3acd016706a7f95d59f8d4e460831b88bb62d1a7e82ed08cdac95c59fc27ee",
+      "url": "https://comites.igam.mg.gov.br/documents/d/simge/reservatorio_20230706?download=true",
+      "title": "IGAM/SIMGE reservoir bulletin 2023-07-06",
+      "result": "(403) Forbidden",
+      "http_status": 403,
+      "observation_time": "2026-10-09T12:31:53Z",
+      "observation_time_scope": "Tool-return observation, not exact origin response timestamp.",
+      "used_as_name_or_extent_evidence": false,
+      "subsequent_same_publication_acquisition": false
+    }
+  ],
+  "additional_rendering_limit_scope": "Rendering failures within otherwise acquired text sources are recorded in each source-evidence record; text capture does not establish a viewed map.",
+  "raw_failure_receipts_published": false,
+  "interpretation": "Failed responses and search snippets supplied no substantive naming/extent evidence. Earlier successful captures, where present, retain their stated capture scope only."
+}

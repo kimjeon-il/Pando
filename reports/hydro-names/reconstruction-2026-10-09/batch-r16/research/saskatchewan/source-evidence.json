@@ -1,0 +1,44 @@
+{
+  "schema": "hydro-public-source-evidence-v2",
+  "batch": "r16",
+  "created_at_utc": "2026-10-09T17:06:42.839250+00:00",
+  "sources": [
+    {
+      "source_key": "wsa_completed_watershed_plans_2014",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "title": "Map of Saskatchewan Showing Completed Watershed Plans",
+      "publication_date": "2014-11-25",
+      "publication_date_note": "Printed map production date, not the URL directory date or HTTP modification date.",
+      "kind": "official_thematic_map",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "retrieved_at_utc": "2026-10-09T13:17:20.296694+00:00",
+      "retrieved_this_batch": false,
+      "original_map_visually_inspected": true,
+      "map_locations": [
+        {
+          "physical_pdf_page": 1,
+          "scope": "Complete Saskatchewan map and complete selected Knee Lake and Sandfly/Pinehouse lake regions."
+        }
+      ],
+      "printed_scale": "1:1,750,000 at 22 by 34 inches",
+      "short_labels": [
+        "Knee Lake",
+        "Sandfly Lake",
+        "Pinehouse Lake"
+      ],
+      "short_label_scope": "Knee Lake supports the first target. Sandfly Lake supports the eastern-basin third target; Sandfly Lake and Pinehouse Lake are contextual for the unresolved second target.",
+      "independence_group": "wsa_completed_watershed_plans_2014",
+      "source_limit": "One dated regional planning map. The publisher cautions that accuracy, completeness and currency vary. Individual channels, current shorelines and precise naming partitions are not established."
+    }
+  ],
+  "independent_source_count": 1,
+  "independent_cartographic_identity_source_count": 1,
+  "independence_note": "The full map and regional views belong to one official publication and count once.",
+  "unused_acquisition_outcomes": [],
+  "new_source_requests_this_batch": 0,
+  "search_snippets_used_as_identity_evidence": false,
+  "availability_scope_note": "The existing acquired original supplies complete map coverage for all three targets. No new request was made. The second target is a completed naming-scope hold, rather than an access-pending record.",
+  "included_evidence_limit": "Included records retain official bibliography, own factual observations and geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

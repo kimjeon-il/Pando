@@ -1,0 +1,26 @@
+{
+  "schema": "frozen-selected-river-summary-component-public-v1",
+  "batch": "r20",
+  "scope_aw_ids": [
+    "hydro-system:50624422",
+    "hydro-system:50663106",
+    "hydro-system:50668362"
+  ],
+  "frozen_at_utc": "2026-10-09T18:57:55Z",
+  "validation_scope": "included-summary-evidence-only",
+  "complete_coordinates_in_public_package": false,
+  "per_part_paths_in_public_package": false,
+  "omitted_input_fingerprints_in_public_package": false,
+  "new_external_requests": 0,
+  "files": {
+    "selected-river-metadata.json": "5671b8523ba0f013f751298bfea80fd2254bfd7738ed1826c88cc316d801646a",
+    "selected-inventory-records.json": "36d61e2fc8c322089a2d670e1081c52bf2a5c13682bc5d154b82ab5fba1135f8",
+    "geometry-duplicate-check.json": "f7498d89d8ccfe8cc5bf709e0acc57f900635f1eae47ce4fe5a8cd6eca6443d8",
+    "geometry-publication-rights.json": "4a9be013efc0f4c6e0c150f1ef63aac0e76a138e0f9878cd38a0f6413b742ed3",
+    "geometry-README.md": "81b2f3d8380d13d7304107812e3f8ad1d1e880244bf23dd6fad84f8adbc70d23",
+    "geometry-reference.json": "fce3dd0d7720cf9ccfa5febab36e0fc91ffae288b057bbbd147f769a52d77317",
+    "validate-geometry-reference.py": "4e4e1aa7dc371e02715139e40d7ca23cfbcdb9e0cd91a44c26d931885ba8cde3",
+    "test-geometry-reference.py": "e4b1c2777ddd27936155c162d1d36b815b613f7b999c670a3926915946b3ecee",
+    "geometry-validation.json": "60d0dc022e027c17965ce716cb2d85c1be7a80619c95ed6b4223c82003895d43"
+  }
+}

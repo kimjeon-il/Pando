@@ -1,0 +1,923 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r151",
+  "sources": [
+    {
+      "bibliography": "Segnini, Samuel, and María Marleny Chacón (2017). El Chama: un río andino en riesgo. Chapter 2, pp. 29–58, in Douglas Rodríguez-Olarte (ed.), Ríos en riesgo de Venezuela, Volumen 1. Colección Recursos Hidrobiológicos de Venezuela, Universidad Centroccidental Lisandro Alvarado, Barquisimeto. First digital edition 15 February 2017. Volume ISBN 978-980-12-9350-7; complete-work ISBN 978-980-12-9274-6.",
+      "source_kind": "Original investigator-authored chapter combining primary field/laboratory information, original presentation of study-site cartography and attributed regional cartographic synthesis.",
+      "read_scope": "Printed pp. 31–33 (methods, route and geomorphic prose, Figure 2; PDF pages 33–35), printed p. 52 Figure 7 and accompanying lowland discussion (PDF page 54), and printed p. 53 Figure 8 caption (PDF page 55); title, copyright and bibliography pages. Figure 8 caption is supporting field-photo context, not a substitute for map coverage.",
+      "primary_map_pixels_read": true,
+      "map_provenance": "Figure 2 is the authors’ modified map based on Silva (1999), with redrawn labels, compartment coloring and national-park boundaries. Figure 7 maps 34 river/stream study sites using Romero (2016), Correa (2005) and Segnini et al. (2009). The chapter reports two decades of University of Los Andes laboratory field work and use of satellite imagery for route/context estimation. The underlying Silva article, historical topographic sheets and other referenced studies were not independently acquired or claimed as inspected originals.",
+      "source_key": "r151-segnini-chacon2017",
+      "official_url": "https://acading.org.ve/wp-content/uploads/2023/02/2017_Rios_Riesgo_Venezuela_V1_libro.pdf",
+      "use_notice": "Copyright the authors, 2017. Source originals and locally rendered pages remain private; only original factual observations and ordinary bibliographic citation are suitable for consolidation.",
+      "limits": "Figure 2 is a generalized regional synthesis, not a national hydronym registry or current hydrographic survey. Figure 7 supplies the higher-detail headwater/junction complement. No inferred present flow, exact bank/channel centerline or modern delta position. The publisher disclaims institutional endorsement of authors’ names and information."
+    },
+    {
+      "title": "República de Panamá, Cuenca 148 – Río Bayano",
+      "publisher": "Ministerio de Ambiente, Dirección de Gestión Integrada de Cuencas Hidrográficas",
+      "scale": "1:160,000",
+      "catalogue_url": "https://cuencas.miambiente.gob.pa/mapas-de-cuencas/",
+      "evidence_type": "Original single-sheet agency cartography, visually read in full and in enlarged local views.",
+      "use": "Eastern network distinctions, reservoir and branch connections, downstream Bayano/Chepo and coastal-estuarine context.",
+      "limits": "No printed geographic graticule. The regional network and labeled places do not unambiguously resolve the selected northeastern opening. No restricted-distribution notice observed on the sheet; no redistribution permission inferred.",
+      "source_key": "PA1",
+      "official_url": "https://cuencas.miambiente.gob.pa/wp-content/uploads/2020/08/Cuenca-Hidrografica-rio-Bayano-148.pdf"
+    },
+    {
+      "title": "Lago Bayano",
+      "publisher": "Autoridad de los Recursos Acuáticos de Panamá (ARAP)",
+      "evidence_type": "Agency reservoir profile; first-page prose and Figure 1 visually read; bounded supporting prose.",
+      "use": "Bayano river impoundment relationship and reservoir name.",
+      "limits": "Figure 1 is a small reproduced location map; it is not used to prove the unresolved opening or replace original source-to-route cartography. Its statement of IGN recognition is not an independently inspected whole-feature registry record.",
+      "source_key": "PA2",
+      "official_url": "https://arap.gob.pa/wp-content/uploads/2024/08/Embalse-Lago-Bayano.pdf"
+    },
+    {
+      "title": "Hydrologic Stations List, page 3",
+      "publisher": "Instituto de Meteorología e Hidrología de Panamá (IMHPA)",
+      "evidence_type": "Successful official tabular page, bounded station metadata.",
+      "use": "Distinct Bayano Sitio de Presa, Lago Bayano, Cañazas ante Embalse, Cañita ante Bayano and Ipetí station contexts.",
+      "limits": "Station names and points corroborate local river settings; they do not establish the continuous selected opening. Page requires attribution to IMHPA and warns against unconfirmed or misleading use.",
+      "source_key": "PA3",
+      "official_url": "https://www.imhpa.gob.pa/en/hydrologic-stations/p3"
+    },
+    {
+      "title": "Drenaje_50k_MI, Drenaje_50k_corregido",
+      "publisher": "Ministerio de Ambiente, official geoportal",
+      "layer_url": "https://geoportal.miambiente.gob.pa/server/rest/services/Drenaje_50k_MI/MapServer/0",
+      "scale": "Service identifies the drainage as 1:50,000.",
+      "evidence_type": "Original bounded agency map image, visually read; service/layer metadata and one non-geometric identify response.",
+      "use": "Eastern trunk, branches and actual headward-coverage limitation.",
+      "limits": "No labels in the default renderer. The empty identify is a successful empty result, not an access failure or proof that no stream exists. The initial selected northeastern corridor extends beyond the readable drainage in this view.",
+      "source_key": "PA4",
+      "official_url": "https://geoportal.miambiente.gob.pa/server/rest/services/Drenaje_50k_MI/MapServer"
+    },
+    {
+      "title": "Nodo_Caracteristica_General: Drenaje Principal and Drenaje (1:250,000), with Provincia / Comarca context",
+      "publisher": "Ministerio de Ambiente, official geoportal",
+      "layer_urls": [
+        "https://geoportal.miambiente.gob.pa/server/rest/services/Nodo_Caracteristica_General/MapServer/10",
+        "https://geoportal.miambiente.gob.pa/server/rest/services/Nodo_Caracteristica_General/MapServer/11",
+        "https://geoportal.miambiente.gob.pa/server/rest/services/Nodo_Caracteristica_General/MapServer/14"
+      ],
+      "evidence_type": "Original bounded eastern, reservoir and downstream agency map images, visually read; service/layer metadata.",
+      "use": "Geographic corridor comparison, reservoir outline/context, downstream river and coastal setting; independent confirmation of the unresolved headward correspondence.",
+      "limits": "Default drainage is unlabeled. Line layers omit broad water-surface reaches and do not by themselves prove a reservoir or estuarine channel; PA1 supplies those connections. Provincia / Comarca metadata describes national cartography from 2014, not a date independently established for every river line.",
+      "source_key": "PA5",
+      "official_url": "https://geoportal.miambiente.gob.pa/server/rest/services/Nodo_Caracteristica_General/MapServer"
+    },
+    {
+      "title": "Plan de Manejo de la Cuenca 148 (Río Bayano)",
+      "publisher": "Autoridad Nacional del Ambiente, Dirección de Gestión Integrada de Cuencas Hidrográficas",
+      "date": "1998, title page",
+      "evidence_type": "Original scanned plan, consulted only in bounded opening sections.",
+      "use": "Consulted; not substantive corridor evidence in this finding.",
+      "limits": "The inspected opening sections do not resolve the headward map gap. No claim of having read unseen plan maps or the entire document.",
+      "source_key": "PA6",
+      "official_url": "https://cuencas.miambiente.gob.pa/wp-content/uploads/2020/08/Plan-de-Manejo-del-r%C3%ADo-Bayano.pdf"
+    },
+    {
+      "title": "Análisis de Prefactibilidad y factibilidad para determinar el Potencial del Río Bayano para la Producción de Agua Potable para las regiones de Panamá Este y Metropolitana, Estudios Hidrológicos, Contrato No. 025 (2016)",
+      "publisher": "Autoridad del Canal de Panamá",
+      "evidence_type": "Unavailable publication, not substantive evidence.",
+      "use": "None. Discovery snippets excluded.",
+      "source_key": "PA7",
+      "official_url": "https://pancanal.com/wp-content/uploads/2021/09/Estudios_Hidrologicos_Bayano.pdf"
+    },
+    {
+      "title": "Mapa Político dos Estados de Rio Grande do Norte e Paraíba",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2015,
+      "scale": "1:500,000",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/pb_rn_politico500k_2015.pdf",
+      "actual_reading": "Retained lawful complete original from r137 reused locally. Regional Jacu corridor and enlarged eastern terminal inspected as original pixels. No new acquisition.",
+      "supports": "Regional receiving Rio Jacu from São José do Campestre, through the Santo Antônio/Passagem and Espírito Santo settings, into the Goianinha–Arês side of Lagoa Guaraíras. Distinguishes northern Trairi/Arari and southern Curimataú, Pequiri and Catu systems.",
+      "limits": "Regional BCIM2014-derived cartography. Detailed opening, reservoirs and junctions are established by complementary originals. No current shoreline, official naming-register entry or uniform whole-route name.",
+      "use_notice": "Official cartographic authorship and generalization retained; original and working crops remain private.",
+      "source_key": "r151-ibge-rn-pb-2015"
+    },
+    {
+      "title": "Projeto PROALUV: Mapa das Aluviões, Folha Picuí SB.24-Z-B-VI",
+      "author": "Sara Maria Pinotti Benvenutti",
+      "publisher": "CPRM – Serviço Geológico do Brasil, Ministério de Minas e Energia",
+      "year": 2009,
+      "scale": "1:100,000",
+      "official_url": "https://rigeo.sgb.gov.br/handle/doc/24280",
+      "original_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/b9c144cc-b1bf-4dc2-8db3-4de093c4dd24/content",
+      "actual_reading": "One complete original transfer finished HTTP200 application/pdf. Whole original, southern headward feeder, Bonsucesso impoundment, Trapiá/Jacu junction setting, Campo Comprido approach, northeast edge, legend and credits inspected as pixels.",
+      "supports": "Opening west of Timbaúba through a small unnamed impoundment and the São Bento approach into Rio Bonsucesso; Bonsucesso waterbody and Rch. da Telha junction; downstream São Miguel/Algodão/Bola–Trapiá setting, Santa Rita and Cavalos side approaches, Rio do Trapiá joining approach, Jacu/Boa Vista–Melo–Curral do Meio–Mari–Passagem corridor and Campo Comprido meeting by Juçá, continuing toward Cabaças and the northeastern sheet edge.",
+      "base_cartography": "Printed credit: SUDENE Picuí1970 sheet, updated/adjusted to GeoCover2000; DER2003/2007/2008 and DNIT2002 roads; IBGE2005 municipal boundaries.",
+      "limits": "Alluvial potential is the thematic subject; pale yellow deposits are not a lake surface. Blue river and waterbody symbols supply the hydrographic observations. The headward short feeder and small impoundments are not assigned invented names. Boqueirão do Cais on the western Campo Comprido approach is separate from the selected southern opening. The2009 map predates Retiro construction; its modern reservoir passage is addressed separately.",
+      "source_key": "r151-cprm-picui-proaluv-2009"
+    },
+    {
+      "title": "Projeto PROALUV: Mapa das Aluviões, Folha Cerro Corá SB.24-Z-B-III",
+      "author": "Sara Maria Pinotti Benvenutti",
+      "publisher": "CPRM – Serviço Geológico do Brasil, Ministério de Minas e Energia",
+      "year": 2009,
+      "scale": "1:100,000",
+      "official_url": "https://rigeo.sgb.gov.br/handle/doc/24223",
+      "original_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/d6e37961-4237-485a-b9f5-b04beb8c6540/content",
+      "actual_reading": "Retained lawful complete original from r146 reused locally; southeastern graticule edge, Espinheiro approach and Rio Japi connection inspected as pixels. No new acquisition.",
+      "supports": "The short selected northeastern Picuí-to-Campestre transition by Espinheiro and the Rio Japi-labelled incoming corridor.",
+      "base_cartography": "Printed credit: SUDENE Cerro Corá1972 sheet, updated/adjusted to GeoCover2000, roads from DER2003/2007/2008 and DNIT2002, municipal boundaries IBGE2005.",
+      "limits": "Only the southeastern corner is relevant. Alluvial deposits are not water. The independent2019 project drawing provides the later Retiro reservoir; this2009 sheet supplies historical natural-channel continuity.",
+      "source_key": "r151-cprm-cerro-cora-proaluv-2009"
+    },
+    {
+      "title": "Projeto PROALUV: Mapa das Aluviões, Folha São José do Campestre SB.25-Y-A-I",
+      "author": "Sara Maria Pinotti Benvenutti",
+      "publisher": "CPRM – Serviço Geológico do Brasil, Ministério de Minas e Energia",
+      "year": 2009,
+      "scale": "1:100,000",
+      "original_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/bd927d8d-19b7-490c-bab3-65abb7a8a2ae/content",
+      "actual_reading": "Retained lawful complete original from r146 reused locally. Southern/western Japi approach, Japi town, JapiII inlet/body/outlet, Picos–Cruz São Pedro–Amarração route, São José do Campestre and eastward Jacu inspected as pixels.",
+      "supports": "Rio Japi continuation north of the Retiro setting past Japi and Boqueirão; Salgado/Serra Bonita–Jacó approach into Açude Público JapiII; northeastern reservoir exit toward Picos, Cruz São Pedro and Amarração, then São José do Campestre; directly labelled Rio Jacu through Barrinha and Jacu/Poço Salgado, continuing east along the Serrinha–Santo Antônio side. The southward Pituaçu approach joins separately near São José do Campestre.",
+      "base_cartography": "Printed credit: SUDENE São José do Campestre1971, updated/adjusted to GeoCover2000, roads from DER2003/2007/2008 and DNIT2002, municipal boundaries IBGE2005.",
+      "limits": "The selected passage is JapiII, not the adjacent Açude Público Trairi, Arapuá, Pituaçu, Sombra Grande, Barriguda or Cajazeiras waterbodies. Pale alluvial polygons do not denote water. Exact hydronym change points, current reservoir levels and current operation are unestablished.",
+      "source_key": "r151-cprm-campestre-proaluv-2009",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/bd927d8d-19b7-490c-bab3-65abb7a8a2ae/content"
+    },
+    {
+      "title": "Santo Antônio – RN, Mapa Municipal,2411502",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2022,
+      "edition": "2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/RN/santo_antonio/A0_2411502_MM.pdf",
+      "actual_reading": "One complete original transfer finished HTTP200 application/pdf. Whole map, northern Jacu corridor, Redenção/Passagem junctions, southern Macacos approach and printed notice inspected as pixels.",
+      "supports": "Rio Jacu-labelled incoming western corridor along the Serrinha–Santo Antônio municipal margin, eastward through the Redenção and Passagem setting, with separate northern Jacu-Mirim approach and southern stream coming from the Santo Antônio/Macacos corridor.",
+      "limits": "Direct map correspondence is used with the regional original for locally printed hydronyms. The eastern continuation is complemented by Espírito Santo2022; small side impoundments are not silently placed on the selected trunk.",
+      "use_notice": "Semi-automatically compiled municipal cartography. Printed notice identifies exclusive intended use for IBGE statistical collection/tabulation, warns against other purposes, disclaims responsibility for them and reserves reproduction rights. This is a source-fitness/reproduction caveat, not an officials-only reading prohibition. Originals and crops remain private.",
+      "source_key": "r151-ibge-santo-antonio-2022"
+    },
+    {
+      "title": "Espírito Santo – RN, Mapa Municipal,2403509",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2022,
+      "edition": "2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/RN/espirito_santo/A0_2403509_MM.pdf",
+      "actual_reading": "The known original, discovered before a directory-reader Unicode decoding error, received one normal sequential original request, which completed HTTP200 application/pdf. Whole map, Passagem–Jundiá–Espírito Santo bend and eastern connector inspected as pixels.",
+      "supports": "Rio Jacu directly labelled on the selected approach southeast from Passagem; southward Jundiá-side tributary meets the river north of Espírito Santo; river bends through the Espírito Santo setting and continues northeast toward Goianinha. The separate northern Riacho Fundo/Mosela waterbody approach is not confused with the selected trunk.",
+      "limits": "Map edition is2022, independent of the paused2020 directory. Protected-area hatching is not a water polygon. No current discharge, exact bank or precise confluence coordinate is asserted.",
+      "use_notice": "Semi-automatically compiled municipal cartography. Printed notice identifies exclusive intended use for IBGE statistical collection/tabulation, warns against other purposes, disclaims responsibility for them and reserves reproduction rights. This is a source-fitness/reproduction caveat, not an officials-only reading prohibition. Originals and crops remain private.",
+      "source_key": "r151-ibge-espirito-santo-2022"
+    },
+    {
+      "title": "Goianinha – RN, Mapa Municipal,2404200",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2020,
+      "edition": "04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RN/goianinha/2404200_MM.pdf",
+      "actual_reading": "One complete original transfer finished HTTP200 application/pdf. Whole sheet, western incoming river, lower Goianinha–Arês channels, Guaraíras-side water and terminal setting inspected as pixels.",
+      "supports": "Selected northeastern approach from Espírito Santo into the lower Goianinha–Arês corridor and connected channel/wetland setting opening into the southwestern Guaraíras lagoon arm near Umari de Baixo. Distinguishes the northern tributary/waterbody by Mosela and the separate southern Catu system.",
+      "limits": "The selected rendered line generalizes the lower estuarine channels and ends in the southwestern lagoon receiving-water setting. It is not asserted to follow every depicted local bend, bank or artificial pond edge. Protected-area fill is not water; lagoon name and Atlantic outlet are corroborated by the regional and Georgino originals.",
+      "use_notice": "Semi-automatically compiled municipal cartography. Printed notice identifies exclusive intended use for IBGE statistical collection/tabulation, warns against other purposes, disclaims responsibility for them and reserves reproduction rights. This is a source-fitness/reproduction caveat, not an officials-only reading prohibition. Originals and crops remain private.",
+      "source_key": "r151-ibge-goianinha-2020"
+    },
+    {
+      "title": "Senador Georgino Avelino – RN, Mapa Municipal Estatístico,2413201",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2007,
+      "edition": "Malha Territorial2007,edição31-10-2007",
+      "scale": "1:100,000",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/rn/senador_georgino_avelino.pdf",
+      "actual_reading": "Retained lawful complete original from r146 reused locally. Full map, named Guaraíras receiving-water body and separate Atlantic opening by Tibau inspected as pixels. No new acquisition.",
+      "supports": "Named Lagoa Guaraíras, northern Papeba/Baldum approaches and the lagoon’s Atlantic opening by Tibau, independently distinguishing those northern approaches from the selected Jacu inflow to the southwest.",
+      "limits": "This map does not alone contain the whole Jacu terminal arm; Goianinha2020 and regional RN–PB2015 cover that approach. The selected component ends within the lagoon setting rather than at the mapped Atlantic inlet. No Papary, Papeba or Baldum passage is assigned to this selected route.",
+      "use_notice": "Printed semi-automatic systematic-map/municipal compilation caveat warns that integration inconsistencies and completeness were not fully treated. IBGE reproduction rights reserved; originals/crops remain private.",
+      "source_key": "r151-ibge-georgino-2007"
+    },
+    {
+      "title": "Sistema Adutor Retiro – Boqueirão do Cais (Cuité/PB), Readequação do Projeto da Captação até à Estaca E60: Projeto Hidromecânico e Estrutural com Memorial Descritivo",
+      "authors": [
+        "ATR Consultores de Engenharia",
+        "António Relvas, responsável técnico"
+      ],
+      "commissioning_parties": [
+        "Construtora Squadrium Ltda",
+        "Governo do Estado da Paraíba / SEIRH"
+      ],
+      "year": 2019,
+      "edition": "Memória Rev00, junho2019; drawing001 dated dezembro2019; retained in public2025 procurement compilation",
+      "official_url": "https://appcentral.centraldecompras.pb.gov.br/appls/sgc/sgc_anexos19.nsf/A7974F48B762599503258C24003184B7/%24file/Projeto%20Hidromec%C3%A2nico%20e%20Estrutural%20com%20Memorial%20Descritivo.pdf",
+      "actual_reading": "One complete80-page original transfer finished HTTP200 application/pdf. Original drawing007-PE-HID-V1T2-001 (PDFpage4), enlarged Retiro body/arms/dam, printed legend/title/graticule, and descriptive sections3.1 with reproduced INCRA2002 Figure3.2 (PDFpages28–29) inspected. No unavailable CONTECC2016 map was acquired or used.",
+      "supports": "Original design cartography places Retiro’s multiarm reservoir on the northeastern Rio Japi/Jacú corridor, with its western/southern approaches and northeastern dam; the separate Boqueirão do Cais reservoir is linked by an explicitly engineered adutora. The descriptive text identifies Campo Comprido as a Jacú tributary and states that the Jacú is also known as Japi at the Retiro section. Figure3.2 depicts the actual southern Jacú and western Campo Comprido drainage approaches to the dam-axis setting; it is expressly identified as a reproduction from INCRA2002, not a newly acquired2002 original.",
+      "publication_distinction": "A commissioned engineering-project compilation with its own numbered original CAD location/reservoir/adutora plate and descriptive report. It is not the unavailable CONTECC2016 geoprocessing paper or its possible shared footprint illustration. No scientific-paper map is used to fill this source.",
+      "limits": "Design-era reservoir outline and construction setting, not a current wetted polygon or operating-status survey. The plate credits SUDENE and Google Earth bases, but the inspected rendering principally exposes the engineering lake outlines, dam, pipeline and graticule; no unseen base imagery is claimed. General geographic identification comes jointly from this plate, the original2009 river maps and the primary2022 completion notice; precise graticule registration or surveyed banks are not asserted. The adutora is an artificial transfer, not the selected natural river continuation.",
+      "use_notice": "Engineering authorship, original plate number, historical status and state procurement hosting preserved. Source pages, diagrams, graticules, crops and internal document-control metadata remain private.",
+      "source_key": "r151-atr-retiro-executive-2019"
+    },
+    {
+      "title": "Governo Federal conclui obras da Barragem Retiro, que beneficiará cerca de45 mil pessoas na Paraíba",
+      "publisher": "Ministério do Desenvolvimento Regional, Governo Federal do Brasil",
+      "year": 2022,
+      "publication_date": "2022-02-04",
+      "updated_date": "2022-11-01",
+      "official_url": "https://www.gov.br/mdr/pt-br/noticias/governo-federal-conclui-obras-da-barragem-retiro-que-beneficiara-cerca-de-45-mil-pessoas-na-paraiba",
+      "actual_reading": "Web page opened normally; relevant article paragraphs read.",
+      "supports": "Bounded primary prose reports delivery of the Retiro dam works in Cuité in2022, names the Rio Japi/Jacú and distinguishes the Retiro/Boqueirão do Cais adutora from the natural river.",
+      "limits": "A completion notice supplies chronology and local river/reservoir association. It does not alone locate the selected inlet or outlet, and is not used as a substitute for the original cartography. No current operation, storage or adutora-completion status inferred.",
+      "source_key": "r151-mdr-retiro-completion-2022"
+    },
+    {
+      "title": "Atlas Águas, Relatório de Identificação de Obra: Sistema Integrado – Retiro-Boqueirão do Cais,PB-NO-SAA-010",
+      "publisher": "Agência Nacional de Águas e Saneamento Básico",
+      "year": 2021,
+      "official_url": "https://portal1.snirh.gov.br/arquivos/RIO_TDR_SNIRH/PB-NO-SAA-010.pdf",
+      "actual_reading": "One complete original transfer finished HTTP200 application/pdf; one-page original and prose inspected.",
+      "supports": "Independent primary project description distinguishes source Barragem Retiro from the destination Boqueirão do Cais and identifies the engineered transfer proposed for Cuité/Nova Floresta.",
+      "limits": "Project fact sheet, not route cartography. Its regional inset and basin field are not used to identify this selected group or establish a natural connecting channel. Its2020 project status and planned dates are historical.",
+      "source_key": "r151-ana-retiro-atlas-2021"
+    },
+    {
+      "title": "Pakowki Lake",
+      "publisher": "South East Alberta Watershed Alliance (SEAWA)",
+      "source_type": "Primary watershed-organization explanatory HTML; bounded prose context",
+      "observed": "Web page opened normally; relevant hydrological body read.",
+      "bounded_observation": "SEAWA describes the Pakowki sub-watershed as normally internally draining, with an intermittent receiving lake and exceptional flood overflow toward Milk River. It names Etzikom Coulee as the principal permanent feeding channel and lists smaller intermittent inflows. Crow Indian Lake is described as a widened part of that coulee. Its overview links Milk River Ridge Reservoir, Nine Mile Coulee, Stirling Lake and Etzikom Coulee, and separately describes canals and structures stabilizing the Tyrrell–Rush wetland complex. Excess agricultural runoff is conveyed by the Rush Lake drain to Etzikom Coulee. These are regional source statements, not observations identifying any selected reach or proving a continuous perennial natural river.",
+      "map_pixels_observed": false,
+      "limits": "No full selected-route cartographic correspondence, exact reach boundaries, operating conditions, formal registry status or current flow regime established. The prose calling Etzikom a permanent channel cannot establish that every selected segment is perennial.",
+      "source_key": "r151-seawa-pakowki-overview",
+      "official_url": "https://seawa.ca/watersheds/pakowki-lake/",
+      "use_notice": "SEAWA page carries an all-rights-reserved footer. Only independently written bounded prose observations and normal citation are supplied; no source reproduction permission is inferred."
+    },
+    {
+      "title": "Provincial Basemap A, energy_provincial_basemap_a",
+      "publisher": "Government of Alberta",
+      "source_type": "Map-service metadata only",
+      "observed": "Service metadata describes provincial base mapping, 250K stream/waterbody layers and Government of Alberta copyright. Linked layer metadata failed before any export.",
+      "map_pixels_observed": false,
+      "limits": "Missing whole cartographic service content paused; duplicate provincial_basemap_a service not used as an alternate.",
+      "source_key": "r151-alberta-provincial-basemap-a",
+      "official_url": "https://geospatial.alberta.ca/titan/rest/services/basemap/energy_provincial_basemap_a/MapServer"
+    },
+    {
+      "title": "Surficial geology of Lethbridge, Alberta, NTS82H and NTS82I; AGS Map206",
+      "author": "I. Shetsen",
+      "publisher": "Alberta Geological Survey",
+      "catalogue_date": "2005-10-16",
+      "scale": "1:250,000",
+      "source_type": "Catalogue metadata only",
+      "observed": "Catalogue title, author, map number, nominal coverage and scale read before original-request403.",
+      "map_pixels_observed": false,
+      "limits": "Whole publication stopped; no map evidence used.",
+      "source_key": "r151-ags-map206",
+      "official_url": "https://ags.aer.ca/publications/all-publications/map-206"
+    },
+    {
+      "title": "CanMatrix1:250,000 NTS082H sheet directory; printed map title and edition uninspected",
+      "publisher": "Natural Resources Canada",
+      "source_type": "Unacquired publication",
+      "observed": "Tool-layer stop; HTTP unknown.",
+      "map_pixels_observed": false,
+      "limits": "Directory, associated sheet, continuation and equivalents stopped.",
+      "source_key": "r151-canmatrix082h",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/082/h/"
+    },
+    {
+      "title": "County of Warner Map July2026",
+      "publisher": "County of Warner",
+      "catalogue_url": "https://www.warnercounty.ca/p/mapping",
+      "source_type": "Catalogue metadata only; map unacquired",
+      "observed": "Catalogue identifies a downloadable county wall map; original link returned Cache miss.",
+      "map_pixels_observed": false,
+      "limits": "Missing July2026 map and equivalents paused.",
+      "source_key": "r151-warner-map2026",
+      "official_url": "https://www.warnercounty.ca/Home/DownloadDocument?docId=3920c719-834c-47b0-a7cb-8fc0ddcf6e80"
+    },
+    {
+      "title": "Hydrogeology of the Foremost Area, Alberta; ARC/AGS Earth Sciences Report1974-04",
+      "author": "D. M. Borneuf",
+      "publisher": "Alberta Research Council / Alberta Geological Survey",
+      "bibliographic_year": "1976 per discovery citation; original imprint uninspected",
+      "source_type": "Unacquired original; discovery bibliography only",
+      "observed": "Sole original request403.",
+      "map_pixels_observed": false,
+      "limits": "Publication/equivalents stopped. Search excerpt excluded from substantive evidence.",
+      "source_key": "r151-ags-esr1974-04",
+      "official_url": "https://static.ags.aer.ca/files/document/ESR/ESR_1974_04.pdf"
+    },
+    {
+      "title": "SEAWA maps-page path; exact underlying map identity unestablished",
+      "publisher": "SEAWA",
+      "source_type": "Unacquired page",
+      "observed": "Cache miss.",
+      "map_pixels_observed": false,
+      "limits": "Exact missing page/equivalent route paused; not a site-wide restriction.",
+      "source_key": "r151-seawa-maps-unacquired",
+      "official_url": "https://seawa.ca/maps/"
+    },
+    {
+      "title": "District Map",
+      "publisher": "St. Mary River Irrigation District",
+      "source_type": "Unacquired operator map page",
+      "observed": "Web-reader400 Timeout fetching.",
+      "map_pixels_observed": false,
+      "limits": "Missing district-map publication and equivalents paused.",
+      "source_key": "r151-smrid-district-map",
+      "official_url": "https://smrid.com/smrid-about/district-map/"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60017646",
+      "source_keys": [
+        "r151-segnini-chacon2017"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10853
+          ],
+          "component_scope": "Northeastern Mifafí opening and southward El Águila–Apartaderos connector",
+          "finding": "Figure 7 maps the opening running northeast, turning south, receiving the separately shown El Águila and El Balcón branches, and continuing past Apartaderos. Figure 2 overlaps this headward setting. The p. 32 route description locates the source setting in the Sierra de La Culata, distinguishes the Mifafí cartographic name and identifies the El Águila junction before the Chama continuation. The selected beginning follows this mapped chain, not an adjacent eastern drainage. No exact local-name transition vertex is assigned.",
+          "sources": [
+            "r151-segnini-chacon2017"
+          ],
+          "correspondence": "Overlapping original-publication cartography and bounded supporting prose read at ordinary component/corridor scale.",
+          "mapped_component_names": [
+            "Quebrada Mifafí",
+            "Río Chama"
+          ]
+        },
+        {
+          "fragments": [
+            10853
+          ],
+          "component_scope": "Southwest turn and upper Chama past Mucuchíes",
+          "finding": "Figure 7 follows the main route southwest from Apartaderos through the Mucuchíes vicinity and distinguishes La Toma, Mucuchache, Saisai, Gavidia and other side branches. Figure 2 overlaps the same upper corridor along the valley between the La Culata and Sierra Nevada mountain belts. The selected route remains on the receiving Chama trunk.",
+          "sources": [
+            "r151-segnini-chacon2017"
+          ],
+          "correspondence": "Overlapping original-publication cartography and bounded supporting prose read at ordinary component/corridor scale.",
+          "mapped_component_names": [
+            "Río Chama"
+          ]
+        },
+        {
+          "fragments": [
+            10853
+          ],
+          "component_scope": "Mérida–Ejido valley and major tributary junction settings",
+          "finding": "Figure 2 depicts the selected southwest-trending main valley through the Mérida–Ejido setting. It separately draws and labels Mucujún, Albarregas, La González and the southeastern Nuestra Señora/Tostós branch. These are lateral junction relationships; no uniform Chama name is assigned to those tributaries.",
+          "sources": [
+            "r151-segnini-chacon2017"
+          ],
+          "correspondence": "Overlapping original-publication cartography and bounded supporting prose read at ordinary component/corridor scale.",
+          "mapped_component_names": [
+            "Río Chama"
+          ]
+        },
+        {
+          "fragments": [
+            10853
+          ],
+          "component_scope": "Lower intramontane valley toward Estanques and Mocotíes",
+          "finding": "The regional map carries the Chama west/southwest past Lagunillas toward the bend below the San Pablo tributary setting. The selected corridor corresponds to the mapped Chama approach from the east; the long Mocotíes valley comes independently from the southwest. The chapter describes the opposed Chama and Mocotíes valley directions and their joining before the northward gorge.",
+          "sources": [
+            "r151-segnini-chacon2017"
+          ],
+          "correspondence": "Overlapping original-publication cartography and bounded supporting prose read at ordinary component/corridor scale.",
+          "mapped_component_names": [
+            "Río Chama"
+          ]
+        },
+        {
+          "fragments": [
+            10853
+          ],
+          "component_scope": "Mocotíes receiving junction, northward gorge and El Vigía transition",
+          "finding": "Figure 2 shows the southwest Mocotíes joining the selected eastern Chama approach and the receiving course turning north through a narrow mountain outlet to El Vigía. The prose independently describes the gorge after the junction and the exit to the lake depression. The selected line takes the northward receiver rather than following Mocotíes upstream. No intervening reservoir or lake passage is depicted.",
+          "sources": [
+            "r151-segnini-chacon2017"
+          ],
+          "correspondence": "Overlapping original-publication cartography and bounded supporting prose read at ordinary component/corridor scale.",
+          "mapped_component_names": [
+            "Río Chama"
+          ]
+        },
+        {
+          "fragments": [
+            10853
+          ],
+          "component_scope": "Chama lowland corridor north of El Vigía",
+          "finding": "Figure 2 continuously connects the El Vigía exit with the northward Chama lowland course toward southern Lago de Maracaibo. Supporting prose separates this lacustrine-plain setting from the intramontane basin and describes downstream anastomosing and meandering forms. The selected route follows this same general corridor; exact present-day lowland channel position is not established.",
+          "sources": [
+            "r151-segnini-chacon2017"
+          ],
+          "correspondence": "Overlapping original-publication cartography and bounded supporting prose read at ordinary component/corridor scale.",
+          "mapped_component_names": [
+            "Río Chama"
+          ]
+        },
+        {
+          "fragments": [
+            10853
+          ],
+          "component_scope": "Actual terminal into southern Lago de Maracaibo",
+          "finding": "Figure 2 visibly connects the mapped and labeled lower Río Chama to the southern lake shoreline, with the full upstream corridor still in view. The chapter describes a deltaic terminal and names Lago de Maracaibo as its receiving waterbody. This supports the selected terminal setting at ordinary corridor scale without equating the lake outlet with the open Caribbean coast or fixing an exact modern delta branch/mouth point.",
+          "sources": [
+            "r151-segnini-chacon2017"
+          ],
+          "correspondence": "Overlapping original-publication cartography and bounded supporting prose read at ordinary component/corridor scale.",
+          "mapped_component_names": [
+            "Río Chama",
+            "Lago de Maracaibo"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60016868",
+      "source_keys": [
+        "PA1",
+        "PA2",
+        "PA3",
+        "PA4",
+        "PA5"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10851
+          ],
+          "component_scope": "Northeastern selected opening and headward branch transfer",
+          "finding": "The selected opening lies northeast of the clearly traceable Cañazas trunk. The official 1:50,000 view stops short of that initial headward corridor. The independent 1:250,000 view shows additional northeastern branches, but does not unambiguously account for the entire selected opening and its choice of connection onto the trunk. The 1:160,000 basin original provides the surrounding Cañazas/Sábalo network, without resolving that opening-to-branch correspondence.",
+          "sources": [
+            "PA1",
+            "PA4",
+            "PA5"
+          ],
+          "correspondence": "material_pending",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10851
+          ],
+          "component_scope": "Eastern southward course, southern turn and west-northwest approach to the reservoir",
+          "finding": "Beyond the unresolved headward part, the readable mapping shows the Cañazas-side north-south course, an eastern Río Sábalo tributary, the large southern turn and the west-northwest course toward the eastern reservoir arm. MiAmbiente distinguishes this corridor from the northern upper-Bayano/Piriá drainage. IMHPA separately identifies Cañazas ante Embalse on this eastern river. These observations support the lower eastern corridor without extending its hydronym to every initial branch.",
+          "sources": [
+            "PA1",
+            "PA3",
+            "PA4",
+            "PA5"
+          ],
+          "correspondence": "supported_bounded_corridor",
+          "mapped_component_name": "Río Cañazas"
+        },
+        {
+          "fragments": [
+            10851
+          ],
+          "component_scope": "Eastern lake entry and connections with separately entering tributaries",
+          "finding": "The Cañazas-side corridor reaches the eastern impounded-water system. The basin original also shows the separately entering upper Bayano from the Piriá sector to the north, Río Tortí from the south and the adjacent Ipetí and Curtí arms. They are connections to the common reservoir, not evidence that all incoming rivers are named Bayano.",
+          "sources": [
+            "PA1",
+            "PA2",
+            "PA5"
+          ],
+          "correspondence": "supported_bounded_corridor",
+          "mapped_component_name": "Lago Bayano"
+        },
+        {
+          "fragments": [
+            10851,
+            10852
+          ],
+          "component_scope": "Central and northern reservoir passages, western reservoir and fragment transition",
+          "finding": "The original basin map and bounded official cartography show one connected, branching reservoir, with northern tributary arms, central narrows, peninsulas and islands, and the western lake body. Both selected fragments are accounted for in this generalized reservoir setting, including their retained transition in the western lake area. The source supports a connected impoundment passage, not a surveyed channel following the modeled line through the lake. Named off-selected tributaries and arms remain distinct.",
+          "sources": [
+            "PA1",
+            "PA2",
+            "PA5"
+          ],
+          "correspondence": "supported_bounded_corridor",
+          "mapped_component_name": "Lago Bayano"
+        },
+        {
+          "fragments": [
+            10852
+          ],
+          "component_scope": "Reservoir outlet, dam vicinity and western downstream river",
+          "finding": "The mapped western outlet connects the reservoir to the downstream Bayano corridor. ARAP identifies the lake as an impoundment of the Bayano for power generation, and IMHPA distinguishes Bayano Sitio de Presa from Lago Bayano. The selected route then follows the westward and southwestward river, with the Cañita-side connection and the Mamoní junction in the Chepo/Coquira sector identifiable in the basin original.",
+          "sources": [
+            "PA1",
+            "PA2",
+            "PA3",
+            "PA5"
+          ],
+          "correspondence": "supported_bounded_corridor",
+          "mapped_component_name": "Río Bayano"
+        },
+        {
+          "fragments": [
+            10852
+          ],
+          "component_scope": "Lower river, selected ending and coastal continuation",
+          "finding": "The basin original labels the broad lower watercourse Río Bayano o Chepo and shows its connection past the La Coquera/Sabaneta sector toward the Pacific coast. The selected ending belongs to this lower estuarine corridor, rather than establishing an exact open-coast mouth. The neighboring Río Viejo/Río Chico and Chichebre-side network is separately depicted; those names are not transferred to the selected Bayano reach. The original source supplies the broad estuarine-water connection that the separate line-only drainage layers omit.",
+          "sources": [
+            "PA1",
+            "PA5"
+          ],
+          "correspondence": "supported_bounded_terminal_setting",
+          "mapped_component_name": "Río Bayano o Chepo"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60799545",
+      "source_keys": [
+        "r151-ibge-rn-pb-2015",
+        "r151-cprm-picui-proaluv-2009",
+        "r151-cprm-cerro-cora-proaluv-2009",
+        "r151-cprm-campestre-proaluv-2009",
+        "r151-ibge-santo-antonio-2022",
+        "r151-ibge-espirito-santo-2022",
+        "r151-ibge-goianinha-2020",
+        "r151-ibge-georgino-2007",
+        "r151-atr-retiro-executive-2019",
+        "r151-mdr-retiro-completion-2022",
+        "r151-ana-retiro-atlas-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13807
+          ],
+          "component_scope": "headward opening",
+          "finding": "The selected beginning is the short northern-flowing feeder west of Timbaúba, through a small unnamed blue-mapped impoundment and the São Bento/Cachoeira-side approach. It joins the Bonsucesso corridor; the initial feeder is not automatically named Rio Jacu or Rio Bonsucesso.",
+          "sources": [
+            "r151-cprm-picui-proaluv-2009"
+          ],
+          "correspondence": "positive at ordinary component/corridor scale"
+        },
+        {
+          "fragments": [
+            13807
+          ],
+          "component_scope": "bonsucesso impoundment and junctions",
+          "finding": "The connected Rio Bonsucesso course passes the waterbody by Bonsucesso and the Rch. da Telha junction, then continues north through São Miguel and Algodão toward Bola/Bolas. Rch. de Santa Rita and Rch. dos Cavalos are separate side approaches. The larger Santa Rita-side reservoir is not the selected Bonsucesso passage.",
+          "sources": [
+            "r151-cprm-picui-proaluv-2009"
+          ],
+          "correspondence": "positive at ordinary component/corridor scale"
+        },
+        {
+          "fragments": [
+            13807
+          ],
+          "component_scope": "trapia jacu campo comprido",
+          "finding": "The selected line follows the northern Bonsucesso approach by Trapiá, where the western Rio do Trapiá joins, then the Jacu/Boa Vista and Melo–Curral do Meio corridor. It continues through Mari and Passagem to the Campo Comprido meeting by Juçá, and northeast toward Cabaças. The western Campo Comprido/Boqueirão do Cais reservoir branch is distinguished from this selected southern approach; Rio Jacu, Rio Bonsucesso and Rio do Trapiá labels retain their bounded local scope.",
+          "sources": [
+            "r151-cprm-picui-proaluv-2009",
+            "r151-atr-retiro-executive-2019"
+          ],
+          "correspondence": "positive at ordinary component/corridor scale"
+        },
+        {
+          "fragments": [
+            13807
+          ],
+          "component_scope": "retiro passage and japi continuation",
+          "finding": "The connected northern approach crosses the Picuí/Cerro Corá/Campestre sheet margins toward the Espinheiro and Rio Japi setting. The independent engineering plate identifies the later Retiro reservoir body, incoming arms and northeastern dam on this corridor. The selected natural continuation is the Japi-labelled river toward Japi town; the westward Retiro–Boqueirão do Cais adutora is a different, artificial connection. The2009 river originals establish the natural corridor before impoundment, the2019 original plate locates the reservoir/dam within it, and the2022 primary notice confirms the construction chronology. Current inundation extent is not claimed.",
+          "sources": [
+            "r151-cprm-picui-proaluv-2009",
+            "r151-cprm-cerro-cora-proaluv-2009",
+            "r151-cprm-campestre-proaluv-2009",
+            "r151-atr-retiro-executive-2019",
+            "r151-mdr-retiro-completion-2022",
+            "r151-ana-retiro-atlas-2021"
+          ],
+          "correspondence": "positive at ordinary component/corridor scale"
+        },
+        {
+          "fragments": [
+            13807
+          ],
+          "component_scope": "japi to japi ii",
+          "finding": "North/east of Japi and Boqueirão, the selected river proceeds through the Salgado/Serra Bonita and Jacó-side approach into Açude Público JapiII. The mapped reservoir body and its northern/northeastern outlet continue through Picos, Cruz São Pedro and Amarração toward São José do Campestre. This is a positively mapped reservoir connection; it is not inferred from the model alone.",
+          "sources": [
+            "r151-cprm-campestre-proaluv-2009"
+          ],
+          "correspondence": "positive at ordinary component/corridor scale"
+        },
+        {
+          "fragments": [
+            13807
+          ],
+          "component_scope": "campestre jacu and pituacu junction",
+          "finding": "At São José do Campestre and Barrinha the original directly labels Rio Jacu. The selected northern/western approach meets the distinct southern Pituaçu-side approach and continues through the bend toward Jacu/Poço Salgado and eastward along the Serrinha–Santo Antônio side. Nearby Trairi, Arapuá, Sombra Grande, Pituaçu, Barriguda and Cajazeiras waterbodies are not all assigned as selected passages.",
+          "sources": [
+            "r151-cprm-campestre-proaluv-2009",
+            "r151-ibge-rn-pb-2015"
+          ],
+          "correspondence": "positive at ordinary component/corridor scale"
+        },
+        {
+          "fragments": [
+            13807
+          ],
+          "component_scope": "santo antonio passagem junctions",
+          "finding": "The directly mapped Jacu corridor continues east along the Serrinha–Santo Antônio margin through the Redenção and Passagem setting. The northern Jacu-Mirim approach and southern Macacos/Santo Antônio approach meet the receiving system separately; their local tributary names are not extended over the selected group.",
+          "sources": [
+            "r151-ibge-santo-antonio-2022",
+            "r151-ibge-rn-pb-2015",
+            "r151-cprm-campestre-proaluv-2009"
+          ],
+          "correspondence": "positive at ordinary component/corridor scale"
+        },
+        {
+          "fragments": [
+            13807
+          ],
+          "component_scope": "espirito santo jundia bend",
+          "finding": "The selected course turns southeast from Passagem, is directly labelled Rio Jacu, receives the separate southward Jundiá-side tributary, and bends through the Espírito Santo setting before continuing northeast toward Goianinha. The municipal originals positively bridge this connector; the separate northern Riacho Fundo/Mosela waterbody corridor is not substituted for it.",
+          "sources": [
+            "r151-ibge-espirito-santo-2022",
+            "r151-ibge-santo-antonio-2022",
+            "r151-ibge-rn-pb-2015"
+          ],
+          "correspondence": "positive at ordinary component/corridor scale"
+        },
+        {
+          "fragments": [
+            13807
+          ],
+          "component_scope": "lower estuary and actual terminal",
+          "finding": "The lower river enters the Goianinha–Arês channel/wetland setting and the southwestern arm of Lagoa Guaraíras near Umari de Baixo. The selected rendered terminal lies in that receiving lagoon setting. The lagoon has a mapped Atlantic inlet by Tibau do Sul farther downstream; the selected endpoint is not treated as a surveyed ocean mouth. Papary, Papeba, Baldum and Arari are distinct northern approaches, not selected passages. Regional and municipal cartography establish the lagoon-scale correspondence without demanding exact agreement with each estuarine channel or bank.",
+          "sources": [
+            "r151-ibge-goianinha-2020",
+            "r151-ibge-rn-pb-2015",
+            "r151-ibge-georgino-2007"
+          ],
+          "correspondence": "positive at ordinary component/corridor scale"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70276504",
+      "source_keys": [
+        "r151-seawa-pakowki-overview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9351
+          ],
+          "component_scope": "headward",
+          "finding": "The initial channel identity, dry or wet condition, and links through the headward agricultural/managed-water landscape have not been established by original cartography.",
+          "sources": [],
+          "correspondence": "Material source correspondence pending; no original map pixels observed.",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9351
+          ],
+          "component_scope": "northwestern turn",
+          "finding": "The northward transfer and its relation to the separately described wetland, drain, reservoir and coulee components remain unestablished. Nearby hydronyms are not assigned to it.",
+          "sources": [],
+          "correspondence": "Material source correspondence pending; no original map pixels observed.",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9351
+          ],
+          "component_scope": "west central",
+          "finding": "No original map proves the complete channel corridor, incoming branches, managed-water links or local reach identity.",
+          "sources": [],
+          "correspondence": "Material source correspondence pending; no original map pixels observed.",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9351
+          ],
+          "component_scope": "central lake links",
+          "finding": "SEAWA mentions Crow Indian Lake as a widened section of Etzikom Coulee, but its exact correspondence and all intervening selected connectors have not been visually established.",
+          "sources": [
+            "r151-seawa-pakowki-overview"
+          ],
+          "correspondence": "Material source correspondence pending; no original map pixels observed.",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9351
+          ],
+          "component_scope": "east central",
+          "finding": "Original source coverage is missing for the corridor, its possible dry/wetland passages and branch decisions.",
+          "sources": [],
+          "correspondence": "Material source correspondence pending; no original map pixels observed.",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9351
+          ],
+          "component_scope": "terminal",
+          "finding": "SEAWA describes Pakowki Lake as the regional receiving lake, but the selected final approach and terminal waterbody correspondence have not been mapped. The model endorheic flag is not substituted for a source observation.",
+          "sources": [
+            "r151-seawa-pakowki-overview"
+          ],
+          "correspondence": "Material source correspondence pending; no original map pixels observed.",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:60016868",
+      "publication": "ACP, Estudios Hidrológicos del Río Bayano, Análisis de Prefactibilidad y factibilidad para determinar el Potencial del Río Bayano para la Producción de Agua Potable para las regiones de Panamá Este y Metropolitana, Contrato No. 025 (2016)",
+      "official_url": "https://pancanal.com/wp-content/uploads/2021/09/Estudios_Hidrologicos_Bayano.pdf",
+      "observed_outcome": "The sole original-file request completed HTTPError 502 Bad Gateway. No PDF body or original figures acquired.",
+      "outcome_layer": "Completed HTTP-client response; no separate origin-versus-intermediary attribution established.",
+      "restriction_scope": "Entire missing publication and equivalent copies, figures, formats, catalogue/reader/original/cache/mirror and other acquisition routes remain paused. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_502_availability_stop",
+      "material_gap": true,
+      "material_effect": "Potential additional source for the unresolved headward corridor is unavailable. Its content is not assumed to close that gap."
+    },
+    {
+      "aw_id": "hydro-system:60016868",
+      "publication": "MiAmbiente Drenaje_50k_MI and Nodo_Caracteristica_General bounded eastern originals, considered with Cuenca 148 – Río Bayano",
+      "official_url": "https://geoportal.miambiente.gob.pa/server/rest/services/Drenaje_50k_MI/MapServer",
+      "observed_outcome": "Original maps were normally acquired and read. Their eastern drainage supplies the Cañazas-side network but does not unambiguously account for the full selected northeastern opening and its headward branch transfer.",
+      "outcome_layer": "Substantive cartographic correspondence limitation; not HTTP, transport, authorization or pixel-access failure.",
+      "restriction_scope": "Only the unresolved selected headward component and connection. No publication acquisition stop is inferred from this substantive limitation.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_selected_headward_component_gap",
+      "material_gap": true,
+      "material_effect": "Prevents completed representative-system identity and completed naming-scope hold.",
+      "related_urls": [
+        "https://geoportal.miambiente.gob.pa/server/rest/services/Nodo_Caracteristica_General/MapServer",
+        "https://cuencas.miambiente.gob.pa/wp-content/uploads/2020/08/Cuenca-Hidrografica-rio-Bayano-148.pdf"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60799545",
+      "publication": "IBGE2020 Espírito Santo RN municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RN/espirito_santo/",
+      "observed_outcome": "Sole web-reader open returned unexplained Internal Error with URL not accessible via this tool; no directory body or origin HTTP status.",
+      "outcome_layer": "Web-reader outcome; origin HTTP status unknown",
+      "restriction_scope": "Exact directory and equivalent directory-acquisition routes paused. No retry or acquisition of its associated2020 map.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60799545",
+      "publication": "IBGE2020 Arez RN municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RN/arez/",
+      "observed_outcome": "Sole web-reader open returned unexplained Internal Error with URL not accessible via this tool; no directory body or origin HTTP status.",
+      "outcome_layer": "Web-reader outcome; origin HTTP status unknown",
+      "restriction_scope": "Exact directory and equivalent directory-acquisition routes paused. No retry or acquisition of its associated2020 map.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60799545",
+      "publication": "IBGE2022 Espírito Santo RN municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/RN/espirito_santo/",
+      "observed_outcome": "Sole web-reader open returned400 Unicode decoding error, with no directory body or origin HTTP status.",
+      "outcome_layer": "Web-reader outcome; origin HTTP status unknown",
+      "restriction_scope": "The exact failed directory-reader route was not retried. This explicit text-decoding/format failure is not an authorization denial. The original A0_2403509_MM.pdf, exposed in the earlier successful discovery listing, received one normal sequential original request. That original transfer completed HTTP200 application/pdf; its source pixels are independently inspected.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60799545",
+      "publication": "IBGE2022 Cuité PB municipal-statistical-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2022/mapas_municipais_estatisticos/PB/cuite_2505105/",
+      "observed_outcome": "Sole web-reader open returned unexplained Internal Error with URL not accessible via this tool; no directory body or origin HTTP status.",
+      "outcome_layer": "Web-reader outcome; origin HTTP status unknown",
+      "restriction_scope": "Exact directory and equivalent directory-acquisition routes paused. No retry or acquisition of associated2022 map.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60799545",
+      "publication": "Lei do Plano Diretor, Município de Arez,13.pdf; date and formal enactment number unestablished",
+      "official_url": "https://camaramunicipaldearez.rn.gov.br/wp-content/uploads/2015/02/13.pdf",
+      "observed_outcome": "Sole web-reader open returned unexplained Internal Error without further reason or origin HTTP status. No publication body was acquired.",
+      "outcome_layer": "Web-reader outcome; origin HTTP status unknown",
+      "restriction_scope": "Whole missing publication and equivalent copies/formats/reader/original/cache/mirror routes paused. No retry. Discovery excerpt is not evidence.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60799545",
+      "publication": "Estimativas da área alagada no projeto da Barragem Retiro através de ferramentas de geoprocessamento, CONTECC2016",
+      "official_url": "https://www.confea.org.br/midias/uploads-imce/contecc2016/agronomia/estimativas%20da%20%C3%A1rea%20alagada%20no%20projeto%20da%20barragem%20retiro%20atrav%C3%A9s%20de%20ferramentas%20de%20geoprocessamento.pdf",
+      "observed_outcome": "Sole original transfer completed HTTP502, text/html. No original publication acquired.",
+      "outcome_layer": "Observed origin HTTP502; not an HTTP401/403 denial",
+      "restriction_scope": "Whole missing publication and equivalent copies, formats, original maps/figures, reader/cache/mirror routes paused. No retry. The possibly shared Retiro footprint in Marinho et al. Biodiversidade Faunística e Florestal2016 remains unrequested and unused; title or host difference does not clear a shared illustration.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70276504",
+      "publication": "Government of Alberta, Provincial Basemap A (energy_provincial_basemap_a); linked 250K Base Stream layer 499 metadata",
+      "official_url": "https://geospatial.alberta.ca/titan/rest/services/basemap/energy_provincial_basemap_a/MapServer/499",
+      "observed_outcome": "Main service metadata opened normally. The linked layer 499 metadata request returned web-reader Cache miss; no HTTP status or original map pixels were supplied.",
+      "outcome_layer": "Web-reader availability response; origin HTTP unobserved.",
+      "restriction_scope": "Missing map-service content and equivalent layers, exports, differently named duplicate basemap services, originals, readers, caches, screenshots and alternate routes paused. No export or retry made.",
+      "earlier_lawful_prose_exception": "Main service metadata establishes provincial basemap publication identity, layer titles, scale range and Government of Alberta copyright only. It is not map correspondence.",
+      "material_gap": true,
+      "related_urls": [
+        "https://geospatial.alberta.ca/titan/rest/services/basemap/energy_provincial_basemap_a/MapServer",
+        "https://geospatial.alberta.ca/titan/rest/services/basemap/provincial_basemap_a/MapServer"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70276504",
+      "publication": "AGS Map 206: Surficial geology of Lethbridge, Alberta, NTS 82H and NTS 82I, I. Shetsen, catalogue dated 2005-10-16",
+      "official_url": "https://ags.aer.ca/publications/all-publications/map-206",
+      "observed_outcome": "The catalogue web reader opened normally. The subsequent sole normal catalogue HTML-original request to obtain the exact linked PDF URL completed HTTPError403 Forbidden; no HTML original or map body acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate transport/tunnel failure reported.",
+      "restriction_scope": "Whole Map206 publication and equivalent copies, formats, original map, catalogue, reader, cache, screenshot, mirror and every acquisition route stopped. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": "Earlier catalogue metadata identifies title, author, map number, scale and NTS coverage only. It is not geographic correspondence.",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70276504",
+      "publication": "CanMatrix NTS082H 1:250,000 directory and associated sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/082/h/",
+      "observed_outcome": "The sole directory acquisition did not establish a terminal HTTP outcome. Its continuation was blocked at the tool-authorization layer. No directory or original map body was inspected. The exact relationship to an existing publication restriction remained unresolved; no source content or alternate recovery was used.",
+      "outcome_layer": "Tool-authorization denial; origin HTTP status unknown.",
+      "restriction_scope": "Exact directory and associated NTS082H publication/equivalents stopped. No retry, alternate route or partial-file inspection.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70276504",
+      "publication": "County of Warner Map July 2026",
+      "official_url": "https://www.warnercounty.ca/Home/DownloadDocument?docId=3920c719-834c-47b0-a7cb-8fc0ddcf6e80",
+      "observed_outcome": "County mapping catalogue opened normally. Its linked July2026 wall-map original returned web-reader Cache miss; no HTTP status or original map pixels provided.",
+      "outcome_layer": "Web-reader availability response; origin HTTP unobserved.",
+      "restriction_scope": "Missing County of Warner July2026 map publication and equivalent copies, formats, originals, reader/cache/screenshot and alternate routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": "Catalogue identifies downloadable wall map only; no cartographic evidence.",
+      "material_gap": true,
+      "related_urls": [
+        "https://www.warnercounty.ca/p/mapping"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70276504",
+      "publication": "D. M. Borneuf, Hydrogeology of the Foremost Area, Alberta; ARC/AGS Earth Sciences Report1974-04, cited1976",
+      "official_url": "https://static.ags.aer.ca/files/document/ESR/ESR_1974_04.pdf",
+      "observed_outcome": "Sole known original-PDF acquisition completed HTTPError403 Forbidden. No PDF bytes or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel/transport failure reported.",
+      "restriction_scope": "Whole ESR1974-04 publication and equivalent copies, figures, formats, catalogue, original, reader/cache/screenshot and every acquisition route stopped. No alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70276504",
+      "publication": "SEAWA maps page at exact /maps/ path; publication identity beyond that path unestablished",
+      "official_url": "https://seawa.ca/maps/",
+      "observed_outcome": "Web-reader Cache miss; no HTTP status or page body supplied.",
+      "outcome_layer": "Web-reader availability response; origin HTTP unobserved.",
+      "restriction_scope": "Exact failed maps-page content and equivalent recovery routes paused. Not a SEAWA-wide stop. The separate successfully read Pakowki Lake overview remains bounded prose evidence.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70276504",
+      "publication": "St. Mary River Irrigation District, District Map",
+      "official_url": "https://smrid.com/smrid-about/district-map/",
+      "observed_outcome": "Web-reader reported400 Timeout fetching; no district map or page body acquired.",
+      "outcome_layer": "Web-reader availability response; origin HTTP status unestablished.",
+      "restriction_scope": "Missing SMRID District Map publication and equivalent map content, originals, reader/cache/screenshot and other acquisition routes paused. No retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": true
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60016868",
+      "publication": "IMHPA Hydrologic Stations List",
+      "official_url": "https://www.imhpa.gob.pa/en/hydrologic-stations/p3",
+      "observed_outcome": "The successfully read page permits lawful information use with citation to IMHPA and cautions against misleading or unconfirmed use.",
+      "outcome_layer": "Published attribution/use notice, not an access denial.",
+      "restriction_scope": "Cite IMHPA when using the bounded station facts; no source redistribution permission inferred.",
+      "earlier_lawful_prose_exception": "The actually read station table remains usable within its local and non-cartographic limits.",
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false,
+      "material_effect": "No additional source-access or geographic gap."
+    }
+  ]
+}

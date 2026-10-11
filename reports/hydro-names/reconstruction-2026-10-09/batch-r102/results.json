@@ -1,0 +1,470 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r102",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r101",
+    "commit": "da51d4439ae15a040a5f80c8ebe774a498d2a69c",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r101/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:80057706",
+    "hydro-system:70860483",
+    "hydro-system:90091482",
+    "hydro-system:90104821"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:80057706",
+      "category": "river_group",
+      "system_id": "80057706",
+      "baseline_logical_fid": 894,
+      "geometry_fids": [
+        2499
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -91.69375,
+        67.00625,
+        -90.435376,
+        68.34375
+      ],
+      "rendered_mainstem_length_km": 267.061,
+      "rendered_network_length_km": 267.061,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -91.69375,
+          67.00625,
+          -90.435376,
+          68.34375
+        ]
+      },
+      "candidate_name": "Arrowsmith River",
+      "candidate_names": [
+        "Arrowsmith River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Direct federal cartographic labels support Arrowsmith River throughout the named common corridor. The unnamed initial feeder, individual lakes and short connecting waters keep null names. Pelly Bay is the receiving marine water, not a river alias.",
+      "geographic_disambiguation": "The selected approach comes from the southwest side of the upper widened Arrowsmith setting, then follows the large southern loop, north-running middle valley and eastward/northeastward lower course. It ends inside the broad Arrowsmith estuarine reach southwest of De Stael Point. The separate Kellett River entrance on the eastern side of the bay head is excluded.",
+      "source_keys": [
+        "r102-nrcan-cbmt-arrowsmith",
+        "r102-chs-arc402-2025"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Nunavut, Arctic Canada, along Arrowsmith River to its lower estuarine reach at the head of Pelly Bay.",
+      "candidate_name_role": "Supported representative river-system identity for the complete bounded selection, including an unnamed southern feeder and lake sequence; not a claim that every component shares the same hydronym.",
+      "completion_scope": "Completed full bounded source-to-object correspondence at generalized corridor scale, using six successfully acquired original federal raster views and independent coastal sailing-directions prose. The review covers the initial unnamed feeder, small-lake sequence, its receiving junction, southern river loop, middle tributary junctions and widened waters, lower alluvial corridor and estuarine endpoint. The selected line simplifies local bends, lake interiors and branching channels; the result does not assert pointwise alignment, exact shoreline or channel threading, official source/mouth vertices or a uniform name for every component. No material interriver or branch-assignment gap remains at this bounded representative-system scope.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Arrowsmith River",
+        "initial_headward_component_name": null,
+        "initial_headward_component": "Unnamed southern lake-and-stream feeder joining the western part of the upper Arrowsmith widened-water setting.",
+        "initial_endpoint_official_source_name": null,
+        "initial_lake_names": null,
+        "short_lake_connector_names": null,
+        "named_southeastern_approach": "Arrowsmith River, separately mapped from the selected southwestern feeder.",
+        "central_named_corridor": "Arrowsmith River",
+        "lower_named_corridor": "Arrowsmith River",
+        "terminal_component": "Inner part of the broad Arrowsmith River estuarine reach.",
+        "terminal_exact_local_branch_name": null,
+        "terminal_endpoint_is_open_coast_mouth": false,
+        "terminal_receiving_water": "Pelly Bay",
+        "distinct_neighboring_river": "Kellett River",
+        "mouth_landmark": "De Stael Point",
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "Do not assign Arrowsmith River as the individual name of the unnamed southern feeder, each lake or every small connector.",
+          "Do not identify the model start as an official source or its last vertex as the outer river mouth.",
+          "Do not substitute Kellett River or treat Pelly Bay as a river alias.",
+          "No current branch-flow allocation, exact active channel, legal naming boundary, official river length, Indigenous-language alternative, naming date or Korean name is established.",
+          "The lack of individual minor-waterbody names is a naming-scope limitation, not an unresolved bounded representative identity."
+        ],
+        "model_limits": "The 267.061 km length is retained selected modeled-fragment metadata, not an official published Arrowsmith River length. Existing geometry served only as a private orientation aid for source viewing. No geometry editing, revalidation, coordinate-fit test or source-line measurement was performed."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70860483",
+      "category": "river_group",
+      "system_id": "70860483",
+      "baseline_logical_fid": 3239,
+      "geometry_fids": [
+        10382
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -106.289986,
+        23.097259,
+        -105.041667,
+        24.060417
+      ],
+      "rendered_mainstem_length_km": 266.941,
+      "rendered_network_length_km": 266.941,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -106.289986,
+          23.097259,
+          -105.041667,
+          24.060417
+        ]
+      },
+      "candidate_name": "Río Presidio",
+      "candidate_names": [
+        "El Toro",
+        "Presa Picachos",
+        "Río Presidio"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Actual retained original map pixels cover the full selected line: eastern headward approach and El Toro, the northwestern turn and mountain descent, the Presidio receiving corridor, Picachos reservoir, lower Presidio and coastal outlet near Barrón. The source maps also separate nearby tributaries, adjacent river systems, canals and coastal lagoons. The precise name of the short easternmost headward twig and a formal El Toro–Presidio name-transition boundary are not established.",
+      "geographic_disambiguation": "The selection first runs generally west and northwest along the El Toro upper drainage, turns southwest through the San José de Ánimas–Unidos Venceremos surroundings, then continues west and southwest across the Durango–Sinaloa mountain boundary. It passes through Picachos and descends via the Pichilingue–El Recodo–Siqueros corridor to Villa Unión before reaching the coast near Barrón, northwest of Laguna el Huizache. It is distinct from the Piaxtla drainage to the north, Quelite to the northwest, and Baluarte–Pánuco drainage to the southeast.",
+      "source_keys": [
+        "r102-inegi-durango-municipal-2010",
+        "r102-inegi-sinaloa-state-2020"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western Durango and southern Sinaloa, Mexico, from the upper El Toro drainage west of Victoria de Durango, through the Sierra Madre Occidental and Picachos impoundment to Villa Unión and the Barrón coastal outlet setting southeast of Mazatlán.",
+      "candidate_name_role": "Supported representative drainage-system identity, with a distinct upper El Toro component and reservoir transit. This is not a uniform name for every selected reach.",
+      "completion_scope": "Complete bounded source-to-object correspondence of the one selected mainstem fragment at generalized corridor scale. The overlapping Durango municipal and Sinaloa state originals establish the initial channel, successive tributary junction settings, mountain receiving river, reservoir transit, lower river and terminal estuarine/coastal setting. Unnamed short headward detail and unspecified formal name boundaries do not leave a material route connector unresolved. This is not precise point matching, geometry revalidation, a claim that every reach bears one name, or an authoritative source/mouth coordinate determination.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Presidio",
+        "representative_system_identity_role": "Supported representative system identity after complete bounded corridor correspondence; not an applied scalar name or one name assigned uniformly to all reaches.",
+        "initial_headward_twig_name": null,
+        "initial_headward_component": "Connected eastern approach into the mapped El Toro course; the separately unnamed twig is covered as a stream corridor without inventing a name or an official source location.",
+        "supported_upper_component": "El Toro",
+        "upper_flow_classification_scope": "The 2010 municipal hydrologic inventory lists El Toro among intermittent currents. This is the publication's classification and is not a current observation of flow throughout the selected system.",
+        "reservoir_component": "Presa Picachos",
+        "dominant_selected_receiving_river": "Río Presidio",
+        "receiving_water": "Océano Pacífico",
+        "terminal_setting": "Barrón coastal river-mouth setting northwest of Laguna el Huizache, with adjacent inundable coastal plain.",
+        "upstream_and_side_components_not_substituted": [
+          "Corral de Piedra",
+          "El Varal",
+          "Tablillas outside its mapped local reach",
+          "San Manuel",
+          "Río Chico",
+          "El Cigarrero",
+          "El Salto–Las Adjuntas incoming drainage",
+          "La Ciudad/La Mesa de los Negros incoming drainage"
+        ],
+        "adjacent_river_systems_not_substituted": [
+          "Río Piaxtla",
+          "Río Quelite",
+          "Río Pánuco",
+          "Río Baluarte"
+        ],
+        "nearby_coastal_waterbodies_not_aliases": [
+          "Estero Urías",
+          "Laguna el Huizache",
+          "Laguna el Caimanero"
+        ],
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "No name derived from the bbox, modeled length or queue rank alone.",
+          "No uniform Río Presidio label across the separate El Toro component or reservoir interior.",
+          "No official compound El Toro–Presidio name, formal naming date or Korean name established.",
+          "No present reservoir level, continuous flow throughout the route, permanently open coastal inlet or legal hydronym boundary established."
+        ],
+        "model_limits": "The supplied 266.941 km is the modeled selected length, not an official river length. Existing geometry was used only to orient source viewing. It was not edited or revalidated. Private approximate orientation views served only to locate generalized corridors on the originals, with no precise point-match claim."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90091482",
+      "category": "river_group",
+      "system_id": "90091482",
+      "baseline_logical_fid": 2856,
+      "geometry_fids": [
+        8871
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -32.320833,
+        68.364583,
+        -30.004289,
+        69.729167
+      ],
+      "rendered_mainstem_length_km": 266.753,
+      "rendered_network_length_km": 266.753,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -32.320833,
+          68.364583,
+          -30.004289,
+          69.729167
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The retained original map supports a completed generalized geographic and feature-class review of the whole selection. It does not establish a continuously named natural river across the ice-covered and glaciated mountain route. This is not a claim that every local watercourse is unnamed.",
+      "geographic_disambiguation": "The selected route opens at its northwestern end, first descends southeast, then follows a long predominantly eastward upper course with a shallow southerly sag and a modest northeasterly recovery. It next turns southeast and nearly south along the eastern side of the selection, before a southwestward return, another southward descent and an east-southeastward terminal limb. Read against the original graticule and regional pixels, the opening occupies ice-covered country inland of the East Greenland mountain margin. The long upper course and later eastern descent approach and enter glaciated uplands in the Watkins Bjerge surroundings. The southwestward lower bend and final southeastward approach remain in mountain-and-ice terrain toward the Nansen Fjord head region. The complete selection is substantially east of the Kangerdlugssuaq corridor considered for a different earlier target. The final source pixels distinguish exposed rock, intervening glacier corridors and adjacent fjord water; they do not establish an exact named glacier, ice front, shoreline crossing or natural-river mouth at the final vertex.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "East Greenland, from the eastern ice-covered interior south of the Scoresby Sund region through the glaciated Watkins Bjerge surroundings toward the Nansen Fjord head region.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded source-object geographic and feature-class review for all of the single selected mainstem: northwestern opening, long eastward upper course, shallow sag and recovery, eastern southward leg, lower southwestward return, southward descent and actual southeastern ending. The separate selection plot and cached geometry were used only to orient viewing of the retained original sheet, its readable graticule, fresh bounded northern/middle and terminal pixel crops, and the original Inland Ice legend. The descriptive bulletin was read for symbol and feature-class context. This establishes the selected regional setting and absence of supported whole-route river identity; it does not claim pointwise geometry validation, exact ice/rock/water intersections or current hydrological connectivity.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "Full readable retained-source coverage establishes the selected ice-covered interior and glaciated mountain/fjord-head setting, but no natural-river identity spanning the whole selected route. Assigning a mountain, fjord or inferred glacier name would exceed the source evidence.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "representative_receiving_system": null,
+        "selected_mainstem_sequence": "Northwestern ice-covered opening → southeastward descent → long eastward course and shallow sag → northeasterly recovery → southeastward turn and nearly southward eastern leg → southwestward return → southward descent → east-southeastward terminal approach and short eastern tip.",
+        "initial_headward_component_name": null,
+        "middle_river_name": null,
+        "terminal_river_component": null,
+        "terminal_receiving_water": null,
+        "exact_terminal_feature_assigned": false,
+        "feature_class_scope": "Ice-covered eastern interior and adjoining glaciated mountain terrain, continuing toward a coastal fjord-head setting. No single natural river or single named glacier is established for the full route.",
+        "terminal_scope": "Generalized glaciated Nansen Fjord head region; no exact glacier, river mouth, shoreline or present ice-front assignment.",
+        "tributary_scope": "No tributary geometry is selected. Internal MultiLineString parts do not imply separately named tributaries.",
+        "nearby_name_scope": "Scoresby Sund, Geikie Plateau, Watkins Bjerge, Gunnbjørn Fjeld, Prinsen af Wales Bjerge, Kangerdlugssuaq and Nansen Fjord provide source-map geographic context only.",
+        "current_ice_margin_or_flow_asserted": false,
+        "model_limits": "The 266.753 km figure is the inventory’s modeled displayed length, not an official natural-river or glacier length. The original geometry was used for bounded source viewing only, without edits, pointwise revalidation, precision registration or inference of current flow.",
+        "name_evidence_limit": "No whole-route hydronym, formal naming date, Greenlandic alternate river name or Korean name established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90104821",
+      "category": "river_group",
+      "system_id": "90104821",
+      "baseline_logical_fid": 2866,
+      "geometry_fids": [
+        8882
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -37.71875,
+        66.325364,
+        -37.152083,
+        68.6375
+      ],
+      "rendered_mainstem_length_km": 266.363,
+      "rendered_network_length_km": 266.363,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -37.71875,
+          66.325364,
+          -37.152083,
+          68.6375
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The retained official source establishes a completed generalized geographic and feature-class review from the northern ice interior through the middle ice-covered course to the southern glaciated mountain-margin ending. It supplies no named natural river spanning this selection. This does not imply that every local marginal stream is unnamed.",
+      "geographic_disambiguation": "The actual selection is a narrow, predominantly north-to-south corridor. Its northern opening initially drifts southeast, followed by a long nearly meridional course with small east-west offsets. Farther south it turns southwest in successive diagonal and southward steps, then follows a conspicuously straight southward interval. A final southwestward offset reaches the westernmost lower bend before the route returns southeast to its actual southern ending. The original sheet and graticule place the northern and much of the middle route on the eastern continental Inland Ice, inland of the East Greenland coastal mountain belt. The lower route approaches the glaciated margin west of the Mont Forel setting, and the final southeastward limb occupies glacier-and-exposed-rock country south/southwest of Mont Forel and north of Tasiilaq/Ammassalik, in the wider upper Sermilik surroundings. The lower marginal setting was inspected separately from the ice-interior opening. The source does not establish an exact named glacier, fjord arm, current front, river mouth or final ice/rock/water intersection at the endpoint.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "East Greenland Inland Ice north of Tasiilaq/Ammassalik, descending toward the glaciated mountain margin south and southwest of Mont Forel in the broader upper Sermilik region.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded source-object geographic and feature-class review of the complete single mainstem: northern opening and southeastward drift, long near-meridional upper/middle course, southwestward middle-lower descent, long straight southern interval, westernmost lower bend and actual southeastern terminal limb. The selected plot and actual cached coordinate sequence were used solely to orient reading of the retained original map, original graticule and legend, fresh northern/interior and southern-margin source-pixel crops, and regional meridian/latitude context. Original bulletin pages 64–65 supplied descriptive symbol context. Full readable regional coverage establishes the modeled selection’s setting and naming limit; it does not establish pointwise alignment, a current flow route, exact ice-front crossing or a particular named outlet.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "Readable retained-source coverage establishes the whole selection’s ice-interior-to-glaciated-margin setting, but no natural-river identity spans it. The unknown whole-route name is a completed naming-scope hold, not a missing-source classification. Nearby fjord, mountain, settlement and inferred glacier names cannot be extended across the full model.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "representative_receiving_system": null,
+        "selected_mainstem_sequence": "Northern ice-interior opening → southeastward drift → long nearly southward course with minor offsets → southwestward middle-lower descent → long southward interval → westernmost lower bend → southeastward terminal limb and actual southern tip.",
+        "initial_headward_component_name": null,
+        "middle_river_name": null,
+        "terminal_river_component": null,
+        "terminal_receiving_water": null,
+        "exact_terminal_feature_assigned": false,
+        "feature_class_scope": "Continental Inland Ice through much of the northern and middle corridor, followed by an approach to and passage into glaciated mountain-margin terrain. No one named river or one named glacier is established across the complete selection.",
+        "terminal_scope": "Generalized glaciated mountain-margin country south/southwest of Mont Forel and north of Tasiilaq/Ammassalik, within the broader upper Sermilik setting. Exact terminal glacier, fjord arm, current ice front and water connection remain unassigned.",
+        "tributary_scope": "No tributary geometry is selected. Internal coordinate parts do not establish separately named tributaries.",
+        "nearby_name_scope": "Mont Forel, Sermilik, Tasiilaq/Ammassalik and the East Greenland/Denmark Strait setting are geographic context only. No nearby named glacier was inferred or proposed.",
+        "current_ice_margin_or_flow_asserted": false,
+        "model_limits": "The 266.363 km value is the modeled inventory display length, not an official natural-river or glacier length. Existing geometry was used only to orient bounded source viewing; no geometry edits, pointwise revalidation, precision registration or current-flow inference was performed.",
+        "name_evidence_limit": "No full-route hydronym, formal naming date, Greenlandic alternate river name or Korean name established."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90091482",
+      "hydro-system:90104821"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 351,
+    "non_pending_records": 325,
+    "source_access_pending": 3,
+    "source_material_pending": 23,
+    "source_any_pending": 26,
+    "scope_holds": 111,
+    "river_groups": 253,
+    "lakes": 98,
+    "unrecorded": 3714,
+    "unrecorded_river_groups": 3202,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r102-nrcan-cbmt-arrowsmith",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r102-chs-arc402-2025",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC402-eng-202501-41273515.pdf"
+    },
+    {
+      "source_key": "r102-inegi-durango-municipal-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10005.pdf"
+    },
+    {
+      "source_key": "r102-inegi-sinaloa-state-2020",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "da51d4439ae15a040a5f80c8ebe774a498d2a69c",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      208,
+      209,
+      210,
+      211
+    ],
+    "next_unrecorded_id": "hydro-system:61547907",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

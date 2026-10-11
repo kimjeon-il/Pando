@@ -1,0 +1,635 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r148",
+  "sources": [
+    {
+      "title": "Land Use Information Series: Boas River, District of Keewatin, Northwest Territories, sheet46C",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Environment Canada; Indian and Northern Affairs. Thematic cartography: Land Resource Research Institute, Research Branch, Agriculture Canada. Printed by Surveys and Mapping Branch, Energy, Mines and Resources Canada.",
+      "year": 1984,
+      "scale": "1:250,000",
+      "base_credit": "National Topographic Series map46C, edition2,1980, Energy, Mines and Resources Canada.",
+      "index_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "extent_used": "Full northern, upper, westward/northwestward bend, unnamed lake and lower-river parts of FID2596 up to the adjoining sheet.",
+      "use_notice": "Crown copyright. Introductory notice calls these interim maps, with incomplete/preliminary information in some areas and approximate thematic boundaries; information current to December1983. Original and crops remain private; no redistribution permission inferred.",
+      "source_key": "r148-nluis-boas-46c",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46c.jpg"
+    },
+    {
+      "title": "Land Use Information Series: Bear Cove, District of Keewatin, Northwest Territories, sheet45N",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Environment Canada; Indian and Northern Affairs. Thematic cartography: Land Resource Research Institute, Research Branch, Agriculture Canada. Printed by Surveys and Mapping Branch, Energy, Mines and Resources Canada.",
+      "year": 1984,
+      "scale": "1:250,000",
+      "base_credit": "National Topographic Series map45N, edition2,1980, Energy, Mines and Resources Canada.",
+      "index_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "extent_used": "Southern continuation, delta branches and actual Bay of Gods Mercy terminal setting of FID2596.",
+      "use_notice": "Crown copyright. Interim-map and approximate-thematic-boundary notice; information current to December1983. Originals and crops remain private.",
+      "source_key": "r148-nluis-bear-cove-45n",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_45n.jpg"
+    },
+    {
+      "title": "Ikkattuaq Migratory Bird Sanctuary",
+      "publisher": "Environment and Climate Change Canada",
+      "page_modified": "2026-05-05",
+      "evidence_scope": "Bounded supporting prose on lower Boas delta/estuary, sedge lowland, lakes and Bay of God Mercy tidal flats. Not a full-route map.",
+      "source_key": "r148-eccc-ikkattuaq-prose",
+      "official_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/harry-gibbons.html"
+    },
+    {
+      "title": "Important Areas for Birds in Nunavut",
+      "publisher": "Canadian Wildlife Service, Environment Canada",
+      "year": 2012,
+      "catalogue_number": "CW66-302/2012E-PDF",
+      "pages_used": "Copyright/publication page and printed page13 Boas River site prose",
+      "evidence_scope": "Site-title/ecological context only. Parsed map labels are not original cartographic observations.",
+      "use_notice": "Publication allows personal/public non-commercial reproduction with stated attribution and accuracy conditions; commercial reproduction requires written permission. No source pages or maps reproduced for this task.",
+      "source_key": "r148-cws-important-areas-2012-prose",
+      "official_url": "https://publications.gc.ca/collections/collection_2012/ec/CW66-302-2012-eng.pdf"
+    },
+    {
+      "publication": "Consejo Comunitario Los Manglares / COCOCAUCA / Corporación ECOFONDO, Plan de Manejo Ambiental Territorial hacia el aprovechamiento sostenible de los recursos naturales, de la finca tradicional y el fortalecimiento organizativo del Consejo Comunitario Los Manglares",
+      "edition": "Report date not independently established; original Mapa básico actualizado and Mapa de cobertura del suelo explicitly dated 2007.",
+      "publisher_or_author": "Consejo Comunitario Los Manglares; David Antonio Torres Riascos, Alba Susana Jiménez Riascos and Rubén Darío Riascos identified as technical team. Cartographic design by Doris Moreno Herrera.",
+      "source_type": "Primary community field/social-cartography report and its original maps",
+      "pages_read": "Report pp.12–15,31–32,76–82,103–104; original Mapa 1 on p.17 and Mapa 4 on p.82 inspected visually, including map margins and bounded northern/southern corridor details.",
+      "cartographic_basis": "Maps at 1:70,000. Mapa básico lists IGAC sheets 319-IV-A/B/C (1994, 1:25,000), an undated community route map, Landsat ETM+ 2001, and social-cartography workshops in 2006–2007. These are source credits, not claims of separately acquired sheets.",
+      "map_coverage": "Lower coastal Micay and the Manglares council area only, from the Guayabal/Limones reach through Santa Ana, La Laguna, San Pablo and Noanamito to the coastal branching channels and northern mouth. No headward or full inland route coverage.",
+      "own_map_observation": "The trunk arrives from the east through the Mamuncia/Guayabal side, turns north past the named lower-river communities and divides near Noanamito. Separate western branches lead to Bocagrande, Candelaria and Coco; the northern network contains Río Micay to the west and the connected Quebrada Tambor channel to the east, joining the mouth area south of Cartagena. The mouth is labeled Bocana Río Micay. The coverage map differentiates mixed/guandal inland forest and coastal mangrove belts.",
+      "prose_observation": "The report identifies Micay as the principal river, describes a bifurcation near Noanamito, and distinguishes freshwater reaches, esteros, bocanas and tidal mangrove/guandal terrain.",
+      "use_notice": "No limited-distribution or officials-only caveat was observed on the inspected original maps or report front matter. No redistribution permission is inferred; originals, local renderings and crops remain private.",
+      "source_key": "r148-manglares-pmat-original",
+      "official_url": "https://cococauca.org/wp-content/uploads/2020/07/Plan-de-Manejo-Ambiental-Territorial-Manglares.pdf"
+    },
+    {
+      "publication": "Consejo Comunitario Integración Río Chuare, Plan de Manejo Ambiental Territorial de la política de aprovechamiento y desarrollo sostenible de los recursos naturales y biodiversos del Consejo Comunitario Integración",
+      "edition": "Report includes 2007 material; original map titles explicitly dated 2007. A 2009 edition is not established.",
+      "source_type": "Primary community territorial report and original thematic cartography",
+      "pages_read": "PDF pp.11,79,95–108 and source/front matter; original maps at PDF pp.104 and106 visually inspected, including a lower-junction crop.",
+      "map_coverage": "Local Chuare territory and the confluence with the larger receiving river; printed small raster labels limit confident source-to-selected-route placement. Does not cover the whole selected river or headward opening.",
+      "own_map_observation": "The mapped Chuare valley enters a larger branching river at the southern/western edge of its territory; the map distinguishes that tributary corridor from neighbouring Mamuncia, Playón and Naya territories.",
+      "prose_observation": "The report describes timber transport down Chuare and then Micay, supporting the tributary/receiving-river relationship without renaming Chuare as Micay.",
+      "use_notice": "No limited-distribution caveat was observed in inspected material. Community source authorship is retained; no map, report or crop redistribution is authorized or inferred.",
+      "source_key": "r148-integracion-pmat-original",
+      "official_url": "https://cococauca.org/wp-content/uploads/2020/07/Plan-de-Manejo-Ambiental-Territorial-Integraci%C3%B3n.pdf"
+    },
+    {
+      "publication": "Consejo Comunitario Sanjoc, Una mirada hacia el territorio colectivo del Consejo Comunitario Sanjoc: Ejerciendo autoridad con gobierno propio",
+      "landing_url": "https://cococauca.org/consejo-comunitario-sanjoc/",
+      "edition": "Date not independently established.",
+      "source_type": "Primary community field/territorial prose; not a mapped corridor source for this review",
+      "pages_read": "PDF pp.4–7 and53, plus catalogue description.",
+      "prose_observation": "The plan distinguishes the Jolí sector (Yucal, España and Yuyal) from the Micay sector (San Antonio and Correntón), south of López de Micay. It describes low and higher hill terrain and wet forest, but the referenced attached use map was not established as an acquired readable map in this PDF.",
+      "map_coverage": "None claimed. Photos, prose and references to an attached map are not original geographic correspondence.",
+      "use_notice": "No limited-distribution caveat was observed in inspected material. No redistribution permission is inferred.",
+      "source_key": "r148-sanjoc-pmat-original",
+      "official_url": "https://cococauca.org/wp-content/uploads/2020/07/Plan-de-Manejo-Ambiental-Territorial-Sanjoc.pdf"
+    },
+    {
+      "publication": "IDEAM DHIME, Cartografia_Basica/Hidrografia and Hidrografia_Anotaciones MapServer metadata",
+      "related_url": "https://dhime.ideam.gov.co/server/rest/services/Cartografia_Basica/Hidrografia_Anotaciones/MapServer",
+      "source_type": "Institutional service metadata only",
+      "scope": "Metadata identifies IGAC 1:100,000 drainage and annotation content and IGAC copyright. No image or geographic naming evidence was acquired.",
+      "use_notice": "Copyright Text: IGAC; complete cartography and original/derivative images are not redistributed.",
+      "source_key": "r148-ideam-hydro-metadata-only",
+      "official_url": "https://dhime.ideam.gov.co/server/rest/services/Cartografia_Basica/Hidrografia/MapServer"
+    },
+    {
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 10",
+      "publisher": "Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "bibliography": "July2011; cartography Marie-Lise Paquin and Eric Levasseur, approved Joëlle Bérubé. Printed scale1:2,300,000; BDGA1:1,000,000 base; NAD83 Québec Lambert.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf",
+      "evidence_kind": "primary_original_cartography",
+      "acquired_scope": "Previously successful retained single-page original; full original and bounded southern-Ungava target sector were visually read. No external reacquisition.",
+      "supports": "Distinct mapped Marralik drainage east of Rivière à la Baleine and west of Qurlutuq; named La Moinerie, Guers and Saffray regional lake setting.",
+      "limits": "Generalized map does not independently resolve the selected far-eastern opening, every lake/river connector and material junction, or the actual final coastal outlet. Geographic context and a nearby lake label are not promoted to a specific selected waterbody traversal.",
+      "use_notice": "Government hosting is not redistribution permission. Own factual observations and bibliography only; original and local crops remain private.",
+      "source_key": "r148-cehq2011-region10"
+    },
+    {
+      "title": "Réserve de territoire aux fins d’aire protégée Rivière-Marralik",
+      "publisher": "Québec, Ministère de l’Environnement, de la Lutte contre les changements climatiques, de la Faune et des Parcs",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-territoires/nunavik/riviere-marralik-en.htm",
+      "evidence_kind": "earlier_lawfully_read_primary_landing_prose_only",
+      "acquired_scope": "Landing page opened normally before linked-map failure.",
+      "supports": "Regional context: protected territory between Kuujjuaq and Kangiqsualujjuaq in southern Ungava Bay and Rivière à la Baleine Lowlands.",
+      "limits": "Regional reserve prose does not establish the selected route or individual connections. Linked original map unavailable; no parsed map label or missing figure used.",
+      "use_notice": "No source reproduction supplied.",
+      "source_key": "r148-marralik-reserve-prose"
+    },
+    {
+      "title": "Projet de parc de la Kuururjuaq (Monts-Torngat-et-Rivière-Koroc). État des connaissances; Carte3.6, Bassins hydrographiques",
+      "publisher": "Administration régionale Kativik",
+      "year": 2005,
+      "bibliography": "Report September2005, map February2005, ISBN0-9738056-0-9; PDF page70; printed scale1:425,000.",
+      "official_url": "https://cdn-contenu.quebec.ca/cdn-contenu/parcs/documents/RA_Etat-connaissances_Kuururjuaq.pdf",
+      "evidence_kind": "retained_primary_original_extent_check_only",
+      "acquired_scope": "Retained lawful original map visually inspected for extent, with no external acquisition.",
+      "supports": "Only the negative extent finding: its Koroc/George park-map area is east and north of the present selected Marralik corridor.",
+      "limits": "Does not supply selected-route correspondence; no automatic transfer of the earlier Koroc finding to this target.",
+      "use_notice": "© Administration régionale Kativik. Original and working images stay private.",
+      "source_key": "r148-ark2005-extent-only"
+    },
+    {
+      "title": "Gander River—A Stream Inventory",
+      "author": "Gerald R. Traverse",
+      "publisher_or_host": "Department of the Environment, Fisheries Service, Resource Development Branch, Newfoundland Region; official DFO Waves repository",
+      "edition": "December 1972",
+      "publication_number": "Progress Report No. 93",
+      "source_type": "Primary original field-survey cartography with bounded supporting prose.",
+      "map_locator": "Figure1, printed p.2/PDF p.8; cover, title, methods and watershed description pp.1,3–4 also read.",
+      "observed_scope": "Northwest/Southwest Gander distinction, lake connection, lower pond sequence and Gander Bay ending. Headward fork correspondence remains incomplete.",
+      "use_notice": "The inspected cover/title and searchable report text expose no citation-permission or limited-distribution warning. This is distinct from excluded DFO Research Document97/37 on Humber. No permission to redistribute original maps or crops is inferred.",
+      "source_key": "traverse1972-gander93",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/65572.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80161639",
+      "source_keys": [
+        "r148-nluis-boas-46c",
+        "r148-nluis-bear-cove-45n",
+        "r148-eccc-ikkattuaq-prose",
+        "r148-cws-important-areas-2012-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2596
+          ],
+          "component_scope": "Initial northern upland course",
+          "finding": "The selected opening is within the northern headward stream network on the high ground west of the separately labeled Kirchoffer River. A continuous southward narrow stream and tributary junctions lead into the valley carrying the Boas River label. The opening is not inferred only from proximity to that label.",
+          "sources": [
+            "r148-nluis-boas-46c"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "name_scope": "A separate hydronym for the initial short headward component is unestablished; representative system identity does not extend the river label uniformly to every feeder."
+        },
+        {
+          "fragments": [
+            2596
+          ],
+          "component_scope": "Upper valley and main lowland bend",
+          "finding": "The route follows the mapped southward Boas valley east of Mount Saorre, the westward turn by The Buttocks and the connected northwestward lowland swing. The source shows the actual channel, small inflows and intervening widened water, distinct from the thematic wildlife/ecological boundaries.",
+          "sources": [
+            "r148-nluis-boas-46c"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "name_scope": "Boas River is directly printed on the upper river; mountain and thematic-unit names are not used as hydronyms."
+        },
+        {
+          "fragments": [
+            2596
+          ],
+          "component_scope": "Broad unnamed lake and tributary junction",
+          "finding": "After the northwest/west lowland swing the river turns south, reaches the eastern side of a broad irregular lake, crosses its connected water and leaves by the southern arm. The lake is shown with a180-foot water elevation but no inspected lake name. The separately labeled Salmon Pond and Sutton drainage lie east of this passage, with their connecting tributary depicted separately. Northern and eastern tributary connections do not interrupt the selected lake-to-river interpretation.",
+          "sources": [
+            "r148-nluis-boas-46c"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "name_scope": "The broad lake remains unnamed here; Salmon Pond and the Sutton tributary are not relabeled as Boas River or treated as a mandatory passage of this selection."
+        },
+        {
+          "fragments": [
+            2596
+          ],
+          "component_scope": "Southern river widening and sheet join",
+          "finding": "The lake outlet continues south through a widened, islanded and locally branching Boas corridor, then southwest. The adjacent sheets show the same connected river across their shared border, with numerous nearby lakes and wetland channels. No reservoir or separately named intervening lake is required to explain this portion.",
+          "sources": [
+            "r148-nluis-boas-46c",
+            "r148-nluis-bear-cove-45n"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "name_scope": "Boas labels support the representative river; the names of individual islands, short anabranches and minor pools remain unestablished."
+        },
+        {
+          "fragments": [
+            2596
+          ],
+          "component_scope": "Delta, distributaries and actual terminal setting",
+          "finding": "The lower river broadens and splits among islands and lowland/tidal channels within the historically labeled Harry Gibbons Migratory Bird Sanctuary. The selected southwesterly continuation reaches the western part of the Boas delta/estuary, with mapped distributaries opening onto extensive tidal flats at the northern end of Bay of Gods Mercy. The separate Unhealing Brook enters the bay east of the Boas distributary complex and is not the selected terminal river. The ECCC account independently describes the lower Boas delta, estuary and adjacent tidal flats.",
+          "sources": [
+            "r148-nluis-bear-cove-45n",
+            "r148-eccc-ikkattuaq-prose"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "name_scope": "The complete system candidate is Boas River, while the selected final distributary has no separately established proper name. No exact modern tidal boundary, unique mouth vertex or present flow partition is asserted."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60237339",
+      "source_keys": [
+        "r148-manglares-pmat-original",
+        "r148-integracion-pmat-original",
+        "r148-sanjoc-pmat-original",
+        "r148-ideam-hydro-metadata-only"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11590
+          ],
+          "component_scope": "Selected mainstem FID 11590",
+          "finding": "All selected model parts were read for orientation. No original primary map acquired establishes the southern opening or its entire north-trending mountain corridor.",
+          "sources": [],
+          "correspondence": "unresolved",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            11591
+          ],
+          "component_scope": "Selected mainstem FID 11591",
+          "finding": "Primary prose distinguishes the Jolí and Micay sectors south of López de Micay and the separate Chuare-to-Micay relationship. Local thematic mapping cannot establish the whole selected middle continuation and actual junction placement.",
+          "sources": [
+            "r148-sanjoc-pmat-original",
+            "r148-integracion-pmat-original"
+          ],
+          "correspondence": "insufficient local context; full fragment unresolved",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            11592
+          ],
+          "component_scope": "Selected mainstem FID 11592",
+          "finding": "The lower original base and coverage maps show the Micay receiving corridor, Noanamito bifurcation, separate western outlets, eastern Quebrada Tambor connection, coastal mangroves and northern Bocana Río Micay. The selected coastal form is consistent with this network at ordinary corridor scale; the entire inland start of this fragment is not positively linked.",
+          "sources": [
+            "r148-manglares-pmat-original",
+            "r148-integracion-pmat-original"
+          ],
+          "correspondence": "partial lower/coastal corridor positive; inland opening unresolved",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70023641",
+      "source_keys": [
+        "r148-cehq2011-region10",
+        "r148-marralik-reserve-prose",
+        "r148-ark2005-extent-only"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8988
+          ],
+          "component_scope": "Far-eastern opening and initial southward turn followed by northwestward feeder",
+          "finding": "The retained selection begins east of the La Moinerie–Guers lake setting and turns from its initial southerly opening into a northwestward course. This is model orientation only. The inspected regional original does not distinguish this exact initial feeder and all intervening lake/stream links; its initial geographic connection remains unestablished.",
+          "sources": [
+            "r148-cehq2011-region10"
+          ],
+          "correspondence": "material_initial_course_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8988
+          ],
+          "component_scope": "Approach to the La Moinerie and Guers lake setting",
+          "finding": "The original regional map distinguishes the rounded Lac La Moinerie and the more complex Lac Guers north of it. These are geographic context for the selected central-eastern sector. The selected approach, actual lake entry/exit and continuous inter-lake connector have not all been distinguished in original cartography; no unverified selected lake traversal is asserted.",
+          "sources": [
+            "r148-cehq2011-region10"
+          ],
+          "correspondence": "material_lake_connector_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8988
+          ],
+          "component_scope": "Westward lake/outlet turns toward the Marralik corridor",
+          "finding": "The original shows the La Moinerie–Guers setting east of Lac Saffray and a northward Marralik drainage. It does not resolve the selected westward lake arm/outlet, the intervening river junction and the actual joining relation at ordinary component scale. Discovery-only Danguy and other reach names are not used as map evidence.",
+          "sources": [
+            "r148-cehq2011-region10"
+          ],
+          "correspondence": "material_junction_and_waterbody_link_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8988
+          ],
+          "component_scope": "Northward middle and lower corridor",
+          "finding": "CEHQ2011 repeatedly labels Rivière Marralik along a separate drainage east of Rivière à la Baleine and west of Rivière Qurlutuq. This supports a broad Marralik corridor candidate for the selected northward continuation. The original is generalized and does not establish every selected widening, material lateral junction or intervening lake identity.",
+          "sources": [
+            "r148-cehq2011-region10"
+          ],
+          "correspondence": "broad_corridor_candidate_supported_component_connections_pending",
+          "mapped_component_name": "Rivière Marralik",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8988
+          ],
+          "component_scope": "Final lower outlet and actual receiving-water setting",
+          "finding": "The original depicts the Marralik drainage approaching southern Ungava Bay east of the separate Rivière à la Baleine estuarine setting. The available map does not distinguish the selected final channel and its actual coastal receiving-water connection sufficiently to complete terminal correspondence. No precise estuary-mouth or island relation is inferred from uninspected records or the model sea classification.",
+          "sources": [
+            "r148-cehq2011-region10"
+          ],
+          "correspondence": "material_actual_terminal_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70281204",
+      "source_keys": [
+        "traverse1972-gander93"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9354
+          ],
+          "component_scope": "Selected mainstem FID 9354",
+          "finding": [
+            "The selected opening is considered against the complete survey map but is not securely assigned to one depicted headward fork.",
+            "The remaining broad corridor corresponds to Northwest Gander approaching Gander Lake; Great Gull is a separate tributary. Southwest Gander enters the lake separately."
+          ],
+          "sources": [
+            "traverse1972-gander93"
+          ],
+          "correspondence": "Partial; initial headward pond/feeder connector unresolved.",
+          "mapped_component_name": null,
+          "unresolved": "Specific initial pond/feeder path and its connection into the observed Northwest Gander trunk."
+        },
+        {
+          "fragments": [
+            9355
+          ],
+          "component_scope": "Selected mainstem FID 9355",
+          "finding": [
+            "The route crosses the western Gander Lake setting to its outlet near Glenwood, then follows the lower Gander.",
+            "The mapped lower river passes Fourth, Third, Second and First ponds, with separate tributary branches, and enters Gander Bay."
+          ],
+          "sources": [
+            "traverse1972-gander93"
+          ],
+          "correspondence": "Ordinary generalized lake-to-terminal correspondence supported.",
+          "mapped_component_name": null,
+          "unresolved": null
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:80161639",
+      "publication": "Alexander, S.A., Ferguson, R.S., and McCormick, K.J.(1991). Key migratory bird terrestrial habitat sites in the Northwest Territories. Canadian Wildlife Service Occasional Paper71, second edition, CW69-1/71E-PDF.",
+      "official_url": "https://publications.gc.ca/collections/collection_2018/eccc/CW69-1-71-eng.pdf",
+      "observed_outcome": "Web reader completed (400) Content length is too large. One sequential normal original-file request then completed HTTP200, redirected to an archived-information page, Content-Type text/html. No original PDF or map pixels acquired.",
+      "outcome_layer": "Explicit web-reader size limit, followed by completed HTTP-client response and wrong-content availability outcome.",
+      "restriction_scope": "Missing publication and equivalent copies, figures, formats, catalogue, original, reader, cache, screenshot, mirror and acquisition routes paused. No further acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_size_limit_followed_by_wrong_content_availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional source unavailable in the stated scope; independently acquired NLUIS46C and45N originals supply complete bounded geographic correspondence."
+    },
+    {
+      "aw_id": "hydro-system:80161639",
+      "publication": "Canadian Wildlife Service, Environment Canada(2012). Important Areas for Birds in Nunavut. CW66-302/2012E-PDF.",
+      "official_url": "https://publications.gc.ca/collections/collection_2012/ec/CW66-302-2012-eng.pdf",
+      "observed_outcome": "PDF prose reader opened normally. The first and only screenshot request, PDF page14 (printed page13, Boas River), returned Cache miss; no original map pixels or HTTP status exposed.",
+      "outcome_layer": "Web-reader screenshot availability result; origin HTTP unknown.",
+      "restriction_scope": "Missing original visual/map material and equivalent copies, formats, original, reader, screenshot, cache, mirror and all visual acquisition routes paused. No alternate acquisition.",
+      "earlier_lawful_prose_exception": "Title,2012 publication/copyright notice and actually read Boas River bird-habitat description remain usable as contextual prose only. Parsed map labels and coordinate labels are not map observations.",
+      "limitation_kind": "visual_availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional source unavailable in the stated scope; independently acquired NLUIS46C and45N originals supply complete bounded geographic correspondence."
+    },
+    {
+      "aw_id": "hydro-system:80161639",
+      "publication": "Environment and Climate Change Canada, Ikkattuaq Migratory Bird Sanctuary official profile; page modified2026-05-05, map image labeled Harry Gibbons Migratory Bird Sanctuary.",
+      "official_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/harry-gibbons.html",
+      "observed_outcome": "Official HTML page opened normally. The sole linked original map-image open returned Cache miss, without pixels or HTTP status.",
+      "outcome_layer": "Web-reader image availability result; origin HTTP status unknown.",
+      "restriction_scope": "Missing visual/map material and equivalent copies, formats, reader, original, screenshot, cache, mirror and visual acquisition routes paused. No retry or alternate map recovery.",
+      "earlier_lawful_prose_exception": "Actually read official description places the sanctuary in the lower Boas River drainage basin and includes the delta, estuary, Bay of God Mercy tidal flats and adjacent low inland terrain. It describes the braided delta crossing sedge meadow with numerous lowland lakes. This contextual prose does not prove the selected complete route or specific delta branch.",
+      "limitation_kind": "visual_availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional source unavailable in the stated scope; independently acquired NLUIS46C and45N originals supply complete bounded geographic correspondence.",
+      "map_url": "https://www.canada.ca/content/canadasite/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/harry-gibbons/_jcr_content/par/mwsadaptiveimage_1096232312/image.img.jpg/1544107192068.jpg"
+    },
+    {
+      "aw_id": "hydro-system:60237339",
+      "publication": "Servicio Geológico Colombiano, Atlas Geológico de Colombia 2023, Plancha 5–13",
+      "official_url": "https://www2.sgc.gov.co/MGC/Documents/Atlas_2023/PDF/Pl_5-13.pdf",
+      "observed_outcome": "Web reader reported Internal Error: Failed to fetch, (500) Unknown error fetching. No map pixels or original PDF acquired.",
+      "outcome_layer": "Web reader fetch layer; origin HTTP status is not independently established.",
+      "restriction_scope": "Missing sheet and equivalent copies, formats, figures, catalogue, original, reader, cache and mirror acquisition routes paused. No alternate acquisition or retry.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Potential regional cartographic corroboration unavailable; search excerpts are excluded as evidence."
+    },
+    {
+      "aw_id": "hydro-system:60237339",
+      "publication": "Municipio de Argelia, Plan de Desarrollo Municipal 2016–2019, Tangara-hosted original",
+      "official_url": "https://www.tangara.gov.co/wp-content/uploads/2023/12/ARGELIA-PLAN-DE-DESARROLLO-MUNICIPAL-2016-2019.pdf",
+      "observed_outcome": "Sole original-file request completed HTTPError 403 Forbidden. No PDF body or map pixels acquired.",
+      "outcome_layer": "Completed original-file HTTP-client response; no separate tunnel failure reported.",
+      "restriction_scope": "Whole plan and equivalents, including reproduced maps and alternate copies/routes, stopped. No retry or bypass.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Potential upper-valley corroboration unavailable. Search excerpts are excluded as evidence."
+    },
+    {
+      "aw_id": "hydro-system:60237339",
+      "publication": "IDEAM DHIME Cartografia_Basica/Hidrografia and Hidrografia_Anotaciones, IGAC 1:100,000 hydrography",
+      "official_url": "https://dhime.ideam.gov.co/server/rest/services/Cartografia_Basica/Hidrografia/MapServer",
+      "observed_outcome": "Both service metadata requests completed HTTP200. The sole bounded upper-corridor original map export subsequently ended with TimeoutError: The read operation timed out. No original map pixels acquired.",
+      "outcome_layer": "Completed HTTP-client read timeout; no origin HTTP response status for the export and no access denial inferred.",
+      "restriction_scope": "Missing hydrography/annotation cartography, all equivalent export, original, reader, cache and mirror routes paused for availability. No smaller export or alternate retrieval.",
+      "earlier_lawful_prose_exception": "Only service metadata identifying the IGAC 1:100,000 hydrographic network remains usable; metadata is not cartographic correspondence evidence.",
+      "material_effect": "Source corridor and name-placement geography remain unestablished from this unavailable service.",
+      "related_url": "https://dhime.ideam.gov.co/server/rest/services/Cartografia_Basica/Hidrografia_Anotaciones/MapServer"
+    },
+    {
+      "aw_id": "hydro-system:60237339",
+      "publication": "Municipio de Argelia Cauca, Plan Municipal de Gestión del Riesgo de Desastres, septiembre de 2012",
+      "official_url": "https://repositorio.gestiondelriesgo.gov.co/bitstream/handle/20.500.11762/28527/PMGRD_ArgeliaCauca_2012.pdf?isAllowed=y&sequence=2",
+      "observed_outcome": "Sole original-file request completed HTTPError 502 Bad Gateway. No PDF body or map pixels acquired.",
+      "outcome_layer": "Completed original-file HTTP-client response; gateway origin/cause not independently established.",
+      "restriction_scope": "Whole missing publication and all equivalent copies, formats, figures, catalogue, original, reader, cache and mirror routes paused for availability. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Potential corridor corroboration unavailable. Search excerpts are excluded as evidence."
+    },
+    {
+      "aw_id": "hydro-system:60237339",
+      "publication": "Municipio de López de Micay, Plan de Desarrollo Municipal 2012–2015: Para volver a creer",
+      "official_url": "https://uvsalud.univalle.edu.co/pdf/procesos_de_interes/cauca/18._lopez_de_micay.pdf",
+      "observed_outcome": "Sole original-file request completed HTTPError 502 Bad Gateway. No PDF body or map pixels acquired.",
+      "outcome_layer": "Completed original-file HTTP-client response; gateway origin/cause not independently established.",
+      "restriction_scope": "Whole missing publication and all equivalent copies, formats, figures, catalogue, original, reader, cache and mirror routes paused for availability. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Potential corridor corroboration unavailable. Search excerpts are excluded as evidence."
+    },
+    {
+      "aw_id": "hydro-system:60237339",
+      "publication": "U.S. Defense Mapping Agency Aerospace Center, Tactical Pilotage Chart L–26D, Colombia; Ecuador, compiled 1992, 1:500,000",
+      "official_url": "https://maps.lib.utexas.edu/maps/tpc/txu-pclmaps-oclc-22834566_l-26d.jpg",
+      "observed_outcome": "Perry-Castañeda catalogue read succeeded. The sole original-map web click returned Cache miss, with no HTTP status. No original pixels acquired.",
+      "outcome_layer": "Web-tool cache/fetch availability result; origin HTTP status unreported.",
+      "restriction_scope": "Missing chart and equivalent copies, formats, image, original, reader, cache, mirror and acquisition routes paused. No retry.",
+      "earlier_lawful_prose_exception": "Only catalogue bibliography and its Not for navigational use notice were read; no map-source geographic evidence.",
+      "material_effect": "Potential full-corridor independent historical chart unavailable."
+    },
+    {
+      "aw_id": "hydro-system:60237339",
+      "publication": "INVEMAR, Informe Técnico REDCAM 2021",
+      "official_url": "https://servicios.invemar.org.co/documents/37438/75549/Informe%2BREDCAM%2B2021.pdf/f833fc29-4fec-a645-33e7-8271a7f22685?t=1670244377197",
+      "observed_outcome": "Sole original-file request completed HTTPError 502 Bad Gateway. No PDF body or original map pixels acquired.",
+      "outcome_layer": "Completed original-file HTTP-client response; gateway origin/cause unestablished.",
+      "restriction_scope": "Whole missing report, all maps and equivalent copies, formats, catalogue, original, reader, cache and mirror routes paused for availability. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Potential lower/coastal corridor map unavailable; discovery excerpts excluded."
+    },
+    {
+      "aw_id": "hydro-system:70023641",
+      "publication": "Cartes Plein Air, Cartes index",
+      "official_url": "https://cartespleinair.org/cartes",
+      "observed_outcome": "Sole web-reader open returned (503) Service Unavailable. No index body acquired.",
+      "outcome_layer": "Web-reader fetch response reporting503; origin status not separately observed.",
+      "restriction_scope": "Failed map index and equivalent index routes paused; no retry or alternate index request. Independently identified field-route originals are distinct publications, but none was acquired.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_503_availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70023641",
+      "publication": "Réserve de territoire aux fins d’aire protégée de la Rivière-Marralik, linked English reserve map",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-territoires/nunavik/carte-riviere-marralik-en.pdf",
+      "observed_outcome": "The official landing page opened normally. Its linked map PDF returned Cache miss. No original map body or pixels acquired.",
+      "outcome_layer": "Web-reader availability response; origin HTTP status not exposed.",
+      "restriction_scope": "Missing reserve-map publication and equivalent translations, formats, original/reader/screenshot/cache/mirror routes paused. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "The earlier landing page identifies the reserve as between Kuujjuaq and Kangiqsualujjuaq in southern Ungava Bay and in the Rivière à la Baleine Lowlands. This is regional context only, not selected-route map correspondence.",
+      "limitation_kind": "reader_cache_miss_availability_stop",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70023641",
+      "publication": "Nunavik Marine Region Wildlife Board: Inuit Knowledge report on belugas around Marralik and Ungava Bay; full original title and imprint uninspected",
+      "official_url": "https://nmrwb.ca/wp-content/uploads/2020/06/IK-Beluga-Marralik-and-Ungava-Bay_Full-report_final.pdf",
+      "observed_outcome": "Sole original-file request completed HTTPError403 Forbidden. No PDF body or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel/transport failure reported.",
+      "restriction_scope": "Whole report and equivalent copies, maps, figures, formats, catalogue/original/reader/cache/mirror and all acquisition routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_403_denial",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70023641",
+      "publication": "Géologie de la région du lac Saffray (SNRC24G,24F), RG2014-02",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG201402/RG201402.pdf",
+      "observed_outcome": "Original-file acquisition had yielded without a terminal response. A subsequent grouped terminal-status attempt received a tool-layer access denial referring to an existing publication restriction. The tool did not identify the affected subcall; both publications were stopped. No partial file or source content was inspected, and no terminal HTTP outcome is established.",
+      "outcome_layer": "Tool-layer denial; origin HTTP outcome unknown.",
+      "restriction_scope": "Both involved publications, retained partial files and equivalent original/catalogue/reader/cache/screenshot/mirror routes remain stopped; no retry or alternative recovery.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "tool_layer_acquisition_continuation_denial_unresolved_origin",
+      "material_gap": true,
+      "material_effect": "Potential detailed original mapping for the initial feeder, lake connections and middle/lower route is unavailable. Discovery titles, map-label snippets and possible local bytes are excluded as substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:70023641",
+      "publication": "Domaine lithotectonique de George, sud-est de la Province de Churchill, Nunavik, Québec, Canada : synthèse de la géologie, BG2018-11 plan001",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/EXAMINE/BG201811/BG201811PLAN001.pdf",
+      "observed_outcome": "Original-file acquisition had yielded without a terminal response. A subsequent grouped terminal-status attempt received a tool-layer access denial referring to an existing publication restriction. The tool did not identify the affected subcall; both publications were stopped. No partial file or source content was inspected, and no terminal HTTP outcome is established.",
+      "outcome_layer": "Tool-layer denial; origin HTTP outcome unknown.",
+      "restriction_scope": "Both involved publications, retained partial files and equivalent original/catalogue/reader/cache/screenshot/mirror routes remain stopped; no retry or alternative recovery.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "tool_layer_acquisition_continuation_denial_unresolved_origin",
+      "material_gap": true,
+      "material_effect": "Potential detailed original mapping for the initial feeder, lake connections and middle/lower route is unavailable. Discovery titles, map-label snippets and possible local bytes are excluded as substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:70281204",
+      "publication": "Domestic Operating Areas 2022–2026, Five Year Operating Plan, Zone 2; Government of Newfoundland and Labrador",
+      "official_url": "https://www.gov.nl.ca/ffa/files/Zone-2-Domestic-Overview-Map-2022-26.pdf",
+      "observed_outcome": "The sole original-file request completed HTTPError 500 Internal Server Error. No PDF body or original map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client error response; no transport/tunnel failure reported.",
+      "restriction_scope": "Missing publication, contained maps and equivalent copies, formats, department paths, original, reader, cache, screenshot, mirror and other acquisition routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70281204",
+      "publication": "Gander River Protected Area map; map linked by the provincial consultation page reviewing the 1989 plan; map issue date uninspected",
+      "official_url": "https://www.gov.nl.ca/mca/files/Gander-River-Protected-Area-map.pdf",
+      "observed_outcome": "The official consultation landing page opened normally. The sole linked map web-reader request returned Cache miss; no PDF body, map pixels or HTTP status exposed.",
+      "outcome_layer": "Web-reader availability response; origin HTTP outcome unknown.",
+      "restriction_scope": "Missing map publication and equivalent copies, formats, original, reader, cache, screenshot, mirror and other acquisition routes paused. No retry or alternate map acquisition.",
+      "earlier_lawful_prose_exception": "Earlier consultation-page prose identifies a review of the 1989 plan and the map link only; it is not selected-route evidence.",
+      "limitation_kind": "availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70281204",
+      "publication": "Provincial 02D/05 surficial-geology catalogue; intended Liverman, D. and Taylor, D.M. (1994), Surficial geology of the Gander Lake map area (NTS 2D), Map 1994-232, Open File 2D (297)",
+      "official_url": "https://www.gov.nl.ca/em/mines/maps/surfnl-2/02D-05/",
+      "observed_outcome": "The sole catalogue web-reader request returned Cache miss. No catalogue body, linked original map or HTTP status obtained.",
+      "outcome_layer": "Web-reader availability response; origin HTTP outcome unknown.",
+      "restriction_scope": "Missing catalogue and intended Map 1994-232 publication content and equivalent catalogue/original/reader/cache/screenshot/mirror routes paused. No retry or alternate recovery. Other separately issued maps are not agency-wide excluded.",
+      "earlier_lawful_prose_exception": "Discovery bibliography only; no cartographic observations.",
+      "limitation_kind": "availability_stop",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70281204",
+      "publication": "Colman-Sadd, S.P. (1985), Burnt Hill, Newfoundland (2D/5), Map 85-001, Report 85-03 enclosure; GS 002D/05/0158",
+      "official_url": "https://www.gov.nl.ca/em/files/85-1.pdf",
+      "observed_outcome": "The official bedrock catalogue and PDF text reader opened normally; no parsed map text was supplied. The sole original-file request completed HTTPError 500 Internal Server Error. No PDF body or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client error response; no transport/tunnel failure reported.",
+      "restriction_scope": "Missing original map/publication visual content and equivalent copies, formats, department paths, catalogue, original, reader, cache, screenshot, mirror and other acquisition routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": "Previously read catalogue bibliography only, not geographic evidence.",
+      "limitation_kind": "availability_stop",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70281204",
+      "publication": "Blackwood, R.F., Colman-Sadd, S.P., O’Brien, S., Hibbard, J., Meyer, J., Tomlin, S. and Green, R. (1984), Mineral Occurrence Map, Gander Lake, Newfoundland, Map 84-045, GS 002D/0271",
+      "official_url": "https://www.gov.nl.ca/em/files/84-45.pdf",
+      "observed_outcome": "The official catalogue and PDF reader opened normally. A screenshot returned a source reference without exposed image pixels or an error; it was not read as a map. A normal original-file request subsequently completed HTTPError 500 Internal Server Error. No original PDF body or observable map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client error response. The earlier screenshot result is not described as an origin HTTP failure or as successful visual reading.",
+      "restriction_scope": "Missing publication and equivalent copies, formats, department paths, catalogue, original, reader, cache, screenshot, mirror and other acquisition routes paused after the 500. No retry or alternative recovery.",
+      "earlier_lawful_prose_exception": "Previously read catalogue bibliography only, not geographic evidence.",
+      "limitation_kind": "availability_stop",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70281204",
+      "publication": "Gander Lake, NTS 002D, CanMatrix 1:250,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/002/d/canmatrix_002d_tif.zip",
+      "observed_outcome": "The official 002/d directory completed HTTP 200 and supplied the exact archive link. The sole linked archive request completed HTTPError 403 Forbidden. No archive or original map body acquired.",
+      "outcome_layer": "Completed original HTTP-client error response; no separate transport/tunnel failure reported.",
+      "restriction_scope": "Whole NTS 002D CanMatrix publication and equivalent copies, formats, editions offered as recovery of the same source, provincial or federal hosts, catalogue, original, reader, cache, screenshot, mirror and all acquisition routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "Successful directory metadata only. Traverse’s independently authored 1972 original had already been acquired and read; its earlier observations are not a recovery copy of this failed sheet.",
+      "limitation_kind": "http_403_denial",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:70281204",
+      "publication": "Traverse (1972), Gander River—A Stream Inventory, Figure 1: selected initial headward-branch disambiguation limit",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/65572.pdf",
+      "observed_outcome": "The complete original survey map was read, including its far-headward network. Its numerous similar pond-and-feeder forks do not securely distinguish the specific selected opening and its first connection to the observed Northwest Gander trunk.",
+      "outcome_layer": "Cartographic correspondence limitation in a successfully acquired source; not an HTTP or transport failure.",
+      "restriction_scope": "Only the selected initial headward connection remains material pending. No acquisition stop is imposed on this successfully acquired publication.",
+      "earlier_lawful_prose_exception": "Earlier and current lawful original-map observations of the middle/lower corridor remain usable.",
+      "limitation_kind": "material_headward_connector_unresolved",
+      "material_gap": true
+    }
+  ],
+  "additional_source_use_notices": []
+}

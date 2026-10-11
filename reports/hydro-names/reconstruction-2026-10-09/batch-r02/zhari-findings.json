@@ -1,0 +1,291 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r02",
+  "created_at_utc": "2026-10-09T11:38:31.944383+00:00",
+  "target": {
+    "aw_id": "lakes_base:1159115267",
+    "source_id": "1159115267",
+    "source_feature_zero_based_index": 596,
+    "historical_baseline_fid": 15789,
+    "historical_baseline_logical_fid": 4414,
+    "historical_bbox": [
+      85.331307,
+      30.747624,
+      85.902963,
+      31.081139
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "扎日南木错 / Zhari Namco",
+    "name_original": "扎日南木错",
+    "name_original_language": "zh",
+    "name_en": "Zhari Namco",
+    "name_bo": null,
+    "name_ko": null,
+    "identity_confidence": "high for generalized whole-waterbody identity; exact shoreline and formal registry unverified",
+    "status": "generalized whole-waterbody identity candidate",
+    "scope": "The single large lake comprising the broad western basin and connected southeast-curving arm. Northern upstream lakes and the much larger drainage basin are excluded.",
+    "official_chinese_usage_supported": true,
+    "english_scientific_usage_supported": true,
+    "current_formal_naming_authority_verified": false,
+    "formal_authority_note": "Local government pages document Chinese usage. No naming-register record, legal naming act, effective naming date or authoritative Tibetan spelling was acquired.",
+    "korean_note": "No direct Korean-language naming evidence was acquired; no automatic transliteration.",
+    "tibetan_note": "Tibetan-script spelling remains null because the acquired originals do not establish it."
+  },
+  "source_supported_names": [
+    {
+      "name": "扎日南木错",
+      "language": "zh",
+      "role": "Official Chinese title/current published usage",
+      "evidence_ids": [
+        "ZHARI-ALI-WATER-2018",
+        "ZHARI-ALI-2023",
+        "ZHARI-NIGLAS-2021"
+      ]
+    },
+    {
+      "name": "扎日南木措",
+      "language": "zh",
+      "role": "Body-text orthographic variant",
+      "evidence_ids": [
+        "ZHARI-ALI-WATER-2018"
+      ]
+    },
+    {
+      "name": "塔热错",
+      "language": "zh",
+      "role": "Expressly reported alias, not separately registry-verified",
+      "evidence_ids": [
+        "ZHARI-ALI-WATER-2018"
+      ]
+    },
+    {
+      "name": "特里纳木错",
+      "language": "zh",
+      "role": "Expressly reported alias, not separately registry-verified",
+      "evidence_ids": [
+        "ZHARI-ALI-WATER-2018"
+      ]
+    },
+    {
+      "name": "Zhari Namco",
+      "language": "en",
+      "role": "English scientific name",
+      "evidence_ids": [
+        "ZHARI-SUN-2021"
+      ]
+    },
+    {
+      "name": "Chi-jih",
+      "language": "romanized",
+      "role": "Source-reported alias only; formal status and equivalence not independently corroborated",
+      "evidence_ids": [
+        "ZHARI-SUN-2021"
+      ]
+    }
+  ],
+  "geometry_integrity": {
+    "reference_file": "geometry-reference.json",
+    "reference_file_sha256_at_read": "d24e7ea22531cf9aa53537905845b858340aeb7e8bafe28052cfd8c41bfb034e",
+    "full_source_file": "selected-lake-geometries.geojson",
+    "full_source_file_sha256": "8ea152040c35d213855c96e2b07d1bd61b3be66eda3157d894f05901929adedb",
+    "full_baseline_file": "selected-baseline-rendered-geometries.geojson",
+    "full_baseline_file_sha256": "778cb5fab315b001992400910c4ce3d50684fe1549eae2b12a78287a14c9ced2",
+    "source_asset_sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+    "source_feature_canonical_sha256": "3ffa946d5568e2f1b8491b45568877a16f70462d0b41271273d995f102ffc837",
+    "source_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          95
+        ]
+      ],
+      "total_coordinates_including_closure": 95,
+      "bbox": [
+        85.33130745925007,
+        30.747624313483442,
+        85.90296259413981,
+        31.08113886952364
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "73d1b718ef7f8e4cf1d093ef1f88b5d7fe111d5bd05c79cc3dcbe6387fe1b501"
+    },
+    "baseline_rendered_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          95
+        ]
+      ],
+      "total_coordinates_including_closure": 95,
+      "bbox": [
+        85.331307,
+        30.747624,
+        85.902963,
+        31.081139
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "d63392709a6a156c2f816e92aae69ab607e032ab5278c9533bac29969682dd24"
+    },
+    "source_to_baseline_comparison": {
+      "same_geometry_type": true,
+      "same_part_ring_and_vertex_order": true,
+      "every_coordinate_matches_source_rounded_to_6_decimals": true,
+      "maximum_absolute_coordinate_difference_degrees": 4.999980696140938e-07
+    },
+    "geometry_hash_independently_recomputed": true,
+    "hash_serialization": "UTF-8 compact JSON, sorted keys, ensure_ascii=False.",
+    "full_source_polygon_inspected": true,
+    "source_ids_properties_geometry_coordinates_ring_order_unchanged": true
+  },
+  "spatial_identity_check": {
+    "method": "Rendered the entire 95-coordinate source polygon and rounded baseline, then overlaid all source coordinates on the full lake inset using observed labeled graticule anchors. Assessed the full outline and adjacent-lake scope, rather than assigning from a nearest point or bounding box.",
+    "evidence_ids": [
+      "ZHARI-SUN-2021",
+      "ZHARI-NIGLAS-2021",
+      "ZHARI-ALI-WATER-2018"
+    ],
+    "observations": [
+      "The western broad lobe, northwestern apex, indented north shore, concave southern shore and curved southeast arm correspond in the full-lake map. All source coordinates were included in the visual overlay.",
+      "The lake is distinct from the red drainage-basin perimeter on Figure 1. The target source polygon traces the small lake, not the catchment.",
+      "Northern 蔡几错 and 齐格错 are shown as distinct waters in the NIGLAS process map. Overflow connection is not a reason to merge their names or areas into this target.",
+      "The full source polygon has one ring and no holes. Neither the generalized map nor this examination verifies the absence of islands or an island-exact water mask.",
+      "Short shoreline segments are obscured by satellite-track marks/labels; complete map coverage does not equal unobscured boundary measurement.",
+      "Changing area and the unspecified Figure 1 shoreline date preclude treating this baseline as a surveyed present-day shoreline."
+    ],
+    "registration_facts": {
+      "source_figure_url": "https://www.frontiersin.org/files/Articles/640553/xml-images/feart-09-640553-g001.webp",
+      "original_image_size_px": [
+        2500,
+        1082
+      ],
+      "crop_box_original_px": [
+        1540,
+        0,
+        2500,
+        930
+      ],
+      "graticule_anchor_crop_px": {
+        "longitude": [
+          [
+            84.5,
+            159
+          ],
+          [
+            85.0,
+            320
+          ],
+          [
+            85.5,
+            480
+          ],
+          [
+            86.0,
+            641
+          ],
+          [
+            86.5,
+            802
+          ]
+        ],
+        "latitude": [
+          [
+            31.5,
+            163
+          ],
+          [
+            31.0,
+            349
+          ],
+          [
+            30.5,
+            535
+          ],
+          [
+            30.0,
+            721
+          ]
+        ]
+      },
+      "transform_used_crop_pixels": {
+        "x": "320 + (longitude - 85)*321",
+        "y": "349 + (31 - latitude)*372"
+      },
+      "registration_type": "Approximate visual affine registration to labeled graticule; not a supplied GIS transform",
+      "source_map_crs": "Not specified in the inspected figure/caption",
+      "exact_boundary_comparison": false,
+      "scope": "Whole-waterbody outline visual test, including all 95 source coordinates; no bbox-only or nearest-point identity assignment"
+    },
+    "coordinate_anchors_from_input_only": {
+      "westernmost": [
+        85.33130745925007,
+        30.9572115720012
+      ],
+      "easternmost": [
+        85.90296259413981,
+        30.93395680595779
+      ],
+      "southernmost": [
+        85.81553644838169,
+        30.747624313483442
+      ],
+      "northernmost": [
+        85.41196323008415,
+        31.08113886952364
+      ]
+    },
+    "coordinate_anchor_note": "These are source vertices, not independently surveyed coordinates from the publications.",
+    "registered_overlay_performed": true,
+    "registration_is_approximate": true,
+    "numerical_shoreline_accuracy_established": false,
+    "surveyed_shoreline_verified": false,
+    "exact_holes_verified": false,
+    "composite_of_separate_lakes_detected": false,
+    "composite_caveat": "Whole-feature visual inspection supports one lake. This is not proof of current channel topology or exact shoreline exclusion at every vertex."
+  },
+  "date_scope": {
+    "official_chinese_usage_dates": [
+      "2018-12-29",
+      "2023-10-07"
+    ],
+    "research_publication_dates": [
+      "2021-03-29",
+      "2021-12-24"
+    ],
+    "source_outline_survey_date": null,
+    "niglas_comparison_outline_years": [
+      2000,
+      2018
+    ],
+    "formal_name_effective_date": null,
+    "present_day_shoreline_claimed": false
+  },
+  "evidence_file": "zhari-source-evidence.json",
+  "evidence_file_sha256": "9942e99e728592a374a3581a53073348afd36bd299a04e47727fade78e224af8",
+  "scope_limits": [
+    "Pinned immutable source/baseline only; no equality claim with an unchecked current deployment.",
+    "The full-map label and shape support waterbody identity, while exact geometry lineage/accuracy remain unresolved.",
+    "NIGLAS cropped map is used only for northern adjacency and historical overflow, never as sole full-lake evidence.",
+    "Official Chinese usage, English research usage, Tibetan spelling and formal naming status have separate evidentiary scopes."
+  ],
+  "review_gate": {
+    "independent_review_required": true,
+    "automatic_application": false,
+    "apply_candidate": false,
+    "product_changes": false,
+    "geometry_changes": false,
+    "name_changes": false,
+    "korean_name_application": false,
+    "deployment": false
+  }
+}

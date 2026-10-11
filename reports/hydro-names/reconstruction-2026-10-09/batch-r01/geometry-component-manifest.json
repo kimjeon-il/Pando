@@ -1,0 +1,14 @@
+{
+  "kind": "frozen geometry component, not accepted name batch",
+  "files": {
+    "selected-lake-geometries.geojson": "5d4e3e19a007d911b9ac289bf4f662e87dfedc0a96f4206db92dda24e3bd943a",
+    "selected-baseline-rendered-geometries.geojson": "1b98d7bb09a0b2b21df3295f5bd803ba401a462a21d52342ff5917a44bd143c3",
+    "geometry-reference.json": "a494858d0e662528a84d0829a4b88014773eebdadb175153565fa5228ea383ab",
+    "selected-pack-receipts.json": "47bd88fd2e7e53c56fcea1a04630c915e9a79e1fe54d31046ad0c6887d3ceb87",
+    "geometry-request-receipts.json": "62fd94873c308b0169e2ea0fb258e00e6298189b55a9319b411d65a4f257495a",
+    "geometry-validation.json": "da5c6b43934217741eb91fba119702c3393367b47a030bdaf1a2966e3c4c63d1",
+    "geometry-README.md": "7aa49807e358d91649386342c9927ac685d36a1c8b03047af58a92e5753c0ade",
+    "validate-geometry-reference.py": "6c96c74d3cc2bafd7eb44172a0be56a04bb6310191f3ac34be54cecb9d3c00a8",
+    "extract-baseline-geometries.mjs": "cdc096c5121475ae963ebe76634806d6197c465feff5eef480c7153f138faa0f"
+  }
+}

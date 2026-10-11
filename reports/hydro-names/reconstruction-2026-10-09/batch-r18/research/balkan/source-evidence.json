@@ -1,0 +1,94 @@
+{
+  "schema": "hydro-public-source-evidence-v2",
+  "batch": "r18",
+  "created_at_utc": "2026-10-09T18:05:31.591435+00:00",
+  "sources": [
+    {
+      "source_key": "pont_prespa_ohrid_general_map",
+      "publisher": "Prespa Ohrid Nature Trust (PONT)",
+      "title": "Prespa - Ohrid Eco-Region",
+      "publication_date": null,
+      "publication_date_note": "No reliable printed publication date was established. Neither the 2021/11 URL directory nor PDF creation metadata is treated as a publication date.",
+      "kind": "conservation_trust_thematic_map",
+      "publisher_authority_scope": "PONT conservation trust/fund publication; not a governmental naming authority, official registry or legally authoritative naming instrument.",
+      "url": "https://www.pont.org/wp-content/uploads/2021/11/General-Map.pdf",
+      "retrieved_at_utc": "2026-10-09T17:35:26.389631+00:00",
+      "retrieved_this_batch": true,
+      "acquisition_outcome": "HTTP 200, complete original PDF available for local inspection.",
+      "original_map_visually_inspected": true,
+      "map_locations": [
+        {
+          "physical_pdf_page": 1,
+          "scope": "Complete one-page map and the full blue-water outlines of all three selected target regions, including southern extremities."
+        }
+      ],
+      "printed_scale": "1:340,000",
+      "short_labels": [
+        "Lake Ohrid (re-designate)",
+        "Prespa Lake Monument of Nature",
+        "Prespa National Park (AL)",
+        "Prespa National Park (GR)"
+      ],
+      "short_label_scope": "The literal Lake Ohrid and Prespa Lake wording occurs within partial conservation overlays inside corresponding blue-water basins. Each motivates only a low-confidence geographic naming candidate. These conservation-area labels do not directly establish name coverage over an entire selected water polygon, legal status or governmental naming authority. Great Prespa and Small Prespa remain unverified.",
+      "legend_interpretation": "Blue fill denotes lakes. Green conservation hatching, proposed-park outlines, dashed wider intervention limits and black international borders are separate map layers.",
+      "independence_group": "pont_prespa_ohrid_general_map",
+      "source_limit": "Single conservation-fund map, with no independent naming-source corroboration. It supports generalized whole-outline comparison, not exact current shorelines or official naming status."
+    }
+  ],
+  "distinct_publication_count": 1,
+  "independent_source_count": 1,
+  "independent_cartographic_identity_source_count": 1,
+  "formal_government_naming_source_count": 0,
+  "independence_note": "One PONT map only. Its repeated lake or protected-area labels do not count as independent sources. Failed auxiliary acquisitions contribute no visual evidence.",
+  "unused_acquisition_outcomes": [
+    {
+      "source_key": "unesco_ohrid_project_157211",
+      "publisher": "UNESCO World Heritage Centre",
+      "publication": "Lake Ohrid project map/brochure, document 157211",
+      "url": "https://whc.unesco.org/document/157211",
+      "requested_at_utc": "2026-10-09T17:34:23.286595+00:00",
+      "acquisition_outcome": "HTTP 403 Forbidden",
+      "original_bytes_acquired": false,
+      "used_as_visual_map_evidence": false,
+      "scope_limit": "No usable original publication was retained for map-pixel inspection; any earlier extracted text is not used as visual evidence."
+    },
+    {
+      "source_key": "unesco_ohrid_nomination_166324",
+      "publisher": "UNESCO World Heritage Centre",
+      "publication": "Albania 2018 Ohrid extension nomination dossier, document 166324",
+      "url": "https://whc.unesco.org/document/166324",
+      "requested_at_utc": "2026-10-09T17:34:32.666669+00:00",
+      "acquisition_outcome": "HTTP 403 Forbidden",
+      "original_bytes_acquired": false,
+      "used_as_visual_map_evidence": false,
+      "scope_limit": "No usable original publication was retained for map-pixel inspection; any earlier extracted text is not used as visual evidence."
+    },
+    {
+      "source_key": "ramsar_advisory_mission_100",
+      "publisher": "Convention on Wetlands / Ramsar",
+      "publication": "Ramsar Advisory Mission 100, Albania, Greece and North Macedonia, 2025 report",
+      "url": "https://www.ramsar.org/document/ramsar-advisory-mission-100-albania-greece-north-macedonia-2025-report",
+      "observed_at_utc": "2026-10-09T17:34:15Z",
+      "acquisition_outcome": "Web 403 Forbidden",
+      "original_bytes_acquired": false,
+      "used_as_visual_map_evidence": false,
+      "scope_limit": "No usable original publication was retained for map-pixel inspection; any earlier extracted text is not used as visual evidence."
+    },
+    {
+      "source_key": "government_ohrid_region_management_plan",
+      "publisher": "Government of North Macedonia, environment ministry archive",
+      "publication": "Management Plan for Natural and Cultural Heritage of the Ohrid Region",
+      "url": "https://arhiva.moepp.gov.mk/wp-content/uploads/2014/12/Management-Plan-Ohridski-Region_ENG.pdf",
+      "requested_at_utc": "2026-10-09T17:35:11.164614+00:00",
+      "acquisition_outcome": "Earlier web retrieval timed out; original-body retrieval returned HTTP 502 Bad Gateway. These are availability failures, not asserted permission denials.",
+      "original_bytes_acquired": false,
+      "used_as_visual_map_evidence": false,
+      "scope_limit": "No usable original publication was retained for map-pixel inspection; any earlier extracted text is not used as visual evidence."
+    }
+  ],
+  "search_snippets_used_as_identity_evidence": false,
+  "availability_scope_note": "The usable PONT map has full target-area coverage. All three bounded visual assessments are complete despite four failed auxiliary publication acquisitions. Two low-confidence geographic candidates remain on naming-extent/authority holds and the smaller southeastern lake remains a null-candidate name-scope hold. None is access-pending.",
+  "included_evidence_limit": "Included records retain bibliography, own factual observations and selected geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

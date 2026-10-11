@@ -1,0 +1,165 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v2",
+  "batch": "r13",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three actual logical inventory lake features; not a count of newly approved scalar names.",
+  "counts": {
+    "supported_generalized_water_identity": 2,
+    "whole_polygon_scope_hold": 1
+  },
+  "pending_source_only_targets": 0,
+  "historical_name_lead_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "selection_count_note": "All three records are new actual-inventory investigations; no historical verdict or exact-ID lead is restored.",
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 101,
+  "lake_baseline_coordinate_count_including_closures": 101,
+  "position_counts_in_target_order": [
+    34,
+    26,
+    41
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159110463",
+      "category": "lake",
+      "source_id": "1159110463",
+      "baseline_logical_fid": 4114,
+      "geometry_fids": [
+        15489
+      ],
+      "candidate_name": "Calcasieu Lake",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "supported_generalized_water_identity",
+      "supported_name_scope": "The full narrow northern reach, widening eastern basin, southern end and western lower lobe broadly correspond to the NOAA Calcasieu Lake overview. The northern cap crosses finer upstream detail; the long western boundary generalizes ship-channel and marsh margins. The blue project outline is not the lake boundary.",
+      "source_keys": [
+        "noaa_calcasieu_overview",
+        "louisiana_celcp2011"
+      ],
+      "limits": [
+        "The NOAA overview supplies cartographic identity; the independent May 2011 state plan supports the name and tidal-estuarine context.",
+        "May 2022 is the NOAA compilation/final-review month, not a verified publication date.",
+        "The complete generalized footprint was inspected. Exact northern, channel and marsh naming partitions, survey shoreline and formal registry status remain unverified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Calcasieu Lake"
+        ]
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159107033",
+      "category": "lake",
+      "source_id": "1159107033",
+      "baseline_logical_fid": 3858,
+      "geometry_fids": [
+        15233
+      ],
+      "candidate_name": "Lake Maurepas",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete rounded ring corresponds to the mapped Lake Maurepas immediately west of Lake Pontchartrain. Its broad southern curve, western side and narrower north/northeast extent were considered. Fine west-bank indentation and channels are unresolved at this scale; the target does not reach the separate Pontchartrain basin.",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "limits": [
+        "The CPRA FY 2024 plan supplies one cartographic publication; repeated map panels are not independent sources.",
+        "The URL date is not a verified printed publication date. The May 2011 state plan supplies basin context, not exact boundary confirmation.",
+        "This is generalized regional correspondence. Fine shoreline, channel boundaries and measured salinity are unverified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Lake Maurepas"
+        ]
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159110475",
+      "category": "lake",
+      "source_id": "1159110475",
+      "baseline_logical_fid": 4115,
+      "geometry_fids": [
+        15490
+      ],
+      "candidate_name": "Lake Salvador",
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "whole_polygon_scope_hold",
+      "supported_name_scope": "The whole silhouette is visible on the acquired CPRA map: a northern lobe, narrowed connection, broad southern basin and southwestern extension. Lake Salvador is readable over the southern basin. The unlabelled northern lobe and fine connections prevent applying that name uniformly to the whole polygon. This is a completed bounded scope assessment with follow-up, not a demonstrated multi-name union.",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "limits": [
+        "The acquired CPRA map covers the entire outline, including the northern lobe; compressed resolution and project overlays limit naming detail.",
+        "Six unavailable auxiliary publications were not used as evidence. Their failure does not erase the complete footprint visible in the acquired source.",
+        "No second named constituent, exhaustive union or precise name-boundary partition was established. Unassigned means unresolved in this assessment, not unnamed in the world."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "main_southern_basin_association_not_whole_polygon_name",
+        "directly_supported_name_forms": [
+          "Lake Salvador"
+        ],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Northern lobe, central connection and fine southwestern/coastal extensions.",
+        "follow_up_scope": "Resolve the unassigned naming extents before any whole-feature name application or geometry change."
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "b4713d19e0bb7282da24a04be2a047103b06c66e1a3e7decd5fc0f9c8fdece3a",
+  "publication_contents": "Own factual evidence and review, exact identifier/coordinate/hash facts, three selected public-domain Natural Earth lake polygons and validators. Raw third-party documents, maps and crops are excluded.",
+  "previous_reconstruction_commit": "bfaef10720f3f177a71758e928e3d9bffba98442"
+}

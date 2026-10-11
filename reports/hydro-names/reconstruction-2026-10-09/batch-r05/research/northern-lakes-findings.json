@@ -1,0 +1,114 @@
+{
+  "schema": "hydro-names-bounded-research-v1",
+  "batch": "r05",
+  "checked_at_utc": "2026-10-09T13:01:20.247569+00:00",
+  "automatic_application": false,
+  "records": [
+    {
+      "source_id": "1159110371",
+      "aw_id": "lakes_base:1159110371",
+      "candidate_name": "Artillery Lake",
+      "source_keys": [
+        "GNWT-CARIBOU-MAP-2018",
+        "PARKS-THAIDENE-2015"
+      ],
+      "supported_name_scope": "The dominant elongated mapped waterbody is associated with Artillery Lake, corroborated by independent park context. This does not establish that the same name covers every point of the generalized polygon.",
+      "map_observation": "The main north-south water shape and neighboring named features align regionally. The source polygon has a thin southwestern continuation beyond the broad lake shape, near the mapped lower river and a smaller lake labeled Toura. The extra-scope concern follows visible water shapes, not merely a text box crossing the polygon.",
+      "whole_polygon_conclusion": "Possible additional downstream water extent remains unresolved. The map and park flyer do not establish a single official name for the whole baseline polygon.",
+      "multiwater_extent_assessment": "possible_extra_downstream_extent_not_proven_composite",
+      "limits": [
+        "No formal naming decision or legal name-extent instrument was verified.",
+        "The entire baseline shape was inspected, but no exact shoreline overlap metric or independent map-control accuracy was established.",
+        "Korean and additional-language names were not supplied by these direct sources; no transliteration is proposed.",
+        "Do not treat the nearby smaller-lake or river label alone as proof that a complete additional waterbody is included."
+      ],
+      "category": "lake",
+      "research_category": "whole_polygon_scope_hold",
+      "name_ko": null,
+      "automatic_application": false,
+      "selection_origin": "new_inventory_investigation",
+      "inventory_classification": "no_meaningful_name_in_deployed_data",
+      "inventory_display_names": [
+        "lake-293"
+      ],
+      "inventory_bbox": [
+        -108.465082,
+        62.855686,
+        -107.532683,
+        63.45766
+      ],
+      "reconstructed_historical_verdict": false
+    },
+    {
+      "source_id": "1159109471",
+      "aw_id": "lakes_base:1159109471",
+      "candidate_name": "Lac de Gras",
+      "source_keys": [
+        "GNWT-CARIBOU-MAP-2018",
+        "DIAND-GRAS-1998"
+      ],
+      "supported_name_scope": "The broad western and southwestern waterbody has a supported regional identity. The northeastern part reaches the separately named connected water shown on the map. A single-name assignment to the whole polygon is not supported.",
+      "map_observation": "The complete projected ring surrounds the broad southwestern basin and extends northeast around much of a second blue water shape. The regional map differentiates those two named waters. The field report independently identifies their outlet narrows and downstream flow.",
+      "whole_polygon_conclusion": "Strong cartographic and hydrological evidence supports a generalized shape spanning distinct connected named waters. Exact subdivision and coverage remain unresolved; do not apply the candidate name to the full polygon.",
+      "multiwater_extent_assessment": "supported_connected_named_waters_exact_split_unverified",
+      "limits": [
+        "No formal naming decision or legal name-extent instrument was verified.",
+        "The entire baseline shape was inspected, but no exact shoreline overlap metric or independent map-control accuracy was established.",
+        "Korean and additional-language names were not supplied by these direct sources; no transliteration is proposed.",
+        "The report outlet coordinate is only a site point. The blank locally rendered report map panel was excluded; it is not a second inspected shoreline map."
+      ],
+      "category": "lake",
+      "research_category": "whole_polygon_scope_hold",
+      "name_ko": null,
+      "automatic_application": false,
+      "selection_origin": "new_inventory_investigation",
+      "inventory_classification": "no_meaningful_name_in_deployed_data",
+      "inventory_display_names": [
+        "lake-227"
+      ],
+      "inventory_bbox": [
+        -111.212235,
+        64.34664,
+        -109.595882,
+        64.733435
+      ],
+      "reconstructed_historical_verdict": false
+    },
+    {
+      "source_id": "1159111751",
+      "aw_id": "lakes_base:1159111751",
+      "candidate_name": "Yamba Lake",
+      "source_keys": [
+        "GNWT-CARIBOU-MAP-2018",
+        "GNWT-TERS-2010"
+      ],
+      "supported_name_scope": "The dominant central and northern mapped waterbody has a supported regional identity. Its southwest extension reaches the adjacent separately named water, so the candidate cannot be assumed to cover the entire digital shape.",
+      "map_observation": "The projected polygon follows the dominant branched waterbody and continues into a southwestern blue-water lobe associated on the map with a different name. A separate GNWT report identifies narrows between the two named lakes. This conclusion uses blue-water shapes and hydrological context rather than label overlap alone.",
+      "whole_polygon_conclusion": "Evidence supports neighboring connected named waters represented by one generalized inventory shape; exact boundary between names and complete coverage are not established.",
+      "multiwater_extent_assessment": "supported_connected_named_waters_exact_split_unverified",
+      "limits": [
+        "No formal naming decision or legal name-extent instrument was verified.",
+        "The entire baseline shape was inspected, but no exact shoreline overlap metric or independent map-control accuracy was established.",
+        "Korean and additional-language names were not supplied by these direct sources; no transliteration is proposed.",
+        "The independent narrows photograph has no surveyed coordinate footprint and cannot resolve exact digital geometry extent."
+      ],
+      "category": "lake",
+      "research_category": "whole_polygon_scope_hold",
+      "name_ko": null,
+      "automatic_application": false,
+      "selection_origin": "new_inventory_investigation",
+      "inventory_classification": "no_meaningful_name_in_deployed_data",
+      "inventory_display_names": [
+        "lake-379"
+      ],
+      "inventory_bbox": [
+        -111.698819,
+        64.825865,
+        -111.033998,
+        65.121995
+      ],
+      "reconstructed_historical_verdict": false
+    }
+  ],
+  "research_scope": "Three new distinct unnamed inventory targets. Generalized regional identity is separated from exact whole-polygon name extent. No product naming changes."
+}

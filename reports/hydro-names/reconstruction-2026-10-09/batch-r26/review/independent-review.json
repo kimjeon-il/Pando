@@ -1,0 +1,300 @@
+{
+  "schema": "hydro-independent-river-review-v4",
+  "batch": "r26",
+  "reviewed_at_utc": "2026-10-09T21:16:58.464192+00:00",
+  "scope_aw_ids": [
+    "hydro-system:50442438",
+    "hydro-system:50442579",
+    "hydro-system:50442814"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Fresh visual inspection of retained original map pixels and legends alongside every selected baseline path, with all parts and positions rendered unmodified. Counts, bounds and endpoint continuity were recomputed from the supplied selected geometries. The detailed source-worker record was compared after recording these observations. This reviewer did not independently decode original packs or verify original HydroRIVERS source-coordinate equality. Public validation checks included factual linkage only.",
+  "prior_distinct_targets": 75,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 78,
+  "duplicate_targets": 0,
+  "counted_unit": "Distinct logical inventory target IDs, not individually named rivers or verified reach names.",
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "current_batch_follow_up_required_targets": 2,
+  "current_batch_scope_hold_targets": 2,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803",
+    "lakes_base:1159108469",
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087",
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201",
+    "hydro-system:50738894",
+    "hydro-system:50691388",
+    "hydro-system:50443984"
+  ],
+  "new_pending_access_ids": [],
+  "new_scope_hold_ids": [
+    "hydro-system:50442438",
+    "hydro-system:50442579"
+  ],
+  "pending_access_reassessment_performed": false,
+  "prior_target_source_or_geometry_reaudit_performed": false,
+  "automatic_application": false,
+  "product_application": false,
+  "scalar_product_name_approvals": 0,
+  "geometry_modified": false,
+  "topology_repaired": false,
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "all_reach_names_verified": false,
+  "findings": [
+    {
+      "aw_id": "hydro-system:50442438",
+      "system_id": "50442438",
+      "logical_fid": 1782,
+      "geometry_fids": [
+        6666,
+        6667
+      ],
+      "fragment_count": 2,
+      "part_count": 50,
+      "position_count": 279,
+      "baseline_fragment_roles": [
+        "mainstem",
+        "mainstem"
+      ],
+      "baseline_stage_sequence": [
+        3,
+        2
+      ],
+      "candidate_name": "Blyth River",
+      "directly_supported_name_forms": [],
+      "research_category": "river_group_name_scope_hold",
+      "review_status": "naming_scope_hold_after_complete_review",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Obtain a legible direct Blyth river-line label or named-station record tied to the selected corridor before supporting its representative identity. Exact upper-feeder, intermediate, tidal and coastal name scope also requires evidence before separately authorized application.",
+      "reach_level_naming_follow_up_required_before_product_application": true,
+      "supported_name_scope": "The complete two-fragment selected path starts in the south, bends northeast into a long northward middle course, then turns northwest through its winding northern continuation to the coast. Its position east of the Liverpool-side corridor in the Northern Territory is compatible with the Blyth River geographic candidate. Figure 13.22 supplies a Blyth River basin callout, but no legible direct Blyth river-line label or named station tied to this selected path was established in the inspected maps. The available-source and complete-path review is complete; representative naming remains on hold. Upper feeder names, exact intermediate name transitions and tidal or coastal parts remain unassigned.",
+      "limits": [
+        "Blyth is established only as basin wording in the inspected source. Regional compatibility and neighboring Goyder-side context do not supply direct selected-river naming evidence.",
+        "A modeled MAIN_RIV/mainstem role does not establish one real-world river name for every selected part.",
+        "The regional assessment is one publication, with low-resolution embedded maps; enlargement cannot establish missing labels, fine junctions or exact coastal boundaries.",
+        "Original HydroRIVERS source-coordinate equality, exact source-reach-to-rendered-part name transitions and river/floodplain/tidal naming boundaries are not established.",
+        "The rendered sea ending differs from retained baseline source-endpoint metadata. Those metadata are not independently verified original HydroRIVERS coordinates, and no name is extended to the intervening coastal portion."
+      ],
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "scalar_product_name_approved": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "all_reach_names_verified": false,
+      "uniform_river_name_for_group": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "exact_surveyed_mouth_verified": false,
+      "topology_repaired": false,
+      "complete_baseline_group_compared": true,
+      "all_selected_branches_considered": true,
+      "private_original_pack_and_metadata_independently_decoded": false,
+      "label_overlap_alone_used_as_identity": false,
+      "catchment_title_alone_used_as_identity": false,
+      "confidence": {
+        "representative_system_association": "not established",
+        "reach_level_name_assignment": "not established",
+        "formal_naming_authority_verified": false,
+        "numerical_probability_claimed": false,
+        "basis": "Basin wording and regional geometry preserve a geographic candidate but do not establish a directly named representative identity."
+      },
+      "regional_distinct_channel_associations": [],
+      "regional_associations_are_exact_reach_assignments": false,
+      "mapped_short_name_forms": [],
+      "candidate_name_role": "geographic_candidate_only_scope_hold",
+      "mapped_named_station_forms": [],
+      "geographic_disambiguation": "Northern Territory, Australia"
+    },
+    {
+      "aw_id": "hydro-system:50442579",
+      "system_id": "50442579",
+      "logical_fid": 1783,
+      "geometry_fids": [
+        6668,
+        6669
+      ],
+      "fragment_count": 2,
+      "part_count": 62,
+      "position_count": 313,
+      "baseline_fragment_roles": [
+        "mainstem",
+        "mainstem"
+      ],
+      "baseline_stage_sequence": [
+        3,
+        2
+      ],
+      "candidate_name": "Liverpool River",
+      "directly_supported_name_forms": [],
+      "research_category": "river_group_name_scope_hold",
+      "review_status": "naming_scope_hold_after_complete_review",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Obtain a legible direct Liverpool river-line label or named-station record tied to the selected corridor, and separately resolve the selected southwestern continuation and possible relationship to the mapped Mann corridor. Exact junction, name-transition and tidal or coastal scope remain prerequisites for separately authorized application.",
+      "reach_level_naming_follow_up_required_before_product_application": true,
+      "supported_name_scope": "The complete two-fragment selected path begins in the southwest, runs east through its southern upper continuation, bends northeast and then north through its middle course, and follows a winding northern corridor to the coast. This position in the Northern Territory is compatible with the Liverpool River basin lead in Figure 13.22. No direct Liverpool river-line label or named station was established. Direct blue Mann wording in Figure 13.23 belongs to the wider river network, but its correspondence to the selected upper parts and any name-transition point remain unresolved. Neither wording is assigned to selected reaches. The available-source and complete-path review is complete; representative Liverpool naming remains on hold, including the southwestern continuation and exact tidal or coastal scope.",
+      "limits": [
+        "Liverpool is established only as basin wording. The distinct blue Mann label is not Liverpool evidence, and no exact relation to selected upper parts or named junction is established.",
+        "A modeled MAIN_RIV/mainstem role does not establish one real-world river name for every selected part.",
+        "The regional assessment is one publication, with low-resolution embedded maps; enlargement cannot establish missing labels, fine junctions or exact coastal boundaries.",
+        "Original HydroRIVERS source-coordinate equality, exact source-reach-to-rendered-part name transitions and river/floodplain/tidal naming boundaries are not established.",
+        "The rendered sea ending differs from retained baseline source-endpoint metadata. Those metadata are not independently verified original HydroRIVERS coordinates, and no name is extended to the intervening coastal portion."
+      ],
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "scalar_product_name_approved": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "all_reach_names_verified": false,
+      "uniform_river_name_for_group": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "exact_surveyed_mouth_verified": false,
+      "topology_repaired": false,
+      "complete_baseline_group_compared": true,
+      "all_selected_branches_considered": true,
+      "private_original_pack_and_metadata_independently_decoded": false,
+      "label_overlap_alone_used_as_identity": false,
+      "catchment_title_alone_used_as_identity": false,
+      "confidence": {
+        "representative_system_association": "not established",
+        "reach_level_name_assignment": "not established",
+        "formal_naming_authority_verified": false,
+        "numerical_probability_claimed": false,
+        "basis": "Basin wording and regional geometry preserve a geographic candidate but do not establish a directly named representative identity."
+      },
+      "regional_distinct_channel_associations": [],
+      "regional_associations_are_exact_reach_assignments": false,
+      "mapped_short_name_forms": [],
+      "candidate_name_role": "geographic_candidate_only_scope_hold",
+      "mapped_named_station_forms": [],
+      "geographic_disambiguation": "Northern Territory, Australia"
+    },
+    {
+      "aw_id": "hydro-system:50442814",
+      "system_id": "50442814",
+      "logical_fid": 1784,
+      "geometry_fids": [
+        6670,
+        6671
+      ],
+      "fragment_count": 2,
+      "part_count": 60,
+      "position_count": 273,
+      "baseline_fragment_roles": [
+        "mainstem",
+        "mainstem"
+      ],
+      "baseline_stage_sequence": [
+        3,
+        2
+      ],
+      "candidate_name": "East Alligator River",
+      "directly_supported_name_forms": [
+        "East Alligator River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No follow-up is required to complete this bounded representative-system assessment. Separately authorized reach-level or scalar product application still requires direct evidence for upper feeders, exact name transitions and lower tidal, floodplain and coastal scope.",
+      "reach_level_naming_follow_up_required_before_product_application": true,
+      "supported_name_scope": "The complete two-fragment selected path starts at a southern hook, runs northeast into a northward upper course, turns northwest along a long middle corridor, and follows a winding lower course to its northwestern coastal ending. Direct blue East Alligator river-line wording in Figure 13.23, compared with the complete path, relative river positions and coastline, supports East Alligator River in the Northern Territory as a bounded representative system identity. The East Alligator River basin callout supplies context, while Kakadu National Park and nearby wetland callouts do not name the selected reaches. Southern headwaters, possible feeder transitions, lower tidal or floodplain portions and the generalized coastal ending remain unassigned at reach level.",
+      "limits": [
+        "Direct East Alligator wording supports the regional representative corridor only. The South Alligator basin and nearby Mann wording name separate context and are not transferred onto this group.",
+        "A modeled MAIN_RIV/mainstem role does not establish one real-world river name for every selected part.",
+        "The regional assessment is one publication, with low-resolution embedded maps; enlargement cannot establish missing labels, fine junctions or exact coastal boundaries.",
+        "Original HydroRIVERS source-coordinate equality, exact source-reach-to-rendered-part name transitions and river/floodplain/tidal naming boundaries are not established.",
+        "The rendered sea ending differs from retained baseline source-endpoint metadata. Those metadata are not independently verified original HydroRIVERS coordinates, and no name is extended to the intervening coastal portion."
+      ],
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "scalar_product_name_approved": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "all_reach_names_verified": false,
+      "uniform_river_name_for_group": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "exact_surveyed_mouth_verified": false,
+      "topology_repaired": false,
+      "complete_baseline_group_compared": true,
+      "all_selected_branches_considered": true,
+      "private_original_pack_and_metadata_independently_decoded": false,
+      "label_overlap_alone_used_as_identity": false,
+      "catchment_title_alone_used_as_identity": false,
+      "confidence": {
+        "representative_system_association": "moderate",
+        "reach_level_name_assignment": "not established",
+        "formal_naming_authority_verified": false,
+        "numerical_probability_claimed": false,
+        "basis": "Direct short river-line wording plus complete regional path comparison supports a bounded representative identity; exact reach names are not established."
+      },
+      "regional_distinct_channel_associations": [],
+      "regional_associations_are_exact_reach_assignments": false,
+      "mapped_short_name_forms": [
+        "East Alligator"
+      ],
+      "candidate_name_role": "bounded_representative_system_identity",
+      "mapped_named_station_forms": [],
+      "geographic_disambiguation": "Northern Territory, Australia"
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-09T21:16:58.464192+00:00",
+    "available_source_inspection_completed": true,
+    "full_feature_correspondence_review_completed": true,
+    "original_source_material_included": false,
+    "full_selected_geometry_included": false,
+    "historical_results_recomputed_by_public_validator": false
+  },
+  "included_evidence_limit": "Only public factual summaries, bibliography and included-file integrity are testable here. Original maps, complete paths and recorded visual judgments are omitted and cannot be reproduced by public validation. A completed scope review can retain a naming hold; representative identity neither establishes every reach name nor authorizes product use."
+}

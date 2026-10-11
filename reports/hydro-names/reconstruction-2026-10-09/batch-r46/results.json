@@ -1,0 +1,266 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v3",
+  "batch": "r46",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three actual logical inventory lake features, not a count of approved scalar names.",
+  "counts": {
+    "supported_generalized_water_identity": 3
+  },
+  "pending_source_only_targets": 0,
+  "source_material_pending_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "distinct_target_increment": 3,
+  "existing_inventory_reassessment_targets": 0,
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 134,
+  "lake_baseline_coordinate_count_including_closures": 134,
+  "position_counts_in_target_order": [
+    56,
+    43,
+    35
+  ],
+  "polygon_counts_in_target_order": [
+    1,
+    1,
+    1
+  ],
+  "ring_counts_in_target_order": [
+    1,
+    1,
+    1
+  ],
+  "scope_aw_ids": [
+    "lakes_base:1159112329",
+    "lakes_base:1159108445",
+    "lakes_base:1159112319"
+  ],
+  "current_live_deployment_checked": false,
+  "latest_live_packed_data_correspondence_verified": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159112329",
+      "candidate_name": "Kesagami Lake",
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete selected generalized ring follows the broad northern and central Kesagami Lake basin, the western lobe at Opimiskau Bay and the long southern arm at Newnham Bay. These bay labels describe subordinate parts of the same mapped lake, not separate selected lakes. Piyagoskogau Lake and Natogami Lake are outside this selected basin. Coarse lines overshoot white land, cut across shore indentations and omit detailed bay water; northern and southern lake/channel transitions are not precisely established. The entire detailed named-lake extent is not certified. This supports a bounded generalized research identity only; no product scalar name is approved.",
+      "source_keys": [
+        "ogs_index_bedrock_east_central_2021"
+      ],
+      "limits": [
+        "The complete selected generalized ring follows the broad northern and central Kesagami Lake basin, the western lobe at Opimiskau Bay and the long southern arm at Newnham Bay. These bay labels describe subordinate parts of the same mapped lake, not separate selected lakes. Piyagoskogau Lake and Natogami Lake are outside this selected basin. Coarse lines overshoot white land, cut across shore indentations and omit detailed bay water; northern and southern lake/channel transitions are not precisely established. The entire detailed named-lake extent is not certified.",
+        "Official thematic map-index cartography supports these bounded observations, not formal naming-registry status or independent hydrographic dataset comparison.",
+        "No Korean form, additional alias, exact name partition or geometry repair is certified; surrounding labels remain contextual."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "category": "lake",
+      "source_id": "1159112329",
+      "baseline_logical_fid": 4239,
+      "geometry_fids": [
+        15614
+      ],
+      "independent_review_status": "supported_generalized_identity_with_material_extent_limits",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Kesagami Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Kesagami Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete selected generalized ring follows the broad northern and central Kesagami Lake basin, the western lobe at Opimiskau Bay and the long southern arm at Newnham Bay. These bay labels describe subordinate parts of the same mapped lake, not separate selected lakes. Piyagoskogau Lake and Natogami Lake are outside this selected basin. Coarse lines overshoot white land, cut across shore indentations and omit detailed bay water; northern and southern lake/channel transitions are not precisely established. The entire detailed named-lake extent is not certified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": [],
+        "candidate_name_role": "generalized_research_identity_not_product_scalar",
+        "directly_supported_name_forms": [
+          "Kesagami Lake"
+        ],
+        "follow_up_scope": "Supported generalized research identity is complete; exact shores, formal registry status, Korean form and product naming are not approved.",
+        "geographic_disambiguation": "Northeastern Ontario, Canada, at the Kesagami Lake basin and its Opimiskau and Newnham bays"
+      },
+      "candidate_names": [
+        "Kesagami Lake"
+      ],
+      "context_source_keys": [],
+      "source_material_pending": false
+    },
+    {
+      "aw_id": "lakes_base:1159108445",
+      "candidate_name": "Missinaibi Lake",
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete forked ring follows the connected long southwest-northeast arms of Missinaibi Lake and their central connection. The split lake label is partly over white land between the arms, so label position alone is not used as identity. Generalized margins cross land and omit narrow bays, side branches and terminal water. The northeastern tip stops before the eastward connecting river, and the western end stops before farther western waters. Exact lake/river transitions, detailed shores and the entire named-lake extent remain unverified. This supports a bounded generalized research identity only; no product scalar name is approved.",
+      "source_keys": [
+        "ogs_index_bedrock_east_central_2021"
+      ],
+      "limits": [
+        "The complete forked ring follows the connected long southwest-northeast arms of Missinaibi Lake and their central connection. The split lake label is partly over white land between the arms, so label position alone is not used as identity. Generalized margins cross land and omit narrow bays, side branches and terminal water. The northeastern tip stops before the eastward connecting river, and the western end stops before farther western waters. Exact lake/river transitions, detailed shores and the entire named-lake extent remain unverified.",
+        "Official thematic map-index cartography supports these bounded observations, not formal naming-registry status or independent hydrographic dataset comparison.",
+        "No Korean form, additional alias, exact name partition or geometry repair is certified; surrounding labels remain contextual."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "category": "lake",
+      "source_id": "1159108445",
+      "baseline_logical_fid": 3963,
+      "geometry_fids": [
+        15338
+      ],
+      "independent_review_status": "supported_generalized_identity_with_material_extent_limits",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Missinaibi Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Missinaibi Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete forked ring follows the connected long southwest-northeast arms of Missinaibi Lake and their central connection. The split lake label is partly over white land between the arms, so label position alone is not used as identity. Generalized margins cross land and omit narrow bays, side branches and terminal water. The northeastern tip stops before the eastward connecting river, and the western end stops before farther western waters. Exact lake/river transitions, detailed shores and the entire named-lake extent remain unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": [],
+        "candidate_name_role": "generalized_research_identity_not_product_scalar",
+        "directly_supported_name_forms": [
+          "Missinaibi Lake"
+        ],
+        "follow_up_scope": "Supported generalized research identity is complete; exact shores, formal registry status, Korean form and product naming are not approved.",
+        "geographic_disambiguation": "Northeastern Ontario, Canada, at the long branching Missinaibi Lake basin"
+      },
+      "candidate_names": [
+        "Missinaibi Lake"
+      ],
+      "context_source_keys": [],
+      "source_material_pending": false
+    },
+    {
+      "aw_id": "lakes_base:1159112319",
+      "candidate_name": "Night Hawk Lake",
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized ring follows the main Night Hawk Lake basin, its narrow western southern arm and a coarse northern connecting-water extension. The independently registered Timmins inset clarifies the main basin and arm despite index-map overprint. Pale cyan marks water; the large white region southeast of the arm is land, not an omitted lake lobe. The northern tip, western margin and parts of the southern arm overshoot mapped land, while small bays and terminal water are omitted. Exact northern lake/channel division, southern connection, overprinted shores and the entire detailed named-lake extent remain unverified. This supports a bounded generalized research identity only; no product scalar name is approved.",
+      "source_keys": [
+        "ogs_index_bedrock_east_central_2021"
+      ],
+      "limits": [
+        "The complete generalized ring follows the main Night Hawk Lake basin, its narrow western southern arm and a coarse northern connecting-water extension. The independently registered Timmins inset clarifies the main basin and arm despite index-map overprint. Pale cyan marks water; the large white region southeast of the arm is land, not an omitted lake lobe. The northern tip, western margin and parts of the southern arm overshoot mapped land, while small bays and terminal water are omitted. Exact northern lake/channel division, southern connection, overprinted shores and the entire detailed named-lake extent remain unverified.",
+        "Official thematic map-index cartography supports these bounded observations, not formal naming-registry status or independent hydrographic dataset comparison.",
+        "No Korean form, additional alias, exact name partition or geometry repair is certified; surrounding labels remain contextual."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "category": "lake",
+      "source_id": "1159112319",
+      "baseline_logical_fid": 4238,
+      "geometry_fids": [
+        15613
+      ],
+      "independent_review_status": "supported_generalized_identity_with_material_extent_limits",
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Night Hawk Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Night Hawk Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete generalized ring follows the main Night Hawk Lake basin, its narrow western southern arm and a coarse northern connecting-water extension. The independently registered Timmins inset clarifies the main basin and arm despite index-map overprint. Pale cyan marks water; the large white region southeast of the arm is land, not an omitted lake lobe. The northern tip, western margin and parts of the southern arm overshoot mapped land, while small bays and terminal water are omitted. Exact northern lake/channel division, southern connection, overprinted shores and the entire detailed named-lake extent remain unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": [],
+        "candidate_name_role": "generalized_research_identity_not_product_scalar",
+        "directly_supported_name_forms": [
+          "Night Hawk Lake"
+        ],
+        "follow_up_scope": "Supported generalized research identity is complete; exact shores, formal registry status, Korean form and product naming are not approved.",
+        "geographic_disambiguation": "Northeastern Ontario, Canada, at Night Hawk Lake east of Timmins and South Porcupine"
+      },
+      "candidate_names": [
+        "Night Hawk Lake"
+      ],
+      "context_source_keys": [],
+      "source_material_pending": false
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "bf41b677d786866a50cfae676a932f2cfd7b4f29bbccc9aef19bc268639d3da0",
+  "publication_contents": "Own factual findings and bibliography, bounded identifier/count/bounds/name-state metadata and included-file checks. Original maps, complete lake coordinate arrays and private-input fingerprints are omitted.",
+  "previous_reconstruction_commit": "17025b8aedaf0766efe62bd35e8d95e52bb15e06",
+  "published_payload_correspondence_note_url": "https://github.com/kimjeon-il/Pando/blob/1a3b4b3437000b4bcf3913a287316d1ab5f65897/reports/hydro-names/reconstruction-2026-10-09/batch-r30/packed-payload-correspondence.json",
+  "payload_correspondence_note_scope": "Previously published check of six compressed components and three r29 IDs; no latest live packed bytes or renderer equivalence claim."
+}

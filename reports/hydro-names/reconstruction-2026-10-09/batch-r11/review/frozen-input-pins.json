@@ -1,0 +1,435 @@
+{
+  "schema": "hydro-independent-lake-review-pins-v2",
+  "reviewed_at_utc": "2026-10-09T15:15:41.336877+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159112291",
+    "lakes_base:1159112821",
+    "lakes_base:1159109155"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "package_inputs": [
+    {
+      "file": "geometry-support.py",
+      "bytes": 2400,
+      "sha256": "dd6a583181c1527cdd0646f3ce6aee207570042c14e3fa4ebc3d35a36e752d33"
+    },
+    {
+      "file": "selected-lake-geometries.geojson",
+      "bytes": 10047,
+      "sha256": "b58fcbe948265de57fced4d253827a046f043139d708ad9b888a83c86662c7e4"
+    },
+    {
+      "file": "selected-baseline-rendered-geometries.geojson",
+      "bytes": 6368,
+      "sha256": "54030449272a949f8fdbd5464f421cb1918f66aa56d48333eeea204d1ad358eb"
+    },
+    {
+      "file": "selected-inventory-records.json",
+      "bytes": 4406,
+      "sha256": "1e34075dfdaf492bd923706c25f285b7f125494cc09a4712bdff324bd45f86a3"
+    },
+    {
+      "file": "geometry-duplicate-check.json",
+      "bytes": 2300,
+      "sha256": "4a48ffb107df221d2e80c878412d98468ecc09ac999bacdfb9e0e8b637d2b7da"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 667,
+      "sha256": "2e84821162033bcfbacf6be4c5bbf2be7bd0f49e89b3719ba81d651c1f647481"
+    },
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 5569,
+      "sha256": "fcd28c6642ca9e37f5aab7d2f3ad8781fc7121ff89ad597454aff3360695deed"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 1499,
+      "sha256": "8635d5a3edd8e7b17e112332464f335b860b6d1a4cf42b3fb929a4fc7b18488a"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 5059,
+      "sha256": "3f1550d1cf1b00cef60d84c43ef8c61dd8adc674a9847a52f4f1d299b4d2fd6a"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 6303,
+      "sha256": "a33088947533f99c0144c66db024e20d65751c013c3f777410e1f13e4b102e12"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 26340,
+      "sha256": "519f4514d37f76302ad36692a13f101f6ac473ea0961818c0e45bf86eec07802"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 22411,
+      "sha256": "5ea3cf1a193b8f28321036cabfc549ad030b49b2c6e179694a0040418a31e7e4"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 9870,
+      "sha256": "3f042d4dafd627276f2350e68852a8ffbc392ff278f9c2cd988c2ad6192f470f"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 8549,
+      "sha256": "65030b29d8bb3bc1efaf41412e2c9de9957c8f6f67c2f9c66b47f62f5c4ce15a"
+    },
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1865,
+      "sha256": "67fd13c4fa401974b12e53030600f085e38d22b03bb1517e83715e62b96711a7"
+    },
+    {
+      "file": "research/dauphin/README.md",
+      "bytes": 1100,
+      "sha256": "baf6e68fb36d58ca1a53ca9c801879934a0fd84e12806b97a2972e1a11ad2f70"
+    },
+    {
+      "file": "research/dauphin/findings.json",
+      "bytes": 2708,
+      "sha256": "d995c6b4438311534d997d7966a85bc058d4618126d449cb38e95c2b84bb6bf3"
+    },
+    {
+      "file": "research/dauphin/map-scope-review.json",
+      "bytes": 3314,
+      "sha256": "1e7edf220db5cb72c156b50111d00bed4389d19929d60ddb4c221265c213fb94"
+    },
+    {
+      "file": "research/dauphin/source-evidence.json",
+      "bytes": 5627,
+      "sha256": "8cdafae95b93f3e5bc973638292df6ecce8848b53c1682cb2cd3700f7508f3b2"
+    },
+    {
+      "file": "research/dauphin/target-identity-facts.json",
+      "bytes": 3231,
+      "sha256": "f76b7379b81bc71d5ab718f0f59853f8ae06aea04a3e4b9c57536e1068095d5d"
+    },
+    {
+      "file": "research/dauphin/research-manifest.json",
+      "bytes": 1065,
+      "sha256": "1deeda059aba70616aca9b6185dd833ca32d76b89ad320ad6dcdd2edf7278f9a"
+    },
+    {
+      "file": "research/cold-deschambault/README.md",
+      "bytes": 1342,
+      "sha256": "ac732ca16314a754b84578a37d8952549fecf573583f550943e9dac66f927548"
+    },
+    {
+      "file": "research/cold-deschambault/findings.json",
+      "bytes": 4190,
+      "sha256": "c34066795edb257d226f603f3536c2cf1cfeee10d2fd324a771f87648c34f908"
+    },
+    {
+      "file": "research/cold-deschambault/source-evidence.json",
+      "bytes": 7467,
+      "sha256": "06f34c20f7bbb789a01206becf79e98e8699ed1c25746b2defbb7aa714fa0d15"
+    },
+    {
+      "file": "research/cold-deschambault/target-identity-facts.json",
+      "bytes": 2899,
+      "sha256": "980e2c8fd2ff8d8fed738244fd38a470b625ea63e5815fd599892b95d917f5cc"
+    },
+    {
+      "file": "research/cold-deschambault/research-manifest.json",
+      "bytes": 909,
+      "sha256": "3f48215634d9d633ad690fa86d422347fa6f006c1f21bd8e056c41f6584c7d78"
+    }
+  ],
+  "previous_index": {
+    "bytes": 17333,
+    "sha256": "74affc1baff607396f194c6fa2b5192b25fa4a00e3f839ad34e9cf4f505737c3",
+    "aw_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159106899",
+      "lakes_base:1159107065",
+      "lakes_base:1159115267",
+      "lakes_base:1159123531",
+      "lakes_base:1159107099",
+      "hydro-system:30624681",
+      "hydro-system:50488324",
+      "hydro-system:40182409",
+      "hydro-system:70152112",
+      "lakes_base:1159123163",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159109553",
+      "lakes_base:1159110303",
+      "lakes_base:1159108091",
+      "hydro-system:50668155",
+      "hydro-system:50611851",
+      "hydro-system:50552041",
+      "hydro-system:50538951",
+      "hydro-system:50631583",
+      "hydro-system:50691033",
+      "hydro-system:50737565",
+      "hydro-system:50756799",
+      "hydro-system:50782475",
+      "hydro-system:50766256",
+      "hydro-system:50779535",
+      "hydro-system:50782443"
+    ],
+    "distinct_targets": 30,
+    "durable_commit": "480f9db0ea893051f9de9749e4786385d7daa45e"
+  },
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "bytes": 441711,
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "original_recovery_date_utc": "2026-10-09",
+    "original_retrieved_at_utc": null,
+    "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+    "reuse_hash_checked_at_utc": "2026-10-09T15:04:45Z",
+    "retrieved_this_batch": false,
+    "in_publishable_package": false
+  },
+  "local_evidence_assets": [
+    {
+      "id": "manitoba_dauphin_iwmp-BODY",
+      "kind": "original_source_body",
+      "bytes": 3614638,
+      "sha256": "35b56a3e9d1ccf221f258581c0f9e8c9d43c63a69ab1304baeb13c60b2fbf400",
+      "published_raw": false
+    },
+    {
+      "id": "manitoba_dauphin_iwmp-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 739,
+      "sha256": "331ea03c25ae3ca42792f793fd0c9878784436463c2db328726ac97e8352c9f8",
+      "published_raw": false
+    },
+    {
+      "id": "eccc_dauphin_reference_index-BODY",
+      "kind": "original_source_body",
+      "bytes": 58636,
+      "sha256": "d6bc8c3765b580802af24a96921900fdd6f51266c4ed7b683bbb4ea9f179f04c",
+      "published_raw": false
+    },
+    {
+      "id": "eccc_dauphin_reference_index-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 780,
+      "sha256": "b730c9e3422f985f28c215ac2a81e6311633cd2b3bc470891ef054fb0b538e50",
+      "published_raw": false
+    },
+    {
+      "id": "wsa_deschambault_map-BODY",
+      "kind": "original_source_body",
+      "bytes": 5017913,
+      "sha256": "64744b11dbae7381445b12ad0507487a5a38a82c6fe9de446b98814281d92197",
+      "published_raw": false
+    },
+    {
+      "id": "wsa_deschambault_map-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 1299,
+      "sha256": "ad559e24911545d88720555c04f892e29f25ae9f220ab24acf2ffc148e39abab",
+      "published_raw": false
+    },
+    {
+      "id": "manitoba_unused_highway_redirect-BODY",
+      "kind": "unused_response_body",
+      "bytes": 23708,
+      "sha256": "4ed4c09597457e616bb7b27c1c4280a6790b22c6a2cf3eb656dde5c0c27bce84",
+      "published_raw": false
+    },
+    {
+      "id": "manitoba_unused_highway_redirect-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 595,
+      "sha256": "5eadaca149ed10600fdd9cc86d0dc7a9f5f1ef5a70277ae0a5cccceb23d9e0e0",
+      "published_raw": false
+    },
+    {
+      "id": "eccc_deschambault_usage-BODY",
+      "kind": "original_source_body",
+      "bytes": 63599,
+      "sha256": "799d07c905e838f481f30816dd808ce219edcc19ef43380682b3d19f324b6dc5",
+      "published_raw": false
+    },
+    {
+      "id": "eccc_deschambault_usage-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 1714,
+      "sha256": "829a401b1f12ac0f5e6545aafc05c1de9d07e5a3a08ebaf5732447c29eb37d74",
+      "published_raw": false
+    },
+    {
+      "id": "manitoba_dauphin_iwmp-TEXT",
+      "kind": "independent_text_extraction",
+      "bytes": 131806,
+      "sha256": "6551a7e1c29536c37166a0a496d2102885ab2243c0734baf68e72d48f7147ac6",
+      "published_raw": false
+    },
+    {
+      "id": "eccc_dauphin_reference_index-TEXT",
+      "kind": "independent_text_extraction",
+      "bytes": 34934,
+      "sha256": "9e8a43e096f34b1482fc1e34ecae7f08c78773ff95b440d29e5f339434fb51a4",
+      "published_raw": false
+    },
+    {
+      "id": "wsa_deschambault_map-TEXT",
+      "kind": "independent_text_extraction",
+      "bytes": 11738,
+      "sha256": "11424b481c74bd23aa70cee06f01df95503bd1448cd478dda6d1588945014f2c",
+      "published_raw": false
+    },
+    {
+      "id": "manitoba_unused_highway_redirect-TEXT",
+      "kind": "independent_text_extraction",
+      "bytes": 8839,
+      "sha256": "530bbbb566fbebe45c0fff97f47b6b08fe0bbc5eb21bd6f96b25928003b18b3b",
+      "published_raw": false
+    },
+    {
+      "id": "eccc_deschambault_usage-TEXT",
+      "kind": "independent_text_extraction",
+      "bytes": 25961,
+      "sha256": "b719786f2583c522c2d0b228406d3583d3ccaf207996cb31ea7cb1215347777e",
+      "published_raw": false
+    },
+    {
+      "id": "IWMP-P7",
+      "kind": "independent_viewed_map_derivative",
+      "bytes": 818529,
+      "sha256": "96cd20657e92fa31b080008e998c2438da5c4ee50796b7e3e88e50d5488f52d1",
+      "published_raw": false
+    },
+    {
+      "id": "IWMP-P54",
+      "kind": "independent_viewed_map_derivative",
+      "bytes": 587574,
+      "sha256": "06b74ba53d7c8731d87516d3678b1f2b915d9263b52418703dd5abd64844be29",
+      "published_raw": false
+    },
+    {
+      "id": "WSA-DESCHAMBAULT-CONTEXT",
+      "kind": "independent_viewed_map_derivative",
+      "bytes": 158101,
+      "sha256": "5f10aeb88c63a7ae5a9afb9fe3d065998e19002bc13b8a8446e3cc655ebfe119",
+      "published_raw": false
+    },
+    {
+      "id": "WSA-DESCHAMBAULT-FULL",
+      "kind": "independent_viewed_map_derivative",
+      "bytes": 286124,
+      "sha256": "a6765da995618b768ddf829b51c2bdab6d6071137028b41ef1a412f425acc72a",
+      "published_raw": false
+    },
+    {
+      "id": "WSA-OVERVIEW",
+      "kind": "viewed_map_derivative",
+      "bytes": 581526,
+      "sha256": "443a978962306521b9602296ee532a030a2688b3df177647a15847722aa6ba84",
+      "published_raw": false
+    },
+    {
+      "id": "WSA-WEST-EDGE",
+      "kind": "viewed_map_derivative",
+      "bytes": 22231,
+      "sha256": "f1fd13f5bf01b6a1680ccacd898069b1f329ecebd0ea817ace92b41766c4fa4f",
+      "published_raw": false
+    },
+    {
+      "id": "COMPLETE-SOURCE-BASELINE-VIEW",
+      "kind": "complete_geometry_comparison_view",
+      "bytes": 262308,
+      "sha256": "a67a885362b3718e5b2495c77f9966a696ca694558a333a7969a941d37745185",
+      "published_raw": false
+    },
+    {
+      "id": "DESCHAMBAULT-SOURCE-CONTEXT",
+      "kind": "complete_geometry_comparison_view",
+      "bytes": 86191,
+      "sha256": "6a65374ea58addc230a91124d716125e78cc2a7112631a9b66d1d2952a2f5992",
+      "published_raw": false
+    },
+    {
+      "id": "COLD-SUBREGIONAL-WEB-TEXT",
+      "kind": "web_text_capture_only",
+      "bytes": 2157,
+      "sha256": "91b0e97088df2afed1521cf080f0a589c03d479d012a60f0d3c4d52fc87979ae",
+      "published_raw": false
+    },
+    {
+      "id": "COLD-SUBREGIONAL-WEB-TEXT-RECEIPT",
+      "kind": "text_capture_receipt",
+      "bytes": 1087,
+      "sha256": "07e21493dcb13ff2ab5a368703c89ec8a0cff8e739badab4f331d022e745f44d",
+      "published_raw": false
+    },
+    {
+      "id": "COLD-PARKS-FAILURE",
+      "kind": "failed_acquisition_receipt",
+      "bytes": 775,
+      "sha256": "cb031f38b2594eaf93bf02599754fd997ffee88e4d2a9b73042b187292a18255",
+      "published_raw": false
+    },
+    {
+      "id": "COLD-WATER-PLAN-FAILURE",
+      "kind": "failed_acquisition_receipt",
+      "bytes": 773,
+      "sha256": "a7c39d41dd243839424aa190f6820604ac465d68d64adad3a9252e551d1cebe7",
+      "published_raw": false
+    },
+    {
+      "id": "COLD-SUBREGIONAL-FAILURE",
+      "kind": "failed_acquisition_receipt",
+      "bytes": 897,
+      "sha256": "2ce72a3de7d13a9ae68f665d6205259b28711dfaf18bce023544c08a3b784b69",
+      "published_raw": false
+    }
+  ],
+  "original_source_receipt_links": [
+    {
+      "source_key": "manitoba_dauphin_iwmp",
+      "body_id": "manitoba_dauphin_iwmp-BODY",
+      "receipt_id": "manitoba_dauphin_iwmp-RECEIPT",
+      "url": "https://www.gov.mb.ca/sd/water/watershed/iwmp/dauphin/documentation/dauphin_lake_iwmp.pdf",
+      "request_started_at_utc": "2026-10-09T15:04:35.833911+00:00",
+      "final_url": "https://www.gov.mb.ca/sd/water/watershed/iwmp/dauphin/documentation/dauphin_lake_iwmp.pdf"
+    },
+    {
+      "source_key": "eccc_dauphin_reference_index",
+      "body_id": "eccc_dauphin_reference_index-BODY",
+      "receipt_id": "eccc_dauphin_reference_index-RECEIPT",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=4449",
+      "request_started_at_utc": "2026-10-09T15:05:50.136490+00:00",
+      "final_url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=4449"
+    },
+    {
+      "source_key": "wsa_deschambault_map",
+      "body_id": "wsa_deschambault_map-BODY",
+      "receipt_id": "wsa_deschambault_map-RECEIPT",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "request_started_at_utc": "2026-10-09T13:17:13.195792+00:00",
+      "final_url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf"
+    },
+    {
+      "source_key": "manitoba_unused_highway_redirect",
+      "body_id": "manitoba_unused_highway_redirect-BODY",
+      "receipt_id": "manitoba_unused_highway_redirect-RECEIPT",
+      "url": "https://www.gov.mb.ca/mit/map/pdf/map4.pdf",
+      "request_started_at_utc": "2026-10-09T15:04:58.401727+00:00",
+      "final_url": "https://www.gov.mb.ca/mti/"
+    },
+    {
+      "source_key": "eccc_deschambault_usage",
+      "body_id": "eccc_deschambault_usage-BODY",
+      "receipt_id": "eccc_deschambault_usage-RECEIPT",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName",
+      "request_started_at_utc": "2026-10-09T13:18:56.473279+00:00",
+      "final_url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName"
+    }
+  ],
+  "pin_scope": "Frozen public geometry and research facts are distinct from retained original bodies, independent extractions, map views, failed receipts and text-only capture. No source body or map derivative is distributed.",
+  "automatic_application": false
+}

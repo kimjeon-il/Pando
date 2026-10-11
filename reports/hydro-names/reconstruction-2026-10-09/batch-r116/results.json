@@ -1,0 +1,524 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r116",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r115",
+    "commit": "a98332de4c8ee07d15d6241e287e73c779d312f2",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r115/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61512484",
+    "hydro-system:61524629",
+    "hydro-system:80019756",
+    "hydro-system:70244256"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61512484",
+      "category": "river_group",
+      "system_id": "61512484",
+      "original_queue_rank": 264,
+      "baseline_logical_fid": 3579,
+      "geometry_fids": [
+        14447,
+        14448,
+        14449
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -56.48125,
+        -34.78125,
+        -55.077083,
+        -34.210417
+      ],
+      "rendered_mainstem_length_km": 235.961,
+      "rendered_network_length_km": 235.961,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -56.48125,
+          -34.78125,
+          -55.077083,
+          -34.210417
+        ]
+      },
+      "candidate_name": "Río Santa Lucía",
+      "candidate_names": [
+        "Río Santa Lucía"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Santa Lucía trunk and lower river, with a selected Campanero Grande headward feeder and a San Francisco/Campanero common joining reach whose precise name scope differs between primary publications.",
+      "geographic_disambiguation": "The model’s southeastern beginning is not assigned the Río Santa Lucía hydronym merely because it drains to that basin. The named river’s own Arequita/Cerro Pelado-side head is separate. San Francisco/Maggiolo, Santa Lucía Chico/Paso Severino, Canelón Grande and San José remain distinct tributary settings.",
+      "source_keys": [
+        "r116-uy-plan-2023",
+        "r116-uy-minas-iae-2023",
+        "r116-uy-arequita-2023",
+        "r116-uy-minas-memoria-2024"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Uruguay: Lavalleja headward setting through the Santa Lucía corridor to Río de la Plata west of Montevideo.",
+      "completion_scope": "All three selected mainstem FIDs reviewed at ordinary generalized corridor/component scale. Original basin maps cover the eastern feeder and entire trunk; the original Arequita map resolves the material northern-Minas feeder join, and the original DINAMA wetlands map resolves the lower river and actual estuarine terminal. The bounded Minas prose distinguishes the selected tributary head from Santa Lucía’s own northern headwaters. No material connector/source gap remains at this scope.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Santa Lucía",
+        "initial_headward_component_name": "Arroyo Campanero Grande",
+        "shared_feeder_reach_name_scope": "Arequita 2023 identifies San Francisco between Campanero Grande and Santa Lucía; Minas IAE 2023 and Memoria 2024 describe Campanero Grande receiving San Francisco. The connected corridor is resolved; exact common-reach naming boundary is not.",
+        "selected_material_impoundment": "Aguas Corrientes on Río Santa Lucía",
+        "not_selected_as_through_lakes": [
+          "Paso Severino reservoir on Santa Lucía Chico",
+          "Canelón Grande reservoir",
+          "Maggiolo/San Francisco reservoir",
+          "Laguna de los Cuervos on the separate upstream Santa Lucía approach"
+        ],
+        "receiving_waterbody_name": "Río de la Plata",
+        "excluded_inferences": [
+          "No uniform Río Santa Lucía name across Campanero Grande or San Francisco.",
+          "No precise bank, micro-headwater, name-boundary, lake-centerline or mouth-point fit.",
+          "No official current naming-register status or Korean name established.",
+          "No unseen maps, search excerpts, incomplete Atlas bytes or failed geology publication used as substantive correspondence evidence.",
+          "No model lengths promoted to official river lengths."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:61524629",
+      "category": "river_group",
+      "system_id": "61524629",
+      "original_queue_rank": 265,
+      "baseline_logical_fid": 3596,
+      "geometry_fids": [
+        14483,
+        14484,
+        14485,
+        14486,
+        14487,
+        14488
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -72.872842,
+        -37.19375,
+        -71.135679,
+        -36.381216
+      ],
+      "rendered_mainstem_length_km": 235.215,
+      "rendered_network_length_km": 378.082,
+      "geometry_summary": {
+        "fragment_count": 6,
+        "mainstem_fragment_count": 4,
+        "tributary_fragment_count": 2,
+        "mainstem_bbox": [
+          -72.872842,
+          -36.967216,
+          -71.135679,
+          -36.381216
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": {
+        "full_mainstem_and_tributary_corridors_inspected": true,
+        "actual_terminal_settings_inspected": [
+          "Itata estuary/Pacific coast for FID14486",
+          "Ñuble–Itata confluence at Confluencia for FID14488"
+        ],
+        "all_material_confluences_inspected": true,
+        "selected_lake_or_reservoir_passage": "No required selected lake/reservoir transit shown in the inspected cartographic corridors. Off-route reservoirs or project proposals do not supply missing connectors.",
+        "headward_mismatch_vs_gap": "The natural Río Ñuble and the Los Tábanos tributary are continuously mapped into the known receiving Ñuble valley. The selected border-aligned detour is fully inside the inspected view but does not follow those mapped channels. No interval is awaiting pixels, unknown outlet or unnamed receiving system; the limitation is attribution of the modeled spur itself.",
+        "unresolved_material_connections": []
+      },
+      "naming_scope_details": {
+        "whole_object_candidate": null,
+        "mapped_component_identities": [
+          {
+            "name": "Río Ñuble",
+            "scope": "Natural mapped headwater and valley river through FIDs14484–14485; excluded from naming the border-aligned detour as a natural channel."
+          },
+          {
+            "name": "Río Cholguán",
+            "scope": "Eastern formative corridor in FID14487; not a whole-object name."
+          },
+          {
+            "name": "Río Itata",
+            "scope": "Upper/middle southern branch following the formative junction, FID14488, and combined lower receiving river FID14486; not a scalar for the modeled Ñuble/Cholguán group."
+          }
+        ],
+        "headward_detour": "The border-aligned detour in FID14483 and initial FID14484 connector are fully observed but have no corresponding named natural channel in the primary hydrographic cartography. The source visibly connects the surrounding natural headwater channels to Río Ñuble. This is a mapped naming/correspondence limitation, not a genuine unread or unknown-receiver source gap.",
+        "reason_for_completed_scope_hold": "All selected corridors, major junctions and actual terminals were inspected. Distinct component identities and a mapped non-channel detour prevent one whole-route hydronym. No further geometric precision or source acquisition is required for this bounded determination."
+      },
+      "source_keys": [
+        "mma-simbio-hydro",
+        "dga-itata-2004",
+        "pinto-prc-2023",
+        "mma-itata-estuary-2021"
+      ],
+      "formal_registry_verified": false,
+      "candidate_name_role": "whole_route_name_unestablished",
+      "supported_name_scope": "Ñuble, Cholguán and Itata are supported only for their mapped components and receiving courses. The fully observed border-aligned detour has no corresponding named natural channel. No whole-object hydronym is established.",
+      "geographic_disambiguation": "Completed bounded correspondence review of all six selected components. The natural long trunk is Ñuble followed by lower Itata, while the southern selected branch is the Cholguán–upper/middle Itata corridor. Original primary hydrographic maps also fully expose the border-aligned headward detour and its initial downstream connector: surrounding headwater channels have a known Ñuble receiver, but the selected detour itself lacks a matching named natural channel. This mapped discrepancy and the mixed component-name scopes require a name-scope hold with no whole-object candidate; they are not treated as an unread/source-pending connection.",
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "All selected corridors, major junctions and actual terminals were inspected. Distinct component identities and a mapped non-channel detour prevent one whole-route hydronym. No further geometric precision or source acquisition is required for this bounded determination.",
+      "region": "Central-southern Chile, upper Ñuble and Cholguán–Itata corridors, Confluencia junction and lower Itata estuary on the Pacific coast."
+    },
+    {
+      "aw_id": "hydro-system:80019756",
+      "category": "river_group",
+      "system_id": "80019756",
+      "original_queue_rank": 266,
+      "baseline_logical_fid": 826,
+      "geometry_fids": [
+        2307
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -125.248371,
+        71.822917,
+        -120.733333,
+        72.501721
+      ],
+      "rendered_mainstem_length_km": 234.787,
+      "rendered_network_length_km": 234.787,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -125.248371,
+          71.822917,
+          -120.733333,
+          72.501721
+        ]
+      },
+      "candidate_name": "Big River",
+      "candidate_names": [
+        "Big River"
+      ],
+      "candidate_name_role": "limited_component_context_with_unresolved_upper_and_middle_connections",
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Observed western lower river and Beaufort Sea terminal setting only. Initial feeder, lakes and missing central reaches are not assigned this name.",
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": "Acquired 97H and 98B originals do not provide a continuous source reading of the selected initial feeder, material upper connections and long central route. NLUIS98A remains stopped; the distinct CGM133 map-original request yielded archived-information HTML rather than a map.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "observed_component_names": [
+          "Big River"
+        ],
+        "selected_initial_feeder_name": null,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0,
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true
+      },
+      "source_keys": [
+        "r116-nluis-98b",
+        "r116-nluis-97h"
+      ],
+      "geographic_disambiguation": "The western lower corridor is mapped as Big River and reaches the Beaufort Sea. The initial feeder and long central connection remain unresolved because source-map coverage is incomplete. This is one source-material-pending record; no representative-system, accepted, whole-feature scalar or Korean name is assigned.",
+      "region": "Southern Banks Island, Northwest Territories, Canada, inland uplands to the Beaufort Sea coast.",
+      "completion_scope": "Incomplete geographic correspondence: the western lower corridor and actual coastal terminal are supported, while the initial feeder and the long intervening central route remain materially unresolved."
+    },
+    {
+      "aw_id": "hydro-system:70244256",
+      "category": "river_group",
+      "system_id": "70244256",
+      "original_queue_rank": 267,
+      "baseline_logical_fid": 3000,
+      "geometry_fids": [
+        9323,
+        9324
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -64.408333,
+        50.281735,
+        -63.997917,
+        51.63125
+      ],
+      "rendered_mainstem_length_km": 233.612,
+      "rendered_network_length_km": 233.612,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -64.408333,
+          50.281735,
+          -63.997917,
+          51.63125
+        ]
+      },
+      "candidate_name": "Rivière Saint-Jean",
+      "candidate_names": [
+        "Rivière Saint-Jean"
+      ],
+      "candidate_name_role": "limited_upper_component_identity_with_unresolved_southern_and_terminal_coverage",
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "The named Saint-Jean upper valley on NTS22P. The selected western feeder, lake passages and tributaries are not all named Saint-Jean. No whole-route scalar name is established.",
+      "geographic_disambiguation": "NTS22P separates the western east-running feeder near Lac Bellanca from the northward lake arm around Lac Kaministukuakamaht. Downstream Saint-Jean labels and the Labône, Rapide and Poisset junction settings support an upper-component lead. These observations cannot substitute for the unobserved southern corridor or actual terminal. Adjacent lake bodies retain their separate identities.",
+      "source_keys": [
+        "r116-nts22p-1995",
+        "r116-rg163-report"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Côte-Nord, Québec; Lac-Jérôme and Rivière-Saint-Jean corridor, north of the Gulf of St. Lawrence.",
+      "completion_scope": "Both selected FIDs and all their retained route coordinates were read for orientation. The acquired original NTS22P map provides bounded upper coverage only. Southern FID9323 and FID9324 lack original cartographic correspondence; this is a completed bounded attempt, not a completed full-feature review.",
+      "material_pending_reason": "The available NTS22P original ends at51°N. The continuation of FID9323 from that map boundary through the southern middle corridor and the FID9323/FID9324 junction, then all of FID9324 to its actual coastal terminal, have no acquired original-map coverage. The exact headward feeder and its lake/river entry are described cautiously at corridor scale; its scalar name is not established.",
+      "naming_scope_hold_reason": null
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:61524629"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:80019756",
+      "hydro-system:70244256"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 2,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 2
+  },
+  "totals_after": {
+    "recorded_targets": 407,
+    "non_pending_records": 360,
+    "source_access_pending": 3,
+    "source_material_pending": 44,
+    "source_any_pending": 47,
+    "scope_holds": 118,
+    "river_groups": 309,
+    "lakes": 98,
+    "unrecorded": 3658,
+    "unrecorded_river_groups": 3146,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r116-uy-plan-2023",
+      "official_url": "https://www.gub.uy/ministerio-ambiente/sites/ministerio-ambiente/files/documentos/publicaciones/Plan%20de%20Cuenca%20del%20Rio%20Santa%20Luc%C3%ADa%20-%20Marzo%202023.pdf"
+    },
+    {
+      "source_key": "r116-uy-minas-iae-2023",
+      "official_url": "https://www.gub.uy/intendencia-lavalleja/sites/intendencia-lavalleja/files/2024-12/Anexo%20II%20_IAE_FINAL_compressed.pdf"
+    },
+    {
+      "source_key": "r116-uy-arequita-2023",
+      "official_url": "https://www.gub.uy/ministerio-ambiente/sites/ministerio-ambiente/files/documentos/publicaciones/Proyecto%20de%20selecci%C3%B3n%20y%20delimitaci%C3%B3n%20Arequita.pdf"
+    },
+    {
+      "source_key": "r116-uy-minas-memoria-2024",
+      "official_url": "https://www.gub.uy/intendencia-lavalleja/sites/intendencia-lavalleja/files/2024-12/Anexo%20I%20PLMinas_Memo%20Informaci%C3%B3n_2024%20%281%29_compressed.pdf"
+    },
+    {
+      "source_key": "r116-uy-pvd-context",
+      "official_url": "https://www.opp.gub.uy/sites/default/files/2019-10/PVD_Lavalleja.pdf"
+    },
+    {
+      "source_key": "r116-uy-atlas-unavailable",
+      "official_url": "https://sit.mvot.gub.uy/descargas/pdf/Atlas.pdf"
+    },
+    {
+      "source_key": "r116-uy-geology-unavailable",
+      "official_url": "https://www.gub.uy/ministerio-industria-energia-mineria/comunicacion/publicaciones/carta-geologica-del-departamento-lavalleja"
+    },
+    {
+      "source_key": "mma-simbio-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "source_key": "dga-itata-2004",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Itata.pdf"
+    },
+    {
+      "source_key": "pinto-prc-2023",
+      "official_url": "https://eae.mma.gob.cl/storage/documents/04_Anteproyecto_Memoria_Explicativa_PRC_Pinto.pdf.pdf"
+    },
+    {
+      "source_key": "mma-itata-estuary-2021",
+      "official_url": "https://mma.gob.cl/humedal-de-la-desembocadura-del-rio-itata-se-convertira-en-el-primer-santuario-de-la-naturaleza-de-nuble/"
+    },
+    {
+      "source_key": "r116-nluis-98b",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98b.jpg"
+    },
+    {
+      "source_key": "r116-nluis-97h",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_97h.jpg"
+    },
+    {
+      "source_key": "r116-nluis-97g",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_97g.jpg"
+    },
+    {
+      "source_key": "r116-nluis-index-retained",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "source_key": "r116-gsc-cgm133",
+      "official_url": "https://publications.gc.ca/collections/collection_2017/rncan-nrcan/M183-1-133-2017-eng.pdf"
+    },
+    {
+      "source_key": "r113-nluis-98a-inherited-stop",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98a.jpg"
+    },
+    {
+      "source_key": "r116-nts22p-1995",
+      "official_url": "https://www.gov.nl.ca/landuseatlas/documents/topo/250000/022P.pdf"
+    },
+    {
+      "source_key": "r116-rg163-report",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG163/RG163.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "a98332de4c8ee07d15d6241e287e73c779d312f2",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      264,
+      265,
+      266,
+      267
+    ],
+    "next_unrecorded_id": "hydro-system:90018331",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

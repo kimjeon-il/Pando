@@ -1,0 +1,519 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r106",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r105",
+    "commit": "16a20629b95773a07fd961e2161528101ea649d1",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r105/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70246192",
+    "hydro-system:80058006",
+    "hydro-system:70130187",
+    "hydro-system:80072439"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70246192",
+      "category": "river_group",
+      "system_id": "70246192",
+      "baseline_logical_fid": 3003,
+      "geometry_fids": [
+        9330,
+        9331
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -61.235417,
+        50.242557,
+        -60.389583,
+        51.74375
+      ],
+      "rendered_mainstem_length_km": 260.988,
+      "rendered_network_length_km": 260.988,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -61.235417,
+          50.242557,
+          -60.389583,
+          51.74375
+        ]
+      },
+      "candidate_name": "Rivière Olomane",
+      "candidate_names": [
+        "Rivière Olomane"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Complete generalized component and corridor correspondence for features 9330 and 9331. Repeated original federal map labels identify the receiving trunk as Rivière Olomane; independent first-hand canoe-route prose and maps corroborate its inland and coastal setting.",
+      "geographic_disambiguation": "The selection follows Olomane, rather than the western Olomane Ouest arm, the adjacent Musquaro or Washicoutai corridors, or the eastern Wabouchagamou contribution. It does not follow the nearby Lac Montcevelles, Goyelle or Cauchy lake axes. La Romaine is the community at this terminal setting; that settlement label does not identify this as the separate Rivière Romaine. The canoe source explicitly distinguishes the two rivers, and its optional Fonteneau approach includes an interbasin portage rather than establishing a continuous selected headwater.",
+      "source_keys": [
+        "r106-nrcan-cbmt-olomane",
+        "r106-hudon-olomane2016"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Basse-Côte-Nord, Québec, Canada: the Lac Bastille surroundings, Olomane inland valley, and La Romaine/Unamen Shipu coastal approach to the Gulf of St. Lawrence.",
+      "candidate_name_role": "Supported representative identity of the complete selected connected system; not a scalar hydronym assigned to its initial feeder, lake interiors or every individual reach.",
+      "completion_scope": "Both whole selected paths were read from the opening feeder and lake passage through the middle valley, tributary and model-stage junctions, lower bends and coastal termination. Original pixels establish the necessary components and connectors. This is bounded generalized correspondence, not pointwise fitting, geometry revalidation, a current shoreline or flow assessment, a surveyed headwater/mouth, or exact legal hydronym-boundary determination.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": [
+        "Rivière Olomane is the supported representative system identity, while accepted_name, scalar_name and korean_name remain null and both application fields remain false.",
+        "The initial feeder and exact eastern-lake name boundaries are not separately resolved. Their physical connected corridor is established on original map pixels, so this is a naming-detail limitation rather than a material connection gap.",
+        "Penipatauakat is the spelling used in the independently read 2016 route prose/map. Nearby map labels are used only for bounded disambiguation and are not promoted to formal gazetteer decisions.",
+        "The 2016 canoe source describes an optional Fonteneau entry with an interbasin portage. That approach is not part of the retained selection and is not treated as a continuous Olomane headwater.",
+        "The federal basemap is a scale-dependent composite. No single compilation date, contemporary channel activity, river length, navigability, rapid difficulty, access arrangement, price or schedule is adopted from these sources.",
+        "No Indigenous alternate name is assigned, and no historical naming decision or legal name boundary is claimed."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80058006",
+      "category": "river_group",
+      "system_id": "80058006",
+      "baseline_logical_fid": 895,
+      "geometry_fids": [
+        2500
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -90.310417,
+        66.70625,
+        -89.385417,
+        68.379259
+      ],
+      "rendered_mainstem_length_km": 260.389,
+      "rendered_network_length_km": 260.389,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -90.310417,
+          66.70625,
+          -89.385417,
+          68.379259
+        ]
+      },
+      "candidate_name": "Kellett River",
+      "candidate_names": [
+        "Kellett River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The connected bounded corridor supports Kellett River as representative system identity. The initial small feeder and lakes, Cameron Lake, tributary names and nearby coastal lakes retain their own scopes; no uniform scalar name for all selected reaches is asserted.",
+      "geographic_disambiguation": "The selected route uses the Kellett corridor east of the Arrowsmith–Frost Lake drainage. It approaches Cameron Lake from the southwest, beside the separate Atorquait approach, and continues northwest toward the eastern side of southern Pelly Bay. The Arrowsmith outlet by De Stael Point, the Barrow Lake/Kugaaruk corridor farther northeast, and the eastward Avalikuarjuk tributary remain distinguishable.",
+      "source_keys": [
+        "r106-nrcan-cbmt-kellett",
+        "r106-nluis-walker-56j",
+        "r106-nluis-arrowsmith-56o",
+        "r106-nluis-ellice-56p",
+        "r106-nluis-pelly-57a",
+        "r106-kellett-field-journal-2018"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Nunavut, Canada: the upper Kellett lake country north of the Arctic Circle, the Cameron Lake corridor and the southern Pelly Bay coast southwest of Kugaaruk.",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Complete bounded generalized source correspondence for the opening lake/feeder complex, the upper lake chain and junctions, the middle Kellett bends and widening reaches, the separate Atorquait corridor and its confluence, Cameron Lake, the Avalikuarjuk joining setting, the lower northwest reach and the Pelly Bay terminal surroundings. The model shortcuts source meanders and ends on adjacent bay shore north of the cartographic Kellett mouth; it is not pointwise channel or shoreline evidence. The sources establish the continuous river system and distinguish the neighboring waterways without a remaining material branch or connector uncertainty. No exact endpoint, bank thread, legal name transition, current shoreline or flow condition is asserted.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Kellett River",
+        "opening_feeder_name": null,
+        "upper_lake_names": "No separate names adopted for the small opening lake complex and connected upper pools.",
+        "selected_named_lake_component": "Cameron Lake",
+        "separate_joining_rivers": [
+          "Atorquait River",
+          "Avalikuarjuk River"
+        ],
+        "separate_neighboring_waterways": [
+          "Arrowsmith River",
+          "Frost Lake",
+          "Barrow Lake",
+          "Pelly Bay"
+        ],
+        "terminal_setting": "Kellett coastal-mouth surroundings on the eastern side of southern Pelly Bay, southwest of Kugaaruk. The modeled endpoint lies north of the mapped mouth on adjacent shore.",
+        "scalar_scope_limit": "No legal headwater boundary, uniform whole-feature hydronym, Korean name or current official gazetteer status is inferred. Repeated basemap labels on connected upper branches are not formal branch-equivalence determinations.",
+        "generalization_limits": "The opening connector, river bends, braided reaches and final coastal segment are simplified in the selection. Source maps show the connected components and distinguish neighboring drainage; the comparison does not assert exact local alignment, a particular channel through bars, through-lake flow lines or present shoreline position.",
+        "model_length_limit": "260.389 km is the supplied rendered-model length, not an official source-to-mouth measurement.",
+        "excluded_inferences": [
+          "No source lake is invented from a nearby topographic or settlement label.",
+          "The Pelly Bay receiving name is not applied to the inland river.",
+          "Atorquait, Avalikuarjuk, Arrowsmith, Frost and Barrow are not whole-object aliases.",
+          "No historical wildlife, fishing, hunting, archaeological or resource-use information is promoted to current advice.",
+          "No datum correction, geometry reconstruction or exact-channel validation was performed."
+        ],
+        "source_availability_limits": []
+      }
+    },
+    {
+      "aw_id": "hydro-system:70130187",
+      "category": "river_group",
+      "system_id": "70130187",
+      "baseline_logical_fid": 2957,
+      "geometry_fids": [
+        9195,
+        9194,
+        9196
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -59.735417,
+        52.75625,
+        -57.453725,
+        53.598212
+      ],
+      "rendered_mainstem_length_km": 258.758,
+      "rendered_network_length_km": 281.799,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -59.735417,
+          52.75625,
+          -57.453725,
+          53.598212
+        ]
+      },
+      "candidate_name": "Eagle River",
+      "candidate_names": [
+        "Eagle River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The two selected mainstem pieces and the complete short northern tributary correspond to a connected western lake-and-stream approach, a northern branch explicitly labeled Eagle River on federal cartography, their junction, and the continuing Eagle drainage to Sandwich Bay. Individual lake names and river labels retain their own geographic scope.",
+      "geographic_disambiguation": "The actual western north–south hook through Crooks Lake, eastward connected lake-and-steadies corridor, southern lake turn, short northern joining branch, long northeast valley, and outlet beside Separation Point distinguish this system. The separately mapped White Bear River to the north and Paradise River to the east are not selected continuations. Neither the broader basin description nor mainstem membership alone supplies this identification.",
+      "source_keys": [
+        "r106-nrcan-cbmt-eagle",
+        "r106-dfo-anderson-eagle-1985"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southeastern Labrador, Newfoundland and Labrador, Canada; the Crooks Lake headward drainage south of the Mealy Mountains and the northeast-flowing Eagle River corridor to Sandwich Bay.",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "All three retained paths were read and compared with original map coverage of their full bounded extent, including actual headward, lake, joining-tributary, middle, and terminal settings. Generalized corridor correspondence is sufficient; no material branch or connector remains unresolved. This is representative-system identification, not pointwise fitting, geometry revalidation, an exact formal hydronym-boundary determination, or a current flow survey.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Eagle River",
+        "separately_named_context": [
+          "Crooks Lake",
+          "Nekanakau",
+          "Parke Lake",
+          "Owl Brook",
+          "Sandwich Bay",
+          "Separation Point"
+        ],
+        "neighboring_distinctions": [
+          "White Bear River",
+          "Paradise River"
+        ],
+        "unassigned": "The initial small headward reach, uniform names for lake passages, exact hydronym transition vertices, and the precise river–estuary boundary. These are naming-detail limits rather than unresolved geographic correspondence.",
+        "source_availability_limits": [
+          {
+            "publication": "Gower 2010, Geology of the Eagle River area, Map 2010-18, Open File 013B/0028",
+            "url": "https://www.gov.nl.ca/em/files/mines-maps-lab-html-lb-images-map-2010-18.pdf",
+            "observed_limit": "Optional provincial source unavailable; no content used. Independent federal map originals and the retained DFO original complete bounded coverage."
+          },
+          {
+            "publication": "Gower 1998, Geology of the Upper Eagle River map region, Figure 3, Current Research Report 98-1, pp. 125–141",
+            "url": "https://www.gov.nl.ca/em/files/NFLD_2646_125.gif",
+            "observed_limit": "Optional provincial source unavailable; no content used. Independent federal map originals and the retained DFO original complete bounded coverage."
+          }
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80072439",
+      "category": "river_group",
+      "system_id": "80072439",
+      "baseline_logical_fid": 914,
+      "geometry_fids": [
+        2524
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -98.18125,
+        66.135417,
+        -97.16875,
+        67.622106
+      ],
+      "rendered_mainstem_length_km": 257.565,
+      "rendered_network_length_km": 257.565,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -98.18125,
+          66.135417,
+          -97.16875,
+          67.622106
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Kaleet River",
+        "Montresor River",
+        "Bromley Lake",
+        "Ian Calder Lake",
+        "Sherman Basin"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Kaleet River is directly and repeatedly labeled along the western-to-northern trunk. Montresor River labels the southern hook between the Ian Calder and Bromley lake settings. Bromley Lake is a selected lake passage, and the opening includes the southwestern Ian Calder water complex. Sherman Basin is the shared receiving-water setting. These component identities do not establish a single hydronym for the complete modeled route.",
+      "geographic_disambiguation": "The retained route starts in elongated lakes south of Ian Calder Lake, runs northwest into its southwestern lake/channel complex, turns south along Montresor toward Bromley, crosses that lake westward, and steps through smaller lakes toward the separately mapped Kaleet valley. It then follows Kaleet north and northeast through successive widenings and channels, alongside but distinct from McNaughton River farther west. Near the coast, the selected line continues toward the southwestern Sherman shore while the original map carries the broad Kaleet channel around a northeastward estuarine bend toward the Trefoil Bay surroundings. The Montresor/Bromley and Kaleet connections are assessed as waterway relationships, not by regional name proximity.",
+      "source_keys": [
+        "r106-nrcan-cbmt-kaleet-bromley",
+        "r106-eccc-ahiak2019",
+        "r106-alisauskas-boyd1994"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Kitikmeot, Nunavut, Canada: the lake country south of Ian Calder Lake, Montresor River and Bromley Lake, the Kaleet River corridor, and the southern shore of Sherman Basin.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "All of the single retained feature, including its 43 constituent sublines, is geographically covered by six successful original federal raster views: overview, southern hook, middle valley, northern corridor, detailed southern connection, and detailed terminal setting. Original pixels, necessary local crops and separate orientation copies were inspected. Complete area coverage does not establish the two required aquatic connections. This is material-pending rather than a completed representative identity or naming-scope hold. Ordinary lake-interior simplification, meander offsets and uncertain exact name boundaries are not the reason for the pending status.",
+      "material_pending_reason": "The selected western passage from the Bromley/Montresor lake network to Kaleet includes intervening small lakes and mapped land/ridge intervals without a demonstrated continuous aquatic connector. The detailed source also does not establish the selected terminal continuation from the lower Kaleet channel across the intervening land to the southwestern Sherman Basin shore; the mapped broad river instead turns northeast around the estuarine bend. Bounded names for the adjacent components cannot substitute for these unresolved actual connections. No assertion is made that the model geometry has been proved wrong or that a real connection can never exist.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_named_river_components": [
+          "Kaleet River",
+          "Montresor River"
+        ],
+        "selected_named_lake_components": [
+          "Bromley Lake",
+          "Ian Calder Lake, southwestern complex"
+        ],
+        "initial_headward_component_name": null,
+        "initial_lake_names": null,
+        "short_lake_connector_names": null,
+        "terminal_receiving_water": "Sherman Basin",
+        "adjacent_context_names": [
+          "McNaughton River",
+          "Trefoil Bay"
+        ],
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "No single Kaleet, Montresor or combined Kaleet–Montresor name is assigned to the entire selected feature.",
+          "No direction of flow through the unresolved southern cross-connection, interbasin transfer, active bifurcation or undocumented terminal distributary is inferred.",
+          "No official source or mouth vertex, exact lake shoreline, current channel condition, legal boundary or naming date is established.",
+          "No Indigenous-language alternative or Korean name is proposed; CGN/geogratis naming records remain excluded.",
+          "The retained display length is not an official Kaleet River length.",
+          "No completed representative identity, completed scope hold or additional access-pending count is claimed."
+        ],
+        "model_limits": "Generalized component/corridor comparison only. The selected geometry was used for private orientation and was not edited, rerouted or revalidated. The material gaps concern actual aquatic connections between mapped components, not pointwise fit.",
+        "separately_named_corridor_parts": [
+          "Kaleet River",
+          "Montresor River",
+          "Bromley Lake",
+          "Ian Calder Lake",
+          "Sherman Basin"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "All of the single retained feature, including its 43 constituent sublines, is geographically covered by six successful original federal raster views: overview, southern hook, middle valley, northern corridor, detailed southern connection, and detailed terminal setting. Original pixels, necessary local crops and separate orientation copies were inspected. Complete area coverage does not establish the two required aquatic connections. This is material-pending rather than a completed representative identity or naming-scope hold. Ordinary lake-interior simplification, meander offsets and uncertain exact name boundaries are not the reason for the pending status."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:80072439"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 367,
+    "non_pending_records": 334,
+    "source_access_pending": 3,
+    "source_material_pending": 30,
+    "source_any_pending": 33,
+    "scope_holds": 112,
+    "river_groups": 269,
+    "lakes": 98,
+    "unrecorded": 3698,
+    "unrecorded_river_groups": 3186,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r106-nrcan-cbmt-olomane",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r106-hudon-olomane2016",
+      "official_url": "https://assets.cartespleinair.org/maps/riviere-olomane-christian-hudon-2016-f2034260c29a.pdf"
+    },
+    {
+      "source_key": "r106-nrcan-cbmt-kellett",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r106-nluis-walker-56j",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56j.jpg"
+    },
+    {
+      "source_key": "r106-nluis-arrowsmith-56o",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56o.jpg"
+    },
+    {
+      "source_key": "r106-nluis-ellice-56p",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_56p.jpg"
+    },
+    {
+      "source_key": "r106-nluis-pelly-57a",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_57a.jpg"
+    },
+    {
+      "source_key": "r106-kellett-field-journal-2018",
+      "official_url": "https://kellettriver.home.blog/2018/12/31/kellett-river/"
+    },
+    {
+      "source_key": "r106-nrcan-cbmt-eagle",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r106-dfo-anderson-eagle-1985",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    },
+    {
+      "source_key": "r106-nrcan-cbmt-kaleet-bromley",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r106-eccc-ahiak2019",
+      "official_url": "https://publications.gc.ca/collections/collection_2020/eccc/CW66-592-2019-eng.pdf"
+    },
+    {
+      "source_key": "r106-alisauskas-boyd1994",
+      "official_url": "https://pubs.aina.ucalgary.ca/arctic/Arctic47-1-69.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "16a20629b95773a07fd961e2161528101ea649d1",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      224,
+      225,
+      226,
+      227
+    ],
+    "next_unrecorded_id": "hydro-system:61504231",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

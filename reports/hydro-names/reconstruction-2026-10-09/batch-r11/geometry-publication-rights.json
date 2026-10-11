@@ -1,0 +1,22 @@
+{
+  "scope": "Exactly three selected Natural Earth-derived lake source features and decoded baseline lake features, with original factual extraction and validation.",
+  "source_attribution": "Natural Earth 5.0.0 1:10m lake data, as attributed by the pinned Pando manifest and original feature properties. Made with Natural Earth.",
+  "official_terms_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "original_retrieved_at_utc": "2026-10-09T10:54:05.958532+00:00",
+  "original_http_status": 200,
+  "original_html_bytes": 38013,
+  "original_html_sha256": "9bc9cbc663b0e6298b7a8cc216a92b5b223efe87796ba5d74c99a64ed6c12db8",
+  "reuse_hash_checked_at_utc": "2026-10-09T15:04:45Z",
+  "retrieved_this_batch": false,
+  "short_excerpt": "All versions of Natural Earth raster + vector map data found on this website are in the public domain.",
+  "interpretation": "The retained official terms place all versions of Natural Earth vector/raster data in the public domain and permit modification and electronic dissemination. Only the three selected lake features are retained here.",
+  "exclusions": "No rights assertion is made for unrelated documents or maps. Full upstream assets and decoder dependencies are not republished.",
+  "selected_source_ids": [
+    "1159112291",
+    "1159112821",
+    "1159109155"
+  ],
+  "complete_selected_lake_coordinates_in_public_package": true,
+  "complete_upstream_assets_in_public_package": false,
+  "binary_packs_or_worker_bodies_in_public_package": false
+}

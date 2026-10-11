@@ -1,0 +1,162 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r01",
+  "created_at_utc": "2026-10-09T10:59:38.698990+00:00",
+  "target": {
+    "aw_id": "lakes_base:1159106899",
+    "source_id": "1159106899",
+    "source_feature_zero_based_index": 25,
+    "historical_baseline_fid": 15218,
+    "historical_baseline_logical_fid": 3843,
+    "historical_bbox": [
+      -156.8896,
+      57.607173,
+      -155.951314,
+      58.105532
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Becharof Lake",
+    "name_en": "Becharof Lake",
+    "name_original": "Becharof Lake",
+    "name_ko": null,
+    "identity_confidence": "high",
+    "status": "reconstructed identity candidate; independent review and remote durable save pending",
+    "scope": "The generalized whole-lake feature, including its connected southeastern Island Arm.",
+    "official_usage_supported": true,
+    "current_formal_naming_authority_verified": false,
+    "formal_authority_note": "FWS official usage and published cartography support identity. No current GNIS/BGN naming record was inspected; no claim of a formal current naming adjudication is made.",
+    "korean_note": "No direct Korean-language naming evidence was acquired; do not transliterate automatically."
+  },
+  "geometry_integrity": {
+    "reference_file": "geometry-reference.json",
+    "reference_file_sha256_at_read": "a494858d0e662528a84d0829a4b88014773eebdadb175153565fa5228ea383ab",
+    "full_source_file": "selected-lake-geometries.geojson",
+    "full_source_file_sha256": "5d4e3e19a007d911b9ac289bf4f662e87dfedc0a96f4206db92dda24e3bd943a",
+    "source_asset_sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+    "source_feature_canonical_sha256": "0b587395bba69dcce7d1258f34254e7f6eaeb22c536957b50b2a198a4e5ea0a4",
+    "source_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          104
+        ]
+      ],
+      "total_coordinates_including_closure": 104,
+      "bbox": [
+        -156.88959973850615,
+        57.607173457739776,
+        -155.95131408327396,
+        58.10553192497369
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "5ceab2adecd5efe937d04399206b879926329582b18cd6e4cbaef40c24096931"
+    },
+    "baseline_rendered_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          104
+        ]
+      ],
+      "total_coordinates_including_closure": 104,
+      "bbox": [
+        -156.8896,
+        57.607173,
+        -155.951314,
+        58.105532
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "228238692eb314ba4a24d9af71d6d6b47936eff05c8e9bd3cd6dca2ff6424910"
+    },
+    "source_to_baseline_comparison": {
+      "same_geometry_type": true,
+      "same_part_ring_and_vertex_order": true,
+      "every_coordinate_matches_source_rounded_to_6_decimals": true,
+      "maximum_absolute_coordinate_difference_degrees": 4.957185808507347e-07
+    },
+    "full_source_polygon_inspected": true,
+    "source_ids_properties_geometry_coordinates_ring_order_unchanged": true,
+    "geometry_hash_independently_recomputed": true,
+    "hash_serialization": "UTF-8 compact JSON, sorted keys, ensure_ascii=False, matching geometry-reference.json."
+  },
+  "spatial_identity_check": {
+    "method": "Complete 104-coordinate polygon rendered and visually compared with the original whole-lake FWS map and separate BLM-hosted northern topo excerpt; not centroid-nearest or name-only matching.",
+    "evidence_ids": [
+      "BECHAROF-FWS-GUIDE-2012",
+      "BECHAROF-FWS-ABOUT",
+      "BECHAROF-ALASKA-RDI-2017"
+    ],
+    "observations": [
+      "The source outline has a wide northwest-to-southeast main basin and a long narrow southward arm at its eastern end; both components correspond to the labeled lake configuration on the official map.",
+      "The source northern basin reaches just north of 58 N between 157 W and 156 W; the independently read Naknek excerpt places the named northern shore in that interval.",
+      "The east-side indentation and projecting land between the main basin and southeast arm correspond qualitatively to the mapped peninsula. The FWS text explicitly links Severson Peninsula, Island Arm and the lake.",
+      "Source polygon has no interior holes, while the map shows islands. Those land islands are necessarily filled in this generalized polygon; this is not an island-exact water mask.",
+      "Southern coastline detail, small embayments, channels and local land edges are generalized. No per-vertex shoreline, land-inclusion percentage, geodetic overlay residual, or survey accuracy is established."
+    ],
+    "coordinate_anchors_from_input_only": {
+      "westernmost": [
+        -156.88959973850615,
+        57.99043555126519
+      ],
+      "northernmost": [
+        -156.61687137471864,
+        58.10553192497369
+      ],
+      "easternmost": [
+        -155.95131408327396,
+        57.87504481342958
+      ],
+      "southernmost": [
+        -156.16619989608006,
+        57.607173457739776
+      ]
+    },
+    "coordinate_anchor_note": "These are exact source vertices, not coordinates supplied or independently surveyed by the official publications.",
+    "registered_overlay_performed": false,
+    "surveyed_shoreline_verified": false,
+    "composite_of_separate_lakes_detected": false,
+    "composite_caveat": "Visual whole-feature inspection supports a single lake with an internal arm. This is not a precision proof that every generalized pixel excludes neighboring land or connected channels."
+  },
+  "competing_features": [
+    {
+      "name": "Upper Ugashik Lake and Lower Ugashik Lake",
+      "resolution": "Separate southwestern lake bodies on the map; source feature does not trace their separate basin configuration."
+    },
+    {
+      "name": "Ruth Lake and its outlet",
+      "resolution": "Separately identified in State application and FWS narrative; not assigned Becharof Lake as a composite river/lake system."
+    },
+    {
+      "name": "Pacific coastal bays",
+      "resolution": "Separate saltwater coastline east of intervening terrain; not the target inland lake."
+    },
+    {
+      "name": "Island Arm",
+      "resolution": "Part of the identified Becharof Lake, explicitly related to the main open water by FWS narrative; not treated as a rival whole-lake identity."
+    }
+  ],
+  "evidence_file": "becharof-source-evidence.json",
+  "evidence_file_sha256": "b45b33f4f461f3e23f32d64fe34f548e705629a1d06cdd84b7daf37263c5168c",
+  "scope_limits": [
+    "Historical research report was unavailable; these are newly rebuilt findings, not a claim that the lost report was recovered.",
+    "Only the pinned immutable baseline geometry was verified. Historical FID/logicalFID must not be applied to an unchecked live deployment.",
+    "Partial access-policy reconstruction remains incomplete; two newly observed publication-level 403 stops are preserved in evidence.",
+    "Only identity and official English usage are proposed. No source geometry change, Korean translation, automatic name application, product change, git/remote write, deployment or portable package was made."
+  ],
+  "review_gate": {
+    "independent_review_required": true,
+    "automatic_application": false,
+    "product_changes": false
+  }
+}

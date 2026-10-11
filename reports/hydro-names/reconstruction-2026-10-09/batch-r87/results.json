@@ -1,0 +1,444 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r87",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r86",
+    "commit": "f0d8b9268a7b5f36d0bca75ac532fdc0761eaa90",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r86/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:60012573",
+    "hydro-system:70778800",
+    "hydro-system:61570168",
+    "hydro-system:61512764"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:60012573",
+      "category": "river_group",
+      "system_id": "60012573",
+      "baseline_logical_fid": 3350,
+      "geometry_fids": [
+        10833,
+        10832,
+        10831
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -76.297917,
+        7.664583,
+        -75.839583,
+        9.439506
+      ],
+      "rendered_mainstem_length_km": 314.645,
+      "rendered_network_length_km": 314.645,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -76.297917,
+          7.664583,
+          -75.839583,
+          9.439506
+        ]
+      },
+      "candidate_name": "Río Sinú",
+      "candidate_names": [
+        "Río Sinú"
+      ],
+      "research_category": "representative_identity_supported_initial_headwater_material_hold",
+      "supported_name_scope": "The mapped lower Manso approach joins the receiving Sinú. The Sinú continues through Urrá and the Córdoba lowlands to the Tinajones delta. The initial northern headward part of the uppermost fragment is not continuously resolved.",
+      "geographic_disambiguation": "The selected mainstem begins on the eastern side of the upper Sinú drainage, runs southward and turns west toward the Manso–Sinú junction before reversing north toward Urrá. Below the reservoir it passes the Tierralta and Valencia surroundings, follows the valley through Montería and the Cereté–San Pelayo sector, then reaches Lorica, San Bernardo del Viento and the Tinajones delta west of Bahía de Cispatá. This is not the nearby San Jorge drainage, the Verde/Esmeralda western headwaters, or a complete trace from the formal source of Río Sinú. The headward portion remains partly unresolved rather than being assigned from the receiving name.",
+      "source_keys": [
+        "r87-sgc-sinu2007",
+        "r87-ingeominas-cordoba1997",
+        "r87-pnn-water2016"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Córdoba, northwestern Colombia: the northern Paramillo drainage, Urrá reservoir and the Sinú valley to its Caribbean delta.",
+      "candidate_name_role": "Representative receiving-river system identity, with a separately named Manso upstream component and an unresolved initial headward interval.",
+      "completion_scope": "The receiving identity, reservoir corridor, middle/lower valley and broad delta setting are supported. The southern portion of the upper U-turn has a mapped Manso correspondence, but the initial northern headward interval cannot be continuously matched on the acquired cartography. The whole-feature review is therefore incomplete. Completion requires independent usable coverage; it is not dependent on retrying either stopped publication.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Río Sinú",
+        "headward_component": "Initial northern headward interval unresolved; no precise feeder name or formal source asserted.",
+        "mapped_upstream_component": "Río Manso on the supported southern/westward portion of the upper U-turn.",
+        "reservoir_component": "Urrá impoundment on the Sinú receiving corridor.",
+        "terminal_component": "Tinajones delta, north of San Bernardo del Viento and west of Bahía de Cispatá; exact terminal distributary unassigned.",
+        "excluded_inferences": [
+          "No claim that the complete modeled mainstem is named Río Sinú.",
+          "No substitution of the formal Sinú headwaters, Río Verde, Esmeralda, San Jorge or unselected branches for the actual selection.",
+          "No unsupported connector has been established; an unviewed interval is recorded as material pending rather than a scope hold."
+        ],
+        "model_limits": "The modeled length is not an official river measurement. Generalization simplifies bends, tributary junctions, reservoir routing and delta channels."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70778800",
+      "category": "river_group",
+      "system_id": "70778800",
+      "baseline_logical_fid": 3150,
+      "geometry_fids": [
+        9938,
+        9939,
+        9937
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -113.33125,
+        31.256581,
+        -111.777083,
+        31.972917
+      ],
+      "rendered_mainstem_length_km": 313.721,
+      "rendered_network_length_km": 313.721,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -113.33125,
+          31.256581,
+          -111.777083,
+          31.972917
+        ]
+      },
+      "candidate_name": "Río Sonoyta",
+      "candidate_names": [
+        "Río Sonoyta"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The selected El Coyote headward corridor enters Arizona as Vamori Wash, joins the lower San Simon course, returns to Mexico and follows the Sonoyta receiving river toward the coastal plain. Río Sonoyta is not asserted as a uniform name for every selected reach.",
+      "geographic_disambiguation": "The modeled start is in the El Coyote headward drainage of northern Altar municipality, west of Sásabe, rather than at the far-northern head of San Simon Wash. The selection runs north into Arizona, follows Vamori Wash northwest along the east side of the Alvarez Mountains and onward to the lower San Simon junction, then turns south toward the international border. In Mexico it makes the characteristic southern bend in the northern Caborca projection, turns west and northwest through the La Nariz/Valdez surroundings and Sonoyta, and continues southwest and south along the eastern Pinacate margin. The lower path crosses the coastal plain east of Puerto Peñasco and reaches the generalized Gulf-margin outlet setting near Playa Encanto, west of Estero Almejas. It is distinct from the Río Altar–Asunción/Concepción system, from that system’s separate El Coyote tributary, and from the unselected full upper San Simon and San Luis Wash courses.",
+      "source_keys": [
+        "r87-usgs-topo-vamori-san-simon",
+        "r87-inegi-altar-2010",
+        "r87-inegi-caborca-2010",
+        "r87-inegi-eliascalles-2010",
+        "r87-inegi-puertopenasco-2010",
+        "r87-inegi-sonora-state"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northwestern Sonora, Mexico, and southern Pima County, Arizona, United States; El Coyote–Vamori–San Simon drainage through Sonoyta to the Gulf of California coastal margin east of Puerto Peñasco.",
+      "candidate_name_role": "Representative receiving-system identity; El Coyote, Vamori Wash and lower San Simon Wash retain their distinct component names.",
+      "completion_scope": "All three selected mainstem fragments were compared with readable primary cartography. USGS coverage resolves the complete Arizona loop; INEGI municipal and state maps resolve the Mexican headward drainage, return bend, named Sonoyta receiving corridor, western descent and bounded coastal terminal setting. Distinct upstream names do not create a material representative-system ambiguity. No substantial unviewed reach remains; precise first-fork and present shoreline allocation are not claimed.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Río Sonoyta",
+        "headward_component": "Small Mexican feeder and El Coyote corridor in northern Altar municipality; precise first-fork name not asserted.",
+        "main_upstream_components": [
+          "Vamori Wash in Arizona",
+          "Selected lower San Simon Wash below the Vamori approach"
+        ],
+        "receiving_component": "Sonoyta/Sonoita corridor in Mexico, labeled Río Sonoyta in municipal cartography and A. Sonoyta on the lower state sheet.",
+        "terminal_component": "Generalized Sonoyta coastal outlet/Gulf-margin setting east of Puerto Peñasco, near Playa Encanto and west of Estero Almejas.",
+        "excluded_inferences": [
+          "The full modeled mainstem is not uniformly named Río Sonoyta.",
+          "The full upper San Simon, San Luis and every Sonoyta-basin tributary are not selected.",
+          "No precise formal source, channel-name transition vertex, current discharge, continuous flow, surveyed mouth or exact modern shoreline is established."
+        ],
+        "model_limits": "The 313.721 km is a modeled mainstem length, not an official river-length measurement. Coarse geometry simplifies the desert-channel network, junctions and coastal endpoint."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61570168",
+      "category": "river_group",
+      "system_id": "61570168",
+      "baseline_logical_fid": 3638,
+      "geometry_fids": [
+        14593
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -68.877083,
+        -43.547917,
+        -66.814583,
+        -42.729167
+      ],
+      "rendered_mainstem_length_km": 311.065,
+      "rendered_network_length_km": 311.065,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -68.877083,
+          -43.547917,
+          -66.814583,
+          -42.729167
+        ]
+      },
+      "candidate_name": "Arroyo Perdido",
+      "candidate_names": [
+        "Arroyo Perdido"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Arroyo Perdido is supported on the long southward, eastward and northeastward mapped valley. The entire final modeled lowland extension and its connection to the northern wet/saline depression are held separately.",
+      "geographic_disambiguation": "The selection starts on an unnamed short approach northeast of Lagunita Salada, bends west and south into the mapped Arroyo Perdido valley, continues along the El Escorial and Valle General Racedo setting, then makes the broad southern eastward turn and runs northeast below the El Mirasol/Arroyo Salado arrival. It reaches the Bajo de la Tierra Colorada closed-basin setting. The final modeled course departs from the explicitly drawn lower Perdido channel and turns toward a separate northern wet/saline depression near the Telsen approach. It is not the Río Chubut, Río Chico, the separate northern Arroyo Telsen or the western Andean homonymous Arroyo Perdido.",
+      "source_keys": [
+        "r87-ign-perdido-mosaic",
+        "r87-kaless-perdido-chapter"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central-northern Chubut, Argentina: Lagunita Salada, El Escorial and Valle General Racedo through the Arroyo Perdido corridor to Bajo de la Tierra Colorada.",
+      "candidate_name_role": "Supported named stream along most of the selected route; the long modeled terminal continuation across the closed-basin lowland is not established as that stream.",
+      "completion_scope": "Completed bounded full-fragment correspondence using readable original IGN map pixels. All selected extent is covered; an isolated black no-data rectangle lies away from the selected corridor and does not obscure it. The hold concerns the substantial final modeled extension across the closed-basin plain, where the map does not establish a named channel matching the entire connection. It is not missing map coverage, an access-pending gap or a hold merely because the small initial feeder is unnamed.",
+      "naming_scope_details": {
+        "mapped_named_component": "Arroyo Perdido",
+        "receiving_setting": "Bajo de la Tierra Colorada, inland closed-basin lowland.",
+        "basis_of_hold": "The significant terminal modeled extension is not supported as one continuous named stream by the readable map. The preceding Perdido identity remains useful and is preserved as component evidence.",
+        "whole_group_single_river_name_supported": false,
+        "excluded_inferences": [
+          "Do not name the entire modeled lowland detour Arroyo Perdido solely because it shares the receiving basin.",
+          "Do not call the terminal extension Arroyo Telsen by proximity to the separate northern drainage.",
+          "Do not infer perennial flow, a surveyed stream termination or a direct connection to Río Chubut or the Atlantic."
+        ],
+        "model_limits": "Modeled length is not an official stream measurement. Ephemeral channels and closed-basin inundation can be variable; the present record identifies cartographic naming scope, not modern hydraulic continuity."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61512764",
+      "category": "river_group",
+      "system_id": "61512764",
+      "baseline_logical_fid": 3580,
+      "geometry_fids": [
+        14450
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -66.072917,
+        -34.822917,
+        -63.90625,
+        -33.475
+      ],
+      "rendered_mainstem_length_km": 308.814,
+      "rendered_network_length_km": 308.814,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -66.072917,
+          -34.822917,
+          -63.90625,
+          -33.475
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The acquired cartography supports a completed name-scope and feature-class hold. The selection crosses mapped farmland, dune and low-depression country, later entering a lagoon/wetland mosaic, but no continuous named natural river or connected receiving-river system is established along its complete extent. This does not establish that the terrain is permanently dry or that every local drain is unnamed.",
+      "geographic_disambiguation": "The selected headward endpoint is in open country south of Eleodoro Lobos and west-northwest of Fraga, well southwest of the mapped Río Quinto approach. It runs southeast toward the Nueva Escocia surroundings, then east and southeast through country south of Villa Mercedes and Lavaysse. It remains south of the clearly mapped Quinto corridor through Justo Daract and Villa Sarmiento, passes through the plains north and northeast of Villa Valeria, continues southeast past the Del Campillo surroundings into the low country west and south of the Santa Magdalena/Jovita setting, and ends north-northeast of Pincén near the railway and provincial-road corridor. It does not reach the Río Quinto trunk, Bañados de la Amarga, an open-sea outlet or a verified named lake mouth. Nearby lagoon labels are not transferred to the ending.",
+      "source_keys": [
+        "r87-ign-sanluis-cordoba-raster-mosaics",
+        "ign-sanluis-physical-2016",
+        "ign-cordoba-physical-2016"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central-eastern San Luis and southern Córdoba, Argentina: country south of Eleodoro Lobos, the Nueva Escocia and Lavaysse plains, the Villa Valeria–Del Campillo surroundings, and the inland Pincén terminal setting.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded geographic correspondence and feature-class/name-scope assessment of the sole selected mainstem fragment. The 1:250,000 topographic mosaic provides readable coverage of the complete extent; 1:100,000 mapping adds the actual first setting, parts of the upper plains and the terminal lowlands. The finer upper mosaic has blank sheet coverage in part of its request extent, but those locations are covered by the readable 1:250,000 mosaic. This is therefore a completed scope hold, not a substantial unviewed-map-coverage or access-pending finding. Positive evidence of a connected named watercourse or receiving system would be needed for a later assignment.",
+      "naming_scope_details": {
+        "representative_receiving_identity": null,
+        "headward_component": "Unnamed in the inspected map at the selected first setting south of Eleodoro Lobos; no named stream source established.",
+        "middle_component": "Modeled southeastward plains route through several farmland, dune and depression settings; a connected named channel is not established.",
+        "excluded_neighbor": "Río Quinto / Popopis is the distinct northern and northeastern trunk. Its regional proximity is insufficient to name this selection.",
+        "terminal_component": "Bounded inland lowland setting north-northeast of Pincén; precise local channel, wetland parcel or named lake remains unassigned.",
+        "reason_for_hold": "The whole selected sequence is not established as one natural river or a connected receiving-river system, including substantial upper and middle plains sections and the inland terminal continuation.",
+        "excluded_inferences": [
+          "No claim that every selected point is dry or permanently disconnected.",
+          "No assertion that the selection is a present-day artificial drain, a named paleochannel or a complete chain of specific lagoons.",
+          "No named source, precise hydronym transition, surveyed wetland boundary, actual modern flow direction or receiving river mouth is assigned."
+        ],
+        "model_limits": "The 308.814 km value is the modeled display length, not an official natural-river measurement. Generalized geometry and historical maps do not establish present hydraulic continuity."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:61570168",
+      "hydro-system:61512764"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:60012573"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 291,
+    "non_pending_records": 280,
+    "source_access_pending": 3,
+    "source_material_pending": 8,
+    "source_any_pending": 11,
+    "scope_holds": 94,
+    "river_groups": 193,
+    "lakes": 98,
+    "unrecorded": 3774,
+    "unrecorded_river_groups": 3262,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r87-sgc-sinu2007",
+      "official_url": "https://srvags.sgc.gov.co/arcgis/rest/services/Mapa_Geologico_Colombia/Mapa_Geologico_Colombia/MapServer"
+    },
+    {
+      "source_key": "r87-ingeominas-cordoba1997",
+      "official_url": "https://repositorioinstitucional.uabc.mx/bitstreams/0d216d8d-a403-438c-9116-e648863796c2/download"
+    },
+    {
+      "source_key": "r87-pnn-water2016",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2018/08/Informe-de-valoracion-recurso-hidrico-PNN-Paramillo-Cuenca-Sinu.pdf"
+    },
+    {
+      "source_key": "r87-usgs-topo-vamori-san-simon",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r87-inegi-altar-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26004.pdf"
+    },
+    {
+      "source_key": "r87-inegi-caborca-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26017.pdf"
+    },
+    {
+      "source_key": "r87-inegi-eliascalles-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26070.pdf"
+    },
+    {
+      "source_key": "r87-inegi-puertopenasco-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26048.pdf"
+    },
+    {
+      "source_key": "r87-inegi-sonora-state",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/son/794551162958.pdf"
+    },
+    {
+      "source_key": "r87-ign-perdido-mosaic",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r87-kaless-perdido-chapter",
+      "official_url": "https://ri.conicet.gov.ar/bitstream/handle/11336/114139/CONICET_Digital_Nro.2aa97154-f0a9-4bd2-b19c-5933743f514f_B-1-1.pdf?isAllowed=y&sequence=5"
+    },
+    {
+      "source_key": "r87-ign-sanluis-cordoba-raster-mosaics",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-sanluis-physical-2016",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/SAN-LUIS/SAN-LUIS-FISICO-WEB.jpg"
+    },
+    {
+      "source_key": "ign-cordoba-physical-2016",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/CORDOBA/CORDOBA-FISICO-WEB.jpg"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "f0d8b9268a7b5f36d0bca75ac532fdc0761eaa90",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      147,
+      148,
+      149,
+      150
+    ],
+    "next_unrecorded_id": "hydro-system:61516431",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

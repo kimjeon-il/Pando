@@ -1,0 +1,90 @@
+{
+  "schema": "hydro-public-map-scope-review-v2",
+  "batch": "r19",
+  "reviewed_at_utc": "2026-10-09T18:39:12.606078+00:00",
+  "method": "The retained original assessment was rendered and its actual pixels inspected at whole-page and river-region scales. Every decoded baseline fragment, line part and ordered position was plotted in complete groups and compared visually using upper and lower course shape, relative branch arrangement, junction placement and coastal context. This is a qualitative full-path comparison, not centroid matching, a formal georeferenced registration, a numerical line-fit, exact topological validation or a name-boundary survey.",
+  "records": [
+    {
+      "aw_id": "hydro-system:50517279",
+      "complete_fragment_count": 8,
+      "complete_part_count": 208,
+      "complete_coordinate_count": 1034,
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "physical_pdf_map_pages": [
+        48,
+        69,
+        108
+      ],
+      "observations": [
+        "All eight fragments, including the northwestern head, southeastward upper course, broad southern turn, northward lower course, coastal ending and entire southern feeder, were compared with the regional maps. This uses every selected path, not the group centroid.",
+        "The sinuous upper-to-middle channel is directly labelled Burdekin on Figures 3.1 and 3.22. The lower-river map in Figure 3.61 directly labels the channel Burdekin R.; the adjacent irrigation-area shading and bore symbols are separate layers.",
+        "The separate selected southern feeder reaches the main network near its southern bend. The regional maps depict a feeder here but do not directly establish its full selected-path name. Nearby Cape, Belyando and Bowen labels belong to other mapped corridors and are not copied onto this feeder.",
+        "Section 3.7.4 identifies Burdekin Falls as a storage on the Burdekin River. The continuous baseline line does not delineate reservoir water, its arms or their naming limits. River, storage and irrigation-area identities are not interchanged.",
+        "The coastal endpoint and lower course were included in the review. The maps support the lower-river context, but not an exact tidal boundary, contemporary shoreline connection or name for every delta/distributary segment."
+      ],
+      "assessment": "The complete selected network has a supported generalized association with the Burdekin drainage, including a mapped Burdekin corridor and a separate southern feeder. Burdekin River is supported for the mapped main-river corridor, not as a scalar name for all eight fragments.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "additional_reach_specific_evidence_required_before_application": true,
+      "all_reach_names_verified": false
+    },
+    {
+      "aw_id": "hydro-system:50478600",
+      "complete_fragment_count": 2,
+      "complete_part_count": 112,
+      "complete_coordinate_count": 782,
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "physical_pdf_map_pages": [
+        681,
+        703
+      ],
+      "observations": [
+        "Both complete fragments were compared from the far southeastern head through the long northward reach and westward middle bend to the northwestern Gulf ending. All 112 parts were included.",
+        "Figures 15.1 and 15.22 print Gilbert and Einasleigh along distinct river channels. The selected long southeastern extension corresponds regionally to the Einasleigh corridor; the downstream northwestern path corresponds to the lower Gilbert corridor.",
+        "The map evidence therefore does not support propagating the lower Gilbert name through every selected mainstem part. The exact transition between named river corridors is not resolved to a source reach or fragment boundary.",
+        "The outlet portion was inspected against the Gulf coast and regional river network. The assessment describes seasonally variable and braided rivers, but does not resolve all distributaries, estuarine name limits or the exact modern coastline endpoint."
+      ],
+      "assessment": "The complete selected path has a supported generalized association with the Gilbert drainage, with lower Gilbert and southeastern upstream Einasleigh corridor associations. Both fragments have a modeled mainstem role; that does not establish one river name along the entire path.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "additional_reach_specific_evidence_required_before_application": true,
+      "all_reach_names_verified": false
+    },
+    {
+      "aw_id": "hydro-system:50464082",
+      "complete_fragment_count": 8,
+      "complete_part_count": 232,
+      "complete_coordinate_count": 1544,
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "physical_pdf_map_pages": [
+        681,
+        703
+      ],
+      "observations": [
+        "All eight fragments were compared, including the entire eastern upper mainstem, long lower northwestward path and Gulf ending, the complete southern tributary route and the entire shorter northern tributary route.",
+        "Figures 15.1 and 15.22 print Mitchell, Palmer and Walsh directly beside river channels, separately from the Mitchell-Coleman catchment title. The catchment title is not used to assign either name to the whole selected network.",
+        "The eastern modeled-mainstem corridor follows the mapped Palmer branch before the lower Mitchell route. The long southern branch corresponds to the Walsh corridor and its downstream connection toward the Mitchell. Mainstem and tributary are baseline graph roles, not name authority.",
+        "The shorter northern feeder is present in the complete geometry and in the regional river pattern, but no direct name is established for its complete selected course from these map pixels. No inferred Alice or Coleman name is assigned.",
+        "The lower coastal ending was considered together with both tributary junctions. The coarse map does not establish exact named-river transitions, junction-level topology, distributary names or a surveyed current mouth/estuary boundary."
+      ],
+      "assessment": "The complete selected network has a supported generalized association with the Mitchell drainage. It includes a lower Mitchell corridor, an eastern modeled-mainstem Palmer corridor, a southern Walsh corridor and another northern feeder whose selected-path name remains unverified. Mitchell River is not a name for every selected mainstem or tributary fragment.",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "additional_reach_specific_evidence_required_before_application": true,
+      "all_reach_names_verified": false
+    }
+  ],
+  "map_graticule_or_control_point_registration_performed": false,
+  "included_evidence_limit": "The included files contain bibliography, bounded identity facts and own observations. The complete baseline coordinate paths, original publication, inspection images and private verification are excluded. Public offline checks cannot reproduce the omitted whole-path or map-pixel comparisons.",
+  "automatic_application": false,
+  "product_application": false
+}

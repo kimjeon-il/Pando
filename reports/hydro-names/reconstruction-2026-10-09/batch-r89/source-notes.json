@@ -1,0 +1,341 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r89",
+  "sources": [
+    {
+      "source_key": "r89-ign-futaleufu-raster",
+      "title": "IGN topographic raster mosaics, 1:250,000: Cholila, Los Alerces, Amutui Quimei and the upper Futaleufú valley",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "supports": "Actual Río Tigre headward choice; Cholila, Carrileufú and Rivadavia sequence; Verde, Arrayanes and western Futalaufquen–Krüger connection; Frey, Amutui Quimei, Futaleufú and the Corintos side stub.",
+      "limits": "Topographic mosaic sheets have different editions and styles; no common date or current shoreline precision is asserted. Argentine mapping provides only limited Chilean marginal coverage. Original pixels, map requests and crops remain private.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r89-mop-los-lagos-map",
+      "title": "Red Vial de la Región de Los Lagos, cartographic edition October 2024, scale 1:550,000",
+      "publisher": "Ministerio de Obras Públicas, Dirección de Vialidad, Unidad de Gestión de la Información Territorial (UGIT-DV), Chile",
+      "supports": "The selected Chilean continuation, distinct Futaleufú and Yelcho river names, intervening Lago Yelcho passage and coastal delta/mouth south of Chaitén.",
+      "limits": "Official road-map cartography with named hydrography, used for regional geographic correspondence rather than surveying. The legend obscures part of Argentina, which is independently covered by IGN. No source image or geometry is distributed with the finding.",
+      "official_url": "https://mapasvialidad.mop.gob.cl/archivos/sites/10/2026/01/Region_de_los_Lagos.pdf"
+    },
+    {
+      "source_key": "r89-argentina-basin76",
+      "title": "Cuenca del Río Futaleufú, Cuenca Nº 76, prepared January 2004",
+      "publisher": "Argentina, Subsecretaría de Recursos Hídricos; prepared by Andrea Valladares",
+      "supports": "Independent prose corroboration of the linked lakes and rivers, distinct component names, the Corintos junction, and Yelcho as the final receiving river to the Pacific.",
+      "limits": "Historical hydrographic account, not a current flow or station-status source. No original PDF download or map-image inspection was needed, and its prose alone is not treated as detailed line correspondence.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/76.pdf"
+    },
+    {
+      "source_key": "r89-ign-mayer-pascua-mosaic",
+      "title": "IGN raster topographic mosaic, 1:250,000: Río Mayer–Lago O’Higgins/San Martín–Río Pascua",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "attribution": "Official raster layer cartas_mosaicos:cartas_250k. Contributing sheet edition dates are not exposed in the inspected clip and are not inferred.",
+      "supports": "Mayer and Pascua river labels; adjoining tributary distinctions; complete selected extent; connected lake-arm geography; mapped-land interval along Península La Florida; receiving delta/fjord setting.",
+      "limits": "Historical topographic cartography is not a present-day channel or shoreline survey. The comparison establishes a substantial unsupported cartographic connector, not a definitive diagnosis of model or map error. Original imagery, derivatives and selected coordinates remain local.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r89-mop-aysen-map",
+      "title": "Red Vial de la Región Aysén del General Carlos Ibáñez del Campo, cartographic edition January 2025, scale 1:750,000",
+      "publisher": "Ministerio de Obras Públicas, Dirección de Vialidad, Unidad de Gestión de la Información Territorial (UGIT-DV), Chile",
+      "supports": "Independent Chilean regional context, Río Mayer and Río Pascua identity, the separate Bravo drainage, the northeastern lake arm and Brazo del Desagüe, the peninsula between them and the Punta Pisagua coastal setting.",
+      "limits": "Road-map hydrography is generalized; Argentine details are visually subdued and not all feeders are labeled. It supports regional geography and the distinct lake-arm setting, not an exact contemporary waterline.",
+      "official_url": "https://mapasvialidad.mop.gob.cl/archivos/sites/10/2026/01/Region_de_Aysen.pdf"
+    },
+    {
+      "source_key": "r89-dga-hoyas-pascua",
+      "title": "Hoyas hidrográficas de Chile, XI Región Aisén and XII Región Magallanes: Hoyas de los ríos Bravo y Pascua and Hoya del Río Pascua",
+      "publisher": "Dirección General de Aguas; Hans Niemeyer F., consultant; official CIREN repository",
+      "year_note": "Retained historical volume catalogued as 1982; no map date is inferred from its present hosting URL.",
+      "supports": "Mayer’s Argentine northward course and Chilean return, its arrival at the northeastern lake arm, the lake’s connected arms, the northwestern Pascua outlet, intervening upper-river Lago Chico, Quetru connection and Calén–Steele receiving setting; separate Bravo basin.",
+      "limits": "Older generalized map and descriptive prose support system identity and connected named components but cannot resolve the detailed northeastern-arm mismatch. Historical border commentary, measurements, flows and proposed uses are not adopted as current facts.",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/ac202d79-f7c4-4faf-921a-421e4f9c0cdc/content"
+    },
+    {
+      "source_key": "r89-nrcan-corbin-roggan-map",
+      "title": "Canada Base Map, CBMT3978: northern lake-chain, Corbin and lower Roggan corridor",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Selected northern lake chain, direct Rivière Corbin and lower Rivière Roggan labels, junction and James Bay endpoint, and exclusion of the separate upper Roggan and adjoining rivers.",
+      "limits": "Composite base-map dates are not asserted. No precise island/channel crossing, current shoreline or exhaustive individual lake naming is established. Only own factual synthesis is released; original rasters, crops and orientation material remain local.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; southern Inland Ice, southwestern Nuuk / Nuup Kangerlua–Godthåbsfjord marginal setting, graticule and Inland Ice legend.",
+      "supports": "Eastern and middle ice-interior setting; western glaciated-margin versus exposed-rock and fjord surroundings; geographic disambiguation; distinction between ice-map symbols and natural-river evidence.",
+      "limits": "Historical regional geological map, not a hydrological survey or river gazetteer. It does not resolve an exact named terminal feature or the present position of ice/land/water boundaries. Map contours do not establish a surface or subglacial river.",
+      "reuse_limit": "GEUS custom terms restrict redistribution and new maps based on the data. Originals, local source crops and derived comparison material remain private. Only independently written factual findings and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Pages 64–65, Glaciology.",
+      "supports": "Distinguishes the continental Inland Ice from local ice caps and glaciers; explains ice-surface contours, ice-thickness isopachs and sub-ice bedrock contours; supplies general ice-margin and fjord context.",
+      "limits": "Does not name this selected modeled group or prove its hydrological connectivity. Figure 46 is a different West Greenland locality north-northeast of Søndre Strømfjord, not a photograph of this route. Figure 47 is a general model, not precise selected-path evidence. Historical measurements are not represented as current.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61570698",
+      "source_keys": [
+        "r89-ign-futaleufu-raster",
+        "r89-mop-los-lagos-map",
+        "r89-argentina-basin76"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14594
+          ],
+          "finding": "The selected headward course is the mapped Río Tigre west of Lago Cholila, including its southeastward then eastward turn and northeastward approach to the lake. This is not the separate Blanco, Villegas, Percey or Pedregoso approach. The selection traverses Lago Cholila to its eastern outlet, follows Carrileufú southeast and southwest to Lago Rivadavia, then crosses that lake and follows Río Rivadavia, Lago Verde and Río Arrayanes into Lago Futalaufquen. The neighboring Menéndez and Cisne chain is a separate contributing branch.",
+          "sources": [
+            "r89-ign-futaleufu-raster"
+          ]
+        },
+        {
+          "fragments": [
+            14595
+          ],
+          "finding": "The continuation uses the western arm/outlet of Lago Futalaufquen, Lago Krüger and Río Frey, rather than the eastern lake arm and Desaguadero valley. Frey enters Amutui Quimei from the north; the selection passes through the reservoir's eastern arm toward its dam/outflow and continues along Futaleufú to the Corintos confluence setting. Stange, Chico and the western reservoir feeders are not substituted for this route.",
+          "sources": [
+            "r89-ign-futaleufu-raster",
+            "r89-argentina-basin76"
+          ]
+        },
+        {
+          "fragments": [
+            14596
+          ],
+          "finding": "Below the Corintos arrival, the selected course follows Futaleufú west through the broad Argentine valley and the Paso Futaleufú border setting. It continues southwest past the Futaleufú settlement and Río Azul junction, turns near Puerto Ramírez and enters the southeastern end of Lago Yelcho. The long northwestward modeled continuation traverses Lago Yelcho and reaches its northern outlet near Puerto Cárdenas, continuing into the Yelcho river corridor. The southern turn is on the Futaleufú–Yelcho connection, not the nearby Palena drainage.",
+          "sources": [
+            "r89-ign-futaleufu-raster",
+            "r89-mop-los-lagos-map"
+          ]
+        },
+        {
+          "fragments": [
+            14597
+          ],
+          "finding": "The terminal fragment continues down Río Yelcho toward its coastal delta south of Chaitén, in the Isla Puduguapi mouth setting. The MOP map explicitly labels Yelcho separately from Río Chaitén and shows the branching coastal channels. The generalized final cell supports the Yelcho delta/mouth setting without identifying an exact modern distributary or extending the selection offshore.",
+          "sources": [
+            "r89-mop-los-lagos-map"
+          ]
+        },
+        {
+          "fragments": [
+            14598
+          ],
+          "finding": "The short east-to-west side fragment lies on the terminal Río Corintos approach to Futaleufú downstream of the Trevelín valley. IGN names Corintos on this approach and distinguishes the Futaleufú trunk. Only the terminal stub is selected, not the full Corintos–Percey or Nant y Fall network; the coarse junction does not determine a precise channel-confluence vertex.",
+          "sources": [
+            "r89-ign-futaleufu-raster",
+            "r89-argentina-basin76"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61598266",
+      "source_keys": [
+        "r89-ign-mayer-pascua-mosaic",
+        "r89-mop-aysen-map",
+        "r89-dga-hoyas-pascua"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14645
+          ],
+          "finding": "Repeated primary-map Mayer labels support the eastern northeastward and northward valley, the broad return at the Argentina–Chile border, and the westward and southwestward Chilean continuation. The upper selected start is a small headward approach in that drainage; neither an exact formal source nor a separate feeder name is established. Río Carbón, Tucu Tucu, Narváez, Colón and Ñires are neighboring or joining components, not replacement names for the selected main valley.",
+          "sources": [
+            "r89-ign-mayer-pascua-mosaic",
+            "r89-dga-hoyas-pascua",
+            "r89-mop-aysen-map"
+          ]
+        },
+        {
+          "fragments": [
+            14646,
+            14647
+          ],
+          "finding": "The two short continuation fragments occupy the lower Mayer–Villa O’Higgins approach and the head of the northeastern lake arm, with Lago Cisnes and Lago Ciervo nearby. Their simplified segments do not warrant assigning an exact contemporary channel, delta branch or lake-entry vertex. The receiving lake and lower Mayer setting are nevertheless clear on the official maps.",
+          "sources": [
+            "r89-ign-mayer-pascua-mosaic",
+            "r89-mop-aysen-map",
+            "r89-dga-hoyas-pascua"
+          ]
+        },
+        {
+          "fragments": [
+            14648
+          ],
+          "finding": "The long southward fragment runs beside the northeastern lake arm. Full-arm comparison with the georeferenced IGN raster places a sustained part of the selected line west of the mapped shoreline, on the eastern flank of Península La Florida, in the country east of Laguna Negra, Laguna Escondida and Laguna Verde. The regional MOP sheet independently shows the lake arm east of that peninsula flank. This is a longitudinal landward interval, not merely an isolated coarse-cell shoreline turn. No mapped continuous named stream supports the entire selected connector, so it is held explicitly rather than relabeled as an unqualified lake passage.",
+          "sources": [
+            "r89-ign-mayer-pascua-mosaic",
+            "r89-mop-aysen-map"
+          ]
+        },
+        {
+          "fragments": [
+            14649
+          ],
+          "finding": "The fragment begins with the continuation of the northeastern-arm mismatch, then turns back into the lake near the opening toward Brazo Cancha Rayada. The central westward crossing south of Península La Florida and the northward passage into the northwestern arm are supported as connected parts of Lago O’Higgins/San Martín. Minor shoreline-edge simplifications near the peninsula and Punta Grande are not claimed as exact waterline coincidence. The selection does not continue into the distant southeastern San Martín, Tar or southern glacier arms.",
+          "sources": [
+            "r89-ign-mayer-pascua-mosaic",
+            "r89-mop-aysen-map",
+            "r89-dga-hoyas-pascua"
+          ]
+        },
+        {
+          "fragments": [
+            14650
+          ],
+          "finding": "The remaining northwestern-arm passage leads through the lake’s northwestern outlet setting to the mapped Río Pascua corridor. The DGA account explicitly distinguishes the lake outlet, the intervening Lago Chico in the upper Pascua, the Quiroz arrival, the northern turn at the Quetru connection and the later westward river. The IGN and MOP maps show the coastal Pascua receiving reach and its separation from the Bórquez tributary and the Bravo system. The generalized final cell is in the delta/fjord-mouth setting near Punta Pisagua and Puerto San Carlos, not a surveyed outlet point or an extension into the open Pacific.",
+          "sources": [
+            "r89-ign-mayer-pascua-mosaic",
+            "r89-mop-aysen-map",
+            "r89-dga-hoyas-pascua"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70104418",
+      "source_keys": [
+        "r89-nrcan-corbin-roggan-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9154
+          ],
+          "finding": "The eastern selected head occupies a connected small-lake and channel corridor south of Lac Silly and north of the separately mapped Kanaaupscow river country. It traverses successive elongated lakes and short connections westward. The map does not justify naming every initial lake or short feeder Roggan, and no formal river-source point is assigned.",
+          "sources": [
+            "r89-nrcan-corbin-roggan-map"
+          ]
+        },
+        {
+          "fragments": [
+            9154
+          ],
+          "finding": "Across the middle interval the selection bows north, then runs southwest along the lake-and-stream chain north of Lac Julian and south of Lac Burton. Readable cartography covers the entire corridor and distinguishes the independently mapped upper Roggan route farther south. The selection is not a substitute for that conventional upper receiving-river course.",
+          "sources": [
+            "r89-nrcan-corbin-roggan-map"
+          ]
+        },
+        {
+          "fragments": [
+            9154
+          ],
+          "finding": "The western lake chain passes through the Lac Pistinikw setting, turns south and then northwest, and reaches the directly labeled Rivière Corbin component. Corbin approaches the lower Roggan junction from the east/southeast while the separate upper Roggan arrives from farther south. The resulting lower receiving identity is Roggan.",
+          "sources": [
+            "r89-nrcan-corbin-roggan-map"
+          ]
+        },
+        {
+          "fragments": [
+            9155,
+            9156
+          ],
+          "finding": "Both lower fragments lie along the repeatedly labeled Rivière Roggan corridor, including broad channel/lake-like reaches, then continue west to the near-mouth channel at the Roggan River locality on James Bay. The settlement label alone is not the evidence: multiple river labels and the connected channel establish correspondence. The coarse terminal is not claimed as an exact present shoreline or tidal boundary.",
+          "sources": [
+            "r89-nrcan-corbin-roggan-map"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90116557",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8897
+          ],
+          "component_scope": "Eastern beginning and long eastern-to-central interior course",
+          "finding": "The retained mainstem begins in the eastern interior, first runs northwest, and then follows a westward course with a southern trough and a substantial northwestward rise toward a central, nearly east–west interval. Readable original map pixels and the graticule place this eastern and central selection inside the southern Inland Ice. Its long straight segments and small stair-stepped bends are model properties, not observations of a surface or subglacial river.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8897
+          ],
+          "component_scope": "Western interior depression and northwestward approach",
+          "finding": "From the central near-east–west interval, the modeled line bends southwest, runs across a lower western interval, then turns sharply northwest toward the compact marginal cluster. The map distinguishes the extensive ice-sheet setting of this approach from the exposed-rock and fjord belt farther west. Its blue surface contours, dashed ice-thickness isopachs and other ice-related linework do not supply a river trace or river name.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8898,
+            8899
+          ],
+          "component_scope": "Two short western mainstem fragments and actual ending",
+          "finding": "The second mainstem fragment turns briefly southwest. The final fragment continues west, makes a northward excursion, and returns westward through several short bends to the actual ending. Source enlargements place this compact western course in the glaciated transition inland of the Nuuk / inner Nuup Kangerlua–Godthåbsfjord region, beside the southwestern rock-and-fjord belt. The regional map differentiates marginal ice from colored exposed bedrock and the surrounding fjord corridors, but does not justify assigning an exact named glacier, river, fjord reach or shoreline crossing to these final modeled vertices.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8900,
+            8901
+          ],
+          "component_scope": "Southern two-fragment tributary branch",
+          "finding": "The actual southern branch first follows a short, nearly westward interval below the lower mainstem, then bends northwest through the second fragment and joins the selected mainstem close to its western ending. Both fragments were inspected against the same enlarged western-margin source pixels. Their regional position is the marginal glaciated/bedrock transition, but neither a separate tributary hydronym nor an observed natural channel connection is established. Their model role does not independently establish that this is a natural river tributary.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8902,
+            8903
+          ],
+          "component_scope": "Small northeastern two-fragment tributary branch",
+          "finding": "This separate short branch lies northeast of the western mainstem cluster. Its first fragment runs west with a small southwestward ending; its second continues southwest to meet the mainstem at the end of the long northwestward approach. The full branch is covered by the original marginal-region enlargement. The source supplies ice-margin context but no separate natural-river name or independently observed connectivity for this modeled branch.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8897,
+            8898,
+            8899,
+            8900,
+            8901,
+            8902,
+            8903
+          ],
+          "component_scope": "Whole-group feature class and naming limit",
+          "finding": "The original Inland Ice legend distinguishes ice-surface contours, dashed isopachs of ice thickness, contours of bedrock below the ice and aeromagnetic lineaments south of 68°N. The descriptive bulletin distinguishes the continental Inland Ice from local ice caps and glaciers and explains the contour classes. These sources support the ice-interior-to-margin setting; they do not establish a continuously named natural river across this modeled group. Nearby coastal and geological locality labels are contextual only. No modern ice position or current flow is inferred.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

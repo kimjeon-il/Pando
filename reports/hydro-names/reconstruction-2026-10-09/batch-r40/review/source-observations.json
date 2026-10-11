@@ -1,0 +1,149 @@
+{
+  "schema": "hydro-original-source-observations-v3",
+  "batch": "r40",
+  "scope_aw_ids": [
+    "lakes_base:1159109187",
+    "lakes_base:1159107159",
+    "lakes_base:1159112345"
+  ],
+  "new_external_requests": 4,
+  "new_external_requests_scope": "Three bounded discovery search calls (five queries) and one original OGS publication acquisition after publication-identity preflight; the independent reviewer reused that original without external requests. Retained Pipestone material was screened for coverage but did not provide selected-water evidence. No stopped source was retried.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": null,
+  "new_original_source_acquisitions_this_batch": 1,
+  "distinct_reviewed_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "source_group_definition": "One Ontario Geological Survey original publication. Organization and publication counts do not establish independent hydrographic datasets.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All 165 ordered positions were independently registered using original primary-viewport controls and original projected coordinate system, full affine cross terms and explicit MediaBox/CropBox offset. Three original crop arrays match fresh renders. Maximum control residual is below 0.001 PDF point; that measures registration consistency and does not establish map positional or shoreline accuracy. No manual shoreline fitting was used.",
+  "observations": [
+    {
+      "source_key": "ogs_index_bedrock_northern_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991\u20132020, Northern Sheet",
+      "publisher": "Ontario Geological Survey",
+      "url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf",
+      "original_acquired_at_utc": "2026-10-10T01:44:15.182007+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": true,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2021",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The original recommended citation identifies Ontario Geological Survey 2021, and the copyright imprint also shows 2021. The title interval 1991\u20132020 describes indexed map coverage, not this sheet publication date. No publication month or day is established.",
+      "review_reused_original_acquired_earlier_this_batch": true,
+      "review_reused_original_acquired_in_prior_batch": false,
+      "original_acquisition_batch": "r40",
+      "directly_read_water_labels": [
+        "Attawapiskat Lake",
+        "Wunnummin Lake",
+        "Missisa Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Kabania Lake",
+        "Mameigwess Lake",
+        "Fishbasket Lake",
+        "Maria Lake",
+        "Kingfisher Lake",
+        "Kapiskau River"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "One shared original supports all three selected generalized lake associations and surrounding cartographic context.",
+      "authority_scope": "Official provincial thematic cartographic usage supports bounded generalized water identity. It is not a formal naming-registry decision and does not certify exact shoreline or name partitions.",
+      "registered_overlay_performed": true,
+      "own_observations": "Original blue Attawapiskat Lake typography and the complete 66-position outline support a generalized association with the branching lake body. All protrusions and the southeastern reach were compared with original hydrography and wider context. Nearby Kabania, Mameigwess and Fishbasket lakes remain separate contextual waters; publication index lines and graticules are not name boundaries. Original typography reads Wunnummin Lake. Complete 76-position geometry, wider context and original pale-cyan water versus white land support that generalized lake association. The label sits south of the selected water on land; it does not demonstrate a missing southern basin. Maria Lake and Kingfisher Lake are separately labelled surrounding waters and are not aliases or selected named components. Original blue Missisa Lake typography lies within the compact water body corresponding to the complete 23-position generalized ring. The northern cap, southeastern side, southern end and western notch were compared. Kapiskau River is distinct southern context; the red geological-publication coverage outlines do not divide named waters.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "Publication Services Unit, Ontario Geological Survey compiled and edited the index; J. Rose is credited for map outlines and cartographic production. The credits caution that coverage outlines and the topographic base may differ and that editorial review was limited.",
+      "printed_copyright_year": "2021",
+      "printed_bibliographic_citation_year": "2021",
+      "hydrographic_base_provider": null,
+      "original_requested_at_utc": "2026-10-10T01:44:07.664713+00:00"
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159109187",
+      "aw_id": "lakes_base:1159109187",
+      "source_id": "1159109187",
+      "geometry_fids": [
+        15396
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 66,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original blue Attawapiskat Lake typography and the complete 66-position outline support a generalized association with the branching lake body. All protrusions and the southeastern reach were compared with original hydrography and wider context. Nearby Kabania, Mameigwess and Fishbasket lakes remain separate contextual waters; publication index lines and graticules are not name boundaries."
+    },
+    {
+      "observation_id": "lakes_base:1159107159",
+      "aw_id": "lakes_base:1159107159",
+      "source_id": "1159107159",
+      "geometry_fids": [
+        15244
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 76,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original typography reads Wunnummin Lake. Complete 76-position geometry, wider context and original pale-cyan water versus white land support that generalized lake association. The label sits south of the selected water on land; it does not demonstrate a missing southern basin. Maria Lake and Kingfisher Lake are separately labelled surrounding waters and are not aliases or selected named components."
+    },
+    {
+      "observation_id": "lakes_base:1159112345",
+      "aw_id": "lakes_base:1159112345",
+      "source_id": "1159112345",
+      "geometry_fids": [
+        15615
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 23,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original blue Missisa Lake typography lies within the compact water body corresponding to the complete 23-position generalized ring. The northern cap, southeastern side, southern end and western notch were compared. Kapiskau River is distinct southern context; the red geological-publication coverage outlines do not divide named waters."
+    }
+  ],
+  "source_group_limit": "One cartographic identity publication and publisher; no second independent underlying hydrographic source or formal naming registry is claimed.",
+  "independent_review_and_source_research_agree": true,
+  "request_accounting": {
+    "search_tool_calls": 3,
+    "search_queries": 5,
+    "explicit_web_open_requests": 0,
+    "original_body_requests": 1,
+    "new_original_bodies_acquired": 1,
+    "new_source_access_denials": 0,
+    "new_source_availability_failures": 0,
+    "stopped_resource_requests": 0,
+    "additional_source_acquisitions_planned": false
+  }
+}

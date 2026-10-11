@@ -1,0 +1,284 @@
+{
+  "schema": "independent-local-source-observations-v1",
+  "reviewed_at_utc": "2026-10-09T11:09:16.350651+00:00",
+  "external_requests_made_by_reviewer": 0,
+  "sources": [
+    {
+      "id": "BECHAROF-FWS-ABOUT",
+      "domain": "www.fws.gov",
+      "url": "https://www.fws.gov/refuge/becharof/about-us",
+      "title": "Becharof National Wildlife Refuge: About Us",
+      "agency": "U.S. Fish and Wildlife Service",
+      "publication_date": null,
+      "retrieved_at_utc": "2026-10-09T10:52:07.484702+00:00",
+      "content_receipt": {
+        "bytes": 109167,
+        "sha256": "e6e8532d29acb75be11f0565050cab232ebd21a200711120c3ff73212e9edaef"
+      },
+      "method": "Read actual cached HTML text: Becharof Lake, Wilderness and Kanatak Trail sections.",
+      "observations": [
+        "Page uses Becharof Lake and explicitly places Severson Peninsula between Island Arm and the open water. Ruth Lake and Ruth River appear separately.",
+        "No formal GNIS/BGN record or naming-adjudication date established."
+      ]
+    },
+    {
+      "id": "BECHAROF-FWS-GUIDE-2012",
+      "domain": "www.fws.gov",
+      "url": "https://www.fws.gov/sites/default/files/documents/2024-04/3.pdf",
+      "title": "Guide Use Areas within Alaska Peninsula and Becharof NWRs",
+      "agency": "U.S. Fish and Wildlife Service, Region 7, Division of Realty and Natural Resources",
+      "publication_date": "2012-03-07",
+      "retrieved_at_utc": "2026-10-09T10:55:08.791821+00:00",
+      "content_receipt": {
+        "bytes": 2153038,
+        "sha256": "5d37dfd13f863be39cf4d1c0de30dd14476e85c2e50536ad2f6ed7d3fb54e117"
+      },
+      "method": "Independently rendered original single-page PDF at 1400px overview and 1350px full-lake/neighbor crop; compared my full 104-position source outline.",
+      "observations": [
+        "Broad west-to-east main basin plus southeast Island Arm correspond to the whole source outline. The eastern peninsula/neck structure agrees qualitatively.",
+        "Upper and Lower Ugashik lakes remain distinct southwest basins; Puale and Portage bays lie beyond intervening land east/southeast. Islands visible inside Becharof are filled by the no-hole source polygon.",
+        "Qualitative whole-water identity supported; exact shoreline, small land/water margins and numeric overlap were not established."
+      ]
+    },
+    {
+      "id": "BECHAROF-ALASKA-RDI-2017",
+      "domain": "www.blm.gov",
+      "url": "https://www.blm.gov/sites/default/files/docs/2025-08/AK_Egegik%20Becharof%20Ruth_App_12-28-17.pdf",
+      "title": "Egegik River & Becharof Lake System: RDI application",
+      "agency": "State of Alaska Department of Natural Resources; official original hosted by U.S. Bureau of Land Management",
+      "publication_date": "2017-12-28",
+      "retrieved_at_utc": "2026-10-09T10:53:14.515043+00:00",
+      "content_receipt": {
+        "bytes": 26293421,
+        "sha256": "514f82d7e0aab8ddaef4f40f2283ea214308343db7d3ddaee15317af2976a790"
+      },
+      "method": "Read cached PDF text on pages 1, 2, 8 and 11; independently rendered/viewed page 26 at 1300px.",
+      "observations": [
+        "Application dated 2017-12-28 distinguishes Becharof Lake, Egegik River, Ruth Lake and the unnamed outlet of Ruth Lake; page 8 treats Island Arm as Becharof Lake.",
+        "Naknek map excerpt is dated 1952, scale 1:250,000, with Becharof northern shore and label between 157 W and 156 W along 58 N. It is partial coverage, not whole-perimeter proof.",
+        "Compilation is secondary corroboration only; no present legal ownership or naming determination inferred and raw compilation excluded."
+      ]
+    },
+    {
+      "id": "CA-GNWT-20181218",
+      "domain": "www.gov.nt.ca",
+      "url": "https://www.gov.nt.ca/sites/ecc/files/resources/publication_text_fsu_caribou_management_zone_messaging_dec_18_2018.pdf",
+      "title": "Mobile Core Bathurst Caribou Management Zone",
+      "agency": "Government of the Northwest Territories, Environment and Natural Resources",
+      "publication_date": "2018-12-18",
+      "retrieved_at_utc": "2026-10-09T10:52:39.613517+00:00",
+      "content_receipt": {
+        "bytes": 2521327,
+        "sha256": "5aac878c13156f298024181f73255789cf115638f1959f6989e9a11655d96f3a"
+      },
+      "method": "Inspected original page 2 map labels and embedded registration; independently rebuilt ellipsoidal Lambert transform from GPTS/LPTS/BBox/WKT, transformed all 173 coordinates, viewed complete 1350px overlay and 1300px southwest crop.",
+      "observations": [
+        "Repeated MacKay labels align with the west basin, connecting main reach and long northeast arm. Nodinka Narrows, Warburton Bay and Portage Bay provide shape checks; Courageous, Matthews, Dumbell, Snake and King lakes remain adjacent separate mapped waters.",
+        "The southwest red boundary crosses the two-line Lockhart River label. Its Lockhart text center is inside; its River text center is just outside. Three nearby Lockhart Lake label centers are outside.",
+        "The southwest reach follows connected mapped water near these labels. Label placement alone does not establish a river/lake name boundary or prove a two-lake composite. Full-polygon scalar MacKay name remains on hold.",
+        "Big Island and other islands are absent from the no-hole input. Tiny control-fit residuals verify map registration consistency only."
+      ],
+      "registration_facts_file": "mackay-registration-facts.json"
+    },
+    {
+      "id": "CA-NUNAVIK-TURSUJUQ-CURRENT",
+      "domain": "www.nunavikparks.ca",
+      "url": "https://www.nunavikparks.ca/en/parks/tursujuq",
+      "title": "Tursujuq",
+      "agency": "Nunavik Parks / Kativik Regional Government",
+      "publication_date": null,
+      "retrieved_at_utc": "2026-10-09T10:52:05.105032+00:00",
+      "content_receipt": {
+        "bytes": 66813,
+        "sha256": "d2c96363a0762a5b76ab6d066902ceff24c57f2792dff63497f01ab4b792c642"
+      },
+      "method": "Read original cached HTML park overview and The Goulet section.",
+      "observations": [
+        "Current retrieved page uses Lac Tasiujaq and Lake Tasiujaq, describes brackish tidal water, and says The Goulet connects it to Hudson Bay.",
+        "This is direct park-use evidence, not a legal registry extract. The water cannot be assumed fresh or isolated from its baseline Lake category."
+      ]
+    },
+    {
+      "id": "CA-NUNAVIK-FISHING-2024",
+      "domain": "nunavikparks.ca",
+      "url": "https://nunavikparks.ca/assets/documents/Fishing_Tursujuq_2024_FR.pdf",
+      "title": "Règlementation sur la pêche dans les parcs nationaux du Nunavik: Parc national Tursujuq 2024–2025",
+      "agency": "Nunavik Parks; Annex 1 map produced by Québec Ministère des Forêts, de la Faune et des Parcs, Direction des parcs nationaux",
+      "publication_date": "2024–2025 guide; Annex 1 map copyright fourth quarter 2015",
+      "retrieved_at_utc": "2026-10-09T10:55:00.585049+00:00",
+      "content_receipt": {
+        "bytes": 914555,
+        "sha256": "cb5bb35b29490d15d9d0823a13822341f4559eacfdf7f3a354276770de1a0ae1"
+      },
+      "method": "Independently rendered/viewed page 6 overview at 1400px and entire target-water crop at 1370px; compared my complete 105-position source outline.",
+      "observations": [
+        "Annex 1 labels Lac Guillaume-Delisle south of Umiujaq. Narrow northern reach, east-side embayments, broad triangular southern basin and southwest Le Goulet spur match the source outline qualitatively.",
+        "Hudson Bay is west; the separate inland two-basin Lac à l’Eau Claire is not part of this feature. Islands are present on the map but missing from the input geometry.",
+        "The map footer is fourth-quarter 2015 and scale 1:850,000; the guide is 2024–2025. Treating its map name as a 2024 naming decision would be incorrect. Exact Le Goulet cutoff and shoreline are unverified."
+      ]
+    },
+    {
+      "id": "CA-DFO-SEAL-2018",
+      "domain": "www.canada.ca",
+      "url": "https://www.canada.ca/en/environment-climate-change/services/species-risk-public-registry/recovery-strategies/harbour-seal-lacs-loups-marins.html",
+      "title": "Recovery Strategy for the Harbour Seal, Lacs des Loups Marins subspecies (Phoca vitulina mellonae)",
+      "agency": "Fisheries and Oceans Canada; Species at Risk Act Recovery Strategy Series",
+      "publication_date": "2018",
+      "retrieved_at_utc": "2026-10-09T10:56:40.478468+00:00",
+      "content_receipt": {
+        "bytes": 128590,
+        "sha256": "03277a39ecfe7b03a3e8b70faf60bb9a413a87dfb46cf0d62e313df73c358a24"
+      },
+      "method": "Read original cached HTML section 6.1.1.",
+      "observations": [
+        "The text explicitly pairs Tasiujaq and Wiyâshâkimî with former Guillaume-Deslisle and à l’Eau Claire in that order, independently bridging the older map label to current park usage.",
+        "The page spells Deslisle; the map spells Delisle. Preserve the discrepancy rather than assert exact spelling equality. It provides no formal naming-decision date or registry identifier."
+      ]
+    },
+    {
+      "id": "BECHAROF-FWS-MEDIA-LICENSE",
+      "domain": "www.fws.gov",
+      "url": "https://www.fws.gov/media/guide-use-areas-within-alaska-peninsula-and-becharof-nwrs",
+      "title": "Guide Use Areas within Alaska Peninsula and Becharof NWRs",
+      "agency": "U.S. Fish and Wildlife Service",
+      "publication_date": "2012-03-07",
+      "content_receipt": {
+        "bytes": 86955,
+        "sha256": "ac036e6975b7120d0caf2e2a32bd55eb444242405b3de027612596c6fcda2d5b"
+      },
+      "method": "Read actual cached media HTML title, date/author, exact downloadable file links and license field; hashed staged PDF against original.",
+      "observations": [
+        "The media page title matches the map, credits Scott McGee, gives March 7 2012, and explicitly lists Public Domain.",
+        "Its file links point to exactly https://www.fws.gov/sites/default/files/documents/2024-04/3.pdf; a PDF link declares length=2153038. Staged file bytes match the acquired original SHA-256.",
+        "License receipt applies to this guide-use-area map only. Other raw maps, the State application and cached HTML are not approved for redistribution by this observation."
+      ],
+      "exact_pdf_url": "https://www.fws.gov/sites/default/files/documents/2024-04/3.pdf",
+      "published_pdf_relative_path": "sources/becharof-fws-guide-use-areas-2012.pdf",
+      "staged_file_receipt": {
+        "bytes": 2153038,
+        "sha256": "5d37dfd13f863be39cf4d1c0de30dd14476e85c2e50536ad2f6ed7d3fb54e117"
+      },
+      "license_field": "Media Usage Rights/License",
+      "license_value": "Public Domain"
+    },
+    {
+      "id": "NATURALEARTH-TERMS",
+      "domain": "www.naturalearthdata.com",
+      "url": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "title": "Terms of Use",
+      "agency": "Natural Earth",
+      "publication_date": null,
+      "content_receipt": {
+        "bytes": 38013,
+        "sha256": "9bc9cbc663b0e6298b7a8cc216a92b5b223efe87796ba5d74c99a64ed6c12db8"
+      },
+      "method": "Read actual cached HTML terms paragraph.",
+      "observations": [
+        "Public-domain statement covers all Natural Earth raster/vector versions and permits modification and electronic dissemination. The baseline and source properties attribute the selected geometry to Natural Earth 5.0.0 1:10m.",
+        "This establishes selected-geometry redistribution scope; it does not license the independent Canadian maps or the State application."
+      ]
+    }
+  ],
+  "actual_local_views": [
+    {
+      "pixels": [
+        1300,
+        1005
+      ],
+      "receipt": {
+        "bytes": 447152,
+        "sha256": "936c028c0b0bc2711855006b4891a97f2828b9ae25ca945e370c52cd9d3df687"
+      },
+      "copied_to_durable_review": false
+    },
+    {
+      "pixels": [
+        1400,
+        1050
+      ],
+      "receipt": {
+        "bytes": 1371808,
+        "sha256": "a9739430cb1011e75e309d438bf003ac476c1b1fde5a667b4c28c035f2632349"
+      },
+      "copied_to_durable_review": false
+    },
+    {
+      "pixels": [
+        1351,
+        1303
+      ],
+      "receipt": {
+        "bytes": 3505199,
+        "sha256": "30efa5e7ebdab2cf1249fcbd753ea68c5815c4c2dbdc1aa3011027a3cbaadb95"
+      },
+      "copied_to_durable_review": false
+    },
+    {
+      "pixels": [
+        1200,
+        800
+      ],
+      "receipt": {
+        "bytes": 21506,
+        "sha256": "b8fffb102ad957a81f3fc0c057850139e6cd272b5a092819973eb2b6e91d6cc4"
+      },
+      "copied_to_durable_review": false
+    },
+    {
+      "pixels": [
+        1200,
+        800
+      ],
+      "receipt": {
+        "bytes": 21575,
+        "sha256": "1f144f97854ea36bac7d9e4e2696f3e678e82ad75938f2b087411989b3ff3650"
+      },
+      "copied_to_durable_review": false
+    },
+    {
+      "pixels": [
+        1301,
+        781
+      ],
+      "receipt": {
+        "bytes": 182760,
+        "sha256": "a02ab8306357bc3ddfd897e29b95802f8623cb57c76af12fe4d0f4c410d1721e"
+      },
+      "copied_to_durable_review": false
+    },
+    {
+      "pixels": [
+        1351,
+        824
+      ],
+      "receipt": {
+        "bytes": 407909,
+        "sha256": "02408b38a262f469b92bcfd45705e246b538364eeb609a944ecaa6dee39f26a7"
+      },
+      "copied_to_durable_review": false
+    },
+    {
+      "pixels": [
+        1370,
+        1370
+      ],
+      "receipt": {
+        "bytes": 4405630,
+        "sha256": "7e8f20fdb7291b3de263e6af63ce7582f28fd52d54a1758b46f0d6db3c81a465"
+      },
+      "copied_to_durable_review": false
+    },
+    {
+      "pixels": [
+        1400,
+        1082
+      ],
+      "receipt": {
+        "bytes": 1804058,
+        "sha256": "d57a1499a437dc653a1f23afc9264b4924e0f691b797b4473f0393af9310a6e9"
+      },
+      "copied_to_durable_review": false
+    }
+  ],
+  "publication_scope": "Own factual extraction and hashes only. Raw source maps/crops stay outside this review. Separately staged FWS PDF has an exact-file Public Domain receipt."
+}

@@ -1,0 +1,181 @@
+{
+  "schema": "hydro-public-review-validation-v4",
+  "checked_at_utc": "2026-10-09T16:30:03.667360+00:00",
+  "public_validation": {
+    "status": "passed",
+    "mode": "included_public_files_only",
+    "scope_aw_ids": [
+      "lakes_base:1159108993",
+      "lakes_base:1159109007",
+      "lakes_base:1159108815"
+    ],
+    "lake_geometry_checks": [
+      {
+        "aw_id": "lakes_base:1159108993",
+        "source_id": "1159108993",
+        "geometry_fid": 15379,
+        "logical_fid": 4004,
+        "position_count": 43,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true,
+        "source_bbox": [
+          -92.86098662546107,
+          29.812135117459007,
+          -92.64183253281153,
+          29.976390300398492
+        ],
+        "baseline_bbox": [
+          -92.860987,
+          29.812135,
+          -92.641833,
+          29.97639
+        ],
+        "maximum_coordinate_rounding_error_degrees": 4.998130691546976e-07
+      },
+      {
+        "aw_id": "lakes_base:1159109007",
+        "source_id": "1159109007",
+        "geometry_fid": 15380,
+        "logical_fid": 4005,
+        "position_count": 31,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true,
+        "source_bbox": [
+          -92.62137422597588,
+          29.67790507548696,
+          -92.39471384808449,
+          29.8333293346125
+        ],
+        "baseline_bbox": [
+          -92.621374,
+          29.677905,
+          -92.394714,
+          29.833329
+        ],
+        "maximum_coordinate_rounding_error_degrees": 4.962122908125366e-07
+      },
+      {
+        "aw_id": "lakes_base:1159108815",
+        "source_id": "1159108815",
+        "geometry_fid": 15365,
+        "logical_fid": 3990,
+        "position_count": 62,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true,
+        "source_bbox": [
+          -79.65581188233436,
+          46.82726475805089,
+          -79.15612877652836,
+          47.5781876463638
+        ],
+        "baseline_bbox": [
+          -79.655812,
+          46.827265,
+          -79.156129,
+          47.578188
+        ],
+        "maximum_coordinate_rounding_error_degrees": 4.88247636099004e-07
+      }
+    ],
+    "included_ordered_position_count": 136,
+    "recorded_historical_full_feature_reviews_completed": 2,
+    "current_source_limited_targets": 1,
+    "current_pending_access_ids": [
+      "lakes_base:1159108815"
+    ],
+    "current_scope_hold_ids": [
+      "lakes_base:1159108993"
+    ],
+    "current_follow_up_ids": [
+      "lakes_base:1159108993",
+      "lakes_base:1159108815"
+    ],
+    "preserved_pending_access_ids": [
+      "lakes_base:1159112821"
+    ],
+    "preserved_scope_hold_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159123531",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159112207",
+      "lakes_base:1159110475"
+    ],
+    "recorded_prior_target_count": 39,
+    "current_batch_increment": 3,
+    "recorded_cumulative_distinct_targets": 42,
+    "distinct_acquired_publications": 4,
+    "distinct_cartographic_identity_publications": 1,
+    "original_source_material_reopened": false,
+    "map_judgments_reproduced": false,
+    "prior_target_source_or_geometry_reaudit_performed": false,
+    "formal_registry_verified": false,
+    "automatic_application": false,
+    "network_requests": 0,
+    "limit": "Included-file integrity and factual linkage only. Omitted publications and historical visual judgments are not reproduced; Timiskaming full-feature correspondence remains pending.",
+    "public_input_files_checked": 16,
+    "included_component_manifests_checked": 3
+  },
+  "public_corruption_tests": {
+    "status": "passed",
+    "mode": "included_public_files_only",
+    "semantic_corruptions_rejected": 44,
+    "corrupt_fixtures_rejected": 46,
+    "fixtures": [
+      "automatic_application",
+      "korean_name",
+      "scalar_name",
+      "scalar_clearance",
+      "label_only_identity",
+      "live_deployment",
+      "restored_history",
+      "fid_domain",
+      "target_order",
+      "cumulative_count",
+      "grand_white_reversal",
+      "grand_hold_erased",
+      "grand_follow_up_erased",
+      "grand_access_invented",
+      "grand_completion_erased",
+      "compound_invented",
+      "second_name_invented",
+      "exhaustive_union",
+      "precise_partition",
+      "cold_pending_erased",
+      "previous_holds_erased",
+      "timiskaming_pending_erased",
+      "timiskaming_false_completion",
+      "timiskaming_false_map_identity",
+      "bilingual_equivalence_invented",
+      "unsourced_bilingual_variant",
+      "survey_claim",
+      "salinity_claim",
+      "historical_judgments_reproduced",
+      "source_vertex",
+      "baseline_vertex",
+      "ring_order",
+      "missing_target",
+      "research_scope",
+      "research_completion_count",
+      "source_fact_count",
+      "source_fact_bounds",
+      "cpra_path_as_date",
+      "repeated_map_as_source",
+      "schematic_as_identity",
+      "failed_source_as_evidence",
+      "failed_source_body_claim",
+      "map_scope_completion",
+      "source_observation_count",
+      "included_file_bytes",
+      "nonincluded_pin_path"
+    ],
+    "map_judgments_reproduced": false,
+    "original_source_material_reopened": false,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "historical_assessment_scope": "Recorded past available-source inspection is separate. These checks neither reopen omitted publications nor reproduce visual judgments; Timiskaming whole-feature correspondence remains pending.",
+  "automatic_application": false
+}

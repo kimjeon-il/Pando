@@ -1,0 +1,172 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r10",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r10",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "ea66825657b0f7ff8e41616e375bf974cd4dbff1",
+  "scope": "Three bounded new actual-inventory river identities with explicitly limited representative naming scope. Complete cumulative index and pinned initial inventory recover the fresh-reconstruction remainder, not the unavailable historical504 ledger.",
+  "automatic_application": false,
+  "product_changes": false,
+  "full_river_coordinates_included": false,
+  "selected_public_domain_lake_features": 0,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 38,
+  "bytes_excluding_self": 313761,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 4682,
+      "sha256": "c0527bdc096e2e45926dbc97557465cf34d9ae5900bdebba791bbeb28f89a423"
+    },
+    "extract-baseline-geometries.mjs": {
+      "bytes": 5569,
+      "sha256": "c2e999bd259ca208c68939f76da3e48d8eb372818691c864312ccc1e4fe83812"
+    },
+    "geometry-README.md": {
+      "bytes": 7102,
+      "sha256": "7da0bd2992cf7c973bbe656adc08e1b5f6066e569e648d7255cbcb2d87e18451"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1841,
+      "sha256": "879fe5dfc48808b34c73da4ffe2318ded043349ab507bad974d69ecddf613e7a"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 1474,
+      "sha256": "695c6de044f81da9a4c7bd875cc4b9cec1a1fcfaacca07f1f0bf60905b8cd8d5"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 2319,
+      "sha256": "8ff3f68d8d00f637f3d4e8b5cf3aaa911c02a95b24b97ffb6acc12ef0bf2904d"
+    },
+    "geometry-reference.json": {
+      "bytes": 14270,
+      "sha256": "580f013cf49aff0b18fd9f1ffa05fa928d7f9ee3de388e7211ced426ab0dabdd"
+    },
+    "geometry-request-receipts.json": {
+      "bytes": 4580,
+      "sha256": "119b6a0a41903ee2acd31e398bc64f2e1297cde0dbb73278f7ba8ba8a6b60512"
+    },
+    "geometry-support.py": {
+      "bytes": 2259,
+      "sha256": "5427afc9c6d1ed13947f6ca08b3fe7532dd7884717d44f691b50d0d5f479bd12"
+    },
+    "geometry-validation.json": {
+      "bytes": 8751,
+      "sha256": "2c9243da136f9fca7162a009bfbd41517043981cf383880a8560db1ae73e7c88"
+    },
+    "queue-recovery-validation.json": {
+      "bytes": 1580,
+      "sha256": "5659096bd706a89829975340bcd15c3bdf359fe6ead482e9f77dfb07c6752d09"
+    },
+    "reconstruction-index.json": {
+      "bytes": 17333,
+      "sha256": "74affc1baff607396f194c6fa2b5192b25fa4a00e3f839ad34e9cf4f505737c3"
+    },
+    "recover-remaining-queue.py": {
+      "bytes": 3121,
+      "sha256": "2d2d85529f6550e0ad79a0be1596bb5701dbeab2333d14257a8ae42e79fa1d61"
+    },
+    "research/collie-warren/collie-findings.json": {
+      "bytes": 6621,
+      "sha256": "cdd9cdcf33f79f01b7586910dbfed1a949337aad8f5107e2bbb61e2c2fabfa99"
+    },
+    "research/collie-warren/research-manifest.json": {
+      "bytes": 1178,
+      "sha256": "d368d8fdba60d66910a3a8b97faa9da39af231e8ccfe7e700df6a192bb6c50a1"
+    },
+    "research/collie-warren/source-evidence.json": {
+      "bytes": 11489,
+      "sha256": "a5ac474fc5af4d6cb0e7fe2fe77d2f49abd7fccc5d8a198f59f62b7cb460704d"
+    },
+    "research/collie-warren/warren-findings.json": {
+      "bytes": 6432,
+      "sha256": "4ed8b41fe0c982bfb0926a3ac0a0d6767dccf7463acd8fb004cee4d22023cc95"
+    },
+    "research/kalgan/kalgan-findings.json": {
+      "bytes": 6541,
+      "sha256": "dd24ce8d1cebe43fecc3daeb2b3e9c47ee60a8ac5b254ba44c82897a382f23e1"
+    },
+    "research/kalgan/kalgan-research-manifest.json": {
+      "bytes": 887,
+      "sha256": "1727520aa99d9c0e5b90f4d3eb43f53c6e6eb6d3b2585261abdffb88c1215697"
+    },
+    "research/kalgan/source-evidence.json": {
+      "bytes": 9467,
+      "sha256": "f5dc0d7bfc419242ee7e43b5399701bb96254ee76d32f0bb44cc81faf6e8d05f"
+    },
+    "results.json": {
+      "bytes": 7237,
+      "sha256": "5e4691b5f30da420b460898cc9b9112d2d001f161a1d252209c8967087e14b01"
+    },
+    "review/README.md": {
+      "bytes": 6383,
+      "sha256": "b9ab0c4feaaefa4de3201b1f1a8058567fe3c57a20461060a65ed2c3a6204b5a"
+    },
+    "review/frozen-input-pins.json": {
+      "bytes": 15851,
+      "sha256": "867a34c84b21c03a2daddef0adfe04d1ef98bb3b3c10741ae2389ca4a27fe680"
+    },
+    "review/independent-review.json": {
+      "bytes": 9503,
+      "sha256": "65ef9c6c36e6149b87f5ccd92a5ff95927eb33333ec9bb87851fdfc21dcef7be"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1406,
+      "sha256": "ecdab13afd443e15c9ce9547e3763c6d1f4da85debc72642de6b1d1a120f2ad8"
+    },
+    "review/review-validation.json": {
+      "bytes": 11261,
+      "sha256": "62d461ace337dbc247f192efe731cd135c27564d4ce4c3cd18902ff0ef98dbc3"
+    },
+    "review/source-observations.json": {
+      "bytes": 11997,
+      "sha256": "0ed0de223d9409d030080758239db830f6f75bb493714a0c1849a09afd84aa34"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 7893,
+      "sha256": "bc537d14c58c74a6a6fa0b7fc61eccea261c3e72069bd8199b7789fd67594e81"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 30659,
+      "sha256": "ca0cf63c2d0702bad80ab4a044baa53f76abd9f73baf6e6f6d9f797230e24d7e"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 4711,
+      "sha256": "6dfa18d3a32ed8b7c24a0f6702d79c59744e0832fed29303670513fa13c414f7"
+    },
+    "selected-pack-receipts.json": {
+      "bytes": 456,
+      "sha256": "9f469da1751652f74d5b505c38cbfe8b9fa1aaf1fe48f1c34e19fee795c2e9ee"
+    },
+    "selected-river-metadata.json": {
+      "bytes": 42427,
+      "sha256": "42f41723862a4359080e854faf7f79e0be9b39420c7c7baa49b0f208ec9b07ee"
+    },
+    "source-publication-rights.json": {
+      "bytes": 921,
+      "sha256": "6c8b18d102e0152f5d7476e27a0426f516109c8149aa9af9465d1ceef8deea24"
+    },
+    "source-reach-manifest.json": {
+      "bytes": 7997,
+      "sha256": "e8f9057f2726b6f8af602c49d67336bce2887d259b2d3f4ea9c5f66770f5bed8"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 7312,
+      "sha256": "051a93fa3bdf0ab2d4029dc77fee1ac26a22e03d5e6f73a67827e34f13064367"
+    },
+    "test-remaining-queue.py": {
+      "bytes": 2820,
+      "sha256": "6f99857d5d9890a2376807b4e3d4057f2d2b23e2b71222405ba25e2fcbfb4757"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 20216,
+      "sha256": "1009be6e3160cae63b7afea0235f0d63dfcf7058288fa2eec5cfcf641c68bc64"
+    },
+    "validate-package.py": {
+      "bytes": 7215,
+      "sha256": "df8b192ca6e39de1d070ed3f811e6f1c100adcf36c8b4b8842e1b5c48bb5c6f1"
+    }
+  }
+}

@@ -1,0 +1,365 @@
+{
+  "schema": "hydro-independent-river-review-pins-v2",
+  "reviewed_at_utc": "2026-10-09T13:49:24.100011+00:00",
+  "scope_aw_ids": [
+    "hydro-system:50668155",
+    "hydro-system:50611851",
+    "hydro-system:50552041"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "package_inputs": [
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 5569,
+      "sha256": "a010ce4adaad972b5e9ce5a49273b561b460744532dad6bfbe90cf1c44dfa014"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 6872,
+      "sha256": "6a106f439ea9453a528ba5f9d88c79804a9522cfb7fb0976399de10a68d5a0c2"
+    },
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1841,
+      "sha256": "28d92136bf6266a166c6f61c3986bd8ef7efeabd53f2c441e6a7c250ca8ad54f"
+    },
+    {
+      "file": "geometry-duplicate-check.json",
+      "bytes": 1212,
+      "sha256": "8b3b3602410051f800b0d7c6a4205ba0ebb6f0a6c066ba1e7ea745022a36020f"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 2319,
+      "sha256": "55110c1e7041c184a2cf84b1abda80339088e67cac30af72b5a7dcc1a7568f9d"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 15237,
+      "sha256": "03c0b7d5c0284212ef6ecc1df2cd1e4a24ad8381ed70ef45a9be841ae415e94f"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 5552,
+      "sha256": "a81c4051032ba30f8ef11ab4f2c29e399c249526c223c8c28a086bbd71c3eca5"
+    },
+    {
+      "file": "geometry-support.py",
+      "bytes": 2259,
+      "sha256": "5427afc9c6d1ed13947f6ca08b3fe7532dd7884717d44f691b50d0d5f479bd12"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 7247,
+      "sha256": "ba2d202136fbbc2f1be0a322b56b7137f97f465f1fba5892a6b449886dd937c9"
+    },
+    {
+      "file": "research/ashburton/ashburton-findings.json",
+      "bytes": 1822,
+      "sha256": "10d42b19b4d2fc964d054e01f60c6b9bd32e57177dc9c62c7641d195bc030d57"
+    },
+    {
+      "file": "research/ashburton/ashburton-geometry-comparison.json",
+      "bytes": 2194,
+      "sha256": "85ba9d82d2a8f6ec92b467fb7ef86bedccbd5f9176ac17ed2c92d9ed3539e7ec"
+    },
+    {
+      "file": "research/ashburton/ashburton-research-manifest.json",
+      "bytes": 725,
+      "sha256": "4cf1425d599bd457dc0c9b112aea86f5a246ebac454aeb60abcc0aabc2593ec3"
+    },
+    {
+      "file": "research/ashburton/ashburton-source-evidence.json",
+      "bytes": 5621,
+      "sha256": "ebaaa5bca277039f79a2e3009606806f7b5ec8d8a117305311b37e44a1f78c86"
+    },
+    {
+      "file": "research/western-rivers/README.md",
+      "bytes": 1115,
+      "sha256": "d51ca627e80bd9f0428c7bc80c1e555c75175d0e482810ef5679f4c4ddc4d113"
+    },
+    {
+      "file": "research/western-rivers/gascoyne-findings.json",
+      "bytes": 5515,
+      "sha256": "8795dff5c4a5ac6adaee5a1f13f76e07987bbb51addba1514371157233a2b642"
+    },
+    {
+      "file": "research/western-rivers/murchison-findings.json",
+      "bytes": 5616,
+      "sha256": "ecd2a6472d7f3f126e4c7819322b1807a73195c92c02161260eb7e0a259c5c3c"
+    },
+    {
+      "file": "research/western-rivers/research-manifest.json",
+      "bytes": 727,
+      "sha256": "37d587123d9e96d585a7bbec97dcf574b3c2776dd7a82e3af3fd67e03e85c811"
+    },
+    {
+      "file": "research/western-rivers/source-evidence.json",
+      "bytes": 9674,
+      "sha256": "ff56a7e18ec179d3075407e042e30877e223de073896ba758ed09a10c33a3f21"
+    },
+    {
+      "file": "selected-inventory-records.json",
+      "bytes": 4725,
+      "sha256": "65ddcdc2d7a19574886720820e08e047c16f0249698653432668b662ae27a42a"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 248,
+      "sha256": "c831f92727019b90bbbbba1e223bc23da2851428c1276685c1e062b3207a76f6"
+    },
+    {
+      "file": "selected-river-metadata.json",
+      "bytes": 186482,
+      "sha256": "2daf691baad4ae706665b3e695c97c4f1b702d508dc67e42eb8ca4e715b202e5"
+    },
+    {
+      "file": "source-reach-manifest.json",
+      "bytes": 35591,
+      "sha256": "d6dc057538a64ea229097b771c0ec7a265b519be418d315ee3884712b31ff20f"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 6750,
+      "sha256": "4ee49e33fdd4c413d0056f5a2cccd559ba5eb2bab2fc47ea90ecd3660a4af8c7"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 18814,
+      "sha256": "c9bf849dfec27c1a682a9cccf4ef68b0908f498b0d1090955cd6d932abc7b2b2"
+    }
+  ],
+  "component_manifest_sha256": {
+    "geometry-component-manifest.json": "28d92136bf6266a166c6f61c3986bd8ef7efeabd53f2c441e6a7c250ca8ad54f",
+    "research/western-rivers/research-manifest.json": "37d587123d9e96d585a7bbec97dcf574b3c2776dd7a82e3af3fd67e03e85c811",
+    "research/ashburton/ashburton-research-manifest.json": "4cf1425d599bd457dc0c9b112aea86f5a246ebac454aeb60abcc0aabc2593ec3"
+  },
+  "previous_index": {
+    "bytes": 9683,
+    "sha256": "6e003dc3176146bea5e472c2c4d2e0fdad36c54eec476dca96030fa879ba093f",
+    "aw_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159106899",
+      "lakes_base:1159107065",
+      "lakes_base:1159115267",
+      "lakes_base:1159123531",
+      "lakes_base:1159107099",
+      "hydro-system:30624681",
+      "hydro-system:50488324",
+      "hydro-system:40182409",
+      "hydro-system:70152112",
+      "lakes_base:1159123163",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159109553",
+      "lakes_base:1159110303",
+      "lakes_base:1159108091"
+    ],
+    "distinct_targets": 18,
+    "fixed_commit": "9727db6a8f55a61dffed63109df5596f901f5af6"
+  },
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "bytes": 441711,
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "original_recovery_date_utc": "2026-10-09",
+    "original_retrieved_at_utc": null,
+    "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+    "reuse_hash_checked_at_utc": "2026-10-09T13:41:27Z",
+    "retrieved_this_batch": false,
+    "in_publishable_package": false
+  },
+  "local_evidence_assets": [
+    {
+      "id": "WESTERN-BOM-AWRA2012-BODY",
+      "kind": "original_source_body",
+      "bytes": 26172797,
+      "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+      "published_raw": false
+    },
+    {
+      "id": "WESTERN-BOM-AWRA2012-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 774,
+      "sha256": "4ea0da94c6a9e2007f26e93a6b6abff593338d49269b12759eb850f352849e5f",
+      "published_raw": false
+    },
+    {
+      "id": "WESTERN-BOM-AWRA2012-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 1390063,
+      "sha256": "ed69c9922a19c33f1527e70a2b1eba3d402e90706e2629024f74e53cc0fa3ff4",
+      "published_raw": false
+    },
+    {
+      "id": "WESTERN-BOM-AWRA2012-VIEW-1",
+      "kind": "independently_viewed_map_derivative",
+      "bytes": 1066437,
+      "sha256": "a28416e6ab718921ccc3987ae534648505e12b2cc577f63aa8e3b66a0c8b202e",
+      "published_raw": false
+    },
+    {
+      "id": "WESTERN-BOM-AWRA2012-VIEW-2",
+      "kind": "independently_viewed_map_derivative",
+      "bytes": 1145527,
+      "sha256": "ca42fd7d481b958ce1911fc7e502484e038134148f7a62bbb89ab29af599d005",
+      "published_raw": false
+    },
+    {
+      "id": "MURCHISON-DBCA-KALBARRI-BODY",
+      "kind": "original_source_body",
+      "bytes": 568435,
+      "sha256": "585c2d564d9804028589add645fc99da4291704d283c105bac119d203d362450",
+      "published_raw": false
+    },
+    {
+      "id": "MURCHISON-DBCA-KALBARRI-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 838,
+      "sha256": "c37ada37b50c3d3567246928216fe3ed2910e88f61c3e15fff091cc076f0998a",
+      "published_raw": false
+    },
+    {
+      "id": "MURCHISON-DBCA-KALBARRI-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 13759,
+      "sha256": "ce6b777f6c47e5f57aefc1ec67bdf644c693773c680a402a953cd31b6b13849c",
+      "published_raw": false
+    },
+    {
+      "id": "GASCOYNE-WA-FACTSHEET2015-BODY",
+      "kind": "original_source_body",
+      "bytes": 709981,
+      "sha256": "2cfcbe179b06da994fed195ad3e3867915dfb3421bce6cf099e462c00c6276e5",
+      "published_raw": false
+    },
+    {
+      "id": "GASCOYNE-WA-FACTSHEET2015-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 908,
+      "sha256": "879855301f4b9009d21ef5c44153c891b42ec6787b9ff6d441d6ac95a5280cf2",
+      "published_raw": false
+    },
+    {
+      "id": "GASCOYNE-WA-FACTSHEET2015-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 10717,
+      "sha256": "023a55831b5af1ff5e45b7f07563a6a04567281b49dfa0126e0f0fc5e7213c38",
+      "published_raw": false
+    },
+    {
+      "id": "ASH-WA-AGRICULTURE-1988-BODY",
+      "kind": "original_source_body",
+      "bytes": 12714134,
+      "sha256": "60e2298701646345510d95006ee26dd877ab0a4c39e89b225a9de12b0cb12c5b",
+      "published_raw": false
+    },
+    {
+      "id": "ASH-WA-AGRICULTURE-1988-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 754,
+      "sha256": "a744e6c95d110d5e3929eabcba1191ccfca27d05ce42e164dceea6e29e7b268b",
+      "published_raw": false
+    },
+    {
+      "id": "ASH-WA-AGRICULTURE-1988-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 1580562,
+      "sha256": "4bfe660880db7197608798a1ea3d9673b73f624caa90a6f92fbb31ec38bb0a5b",
+      "published_raw": false
+    },
+    {
+      "id": "ASH-WA-AGRICULTURE-1988-VIEW-1",
+      "kind": "independently_viewed_map_derivative",
+      "bytes": 1170303,
+      "sha256": "025071cf82b6c3968070b3dad38ce52ddaed5784d81956676f77ed1254f74fb5",
+      "published_raw": false
+    },
+    {
+      "id": "ASH-WA-AGRICULTURE-1988-VIEW-2",
+      "kind": "independently_viewed_map_derivative",
+      "bytes": 757734,
+      "sha256": "4effa2cd3920b86354c934cf734002773d5eeadd587bdd10a84619bc678af356",
+      "published_raw": false
+    },
+    {
+      "id": "ASH-DWER-HG34-2009-BODY",
+      "kind": "original_source_body",
+      "bytes": 25303279,
+      "sha256": "ad18a47f680e13180f23fe950883e5c14ae2e6e03313db5c3f865dab95fabbd6",
+      "published_raw": false
+    },
+    {
+      "id": "ASH-DWER-HG34-2009-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 685,
+      "sha256": "f1c82d8785a88b05dc160e3180c8bef7ed037b61258abcd6bb80934d039b92a0",
+      "published_raw": false
+    },
+    {
+      "id": "ASH-DWER-HG34-2009-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 393702,
+      "sha256": "a20d16fa091d761e0280e269e52fc630d663b1543549fe5bd03ed03507a63923",
+      "published_raw": false
+    },
+    {
+      "id": "ASH-DWER-HG34-2009-VIEW-1",
+      "kind": "independently_viewed_map_derivative",
+      "bytes": 848603,
+      "sha256": "d4cafb84d5b578bc07a297832f1ff3afc1f7af7d7b4c75f235f361bf30f0bcc0",
+      "published_raw": false
+    },
+    {
+      "id": "GASCOYNE-WA-FACTSHEET2015-VIEW-1",
+      "kind": "independently_viewed_map_derivative",
+      "bytes": 1121269,
+      "sha256": "925ffb4f2c31802e2afbb0a717b1f54a9c1ce45bd344720c9e3da95cc15f98f6",
+      "published_raw": false
+    },
+    {
+      "id": "COMPLETE-BASELINE-PATHS",
+      "kind": "complete_path_comparison_view",
+      "bytes": 183270,
+      "sha256": "332f8b8927ae099a9e742b1cd5348c9672e4e6881480467ece104d7a7e055953",
+      "published_raw": false
+    }
+  ],
+  "original_source_receipt_links": [
+    {
+      "source_key": "WESTERN-BOM-AWRA2012",
+      "body_id": "WESTERN-BOM-AWRA2012-BODY",
+      "receipt_id": "WESTERN-BOM-AWRA2012-RECEIPT",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf"
+    },
+    {
+      "source_key": "MURCHISON-DBCA-KALBARRI",
+      "body_id": "MURCHISON-DBCA-KALBARRI-BODY",
+      "receipt_id": "MURCHISON-DBCA-KALBARRI-RECEIPT",
+      "url": "https://exploreparks.dbca.wa.gov.au/park/kalbarri-national-park"
+    },
+    {
+      "source_key": "GASCOYNE-WA-FACTSHEET2015",
+      "body_id": "GASCOYNE-WA-FACTSHEET2015-BODY",
+      "receipt_id": "GASCOYNE-WA-FACTSHEET2015-RECEIPT",
+      "url": "https://www.wa.gov.au/system/files/2022-09/Managing-the-Lower-Gascoyne-River-fact-sheet.pdf"
+    },
+    {
+      "source_key": "ASH-WA-AGRICULTURE-1988",
+      "body_id": "ASH-WA-AGRICULTURE-1988-BODY",
+      "receipt_id": "ASH-WA-AGRICULTURE-1988-RECEIPT",
+      "url": "https://library.dbca.wa.gov.au/Journals/082156/082156-62.pdf"
+    },
+    {
+      "source_key": "ASH-DWER-HG34-2009",
+      "body_id": "ASH-DWER-HG34-2009-BODY",
+      "receipt_id": "ASH-DWER-HG34-2009-RECEIPT",
+      "url": "https://www.wa.gov.au/system/files/2022-04/Pilbara-coast-water-study.pdf"
+    }
+  ],
+  "automatic_application": false
+}

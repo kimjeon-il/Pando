@@ -1,0 +1,641 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r145",
+  "sources": [
+    {
+      "title": "Compendio de información geográfica municipal 2010: Mazapil, Zacatecas",
+      "publisher": "INEGI",
+      "year": 2010,
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/32/32026.pdf",
+      "bibliography": "Hydrography table, PDF page 4; Relieve, PDF page 7; municipal code 32026.",
+      "evidence_kind": "primary_municipal_cartography_and_bounded_prose",
+      "supports": "The original relief map places the southern and central selected corridor among named sierras, bajadas, plains, separate intermittent streams and small tanks. The hydrography table lists both El Salado and Nazas–Aguanaval drainage regions and the L. de Viesca subbasin. These are regional context, not a selected-route hydronym.",
+      "limits": "Municipal boundaries omit the northern selected terminal. The stream-name list and basin membership do not establish the selected through-connections.",
+      "use_notice": "Printed INEGI attribution and source credits retained privately; no source pages, map pixels or derivatives redistributed.",
+      "acquired_scope": "Original PDF completed HTTP200 application/pdf, then inspected locally at bounded corridor scale. Bibliographic margin/legend and relevant source pixels were read after terminal acquisition; search snippets were discovery only.",
+      "source_key": "r145-inegi-mazapil2010"
+    },
+    {
+      "title": "Carta Geológico-Minera Concepción del Oro G14-10, Zacatecas, Nuevo León, Coahuila y San Luis Potosí",
+      "publisher": "Servicio Geológico Mexicano",
+      "year": 2000,
+      "edition": "First edition, September 2000",
+      "scale": "1:250,000",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/73_G14-10_GM.pdf",
+      "metadata_url": "https://mapserver.sgm.gob.mx/Cartas_Online/metadatos_geol/73_GL_concepcion_del_oro.html",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "Regional southern and upper-middle orientation: Sierra Santa Rita and Sierra Las Bocas to the east, Guadalupe/Cardito uplands to the west, Los Barriales–Sabana Grande, San Antonio del Portezuelo, Cedros and the separate Arroyo Grande approach. The northern map sector supplies the intermittent-drainage setting toward El Vergel and Matamoros.",
+      "limits": "Short separate intermittent streams and broad alluvial areas do not establish the entire selected northwestern joining sequence. Geological faults, tracks and sheet-grid lines are not watercourses.",
+      "use_notice": "Printed ©2000 Derechos Reservados Servicio Geológico Mexicano; map subject to revision. Source originals/crops remain private.",
+      "acquired_scope": "Original PDF completed HTTP200 application/pdf, then inspected locally at bounded corridor scale. Bibliographic margin/legend and relevant source pixels were read after terminal acquisition; search snippets were discovery only.",
+      "source_key": "r145-sgm-concepcion250k"
+    },
+    {
+      "title": "Carta Geológico-Minera Juan Aldama G13-12, Durango, Zacatecas y Coahuila",
+      "publisher": "Servicio Geológico Mexicano",
+      "year": 1999,
+      "edition": "First edition, November 1999",
+      "scale": "1:250,000",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/61_G13-12_GM.pdf",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "The northeastern map corner reads the selected transition beside the Salitrillo locality and the eastern/northeastern flank of Sierra El Cajón toward the northern sheet boundary. It shows alluvial terrain and several intermittent approaches, distinct from structural traces and the named locality.",
+      "limits": "Salitrillo is a mapped settlement here; its name is not automatically a watercourse name. This small selected transition does not repair the southern dry-flat gaps.",
+      "use_notice": "Printed ©1999 Derechos Reservados Servicio Geológico Mexicano; map subject to revision. No original map or crop redistributed.",
+      "acquired_scope": "Original PDF completed HTTP200 application/pdf, then inspected locally at bounded corridor scale. Bibliographic margin/legend and relevant source pixels were read after terminal acquisition; search snippets were discovery only.",
+      "source_key": "r145-sgm-juanaldama250k"
+    },
+    {
+      "title": "Carta Geológico-Minera Torreón G13-9, Coahuila, Durango y Zacatecas",
+      "publisher": "Servicio Geológico Mexicano",
+      "year": 2000,
+      "edition": "First edition, September 2000",
+      "scale": "1:250,000",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/60_G13-9_GM.pdf",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "The selected northern corridor occupies the La Tinaja / Chapulin intermittent-drainage setting between the Sierra El Chorreado–El Gabacho side and Sierra de Yeso, then the Llanos Menchaca / Bajo Los Llanos setting south of Sierra de Parras. The regional map separately depicts the saline Viesca plain and nearby named terrain.",
+      "limits": "The local labels A. La Tinaja and A. Chapulin are not a representative-system identification for the entire selected line. Separate named intermittent reaches and their downstream disappearance do not establish the final selected saline-flat traverse.",
+      "use_notice": "Printed ©2000 Derechos Reservados Servicio Geológico Mexicano; map subject to revision. No map pixels or private derivatives redistributed.",
+      "acquired_scope": "Original PDF completed HTTP200 application/pdf, then inspected locally at bounded corridor scale. Bibliographic margin/legend and relevant source pixels were read after terminal acquisition; search snippets were discovery only.",
+      "source_key": "r145-sgm-torreon250k"
+    },
+    {
+      "title": "Carta Geológico-Minera Viesca G13-D37, Coahuila",
+      "publisher": "Servicio Geológico Mexicano",
+      "year": 2021,
+      "edition": "First edition, September 2021",
+      "scale": "1:50,000",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1154_G13-D37_GM.pdf",
+      "evidence_kind": "primary_original_cartography_and_printed_summary",
+      "supports": "Original detailed map and legend show lacustrine plain east of Viesca around Cuadro Salino, Estación Bilbao and Llano Los Torreones, with the small El Cerrito / El Cerro outcrops, tracks and railway. The selected terminal is within this east-of-Viesca flat, not at an established mapped river-mouth connection into the named Laguna de Viesca. The separately printed summary places the Viesca saline deposit in a paleobasin with lacustrine sediments.",
+      "limits": "The map does not show a continuous selected channel across this northeastern/eastern terminal traverse. Neither the regional saline deposit nor the model endorheic classification supplies the missing channel connection. No present-day inundation or flow assertion.",
+      "use_notice": "Printed ©2021 Derechos Reservados Servicio Geológico Mexicano. Base cartography credited to INEGI, third edition 1995. No original or crop redistributed.",
+      "acquired_scope": "Original PDF completed HTTP200 application/pdf, then inspected locally at bounded corridor scale. Bibliographic margin/legend and relevant source pixels were read after terminal acquisition; search snippets were discovery only.",
+      "source_key": "r145-sgm-viesca50k"
+    },
+    {
+      "title": "Carta Geológico-Minera Tanquecillos G14-C72, Zacatecas",
+      "publisher": "Servicio Geológico Mexicano",
+      "year": 2005,
+      "edition": "First edition, June 2005",
+      "scale": "1:50,000",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1353_G14-C72_GM.pdf",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "The detailed selected opening lies in the La Soledad–Salto de las Vacas intermittent-drainage setting west of the Sierra la Centella sector, continuing toward the El Rosario / Puerto del Rosario side. Short blue intermittent streams, hill slopes and dry alluvial approaches can be distinguished from the San Tiburcio fault and tracks.",
+      "limits": "This sheet establishes the opening terrain and local drainage setting, not a full uniformly named northwestern river. The sheet boundary and downstream dry areas require the adjacent regional and Cedros readings; no exact name-transition point asserted.",
+      "use_notice": "Printed ©2005 Derechos Reservados Servicio Geológico Mexicano. Base cartography credited to INEGI, first edition 1973. No source map, crop or derivative redistributed.",
+      "acquired_scope": "Original PDF completed HTTP200 application/pdf, then inspected locally at bounded corridor scale. Bibliographic margin/legend and relevant source pixels were read after terminal acquisition; search snippets were discovery only.",
+      "source_key": "r145-sgm-tanquecillos50k"
+    },
+    {
+      "title": "Carta Geológico-Minera Cedros G14-C61, Zacatecas",
+      "publisher": "Servicio Geológico Mexicano",
+      "year": 2004,
+      "edition": "First edition, April 2004",
+      "scale": "1:50,000",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1302_G14-C61_GM.pdf",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "Detailed central-corridor coverage shows the north/east flank of Sierra de Guadalupe, minor intermittent streams and tanks, the Cedros/Arroyo Grande fan to the east, and the broad Bajío La Lagunita–Bajío Malatierra–Barrial San José flat crossed by the selected northwestern traverse. The map distinguishes watercourse ends and small tanks from roads and structural traces.",
+      "limits": "No through-going drainage connection is established across the selected alluvial-flat traverse from the southern approach through Bajío La Lagunita toward Barrial San José. Nearby Arroyo Grande and its fan do not bridge the selected gap or name the whole system.",
+      "use_notice": "Printed ©2004 Derechos Reservados Servicio Geológico Mexicano. Base cartography credited to INEGI, first edition 1971. No source original, crop or derivative redistributed.",
+      "acquired_scope": "Original PDF completed HTTP200 application/pdf, then inspected locally at bounded corridor scale. Bibliographic margin/legend and relevant source pixels were read after terminal acquisition; search snippets were discovery only.",
+      "source_key": "r145-sgm-cedros50k"
+    },
+    {
+      "title": "Portrait écologique de la réserve de territoire aux fins d’aire protégée de la Rivière-Arnaud",
+      "authors": [
+        "Frédéric Poisson"
+      ],
+      "publisher": "Ministère de l’Environnement, de la Lutte contre les changements climatiques, de la Faune et des Parcs, Direction de la connaissance écologique, Direction générale de la conservation de la biodiversité",
+      "year": 2023,
+      "bibliography": "Poisson, F. (2023), Québec, 115 p.; ISBN978-2-550-91125-8. Ecological cartography credited to Denis Bellavance, Tingxian Li and Frédéric Poisson. Printed page3 location map; printed page102 Classe L: Affluents de la rivière Arnaud.",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/cadre-ecologique/rapports/portrait-ecologique-reserve-riviere-arnaud.pdf",
+      "evidence_kind": "primary_original_cartography_and_bounded_primary_prose",
+      "acquired_scope": "Original PDF completed HTTP200 application/pdf. Title, credits, rights statement, study purpose and bounded tributary prose were read. Printed-page3 original location map was visually inspected, including its Arnaud estuary, Buet label, Vachon junction and Kangirsuk context; printed-page102 was also viewed. A private rotation of the page was used for orientation only.",
+      "supports": "Lower Buet corridor as a named Arnaud tributary north of the estuary west of Kangirsuk; actual receiving-water setting; independent differentiation from Vachon, Hamelin and the main Arnaud route.",
+      "limits": "The ecological report focuses on the protected-territory corridor along Arnaud. Its map does not cover the selected northern headward chain or distinguish every selected upper/middle connection and material lateral junction. The regional map is not a current formal naming record, and the length of the selected model is not sourced from this report.",
+      "use_notice": "Printed Tous droits réservés pour tous les pays; © Gouvernement du Québec,2023. Own factual observations and bibliography only; no original map, page, crop, rotation or extensive report text is distributed.",
+      "source_key": "r145-poisson2023-arnaud"
+    },
+    {
+      "title": "Aklavik, Northwest Territories, District of Mackenzie,107B, Land Use Information Series,1976 edition",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment; Indian and Northern Affairs",
+      "year": 1976,
+      "scale": "1:250,000",
+      "base_map_credit": "Base compiled1959–60 by the Surveys and Mapping Branch, Department of Mines and Technical Surveys, from air photographs1950–52 and large-scale maps; field survey1955; printed1962. NLUIS edition1976.",
+      "evidence_scope": "Lost Reindeer Lakes headward setting, northern pond/stream continuation, upper Miner corridor east of Sitidgi Lake and eastern sheet continuation.",
+      "limits": "The western and eastern Lost Reindeer lake outlines and adjacent streams are visible, but the selected transfer between them is not established confidently. This is a real connector gap, not a requirement for bank or vertex agreement. Historical thematic/topographic map; no registry or modern flow-direction determination.",
+      "source_key": "r145-nluis-aklavik-107b-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107b.jpg"
+    },
+    {
+      "title": "Crossley Lakes, District of Mackenzie, Northwest Territories,107A, Land Use Information Series",
+      "publisher": "Land Use Planning Branch, Lands Directorate, Lands, Forests and Wildlife Service, Department of the Environment; Indian and Northern Affairs",
+      "year": 1972,
+      "scale": "1:250,000",
+      "base_map_credit": "Produced by the Army Survey Establishment, R.C.E.,1958–61; aerial photography1950. Thematic marginalia credit the Department of the Environment,1972, with research by S.G.de Belle, P.H.Beaubier and S.D.Thomson.",
+      "evidence_scope": "Selected Miner River corridor across the western sheet sector, from the southwest approach east of Sitidgi Lake through the broad northward meandering valley and northern sheet margin; separate Kugaluk River valley farther east.",
+      "limits": "Printed title is Crossley Lakes; retained catalogue uses Crossley Lake. Historical thematic/cartographic source; general hydrographic correspondence only, not exact contemporary banks or uniform scalar naming.",
+      "source_key": "r145-nluis-crossley-107a-1972",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107a.jpg"
+    },
+    {
+      "title": "Stanton, District of Mackenzie, Northwest Territories,107D, Land Use Information Series,1976 edition",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment; Indian and Northern Affairs",
+      "year": 1976,
+      "scale": "1:250,000",
+      "base_map_credit": "Army Survey Establishment, R.C.E.; base information current as of1964, printed1964, base map only. Top frame Edition2; NLUIS thematic edition1976.",
+      "evidence_scope": "Lower Miner River corridor, Kugaluk River junction setting, branching estuarine waterway and selected terminal within the northward-widening Kugaluk Channel/Liverpool Bay setting, south of Thumb Island.",
+      "limits": "Historical interim thematic map; preliminary/reconnaissance information, approximate thematic boundaries and potential adjoining-map differences are explicitly noted. No precise tidal boundary or modern mouth vertex asserted.",
+      "source_key": "r145-nluis-stanton-107d-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107d.jpg"
+    },
+    {
+      "title": "Ecological assessment of Husky Lakes and Sitidgi Lake, Northwest Territories,2000–2004",
+      "authors": [
+        "M.-J.Roux",
+        "P.Sparling",
+        "J.Felix",
+        "L.A.Harwood"
+      ],
+      "publisher": "Fisheries and Oceans Canada, Central and Arctic Region",
+      "year": 2014,
+      "series": "Canadian Technical Report of Fisheries and Aquatic Sciences3071, ix+123pp; Fs97-6/3071E",
+      "evidence_scope": "Figure1 distinctly labels the long southwestern Miner River approach, the southern Kugaluk River and their shared Kugaluk Channel estuarine setting. Pages3–4 define Kugaluk Channel as the narrow southwestern inlet of Liverpool Bay comprising both river mouths.",
+      "use_notice": "Crown copyright2014. Report-series front matter explicitly permits citation as a full publication and describes international distribution. It is separate from the excluded DFO97/37 Humber publication.",
+      "limits": "Regional figure supports named corridor and estuarine context, not the small Lost Reindeer Lakes transfer; no formal registry verification or exact mouth survey.",
+      "source_key": "r145-dfo-roux-3071-2014",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/355383.pdf",
+      "actually_read": "Retained original Figure1 on printed page60, bounded prose on printed pages3–4 and front matter, without reacquisition."
+    },
+    {
+      "title": "Local Knowledge of Fish Movements and Habitat Use in the Travaillant Lake System",
+      "author": "Janet Winbourne",
+      "publisher": "Gwich’in Renewable Resource Board",
+      "year": 2004,
+      "series": "Report04-06, September30,2004",
+      "pages_actually_used": [
+        "front matter and methods/limitations",
+        "printed page33, Table10",
+        "printed pages41–42, drainage discussion"
+      ],
+      "evidence_scope": "Bounded primary interview-study prose records differing interpretations of the Lost Reindeer/Travaillant/Kugaluk drainage links and calls for further investigation. It does not settle the selected western-to-eastern Lost Reindeer Lakes transfer.",
+      "limits": "Study distinguishes tentative ecological/fish-movement connections from conclusive drainage findings. No uninspected Figure12 correspondence is claimed; missing visuals remain paused.",
+      "use_notice": "The report’s consent appendix describes conditional access to original interview materials held by the Board. No raw interview materials were acquired. Only the publicly issued report’s limited factual synthesis is used; no figures, participant quotations or derivative maps are redistributed.",
+      "source_key": "r145-grrb-winbourne-2004-prose",
+      "official_url": "https://grrb.nt.ca/wp-content/uploads/2021/01/Local-Knowledge-of-Fish-Habitats-in-Travaillant-Lake.pdf"
+    },
+    {
+      "title": "Lost Reindeer Lakes, NTS107B/01, CanMatrix1:50,000 topographic sheet; printed edition uninspected",
+      "evidence_scope": "Bibliographic metadata and failed acquisition only; no map evidence.",
+      "limits": "Entire NTS107B/01 sheet publication and equivalent copies, formats, editions offered as this source, catalogue, original, reader, cache, screenshot, mirror and all acquisition routes stopped. No retry or alternate acquisition.",
+      "source_key": "r145-canmatrix-107b01-unavailable",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/107/b/canmatrix_107b01_tif.zip"
+    },
+    {
+      "title": "Portel-PA, Mapa Municipal Estatístico, 1505809",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Ministério do Planejamento, Orçamento e Gestão",
+      "series": "Censo Demográfico 2010, mapas municipais estatísticos",
+      "edition": "Malha territorial 2010; printed edition 05/27/2011",
+      "scale": "1:250,000; geographic coordinates SIRGAS 2000 and UTM SAD 69 stated on sheet",
+      "pages_read": "Both original PDF map sheets, 1 and 2, with headward, joining, middle, lower and terminal original map crops plus printed title, edition, legend and reproduction notice.",
+      "map_coverage": "Complete selected southern feeder west of the Rio dos Cajás setting; connection into Rio Jacundá; northward course across the two-sheet transition and northwestward bends; continuous lower island-bearing Jacundá; Taquari side connection; terminal beside Ilha Mirituba and Ilha Jacundá in Baía das Bocas/Rio Pará.",
+      "use_notice": "The printed note describes a semi-automated municipal compilation from systematic mapping by IBGE, DSG and others, raster/vector sources and the IBGE municipal mesh, updated from several sources without full treatment of cartographic integration and completeness. Reproduction rights are reserved. This is historical reference cartography, not a current hydrological survey or a formal naming register.",
+      "source_key": "IBGE-PORTEL-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pa/portel_v2.pdf"
+    },
+    {
+      "title": "IBGE Censo Demográfico 2010, mapas municipais estatísticos, Pará collection directory, modification-order listing",
+      "publisher": "IBGE",
+      "evidence_use": "Exact publication-link discovery only; no map or river-name conclusion relies on the directory.",
+      "source_key": "IBGE-PA-2010-DIRECTORY",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pa/?C=M%3BO%3DA"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70846952",
+      "source_keys": [
+        "r145-inegi-mazapil2010",
+        "r145-sgm-concepcion250k",
+        "r145-sgm-juanaldama250k",
+        "r145-sgm-torreon250k",
+        "r145-sgm-viesca50k",
+        "r145-sgm-tanquecillos50k",
+        "r145-sgm-cedros50k"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10364
+          ],
+          "component_scope": "Selected opening",
+          "finding": "La Soledad / Salto de las Vacas intermittent-drainage terrain west of Sierra la Centella is positively mapped. The following regional corridor includes the El Rosario–Los Barriales–Sabana Grande setting. Local reach labels are not extended over the full object.",
+          "sources": [
+            "r145-sgm-tanquecillos50k",
+            "r145-sgm-concepcion250k"
+          ],
+          "correspondence": "Headward terrain and local drainage read; full joining sequence is not established."
+        },
+        {
+          "fragments": [
+            10364
+          ],
+          "component_scope": "Southern-to-central dry corridor",
+          "finding": "The route proceeds through the Santa Rita / Guadalupe intervening valley and north/east Guadalupe footslope setting. Adjacent Arroyo Grande / Mazapil-side drainage arrives from the east near Cedros; it is distinct from the selected southern opening.",
+          "sources": [
+            "r145-sgm-concepcion250k",
+            "r145-sgm-cedros50k",
+            "r145-inegi-mazapil2010"
+          ],
+          "correspondence": "Regional corridor and local drainage relations read; no whole-route naming claim."
+        },
+        {
+          "fragments": [
+            10364
+          ],
+          "component_scope": "Cedros alluvial-flat connector",
+          "finding": "The selected diagonal traverses the broad Bajío La Lagunita–Bajío Malatierra–Barrial San José alluvial setting. Short mapped watercourses terminate separately; tanks and track/road junctions do not establish the selected through-going watercourse.",
+          "sources": [
+            "r145-sgm-cedros50k"
+          ],
+          "correspondence": "Material connector unresolved despite original map coverage."
+        },
+        {
+          "fragments": [
+            10364
+          ],
+          "component_scope": "El Vergel / Matamoros to Salitrillo map transition",
+          "finding": "Intermittent drainage and alluvial terrain are read through the northwestern Concepción del Oro map sector and the northeastern Juan Aldama corner beside Salitrillo and Sierra El Cajón. A locality label is not a river-name assignment.",
+          "sources": [
+            "r145-sgm-concepcion250k",
+            "r145-sgm-juanaldama250k"
+          ],
+          "correspondence": "Selected regional transition examined; it cannot repair the central flat gap."
+        },
+        {
+          "fragments": [
+            10364
+          ],
+          "component_scope": "Northern intermittent-drainage corridor",
+          "finding": "La Tinaja / Chapulin local drainage and the intervening sierras and Llanos Menchaca / Bajo Los Llanos setting are mapped. Their local names and course ends remain distinct from the longer selected modeled system.",
+          "sources": [
+            "r145-sgm-torreon250k"
+          ],
+          "correspondence": "Northern regional corridor read, representative identity unestablished."
+        },
+        {
+          "fragments": [
+            10364
+          ],
+          "component_scope": "Actual terminal setting",
+          "finding": "The selected terminal hook and ending occupy the plain east of Viesca, around the Cuadro Salino–Estación Bilbao–Llano Los Torreones setting. Detailed cartography shows lacustrine terrain and infrastructure but no continuous selected final watercourse. The separate mapped Laguna de Viesca is not silently used as the endpoint or receiving lake.",
+          "sources": [
+            "r145-sgm-torreon250k",
+            "r145-sgm-viesca50k"
+          ],
+          "correspondence": "Terminal terrain positive; selected channel/flat continuation materially unresolved."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70004800",
+      "source_keys": [
+        "r145-poisson2023-arnaud"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8937
+          ],
+          "component_scope": "Northern headward opening and initial lake/stream chain",
+          "finding": "Selected geometry supplies orientation for an east-to-west opening followed by a southward chain in the northern 25D sector. None of the usable primary originals covers and distinguishes this actual headward lake entrance, outlet and connecting stream sequence. Lac Buet and the neighboring eastern lake are discovery leads only and are not assigned to the selected passages.",
+          "sources": [],
+          "correspondence": "material_headward_lake_and_connector_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8937
+          ],
+          "component_scope": "Upper southwestward corridor and intermediate lake/tributary junctions",
+          "finding": "The selected southwestward corridor, intermediate elongated-waterbody passages and tributary confluences are outside the sufficiently legible coverage of the usable ecological map. Failed regional reports and the denied NTS025D original provide no map evidence.",
+          "sources": [],
+          "correspondence": "material_upper_route_and_junction_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8937
+          ],
+          "component_scope": "Western bend and middle eastward continuation",
+          "finding": "The ecological location map supplies regional orientation north of the separate Vachon and Arnaud waterways but does not establish the selected western bend and each continuation through the lake-rich middle corridor at ordinary component scale. Unknown lake and feeder names remain null.",
+          "sources": [
+            "r145-poisson2023-arnaud"
+          ],
+          "correspondence": "material_middle_connector_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8937
+          ],
+          "component_scope": "Lower southeastward bend, eastward river corridor and material lateral junctions",
+          "finding": "The printed-page3 original identifies the lower Buet corridor north of the Arnaud estuary and depicts its bending eastward approach, distinct from the Vachon confluence farther west. This supports a lower-corridor candidate, but the regional relief map does not fully distinguish all selected lake outlets and lateral tributary junctions. Names from discovery-only records are not attached to the unresolved junctions.",
+          "sources": [
+            "r145-poisson2023-arnaud"
+          ],
+          "correspondence": "lower_named_corridor_supported_material_junction_detail_pending",
+          "mapped_component_name": "Rivière Buet",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8937
+          ],
+          "component_scope": "Final southward approach and Arnaud-estuary terminal setting",
+          "finding": "At ordinary generalized corridor scale, the original location map shows the named Buet lower valley turning toward and joining the north side of the wide Arnaud estuarine waterway west of Kangirsuk. Printed-page102 prose separately identifies Buet among the Arnaud tributary valleys and places the upstream tidal limit at the Vachon mouth. The selected terminal belongs to that estuarine receiving-water setting; no exact bank, mouth vertex, named bay or tidal boundary is claimed.",
+          "sources": [
+            "r145-poisson2023-arnaud"
+          ],
+          "correspondence": "actual_terminal_setting_supported_at_generalized_corridor_scale",
+          "mapped_component_name": "Rivière Buet",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80043969",
+      "source_keys": [
+        "r145-nluis-aklavik-107b-1976",
+        "r145-nluis-crossley-107a-1972",
+        "r145-nluis-stanton-107d-1976",
+        "r145-dfo-roux-3071-2014",
+        "r145-grrb-winbourne-2004-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2367
+          ],
+          "component_scope": "Western-to-eastern Lost Reindeer Lakes transfer",
+          "finding": "The selected headward component begins in the western Lost Reindeer lake setting and takes a short southern/eastward transfer into the easterly lake before turning north. NLUIS107B depicts both lakes and nearby marshes, streams and pools, but the complete selected inter-lake transfer is not securely traceable. The GRRB prose records uncertain or differing broader drainage interpretations rather than proving this connector.",
+          "sources": [
+            "r145-nluis-aklavik-107b-1976",
+            "r145-grrb-winbourne-2004-prose"
+          ],
+          "correspondence": "material_connector_gap",
+          "mapped_component_name": "Lost Reindeer Lakes",
+          "component_correspondence_completed": false,
+          "unknown_connector_name": null
+        },
+        {
+          "fragments": [
+            2367
+          ],
+          "component_scope": "Eastern Lost Reindeer lake and northern pond/stream approach",
+          "finding": "The easterly named lake’s northern continuation passes through small pools and marshy stream connections, then bends northwest/west before entering the northward river corridor. These source features correspond to the selected headward course beyond the unresolved transfer. The lake and unnamed connecting reaches are not all renamed Miner River.",
+          "sources": [
+            "r145-nluis-aklavik-107b-1976"
+          ],
+          "correspondence": "supported_component_corridor",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2367
+          ],
+          "component_scope": "Upper Miner corridor east of Sitidgi Lake",
+          "finding": "The selected stream runs north then northeast through a lake-dotted upland east of Sitidgi Lake, crossing into the adjacent eastern map sheet. Original107B shows the watercourse and ordinary tributary joins; DFOFigure1 distinguishes this southwestern approach as Miner River from the Kugaluk approach farther east. Sitidgi Lake is a neighboring basin and is not inserted into this selection.",
+          "sources": [
+            "r145-nluis-aklavik-107b-1976",
+            "r145-dfo-roux-3071-2014"
+          ],
+          "correspondence": "supported_component_corridor",
+          "mapped_component_name": "Miner River",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2367
+          ],
+          "component_scope": "Middle Miner valley and northern Crossley sheet continuation",
+          "finding": "The selected northeastward course follows the western river corridor on107A, widens into a meandering low valley, makes the pronounced western/northern turn and continues north to the adjoining Stanton sheet. Original water lines, floodplain pools and tributary joins are readable throughout this sector. The separately incised Kugaluk River corridor farther east is not substituted for it.",
+          "sources": [
+            "r145-nluis-crossley-107a-1972",
+            "r145-dfo-roux-3071-2014"
+          ],
+          "correspondence": "supported_component_corridor",
+          "mapped_component_name": "Miner River",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2367
+          ],
+          "component_scope": "Lower Miner and Kugaluk River junction setting",
+          "finding": "On107D the lower Miner corridor approaches from the southwest through meanders and floodplain waterbodies. The source distinguishes the Kugaluk River arriving from the south/east and shows their connections into the shared lower estuarine waterway. The selected route follows that junction setting northward; no exact distributary-bank or mouth-vertex choice is required.",
+          "sources": [
+            "r145-nluis-stanton-107d-1976",
+            "r145-dfo-roux-3071-2014"
+          ],
+          "correspondence": "supported_component_and_junction",
+          "mapped_component_name": "Miner River",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2367
+          ],
+          "component_scope": "Kugaluk Channel continuation and actual selected coastal terminal",
+          "finding": "The selection continues north through the narrow branching estuarine inlet into its wider tidal-water setting south of Thumb Island and southeast of the Husky Lakes fingers. Original107D covers the actual selected terminal setting, and DFO identifies this inlet as Kugaluk Channel at the southwestern end of Liverpool Bay, including the Miner and Kugaluk mouths. The selection does not run to the open Beaufort Sea coast or to the separate Husky Lakes opening northwest of Thumb Island.",
+          "sources": [
+            "r145-nluis-stanton-107d-1976",
+            "r145-dfo-roux-3071-2014"
+          ],
+          "correspondence": "supported_terminal_setting",
+          "mapped_component_name": "Kugaluk Channel",
+          "component_correspondence_completed": true,
+          "receiving_water": "Liverpool Bay"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60527667",
+      "source_keys": [
+        "IBGE-PORTEL-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13719
+          ],
+          "component_scope": "Selected mainstem FID 13719",
+          "finding": "This mixed-name-scope fragment begins on the mapped unnamed southern feeder. Its initial northeastward course turns north and joins the Rio Jacundá approach on the southern sheet. The selected course then follows repeatedly labelled Rio Jacundá northward, with westward bends and lateral feeder joins, across the two-sheet transition and farther northwest toward the broader channel. Every selected headward and intermediate connector is depicted; no missing lake or wetland link is assumed. Rio Jacundá is representative of this downstream connected system, but the fragment is not uniformly named because its initial feeder hydronym is unestablished.",
+          "sources": [
+            "IBGE-PORTEL-2010"
+          ],
+          "correspondence": "Complete at ordinary generalized corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13720
+          ],
+          "component_scope": "Selected mainstem FID 13720",
+          "finding": "The northern fragment continues on the same Rio Jacundá course from the preceding fragment, heading northwest through a wider channel with island-side passages, including the Papagaio/Macaquinho setting. It then trends north along the Jacundá side of Ilha Taquari; the separately labelled Taquari waterway branches to the east. The selected terminal lies beside the northeast side of Ilha Mirituba, south of Ilha Jacundá, at the transition to Baía das Bocas in the Rio Pará estuarine network. No named lake/reservoir passage or geographically unestablished connector remains.",
+          "sources": [
+            "IBGE-PORTEL-2010"
+          ],
+          "correspondence": "Complete through actual selected terminal at ordinary generalized corridor scale",
+          "mapped_component_name": "Rio Jacundá"
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70846952",
+      "publication": "Carta Geológico-Minera Cedros G14-C61, Zacatecas, first edition April 2004, 1:50,000",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1302_G14-C61_GM.pdf",
+      "observed_outcome": "Original map completed HTTP200 and was visually read. It shows separate intermittent approaches, small tanks and broad alluvial terrain but does not establish the selected through-going connection across Bajío La Lagunita toward Barrial San José.",
+      "outcome_layer": "Substantive cartographic correspondence limitation; no HTTP, transport or access failure.",
+      "restriction_scope": "Unestablished selected alluvial-flat connector only. Other mapped terrain, local streams, settlements and tanks remain usable. No publication-wide acquisition stop. No acquisition restriction inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_selected_dry_flat_connector_gap",
+      "material_gap": true,
+      "material_effect": "Prevents full representative-system correspondence and completed naming-scope hold."
+    },
+    {
+      "aw_id": "hydro-system:70846952",
+      "publication": "Carta Geológico-Minera Viesca G13-D37, Coahuila, first edition September 2021, 1:50,000",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1154_G13-D37_GM.pdf",
+      "observed_outcome": "Original map completed HTTP200 and was visually read. The selected northeastern/eastern terminal traverse lies in lacustrine/saline plain near Cuadro Salino, Estación Bilbao and Llano Los Torreones without an established continuous mapped channel to the actual selected endpoint.",
+      "outcome_layer": "Substantive cartographic correspondence limitation; no HTTP, transport or access failure.",
+      "restriction_scope": "Unestablished selected terminal plain connector only. Mapped lacustrine plain, infrastructure, hills and separate Laguna de Viesca context remain usable. No publication-wide stop or domain-wide restriction inferred.",
+      "earlier_lawful_prose_exception": "The separately printed saline-deposit paleobasin description remains bounded regional context, not proof of the selected through-connection.",
+      "limitation_kind": "material_selected_terminal_connector_gap",
+      "material_gap": true,
+      "material_effect": "One river_group_source_material_pending primary classification, not access-pending or completed scope hold."
+    },
+    {
+      "aw_id": "hydro-system:70004800",
+      "publication": "Géologie des dépôts de surface de la région de la rivière Arnaud (SNRC 24M05 à 24M08, 25D06, 25D07, 34P08, 34P09, 34P16, 35A01 et 35A08), péninsule d’Ungava, RP 2019-01",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RP201901/RP201901RAP001.pdf",
+      "observed_outcome": "The sole original-report request completed HTTPError 502 Bad Gateway. No report body or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client response.",
+      "restriction_scope": "Missing report, companion maps and equivalent copies, translated editions, figures, formats, original, reader, cache, screenshot and mirror acquisition routes paused. No retry or alternate route.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_502_availability_stop",
+      "material_effect": "Potential original correspondence for the selected upper/middle corridor remained unavailable.",
+      "publication_distinction": "Official discovery describes the 2018 field campaign and these individually numbered sheets. This is a separately issued study from the 2017 campaign reported in RP 2018-04; no absent map is assumed to have been read."
+    },
+    {
+      "aw_id": "hydro-system:70004800",
+      "publication": "Géologie des dépôts de surface de la région de la rivière Arnaud (SNRC 25D [moitié sud] et 24M [moitié nord]), RP 2018-04",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RP201804/RP201804RAP001.pdf",
+      "observed_outcome": "The sole original-report request completed HTTPError 502 Bad Gateway. No report body or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client response.",
+      "restriction_scope": "Missing report, companion maps and equivalent copies, translated editions, figures, formats, original, reader, cache, screenshot and mirror acquisition routes paused. No retry or alternate route.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_502_availability_stop",
+      "material_effect": "Potential original middle/lower corridor and junction mapping unavailable.",
+      "publication_distinction": "BAnQ bibliographic discovery identifies a 19-page report by Hugo Dubé-Loubert, Simon Hébert and Martin Roy, published in 2019 as RP 2018-04, covering the southern half of 25D and northern half of 24M. Indexed Figure 3 caption identifies the 2017 campaign. Distinct field campaign and study extent distinguish this publication from RP 2019-01; bibliographic discovery is not map evidence."
+    },
+    {
+      "aw_id": "hydro-system:70004800",
+      "publication": "Géologie de la région de la rivière Arnaud (SNRC 25D) et des régions littorales adjacentes (SNRC 25C, 25E, 25F), RG 2000-05",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG200005/RG200005.pdf",
+      "observed_outcome": "The sole original-report request completed HTTPError 502 Bad Gateway. No report body or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client response.",
+      "restriction_scope": "Missing report, companion maps and equivalent copies, translations including Geology of the Rivière Arnaud area and adjacent coastal areas (RG 2001-06), figures, formats, originals, readers, caches, screenshots and mirrors paused. No English translation or alternative companion was requested.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_502_availability_stop",
+      "material_effect": "Potential separate bedrock-study original correspondence for the 25D route was unavailable.",
+      "related_urls": [
+        "https://gq.mines.gouv.qc.ca/documents/EXAMINE/RG200106/RG200106.pdf"
+      ],
+      "publication_distinction": "Madore and Larbi bedrock mapping of the 25D and adjacent coastal sheet regions, independently issued before the two later surficial-geology field campaigns; not an alternative copy of either RP report."
+    },
+    {
+      "aw_id": "hydro-system:70004800",
+      "publication": "Rivière Arnaud region, NTS025D, CanMatrix 1:250,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/025/d/canmatrix_025d_tif.zip",
+      "observed_outcome": "The official sheet directory completed HTTP200 and supplied the exact archive link. The sole original archive request completed HTTPError403 Forbidden. No archive or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel or transport failure was reported.",
+      "restriction_scope": "Whole NTS025D CanMatrix1:250,000 publication and equivalent copies, editions offered as that same source, formats, catalogue, original, reader, cache, screenshot, viewer, mirror and all acquisition routes stopped. No retry or equivalent map recovery.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no cartographic evidence from this publication. The independent Poisson2023 ecological-report original had already been acquired and its printed-page3 map and page102 prose read before this denial. Those earlier bounded observations are retained.",
+      "limitation_kind": "http_403_denial",
+      "material_effect": "Potential detailed selected-route and headward lake/stream correspondence unavailable.",
+      "related_urls": [
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/025/d/"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70004800",
+      "publication": "Commission de toponymie du Québec, Rivière Buet, record9076",
+      "official_url": "https://www.toponymie.gouv.qc.ca/ct/ToposWeb/fiche.aspx?no_seq=9076",
+      "observed_outcome": "The sole linked record open returned web-reader Cache miss. No record body or HTTP status was exposed.",
+      "outcome_layer": "Web-reader availability outcome; HTTP status unknown.",
+      "restriction_scope": "Missing exact record and equivalent standard, print, reader, cached and alternate-host routes paused. No retry or other route.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_cache_miss_availability_stop",
+      "material_effect": "Optional formal-name record unavailable. Formal registry status is unverified; this record failure does not create a second pending category."
+    },
+    {
+      "aw_id": "hydro-system:80043969",
+      "publication": "Lost Reindeer Lakes, NTS107B/01, CanMatrix 1:50,000 topographic sheet; printed edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/107/b/canmatrix_107b01_tif.zip",
+      "observed_outcome": "The official 1:50,000 directory completed HTTP200 and supplied the exact archive link. The sole original archive request subsequently completed HTTP403, Content-Type text/html. No archive or original map pixels acquired.",
+      "outcome_layer": "Completed HTTP-client response; no separate transport or tunnel error reported.",
+      "restriction_scope": "Entire NTS107B/01 sheet publication and equivalent copies, formats, editions offered as this source, catalogue, original, reader, cache, screenshot, mirror and all acquisition routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "Only the earlier successful official directory metadata; no geographic observations from this sheet. Independently acquired NLUIS cartography remains separate.",
+      "limitation_kind": "http_403_denial",
+      "material_gap": true,
+      "material_effect": "Potential detailed original-map evidence for the selected western-to-eastern Lost Reindeer Lakes transfer is unavailable."
+    },
+    {
+      "aw_id": "hydro-system:80043969",
+      "publication": "Winbourne, Janet (2004), Local Knowledge of Fish Movements and Habitat Use in the Travaillant Lake System, Gwich’in Renewable Resource Board Report04-06, September30,2004",
+      "official_url": "https://grrb.nt.ca/wp-content/uploads/2021/01/Local-Knowledge-of-Fish-Habitats-in-Travaillant-Lake.pdf",
+      "observed_outcome": "The PDF text reader opened normally. The first map screenshot, PDF page51 containing Figure12, returned Internal Error with Cache miss. No map pixels or origin HTTP status were supplied.",
+      "outcome_layer": "Web screenshot/reader availability error; origin HTTP outcome unknown.",
+      "restriction_scope": "Missing visual/map material and equivalent original, reader, screenshot, cache, mirror and other acquisition routes remain paused. No original-file fallback, repeated screenshot or alternate route followed.",
+      "earlier_lawful_prose_exception": "Only the actually read earlier title, bibliography, methods/limitations, printed page33 Table10, and printed pages41–42 drainage discussion are retained as bounded prose. They report differing drainage interpretations and possible ecological connections, without establishing the selected lake-to-lake connector. No unseen figure or parsed labels are map evidence.",
+      "limitation_kind": "map_screenshot_availability_stop",
+      "material_gap": true,
+      "material_effect": "No additional original-map evidence for the unresolved headward connector was obtained."
+    },
+    {
+      "aw_id": "hydro-system:60527667",
+      "publication": "Portel-PA, Mapa Municipal Estatístico, 1505809; both sheets",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pa/portel_v2.pdf",
+      "observed_outcome": "The selected initial feeder is geographically depicted and connected, but this original does not establish its hydronym. Rio Jacundá is repeatedly labelled on the selected middle and lower course.",
+      "outcome_layer": "Bounded cartographic nomenclature scope, not an HTTP, tool or coverage failure.",
+      "restriction_scope": "Representative downstream-system identity only. No uniform whole-route name, feeder name, accepted name or formal registry status is inferred. No acquisition stop applies.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "representative_name_scope_limit",
+      "material_gap": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60527667",
+      "publication": "Portel-PA, Mapa Municipal Estatístico, 1505809; Malha territorial 2010; printed edition 05/27/2011",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pa/portel_v2.pdf",
+      "observed_outcome": "The printed note describes a semi-automated municipal compilation from systematic mapping by IBGE, DSG and others, raster/vector sources and the IBGE municipal mesh, updated from several sources without full treatment of cartographic integration and completeness. Reproduction rights are reserved. This is historical reference cartography, not a current hydrological survey or a formal naming register.",
+      "outcome_layer": "Printed source-use and compilation notice in normally acquired original.",
+      "restriction_scope": "Factual geographic observations retained within the research scope. Reproduction rights remain reserved; source PDFs, original pixels, map crops and private orientation derivatives are not redistributed. No access prohibition is inferred from this notice.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    }
+  ]
+}

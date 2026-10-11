@@ -1,0 +1,307 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r90",
+  "sources": [
+    {
+      "source_key": "r90-fcd-binational-watershed-atlas",
+      "title": "A Bi-National Watershed Atlas: From the Maya Mountains to the Caribbean Sea, second edition, 2016",
+      "authors": "Ed Boles and Reeve Boles",
+      "publisher": "Friends for Conservation and Development; BRC Printing, Benque Viejo del Carmen, Belize",
+      "attribution": "Original publisher-hosted primary conservation-management atlas. FCD is identified in the atlas as Chiquibul National Park manager; this is not represented as national mapping-agency cartography.",
+      "year_note": "The acquired book identifies first edition 2009 and second edition 2016. The publisher landing page dated October 2026 is not treated as the cartographic survey date.",
+      "supports": "Distinction of upper Mopan from Chiquibul and Macal; lower Mopan and Belize receiving connection; full valley/coastal context; explicit contrast between the international boundary and the meandering natural Mopan.",
+      "limits": "Maps are compiled from 2015–2016 imagery and research and lack a printed latitude/longitude graticule on the detail pages. They support corridor/topological correspondence and the visible border-versus-channel mismatch, not surveyed pointwise registration, precise naming limits or the exact current coastline. Original maps, source text, renders and full selected geometry remain local; only this factual synthesis and bibliography are released.",
+      "official_url": "https://fcdbelize.org/a-bi-national-watershed-atlas-from-the-maya-mountains-to-the-caribbean-sea/"
+    },
+    {
+      "source_key": "r90-inegi-santiago-2010",
+      "title": "Compendio de información geográfica municipal 2010: Santiago Papasquiaro, Durango",
+      "publisher": "INEGI",
+      "supports": "Upper feeder, Vueltas correspondence and separation from the northern San Gregorio drainage.",
+      "limits": "Municipal coverage only; the farthest feeder has no readable individual name.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10032.pdf"
+    },
+    {
+      "source_key": "r90-inegi-otaez-2010",
+      "title": "Compendio de información geográfica municipal 2010: Otáez, Durango",
+      "publisher": "INEGI",
+      "supports": "Eastern approach, Castillo junction, named Remedios and southern-margin continuity.",
+      "limits": "Adjoining sheets supply the parts outside the municipal boundary.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10019.pdf"
+    },
+    {
+      "source_key": "r90-inegi-tamazula-2010",
+      "title": "Compendio de información geográfica municipal 2010: Tamazula, Durango",
+      "publisher": "INEGI",
+      "supports": "Full middle bend, Remedios–San Lorenzo receiving connection and reservoir approach.",
+      "limits": "Not used to infer stream permanence or exact naming-transition locations.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10034.pdf"
+    },
+    {
+      "source_key": "r90-inegi-cosala-2010",
+      "title": "Compendio de información geográfica municipal 2010: Cosalá, Sinaloa",
+      "publisher": "INEGI",
+      "supports": "Named reservoir, selected through-reservoir passage and repeated San Lorenzo labels downstream.",
+      "limits": "Reservoir geometry reflects the map compilation; no current water level or shoreline is asserted.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25005.pdf"
+    },
+    {
+      "source_key": "r90-inegi-culiacan-2010",
+      "title": "Compendio de información geográfica municipal 2010: Culiacán, Sinaloa",
+      "publisher": "INEGI",
+      "supports": "Named lower river, coastal endpoint and distinction from nearby drainage and coastal waterbodies.",
+      "limits": "Historical municipal extent is used as a map frame, not a current administrative claim.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25006.pdf"
+    },
+    {
+      "source_key": "r90-ineter-ana-pfafstetter-atlas",
+      "title": "Cuencas Hidrográficas de Nicaragua bajo la metodología Pfafstetter, 2014: RAAN basin map and explanatory page",
+      "publisher": "INETER, Autoridad Nacional del Agua, Universidad Nacional de Ingeniería and GIZ-PROATAS; primary publication hosted by CIRA/UNAN",
+      "supports": "Whole-system Uli–Prinzapolka connection, the lower Yaoya and Bambana tributary courses and junctions, the actual thinner southwestern Bambana approach, adjacent independent drainage, and Caribbean endpoint.",
+      "limits": "Regional map scale omits short feeder tips and fine-channel detail. Not all selected headward feeder names are printed. Only own factual synthesis is released; original maps and local comparison material remain private.",
+      "official_url": "https://cira.unan.edu.ni/wp-content/uploads/2016/07/Album-Cuencas-Nic-Revisado_ANA.pdf"
+    },
+    {
+      "source_key": "r90-dma-siuna-3257iii",
+      "title": "Siuna, Nicaragua, sheet 3257 III, Series E751, Edition 1-DMA, 1:50,000, map information as of 1976",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; archival primary-map copy at the University of Texas Perry-Castañeda Library",
+      "supports": "Direct Río Ulí labeling along the selected mainstem, separate Wani tributary, Río Prinzapolka below the junction, and the actual selected Caño Siuna approach beside Siuna/La Luz.",
+      "limits": "Historical cartography supplies geographic correspondence, not present conditions. Its sheet boundary does not cover the entire network; the independent basin atlas supplies regional continuity. Original map and crops remain local.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/nicaragua/siuna-nicaragua-50k-3257iii-1976.pdf"
+    },
+    {
+      "source_key": "r90-nrcan-hood-river-map",
+      "title": "Canada Base Map, CBMT3978: Hood River, western lake country and Arctic Sound mouth",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Representative Hood River identity and whole selected route, including neighboring-drainage exclusion and near-mouth endpoint.",
+      "limits": "Composite base-map dates are not asserted. No precise shoreline, island crossing, source point or exhaustive individual lake naming is established. Only own factual synthesis is released; original rasters and private orientation material remain local.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70914193",
+      "source_keys": [
+        "r90-fcd-binational-watershed-atlas"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10555
+          ],
+          "finding": "The long Guatemalan component matches the upper Mopan corridor: the southern headward approach southeast of Dolores, northward passage toward El Naranjo and Salpet, then the eastward lower approach through the Vuelta Grande/La Pólvora and Cidabenque settings to the border. The atlas labels Rio Mopan and separately maps Chiquibul to the east. The initial small headwater is treated as a Mopan-system approach, not a surveyed official source point.",
+          "sources": [
+            "r90-fcd-binational-watershed-atlas"
+          ]
+        },
+        {
+          "fragments": [
+            10556
+          ],
+          "finding": "This entire fragment is an almost perfectly straight, approximately 10.6 km north–south segment along the Guatemala–Belize boundary alignment. The atlas shows the natural lower Mopan curving within Belize east of the boundary, through the Benque Viejo/San José Succotz corridor and onward toward Bullet Tree Falls. The modeled line is therefore not established as that river channel. It cannot be silently substituted for the mapped natural course.",
+          "sources": [
+            "r90-fcd-binational-watershed-atlas"
+          ]
+        },
+        {
+          "fragments": [
+            10557
+          ],
+          "finding": "The eastward lower approach is in the Mopan corridor north of San Ignacio toward the junction with the separately mapped Macal. Its west end is attached to the problematic straight boundary connector, so detailed western-end channel coincidence is not asserted. The Mopan–Macal relationship supports the downstream Belize receiving identity.",
+          "sources": [
+            "r90-fcd-binational-watershed-atlas"
+          ]
+        },
+        {
+          "fragments": [
+            10558
+          ],
+          "finding": "The downstream selection follows the Belize receiving valley from the San Ignacio/Santa Elena junction surroundings east past Central Farm and the Spanish Lookout area, then north of Belmopan and northeast through the lower valley to the Burrell Boom and Ladyville sector. Overlapping atlas maps cover the broad northern bend and near-coastal continuation. The atlas distinguishes Crooked Tree-associated waters and Haulover Creek from the principal Belize outlet. The coarse modeled terminal is treated only as a near-mouth/coastal setting, not an exact current shoreline crossing.",
+          "sources": [
+            "r90-fcd-binational-watershed-atlas"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70854092",
+      "source_keys": [
+        "r90-inegi-santiago-2010",
+        "r90-inegi-otaez-2010",
+        "r90-inegi-tamazula-2010",
+        "r90-inegi-cosala-2010",
+        "r90-inegi-culiacan-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10375
+          ],
+          "finding": "The eastern headward line lies on an unlabeled feeder entering the directly mapped Río de las Vueltas corridor. Santa Lucía and El Pinto are distinguishable adjoining streams; neither name is extended over the full selection.",
+          "sources": [
+            "r90-inegi-santiago-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10375
+          ],
+          "finding": "The Otáez map shows the selected eastern approach meeting Arroyo Quebrada Castillo and continuing beside repeated Río de los Remedios labeling. Its southward then westward bend follows the southern municipal margin, separate from the more northerly Presidio route through the municipal interior.",
+          "sources": [
+            "r90-inegi-otaez-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10375
+          ],
+          "finding": "The southern Tamazula sheet carries the Remedios approach northwest to the receiving San Lorenzo corridor and the upstream reservoir approach. Its connected drainage agrees with the selected broad bend; the separate northern headwaters are not substituted.",
+          "sources": [
+            "r90-inegi-tamazula-2010",
+            "r90-inegi-santiago-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10375
+          ],
+          "finding": "The Cosalá sheet covers the reservoir passage, explicitly labels José López Portillo (El Comedero), and repeatedly labels Río San Lorenzo along the downstream southwestward course to the Culiacán-sheet boundary.",
+          "sources": [
+            "r90-inegi-cosala-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10375
+          ],
+          "finding": "The Culiacán sheet maps the lower San Lorenzo across the coastal plain and labels it again at the coastal outlet. The selected terminal occupies this river-mouth corridor northwest of Estero Soyatita, rather than the separate Ensenada Pabellones outlet farther northwest. The generalized endpoint is not an exact present shoreline or tidal-boundary determination.",
+          "sources": [
+            "r90-inegi-culiacan-2010"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70961492",
+      "source_keys": [
+        "r90-ineter-ana-pfafstetter-atlas",
+        "r90-dma-siuna-3257iii"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10650
+          ],
+          "finding": "The long northern approach follows the atlas's north–south Ulil corridor west of Bonanza. The larger-scale Siuna sheet directly labels the selected channel Río Ulí and shows its continuation south past Uli Abajo to the Wani confluence near La Unión. The sheet labels the receiving channel below that confluence Río Prinzapolka. The separate western Wani headward course is not selected.",
+          "sources": [
+            "r90-ineter-ana-pfafstetter-atlas",
+            "r90-dma-siuna-3257iii"
+          ]
+        },
+        {
+          "fragments": [
+            10651
+          ],
+          "finding": "Below the northern approach, the selected river sweeps southeast and then east along the broad southern arc directly labeled PRINZAPOLKA in the basin atlas. It turns north to receive the Yaoya component. The selected arc lies north of the independently mapped Makantaka drainage and is not a route through Río Grande de Matagalpa.",
+          "sources": [
+            "r90-ineter-ana-pfafstetter-atlas"
+          ]
+        },
+        {
+          "fragments": [
+            10654
+          ],
+          "finding": "The tributary begins beside Siuna/La Luz and follows the south-going Caño Siuna shown on the DMA sheet, including the Bocana de Fonseca setting. It then approaches the atlas's Yaoya from the northwest and follows the lower Yaoya southeast to Prinzapolka. The atlas separately depicts an emphasized upper Yaoya course east of Siuna; that is not the initial selected channel. Tiny headwater bends and the precise point where the lower-channel naming applies remain generalized.",
+          "sources": [
+            "r90-ineter-ana-pfafstetter-atlas",
+            "r90-dma-siuna-3257iii"
+          ]
+        },
+        {
+          "fragments": [
+            10652
+          ],
+          "finding": "From the Yaoya junction, the selected lower Prinzapolka continues east through its lowland meander corridor to the Bambana junction. Both the river connectivity and the distinct northern Bambana approach are visible in the atlas, rather than inferred solely from a basin polygon or town name.",
+          "sources": [
+            "r90-ineter-ana-pfafstetter-atlas"
+          ]
+        },
+        {
+          "fragments": [
+            10655
+          ],
+          "finding": "The actual selected upper tributary approaches Bambana from the southwest, northeast of Siuna, following a thinner mapped feeder into the main channel west of Rosita. It then follows the directly labeled Bambana east and southeast. The atlas emphasizes another northern upstream arm, which is excluded from the selected route. No specific hydronym is assigned to the initial southwest feeder, and its short farthest tip is not resolved at atlas scale.",
+          "sources": [
+            "r90-ineter-ana-pfafstetter-atlas"
+          ]
+        },
+        {
+          "fragments": [
+            10656
+          ],
+          "finding": "The downstream tributary fragment continues the mapped Bambana southeast along the northern side of the Prinzapolka basin and reaches the lower Prinzapolka junction. It remains separate from the neighboring Layasiksa and Kukalaya systems farther north.",
+          "sources": [
+            "r90-ineter-ana-pfafstetter-atlas"
+          ]
+        },
+        {
+          "fragments": [
+            10653
+          ],
+          "finding": "Below the Bambana confluence, the last selected mainstem fragment follows the lower river's sinuous eastward coastal approach to the Prinzapolka mouth setting on the Caribbean Sea. Its generalized terminal is not treated as a precise present-day shoreline, tidal limit, or surveyed distributary boundary.",
+          "sources": [
+            "r90-ineter-ana-pfafstetter-atlas"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80075320",
+      "source_keys": [
+        "r90-nrcan-hood-river-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2525
+          ],
+          "finding": "The westernmost short approach passes south through small lakes and channels, then bends east into the broad lake-and-river corridor. The original western enlargement shows the connected setting, followed by repeated Hood River labels. No name is forced onto each initial feeder or lake, and no exact conventional source is assigned.",
+          "sources": [
+            "r90-nrcan-hood-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            2525
+          ],
+          "finding": "The selection continues east through widened Hood River lakes and connecting channels, then bends northeast and east along the directly labeled middle Hood. It passes the Wright River junction without adopting the separately mapped southern Wright headward course. The long northern James River corridor remains distinct.",
+          "sources": [
+            "r90-nrcan-hood-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            2525
+          ],
+          "finding": "Farther east, the route stays on Hood north of Booth River and reaches their lower junction area before turning north through the Wilberforce Hills setting. The model has no separate Booth or James tributary fragments, so the representative identification does not label every upstream watercourse in their catchments.",
+          "sources": [
+            "r90-nrcan-hood-river-map"
+          ]
+        },
+        {
+          "fragments": [
+            2525
+          ],
+          "finding": "The northern terminal reach corresponds to the labeled lower Hood, including its widening and near-mouth bends. It ends at the southern Arctic Sound shore, adjacent to the west side of the Paae Bay setting. This is the Hood near-mouth route, not a different coastal stream or an exact contemporary tidal-boundary survey.",
+          "sources": [
+            "r90-nrcan-hood-river-map"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

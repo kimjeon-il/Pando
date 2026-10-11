@@ -1,0 +1,553 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r141",
+  "sources": [
+    {
+      "institution": "U.S. Geological Survey",
+      "title": "USGSTopo, The National Map multiscale topographic reference map",
+      "source_type": "primary original composite cartography",
+      "edition_or_refresh": "Retained service metadata reports data refreshed September 4, 2026-v1.2",
+      "accessed_utc": "2026-10-11",
+      "use_notice": "Service attribution credits USGS The National Map national datasets, USGS Global Ecosystems, U.S. Census Bureau TIGER/Line, USFS Road data, Natural Earth Data, U.S. Department of State HIU and NOAA National Centers for Environmental Information. Original maps, crops and orientation overlays remain private.",
+      "evidence_scope": "Direct opening, complete selected corridor, reservoir, junction and terminal correspondence; printed labels do not independently establish formal registry status.",
+      "source_key": "r141-usgs-topo-pamunkey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "institution": "Virginia Department of Wildlife Resources",
+      "title": "Pamunkey River",
+      "source_type": "bounded primary prose",
+      "accessed_utc": "2026-10-11",
+      "actually_read_scope": "Overview paragraphs describing the confluence of North Anna and South Anna, Hanovertown, Route 360, Putneys Mill and increasing tidal-estuary character downstream.",
+      "evidence_scope": "Corroborates downstream names and river/estuary sequence; not a replacement for original map correspondence.",
+      "use_notice": "Page footer displays © 2026 Virginia Department of Wildlife Resources.",
+      "source_key": "r141-virginia-dwr-pamunkey",
+      "official_url": "https://dwr.virginia.gov/waterbody/pamunkey-river/"
+    },
+    {
+      "institution": "Louisa County, Virginia",
+      "title": "North Anna Power Station Information",
+      "source_type": "bounded primary prose",
+      "accessed_utc": "2026-10-11",
+      "actually_read_scope": "Introductory North Anna Nuclear Power Station paragraph, stating that damming North Anna River formed Lake Anna.",
+      "evidence_scope": "Independent corroboration of reservoir–river relationship only.",
+      "source_key": "r141-louisa-north-anna",
+      "official_url": "https://www.louisacounty.gov/2777/North-Anna-Power-Station-Information"
+    },
+    {
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "acquired_scope": "Previously lawfully retained complete official single-sheet PDF, reused locally without reacquisition. Full overview, western Greenland regional view, graticule-bearing overlapping corridor view, enlarged Rink Isbræ/Karrat Isfjord terminal, Inland Ice legend and original imprint were actually rendered and visually read.",
+      "supports": "Full selected geographic setting from interior ice through all intervening course changes to the outlet-glacier/inner-fjord terminal; glacier and fjord label roles.",
+      "limits": "Historical national-scale cartography establishes ordinary geographic setting. It does not depict or prove a continuous natural river along the modeled line, subglacial connectivity, current drainage, current glacier-front position or a formal river registry identity.",
+      "reuse_limit": "GEUS Custom Dataset Terms allow internal use/processing and restrict redistribution and production or transfer of new maps. Original map, crops and derived/comparison material remain private. Only independently written factual findings, bounded metadata and ordinary bibliography are public-ready.",
+      "source_key": "r141-geus-greenland-national-1995-retained"
+    },
+    {
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000. 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "year": 2009,
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf",
+      "pages": "Printed pages 64–65, Glaciology; title page.",
+      "acquired_scope": "Previously retained official PDF reused locally. Bounded Glaciology prose and title/front matter were read; no figure from this bulletin is used as selected-route cartographic evidence.",
+      "supports": "Supporting distinction between the continental Inland Ice and local ice caps/glaciers, explanation of map ice-contour symbols, and general central West Greenland fjord-head calving setting.",
+      "limits": "Supporting prose only. The separate original 1995 map supplies selected geographic correspondence. Historical numerical climate/ice statements are not asserted as present conditions. No hydronym for the complete selected route is provided.",
+      "reuse_limit": "Copyright GEUS 2009. Original and local working material remain private; own factual paraphrase only.",
+      "source_key": "r141-geus-bulletin18-2009-retained-prose"
+    },
+    {
+      "title": "USGS The National Map, USGSTopo composite topographic basemap",
+      "author_or_publisher": "U.S. Geological Survey",
+      "edition_or_date": "Retained service metadata reports data refreshed September 4, 2026-v1.2; five bounded route views acquired and inspected October 11, 2026.",
+      "source_type": "primary_original_composite_cartography",
+      "map_reading_scope": [
+        "Glaciated opening, direct outwash outlet and Snow River beside the Paradise lakes",
+        "Snow River, South Fork junction and southern Kenai Lake inlet",
+        "All selected Kenai Lake arms, lateral tributary junctions and Cooper Landing outlet",
+        "Upper Kenai River, Russian River junction, Skilak Lake inlet/interior/outlet and Killey junction",
+        "Lower Kenai River, Moose/Funny/Soldotna/Slikok/Beaver junction settings, lower estuary and marine terminal"
+      ],
+      "prose_reading_scope": "Previously retained service description, source credits and refresh metadata only.",
+      "supports": "Full selected two-fragment geographic correspondence and representative Kenai system identity; separate glacier, Snow River and lake scopes.",
+      "limits": "Composite cartography is not a single historic edition or formal name registry. Network labels may continue over lake interiors; they do not establish uniform scalar hydronyms. Icefield depiction establishes corridor setting and outlet, not present glacier front or a mapped surface stream on the ice. Exact channel, bank and mouth-point agreement is not asserted.",
+      "use_notice": "Retained metadata credits USGS National Map datasets, USGS Global Ecosystems, U.S. Census TIGER/Line, USFS, Natural Earth, U.S. Department of State HIU and NOAA. Original rasters, crops, overlays and dynamic export parameters remain local/private; public-ready content is own factual observations and ordinary bibliography.",
+      "source_key": "r141-usgstopo-kenai",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "title": "Kenai River Comprehensive Management Plan, Chapter 2: Background Information",
+      "author_or_publisher": "Alaska Department of Natural Resources, official hosting",
+      "edition_or_date": "December 1997",
+      "source_type": "primary_official_prose_only",
+      "map_reading_scope": "None. No original plan map pixels were acquired.",
+      "prose_reading_scope": "Section 2.0 Natural Conditions, printed page 11 only.",
+      "supports": "Corroborates Snow/Trail tributaries to Kenai Lake, upper Kenai to Skilak Lake, and lower Kenai to Cook Inlet.",
+      "limits": "Earlier lawful prose is bounded to section 2.0; failed or unseen plan figures are excluded. This prose does not establish selected geometry by itself.",
+      "use_notice": "No redistribution permission is asserted; no original source content is published.",
+      "source_key": "r141-dnr-kenai-plan-ch2",
+      "official_url": "https://dnr.alaska.gov/parks/plans/krsmapln/krsma_1997_ch2.pdf"
+    },
+    {
+      "title": "Northern Land Use Information Series: Committee Bay, sheet47B",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Environment Canada; thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada",
+      "thematic_cartography_year": 1984,
+      "information_date": "December1983, stated by series introduction",
+      "base_map": "National Topographic Series47B, Edition2,1980, Energy, Mines and Resources Canada",
+      "scale": "1:250,000",
+      "evidence_type": "Retained complete original primary cartography, visually read locally",
+      "material_read": "Eastern map corridor: western selected headward river/lake setting, labelled Kingora River, intervening unnamed lakes, side inflows and continuation across the eastern sheet boundary; title, scale, copyright and imprint.",
+      "limits": "Historical generalized mapping; no modern legal name, official headwater boundary, present flow condition or official river length established.",
+      "source_key": "nluis47b-committee",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_47b.jpg",
+      "use_notice": "Crown copyright. Interim historical mapping with preliminary/reconnaissance information and approximate thematic boundaries, current to December 1983. Only own factual observations and citations are public; originals, crops and derived map images remain private."
+    },
+    {
+      "title": "Northern Land Use Information Series: Hall Lake, sheet47A",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Environment Canada; thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada",
+      "thematic_cartography_year": 1984,
+      "information_date": "December1983, stated by series introduction",
+      "base_map": "National Topographic Series47A, Edition2,1980, Energy, Mines and Resources Canada",
+      "scale": "1:250,000",
+      "evidence_type": "Retained complete original primary cartography and bounded map-margin prose, visually read locally",
+      "material_read": "Kingora River eastern approach; Sarcpa Lake and its northern outlet chain; east/southeast river to Hall Lake; Hall Lake, Sarvuq Inlet and northeastern coastal terrain/Foster Bay; separate Ikerasak River route to Roche Bay. Fish-resource notes C2, M2, D2 and D3; introduction and imprint.",
+      "limits": "Mapped coverage does not establish the selected Sarvuq Inlet-to-Foster Bay connector. The separate southeastern Ikerasak outlet cannot substitute for the selected northeastern ending. Historical source names remain unverified in a present registry.",
+      "source_key": "nluis47a-hall",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_47a.jpg",
+      "use_notice": "Crown copyright. Interim historical mapping with preliminary/reconnaissance information and approximate thematic boundaries, current to December 1983. Only own factual observations and citations are public; originals, crops and derived map images remain private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70630470",
+      "source_keys": [
+        "r141-usgs-topo-pamunkey",
+        "r141-virginia-dwr-pamunkey",
+        "r141-louisa-north-anna"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9844
+          ],
+          "component_scope": "Headward opening and upper North Anna approach",
+          "finding": [
+            "The selected opening lies on the mapped Mountain Run corridor beside Gordonsville Municipal Airport. The original map follows it northeast and then east/southeast, receiving Madison Run, toward the Negro Run junction setting.",
+            "Mountain Run is separately labeled. Below the junction setting, the selected corridor is labeled North Anna River. White Oak Creek is a distinct north-side feeder; the mapped North Anna continues toward Vawter Corner and the head of the western Lake Anna arm.",
+            "The headward route is read directly on original cartography; it is not inferred merely from a nearby label or basin membership."
+          ],
+          "sources": [
+            "r141-usgs-topo-pamunkey"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9844
+          ],
+          "component_scope": "Lake Anna passage and outlet",
+          "finding": [
+            "The selected North Anna approach enters the reservoir from the west, passes the US 522 crossing, and continues through the main Lake Anna waterbody toward its southeast outlet.",
+            "The northern Pamunkey Creek arm is depicted separately from the selected western North Anna approach. Its shared word Pamunkey does not make that branch the selected opening or establish one whole-route name.",
+            "The Contrary Creek arm and other lateral drowned tributaries join the reservoir. The selected corridor follows the main lake toward the dam/outlet, rather than traversing the enclosed southern cooling-water arms.",
+            "Original map continuity covers the reservoir-to-river outlet. Louisa County independently states that North Anna River was dammed to create Lake Anna."
+          ],
+          "sources": [
+            "r141-usgs-topo-pamunkey",
+            "r141-louisa-north-anna"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9844
+          ],
+          "component_scope": "Middle and lower North Anna to South Anna confluence",
+          "finding": [
+            "Below the Lake Anna dam/outlet, the map repeatedly labels North Anna River through the county-boundary corridor, past the Hewlett/Noel setting, the Interstate 95 crossing and Doswell/Garnett Crossing area.",
+            "The Little River approaches from the west near Little River Crossing. The selected route stays on North Anna rather than extending up Little River.",
+            "Farther south, the mapped North Anna and South Anna meet; the downstream channel is labeled Pamunkey River. The selected headward route uses North Anna, with South Anna a distinct receiving-junction branch."
+          ],
+          "sources": [
+            "r141-usgs-topo-pamunkey",
+            "r141-virginia-dwr-pamunkey"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9844
+          ],
+          "component_scope": "Upper and middle Pamunkey",
+          "finding": [
+            "The named Pamunkey meanders east and southeast from the Anna confluence, through the US 301/Hanover setting to Hanovertown and the US 360 crossing.",
+            "The selected route continues past the Horseshoe/Chericoke setting, Putneys Mill and Elsing Green. Direct original map reading follows the whole corridor, with tributary streams and swamp channels shown separately.",
+            "Virginia DWR prose independently describes the Pamunkey from the North Anna–South Anna confluence through Hanovertown, the Route 360 crossing and Putneys Mill, and its transition to a widening tidal estuary downstream."
+          ],
+          "sources": [
+            "r141-usgs-topo-pamunkey",
+            "r141-virginia-dwr-pamunkey"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9844
+          ],
+          "component_scope": "Lower estuarine Pamunkey and actual terminal",
+          "finding": [
+            "The original map follows the broad labeled Pamunkey around the Pamunkey Reservation and Cohoke Marsh, then White Oak Landing, Romancoke and Eltham Marsh toward West Point.",
+            "The Mattaponi is mapped as a separate river on the opposite side of West Point. The waters below their meeting are labeled York River.",
+            "The selected route ends in the West Point confluence/upper York estuarine setting. It does not select the full downstream York River to Chesapeake Bay or an open-ocean mouth. This observation is at ordinary terminal-corridor scale, not an exact bank or endpoint placement claim."
+          ],
+          "sources": [
+            "r141-usgs-topo-pamunkey"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90067512",
+      "source_keys": [
+        "r141-geus-greenland-national-1995-retained",
+        "r141-geus-bulletin18-2009-retained-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8856
+          ],
+          "component_scope": "headward opening and southwestward upper route",
+          "finding": "The northeastern opening and its southwestward course lie east of the central West Greenland coastal mountain/fjord belt, in the mapped continuous Inland Ice. The map’s graticule and regional coastline place the whole headward setting north and east of the Rink outlet corridor.",
+          "sources": [
+            "r141-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "No natural-river hydronym is established for this interior opening. Ice-surface contours, thickness isopachs and bedrock contours do not identify a river."
+        },
+        {
+          "fragments": [
+            8856
+          ],
+          "component_scope": "southwestward continuation and southward middle bend",
+          "finding": "The selected continuation and pronounced southward turn remain within the mapped Inland Ice, inland of the separate northern coastal outlets. Original map coverage includes the whole intermediate setting and joins the upper and lower corridor views without a missing geographic interval.",
+          "sources": [
+            "r141-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "No neighboring fjord, glacier or place label is extended over this interior model course."
+        },
+        {
+          "fragments": [
+            8856
+          ],
+          "component_scope": "long westward lower ice corridor",
+          "finding": "After the southward bend, the selected course trends west through the continental-ice setting toward the coast. The original map shows the ice surface narrowing toward the Rink Isbræ outlet between exposed coastal terrain. This is geographic ice/outlet correspondence, not proof of a surface or subglacial river.",
+          "sources": [
+            "r141-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "Rink Isbræ is contextual identification of the glacier approach only; it is not a candidate natural-river hydronym."
+        },
+        {
+          "fragments": [
+            8856
+          ],
+          "component_scope": "outlet-glacier transition and actual terminal setting",
+          "finding": "The western ending lies at the mapped Rink Isbræ outlet into the inner eastern part of Karrat Isfjord. The terminal view shows exposed land on either side of the ice tongue, the ice-to-fjord transition, and the fjord extending west. This distinguishes the actual inner-fjord terminal from neighboring northern outlets and the outer marine coast.",
+          "sources": [
+            "r141-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale.",
+          "material_gap": false,
+          "name_observation": "Karrat Isfjord is a fjord name. Neither it nor Rink Isbræ supplies a representative river identity for the complete FID."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80242328",
+      "source_keys": [
+        "r141-usgstopo-kenai",
+        "r141-dnr-kenai-plan-ch2"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2698
+          ],
+          "component_scope": "Selected glaciated opening and Snow River outlet valley",
+          "finding": "The selected head begins on the mapped continuous glacier/icefield east of the separate Moose Creek valley. The glaciated surface funnels south into the valley whose outwash and braided channel are repeatedly labeled Snow River. The original topography shows the ice tongue opening directly into that channel corridor, so this is more than a nearby river-label association. No surface river line, independent glacier name, current ice front, or exact source point is assigned to the modeled passage over ice. The glaciated opening is not called Kenai River.",
+          "sources": [
+            "r141-usgstopo-kenai"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": null,
+          "reading_scope": "Original bounded USGSTopo raster pixels and private enlargements/orientation views."
+        },
+        {
+          "fragments": [
+            2698
+          ],
+          "component_scope": "Snow River beside the Paradise lakes",
+          "finding": "Below the mapped ice tongue, the selection follows the north–south Snow River braid valley and then its southwestward bend through the Paradise Valley setting. Upper Paradise Lake is alongside the eastern side of the corridor; Lower Paradise Lake lies alongside the western side farther downstream. The main Snow River channel is mapped separately from these lakes. They are lateral waters, not selected lake-axis passages, and the generalized model does not establish a separate name for every local braid.",
+          "sources": [
+            "r141-usgstopo-kenai"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Snow River",
+          "reading_scope": "Original bounded USGSTopo raster pixels and private enlargements/orientation views."
+        },
+        {
+          "fragments": [
+            2698
+          ],
+          "component_scope": "Snow River, South Fork junction and southern Kenai Lake inlet",
+          "finding": "The selected southwestward Snow River reaches the low valley northeast of the highway and railway corridor, passes the South Fork Snow River approach from the south/east, and bends north along the combined braid corridor. It passes the Seward Highway crossing and reaches the southern arm of Kenai Lake near Primrose. The south-fork approach is a distinct lateral branch and is not substituted for the selected glacier-fed northern approach.",
+          "sources": [
+            "r141-usgstopo-kenai"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Snow River",
+          "reading_scope": "Original bounded USGSTopo raster pixels and private enlargements/orientation views."
+        },
+        {
+          "fragments": [
+            2698
+          ],
+          "component_scope": "Kenai Lake southern, east–west and northwestern arms",
+          "finding": "The selected route passes north through the southern Kenai Lake arm, turns west along the long central arm, and turns northwest toward the western outlet at Cooper Landing. Mapped Trail River/Trail Creek and Ptarmigan Creek approaches meet the lake on the eastern side; Quartz Creek enters near the northwestern arm. Those tributaries, nearby Trail lakes and Cooper Lake are outside the selected course. The service also repeats Kenai River network labels inside the waterbody; the separately printed Kenai Lake identity and its inlet/outlet geometry are retained. Neither those network labels nor the modeled interior line make the lake a uniformly named river.",
+          "sources": [
+            "r141-usgstopo-kenai",
+            "r141-dnr-kenai-plan-ch2"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": null,
+          "waterbody_name": "Kenai Lake",
+          "reading_scope": "Original bounded USGSTopo raster pixels and private enlargements/orientation views."
+        },
+        {
+          "fragments": [
+            2698
+          ],
+          "component_scope": "Upper Kenai River and major tributary junctions",
+          "finding": "At the western end of Kenai Lake the route enters the mapped Kenai River through Cooper Landing. It follows the westward upper river past the Juneau Creek and Cooper Creek side approaches, then the Russian River junction from the south, and continues west past Jean Creek before turning southwest through the canyon/Surprise Creek setting into the northeastern part of Skilak Lake. These connected channels and turns were read on the original map; the route is not inferred merely from shared basin membership.",
+          "sources": [
+            "r141-usgstopo-kenai"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Kenai River",
+          "reading_scope": "Original bounded USGSTopo raster pixels and private enlargements/orientation views."
+        },
+        {
+          "fragments": [
+            2698
+          ],
+          "component_scope": "Eastern Skilak Lake and fragment transition",
+          "finding": "FID2698 enters the northeastern Skilak Lake margin from upper Kenai River and extends southwest into the lake interior, where the selected fragment changes to FID2699. The Skilak River enters the lake separately from the southeast; it is a lateral inlet and not the selected upper river. The map covers the lake-entry setting, separate inlet and the fragment boundary within the lake.",
+          "sources": [
+            "r141-usgstopo-kenai"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": null,
+          "waterbody_name": "Skilak Lake",
+          "reading_scope": "Original bounded USGSTopo raster pixels and private enlargements/orientation views."
+        },
+        {
+          "fragments": [
+            2699
+          ],
+          "component_scope": "Skilak Lake crossing and northwestern outlet",
+          "finding": "FID2699 continues the modeled westward passage through Skilak Lake and approaches its northwestern Kenai River outlet. The model simplifies the open-water course and the western shoreline/outlet turn; it is assessed at lake-and-outlet-corridor scale, not as exact bank agreement. Original cartography clearly joins the lake to the downstream Kenai River. Hidden Lake and its tributary connection, as well as the Skilak River inlet, are distinct lateral features. No reservoir identity or uniform river name is assigned to the lake.",
+          "sources": [
+            "r141-usgstopo-kenai",
+            "r141-dnr-kenai-plan-ch2"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": null,
+          "waterbody_name": "Skilak Lake",
+          "reading_scope": "Original bounded USGSTopo raster pixels and private enlargements/orientation views."
+        },
+        {
+          "fragments": [
+            2699
+          ],
+          "component_scope": "Kenai River below Skilak Lake to Sterling and Soldotna",
+          "finding": "Below Skilak Lake the selected line follows the repeatedly labeled Kenai River, west and northwest past the Killey River side approach, then around the Sterling-area bend at the Moose River junction. It continues southwest past the Funny River junction and through the broader Soldotna corridor, with Soldotna Creek and Slikok Creek as separate lateral approaches. The original views overlap across the lake outlet and this entire lower corridor; the coarse selected line straightens river bends without changing the represented corridor.",
+          "sources": [
+            "r141-usgstopo-kenai"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Kenai River",
+          "reading_scope": "Original bounded USGSTopo raster pixels and private enlargements/orientation views."
+        },
+        {
+          "fragments": [
+            2699
+          ],
+          "component_scope": "Lower estuary, Kenai and actual marine terminal",
+          "finding": "From the Soldotna area the selected course continues north and then west through the lower Kenai River corridor past the Beaver Creek junction toward Kenai. The mapped lower river makes large estuarine loops before opening to the coast beside Kenai. The modeled final reach shortcuts these loops and extends into coastal open water near the river-mouth setting; it is not an exact mouth point or present navigable channel. The primary map establishes the actual marine receiving setting, and the earlier-read official plan identifies that receiving water as Cook Inlet. No downstream inland river or lake connector is missing.",
+          "sources": [
+            "r141-usgstopo-kenai",
+            "r141-dnr-kenai-plan-ch2"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Kenai River",
+          "reading_scope": "Original bounded USGSTopo raster pixels and private enlargements/orientation views."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80049373",
+      "source_keys": [
+        "nluis47b-committee",
+        "nluis47a-hall"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2491
+          ],
+          "component_scope": "Western headward river-and-lake setting",
+          "finding": "The western selected opening lies among the small streams and lake expansions in the inland upper Kingora corridor. The original shows the eastward watercourse and multiple short side-stream/lake arms; nearby westward drainage toward the Committee Bay side is separately drawn. The source does not establish an official source boundary or a separate hydronym for the first selected feeder.",
+          "sources": [
+            "nluis47b-committee"
+          ],
+          "correspondence": "Mapped general setting and eastward river/lake corridor read",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2491
+          ],
+          "component_scope": "Upper Kingora River and eastern adjoining-sheet continuation",
+          "finding": "The labelled Kingora corridor continues east through elongated unnamed lake expansions, receives distinct southern and northern feeders, and narrows into river and rapid-marked reaches toward the eastern sheet boundary. The adjoining Hall Lake sheet continues this river corridor toward Sarcpa Lake. The larger southern lake arm is a lateral inflow rather than the selected western approach.",
+          "sources": [
+            "nluis47b-committee",
+            "nluis47a-hall"
+          ],
+          "correspondence": "Upper river, elongated lake passages, tributary junctions and cross-sheet continuity read",
+          "mapped_component_name": "Kingora River"
+        },
+        {
+          "fragments": [
+            2491
+          ],
+          "component_scope": "Sarcpa Lake and northern outlet chain",
+          "finding": "The western Kingora approach reaches Sarcpa Lake. A separately labelled Saniraq River arrives from the southwest. The selected continuation follows Sarcpa's northern arm and the intervening elongated lake/channel chain into the river's northward bend before it turns east. These are directly depicted water connections; basin membership alone is not used.",
+          "sources": [
+            "nluis47a-hall"
+          ],
+          "correspondence": "Selected lake passage and northward connection read",
+          "mapped_component_name": "Sarcpa Lake"
+        },
+        {
+          "fragments": [
+            2491
+          ],
+          "component_scope": "Lower Kingora River and Hall Lake entrance",
+          "finding": "After the northern lake chain, the river turns east and southeast down the incised corridor to the western Hall Lake shore. Side streams and the river's mouth at Hall Lake are mapped. The sheet's C2 fisheries comment independently names the Kingora River mouth beside Hall Lake; this corroborates the observed river component without extending its name over the lake.",
+          "sources": [
+            "nluis47a-hall"
+          ],
+          "correspondence": "Lower river corridor, side junctions and actual lake entrance read",
+          "mapped_component_names": [
+            "Kingora River",
+            "Hall Lake"
+          ]
+        },
+        {
+          "fragments": [
+            2491
+          ],
+          "component_scope": "Hall Lake passage and northeastern Sarvuq Inlet",
+          "finding": "The selected continuation crosses the broad Hall Lake water body and turns northeast into its Sarvuq Inlet arm. The map shows the northern and western lake arms, islands, other tributary mouths and the eastern shore. These remain lake/inlet components rather than uniformly named Kingora reaches.",
+          "sources": [
+            "nluis47a-hall"
+          ],
+          "correspondence": "Main lake, material arms and selected northeastern inlet setting read",
+          "mapped_component_names": [
+            "Hall Lake",
+            "Sarvuq Inlet"
+          ]
+        },
+        {
+          "fragments": [
+            2491
+          ],
+          "component_scope": "Northeastern connector and selected Foster Bay terminal setting",
+          "finding": "The source depicts Sarvuq Inlet, the intervening small-waterbody/coastal terrain and the southwestern Foster Bay coast, but the inspected mapping does not establish a continuous selected inlet-to-coast waterway. The small coastal streams and ponds cannot be assumed to connect back to Sarvuq merely because the retained model reaches the coast. Consequently the actual selected terminal connection remains pending.",
+          "sources": [
+            "nluis47a-hall"
+          ],
+          "correspondence": "Surrounding lake, coastal ponds/streams and Foster Bay shoreline read; connecting selected waterway not established",
+          "mapped_component_name": "Foster Bay"
+        },
+        {
+          "fragments": [
+            2491
+          ],
+          "component_scope": "Separately mapped Hall Lake outlet and bounded primary prose",
+          "finding": "Hall Lake's southeastern outlet is labelled Ikerasak River and is mapped through its islanded lower reach into Roche Bay. Fish-resource notes M2, D2 and D3 describe migration between Hall Lake and the Ikerasak outlet and place that river in Roche Bay. This provides bounded drainage context, not correspondence for the selected Sarvuq–Foster ending.",
+          "sources": [
+            "nluis47a-hall"
+          ],
+          "correspondence": "Alternative actual outlet mapped and corroborated; outside selected northeastern ending",
+          "mapped_component_names": [
+            "Ikerasak River",
+            "Roche Bay"
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:80242328",
+      "publication": "Kenai River Comprehensive Management Plan, December 1997, Chapter 2: Background Information",
+      "official_url": "https://dnr.alaska.gov/parks/plans/krsmapln/krsma_1997_ch2.pdf",
+      "observed_outcome": "The web PDF text reader opened normally and reported 20 pages. The first requested map screenshot, zero-based page 0, returned Internal Error: Failed to fetch the exact PDF URL: Cache miss. No HTTP status was exposed.",
+      "outcome_layer": "Web screenshot/reader availability; origin HTTP outcome unknown.",
+      "restriction_scope": "Unseen map/visual material from this publication and equivalent acquisition routes remain paused. No repeat screenshot, original-file download, reader/cache, mirror or alternate visual retrieval was used.",
+      "earlier_lawful_prose_exception": "Only the previously read section 2.0, printed page 11, is retained: Snow and Trail rivers flow into Kenai Lake; upper Kenai River leaves the western end at Cooper Landing and reaches Skilak Lake; lower Kenai River continues from that lake to Cook Inlet.",
+      "material_effect": "Optional unavailable plan maps leave no geographic coverage gap because five independently acquired original USGSTopo views cover both selected fragments, headward outlet, lake links, junctions and actual terminal.",
+      "source_evidence_excluded": "No failed screenshot or parsed map-label list is treated as inspected cartography."
+    },
+    {
+      "aw_id": "hydro-system:80049373",
+      "publication": "NTS047A/14, CanMatrix 1:50,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/047/a/canmatrix_047a14_tif.zip",
+      "observed_outcome": "The official 50k directory completed HTTP200 and supplied the exact original archive link. The sole original acquisition completed HTTP403, Content-Type text/html. No archive or original map body was acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel/transport error reported.",
+      "restriction_scope": "Whole NTS047A/14 publication and equivalent copies, editions offered as this source, formats, figures, catalogue, readers, originals, mirrors and all acquisition routes stopped. No retry or equivalent recovery.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no geographic content from this sheet. Independently issued NLUIS47A/47B originals had already been acquired lawfully and read.",
+      "limitation_kind": "http_403_denial",
+      "material_effect": "Potential detailed evidence for the selected northeastern Hall Lake connector was unavailable."
+    },
+    {
+      "aw_id": "hydro-system:80049373",
+      "publication": "NTS047A/15, CanMatrix 1:50,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/047/a/canmatrix_047a15_tif.zip",
+      "observed_outcome": "The archive acquisition started and returned a running session. The subsequent terminal-status request was denied at the tool layer. No terminal original HTTP outcome was established, and no partial file, archive or map content was inspected.",
+      "outcome_layer": "Tool-layer authorization denial during terminal-status acquisition; origin HTTP status unknown.",
+      "restriction_scope": "This publication and equivalent copies, formats, editions offered as recovery, catalogue, originals, readers, mirrors and all acquisition routes remain stopped. No status retry, local file inspection or alternate route followed.",
+      "earlier_lawful_prose_exception": "Only the previously successful official directory listing. No geographic content from this sheet. Earlier independently acquired NLUIS originals remain the substantive evidence.",
+      "limitation_kind": "tool_acquisition_denial_unresolved_http",
+      "material_effect": "Potential terminal-side map evidence for the Sarvuq Inlet–Foster Bay connector remains unavailable."
+    }
+  ],
+  "additional_source_use_notices": []
+}

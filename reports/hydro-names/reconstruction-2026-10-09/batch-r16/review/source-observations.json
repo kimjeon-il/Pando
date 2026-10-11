@@ -1,0 +1,50 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "reviewed_at_utc": "2026-10-09T17:08:04.849828+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159108453",
+    "lakes_base:1159108469",
+    "lakes_base:1159109723"
+  ],
+  "observation_scope": "Past independent original-source observations; present public validation checks included factual linkage only.",
+  "new_external_requests": 0,
+  "distinct_acquired_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "shoreline_overlap_measured": false,
+  "survey_registration_verified": false,
+  "observations": [
+    {
+      "source_key": "wsa_completed_watershed_plans_2014",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "title": "Map of Saskatchewan Showing Completed Watershed Plans",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "publication_date": "2014-11-25",
+      "physical_pdf_page": 1,
+      "printed_scale": "1:1,750,000 at 22 by 34 inches",
+      "retrieved_this_batch": false,
+      "role": "Generalized Knee Lake and eastern-basin Sandfly Lake associations, plus a complete hooked-feature naming-scope assessment",
+      "observation": "The complete map places the first bent outline at Knee Lake. Sandfly Lake lettering spans the northern waters near the latter targets, while Pinehouse Lake is separately labelled to the south. The eastern target follows the basin beneath the Lake part of Sandfly Lake. The middle hooked target lacks a clear full-outline name partition. Multiple map views count as one publication. The printed production date differs from the URL date directory."
+    }
+  ],
+  "complete_geometry_observations": [
+    {
+      "aw_id": "lakes_base:1159108453",
+      "position_count": 33,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159108469",
+      "position_count": 44,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159109723",
+      "position_count": 28,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    }
+  ],
+  "included_evidence_limit": "Included files contain factual observations, bibliography and selected public-domain geometry. Original publications and inspection materials are omitted. Public validation checks only included facts and coordinates; it cannot reproduce omitted visual source judgments or resolve the remaining naming-scope hold."
+}

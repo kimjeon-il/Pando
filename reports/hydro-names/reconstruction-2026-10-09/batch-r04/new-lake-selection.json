@@ -1,0 +1,135 @@
+{
+  "batch": "r04",
+  "selection_scope": "New inventory investigation; no claim that a lost historical verdict was recovered.",
+  "aw_id": "lakes_base:1159123567",
+  "category": "lake",
+  "source_id": "1159123567",
+  "logical_fid": 4894,
+  "geometry_fids": [
+    16269
+  ],
+  "display_names": [
+    "lake-1077"
+  ],
+  "baseline_source_feature_index_zero_based": 1076,
+  "baseline_source_feature_properties": {
+    "pandolab_id": "lakes_base:1159123567",
+    "layer_id": "lakes_base",
+    "category": "lake",
+    "name": "lake-1077",
+    "name_ko": "",
+    "name_en": "",
+    "name_original": "",
+    "feature_class": "Reservoir",
+    "scale_rank": 9,
+    "min_zoom": 7.0,
+    "stroke_width": 1.0800000000000003,
+    "source_id": 1159123567,
+    "wikidata_id": "",
+    "note": "",
+    "source": "Natural Earth 5.0.0 1:10m"
+  },
+  "baseline_source_geometry": {
+    "type": "Polygon",
+    "part_count": 1,
+    "ring_count": 1,
+    "hole_count": 0,
+    "position_count_including_closure": 208,
+    "all_rings_closed": true,
+    "bbox": [
+      -48.018732954731064,
+      -18.55718952456266,
+      -47.441484901425866,
+      -18.139192464035688
+    ]
+  },
+  "identity_join": {
+    "method": "Exact numeric Natural Earth ne_id to baseline properties.source_id to inventory source_id and metadata-detail sourceId, with aw_id and source feature index corroboration; not a centroid match.",
+    "natural_earth_dbf_release": "v5.0.0",
+    "release_commit": "b70b7b8766c3c83d5f5145cb6f1c93921d383d3f",
+    "dbf_record_index_zero_based": 1076,
+    "ne_id_dbf_field": {
+      "type": "N",
+      "width": 10,
+      "decimal_places": 0,
+      "value": "1159123567"
+    },
+    "natural_earth_record": {
+      "featurecla": "Reservoir",
+      "scalerank": "         9",
+      "name": "",
+      "name_abb": "",
+      "name_alt": "Theodomiro Sampaio",
+      "note": "",
+      "delta": "",
+      "dam_name": "Emborcação Dam",
+      "year": "     1981",
+      "admin": "",
+      "min_zoom": "   7.0",
+      "min_label": " 8.0",
+      "label": "",
+      "wikidataid": "",
+      "name_ar": "",
+      "name_bn": "",
+      "name_de": "",
+      "name_en": "",
+      "name_es": "",
+      "name_fr": "",
+      "name_el": "",
+      "name_hi": "",
+      "name_hu": "",
+      "name_id": "",
+      "name_it": "",
+      "name_ja": "",
+      "name_ko": "",
+      "name_nl": "",
+      "name_pl": "",
+      "name_pt": "",
+      "name_ru": "",
+      "name_sv": "",
+      "name_tr": "",
+      "name_vi": "",
+      "name_zh": "",
+      "ne_id": "1159123567",
+      "name_fa": "",
+      "name_he": "",
+      "name_uk": "",
+      "name_ur": "",
+      "name_zht": ""
+    },
+    "baseline_source_id_match_count": 1,
+    "inventory_source_id_match_count": 1,
+    "source_name_attributes_role": "Discovery leads only. dam_name identifies a dam, not an official reservoir name; name_alt is not accepted without primary corroboration.",
+    "source_name_field_empty": true,
+    "identifier_semantics": "Natural Earth ne_id is a numeric dataset feature-identity field used here for an exact source-record join. It is distinct from a formal gazetteer or dam-registry identifier, and neither this field nor a matching record number proves a reservoir name or footprint."
+  },
+  "sources": [
+    {
+      "title": "Natural Earth 5.0.0 lake attribute table",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/b70b7b8766c3c83d5f5145cb6f1c93921d383d3f/10m_physical/ne_10m_lakes.dbf",
+      "retrieved_at_utc": "2026-10-09T12:28:03.657311+00:00",
+      "sha256": "0edaa87f76c2221c986f0796ce0b54b1c418e9032afba46f8e302edc41193495",
+      "hash_scope": "Entire streamed original DBF bytes; only header and selected row retained locally.",
+      "byte_length": 9993116
+    },
+    {
+      "title": "Original reconstructed product lakes_base GeoJSON",
+      "sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+      "hash_scope": "Entire local baseline source GeoJSON bytes.",
+      "url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/lakes_base.geojson"
+    },
+    {
+      "title": "Initial actual inventory CSV",
+      "url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+      "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+      "hash_scope": "Entire cached compressed inventory CSV bytes."
+    }
+  ],
+  "name_research_lead": "Emborcação",
+  "automatic_application": false,
+  "scalar_product_field_clearance": false,
+  "name_ko": null,
+  "schema": "hydro-name-new-inventory-selection-v1",
+  "created_at_utc": "2026-10-09T12:34:20.844177+00:00",
+  "geometry_reference": "geometry-reference.json"
+}

@@ -1,0 +1,441 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r84",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r83",
+    "commit": "a142321d6dc75dd3c007c9d8dca47eead920adf3",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r83/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70963359",
+    "hydro-system:80035625",
+    "hydro-system:60588835",
+    "hydro-system:60515284"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70963359",
+      "category": "river_group",
+      "system_id": "70963359",
+      "baseline_logical_fid": 3305,
+      "geometry_fids": [
+        10664
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -87.4375,
+        13.091592,
+        -86.710417,
+        14.302083
+      ],
+      "rendered_mainstem_length_km": 324.107,
+      "rendered_network_length_km": 324.107,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -87.4375,
+          13.091592,
+          -86.710417,
+          14.302083
+        ]
+      },
+      "candidate_name": "Río Choluteca",
+      "candidate_names": [
+        "Río Choluteca",
+        "Río Grande",
+        "Río San José",
+        "Río San Sebastián",
+        "Estero La Joya",
+        "Estero El Pedregal"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Choluteca applies to the receiving river and representative system, not uniformly to the western San José/San Sebastián/Grande headwater route or to the named terminal esteros.",
+      "geographic_disambiguation": "This is the Pacific-draining Choluteca system in southern Honduras, passing through the Tegucigalpa setting, making a pronounced northern and eastern loop, then returning southwest through the lower Choluteca corridor to the Gulf of Fonseca. It is distinct from the Caribbean-draining Patuca and from the separate Nacaome and Goascorán systems farther west. The selected initial San José is the western Lepaterique–Grande approach, not the separate San José tributary entering the urban system from the southeast. Pando is the project context, not the geographic location.",
+      "source_keys": [
+        "r84-jica-supporting-f",
+        "r84-dma-lepaterique",
+        "r84-ams-ojojona",
+        "r84-ign-dma-san-buenaventura",
+        "r84-ign-nima-punta-condega"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Honduras: western Tegucigalpa headwaters, the Choluteca loop through Francisco Morazán and El Paraíso, and the lower river and Gulf of Fonseca estuarine approach in Choluteca.",
+      "candidate_name_role": "supported_representative_receiving_system_identity",
+      "completion_scope": "Completed at generalized whole-selected-route and representative-identity level. The complete cached mainstem extent was compared with JICA's whole-basin channel map; readable historical detailed sheets supplement the western headwater connection and terminal estuary. This does not establish a current uniform hydronym, exact confluence/name boundaries, reservoir shoreline, or navigable coastal route.",
+      "naming_scope_details": {
+        "representative_receiving_system": "Río Choluteca.",
+        "model_mainstem": "One selected fragment combines western named headwaters, the Grande approach, Choluteca proper and its bounded estuarine continuation. Model-fragment boundaries are not hydronym boundaries.",
+        "separate_tributaries": "No separate tributary fragment is selected. Guacerique and the southeastern San José and Chiquito are independently named neighboring tributaries shown by JICA; none is silently incorporated as the selected initial route.",
+        "historical_upper_name_limit": "San José and San Sebastián are read on different historical sheets along the selected upper corridor. Their exact present-day naming transition is not asserted. This bounded component-name limitation does not leave the receiving identity or upper connection unresolved.",
+        "reservoir_scope": "JICA locates Concepción Dam on Grande and depicts the upper reservoir setting. The modeled route is a river-system centerline, not an independently named reservoir polygon; no shoreline or historical-to-current storage boundary comparison was attempted.",
+        "lake_and_terminal_scope": "The downstream tip is in the Choluteca–La Joya–El Pedregal estuarine approach to the Gulf of Fonseca. Estero La Joya, Estero El Pedregal and the gulf remain distinct features. No name is assigned to an entire estuary polygon or to offshore water, and no precise river/estuary limit is claimed.",
+        "length_limit": "324.107 km is the selected rendered modeled mainstem length, not a newly measured official length of Río Choluteca proper.",
+        "scope_hold_reason": null,
+        "representative_naming_limit": "The upper and terminal component boundaries are explicit. They do not prevent the supported representative receiving-system identity. The terminal estuarine continuation is geographically bounded rather than an unresolved merger with another river system; no additional naming scope hold is asserted."
+      }
+    },
+    {
+      "aw_id": "hydro-system:80035625",
+      "category": "river_group",
+      "system_id": "80035625",
+      "baseline_logical_fid": 855,
+      "geometry_fids": [
+        2341
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -162.34081,
+        68.608333,
+        -159.78125,
+        70.092434
+      ],
+      "rendered_mainstem_length_km": 323.139,
+      "rendered_network_length_km": 323.139,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -162.34081,
+          68.608333,
+          -159.78125,
+          70.092434
+        ]
+      },
+      "candidate_name": "Utukok River",
+      "candidate_names": [
+        "Utukok River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Direct map labels support Driftwood Creek for the selected southern component and Utukok River after its receiving junction, continuing to the Kasegaluk Lagoon delta setting. The lagoon and sea remain distinct feature classes.",
+      "geographic_disambiguation": "The selected route begins in the Driftwood Creek mountain valley, trends north and northwest past the Kietag, Nucleus and Elbow creek arrival settings, then west into Utukok. The receiving trunk runs north, turns broadly east and northeast, then north and northwest across the coastal plain to Kasegaluk Lagoon. Kokolik and Avingak lie to the west, while upper Colville and its branches are east of the upper selection. Avak and Ivisaruk are separate neighboring lower river corridors, not alternatives for the selected northwest-going Utukok route.",
+      "source_keys": [
+        "r84-usgs-topo-utukok"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northwestern Alaska, United States; De Long Mountains/northern foothills and North Slope coastal plain to Kasegaluk Lagoon.",
+      "candidate_name_role": "bounded_representative_receiving_system_identity_with_selected_Driftwood_Creek_headwater_component",
+      "completion_scope": "Completed bounded correspondence of the one selected mainstem fragment using readable original federal cartography across the whole route, plus upper-component and delta enlargements. Repeated direct labels and the connected river geometry support representative identity without a substantial unviewed interval. Exact channel branches, formal name-change vertices and present tidal or shoreline positions are not assigned. Two optional denied geological publications were excluded; they leave no unresolved source-coverage gap.",
+      "naming_scope_details": {
+        "representative_receiving_system": "Utukok River",
+        "selected_mainstem_sequence": "Driftwood Creek → Utukok River → Kasegaluk Lagoon delta/margin setting.",
+        "headwater_scope": "The model selects Driftwood Creek rather than the southern upper Utukok/Kogruk/Tupik approach. Those names are not aliases for the selected beginning.",
+        "tributary_scope": "No separate tributary fragments are selected. Kietag, Nucleus, Elbow, Adventure, Seismo, Carbon and other surrounding waterways retain contextual or arriving-stream roles.",
+        "terminal_scope": "The lagoon, barrier-island channels and sea are not named as a continuation of Utukok River. No current discharge, navigability, tidal limit or delta dominance is inferred.",
+        "model_limits": "323.139 km is the modeled mainstem display length, not an official Utukok River length. No Korean or Indigenous-language form is derived."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60588835",
+      "category": "river_group",
+      "system_id": "60588835",
+      "baseline_logical_fid": 3430,
+      "geometry_fids": [
+        13763
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -40.597917,
+        -4.90625,
+        -40.09375,
+        -2.845862
+      ],
+      "rendered_mainstem_length_km": 321.575,
+      "rendered_network_length_km": 321.575,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -40.597917,
+          -4.90625,
+          -40.09375,
+          -2.845862
+        ]
+      },
+      "candidate_name": "Rio Acaraú",
+      "candidate_names": [
+        "Rio Acaraú",
+        "Riacho Acaraú",
+        "Riacho Fundo"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Acaraú is directly labeled on the upper corridor southeast of Tamboril, on the receiving river east of Nova Russas, above and below Açude Público Araras, at Sobral and on the lower coastal river. Riacho Acaraú is the detailed headward label; Riacho Fundo is separately printed on the west/northwestward continuation at Tamboril. No Korean rendering or single scalar label is applied.",
+      "geographic_disambiguation": "The selection starts southwest of Monsenhor Tabosa in the Serra das Matas headward valley, descends south through the Saco do Souza setting, bends west and then northwest toward Tamboril, and continues through the Irapuá/eastern Nova Russas corridor. It turns north near Conceição, passes west of Hidrolândia into Açude Público Araras by Varjota, continues north past the Cariré–Groaíras surroundings to Sobral, and then follows Santana do Acaraú, Morrinhos, Marco and Cruz toward the estuarine channel north of Acaraú. This is distinct from the Coreaú drainage toward Camocim to the west and Aracatiaçu to the east. Rio Feitosa, Rio dos Macacos, Jacurutu, Groaíras and Jaibaras are separately mapped waterways, not whole-selection aliases. Pando is the project context, not the river location.",
+      "source_keys": [
+        "r84-ipece-monsenhor-tabosa-2025",
+        "r84-ipece-tamboril-2025",
+        "r84-ibge-ceara-political-2015"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northwestern Ceará, Brazil: the Serra das Matas–Tamboril upper corridor, Araras reservoir, Sobral and the Acaraú Atlantic coastal plain.",
+      "candidate_name_role": "bounded_representative_receiving_river_identity_with_component_names_preserved",
+      "completion_scope": "Completed bounded regional correspondence for the entire one-fragment selection using readable original state and municipal map pixels. The detailed municipal sheets resolve the initial valley, southern bow and Tamboril continuation; the state sheet follows the connected receiving course, reservoir and coastal ending without a substantial unviewed interval. Exact source, name-boundary and confluence vertices, reservoir shorelines, and a formal surveyed river-mouth point are outside this finding. Differing upper-reach labels do not prevent the supported receiving identity.",
+      "naming_scope_details": {
+        "upper_component": "Riacho Acaraú headward valley and upper Rio Acaraú; the selected Tamboril continuation has a separately printed Riacho Fundo label. Local upper labels are preserved without making them aliases of the entire receiving river.",
+        "middle_component": "Receiving Rio Acaraú east of Nova Russas, southern reservoir approach, Açude Público Araras passage, and river below Varjota through Sobral.",
+        "terminal_component": "Lower Rio Acaraú through Santana do Acaraú, Morrinhos, Marco and Cruz into the estuarine opening north of Acaraú on the Atlantic coast.",
+        "displayed_mainstem_length_km": 321.575,
+        "model_limits": "This is a displayed modeled-path length, not an official measured river length. Generalization simplifies bends, impoundments and estuarine channels. No new geometry, exact registration, contemporary flow condition, formal source/mouth point, name-boundary vertex or Korean name is established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60515284",
+      "category": "river_group",
+      "system_id": "60515284",
+      "baseline_logical_fid": 3419,
+      "geometry_fids": [
+        13713,
+        13712,
+        13711,
+        13710,
+        13714
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -46.4,
+        -3.26875,
+        -45.14375,
+        -1.731134
+      ],
+      "rendered_mainstem_length_km": 321.382,
+      "rendered_network_length_km": 353.611,
+      "geometry_summary": {
+        "fragment_count": 5,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -46.4,
+          -3.26875,
+          -45.14375,
+          -1.731134
+        ]
+      },
+      "candidate_name": "Rio Turiaçu",
+      "candidate_names": [
+        "Rio Turiaçu",
+        "Rio do Peixe",
+        "Rio Paruá"
+      ],
+      "research_category": "representative_identity_supported_initial_headwater_material_hold",
+      "supported_name_scope": "Repeated official map labels support the receiving upper and middle Turiaçu and its lower estuarine channel. Rio do Peixe applies only to its mapped upper valley near Vitória da Conquista; Rio Paruá applies to the actual separate western branch. The initial southwestern modeled headwater approach remains unresolved.",
+      "geographic_disambiguation": "This is the Atlantic-draining Turiaçu system in northwestern Maranhão, east of the Gurupi border river and west of the Pericumã lowlands. The selected course passes north of the Zé Doca setting and through the Santa Helena–Turilândia corridor toward Turiaçu. It is neither the Turiaçu neighborhood in Rio de Janeiro nor a Pando/Bolivia river. Pando is the project context.",
+      "source_keys": [
+        "r84-ibge-maranhao-retained",
+        "r84-ibge-alto-turiacu",
+        "r84-ibge-ze-doca",
+        "r84-ibge-santa-luzia-parua",
+        "r84-ibge-governador-nunes-freire",
+        "r84-ibge-santa-helena-2022",
+        "r84-ibge-turiacu-2022"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northwestern Maranhão, Brazil: Alto Turiaçu to the Santa Helena–Turilândia lowlands and the lower Turiaçu estuarine channel.",
+      "candidate_name_role": "supported_receiving_river_identity_with_initial_headwater_material_hold",
+      "completion_scope": "Receiving identity and the downstream/tributary correspondence are supported. This is not a completed whole-feature review because the initial southwestern headwater approach of the uppermost mainstem fragment is not continuously matched. Distinct component names alone do not create a representative-system scope hold.",
+      "naming_scope_details": {
+        "representative_receiving_system": "Rio Turiaçu, bounded to its receiving-river/system role.",
+        "model_mainstem": "Four modeled mainstem fragments include the Rio do Peixe direction, the receiving Rio Turiaçu and its broad lower estuarine reach. The initial headwater interval is unresolved rather than silently assigned the downstream name.",
+        "separate_tributaries": "One selected western tributary fragment is Rio Paruá. Rio do Peixe is an upper component of the modeled mainstem, not this western side branch.",
+        "lake_and_terminal_scope": "The route crosses a natural lowland floodplain channel/waterbody complex. Nearby named lakes remain separate; no named reservoir is established. The terminal is an estuarine river reach upstream of Turiaçu town, not the whole Baía de Turiaçu or Atlantic shoreline.",
+        "length_limit": "321.382 km is the rendered modeled mainstem length, not an official surveyed length of Rio Turiaçu proper.",
+        "scope_hold_reason": null,
+        "representative_naming_limit": "No unresolved receiving-identity or distinct feature-class obstacle is asserted. Component names and floodplain context are retained without forcing a scalar naming decision."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:60515284"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 279,
+    "non_pending_records": 269,
+    "source_access_pending": 3,
+    "source_material_pending": 7,
+    "source_any_pending": 10,
+    "scope_holds": 88,
+    "river_groups": 181,
+    "lakes": 98,
+    "unrecorded": 3786,
+    "unrecorded_river_groups": 3274,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r84-jica-supporting-f",
+      "official_url": "https://openjicareport.jica.go.jp/pdf/11688421_11.pdf"
+    },
+    {
+      "source_key": "r84-dma-lepaterique",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/lepaterique-honduras-50k-2758iii-1980.pdf"
+    },
+    {
+      "source_key": "r84-ams-ojojona",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/ojojona-honduras-50k-2757iv-1956.pdf"
+    },
+    {
+      "source_key": "r84-ign-dma-san-buenaventura",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_buenaventura-honduras-50k-2757i-1993.pdf"
+    },
+    {
+      "source_key": "r84-ign-nima-punta-condega",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/punta_condega-honduras-50k-2755iii-1995.pdf"
+    },
+    {
+      "source_key": "r84-usgs-topo-utukok",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r84-ipece-monsenhor-tabosa-2025",
+      "official_url": "https://www.ipece.ce.gov.br/wp-content/uploads/sites/45/2025/05/mapas_municipais_Monsenhor_Tabosa_2025.pdf"
+    },
+    {
+      "source_key": "r84-ipece-tamboril-2025",
+      "official_url": "https://www.ipece.ce.gov.br/wp-content/uploads/sites/45/2025/05/mapas_municipais_Tamboril_2025.pdf"
+    },
+    {
+      "source_key": "r84-ibge-ceara-political-2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/ce_politico650k_2015.pdf"
+    },
+    {
+      "source_key": "r84-ibge-maranhao-retained",
+      "official_url": "https://geoftp.ibge.gov.br/produtos_educacionais/mapas_tematicos/mapas_do_brasil/mapas_estaduais/politico/maranhao.pdf"
+    },
+    {
+      "source_key": "r84-ibge-alto-turiacu",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/folhas_topograficas/editoradas/escala_100mil/projeto_ma_pa/alto_turiacu0606.pdf"
+    },
+    {
+      "source_key": "r84-ibge-ze-doca",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/folhas_topograficas/editoradas/escala_100mil/projeto_ma_pa/ze_doca0607.pdf"
+    },
+    {
+      "source_key": "r84-ibge-santa-luzia-parua",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/folhas_topograficas/editoradas/escala_100mil/projeto_ma_pa/santa_luzia_do_parua0546.pdf"
+    },
+    {
+      "source_key": "r84-ibge-governador-nunes-freire",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/folhas_topograficas/editoradas/escala_100mil/projeto_ma_pa/governador_nunes_freire0492.pdf"
+    },
+    {
+      "source_key": "r84-ibge-santa-helena-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/MA/santa_helena/A0_2109809_MM.pdf"
+    },
+    {
+      "source_key": "r84-ibge-turiacu-2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/MA/turiacu/A0_2112407_MM.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "a142321d6dc75dd3c007c9d8dca47eead920adf3",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      135,
+      136,
+      137,
+      138
+    ],
+    "next_unrecorded_id": "hydro-system:70793175",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

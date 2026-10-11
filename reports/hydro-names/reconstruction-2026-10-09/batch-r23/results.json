@@ -1,0 +1,202 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r23",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three logical MAIN_RIV inventory groups; not three uniformly named channels or scalar-name approvals.",
+  "counts": {
+    "supported_representative_system_identity": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 3,
+  "river_line_part_count": 121,
+  "distinct_source_reach_count": 121,
+  "river_rendered_coordinate_count": 754,
+  "part_counts_in_target_order": [
+    36,
+    36,
+    49
+  ],
+  "position_counts_in_target_order": [
+    276,
+    227,
+    251
+  ],
+  "fragment_part_counts_in_target_order": [
+    [
+      36
+    ],
+    [
+      36
+    ],
+    [
+      49
+    ]
+  ],
+  "fragment_position_counts_in_target_order": [
+    [
+      276
+    ],
+    [
+      227
+    ],
+    [
+      251
+    ]
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50798927",
+      "category": "river_group",
+      "system_id": "50798927",
+      "baseline_logical_fid": 2149,
+      "geometry_fids": [
+        7139
+      ],
+      "candidate_name": "Mitchell River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path runs southeast from a far-northwestern headwater, turns south through the middle corridor, then bends east and southeast into the Gippsland Lakes coastal complex. Direct blue Mitchell river-line labels support Mitchell River in Victoria as a representative system identity. The long northwestern upper continuation is not individually named by the inspected maps; a modeled mainstem can include differently named feeder reaches and does not make every part Mitchell. Exact feeder-to-river name transitions, any river/storage interfaces and the final generalized line through lake or coastal water remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The blue Mitchell river-line label is direct naming evidence. The black Mitchell-Thomson River basin callout is context only and does not combine or rename these separately selected systems.",
+        "No upper tributary name is inferred from the far-northwestern continuation; no exact rendered-part naming partition is assigned.",
+        "The original publication is a coarse regional assessment, not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name mapping are not verified.",
+        "No name is extended across generalized lake, estuarine, storage or coastal portions merely because they share a modeled group."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Mitchell River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:50798928",
+      "category": "river_group",
+      "system_id": "50798928",
+      "baseline_logical_fid": 2150,
+      "geometry_fids": [
+        7140
+      ],
+      "candidate_name": "Tambo River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path runs southwest from its northeastern headwater, turns south, bows east in the middle course, then turns southwest and south toward the Gippsland Lakes coastal complex. Figure 5.31 explicitly labels the Tambo River D/S of Ramrod Creek monitoring site on the eastern channel, supporting Tambo River as a representative system identity in conjunction with the complete regional path comparison. The upstream continuation is not individually named throughout. A modeled mainstem can include differently named feeder reaches and does not establish a uniform river name. Exact feeder-to-river transitions, any river/storage interfaces and the final generalized line through lake or coastal water remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The named Tambo River D/S of Ramrod Creek station supplies direct river-identity evidence; its location does not name every upstream or downstream reach.",
+        "Ramrod Creek appears within a station-location label; that wording does not establish that any selected part is Ramrod Creek. No exact rendered-part naming partition is assigned.",
+        "The original publication is a coarse regional assessment, not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name mapping are not verified.",
+        "No name is extended across generalized lake, estuarine, storage or coastal portions merely because they share a modeled group."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Tambo River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:50800637",
+      "category": "river_group",
+      "system_id": "50800637",
+      "baseline_logical_fid": 2154,
+      "geometry_fids": [
+        7144
+      ],
+      "candidate_name": "Latrobe River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path follows a long, nearly west-to-east corridor, with modest middle-course bends, a northeastern lower bend and a southeastern ending toward the Gippsland Lakes coastal complex. Direct blue La Trobe river-line wording and the Latrobe at Rosedale named monitoring site support Latrobe River as a representative system identity; the source also uses Latrobe in prose. The far-western upper continuation is not individually named throughout. A modeled mainstem can include differently named feeder reaches and does not establish a uniform river name. Exact feeder-to-river transitions, any river/storage interfaces and the lake-facing coastal ending remain unassigned at reach level.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "La Trobe is the directly mapped short spelling; Latrobe occurs in the named Rosedale station and accompanying prose. This records source spelling, not a formal alias-register decision.",
+        "The Latrobe at Rosedale station is direct local identity evidence, not all-reach name coverage. No exact rendered-part naming partition is assigned.",
+        "The original publication is a coarse regional assessment, not a formal naming-register decision or surveyed contemporary mouth map.",
+        "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part name mapping are not verified.",
+        "No name is extended across generalized lake, estuarine, storage or coastal portions merely because they share a modeled group."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "candidate_name_role": "bounded_representative_system_identity",
+        "directly_supported_name_forms": [
+          "Latrobe River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized reach-level or scalar product application still requires direct evidence for headwater/feeder names, exact name transitions, river/storage and lake interfaces, and coastal scope.",
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "regional_distinct_channel_associations": [],
+        "regional_associations_are_exact_reach_assignments": false
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "c252aff7fbbcb46376443c6bceead23c21a45ceacf51fe27fda472bb5e3eec56",
+  "publication_contents": "Own factual findings, bounded identity/count/bounds/name-state summaries and included-file validation. Full river paths, original reports, maps and private review materials are not distributed.",
+  "previous_reconstruction_commit": "1dd4a326287801853a0c2fa27186fae6aeda18c5"
+}

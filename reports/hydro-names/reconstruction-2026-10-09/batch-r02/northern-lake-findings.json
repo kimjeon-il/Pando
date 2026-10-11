@@ -1,0 +1,183 @@
+{
+  "schema": "hydro-northern-lake-findings-v1",
+  "created_at_utc": "2026-10-09T11:39:24.661305+00:00",
+  "aw_id": "lakes_base:1159107099",
+  "source_id": "1159107099",
+  "baseline_fid": 15239,
+  "baseline_logical_fid": 3864,
+  "baseline_display_name": "lake-47",
+  "verdict": {
+    "status": "supported_full_generalized_lake_identity",
+    "name_english": "Buffalo Lake",
+    "name_original_language": null,
+    "name_korean": null,
+    "name_confidence": "high",
+    "confidence_scope": "English mapped name attached to the entire generalized source/baseline lake polygon.",
+    "rationale": "Complete-shape inspection, a coordinate-framed federal map, and two regional territorial maps agree on Buffalo Lake. The geographically separate Tathlina candidate is excluded.",
+    "formal_registry_verified": false,
+    "official_naming_date": null
+  },
+  "candidate_lead_handling": "Candidate names require independent checks against complete geometry and surrounding named waters. Neither lead nor a nearby point is identity evidence by itself.",
+  "candidate_comparison": [
+    {
+      "candidate": "Buffalo Lake",
+      "result": "supported",
+      "evidence_ids": [
+        "NLUIS-85B-1975",
+        "GNWT-OILGAS-2023-F5",
+        "GNWT-BISON-216-2012-F2"
+      ],
+      "discrimination": "The entire target falls east of 116°W and west of 115°W, just north of 60°N. The map labels the corresponding full basin Buffalo Lake. The long western body, enlarged northeastern end and southern lobe all correspond."
+    },
+    {
+      "candidate": "Tathlina Lake",
+      "result": "excluded_for_this_polygon",
+      "evidence_ids": [
+        "GNWT-OILGAS-2023-F5",
+        "GNWT-BISON-216-2012-F2",
+        "NLUIS-85B-1975"
+      ],
+      "discrimination": "Regional maps place this separately named lake west of Enterprise and west of 117°W; the adjoining-sheet inset puts it on 85C rather than the target’s 85B. It is a different lake."
+    }
+  ],
+  "geometry_lineage": {
+    "reference": "geometry-reference.json",
+    "baseline": {
+      "repository": "kimjeon-il/Pando",
+      "git_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "hydro_version": "0.13.1",
+      "manifest_sha256": "c10eaffd375d5f0d90955fa253b02ec73d9daeff261fa5cfde1f73ca89d2bd80",
+      "baseline_assets_retrieved_this_batch": false,
+      "baseline_cached_assets_hash_checked_this_batch": true,
+      "historical_deployment_relation": "Recovered 2026-10-08 README and summary report this manifest equal to the then-observed deployment. Reused immutable repository assets match those retained historical hashes.",
+      "current_live_deployment_checked": false,
+      "current_live_deployment_equality_claimed": false,
+      "current_live_deployment_commit": null
+    },
+    "source_asset": {
+      "repository_path": "assets/data/hydro/lakes_base.geojson",
+      "immutable_url": "https://github.com/kimjeon-il/Pando/blob/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/lakes_base.geojson",
+      "bytes": 7016832,
+      "sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+      "git_blob_sha": "02ec805c9ec3347b81b7b6ec3aba5ed5eb0028a8",
+      "in_publishable_package": false,
+      "original_retrieved_at_utc": "2026-10-09T10:51:11.619Z",
+      "reuse_hash_checked_at_utc": "2026-10-09T11:34:08Z",
+      "retrieved_this_batch": false
+    },
+    "source_feature_zero_based_index": 46,
+    "source_feature_original_json_bytes": 3954,
+    "source_feature_original_json_sha256": "0f29c3cb64f0fe107b3108615c5b71e93baa50f47afff7317246818e7ea329e7",
+    "source_feature_canonical_sha256": "3455e89e9989ef28c4426c094f7ee10d488c2ee80d3cb3d287176874a9e0d867",
+    "source_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          88
+        ]
+      ],
+      "total_coordinates_including_closure": 88,
+      "bbox": [
+        -115.94119474147388,
+        60.09307851136671,
+        -115.050596074837,
+        60.36801460610769
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "753148d4fac687f28f5de2b6863d6470d38a446a51813ebb8775f901be9b14a2"
+    },
+    "baseline_rendered_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          88
+        ]
+      ],
+      "total_coordinates_including_closure": 88,
+      "bbox": [
+        -115.941195,
+        60.093079,
+        -115.050596,
+        60.368015
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "558458ffc1ae0020ad64ba48e41e80122b788ae6d328511aa7cef7831ab1517b"
+    },
+    "source_to_baseline_comparison": {
+      "same_geometry_type": true,
+      "same_part_ring_and_vertex_order": true,
+      "every_coordinate_matches_source_rounded_to_6_decimals": true,
+      "maximum_absolute_coordinate_difference_degrees": 4.981387249358704e-07
+    },
+    "source_ids_sha256": "e5d9bfd91459010a1a1100e7f93512fcddcbd251d62822e8b72fa68d3530e2b7",
+    "baseline_pack": {
+      "id": 1,
+      "shard": 0,
+      "offset": 26736,
+      "length": 174465,
+      "stage": 0,
+      "sha256": "7a2efc67054d38ac0e70408474e33c91a119e5f06c4fe2c2813d4875267526f4"
+    },
+    "source_artifact": "selected-lake-geometries.geojson",
+    "source_artifact_sha256": "8ea152040c35d213855c96e2b07d1bd61b3be66eda3157d894f05901929adedb",
+    "baseline_artifact": "selected-baseline-rendered-geometries.geojson",
+    "baseline_artifact_sha256": "778cb5fab315b001992400910c4ce3d50684fe1549eae2b12a78287a14c9ced2",
+    "coordinate_checks": {
+      "checked_at_utc": "2026-10-09T11:37:57.238842+00:00",
+      "source_id": "1159107099",
+      "complete_source_polygon_read": true,
+      "complete_baseline_polygon_read": true,
+      "source_type": "Polygon",
+      "baseline_type": "Polygon",
+      "source_ring_count": 1,
+      "baseline_ring_count": 1,
+      "source_coordinate_counts": [
+        88
+      ],
+      "baseline_coordinate_counts": [
+        88
+      ],
+      "all_rings_closed": true,
+      "all_coordinates_finite": true,
+      "same_order_and_rounded_values": true,
+      "geometry_canonical_sha256": "753148d4fac687f28f5de2b6863d6470d38a446a51813ebb8775f901be9b14a2",
+      "inspection": "Whole exterior ring and coordinate-labeled overview inspected, with original source and decoded baseline compared without removing vertices or rings.",
+      "not_tested": "Full OGC topology and surveyed shoreline equivalence."
+    },
+    "complete_geometry_definition": "All source/baseline rings and vertices retained, including closure. Completeness is relative to this generalized Natural Earth-derived representation, not all physical shoreline/island detail."
+  },
+  "map_match_scope": {
+    "entire_source_geometry_inspected": true,
+    "entire_baseline_geometry_inspected": true,
+    "all_source_rings_used": true,
+    "full_named_basin_in_an_official_original": true,
+    "coverage_source": "NLUIS-85B-1975",
+    "method": "Manual coordinate-graticule and complete-outline comparison, cross-checked by regional neighbor relationships. No quantitative georeferencing or pixel-overlap statistic was computed.",
+    "surveyed_boundary_equivalence_established": false,
+    "island_mask_equivalence_established": false,
+    "attached_small_water_or_channel_equivalence_established": false
+  },
+  "remaining_gaps": [
+    "Formal contemporary name-register entry and naming decision date were not established.",
+    "No direct Korean-name evidence was acquired; Korean remains null. Indigenous-language naming and aliases were not evaluated.",
+    "The source has one exterior ring and no holes. Its simplification cannot substantiate exact shores, islands, narrow connections or seasonal water boundaries.",
+    "The older federal sheet uses NAD27; no datum transformation or surveyed-boundary overlay was performed.",
+    "The live deployment was not checked. FIDs and logical FIDs refer only to the pinned baseline."
+  ],
+  "evidence_reference": "northern-lake-source-evidence.json",
+  "application": {
+    "automatic_application": false,
+    "product_changes": false,
+    "deployed": false,
+    "name_fields_changed": false
+  },
+  "bounded_conclusion": "The name conflict is resolved for this generalized feature. Precision shoreline and formal-registry claims remain unverified; no name is automatically applied."
+}

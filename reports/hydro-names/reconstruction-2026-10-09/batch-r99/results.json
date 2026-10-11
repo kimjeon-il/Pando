@@ -1,0 +1,568 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r99",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r98",
+    "commit": "9b092fd88f9c53b5a974b689fbe205e4884d032d",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r98/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:70685789",
+    "hydro-system:70088267"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61355098",
+      "category": "river_group",
+      "system_id": "61355098",
+      "baseline_logical_fid": 3527,
+      "geometry_fids": [
+        13964
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -70.395313,
+        -23.627083,
+        -68.66875,
+        -22.797917
+      ],
+      "rendered_mainstem_length_km": 274.877,
+      "rendered_network_length_km": 274.877,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -70.395313,
+          -23.627083,
+          -68.66875,
+          -22.797917
+        ]
+      },
+      "candidate_name": "Quebrada Saco (Antofagasta)",
+      "candidate_names": [
+        "Quebrada de los Arrieros",
+        "Quebrada Saco",
+        "Quebrada Mantos Blancos",
+        "Quebrada Caracoles"
+      ],
+      "research_category": "component_identities_supported_route_connections_material_pending",
+      "supported_name_scope": "The public IGM source supports Quebrada de los Arrieros on the east-to-west mountain-to-pampa corridor, Quebrada Saco on the southwestward middle drainage and Quebrada Mantos Blancos on the lower southward approach. Quebrada Caracoles names the separate coastal valley approached by the final modeled section; the actual connection from Mantos Blancos to that valley is not established.",
+      "geographic_disambiguation": "The selected initial line goes northeast along an unnamed feeder, then rounds a northwestern headward arc into Arrieros. It travels west, makes a conspicuous northward hook before turning southwest, follows Saco past separate Julia and El Buitre contributions and continues toward Mantos Blancos. The final modeled section leaves the southward Mantos Blancos setting and crosses west toward Caracoles and Antofagasta. The source layer does not support the precise hooked excursion or a continuous channel along that final connector.",
+      "source_keys": [
+        "r99-igm-chile-hydrocourses",
+        "r99-gonzalez-carrizo2003",
+        "r99-chiappe-rodelas2022-text",
+        "r99-mma-simbio027"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Chile, Antofagasta Region: eastern Arrieros drainage, Sierra Gorda–Baquedano/Saco corridor, Mantos Blancos and the northern Salar del Carmen/Caracoles coastal approach.",
+      "candidate_name_role": "Supported long middle-corridor identity only. The component names are not synonyms or a uniform name for the complete selection.",
+      "completion_scope": "All selected portions were examined against actual public IGM raster features, including separate eastern, western and terminal views, and the final piedmont setting was examined on an independently acquired geological map. Most channel components are supported, but the northern hooked excursion and Mantos Blancos-to-Caracoles connector remain materially unresolved. This is not merely incomplete naming of an otherwise established whole route.",
+      "material_pending_reason": "The selected northern hook west of the Arrieros reach and the final westward Mantos Blancos-to-Caracoles connection have not been established as actual natural or artificial water routes. The inspected source geometry supports adjacent named components but does not close these selected-route gaps. Final exact coastal-tip correspondence also remains unproved.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_middle_identity": "Quebrada Saco",
+        "geographic_qualifier": "Antofagasta is editorial disambiguation.",
+        "initial_headward_component_name": null,
+        "upper_component": "Quebrada de los Arrieros on the mapped westward receiving corridor; the exact initial feeder remains unnamed.",
+        "northward_hook_component_name": null,
+        "middle_component": "Quebrada Saco; neighboring Julia, El Buitre and Renacimiento remain tributaries.",
+        "lower_component": "Quebrada Mantos Blancos on the southward approach. The eastern upstream branch and adjacent San Cristóbal course are not automatically part of the selected name scope.",
+        "coastal_connector_name": null,
+        "terminal_component": "Caracoles coastal-valley setting near Antofagasta; only the short lower approach has bounded support. Exact source-to-coast continuity and the model-tip mouth are not established.",
+        "lake_flat_and_wetland_scope": "No selected lake or reservoir transit is established. The Salar del Carmen/piedmont setting is supported by geological cartography, but a selected crossing of a particular salar boundary or declared urban wetland is not proved. The public IGM waterbody rendering was blank and provides no absence-of-water inference.",
+        "excluded_inferences": [
+          "Do not apply Saco, Arrieros, Mantos Blancos or Caracoles uniformly to the whole selection.",
+          "Do not convert basin labels into names of all channels within the basin.",
+          "Do not treat the source’s missing connector as proof that water never crosses the terrain; it is an unresolved correspondence gap.",
+          "Do not substitute a smoother mapped channel for the selected northern hook or replace the coastal connection with the named northern Caracoles branch.",
+          "No permanent flow, engineered drain, tunnel, exact current shoreline, legal naming date, Korean name or Indigenous alternative name is established."
+        ],
+        "model_limits": "The 274.877 km value is retained modeled length, not an official length of any named quebrada. The cached geometry was used only for source-view orientation. No geometry correction, revalidation, point-distance calculation or network test was undertaken.",
+        "access_limitations": "The primary accounting status is material-pending. Historical MOP/DGA/Loa/CIREN, IGM 250K, Codelco 2023, Atlas 1910 and Tapia 2018 stops remain preserved. New article 403s and an optional geological-map 502 are factual access details, not a second pending count."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70933800",
+      "category": "river_group",
+      "system_id": "70933800",
+      "baseline_logical_fid": 3287,
+      "geometry_fids": [
+        10573,
+        10572
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -86.241667,
+        14.989583,
+        -84.896053,
+        15.947998
+      ],
+      "rendered_mainstem_length_km": 274.659,
+      "rendered_network_length_km": 274.659,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -86.241667,
+          14.989583,
+          -84.896053,
+          15.947998
+        ]
+      },
+      "candidate_name": "Río Sico, Tinto o Negro",
+      "candidate_names": [
+        "Río Sico, Tinto o Negro"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "The initial selected reach is Río Negro; the eastward and northward upper receiving course is Río Grande. Middle sheets use Río Sico o Grande and Río Sico o Tinto. The lower sheets print Río Sico, Tinto o Negro. Exact transition boundaries are not assigned. The final northward coastal crossing is unresolved and has no assigned component name.",
+      "geographic_disambiguation": "The selection approaches the receiving system through Río Negro west of Gualaco, follows Río Grande through the Agalta valley and San Esteban, continues down the Sico corridor and passes the Guano and Paulaya tributary junctions before reaching the lower coastal wetlands. It does not follow Paulaya upstream or traverse the main Bacalar or Ibans lagoon bodies. Its final northward crossing differs from the open estuarine branches depicted on the historical Plaplaya sheet.",
+      "source_keys": [
+        "r99-e752-gualaco",
+        "r99-e752-paz",
+        "r99-e752-antonio",
+        "r99-e752-venta",
+        "r99-e752-esteban",
+        "r99-e752-naranjal",
+        "r99-e752-carbon",
+        "r99-e752-esperanza",
+        "r99-e752-mangas",
+        "r99-e752-macho",
+        "r99-e752-iriona",
+        "r99-e752-sico",
+        "r99-e752-plaplaya"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Eastern Honduras, from the Río Negro and Gualaco setting through Valle de Agalta and San Esteban to the lower Sico/Paulaya confluence and the Palacios–Plaplaya coastal wetlands.",
+      "candidate_name_role": "Supported name of the lower receiving river; the entire selected route is not completed because the final coastal crossing remains unestablished.",
+      "completion_scope": "Thirteen independently acquired historical government sheets establish the initial, upper, middle, tributary-junction and lower wetland corridor. The exact selected terminal passage through the coastal strip is not established by those sheets. Therefore the result has one primary material-pending status, is not a completed representative identity or completed scope hold, and retains the access restriction separately as factual detail.",
+      "material_pending_reason": "The final selected northward crossing from the Los Cayos/La Criba estuarine setting through the coastal strip to the sea is not shown as an open channel on the acquired historical Plaplaya sheet. The mapped outlets lie on distinct branches. No independent retained material establishes that the selected crossing is a later opening or identifies its component name.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_receiving_identity": "Río Sico, Tinto o Negro",
+        "initial_headward_component_name": "Río Negro",
+        "initial_headward_component": "The selected starting reach and its short southern bend; the natural source of Río Negro is not established.",
+        "upper_named_component": "Río Grande through the receiving course near Gualaco, the Agalta valley and San Esteban.",
+        "middle_named_components": [
+          "Río Sico o Grande",
+          "Río Sico o Tinto"
+        ],
+        "lower_named_component": "Río Sico, Tinto o Negro on the lower receiving river.",
+        "lake_components": [],
+        "wetland_component": "Lower river and connected coastal wetland channels around Palacios and Plaplaya; the larger Bacalar and Ibans lagoons are distinct from the selected main-river corridor.",
+        "terminal_component_name": null,
+        "terminal_component": "Los Cayos/La Criba coastal channel setting followed by an unresolved northward crossing of the historical coastal strip.",
+        "excluded_inferences": [
+          "Do not apply the lower-river compound name uniformly to Río Negro or Río Grande.",
+          "Do not interpret modeled mainstem membership or the fragment split as a natural name boundary.",
+          "Río Susmay, Río Tonjagua, Río Conquire, Río Guano and Río Paulaya are separate approaches where distinguished by the sheets; their upstream courses are not selected.",
+          "A nearby lagoon label does not name the selected river or prove a lake passage.",
+          "The historical map does not establish the final selected coastal opening. Do not substitute Barra de Palacios or Barra de Plaplaya for the modeled endpoint.",
+          "No new coastal opening, channel-migration date, current flow, contemporary bank or shoreline, exact naming boundary, legal naming date or Korean form is established."
+        ],
+        "model_limits": "The 274.659 km length is the retained rendered two-fragment mainstem length, not an official length of Río Sico, Río Tinto, Río Negro or any uniform natural-river entity. Private orientation comparisons used the already pinned route without geometry changes or revalidation.",
+        "access_limitations": "The single primary accounting status is material-pending. The 2020 Bacalar fishing-management plan returned HTTP 403; its original map was not acquired and that publication is excluded from substantive evidence. A separate Ramsar site 1254 landing request returned HTTP 502 and supplied no content. The historical independent topographic sheets do not establish the selected final coastal crossing, and these source restrictions remain in force."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70685789",
+      "category": "river_group",
+      "system_id": "70685789",
+      "baseline_logical_fid": 3115,
+      "geometry_fids": [
+        9866
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -117.352083,
+        34.277083,
+        -116.072917,
+        35.360417
+      ],
+      "rendered_mainstem_length_km": 272.517,
+      "rendered_network_length_km": 272.517,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -117.352083,
+          34.277083,
+          -116.072917,
+          35.360417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Holcomb Creek",
+        "Deep Creek",
+        "Mojave River",
+        "Mojave River Wash",
+        "Soda Lake",
+        "Silver Lake"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Holcomb Creek names the actual selected initial creek, Deep Creek the subsequent canyon tributary, Mojave River the principal Forks–Victorville–Barstow–Afton corridor, and Mojave River Wash the mapped lower wash. Soda Lake and Silver Lake are separately named terminal playas. Mojave River drainage is a representative system context, not an accepted scalar name or a claim that each selected point is a natural river channel.",
+      "geographic_disambiguation": "The selected start is on Holcomb Creek in Holcomb Valley, north of Big Bear Lake. It runs west to Deep Creek, then north and northwest through the canyon to the Deep Creek–West Fork Mojave River junction. From the Forks it follows the Mojave north past Hesperia through Victorville and then northeast through Barstow, east and northeast to Afton Canyon, and east into the lower Mojave River Wash setting. It chooses the Soda Lake terminal direction rather than the East Cronise Lake branch, continues north through Soda Lake and Baker, and ends within Silver Lake. The separate Salt Creek valley west of Silver Lake is not the terminal selected route.",
+      "source_keys": [
+        "r99-usgs-national-map-mojave",
+        "r99-usgs-mojave-3d-description",
+        "r99-usgs-soda-lake-description"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "San Bernardino County, southern California: Holcomb Valley and Deep Creek through the Mojave River corridor to the Soda Lake and Silver Lake terminal basin near Baker.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed bounded geographic and naming-scope correspondence for the entire selected fragment using three successfully acquired original federal raster exports. Six overlapping original whole-route crops and separate local orientation overlays cover the full corridor; detailed original headward and terminal crops resolve Holcomb Creek, Deep Creek, the Forks junction, Mojave River Wash, Soda Lake, the Baker connector and the actual Silver Lake endpoint. Two independently read USGS descriptions support the river-junction and terminal-basin context. The substantive hold concerns the long wash-plain and playa-interior modeled continuation, not missing source coverage. Further source acquisition is not pending for this bounded result. Exact channel alignment, continuous surface flow, legal name boundaries and official source/mouth positions are not established.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "Complete readable mapping establishes the selected creek, river, lower wash, both dry-lake interiors and the visibly mapped dashed-drainage connection through Baker. The substantive naming hold concerns the long modeled wash-plain and playa-interior continuation, which is not one named natural river channel. The Baker corridor is not an unresolved or unmapped connecting passage. This is a completed bounded geographic and naming-scope determination, not a hold caused merely by differently named upstream tributaries or by missing source coverage.",
+      "naming_scope_details": {
+        "representative_system_identity": "Mojave River drainage",
+        "representative_system_identity_role": "Supported regional drainage context only, not an applied or uniformly named full-selection river.",
+        "initial_headward_component_name": "Holcomb Creek",
+        "initial_headward_component": "Selected Holcomb Valley reach; the named creek extends farther headward than the selected start.",
+        "initial_receiving_tributary": "Deep Creek",
+        "unselected_upper_tributaries": [
+          "Upper Deep Creek south of the Holcomb confluence",
+          "West Fork Mojave River"
+        ],
+        "reservoir_component": "Mojave River Forks Reservoir junction setting, identified in acquired official prose; no claim of permanent open-water transit.",
+        "dominant_selected_river_component": "Mojave River",
+        "lower_wash_component": "Mojave River Wash",
+        "first_terminal_playa": "Soda Lake",
+        "interlake_connector_name": null,
+        "interlake_connector_scope": "A dashed blue drainage is visibly mapped between the Soda Lake northern constriction, Baker and the southern end of Silver Lake. The selected model follows that low connection at corridor scale with local offsets. This supports bounded source-to-route correspondence; its name, exact channel thread, present activity and overflow regime remain unestablished.",
+        "final_terminal_playa": "Silver Lake",
+        "playa_interior_river_name": null,
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "Do not extend Mojave River as one uniform natural-channel name over Holcomb Creek, Deep Creek, the lower wash-plain connector, Soda Lake or Silver Lake.",
+          "Do not treat the initial Holcomb start as the official source of Holcomb Creek or Mojave River.",
+          "Do not substitute the unselected West Fork, upper Deep Creek, East Cronise Lake route or Salt Creek valley west of Silver Lake.",
+          "Do not infer continuous surface flow, a permanent inter-lake connection, a modern flood event or a precise channel across the modeled playa interiors.",
+          "Do not identify the endpoint within Silver Lake as an official river mouth, lake outlet or downstream continuation.",
+          "No Korean name, legal naming date or authoritative compound hydronym is established."
+        ],
+        "model_limits": "The 272.517 km length belongs to this one selected modeled creek–river–wash–playa route, not an official length of Mojave River or its basin. The retained geometry visibly generalizes mountain bends, broad sandy channel corridors, wash-plain connections and lake interiors, sometimes lying laterally from the displayed channel. This was a bounded source-correspondence review only; no geometry edits or geometry revalidation were performed.",
+        "separately_named_corridor_parts": [
+          "Holcomb Creek",
+          "Deep Creek",
+          "Mojave River",
+          "Mojave River Wash",
+          "Soda Lake",
+          "Silver Lake"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed bounded geographic and naming-scope correspondence for the entire selected fragment using three successfully acquired original federal raster exports. Six overlapping original whole-route crops and separate local orientation overlays cover the full corridor; detailed original headward and terminal crops resolve Holcomb Creek, Deep Creek, the Forks junction, Mojave River Wash, Soda Lake, the Baker connector and the actual Silver Lake endpoint. Two independently read USGS descriptions support the river-junction and terminal-basin context. The substantive hold concerns the long wash-plain and playa-interior modeled continuation, not missing source coverage. Further source acquisition is not pending for this bounded result. Exact channel alignment, continuous surface flow, legal name boundaries and official source/mouth positions are not established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70088267",
+      "category": "river_group",
+      "system_id": "70088267",
+      "baseline_logical_fid": 2943,
+      "geometry_fids": [
+        9142,
+        9141
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -63.385417,
+        55.01875,
+        -60.673899,
+        55.43125
+      ],
+      "rendered_mainstem_length_km": 271.412,
+      "rendered_network_length_km": 271.412,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -63.385417,
+          55.01875,
+          -60.673899,
+          55.43125
+        ]
+      },
+      "candidate_name": "Adlatok–Ugjoktok river system",
+      "candidate_names": [
+        "Adlatok River",
+        "Ugjoktok River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The Fisheries and Oceans account distinguishes Adlatok River from its lower Ugjoktok branch. Independent federal cartography establishes the actual selected corridor, the separate Ashuapun lake passage, the Harp Lake and Shapiau tributary approaches, and the selected southern outlet at Ugjuktok Bay. The initial feeder and minor interlake connectors retain null names.",
+      "geographic_disambiguation": "The western start runs southwest through small upland waters, turns north and northeast into the large Ashuapun lake setting, and leaves its northeastern end. The route follows a narrow northeast-running valley into the long eastward northern corridor. It then descends southeast, makes the central south-and-north meander, and continues toward the Harp Lake outlet junction from the northwest. It turns south and then east above the Shapiau lake approach. Near the coast the waterway bifurcates; the selection takes the southern, southeast-then-northeast branch to Ugjuktok Bay instead of the northern branch to Adlatok Bay. Neither Harp Lake nor Shapiau is traversed as a mainstem lake.",
+      "source_keys": [
+        "r99-nrcan-cbmt-adlatok-ugjoktok",
+        "r99-anderson-labrador-1985-adlatok"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central-eastern Labrador, Newfoundland and Labrador, Canada, from the upland lake country north of Gates and Ross lakes to the southern Ugjuktok Bay outlet.",
+      "candidate_name_role": "Bounded representative composite identity for the selected upper Adlatok corridor and its southern Ugjoktok terminal branch; not one name for every selected lake or feeder.",
+      "completion_scope": "Completed bounded initial-feeder, lake, upper and central valley, major tributary junction, lower bifurcation and terminal review of both selected mainstem fragments. Four successful original federal raster views cover the whole route with western and eastern overlap and a separate lower-outlet enlargement. The retained original fisheries book supplies the system identity and lower-branch naming distinction. All route intervals were inspected in source pixels and separate private orientation copies. The generalized selected corridor is established; exact banks, small island-side threads, a legal name-change line and a surveyed source or mouth vertex are not.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Adlatok–Ugjoktok river system",
+        "initial_headward_component_name": null,
+        "initial_headward_component": "Unnamed southern lake-and-stream approach north of Gates and Ross lakes; the first selected vertex is not an established official river source.",
+        "selected_upper_lake_label": "Ashuapun",
+        "selected_upper_lake_label_scope": "Blue label printed within the large selected lake on federal cartography. No formal lake-name suffix, Indigenous-language interpretation or naming-record equivalence is established.",
+        "upper_and_middle_river_identity": "Adlatok River, supported by the retained fisheries account and its system map in correspondence with independently inspected federal cartography.",
+        "short_lake_connector_names": null,
+        "unselected_major_tributary_lakes": [
+          "Harp Lake",
+          "Shapiau (federal map label; Shapio Lake in the 1985 fisheries account)"
+        ],
+        "lower_bifurcation": "The selected branch turns southeast and then northeast to the southern bay; the northern Adlatok Bay branch is excluded.",
+        "terminal_river_component": "Ugjoktok River, using the explicit wording of the 1985 Fisheries and Oceans account.",
+        "terminal_receiving_water": "Ugjuktok Bay, as printed on the federal basemap; Ugjoktok Bay in the 1985 account.",
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "Do not assign Adlatok River uniformly to the initial feeder, Ashuapun lake, unnamed short connectors or the separately named Ugjoktok terminal branch.",
+          "Do not substitute Harp Lake, Shapiau, Gates Lake, Ross Lake or the northern Adlatok Bay outlet for the actual selected route.",
+          "The report’s Ugjoktok river spelling and the federal map’s Ugjuktok bay spelling do not by themselves establish a formal alias, legal renaming date, current gazetteer status or preferred Indigenous alternative.",
+          "The combined system wording is a bounded descriptive identity, not a single officially adjudicated scalar hydronym.",
+          "No Korean name or automatic/product application is authorized or performed."
+        ],
+        "model_limits": "The 271.412 km modeled length belongs to this selected feeder–lake–river–southern-outlet route and is not an official length of Adlatok River, Ugjoktok River or the whole basin. The display line generalizes bends, narrow channels, lake shores and coastal terrain. The connected corridor and branch choice are supported; precise banks, channel threads, official endpoints and current discharge are not. No geometry edits or point-by-point geometry revalidation were performed."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70685789"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61355098",
+      "hydro-system:70933800"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 2,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 2
+  },
+  "totals_after": {
+    "recorded_targets": 339,
+    "non_pending_records": 319,
+    "source_access_pending": 3,
+    "source_material_pending": 17,
+    "source_any_pending": 20,
+    "scope_holds": 109,
+    "river_groups": 241,
+    "lakes": 98,
+    "unrecorded": 3726,
+    "unrecorded_river_groups": 3214,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r99-igm-chile-hydrocourses",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r99-gonzalez-carrizo2003",
+      "official_url": "https://app.ingemmet.gob.pe/biblioteca/pdf/RGC30-223.pdf"
+    },
+    {
+      "source_key": "r99-chiappe-rodelas2022-text",
+      "official_url": "https://www.scielo.cl/scielo.php?pid=S0718-34022022000300285&script=sci_arttext"
+    },
+    {
+      "source_key": "r99-mma-simbio027",
+      "official_url": "https://simbio.mma.gob.cl/Cuencas/Details/027"
+    },
+    {
+      "source_key": "r99-e752-gualaco",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/gualaco-honduras-50k-2961ii-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-paz",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_francisco_de_la_paz-honduras-50k-2960i-1985.pdf"
+    },
+    {
+      "source_key": "r99-e752-antonio",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_antonio-honduras-50k-2961i-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-venta",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/la_venta-honduras-50k-3061iii-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-esteban",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_esteban-honduras-50k-3061iv-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-naranjal",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/el_naranjal-honduras-50k-3062iii-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-carbon",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/el_carbon-honduras-50k-3062ii-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-esperanza",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/sierra_la_esperanza-honduras-50k-3062i-1991.pdf"
+    },
+    {
+      "source_key": "r99-e752-mangas",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/las_mangas-honduras-50k-3162iv-1968.pdf"
+    },
+    {
+      "source_key": "r99-e752-macho",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/el_macho-honduras-50k-3163iii-1968.pdf"
+    },
+    {
+      "source_key": "r99-e752-iriona",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/iriona-honduras-50k-3163i-1992.pdf"
+    },
+    {
+      "source_key": "r99-e752-sico",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/sico-honduras-50k-3163ii-1968.pdf"
+    },
+    {
+      "source_key": "r99-e752-plaplaya",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/plaplaya-honduras-50k-3263iv-1968.pdf"
+    },
+    {
+      "source_key": "r99-usgs-national-map-mojave",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r99-usgs-mojave-3d-description",
+      "official_url": "https://www.usgs.gov/media/videos/mojave-river-a-3d-journey"
+    },
+    {
+      "source_key": "r99-usgs-soda-lake-description",
+      "official_url": "https://www.usgs.gov/media/images/soda-lake"
+    },
+    {
+      "source_key": "r99-nrcan-cbmt-adlatok-ugjoktok",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r99-anderson-labrador-1985-adlatok",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "9b092fd88f9c53b5a974b689fbe205e4884d032d",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      196,
+      197,
+      198,
+      199
+    ],
+    "next_unrecorded_id": "hydro-system:60026849",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

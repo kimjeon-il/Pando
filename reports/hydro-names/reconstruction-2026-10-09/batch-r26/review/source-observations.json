@@ -1,0 +1,115 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r26",
+  "scope_aw_ids": [
+    "hydro-system:50442438",
+    "hydro-system:50442579",
+    "hydro-system:50442814"
+  ],
+  "new_external_requests": 0,
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "figures": [
+        {
+          "figure": "13.1",
+          "physical_pdf_page": 600,
+          "printed_chapter_page": 5,
+          "scope": "Regional river network, coast, major towns and river legend; no additional direct target-name evidence certified from this view."
+        },
+        {
+          "figure": "13.22",
+          "physical_pdf_page": 622,
+          "printed_chapter_page": 27,
+          "scope": "Blyth River, Liverpool River and East Alligator River basin callouts provide regional context. Basin wording does not establish names for every selected river part."
+        },
+        {
+          "figure": "13.23",
+          "physical_pdf_page": 624,
+          "printed_chapter_page": 29,
+          "scope": "Direct blue East Alligator river-line wording supports the corresponding regional corridor. Direct blue Mann wording is present in the wider Liverpool-side network, but its exact relation to selected upper parts and any name transition remain unresolved. No direct Blyth or Liverpool label or usable named-station identity is certified."
+        },
+        {
+          "figure": "13.24",
+          "physical_pdf_page": 625,
+          "printed_chapter_page": 30,
+          "scope": "Regional flood-class symbols and the same northern river base provide context. No additional target name or named-station identity is certified from the smaller lettering."
+        },
+        {
+          "figure": "13.26",
+          "physical_pdf_page": 628,
+          "printed_chapter_page": 33,
+          "scope": "Kakadu National Park and neighboring coastal wetland-system callouts supply geographic context. They do not establish exact selected reach names, complete water boundaries or Blyth/Liverpool naming identities."
+        }
+      ],
+      "observation": "Direct blue East Alligator lettering supports one bounded representative identity in the Northern Territory when compared with the complete selected regional path. Blyth and Liverpool basin wording preserves geographic candidates without certified direct river-line or named-station evidence. The mapped Mann wording raises a separate upper-network scope question; no selected part or exact name transition is assigned. Wetland callouts, numerical streamflow circles and flood symbols are not reach-name evidence. These views are one publication and one source group.",
+      "is_formal_naming_registry": false,
+      "supporting_text_physical_pdf_pages": [
+        599,
+        621,
+        623,
+        626
+      ],
+      "tables": []
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50442438",
+      "geometry_fids": [
+        6666,
+        6667
+      ],
+      "fragment_count": 2,
+      "part_count": 50,
+      "position_count": 279,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete two-fragment selected path starts in the south, bends northeast into a long northward middle course, then turns northwest through its winding northern continuation to the coast. Its position east of the Liverpool-side corridor in the Northern Territory is compatible with the Blyth River geographic candidate. Figure 13.22 supplies a Blyth River basin callout, but no legible direct Blyth river-line label or named station tied to this selected path was established in the inspected maps. The available-source and complete-path review is complete; representative naming remains on hold. Upper feeder names, exact intermediate name transitions and tidal or coastal parts remain unassigned."
+    },
+    {
+      "aw_id": "hydro-system:50442579",
+      "geometry_fids": [
+        6668,
+        6669
+      ],
+      "fragment_count": 2,
+      "part_count": 62,
+      "position_count": 313,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete two-fragment selected path begins in the southwest, runs east through its southern upper continuation, bends northeast and then north through its middle course, and follows a winding northern corridor to the coast. This position in the Northern Territory is compatible with the Liverpool River basin lead in Figure 13.22. No direct Liverpool river-line label or named station was established. Direct blue Mann wording in Figure 13.23 belongs to the wider river network, but its correspondence to the selected upper parts and any name-transition point remain unresolved. Neither wording is assigned to selected reaches. The available-source and complete-path review is complete; representative Liverpool naming remains on hold, including the southwestern continuation and exact tidal or coastal scope."
+    },
+    {
+      "aw_id": "hydro-system:50442814",
+      "geometry_fids": [
+        6670,
+        6671
+      ],
+      "fragment_count": 2,
+      "part_count": 60,
+      "position_count": 273,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete two-fragment selected path starts at a southern hook, runs northeast into a northward upper course, turns northwest along a long middle corridor, and follows a winding lower course to its northwestern coastal ending. Direct blue East Alligator river-line wording in Figure 13.23, compared with the complete path, relative river positions and coastline, supports East Alligator River in the Northern Territory as a bounded representative system identity. The East Alligator River basin callout supplies context, while Kakadu National Park and nearby wetland callouts do not name the selected reaches. Southern headwaters, possible feeder transitions, lower tidal or floodplain portions and the generalized coastal ending remain unassigned at reach level."
+    }
+  ],
+  "source_limit": "Regional map evidence supports one bounded representative identity and two completed naming-scope holds. Exact headwater, upper-feeder, tidal, floodplain and coastal name coverage remains unresolved, including the Liverpool-candidate relationship to the mapped Mann corridor. No usable named-station identity is certified. Original maps and full paths are omitted, so public validation cannot replay visual interpretation."
+}

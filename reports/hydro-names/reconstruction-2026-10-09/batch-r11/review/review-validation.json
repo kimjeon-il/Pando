@@ -1,0 +1,332 @@
+{
+  "schema": "hydro-independent-lake-review-validation-v2",
+  "validated_at_utc": "2026-10-09T15:17:07.891901+00:00",
+  "status": "passed",
+  "durable_only": {
+    "status": "passed",
+    "mode": "durable_only",
+    "scope_aw_ids": [
+      "lakes_base:1159112291",
+      "lakes_base:1159112821",
+      "lakes_base:1159109155"
+    ],
+    "public_input_files_checked": 26,
+    "lake_geometry_checks": [
+      {
+        "aw_id": "lakes_base:1159112291",
+        "logical_fid": 4236,
+        "geometry_fid": 15611,
+        "position_count": 51,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      },
+      {
+        "aw_id": "lakes_base:1159112821",
+        "logical_fid": 4274,
+        "geometry_fid": 15649,
+        "position_count": 43,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      },
+      {
+        "aw_id": "lakes_base:1159109155",
+        "logical_fid": 4018,
+        "geometry_fid": 15393,
+        "position_count": 124,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      }
+    ],
+    "independent_binary_decoder_replayed": false,
+    "original_inventory_rechecked": false,
+    "original_prior_index_rechecked": false,
+    "original_prior_target_count": 30,
+    "current_batch_increment": 3,
+    "cumulative_distinct_targets": 33,
+    "duplicate_targets": 0,
+    "independent_queue_check": null,
+    "local_evidence_assets_rehashed_by_kind": {},
+    "local_evidence_assets_rehashed": 0,
+    "visual_inspection_repeated": false,
+    "formal_registry_verified": false,
+    "automatic_application": false,
+    "network_requests": 0,
+    "source_joins": {
+      "complete_source_and_baseline_shapes_checked": 3,
+      "official_full_feature_correspondence_reviews_completed": 2,
+      "source_limited_unresolved_targets": 1,
+      "follow_up_aw_ids": [
+        "lakes_base:1159112821"
+      ],
+      "registered_overlay_claimed": false
+    },
+    "source_provenance_keys_checked": [
+      "manitoba_dauphin_iwmp",
+      "eccc_dauphin_reference_index",
+      "wsa_deschambault_map",
+      "manitoba_unused_highway_redirect",
+      "eccc_deschambault_usage",
+      "alberta_cold_subregional2019_text"
+    ],
+    "geometry_component": {
+      "status": "passed",
+      "scope_aw_ids": [
+        "lakes_base:1159112291",
+        "lakes_base:1159112821",
+        "lakes_base:1159109155"
+      ],
+      "source_coordinate_counts_including_closure": [
+        51,
+        43,
+        124
+      ],
+      "all_complete_source_and_baseline_coordinates_rechecked": true,
+      "part_ring_vertex_order_and_hashes_rechecked": true,
+      "source_feature_original_JSON_tokens_rechecked": true,
+      "actual_metadata_and_name_states_rechecked": true,
+      "prior30_duplicate_count": 0,
+      "current_three_initial_inventory_membership_and_eligible_status_rechecked": true,
+      "current_three_queue_delta_rechecked": true,
+      "prior30_geometry_or_naming_revalidation_performed": false,
+      "original_source_cache_and_metadata_rechecked": false,
+      "production_decoder_replayed": false,
+      "original_selected_inventory_rows_rechecked": false,
+      "original_previous_index_rechecked": false,
+      "frozen_component_hashes_rechecked": true,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limit": "Complete selected features and independent pins are checked; omitted full upstream inputs and production decoder replay require the optional verified local cache."
+    }
+  },
+  "full_local": {
+    "status": "passed",
+    "mode": "full_local",
+    "scope_aw_ids": [
+      "lakes_base:1159112291",
+      "lakes_base:1159112821",
+      "lakes_base:1159109155"
+    ],
+    "public_input_files_checked": 26,
+    "lake_geometry_checks": [
+      {
+        "aw_id": "lakes_base:1159112291",
+        "logical_fid": 4236,
+        "geometry_fid": 15611,
+        "position_count": 51,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      },
+      {
+        "aw_id": "lakes_base:1159112821",
+        "logical_fid": 4274,
+        "geometry_fid": 15649,
+        "position_count": 43,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      },
+      {
+        "aw_id": "lakes_base:1159109155",
+        "logical_fid": 4018,
+        "geometry_fid": 15393,
+        "position_count": 124,
+        "every_ordered_position_checked": true,
+        "all_quantized_coordinates_match": true
+      }
+    ],
+    "independent_binary_decoder_replayed": true,
+    "original_inventory_rechecked": true,
+    "original_prior_index_rechecked": true,
+    "original_prior_target_count": 30,
+    "current_batch_increment": 3,
+    "cumulative_distinct_targets": 33,
+    "duplicate_targets": 0,
+    "independent_queue_check": {
+      "initial_inventory_rows": 5173,
+      "eligible_targets": 4065,
+      "distinct_reviewed_targets": 33,
+      "distinct_river_groups": 16,
+      "distinct_lakes": 17,
+      "remaining_fresh_index_targets": 4032,
+      "remaining_river_groups": 3439,
+      "remaining_lakes": 593,
+      "historical_never_reviewed_claimed": false,
+      "prior_target_geometry_or_naming_revalidation_performed": false
+    },
+    "local_evidence_assets_rehashed_by_kind": {
+      "original_source_body": 4,
+      "acquisition_receipt": 5,
+      "unused_response_body": 1,
+      "independent_text_extraction": 5,
+      "independent_viewed_map_derivative": 4,
+      "viewed_map_derivative": 2,
+      "complete_geometry_comparison_view": 2,
+      "web_text_capture_only": 1,
+      "text_capture_receipt": 1,
+      "failed_acquisition_receipt": 3
+    },
+    "local_evidence_assets_rehashed": 28,
+    "visual_inspection_repeated": false,
+    "formal_registry_verified": false,
+    "automatic_application": false,
+    "network_requests": 0,
+    "source_joins": {
+      "complete_source_and_baseline_shapes_checked": 3,
+      "official_full_feature_correspondence_reviews_completed": 2,
+      "source_limited_unresolved_targets": 1,
+      "follow_up_aw_ids": [
+        "lakes_base:1159112821"
+      ],
+      "registered_overlay_claimed": false
+    },
+    "source_provenance_keys_checked": [
+      "manitoba_dauphin_iwmp",
+      "eccc_dauphin_reference_index",
+      "wsa_deschambault_map",
+      "manitoba_unused_highway_redirect",
+      "eccc_deschambault_usage",
+      "alberta_cold_subregional2019_text"
+    ],
+    "geometry_component": {
+      "status": "passed",
+      "scope_aw_ids": [
+        "lakes_base:1159112291",
+        "lakes_base:1159112821",
+        "lakes_base:1159109155"
+      ],
+      "source_coordinate_counts_including_closure": [
+        51,
+        43,
+        124
+      ],
+      "all_complete_source_and_baseline_coordinates_rechecked": true,
+      "part_ring_vertex_order_and_hashes_rechecked": true,
+      "source_feature_original_JSON_tokens_rechecked": true,
+      "actual_metadata_and_name_states_rechecked": true,
+      "prior30_duplicate_count": 0,
+      "current_three_initial_inventory_membership_and_eligible_status_rechecked": true,
+      "current_three_queue_delta_rechecked": true,
+      "prior30_geometry_or_naming_revalidation_performed": false,
+      "original_source_cache_and_metadata_rechecked": true,
+      "production_decoder_replayed": true,
+      "original_selected_inventory_rows_rechecked": true,
+      "original_previous_index_rechecked": true,
+      "frozen_component_hashes_rechecked": true,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limit": "Complete selected features and independent pins are checked; omitted full upstream inputs and production decoder replay require the optional verified local cache."
+    }
+  },
+  "durable_corruption_tests": {
+    "status": "passed",
+    "scope_aw_ids": [
+      "lakes_base:1159112291",
+      "lakes_base:1159112821",
+      "lakes_base:1159109155"
+    ],
+    "durable_only_truthful_reporting": true,
+    "corrupt_fixtures_rejected": 40,
+    "fixtures": [
+      "automatic_application",
+      "unsupported_korean_name",
+      "whole_polygon_scalar_name",
+      "scalar_product_clearance",
+      "whole_polygon_clearance",
+      "label_overlap_promoted",
+      "history_restoration_claim",
+      "target_order_reversed",
+      "wrong_identifier_domain",
+      "cumulative_count_inflated",
+      "formal_name_registry_claim",
+      "cold_unresolved_promoted",
+      "cold_map_view_fabricated",
+      "cold_original_body_fabricated",
+      "cold_review_completion_fabricated",
+      "cold_follow_up_erased",
+      "cold_access_limit_erased",
+      "completed_count_inflated",
+      "adjacent_named_lakes_erased",
+      "unsupported_compound_claim",
+      "source_ring_reversed",
+      "source_interior_coordinate_changed",
+      "rendered_interior_coordinate_changed",
+      "source_target_dropped",
+      "rendered_source_id_changed",
+      "frozen_source_evidence_bytes",
+      "original_pdf_hash_replaced_by_text_hash",
+      "whole_shape_evidence_wrong_geometry",
+      "wsa_url_year_as_map_date",
+      "iwmp_metadata_as_publication_date",
+      "cold_text_hash_as_body_hash",
+      "cold_screenshot_reference_as_pixels",
+      "failed_body_declared_acquired",
+      "unused_redirect_as_name_source",
+      "reused_original_retrieval_date_replaced",
+      "naming_body_count_inflated",
+      "prior_duplicate_introduced",
+      "queue_remaining_count_inflated",
+      "queue_category_count_corrupted",
+      "prior_targets_reaudit_claimed"
+    ],
+    "local_original_byte_fixture_run": false,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "full_local_corruption_tests": {
+    "status": "passed",
+    "scope_aw_ids": [
+      "lakes_base:1159112291",
+      "lakes_base:1159112821",
+      "lakes_base:1159109155"
+    ],
+    "durable_only_truthful_reporting": true,
+    "corrupt_fixtures_rejected": 41,
+    "fixtures": [
+      "automatic_application",
+      "unsupported_korean_name",
+      "whole_polygon_scalar_name",
+      "scalar_product_clearance",
+      "whole_polygon_clearance",
+      "label_overlap_promoted",
+      "history_restoration_claim",
+      "target_order_reversed",
+      "wrong_identifier_domain",
+      "cumulative_count_inflated",
+      "formal_name_registry_claim",
+      "cold_unresolved_promoted",
+      "cold_map_view_fabricated",
+      "cold_original_body_fabricated",
+      "cold_review_completion_fabricated",
+      "cold_follow_up_erased",
+      "cold_access_limit_erased",
+      "completed_count_inflated",
+      "adjacent_named_lakes_erased",
+      "unsupported_compound_claim",
+      "source_ring_reversed",
+      "source_interior_coordinate_changed",
+      "rendered_interior_coordinate_changed",
+      "source_target_dropped",
+      "rendered_source_id_changed",
+      "frozen_source_evidence_bytes",
+      "original_pdf_hash_replaced_by_text_hash",
+      "whole_shape_evidence_wrong_geometry",
+      "wsa_url_year_as_map_date",
+      "iwmp_metadata_as_publication_date",
+      "cold_text_hash_as_body_hash",
+      "cold_screenshot_reference_as_pixels",
+      "failed_body_declared_acquired",
+      "unused_redirect_as_name_source",
+      "reused_original_retrieval_date_replaced",
+      "naming_body_count_inflated",
+      "prior_duplicate_introduced",
+      "queue_remaining_count_inflated",
+      "queue_category_count_corrupted",
+      "prior_targets_reaudit_claimed",
+      "original_source_byte_changed"
+    ],
+    "local_original_byte_fixture_run": true,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "scope_note": "Full-local replay checks retained original bytes and complete baseline decoding; no network reacquisition or repeated visual inspection. Two official full-feature correspondence assessments are complete and Cold Lake remains source-limited and follow-up-required.",
+  "automatic_application": false
+}

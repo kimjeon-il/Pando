@@ -1,0 +1,85 @@
+{
+  "schema": "hydro-target-identity-facts-v1",
+  "input_hashes": {
+    "recovered_inventory_gzip_sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "complete_lakes_source_geojson_sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+    "previous_15_target_index_sha256": "11fe5286dfd75b1b2828bce9e723ffc0770c1e56fae11f487cd73e824ca2ad9c"
+  },
+  "selection_scope": "New actual inventory IDs joined to complete source geometries before research; not historical-verdict restoration or a centroid-only identification.",
+  "targets": [
+    {
+      "aw_id": "lakes_base:1159109553",
+      "source_id": "1159109553",
+      "logical_fid": 4050,
+      "inventory_display_names": [
+        "lake-233"
+      ],
+      "inventory_classification": "no_meaningful_name_in_deployed_data",
+      "inventory_geometry_count": 1,
+      "inventory_bbox": [
+        -107.575366,
+        54.618494,
+        -106.989434,
+        54.913447
+      ],
+      "source_bbox": [
+        -107.57536624839182,
+        54.618494474971925,
+        -106.98943445333623,
+        54.913447330357855
+      ],
+      "source_geometry_type": "Polygon",
+      "source_ring_count": 1,
+      "source_positions_including_closure": 101,
+      "source_interior_ring_count": 0,
+      "source_geometry_canonical_sha256": "0d63f84c5a7aabdc27daeebdb27680b8d4408c258f568720d8bf9c4ab11ae700",
+      "canonical_geometry_hash_serialization": "Python json.dumps geometry object; ensure_ascii=False, sort_keys=True, separators=(comma,colon); UTF-8",
+      "source_name_fields": {
+        "name": "lake-233",
+        "name_en": "",
+        "name_ko": "",
+        "name_original": ""
+      },
+      "present_in_previous_15_target_index": false,
+      "geometry_modified": false
+    },
+    {
+      "aw_id": "lakes_base:1159110303",
+      "source_id": "1159110303",
+      "logical_fid": 4105,
+      "inventory_display_names": [
+        "lake-288"
+      ],
+      "inventory_classification": "no_meaningful_name_in_deployed_data",
+      "inventory_geometry_count": 1,
+      "inventory_bbox": [
+        -101.811275,
+        60.688872,
+        -100.878288,
+        61.258172
+      ],
+      "source_bbox": [
+        -101.81127509296304,
+        60.6888715046812,
+        -100.87828799201921,
+        61.258171726553854
+      ],
+      "source_geometry_type": "Polygon",
+      "source_ring_count": 1,
+      "source_positions_including_closure": 192,
+      "source_interior_ring_count": 0,
+      "source_geometry_canonical_sha256": "27fd096811a90aa8d6fe2d9fce91f1bd5ad3e5035ee553c0831fe8d468d58cb9",
+      "canonical_geometry_hash_serialization": "Python json.dumps geometry object; ensure_ascii=False, sort_keys=True, separators=(comma,colon); UTF-8",
+      "source_name_fields": {
+        "name": "lake-288",
+        "name_en": "",
+        "name_ko": "",
+        "name_original": ""
+      },
+      "present_in_previous_15_target_index": false,
+      "geometry_modified": false
+    }
+  ],
+  "geometry_note": "The separately supplied geometry module records full decoded-baseline/source-ring correspondence. These observations do not repair or substitute any input geometry.",
+  "automatic_application": false
+}

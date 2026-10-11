@@ -1,0 +1,154 @@
+{
+  "schema": "hydro-independent-river-review-v2",
+  "reviewed_at_utc": "2026-10-09T14:12:39.848645+00:00",
+  "scope_aw_ids": [
+    "hydro-system:50538951",
+    "hydro-system:50631583",
+    "hydro-system:50691033"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Read retained original publications and receipts, view complete regional maps and whole baseline paths, independently decode immutable binary inputs, and verify all ordered rendered coordinates and metadata. No external requests or registered overlay.",
+  "prior_distinct_targets": 21,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 24,
+  "duplicate_targets": 0,
+  "automatic_application": false,
+  "whole_group_scalar_application_approved": false,
+  "scalar_product_name_approvals": 0,
+  "geometry_modified": false,
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "findings": [
+    {
+      "aw_id": "hydro-system:50538951",
+      "system_id": "50538951",
+      "logical_fid": 1882,
+      "geometry_fids": [
+        6821
+      ],
+      "candidate_name": "Fortescue River",
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete southeastern-interior path turns northwest along the Fortescue valley and north into the coastal plain southwest of Karratha. Regional DBCA and BoM maps plus Millstream and lower-river cartography support Fortescue River as its representative identity. Upper river, Marsh and lower river are hydrologically distinct; the easternmost headwater, marsh crossing and coastal connector have no established individual name assignments.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "FORTESCUE-DOW-HG34-2009",
+        "FORTESCUE-DBCA-JMP2025"
+      ],
+      "limits": [
+        "A continuous generalized line does not establish ordinary through-flow across the Goodiadarrie Hills divide or an exact channel through Fortescue Marsh.",
+        "Weeli Wolli Creek, Coondiner Creek and Mindi Mindi Creek retain distinct source names; none is assigned to a selected part here.",
+        "The local HG34 aquifer maps cannot by themselves support the whole upstream route.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "part_count": 209,
+      "coordinate_count": 1038,
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "scalar_product_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "complete_baseline_path_compared": true,
+      "label_overlap_alone_used_as_identity": false,
+      "associated_distinct_river_names": [
+        "Weeli Wolli Creek",
+        "Coondiner Creek",
+        "Mindi Mindi Creek"
+      ],
+      "continuous_hydrological_flow_established": false,
+      "hydrological_qualification": "Goodiadarrie Hills separate the upper river and Marsh from lower Fortescue; drainage from the Marsh to lower reaches is expected only during extreme floods. Ordinary continuous through-flow and exact marsh channels are not established."
+    },
+    {
+      "aw_id": "hydro-system:50631583",
+      "system_id": "50631583",
+      "logical_fid": 1956,
+      "geometry_fids": [
+        6900
+      ],
+      "candidate_name": "Wooramel River",
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete long westward route south of the Gascoyne system, including its coastward south bend, agrees with the Wooramel-labelled regional river course. The separate WA resource inventory corroborates this regional location and official usage. The eastern initial channel and exact interior joining-channel or headwater transitions remain unverified.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "WA-WATER-RESOURCES-INVENTORY2014"
+      ],
+      "limits": [
+        "Regional rasters cannot certify 79 individual part names, the eastern headwater start or exact joining-channel transitions.",
+        "The Wooramel River management-area label is not a blanket name for every stream in its polygon.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "part_count": 79,
+      "coordinate_count": 483,
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "scalar_product_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "complete_baseline_path_compared": true,
+      "label_overlap_alone_used_as_identity": false,
+      "associated_distinct_river_names": [],
+      "continuous_hydrological_flow_established": false,
+      "hydrological_qualification": "Intermittent regional river; a rendered path is not evidence of continuous flow."
+    },
+    {
+      "aw_id": "hydro-system:50691033",
+      "system_id": "50691033",
+      "logical_fid": 2022,
+      "geometry_fids": [
+        6978
+      ],
+      "candidate_name": "Greenough River",
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete inland-to-southwest route and its final west/northwest coastal turn agree with the Greenough course on regional maps and DWER prose linking plateau headwaters, Waterloo Range and Cape Burney. This supports representative mainstem identity, while exact headwater and joining-channel name boundaries remain unresolved.",
+      "source_keys": [
+        "BOM-AWRA2012",
+        "WA-WATER-RESOURCES-INVENTORY2014",
+        "GREENOUGH-DWER-HEALTHYRIVERS"
+      ],
+      "limits": [
+        "The DWER regional course description and regional rasters cannot certify 88 individual part names or exact upper-channel transitions.",
+        "The Greenough management-area label includes tributaries and does not establish their names.",
+        "No original HydroRIVERS coordinate equality, exact reach-name transitions, surveyed contemporary mouth, or blanket whole-group scalar naming is established."
+      ],
+      "part_count": 88,
+      "coordinate_count": 522,
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "scalar_product_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "complete_baseline_path_compared": true,
+      "label_overlap_alone_used_as_identity": false,
+      "associated_distinct_river_names": [],
+      "continuous_hydrological_flow_established": false,
+      "hydrological_qualification": "Intermittent regional river; a rendered path is not evidence of continuous flow."
+    }
+  ],
+  "shared_limits": [
+    "Representative identity is distinct from one name across every headwater, tributary, marsh crossing or reach.",
+    "All 376 rendered parts and 2043 coordinate positions are retained locally. Public facts cannot substitute for omitted full coordinates.",
+    "Source reach IDs and rendered part counts agree; this does not independently prove the original reach-coordinate crosswalk.",
+    "All 24 IDs occur as unique eligible targets in the initial inventory. Remaining 4041 means absent from the fresh index, not historically never researched."
+  ]
+}

@@ -1,0 +1,797 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r139",
+  "sources": [
+    {
+      "title": "Mapa vial del distrito de Lucanas, provincia de Lucanas, departamento de Ayacucho",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos",
+      "date": "August 2017",
+      "sheet": "050611",
+      "scale": "1:105,000, A1, WGS 1984 UTM Zone 18L",
+      "actual_scope": "Whole-sheet inspection plus readable local crops of the upper Iruro, Huancaccocha setting, Lucanas and San Juan corridor. Headward hook omitted on the generalized hydrographic base.",
+      "cartographic_credits": "DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP, MINEDU",
+      "source_key": "r139-mtc-lucanas-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Distritales/Ayacucho/AY_050611%20LUCANAS.pdf",
+      "use_notice": "Original and working crops remain private. Official hosting is not treated as permission to redistribute source cartography."
+    },
+    {
+      "title": "Mapa vial del distrito de San Pedro, provincia de Lucanas, departamento de Ayacucho",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos",
+      "date": "August 2017",
+      "sheet": "050617",
+      "scale": "1:105,000, A1, WGS 1984 UTM Zone 18L",
+      "actual_scope": "Whole-sheet inspection and readable upper-junction and central/lower-river crops, from the Lucanas/San Juan overlap across the San Pedro–Saisa valley to the Arequipa boundary.",
+      "cartographic_credits": "DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP, MINEDU",
+      "source_key": "r139-mtc-san-pedro-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Distritales/Ayacucho/AY_050617%20SAN%20PEDRO.pdf",
+      "use_notice": "Original and working crops remain private; no redistribution permission asserted."
+    },
+    {
+      "title": "Mapa vial del distrito de Acarí, provincia de Caravelí, departamento de Arequipa",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos",
+      "date": "March 2019",
+      "sheet": "040302",
+      "scale": "1:120,000, A1, WGS 1984 UTM Zone 18L",
+      "actual_scope": "Whole lower Acarí valley and readable terminal crop showing Puente Chaviña, Americas Unidas, Musia and the Pacific outlet.",
+      "cartographic_credits": "DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP, MINEDU",
+      "source_key": "r139-mtc-acari-2019",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Distritales/Arequipa/AR_040302%20ACARI.pdf",
+      "use_notice": "Original and working crops remain private; no redistribution permission asserted."
+    },
+    {
+      "title": "Zonificación sísmica–geotécnica de la ciudad de Acarí (Comportamiento Dinámico del Suelo)",
+      "publisher": "Instituto Geofísico del Perú",
+      "responsible_author": "Hernando Tavera",
+      "date": "2015",
+      "catalogue_url": "https://repositorio.igp.gob.pe/items/681a03c1-7913-44fa-96ae-eb78f391c2d0/full",
+      "actual_prose_scope": "Section 9.3.3, printed pages 63–64 (PDF pages 65–66): basin description and successive Intoncca, Iruro, San José and Acarí names, Pallpo and Chilques confluences, Pacific receiving sea. Published numerical river length is not applied to retained model metadata.",
+      "actual_map_scope": "Figure 42, printed page 63, IGP Hidrográfico F-01, scale 1:550,000; prepared by Cristhian Chiroque and reviewed by Juan Carlos Gómez A., 2014. Regional basin and lower-city inset observed. The small embedded raster is inadequate to establish the selected eastern headward branch and connector.",
+      "source_key": "r139-igp-acari-2015",
+      "official_url": "https://repositorio.igp.gob.pe/server/api/core/bitstreams/242a75d6-8e5c-4d28-8734-e1eae02639d5/content",
+      "use_notice": "Official catalogue discovery reports CC BY-NC-ND 4.0. No original, crop, embedded map or derivative is redistributed; only own factual observations and ordinary citations are used."
+    },
+    {
+      "title": "Thom Bay, District of Franklin, Northwest Territories; Land Use Information Series, sheet 57F",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Department of the Environment; Indian and Northern Affairs Canada",
+      "year": 1981,
+      "bibliography": "Sheet 57F, scale 1:250,000. Thematic cartography by the Land Resource Research Institute, Agriculture Canada, 1981. Base map by the Mapping and Charting Establishment, Department of National Defence, information current to 1963, printed 1967. Crown copyright 1981.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_57f.jpg",
+      "evidence_kind": "primary_original_cartography_and_bounded_map_margin_prose",
+      "acquired_scope": "Original JPG completed HTTP200 image/jpeg. Map face, graticule, headward/Agnew-area terrain, Lord Lindsay corridor, Sanagak junction, lower lakes, Krusenstern outlet, imprint and relevant fish/ecological margin were visually read.",
+      "supports": "Bounded observations of named middle river and lakes, major junctions, separate Lord Lindsay and Krusenstern bayward routes, and the actual Thom Bay terminal.",
+      "limits": "The selected headward transfer and lower interlake connector remain unestablished by the depicted hydrography. Map coverage is not taken as proof of those connections. Historical cartographic labels are not current legal registry records. Fish commentary is explicitly limited reconnaissance/context rather than a complete inventory.",
+      "use_notice": "Printed Crown copyright 1981. Ordinary copyright is not a reading prohibition. Original, crops and private orientation image are not redistributed; only own factual observations and bibliography may propagate.",
+      "source_key": "r139-nluis57f"
+    },
+    {
+      "title": "Spence Bay, Northwest Territories; Land Use Information Series, sheet 57C",
+      "publisher": "Lands Directorate, Environmental Conservation Service, Environment Canada; Indian and Northern Affairs Canada",
+      "year": 1983,
+      "bibliography": "Sheet 57C, scale 1:250,000. Thematic cartography by the Land Resource Research Institute, Agriculture Canada, 1983. Base map: National Topographic Series 57C, edition 1. Printed by Surveys and Mapping Branch, Energy, Mines and Resources Canada.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_57c.jpg",
+      "evidence_kind": "primary_original_cartography_and_bounded_source_use_margin",
+      "acquired_scope": "Original JPG completed HTTP200 image/jpeg. Northern map strip covering Tukingayuk and Krusenstern lake areas, their adjacent channels, graticule, imprint and fish-information limitation were visually read.",
+      "supports": "Krusenstern Lake extends across the 57C/57F boundary; the adjacent southwestern lake/channel terrain is shown independently of the selected model.",
+      "limits": "The actual selected southern/eastward transfer into Krusenstern Lake remains unestablished. The sheet supports the visible lake body, not an assumed connection across intervening terrain. Historical names and shoreline generalization do not establish formal naming boundaries or exact present channels.",
+      "use_notice": "Printed Crown copyright. Map originals and crops remain private. Hosting is not treated as redistribution permission.",
+      "source_key": "r139-nluis57c"
+    },
+    {
+      "title": "Northern Land Use Information Series (NLUIS): Northern Land Use",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "evidence_kind": "bibliographic_index_only",
+      "acquired_scope": "Web index opened normally; original HTML subsequently completed HTTP200. It supplies exact 57C and 57F original links.",
+      "limits": "Index metadata is not geographic correspondence. No map observation inferred from the index.",
+      "source_key": "r139-nluis-index"
+    },
+    {
+      "title": "USGS The National Map, USGSTopo composite topographic basemap",
+      "author_or_publisher": "U.S. Geological Survey",
+      "edition_or_date": "Service metadata reports data refreshed September 4, 2026-v1.2; observed October 11, 2026",
+      "source_type": "primary_original_composite_cartography",
+      "map_reading_scope": [
+        "Headward Park Canyon/Alamo/Cuyama context",
+        "Upper Cuyama corridor and Ventucopa",
+        "Middle Cuyama Valley",
+        "Western canyon, Twitchell Reservoir and lower junction context",
+        "Santa Maria River from confluence through Guadalupe to the Pacific coast",
+        "Detailed Park Canyon terrain context"
+      ],
+      "prose_reading_scope": "Service description and source-credit/refreshed-date metadata only.",
+      "supports": "Geographic correspondence of the upper named river, middle valley, lower canyon, reservoir, confluence and terminal; headward terrain orientation.",
+      "limits": "The composite omits the smallest Park Canyon hydrography at the inspected scales; the two separately issued 2015 US Topo sheets provide that channel coverage. Its various compilation dates are not a single survey date. Labels and mapped generalized channels do not establish legal naming status, present flow or precise bank/mouth vertices.",
+      "use_notice": "The metadata identifies the federal and other source datasets and its September 2026 refresh. Only own factual observations and ordinary citation are provided; original raster views, crops, overlays and dynamic export parameters remain private.",
+      "source_key": "r139-usgstopo-california",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "title": "San Guillermo Mountain quadrangle, California–Ventura Co., 7.5-minute series",
+      "author_or_publisher": "U.S. Geological Survey, The National Map, US Topo",
+      "edition_or_date": "2015",
+      "scale": "1:24,000",
+      "sheet_reference": "USGSX24K39628",
+      "source_type": "primary_original_topographic_map",
+      "map_reading_scope": "Full sheet for identity and margins; detailed northern Park Canyon/Lockwood Valley Road drainage, westward canyon outlet and southwestern Alamo Creek context.",
+      "prose_reading_scope": "Printed title, scale, year, data-source credits and map-use notice.",
+      "supports": "Actual selected eastern intermittent-channel route and its westward Park Canyon outlet; distinction from separately named Lockwood and Alamo creeks.",
+      "limits": "Historical 2015 map compilation, including 2012 hydrography; no present-flow or legally official stream-source claim. The map boundary cuts the western connector, continued on Reyes Peak.",
+      "use_notice": "The printed notice says the map is not a legal document, warns that boundaries may be generalized and private land may be unshown, and advises permission before entering private property. Original and crops remain private.",
+      "source_key": "r139-san-guillermo-2015",
+      "official_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/PDF/CA/CA_San_Guillermo_Mountain_20150323_TM_geo.pdf"
+    },
+    {
+      "title": "Reyes Peak quadrangle, California–Ventura Co., 7.5-minute series",
+      "author_or_publisher": "U.S. Geological Survey, The National Map, US Topo",
+      "edition_or_date": "2015",
+      "scale": "1:24,000",
+      "sheet_reference": "USGSX24K37702",
+      "source_type": "primary_original_topographic_map",
+      "map_reading_scope": "Full sheet for identity and margins; detailed eastern Park/Wagon Road Canyon connector, Alamo Creek through Dry Canyon, Cuyama River and Reyes Creek junction to the northwestern bend.",
+      "prose_reading_scope": "Printed title, scale, year, data-source credits and map-use notice.",
+      "supports": "Completes the headward connector and name-scope transition into the Cuyama corridor.",
+      "limits": "Historical 2015 map compilation, including 2012 hydrography; no exact hydronym-transition point, flow permanence or legal naming claim.",
+      "use_notice": "The printed notice says the map is not a legal document, warns that boundaries may be generalized and private land may be unshown, and advises permission before entering private property. Original and crops remain private.",
+      "source_key": "r139-reyes-peak-2015",
+      "official_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/USTopo/PDF/CA/CA_Reyes_Peak_20150324_TM_geo.pdf"
+    },
+    {
+      "title": "Twitchell Dam",
+      "author_or_publisher": "U.S. Army Corps of Engineers, Los Angeles District, Reservoir Regulation",
+      "edition_or_date": "Page footer 2016; observed October 11, 2026",
+      "source_type": "primary_agency_project_prose",
+      "map_reading_scope": null,
+      "prose_reading_scope": "Background, especially the opening geographic and water-conservation paragraphs.",
+      "supports": "Dam and reservoir are on the Cuyama River; Cuyama and Sisquoc form the Santa Maria downstream.",
+      "limits": "No linked manual, data report, photograph or map acquired or relied on. Historic schedules and operational statistics are outside this finding.",
+      "source_key": "r139-usace-twitchell",
+      "official_url": "https://resreg.spl.usace.army.mil/pages/twcl.php"
+    },
+    {
+      "title": "Supply and Demand Assessment (SDA) – Santa Maria and Cuyama River Watersheds",
+      "author_or_publisher": "California State Water Resources Control Board",
+      "edition_or_date": "Page last updated August 3, 2026; observed October 11, 2026",
+      "source_type": "primary_agency_watershed_prose",
+      "map_reading_scope": null,
+      "prose_reading_scope": "Overview geographic statements and the paragraph placing Twitchell Dam on the Cuyama River.",
+      "supports": "Santa Maria begins at the Cuyama–Sisquoc confluence and continues west to the Pacific; Twitchell is on the Cuyama.",
+      "limits": "The linked watershed model work plan and embedded map were not acquired or used. Legal, ecological and model-policy statements are outside the research conclusion.",
+      "source_key": "r139-swrcb-santa-maria",
+      "official_url": "https://waterboards.ca.gov/waterrights/water_issues/programs/supply-and-demand/santa-maria-river.html"
+    },
+    {
+      "title": "Débits spécifiques d’étiage estivaux — Région hydrographique 10",
+      "publisher": "Centre d’expertise hydrique du Québec",
+      "year": 2011,
+      "bibliography": "July 2011; cartography Marie-Lise Paquin and Eric Levasseur, approved Joëlle Bérubé. Printed scale 1:2,300,000; BDGA 1:1,000,000 base; NAD83 Québec Lambert.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf",
+      "evidence_kind": "primary_original_cartography",
+      "acquired_scope": "Single-page original PDF completed HTTP200 application/pdf. Full map and northwest Mariet corridor crops were visually inspected, including legend, base-map statement and imprint.",
+      "supports": "Repeated Rivière Mariet labels follow the westward interior drainage north of the separately mapped Koktac and Qilalugalik/Le Roy lake area. The map depicts linked river and lake expansions across the broad selected interior corridor; Lac Illuvigartalik is a separate lake label in that corridor.",
+      "limits": "This is regional cartography. The northwest map edge and north arrow obscure part of the lower western setting, and the generalization does not establish the exact selected opening feeder, all individual lake entrances/outlets, material branch choices or the actual coastal terminal. A lake label is not assigned to the selected model passage unless that passage can be distinguished.",
+      "use_notice": "Government hosting is not redistribution permission. Only own factual observations and bibliography are provided; original map and crops remain private.",
+      "source_key": "r139-cehq-region10"
+    },
+    {
+      "title": "Levé magnétique et spectrométrique aéroporté dans le secteur de la rivière Mariet, nord-est de la baie d’Hudson",
+      "authors": [
+        "Rachid Intissar"
+      ],
+      "publisher": "Ministère de l’Énergie et des Ressources naturelles, Géologie Québec",
+      "year": 2017,
+      "bibliography": "DP 2017-02; ISBN 978-2-550-77588-1. Report PDF has 8 pages; Figure 2 on printed page 5 is the survey-area and NTS-sheet index.",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/DP201702/DP201702.pdf",
+      "catalogue_url": "https://gq.mines.gouv.qc.ca/documents/examine/DP201702/",
+      "evidence_kind": "primary_report_original_figures_and_bounded_prose",
+      "acquired_scope": "Original report completed HTTP200 application/pdf. Introduction, title/rights information, the Figure 1 caption and Figure 2 were read; Figure 2 and a bounded corridor crop were visually inspected. Linked complementary directory also completed HTTP200.",
+      "supports": "The introduction identifies the 2016 survey as the Mariet sector northeast of Inukjuak. Figure 2 independently depicts generalized drainage across the northern 34K and southern 34N sectors and a coastal opening south of 59°15′N, supporting regional orientation of the selected river corridor.",
+      "limits": "The figure is a survey-sheet index with overprinted sheet names, grid lines and survey boundary. Its east neatline misses the easternmost selected opening and its generalized hydrography does not resolve every lake/river connection, lower branch choice or terminal. The 1:50,000 sheet names in the figure are publication titles, not assignments of their names to the selected river. The directory-listed ten-map companion PDF and multi-gigabyte data archives were not acquired; no missing companion map is claimed as evidence and no availability denial is inferred for those unrequested files.",
+      "use_notice": "Printed © Gouvernement du Québec, 2017. A linked licence exists but was not read. No original pages, maps, crops or geophysical data are redistributed.",
+      "source_key": "r139-dp201702"
+    },
+    {
+      "title": "Réserve de territoire aux fins d’aire protégée de la Rivière-Innuksuac",
+      "publisher": "Ministère de l’Environnement et de la Lutte contre les changements climatiques, Direction des aires protégées",
+      "year": 2020,
+      "bibliography": "July 2020; single-page official reserve map; source base BDTA.",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-territoires/nunavik/carte-riviere-innuksuac.pdf",
+      "evidence_kind": "primary_original_cartography",
+      "acquired_scope": "Original PDF completed HTTP200 application/pdf; full map, northern Mariet label and imprint visually inspected.",
+      "supports": "A Mariet river segment is labeled north of the Innuksuac reserve and the Qilalugalik/Le Roy lake area. Innuksuac, Koktac and Mariet are cartographically distinguished.",
+      "limits": "The map is centered on a different protected territory. Only a small Mariet segment lies near its northern edge; it does not establish the selected headward opening, complete route or terminal.",
+      "use_notice": "Source credit BDTA; no redistribution permission inferred. Original and crop stay private.",
+      "source_key": "r139-reserve-innuksuac"
+    },
+    {
+      "title": "Géologie de la région de Kogaluk Bay (34N et 34M)",
+      "authors": [
+        "Charles Maurice",
+        "Pierre Lacoste",
+        "Alain Berclaz",
+        "Jean David",
+        "Kamal N.M. Sharma"
+      ],
+      "publisher": "Géologie Québec",
+      "year": 2005,
+      "bibliography": "RG 2004-01; ISBN 2-551-22617-1.",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG200401/RG200401.pdf",
+      "evidence_kind": "primary_report_bounded_regional_prose",
+      "acquired_scope": "Original report completed HTTP200 application/pdf. Title, publication credits, contents and printed pages 5–6 location/terrain and methods prose were read; cover and printed page 6 viewed.",
+      "supports": "The study covers the Kogaluk Bay region north of 59°N and describes low/moderate terrain, with the southern sector below 50m and extensive marshy areas. This is regional terrain context only.",
+      "limits": "The subsequent companion-map directory failed HTTP502. No companion geological map was acquired or used, and the regional terrain statement does not demonstrate any selected wetland connector or flow route.",
+      "use_notice": "Printed © Gouvernement du Québec, 2005. No source reproduction supplied.",
+      "source_key": "r139-rg200401-prose"
+    },
+    {
+      "title": "Geology of the Lac Vernon area (34J)",
+      "authors": [
+        "Martin Parent",
+        "Alain Leclair",
+        "Jean David",
+        "Kamal N.M. Sharma",
+        "Pierre Lacoste"
+      ],
+      "publisher": "Géologie Québec",
+      "year": 2003,
+      "bibliography": "RG 2002-07; ISBN 2-551-21715-6; accompanies map SI-34J-C2G-02A.",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/EXAMINE/RG200207/RG200207.pdf",
+      "evidence_kind": "primary_report_bounded_prose_and_sparse_original_figure",
+      "acquired_scope": "Original report completed HTTP200 application/pdf. Title, publication credits, abstract, introduction and map inventory were read. Figure 4, simplified geology on printed page 11, was visually inspected from the retained original.",
+      "supports": "Establishes the eastern Lac Vernon study area and distinguishes major Qilalugalik, Le Roy and Chavigny lake settings south of the selected headward corridor.",
+      "limits": "Figure 4 suppresses the small northern headward waterways and is not source correspondence for the selected opening. The subsequent companion directory failed HTTP502, leaving the separate detailed companion map unavailable.",
+      "use_notice": "Printed © Gouvernement du Québec, 2003. Original figure and crops remain private.",
+      "source_key": "r139-rg200207-context"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61205785",
+      "source_keys": [
+        "r139-mtc-lucanas-2017",
+        "r139-mtc-san-pedro-2017",
+        "r139-mtc-acari-2019",
+        "r139-igp-acari-2015"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13893
+          ],
+          "component_scope": "Eastern headward hook in the Huancaccocha sector, then west to the upper Iruro valley",
+          "finding": "The selected line runs northward and then westward from an eastern headward arm. MTC Lucanas shows Laguna Huancaccocha separately from the Iruro river and omits a continuous hydrographic route over this selected hook. IGP Figure 42 depicts the upper basin, lake label and a dense drainage network, but its small raster does not resolve the particular selected headward branch and lake/river connector with sufficient clarity. The IGP prose's general lake-origin statement is not a substitute for that map correspondence.",
+          "sources": [
+            "r139-mtc-lucanas-2017",
+            "r139-igp-acari-2015"
+          ],
+          "correspondence": "material_pending",
+          "mapped_component_name": null,
+          "material_gap": "Selected headward arm and westward connector into Iruro; not merely an unnamed reach, exact bank, vertex or mouth-point issue."
+        },
+        {
+          "fragments": [
+            13893
+          ],
+          "component_scope": "Iruro valley southward through the Lucanas uplands to the Pallpo/Santiago de Vado setting",
+          "finding": "The MTC Lucanas original shows the south-running Iruro through the Iruro–Pampahuasi–Telarhuasi–Orcohuasi corridor, continuing past Villa Achapara and toward Lucanas/Santiago de Vado. The selected southward valley and successive bends correspond at ordinary generalized corridor scale. The western tributary entering near Santiago de Vado is mapped; IGP prose identifies Pallpo as the tributary after which the main river is called San José. MTC uses its own upstream Acarí labelling, so exact legal name boundaries are not inferred.",
+          "sources": [
+            "r139-mtc-lucanas-2017",
+            "r139-igp-acari-2015"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Iruro"
+        },
+        {
+          "fragments": [
+            13893
+          ],
+          "component_scope": "Lucanas and San Juan de Utec to the eastern Chilques tributary junction",
+          "finding": "The Lucanas map depicts the valley through the PE-30A crossing and southeastward past Lucanas and San Juan de Utec. Its southern coverage overlaps the San Pedro map, which shows the receiving trunk and the eastern tributary corridor from the Chilques/San Pedro area. The latter joins the selected trunk before its southward continuation. IGP prose calls this the Chilques confluence and describes the downstream river as Acarí. San José is a bounded prose name for the intervening reach, not a separately verified uniform label over every selected segment.",
+          "sources": [
+            "r139-mtc-lucanas-2017",
+            "r139-mtc-san-pedro-2017",
+            "r139-igp-acari-2015"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Acarí"
+        },
+        {
+          "fragments": [
+            13893
+          ],
+          "component_scope": "Central Acarí canyon and valley through the San Pedro–Saisa boundary corridor to the Arequipa boundary",
+          "finding": "The MTC San Pedro original continuously maps the trunk south and southwest past Upaca, Racrapampa, Puca Corral and the Piedra Cruz sector, then through the major westward bend near Marcona Baja–Palja and onward past Usahuacho and Huarato toward the Arequipa boundary. Repeated Acarí labels and ordinary river/boundary context support the selected middle corridor without requiring precise coincident vertices.",
+          "sources": [
+            "r139-mtc-san-pedro-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Acarí"
+        },
+        {
+          "fragments": [
+            13893
+          ],
+          "component_scope": "Lower Acarí valley, Chaviña and Pacific outlet",
+          "finding": "The overlapping Acarí district original follows the named river southward through the cultivated valley and Acarí, then past Monasi and Monte Redondo to the PE-1S crossing at Puente Chaviña. Below that crossing it passes Americas Unidas and Musia and reaches the mapped Pacific coastline. This supports the actual receiving sea and mouth corridor, rather than only a model sea-terminal flag. No exact contemporary outlet position or bank alignment is claimed.",
+          "sources": [
+            "r139-mtc-acari-2019",
+            "r139-igp-acari-2015"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Acarí"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80035867",
+      "source_keys": [
+        "r139-nluis57f",
+        "r139-nluis57c"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2342
+          ],
+          "component_scope": "Northern headward opening and southwest transfer",
+          "finding": "The original depicts small lakes and streams in the selected northern headward terrain, with the Agnew River corridor nearby. It does not establish the selected complete southwestward transfer across this drainage area into Lord Lindsay River. A nearby Agnew label is not assigned to the selected feeder.",
+          "sources": [
+            "r139-nluis57f"
+          ],
+          "correspondence": "material_connector_unestablished_within_mapped_terrain",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2342
+          ],
+          "component_scope": "Western junction, southward Lord Lindsay valley and eastward bend",
+          "finding": "The selected western and middle course corresponds at corridor scale to the south-running Lord Lindsay valley, its appreciable western tributary junction, and its turn east. The original depicts narrower river reaches, lateral feeders, alluvial areas and rapids; unnamed tributaries retain null names.",
+          "sources": [
+            "r139-nluis57f"
+          ],
+          "correspondence": "supported_at_generalized_component_scale",
+          "mapped_component_name": "Lord Lindsay River",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2342
+          ],
+          "component_scope": "Sanagak junction and lower Lord Lindsay alluvial/lake passage",
+          "finding": "The mapped river meets the southern Sanagak Lake connection and continues south through an alluvial, locally divided channel and lake-rich lowland before bending northeast. Map-margin fish commentary independently relates the Lord Lindsay system to Thom Bay and mentions possible use of Sanagak Lake. This supports the mapped system context, not every possible lowland cross-channel.",
+          "sources": [
+            "r139-nluis57f"
+          ],
+          "correspondence": "generalized_river_and_major_junction_supported",
+          "mapped_component_name": "Lord Lindsay River",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2342
+          ],
+          "component_scope": "Tukingayuk approach and selected southern transfer to Krusenstern Lake",
+          "finding": "The originals distinguish the northeastward Lord Lindsay Lake route from the southern Tukingayuk Lake area and the separate Krusenstern lake body. The selected southern/eastward connection between those lake areas cannot be established continuously from their depicted channels. The sheets cover this terrain, but coverage alone is not correspondence.",
+          "sources": [
+            "r139-nluis57f",
+            "r139-nluis57c"
+          ],
+          "correspondence": "material_interlake_connector_unestablished",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2342
+          ],
+          "component_scope": "Northern Krusenstern Lake passage",
+          "finding": "The selected final east/northeast lake passage corresponds to the northern arms of the mapped Krusenstern Lake. The two adjacent sheets show its continuation across their common boundary and distinguish it from Tukingayuk and Lord Lindsay lakes. The unsupported western entrance is retained separately.",
+          "sources": [
+            "r139-nluis57c",
+            "r139-nluis57f"
+          ],
+          "correspondence": "lake_and_northeastern_continuation_supported_entrance_pending",
+          "mapped_component_name": "Krusenstern Lake",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2342
+          ],
+          "component_scope": "Krusenstern outlet, Kogaluktok Falls and actual marine terminal",
+          "finding": "The original shows the lake narrowing into its northern outlet, the labeled Kogaluktok Falls, and discharge into the southwest part of Thom Bay, within the Gulf of Boothia. Lord Lindsay Lake has a separate bayward outlet farther north. No river hydronym for this Krusenstern outlet or exact contemporary tidal boundary is established.",
+          "sources": [
+            "r139-nluis57f"
+          ],
+          "correspondence": "actual_terminal_supported_at_generalized_component_scale",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70695762",
+      "source_keys": [
+        "r139-usgstopo-california",
+        "r139-san-guillermo-2015",
+        "r139-reyes-peak-2015",
+        "r139-usace-twitchell",
+        "r139-swrcb-santa-maria"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9870
+          ],
+          "component_scope": "Selected eastern opening and Park Canyon drainage",
+          "finding": "The selected eastern opening lies on the westward intermittent drainage beside Lockwood Valley Road, northwest of San Guillermo Mountain. The San Guillermo Mountain 2015 original depicts the drainage turning southwest into Park Canyon, then west through its lower canyon. The selected generalized course follows that same connected canyon system. Park Canyon is a canyon label; no independent stream hydronym is assigned to this opening.",
+          "sources": [
+            "r139-san-guillermo-2015",
+            "r139-usgstopo-california"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": null,
+          "geographic_names": [
+            "Park Canyon",
+            "Lockwood Valley Road",
+            "Los Padres National Forest"
+          ],
+          "reading_scope": "Original northern-sheet pixels and detailed private crops; composite terrain view used only for orientation where its small-channel hydrography is absent."
+        },
+        {
+          "fragments": [
+            9870
+          ],
+          "component_scope": "Park Canyon outlet, Wagon Road Canyon and Alamo Creek connection",
+          "finding": "The western edge of San Guillermo Mountain and adjoining eastern Reyes Peak sheet show the Park Canyon intermittent channel continuing into the Wagon Road Canyon setting and joining the Alamo Creek approach. The Reyes Peak original carries the connected wash westward into Dry Canyon. Nearby Beartrap Creek approaches from the south; the selected route stays on the east-to-west approach. The maps resolve the connector at ordinary corridor scale without fixing a confluence vertex.",
+          "sources": [
+            "r139-san-guillermo-2015",
+            "r139-reyes-peak-2015",
+            "r139-usgstopo-california"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Alamo Creek",
+          "name_scope": "The mapped receiving headwater stream only, not the entire selected opening or the distinct Alamo Creek near Twitchell Reservoir.",
+          "reading_scope": "Original map pixels on adjacent 2015 sheets, with the composite headward panel corroborating the broad corridor."
+        },
+        {
+          "fragments": [
+            9870
+          ],
+          "component_scope": "Dry Canyon to Ozena-area bend and upper Cuyama valley",
+          "finding": "Reyes Peak 2015 labels the connected broad channel Cuyama River west of the Dry Canyon/Alamo approach. It continues past the Reyes Creek junction and the Ozena Camp Ground Road area, bends northwest near State Route 33, and enters the long upper valley. The composite upper panel continues the same river past side-canyon mouths, the Tinta Creek approach and Apache Canyon area toward Ventucopa. The eastern Alamo Creek and unnamed Park Canyon reach are not renamed Cuyama River.",
+          "sources": [
+            "r139-reyes-peak-2015",
+            "r139-usgstopo-california"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Cuyama River",
+          "reading_scope": "Original Reyes Peak northern corridor plus overlapping composite headward and upper-valley views."
+        },
+        {
+          "fragments": [
+            9870
+          ],
+          "component_scope": "Ventucopa and Ballinger Canyon through the central Cuyama Valley",
+          "finding": "The selected northwest course follows the broad, repeatedly labeled Cuyama River bed past Ventucopa and the Ballinger Canyon approach into the agricultural Cuyama Valley. The middle view traces the continuous river corridor north of State Route 166 and New Cuyama Airport, between the Caliente Range to the north and Sierra Madre Mountains to the south. New River and The Wash are separately mapped in the northern/eastern valley setting; their labels are not transferred to the selected Cuyama reach. No lake connector is required through this interval.",
+          "sources": [
+            "r139-usgstopo-california"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Cuyama River",
+          "reading_scope": "Overlapping upper-valley and middle-valley original composite rasters."
+        },
+        {
+          "fragments": [
+            9870
+          ],
+          "component_scope": "Western valley and lower Cuyama canyon",
+          "finding": "The river continues northwest beneath the Caliente/Chalk Mountain setting, enters the western canyon corridor, turns around the northern bend and then southwest along the State Route 166 corridor. The mapped Cuyama River remains continuous through the canyon and past side-creek junctions toward the eastern arm of Twitchell Reservoir. The valley, canyon bend and reservoir entrance correspond to the selected course, rather than to an adjacent branch.",
+          "sources": [
+            "r139-usgstopo-california"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Cuyama River",
+          "reading_scope": "Overlapping middle-valley and canyon/reservoir composite rasters."
+        },
+        {
+          "fragments": [
+            9870
+          ],
+          "component_scope": "Twitchell Reservoir, tributary arms and dam outlet",
+          "finding": "The selected Cuyama approach enters the reservoir from the east, continues through the impounded corridor, and leaves through the southern dam setting. The mapped Alamo Creek enters from the north/northeast and Huasna River from the northwest; these are separate tributary approaches rather than the selected upstream route. The USACE project page independently identifies both dam and reservoir as on the Cuyama River. Reservoir passage is described as a waterbody component, not assigned a uniform river name.",
+          "sources": [
+            "r139-usgstopo-california",
+            "r139-usace-twitchell"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": null,
+          "waterbody_name": "Twitchell Reservoir",
+          "structure_name": "Twitchell Dam",
+          "reading_scope": "Original canyon/reservoir and lower composite pixels; bounded USACE Background prose."
+        },
+        {
+          "fragments": [
+            9870
+          ],
+          "component_scope": "Cuyama River below Twitchell and Sisquoc junction",
+          "finding": "Below Twitchell Dam the selected channel runs south through the confined lower Cuyama valley and meets the separately mapped Sisquoc River approaching from the southeast. It then turns northwest into the channel labeled Santa Maria River. The USACE page and California Water Board overview independently describe the Cuyama and Sisquoc forming the Santa Maria River. The selected object follows the Cuyama approach, not the Sisquoc branch.",
+          "sources": [
+            "r139-usgstopo-california",
+            "r139-usace-twitchell",
+            "r139-swrcb-santa-maria"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Cuyama River",
+          "reading_scope": "Original canyon/reservoir and lower-river views, supported by the two directly opened primary prose pages."
+        },
+        {
+          "fragments": [
+            9870
+          ],
+          "component_scope": "Santa Maria valley and Guadalupe reach",
+          "finding": "From the confluence the selected course follows the mapped Santa Maria River northwest and west along the northern side of Santa Maria, past the Suey Creek approach and Highway 101/Nipomo Creek setting, then across the valley to Guadalupe and the Highway 1 crossing. The labeled river and broad bed remain continuous through the selected lower interval. Other nearby drainage, including the separate Oso Flaco coastal system, is not substituted for the selected terminal.",
+          "sources": [
+            "r139-usgstopo-california",
+            "r139-swrcb-santa-maria"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Santa Maria River",
+          "reading_scope": "Original lower-river/terminal raster; Water Board overview supports the westward confluence-to-ocean relation."
+        },
+        {
+          "fragments": [
+            9870
+          ],
+          "component_scope": "Coastal wetland/estuarine passage and actual terminal",
+          "finding": "West of Guadalupe the selected river corridor bends through the coastal floodplain and wetland/estuarine waterbody immediately behind the coastal dunes, reaching the Pacific shoreline in the Santa Maria River mouth setting. The mapped terminal is separate from Oso Flaco Creek farther north. The Water Board overview expressly places the Santa Maria River outlet at the Pacific Ocean. This is ordinary mouth-setting correspondence; present sand-bar opening, exact tidal channels, shoreline position and a precise mouth vertex are not established.",
+          "sources": [
+            "r139-usgstopo-california",
+            "r139-swrcb-santa-maria"
+          ],
+          "correspondence": "supported_at_component_corridor_scale",
+          "mapped_component_name": "Santa Maria River",
+          "terminal_waterbody": "Pacific Ocean",
+          "reading_scope": "Original lower-river/terminal composite pixels, with bounded primary prose for the receiving ocean."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70009700",
+      "source_keys": [
+        "r139-cehq-region10",
+        "r139-dp201702",
+        "r139-reserve-innuksuac",
+        "r139-rg200401-prose",
+        "r139-rg200207-context"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8945
+          ],
+          "component_scope": "Eastern headward opening and initial lake/stream route",
+          "finding": "The eastern opening lies in the northwestern Lac Vernon sheet sector. The retained simplified geological figure does not show its small waterways, the survey-index map misses the extreme eastern start, and regional CEHQ hydrography does not distinguish the selected initial feeder and lake entrances/outlets. Actual headwater setting and all opening connections remain unestablished.",
+          "sources": [
+            "r139-rg200207-context",
+            "r139-dp201702",
+            "r139-cehq-region10"
+          ],
+          "correspondence": "material_headward_component_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8945
+          ],
+          "component_scope": "Westward upper/middle lake-rich corridor south of59°N",
+          "finding": "Primary CEHQ cartography places repeated Mariet labels on the westward drainage north of the separate Qilalugalik/Le Roy and Koktac settings. It includes a separate Lac Illuvigartalik label. The survey-index figure depicts the regional channel/lake arrangement through northern34K. These originals support the broad Mariet corridor, but their generalization and label/grid overlap do not establish every selected lake passage and material connector; no unverified lake identity is assigned to a particular selected passage.",
+          "sources": [
+            "r139-cehq-region10",
+            "r139-dp201702",
+            "r139-reserve-innuksuac"
+          ],
+          "correspondence": "broad_cartographic_corridor_supported_detailed_components_pending",
+          "mapped_component_name": "Rivière Mariet",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8945
+          ],
+          "component_scope": "Northwestward middle continuation across59°N",
+          "finding": "The two independent originals show a west/northwest-running connected regional river/lake corridor in southern34N corresponding in general setting to the selected continuation. CEHQ carries the Mariet name, whereas the DP2017 figure supplies sheet-grid orientation. Small lateral-lake connections and selected major junction choices are not all resolved at the inspected scale.",
+          "sources": [
+            "r139-cehq-region10",
+            "r139-dp201702"
+          ],
+          "correspondence": "generalized_middle_corridor_supported_material_junction_detail_pending",
+          "mapped_component_name": "Rivière Mariet",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8945
+          ],
+          "component_scope": "Western lower widenings and tributary/branch junctions",
+          "finding": "Regional cartography depicts the western drainage and elongated waterbody/stream forms, but the north arrow on CEHQ and sheet labels/grid on the DP2017 index obscure parts of the lower path. The selected lower connections and material tributary/branch junctions are not fully distinguished. Discovery-only Saputiapiit and other names are not used to fill these gaps.",
+          "sources": [
+            "r139-cehq-region10",
+            "r139-dp201702"
+          ],
+          "correspondence": "material_lower_connector_and_junction_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            8945
+          ],
+          "component_scope": "Final river outlet and actual coastal terminal",
+          "finding": "The DP2017 index supplies broad Hudson Bay coastal context south of59°15′N; CEHQ supports the Mariet regional drainage. Neither inspected original establishes the selected final outlet/channel and its continuation into the actual marine terminal at ordinary component scale. A coastal association alone is not full terminal correspondence.",
+          "sources": [
+            "r139-dp201702",
+            "r139-cehq-region10"
+          ],
+          "correspondence": "material_actual_terminal_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61205785",
+      "publication": "Estudio hidrológico de la cuenca del río Acarí",
+      "official_url": "https://www.ana.gob.pe/sites/default/files/publication/files/estudio_hidrologico_acari_0_0.pdf",
+      "observed_outcome": "The sole direct original-file request completed with HTTP 502, Content-Type text/html. No PDF acquired.",
+      "outcome_layer": "HTTP response reported by completed direct acquisition; not an HTTP 401/403 access-denial observation.",
+      "restriction_scope": "Missing whole study, maps and equivalent copies, formats, originals, readers, caches, mirrors and other acquisition routes paused. No retry or alternate acquisition of this study followed.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "The independent MTC and IGP sources establish much of the corridor, but do not close the actual selected headward map gap.",
+      "equivalent_discovery_excluded": "Search-discovered estudio_hidrogeologico_del_valle_acari_0.pdf and Acarí/Yauca study or Iruro-profile snippets with apparently reused basin figures were not acquired or used as a route around the missing study."
+    },
+    {
+      "aw_id": "hydro-system:61205785",
+      "publication": "Geología del cuadrángulo de Santa Ana (29ñ), Boletín L 67, INGEMMET, 2025",
+      "official_url": "https://alicia.concytec.gob.pe/vufind/index.php/Record/INGEMMET_466539f296992f9e564089a038a316d4/Details",
+      "observed_outcome": "The CONCYTEC Details web-reader request returned an Internal Error stating that the URL was not accessible via this tool. No HTTP status, security reason, catalogue body or map original was exposed. A later request to the same publication landing page was started while this unexplained failure remained unresolved. Only the terminal response was recorded; its body and all publication content were excluded, and acquisition remained stopped.",
+      "outcome_layer": "Unexplained reader-route failure; origin HTTP status unknown.",
+      "restriction_scope": "Publication and missing map/equivalent acquisition routes remain paused. No map original, figure or linked map was acquired or used.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "No supplemental Santa Ana map coverage is claimed; the selected headward route remains pending.",
+      "subsequent_already_started_response": {
+        "url": "https://hdl.handle.net/20.500.12544/5181",
+        "effective_url": "https://repositorio.ingemmet.gob.pe/handle/20.500.12544/5181",
+        "observed_outcome": "A subsequently started handle request completed HTTP 200, Content-Type text/html. Its body was not inspected and no linked map was requested.",
+        "scope": "This later landing response is not treated as clearance of the earlier stop. All Santa Ana publication content remains excluded from the correspondence finding."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61205785",
+      "publication": "MTC Lucanas 2017 and IGP Acarí 2015, selected headward map coverage",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Distritales/Ayacucho/AY_050611%20LUCANAS.pdf",
+      "observed_outcome": "The MTC map omits a continuous watercourse over the selected eastern headward hook and westward connector. IGP Figure 42 is regional and its embedded map is too small to distinguish the selected branch/connector securely.",
+      "outcome_layer": "Cartographic content and visual-resolution limitation, not a transport or HTTP failure.",
+      "restriction_scope": "Material headward component/connector gap only. Readable acquired main-valley, junction and terminal correspondence remains usable.",
+      "earlier_lawful_prose_exception": "IGP section 9.3.3 provides a general headwater and naming sequence, but does not resolve this selected-route map gap.",
+      "material_effect": "One primary material-pending status, with no additional source-access-pending or completed scope-hold count.",
+      "related_urls": [
+        "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Distritales/Ayacucho/AY_050611%20LUCANAS.pdf",
+        "https://repositorio.igp.gob.pe/server/api/core/bitstreams/242a75d6-8e5c-4d28-8734-e1eae02639d5/content"
+      ],
+      "limitation_kind": "cartographic_content_limitation_only"
+    },
+    {
+      "aw_id": "hydro-system:80035867",
+      "publication": "Sanborn-Barrie, M. and Regis, D. (2023), Precambrian bedrock geology, Boothia Peninsula, Nunavut, NTS57-F and parts of57-C,D,E,G and67-D,E,H; Canadian Geoscience Map430, M183-1/430-2023E-PDF",
+      "official_url": "https://www.publications.gc.ca/site/eng/9.919800/publication.html",
+      "observed_outcome": "The sole catalogue web-reader open returned only Internal Error (), Total lines:1. No catalogue body, original map pixels, HTTP status or failure reason was supplied.",
+      "outcome_layer": "Generic web-reader acquisition error; origin HTTP outcome unknown.",
+      "restriction_scope": "Exact failed route not repeated. Missing publication/map and equivalent catalogue, original, reader, mirror, figure and other acquisition routes left paused; generic Internal Error does not establish a specific technical-only fallback condition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unexplained_reader_unavailability",
+      "material_effect": "Potential independent correspondence mapping unavailable. Discovery bibliography and snippets are not substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:80035867",
+      "publication": "NTS057F/10, CanMatrix1:50,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/057/f/canmatrix_057f10_tif.zip",
+      "observed_outcome": "The official 50k directory completed HTTP200 and supplied the exact archive link. The sole original archive request completed HTTPError403 Forbidden. No archive or map body acquired.",
+      "outcome_layer": "Completed original HTTP-client response reporting403; no separate tunnel/transport error reported.",
+      "restriction_scope": "Whole NTS057F/10 sheet publication and equivalent copies, formats, editions offered as recovery, viewers, catalogue, reader, original, cache, mirror and all acquisition routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "Only directory bibliographic metadata; no geographic observations.",
+      "limitation_kind": "http_403_denial",
+      "material_effect": "Potential detailed evidence for the selected headward opening unavailable."
+    },
+    {
+      "aw_id": "hydro-system:80035867",
+      "publication": "Land Use Information Series, Thom Bay57F (1981) and Spence Bay57C (thematic cartography1983)",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_57f.jpg",
+      "observed_outcome": "Both original maps were successfully acquired and read. Their depicted hydrography does not establish the complete selected headward transfer into Lord Lindsay River or the selected Tukingayuk-area transfer into Krusenstern Lake.",
+      "outcome_layer": "Cartographic correspondence limitation, not a network or access failure.",
+      "restriction_scope": "Only the two unresolved selected connectors. Supported middle-river, lake and outlet observations remain usable. No blanket map or series restriction.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_connector_correspondence_gap",
+      "material_effect": "Single primary status remains source-material pending, not completed representative identity or naming-scope hold.",
+      "related_urls": [
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_57f.jpg",
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_57c.jpg"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70009700",
+      "publication": "Géologie de la région de la rivière Innuksuac (34K et 34L), RG 2002-10",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/EXAMINE/RG200210/RG200210.pdf",
+      "observed_outcome": "The sole original report request completed HTTPError502 Bad Gateway. No report body or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client response.",
+      "restriction_scope": "Missing report, companion maps and equivalent copies, formats, figures, originals, readers, mirrors and acquisition routes paused. No retry or alternate route.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_502_availability_stop",
+      "material_effect": "Potential detailed correspondence for the upper/middle corridor remained unavailable."
+    },
+    {
+      "aw_id": "hydro-system:70009700",
+      "publication": "Géologie de la région de Kogaluk Bay (34N et 34M), RG 2004-01; companion-map directory",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/examine/RG200401/",
+      "observed_outcome": "The report original completed HTTP200 and bounded regional prose was read. The subsequent companion directory request completed HTTPError502 Bad Gateway. No companion map acquired.",
+      "outcome_layer": "Completed original HTTP-client response.",
+      "restriction_scope": "Missing companion maps and equivalent copies, formats, original/reader/cache/mirror and other acquisition routes paused. No retry.",
+      "earlier_lawful_prose_exception": "Previously read title, bibliography, contents and printed pages5–6 regional location/terrain prose only; no companion-map evidence.",
+      "limitation_kind": "http_502_companion_availability_stop",
+      "material_effect": "Potential detailed lower-corridor and terminal mapping remained unavailable."
+    },
+    {
+      "aw_id": "hydro-system:70009700",
+      "publication": "Geology of the Lac Vernon area (34J), RG 2002-07; companion-map directory",
+      "official_url": "https://gq.mines.gouv.qc.ca/documents/EXAMINE/RG200207/",
+      "observed_outcome": "The report original completed HTTP200. The subsequent companion directory request completed HTTPError502 Bad Gateway. No separate map SI-34J-C2G-02A acquired.",
+      "outcome_layer": "Completed original HTTP-client response.",
+      "restriction_scope": "Missing companion map and equivalent copies, translated companion editions, formats, readers, originals, mirrors and acquisition routes paused. No retry.",
+      "earlier_lawful_prose_exception": "Earlier successfully read report title, abstract and introduction remain bounded study context. The already acquired report contains a sparse simplified Figure4, not the missing companion map; it supplies no selected headward correspondence.",
+      "limitation_kind": "http_502_companion_availability_stop",
+      "material_effect": "The exact eastern headward feeder and its lake connections remained unresolved."
+    },
+    {
+      "aw_id": "hydro-system:70009700",
+      "publication": "Kogaluk Bay, NTS034N, CanMatrix1:250,000 topographic sheet; printed edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/034/n/canmatrix_034n_tif.zip",
+      "observed_outcome": "The official directory completed HTTP200 and supplied the exact original link. The original acquisition was interrupted at the tool layer before a terminal HTTP outcome could be established. A subsequent terminal-status check reported an unknown process. No archive or map content was inspected and no original HTTP status is claimed.",
+      "outcome_layer": "Tool-layer acquisition interruption and session unavailability; original HTTP outcome unknown.",
+      "restriction_scope": "Publication and equivalent copies, formats, editions offered as the same source, viewers, originals, readers, mirrors and acquisition routes remain paused. No restarted acquisition or alternate route.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no map observations.",
+      "limitation_kind": "tool_acquisition_interruption_unresolved_http",
+      "material_effect": "Potential selected middle/lower map coverage unavailable; no route evidence inferred from directory or unverified files."
+    },
+    {
+      "aw_id": "hydro-system:70009700",
+      "publication": "Rivière Innuksuac, NTS034K, CanMatrix1:250,000 topographic sheet; printed edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/034/k/canmatrix_034k_tif.zip",
+      "observed_outcome": "The official directory completed HTTP200 and supplied the exact original link. The original acquisition was interrupted at the tool layer before a terminal HTTP outcome could be established. A subsequent terminal-status check reported an unknown process. No archive or map content was inspected and no original HTTP status is claimed.",
+      "outcome_layer": "Tool-layer acquisition interruption and session unavailability; original HTTP outcome unknown.",
+      "restriction_scope": "Publication and equivalent copies, formats, editions offered as the same source, viewers, originals, readers, mirrors and acquisition routes remain paused. No restarted acquisition or alternate route.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no map observations.",
+      "limitation_kind": "tool_acquisition_interruption_unresolved_http",
+      "material_effect": "Potential selected middle/lower map coverage unavailable; no route evidence inferred from directory or unverified files."
+    },
+    {
+      "aw_id": "hydro-system:70009700",
+      "publication": "Environmental Studies Research Funds report102, Nakashima and Murray; complete report title not inspected",
+      "official_url": "https://www.esrfunds.org/sites/esrf/files/2023-03/esrf102-nakashimamurray.pdf",
+      "observed_outcome": "The web reader identified a214-page PDF but supplied zero text lines and no pixels. The subsequent sole original-file request completed HTTPError403 Forbidden. No substantive report text or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client denial; no separate transport/tunnel failure reported.",
+      "restriction_scope": "Entire report and equivalent copies, figures, formats, originals, readers, screenshots, caches, mirrors and acquisition routes stopped. No retry.",
+      "earlier_lawful_prose_exception": "None. Reader page-count metadata and discovery snippets are not substantive evidence.",
+      "limitation_kind": "http_403_denial",
+      "material_effect": "Potential independent coastal-map corroboration unavailable."
+    }
+  ],
+  "additional_source_use_notices": []
+}

@@ -1,0 +1,712 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r147",
+  "sources": [
+    {
+      "bibliography": "Canada, Department of Mines and Technical Surveys, Surveys and Mapping Branch. Kaskattama River, Manitoba–Ontario, NTS54B, scale1:250,000; compiled1962, field surveys1959, printed1964. Read in the Province of Manitoba-hosted two-page annotated NTS mosaic catalogued as Kaskattama River map; adjoining northern sheet is marked54G&H, Edition1.",
+      "title": "Kaskattama River map [government-hosted annotated mosaic of original NTS sheets]",
+      "publisher": "Department of Mines and Technical Surveys, Canada; scan hosted by Province of Manitoba",
+      "year": 1964,
+      "scale": "1:250,000",
+      "catalogue_url": "https://www.manitoba.ca/iem/petroleum/shales/hudson.html",
+      "source_type": "Government-hosted scan of original historical topographic cartography assembled into an annotated mosaic; not a modern service export",
+      "original_map_pixels_inspected": true,
+      "pages_inspected": "Both full scanned pages; bounded private headward, upper-valley, middle/lower, tributary, coastal, frame, imprint and legend crops.",
+      "actual_scope": "Original NTS cartography establishes the receiving upper valley and labelled middle/lower Kaskattama corridor, joins, lowland wetlands and actual Hudson Bay terminal. It does not establish the selected initial southwestern feeder connector.",
+      "edition_limits": "The Kaskattama sheet imprint explicitly gives1964 printing with1962 compilation and1959 field surveys. The northern adjoining sheet has Edition1 and54G&H visible; its separate publication year and full lower title block were not established and are not invented.",
+      "publication_distinction": "Historical NTS topographic map imprints and content distinguish this cartographic source from the2022 MGS surficial point/line compilation, the live LIO Topographic service, CBMT3978, Canadian naming records and individually stopped OGS publications. Underlying hydrographic-data independence is not claimed.",
+      "source_key": "r147-nts-kaskattama-mosaic",
+      "official_url": "https://www.manitoba.ca/iem/petroleum/shales/hb_kaskattama_river_map.pdf",
+      "use_notice": "Government hosting does not establish public-domain status or permission to redistribute the cartography. This task retains scans, crops and approximate orientation material privately and publishes only independently written factual observations and bibliography. Handwritten permit annotations and scan seams are not hydrographic evidence."
+    },
+    {
+      "bibliography": "Hodder, T.J.2017. Quaternary stratigraphy and till sampling in the Kaskattama highland region, northeastern Manitoba (parts of NTS53N,O,54B,C): year two. In Report of Activities2017, Manitoba Growth, Enterprise and Trade, Manitoba Geological Survey, pp.205–214.",
+      "title": "Quaternary stratigraphy and till sampling in the Kaskattama highland region, northeastern Manitoba (parts of NTS53N,O,54B,C): year two",
+      "publisher": "Manitoba Geological Survey",
+      "year": 2017,
+      "source_type": "Primary field-report prose and original regional location/hillshade figure",
+      "original_map_pixels_inspected": true,
+      "pages_inspected": "Printed pages205–207; FigureGS2017-18-1 on printed page206 read visually.",
+      "actual_scope": "Regional-setting prose states that Kaskattama River drains northeast to Hudson Bay and has headwaters on Kaskattama highland. Figure1 places the field study and named river beside the highland. It is regional geomorphic context, not detailed proof of the selected initial feeder or a complete channel itinerary.",
+      "publication_distinction": "This individually identified2017 field report and its original study-location figure are not the paused2022 point/line compilation or the uninspected1984 Pryor Lake sheet.",
+      "source_key": "r147-mgs-gs2017-18",
+      "official_url": "https://www.gov.mb.ca/iem/geo/field/roa17pdfs/GS2017-18.pdf",
+      "use_notice": "Original report and figures remain private. Only concise independent factual synthesis and bibliographic references are delivered; no redistribution permission inferred.",
+      "limits": "Field research is on Quaternary stratigraphy, not hydronym extent. The figure background is the Canadian Digital Surface Model; topographic valleys and sampled positions do not by themselves establish selected-channel connectivity."
+    },
+    {
+      "author": "T.C.Anderson",
+      "title": "The Rivers of Labrador",
+      "series": "Canadian Special Publication of Fisheries and Aquatic Sciences81",
+      "year": 1985,
+      "publisher": "Department of Fisheries and Oceans, Scientific Information and Publications Branch, Ottawa",
+      "catalogue_number": "Fs41-31/81E",
+      "isbn": "0-660-11971-4",
+      "inspected_scope": "Original printed pages158–160 (PDF pages167–169), especially Figure50 on printed159/PDF168, Kenamu River account and Tables206–207. Explanation of Figures on printedviii and title/imprint/copyright pages read. Figure50 viewed in its original orientation and north-oriented private working view.",
+      "evidence_type": "Direct new reading of the complete lawful original retained in batch-r121, not a new network acquisition, copied public summary, snippet, parsed label list or unavailable figure.",
+      "map_coverage": "Full selected headward stream, western lake/steady arm, upper branch junction, southeast trunk, Little Drunken junction, northward tributary network and Lake Melville mouth.",
+      "prose_support": "Kenamu identity; upper easterly lake/pond system; northward turn at Little Drunken River; Salmon River and T31; Lake Melville terminal.",
+      "use_notice": "Original imprint states copyright Minister of Supply and Services Canada1985 and supplies its preferred citation. No original PDF, crop, orientation view or derivative map is to be redistributed.",
+      "source_key": "r147-anderson1985-kenamu",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf",
+      "limits": "Generalized historical fisheries map. Source historical lengths, fishery statistics and operating conditions are not substituted for current facts or retained model metadata. Formal names for minor selected components are not established."
+    },
+    {
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "title": "Centro do Guilherme-MA, Mapa Municipal Estatístico, 2103158",
+      "edition": "Malha territorial 2010; printed 2011 edition",
+      "scale": "1:100,000",
+      "pages_inspected": "1",
+      "evidence_kind": "primary original cartography",
+      "observations": "Original map and enlarged eastern/southern corridor read. The selected north-running mainstem is not continuously represented across the southern/headward setting. Rio Maracaçumezinho is printed on a separate transverse watercourse; that label is not transferred to the selected route.",
+      "source_key": "ibge2010-centro-guilherme",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ma/centro_do_guilherme_v2.pdf",
+      "use_notice": "The printed map describes semi-automatic integration of systematic mapping and municipal information from several sources, without complete integration/completeness treatment, and reserves reproduction rights. This is a historical statistical compilation, not a present-day hydrographic survey. Originals and working crops remain private."
+    },
+    {
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "title": "Maranhãozinho-MA, Mapa Municipal Estatístico, 2106375",
+      "edition": "Malha territorial 2010; printed 2011 edition",
+      "scale": "1:100,000",
+      "pages_inspected": "1",
+      "evidence_kind": "primary original cartography",
+      "observations": "Original whole sheet and enlarged southern Alto Turiaçu setting read. The southern selected opening and its continuous northward connector are not positively established by the sparse hydrography; settlement and administrative lines are not substituted for a river.",
+      "source_key": "ibge2010-maranhaozinho",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ma/maranhaozinho_v2.pdf",
+      "use_notice": "The printed map describes semi-automatic integration of systematic mapping and municipal information from several sources, without complete integration/completeness treatment, and reserves reproduction rights. This is a historical statistical compilation, not a present-day hydrographic survey. Originals and working crops remain private."
+    },
+    {
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "title": "Amapá do Maranhão-MA, Mapa Municipal Estatístico, 2100550",
+      "edition": "Malha territorial 2010; printed 2011 edition",
+      "scale": "1:100,000",
+      "pages_inspected": "1",
+      "evidence_kind": "primary original cartography",
+      "observations": "Original read at corridor scale. Rio Maracaçumé follows the eastern municipal edge toward Cândido Mendes, while Rio Tromaí and its branches occupy a separate western system. Side tributaries are not renamed after Maracaçumé.",
+      "source_key": "ibge2010-amapa-ma",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ma/amapa_do_maranhao_v2.pdf",
+      "use_notice": "The printed map describes semi-automatic integration of systematic mapping and municipal information from several sources, without complete integration/completeness treatment, and reserves reproduction rights. This is a historical statistical compilation, not a present-day hydrographic survey. Originals and working crops remain private."
+    },
+    {
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "title": "Cândido Mendes-MA, Mapa Municipal Estatístico, 2102606",
+      "edition": "Malha territorial 2010; printed 2011 edition",
+      "scale": "1:100,000",
+      "pages_inspected": "2",
+      "evidence_kind": "primary original cartography",
+      "observations": "Both southern and northern sheets read, including adjoining corridor, the Cândido Mendes riverfront, tidal islands, branching channels and estuarine water beyond the selected endpoint. Blue and grey/dashed cartography was read using the legend, not as a hydronym list.",
+      "source_key": "ibge2010-candido-mendes",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ma/candido_mendes_v2.pdf",
+      "use_notice": "The printed map describes semi-automatic integration of systematic mapping and municipal information from several sources, without complete integration/completeness treatment, and reserves reproduction rights. This is a historical statistical compilation, not a present-day hydrographic survey. Originals and working crops remain private."
+    },
+    {
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "title": "Maracaçumé-MA, Mapa Municipal Estatístico, 2106326",
+      "edition": "Malha territorial 2010; printed 2011 edition",
+      "scale": "1:100,000",
+      "pages_inspected": "1",
+      "evidence_kind": "primary original cartography",
+      "observations": "Original whole sheet and enlarged central corridor read. Repeated Rio Maracaçumé labels follow the selected northbound river past the Maracaçumé urban/road setting and northeast along the municipal edge. Mapped side connections include Igarapé Cipriano and Igarapé Barreiro; these names remain local to those feeders.",
+      "source_key": "ibge2010-maracacume",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ma/maracacume_v2.pdf",
+      "use_notice": "The printed map describes semi-automatic integration of systematic mapping and municipal information from several sources, without complete integration/completeness treatment, and reserves reproduction rights. This is a historical statistical compilation, not a present-day hydrographic survey. Originals and working crops remain private."
+    },
+    {
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "title": "Centro Novo do Maranhão-MA, Mapa Municipal Estatístico, 2103174",
+      "edition": "Malha territorial 2010; printed 2011 edition",
+      "scale": "1:100,000",
+      "pages_inspected": "5",
+      "evidence_kind": "primary original cartography",
+      "observations": "The original file was received, but several map sheets contain unread blank or black image tiles. Available portions supplied orientation only; unread areas and this publication do not close the headward gap.",
+      "source_key": "ibge2010-centro-novo",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ma/centro_novo_do_maranhao_v2.pdf",
+      "use_notice": "The printed map describes semi-automatic integration of systematic mapping and municipal information from several sources, without complete integration/completeness treatment, and reserves reproduction rights. This is a historical statistical compilation, not a present-day hydrographic survey. Originals and working crops remain private."
+    },
+    {
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "title": "Nova Olinda do Maranhão-MA, Mapa Municipal Estatístico, 2107357",
+      "edition": "Malha territorial 2010; printed 2011 edition",
+      "scale": "1:100,000",
+      "pages_inspected": "2",
+      "evidence_kind": "primary original cartography",
+      "observations": "Both originals read. The adjoining southern setting is mapped, but the selected opening and its connector are not positively established by the sparse hydrographic content. Geographic sheet coverage alone is not river correspondence.",
+      "source_key": "ibge2010-nova-olinda",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ma/nova_olinda_do_maranhao_v2.pdf",
+      "use_notice": "The printed map describes semi-automatic integration of systematic mapping and municipal information from several sources, without complete integration/completeness treatment, and reserves reproduction rights. This is a historical statistical compilation, not a present-day hydrographic survey. Originals and working crops remain private."
+    },
+    {
+      "publisher": "CPRM – Serviço Geológico do Brasil",
+      "authors": [
+        "Evandro Luiz Klein",
+        "Paulo Augusto da Costa Marinho",
+        "Lúcia Travassos da Rosa-Costa",
+        "João Henrique Larizzatti",
+        "Maria Telma Lins Faraco",
+        "Renê Luzardo"
+      ],
+      "title": "Mapa Geológico, Folha Cândido Mendes – SA.23-V-D-II",
+      "edition": "2008",
+      "scale": "1:100,000",
+      "catalogue_url": "https://rigeo.sgb.gov.br/handle/doc/10517",
+      "pages_inspected": "1, whole map plus enlarged selected lower/terminal corridor",
+      "evidence_kind": "primary original cartography",
+      "observations": "The selected final reach occupies the lower river through the Cândido Mendes/Vila Gracinha and Feitoria setting. It divides around a small mangrove island, rejoins, turns north by the Jardim/Ponta do Jardim vicinity and opens into a branching tidal estuary. The retained endpoint lies in the widened estuarine water where the northbound arm communicates with an eastward arm toward Igarapé Pinto, rather than at an independently established open-ocean shoreline point. The wider sheet shows connection to Oceano Atlântico. Mangrove/alluvial deposits and salt-marsh deposits distinguish the coastal wetland setting. The western Rio Tromaí is separate. This is geographic terminal support, not a uniform hydronym for all arms.",
+      "base_credit": "Printed credit: Turiaçu printed topographic base (DSG-ME,1984), adjusted to GeoCover2000 Landsat7 imagery and edited by CPRM/DICART.",
+      "source_key": "cprm-candido-2008",
+      "official_url": "https://rigeo.sgb.gov.br/bitstreams/698d278c-d472-4021-b688-4891617e5e42/download",
+      "use_notice": "Original map and all working figures remain private; official hosting is not taken as redistribution permission. Historical geological cartography is compared at ordinary corridor scale."
+    },
+    {
+      "title": "Mazagão – AP, Mapa Municipal, 1600402",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências; Coordenação de Estruturas Territoriais",
+      "edition": "04/2021; hosted in the 2020 municipal-map collection",
+      "source_type": "primary_original_cartography",
+      "pages_read": "Single original PDF map page, with original enlarged corridor views",
+      "coverage": "Full selected opening, upper/middle drainage, both fragments, adjacent lake complex, lower channels and Canal do Norte mouth",
+      "use_notice": "Printed intended-use notice says prepared for IBGE statistical collection/tabulation and disclaims responsibility for other uses. Reproduction rights reserved. Factual reading only; original map/crops/overlays are not public deliverables.",
+      "source_key": "r147-ibge-mazagao2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/AP/mazagao/1600402_MM.pdf",
+      "limits": "Municipal compilation rather than a current hydrological or formal-name survey. Initial feeder is unlabelled; generalized lowland channels and exact mouth point are not surveyed correspondence claims."
+    },
+    {
+      "title": "Mazagão-AP, Mapa Municipal Estatístico, geocódigo 1600402",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências",
+      "edition": "Malha territorial 2007; printed edition 16-10-2007",
+      "scale": "1:250,000",
+      "source_type": "primary_original_cartography",
+      "pages_read": "Both original PDF map pages, northern and southern panels; enlarged upper, middle and mouth sectors and original legend/chronology",
+      "coverage": "Complementary whole-corridor drainage, northern tributary names, middle Maracá labeling, lower Rio Maracá-Pucu and floodable Amazon margin",
+      "use_notice": "Historical semi-automated municipal compilation from IBGE/DSG/other systematic mapping and municipal mesh; reserved reproduction rights preserved. Originals and local working figures remain private.",
+      "source_key": "r147-ibge-mazagao2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/ap/mazagao.pdf",
+      "limits": "Historical generalized cartography. Modern shoreline, side-channel direction, current inundation and formal hydronym limits are not established."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70043276",
+      "source_keys": [
+        "r147-nts-kaskattama-mosaic",
+        "r147-mgs-gs2017-18"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9022
+          ],
+          "component_scope": "southwestern headward feeder",
+          "finding": "The selected opening lies in the southwestern headward/highland sector. The historical NTS mosaic depicts marsh/swamp ground, contours, scattered small water bodies and sparse stream/gully linework here. It does not demonstrate an unambiguous continuous channel itinerary from the actual selected opening into the recognizable Kaskattama valley. The primary2017 report places Kaskattama headwaters on the Kaskattama highland, but this general statement and its regional hillshade map do not prove this particular feeder. No source lake or opening-stream hydronym is established.",
+          "sources": [
+            "r147-nts-kaskattama-mosaic",
+            "r147-mgs-gs2017-18"
+          ],
+          "correspondence": "material_missing_initial_feeder_and_connector",
+          "selected_component_role": "initial modeled mainstem interval",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9022
+          ],
+          "component_scope": "recognizable upper valley",
+          "finding": "The original topographic linework depicts a recognizable northeastward river valley with branching/narrow watercourse reaches on the northwest side of the highland, continuing toward the broader eastward upper-middle bend. Bouchard Lake and Burgess Lake are separately depicted in the adjacent highland, south/east of that receiving corridor; no selected through-lake itinerary through either is established. The source-supported valley continuation does not itself establish how the selected far-southwestern beginning reaches it.",
+          "sources": [
+            "r147-nts-kaskattama-mosaic"
+          ],
+          "correspondence": "original_cartographic_pixels_at_generalized_corridor_scale; initial_connection_excluded",
+          "selected_component_role": "mapped upper receiving trunk after the unresolved initial interval",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Kaskattama River"
+        },
+        {
+          "fragments": [
+            9022
+          ],
+          "component_scope": "eastward upper middle bend and join",
+          "finding": "The mapped trunk follows the broad eastward turn and then bends northeast/north into the repeated Kaskattama-labelled corridor. Kitin Creek is separately labelled on a western tributary entering this upper-middle river network. The selected trunk is a fluvial corridor beside scattered lakes and wetland symbols, rather than a chain through the nearby named highland lakes.",
+          "sources": [
+            "r147-nts-kaskattama-mosaic"
+          ],
+          "correspondence": "original_map_pixels_with_branch_junction_context",
+          "selected_component_role": "mainstem",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Kaskattama River"
+        },
+        {
+          "fragments": [
+            9022
+          ],
+          "component_scope": "middle northward meanders",
+          "finding": "Repeated Kaskattama River lettering follows the northward and northeastward meandering trunk through extensive marsh/swamp lowlands. The characteristic northward reach, westward kink and ensuing northeastward valley are depicted. Small tributaries enter from both sides; the western lake-and-creek field includes a separately labelled Minaker Creek corridor. Those side-component names are not assigned to the selected trunk.",
+          "sources": [
+            "r147-nts-kaskattama-mosaic"
+          ],
+          "correspondence": "original_map_pixels_at_corridor_scale",
+          "selected_component_role": "mainstem",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Kaskattama River"
+        },
+        {
+          "fragments": [
+            9022
+          ],
+          "component_scope": "lower meanders and major western joins",
+          "finding": "The mapped lower river continues northeast through broad loops, narrow side channels and wetland ground. Several substantial western tributary channels can be followed into it; the map also depicts many detached or adjacent small lakes. No major lake, reservoir or dam interrupts the observed selected lower trunk. Individual tributary/side-channel labels are not normalized into a uniform Kaskattama name.",
+          "sources": [
+            "r147-nts-kaskattama-mosaic"
+          ],
+          "correspondence": "original_map_pixels_including_major_junctions",
+          "selected_component_role": "mainstem",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Kaskattama River"
+        },
+        {
+          "fragments": [
+            9022
+          ],
+          "component_scope": "actual coastal terminal",
+          "finding": "The directly labelled Kaskattama lower river crosses the joined map-sheet latitude edge and reaches Hudson Bay east of Cape Tatnam. The mouth is depicted as a branched/widened coastal outlet, with coastal marsh and beach-ridge terrain around it. This establishes the actual receiving-water setting and distinguishes the route from the Black Duck and Kettle corridors farther east. No exact modern bank, tidal limit or terminal vertex is asserted.",
+          "sources": [
+            "r147-nts-kaskattama-mosaic"
+          ],
+          "correspondence": "original_map_pixels_across_sheet_seam_to_receiving_water",
+          "selected_component_role": "terminal mainstem",
+          "component_correspondence_completed": true,
+          "mapped_component_name": "Kaskattama River",
+          "receiving_water": "Hudson Bay"
+        },
+        {
+          "fragments": [
+            9022
+          ],
+          "component_scope": "lake wetland and reservoir scope",
+          "finding": "The observed upper receiving valley and middle/lower trunk run through marsh/swamp terrain with small side waters and larger off-route highland lakes. No major selected through-lake passage or reservoir is established in that mapped interval. The initial feeder/wetland connector remains unresolved, so the review cannot make a whole-selected-route statement about all headward water links.",
+          "sources": [
+            "r147-nts-kaskattama-mosaic",
+            "r147-mgs-gs2017-18"
+          ],
+          "correspondence": "positive_middle_lower_context; initial_linkage_pending",
+          "selected_component_role": "cross-cutting component review",
+          "component_correspondence_completed": false,
+          "mapped_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70134775",
+      "source_keys": [
+        "r147-anderson1985-kenamu"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9204
+          ],
+          "component_scope": "western headward stream and first lake/steady entry",
+          "finding": "Figure50 shows the north-to-south initial small stream west of the longer northern lake-fed branch, entering the western side of the broad southwestern lake/steady complex. Its position relative to that complex, the eastern outlet and the northern arm corresponds to the selected opening and initial southward bend. The unnamed feeder is not renamed Kenamu.",
+          "sources": [
+            "r147-anderson1985-kenamu"
+          ],
+          "correspondence": "complete at ordinary generalized component scale; no exact headpoint or bank assertion",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9204
+          ],
+          "component_scope": "upper western lake/steady passage and northern-arm junction",
+          "finding": "The western broad waterbody narrows eastward into the outgoing trunk. A distinct substantial branch descends from the north through its own broadened/lake-fed reaches and joins before the trunk bends southeast. The selected route uses the western lake/steady arm and the outgoing trunk, rather than adopting the separate northern branch as its headwater. Smaller side ponds and linked tributaries remain separate features.",
+          "sources": [
+            "r147-anderson1985-kenamu"
+          ],
+          "correspondence": "complete; connected waterbody/stream links are visually depicted, with their individual hydronyms unestablished",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9204
+          ],
+          "component_scope": "southeast upper trunk and Little Drunken River junction",
+          "finding": "Figure50 follows the selected southeastward outlet corridor to its southern bend, where the distinct tributary T56 joins from the south. The figure key identifies T56 as Little Drunken River, and printed page158 independently states that the Kenamu turns north at this confluence. The selected route remains on the outgoing Kenamu corridor rather than taking T56.",
+          "sources": [
+            "r147-anderson1985-kenamu"
+          ],
+          "correspondence": "complete",
+          "mapped_component_name": "Kenamu River"
+        },
+        {
+          "fragments": [
+            9204
+          ],
+          "component_scope": "northward middle valley and major tributaries",
+          "finding": "The mapped trunk continues north/northeast past separate western lake-fed tributaries and the eastern T40 junction. The figure key identifies T40 as Salmon River. A further downstream eastern tributary is labelled T31 without a hydronym. The first numbered mainstem rapid lies between T40 and T31, consistently with the prose and obstruction table. These junctions and the long northward valley match the selected middle corridor.",
+          "sources": [
+            "r147-anderson1985-kenamu"
+          ],
+          "correspondence": "complete; no current fish passage or flow conditions inferred",
+          "mapped_component_name": "Kenamu River"
+        },
+        {
+          "fragments": [
+            9204
+          ],
+          "component_scope": "lower river and actual receiving water",
+          "finding": "The original map continues the river beyond T31 through its long lower northward reach and final bends, widening at the Lake Melville shore. Printed page158 and Table206 identify Lake Melville as the receiving water. The stored terminal class sea is interpreted geographically as this Lake Melville inlet setting; the selected line is not asserted to end directly on the open Labrador Sea.",
+          "sources": [
+            "r147-anderson1985-kenamu"
+          ],
+          "correspondence": "complete at river-to-receiving-water scale; exact present shoreline, channel banks and estuarine boundary unestablished",
+          "mapped_component_name": "Kenamu River",
+          "receiving_water": "Lake Melville"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "source_keys": [
+        "ibge2010-centro-guilherme",
+        "ibge2010-maranhaozinho",
+        "ibge2010-amapa-ma",
+        "ibge2010-candido-mendes",
+        "ibge2010-maracacume",
+        "ibge2010-centro-novo",
+        "ibge2010-nova-olinda",
+        "cprm-candido-2008"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13705
+          ],
+          "component_scope": "Selected mainstem FID 13705",
+          "finding": "Southern opening lies in/beside the Alto Turiaçu Indigenous-land and Centro Novo/Nova Olinda/Maranhãozinho setting before extending north through the Centro do Guilherme corridor. The northern portion is depicted and repeatedly labelled Rio Maracaçumé on the Maracaçumé2010 original. It follows the northbound course past tributary joins, the Maracaçumé urban/road crossing setting and the northeastward municipal-edge corridor into the next fragment. The selected route is distinguished from the separate Maracaçumezinho transverse course. The whole initial southern channel and its northward connector to that mapped Maracaçumé portion are not established on readable original cartography. Nearby labels, the broad river basin and the model chain do not resolve this interval.",
+          "sources": [
+            "ibge2010-centro-guilherme",
+            "ibge2010-maranhaozinho",
+            "ibge2010-nova-olinda",
+            "ibge2010-centro-novo",
+            "ibge2010-maracacume"
+          ],
+          "correspondence": "partial",
+          "headward_setting": "Southern opening lies in/beside the Alto Turiaçu Indigenous-land and Centro Novo/Nova Olinda/Maranhãozinho setting before extending north through the Centro do Guilherme corridor.",
+          "lakes_wetlands_reservoirs": "No mapped lake or reservoir passage was observed in the established northern interval. Waterbody/branch continuity in the unread initial interval remains unresolved.",
+          "material_gap": "The whole initial southern channel and its northward connector to that mapped Maracaçumé portion are not established on readable original cartography. Nearby labels, the broad river basin and the model chain do not resolve this interval."
+        },
+        {
+          "fragments": [
+            13706
+          ],
+          "component_scope": "Selected mainstem FID 13706",
+          "finding": "The channel continues north and northeast along the Maracaçumé/Cândido Mendes and Amapá do Maranhão eastern-edge setting, with incoming side drainage and progressive widening toward the lower river. The adjoining Maracaçumé, Amapá do Maranhão and southern/northern Cândido Mendes map coverage was read across the fragment. Rio Tromaí is a distinct western drainage, not the selected mainstem.",
+          "sources": [
+            "ibge2010-maracacume",
+            "ibge2010-amapa-ma",
+            "ibge2010-candido-mendes"
+          ],
+          "correspondence": "established at ordinary corridor scale",
+          "lakes_wetlands_reservoirs": "No lake or reservoir connector is needed to account for this mapped river interval. The lower end approaches the coastal wetland/tidal-river setting."
+        },
+        {
+          "fragments": [
+            13707
+          ],
+          "component_scope": "Selected mainstem FID 13707",
+          "finding": "The lower channel runs through the Cândido Mendes/Vila Gracinha and Feitoria setting, divides and rejoins around a small mangrove island, and proceeds north through the Jardim/Ponta do Jardim tidal corridor. Lateral channels communicate with the widening estuary; their own names are not inferred from the main candidate.",
+          "sources": [
+            "ibge2010-candido-mendes",
+            "cprm-candido-2008"
+          ],
+          "correspondence": "established at ordinary corridor scale",
+          "lakes_wetlands_reservoirs": "Coastal mangrove/alluvial and salt-marsh setting with tidal splits/joins; not a lake or reservoir chain.",
+          "actual_terminal": "The retained endpoint lies in widened estuarine water, beside a lateral eastward estuarine arm leading toward the Igarapé Pinto setting. Wider original cartography depicts communication with Oceano Atlântico. The retained model sea terminal is not interpreted as an exact surveyed shoreline mouth."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60430428",
+      "source_keys": [
+        "r147-ibge-mazagao2020",
+        "r147-ibge-mazagao2007"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11669
+          ],
+          "component_scope": "Northwestern opening and southeast feeder",
+          "finding": "The 04/2021 original depicts the selected opening south of the protected-land boundary as a small unlabelled drainage turning east and then southeast. It continues through successive side-stream joins west of the separately labelled Camapi do Maracá/Repartimento/Pimentel tributary group. The feeder reaches the southern bend and a west-arriving river at the Varador do Maracá setting. The 2007 northern and southern panels show the corresponding drainage continuation across their adjoining margins.",
+          "sources": [
+            "r147-ibge-mazagao2020",
+            "r147-ibge-mazagao2007"
+          ],
+          "correspondence": "Complete at ordinary feeder/corridor scale; headward name null.",
+          "lakes_wetlands_reservoirs": "No selected lake or reservoir traversal is depicted in this upper feeder."
+        },
+        {
+          "fragments": [
+            11669
+          ],
+          "component_scope": "Varador joining bend and northeast middle course",
+          "finding": "The 04/2021 original labels the west-arriving river Rio Maracá-Pucu beside the Varador setting. From this joining area the mapped course bends northeast and continues to the northern tributary convergence and Pacu do Maracá setting. Both originals depict the northern Camapi do Maracá tributary system and distinguish its Repartimento/Pimentel branches from the selected western approach.",
+          "sources": [
+            "r147-ibge-mazagao2020",
+            "r147-ibge-mazagao2007"
+          ],
+          "correspondence": "Joining bend, northeast return and material northern convergence established; no tributary-name transfer to the selected opening."
+        },
+        {
+          "fragments": [
+            11669
+          ],
+          "component_scope": "East/southeast turn and Pançudo–Maracá lowlands",
+          "finding": "After the northeast reach the mapped trunk turns south and east through the Pancada/Pedra Chata and Pançudo/Maracá settlement corridor. The originals show continuous drainage through the lowland middle course and western tributary joins toward Boa Esperança. The 04/2021 compilation adds the Central do Maracá, São Miguel, Lagoa do Maracá and Barro Alto locality setting. The model line is generalized westward through part of this sector; the evidence is corridor correspondence rather than an exact plotted channel-by-channel match.",
+          "sources": [
+            "r147-ibge-mazagao2020",
+            "r147-ibge-mazagao2007"
+          ],
+          "correspondence": "Complete ordinary corridor interpretation; precise parallel lowland channel choice remains outside the naming claim.",
+          "lakes_wetlands_reservoirs": "Locality labels containing Lago/Lagoa are not converted into lake-name or lake-traversal claims."
+        },
+        {
+          "fragments": [
+            11669,
+            11670
+          ],
+          "component_scope": "Adjacent lake complex and lower continuation",
+          "finding": "The 04/2021 original shows a broad lobed waterbody complex east of Boa Esperança and beside Poção do Rio Preto/Tabatinga. The selected corridor follows the Maracá side to its west and then continues south into the Mangueira–Santa Luzia do Maracá lower setting. The separate Rio Preto proceeds to its own more northerly Amazon-channel mouth. A selected passage across the broad Rio Preto waterbody is not shown or inferred.",
+          "sources": [
+            "r147-ibge-mazagao2020",
+            "r147-ibge-mazagao2007"
+          ],
+          "correspondence": "Selected river continuation and separation from the adjacent lake/Rio Preto system established.",
+          "lakes_wetlands_reservoirs": "Adjacent lobed waterbody and side drainage are read as local context, not as a selected through-lake transfer. No reservoir identified."
+        },
+        {
+          "fragments": [
+            11670
+          ],
+          "component_scope": "Branched mouth and actual terminal",
+          "finding": "The lower river widens and splits around small lowland islands/loops before turning northeast. Both originals print Rio Maracá-Pucu on this lower course. The 04/2021 map places the receiving water in Canal do Norte beside Ilha do Pará; the 2007 original shows the floodable Amazon margin and the Maracá-Pucu opening, with the separate Rio Preto mouth farther north and the Ajuruxi/Furo do Maracá setting farther south. The selected terminal is the Maracá-Pucu opening into the north Amazon estuarine channel.",
+          "sources": [
+            "r147-ibge-mazagao2020",
+            "r147-ibge-mazagao2007"
+          ],
+          "correspondence": "Complete at ordinary mouth/distributary-corridor scale; no precise distributary boundary or tide-direction assertion.",
+          "lakes_wetlands_reservoirs": "Floodable estuarine margin and local split channels; no direct open-ocean coast substituted for the actual receiving channel."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70043276",
+      "publication": "Gauthier, M.S.2022. Surficial point and line features of the Kaskattama River map sheet (NTS54B), Manitoba. Manitoba Geological Survey, Surficial Geology Compilation Map SG-GF2022-54B, scale1:250,000.",
+      "official_url": "https://www.manitoba.ca/iem/geo/surficial/maps/SG-GF2022-54B.pdf",
+      "observed_outcome": "The sole web-reader open returned Internal Error with Failed to fetch the exact URL: (400) OK. No source body or original map pixels were acquired; origin HTTP status was not exposed.",
+      "outcome_layer": "Web-reader fetch/transport outcome; underlying cause and origin HTTP status unresolved.",
+      "restriction_scope": "The missing publication and equivalent copies, figures, formats, catalogue, original, reader, cache, mirror and all acquisition routes remain paused. No retry or alternate original acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "evidence_exclusion": "Discovery bibliography is not cartographic evidence."
+    },
+    {
+      "aw_id": "hydro-system:70043276",
+      "publication": "Pryor Lake, Manitoba, NTS54B/04, CanMatrix1:50,000 topographic sheet; 1984 publication from discovery bibliography, original imprint uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/054/b/canmatrix_054b04_tif.zip",
+      "observed_outcome": "The official054/b directory completed HTTP200 and supplied the exact archive link. The sole linked original-archive acquisition completed HTTPError403 Forbidden. No archive or original map body acquired.",
+      "outcome_layer": "Completed original HTTP-client response reporting403; no separate tunnel/transport failure reported.",
+      "restriction_scope": "Whole NTS54B/04 publication and equivalent copies, formats, editions offered as recovery, catalogue, original, reader, cache, screenshot, mirror and all acquisition routes stopped. No retry or alternate retrieval. Distinct sheets are not automatically stopped.",
+      "earlier_lawful_prose_exception": "Only the successful directory supplied the archive name; discovery bibliography supplied the title/year. Neither establishes any selected-route geography.",
+      "material_effect": "Potential detailed cartographic evidence for the selected southwestern opening was unavailable."
+    },
+    {
+      "aw_id": "hydro-system:70134775",
+      "publication": "James,D.T.(1999), Geology of the Kenamu River area (NTS13C/NE), Grenville Province, southern Labrador; Map99-13, Open File013C/0040",
+      "official_url": "https://www.gov.nl.ca/em/files/99-13.pdf",
+      "observed_outcome": "The PDF text reader opened normally. The sole original-PDF acquisition completed HTTPError500 Internal Server Error. No original PDF body or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separately reported transport/tunnel failure.",
+      "restriction_scope": "Missing map/publication visual material and equivalent copies, formats, department paths, original, reader, screenshot, cache, mirror and all acquisition routes paused. No retry or alternate route.",
+      "earlier_lawful_prose_exception": "Official catalogue metadata only; parsed map labels from the text reader are not geographic map evidence.",
+      "limitation_kind": "http_500_availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional potential detailed original unavailable; independent retained Anderson1985 Figure50 and its Kenamu account supply ordinary full-corridor geographic correspondence."
+    },
+    {
+      "aw_id": "hydro-system:70134775",
+      "publication": "Wardle,R.J.(1994), Geology of the North West River area, central Labrador, NTS13SW; Map94-117, LAB/1019",
+      "official_url": "https://www.gov.nl.ca/em/files/94-117.pdf",
+      "observed_outcome": "The PDF text reader opened normally. The sole original-PDF acquisition completed HTTPError500 Internal Server Error. No original PDF body or map pixels acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separately reported transport/tunnel failure.",
+      "restriction_scope": "Missing map/publication visual material and equivalent copies, formats, department paths, original, reader, screenshot, cache, mirror and all acquisition routes paused. No retry or alternate route.",
+      "earlier_lawful_prose_exception": "Official catalogue metadata only; parsed map labels from the text reader are not geographic map evidence.",
+      "limitation_kind": "http_500_availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional potential detailed original unavailable; independent retained Anderson1985 Figure50 and its Kenamu account supply ordinary full-corridor geographic correspondence."
+    },
+    {
+      "aw_id": "hydro-system:70134775",
+      "publication": "Gower,C.F. and Nunn,G.A.G.(2010), Geology of the Kenemich River area, NTS13G/03,04,05,06; Map2010-13, Open File013G/0056",
+      "official_url": "https://www.gov.nl.ca/em/files/Map2010-13.pdf",
+      "observed_outcome": "The PDF reader completed an explicit content-size limitation without an access denial. One sequential normal original-file request then completed HTTP500 Internal Server Error. No original PDF body or map pixels were acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separately reported transport/tunnel failure.",
+      "restriction_scope": "Missing map/publication visual material and equivalent copies, formats, department paths, original, reader, screenshot, cache, mirror and all acquisition routes paused. No retry or alternate route.",
+      "earlier_lawful_prose_exception": "Official catalogue metadata only; parsed map labels from the text reader are not geographic map evidence.",
+      "limitation_kind": "http_500_availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional potential detailed original unavailable; independent retained Anderson1985 Figure50 and its Kenamu account supply ordinary full-corridor geographic correspondence."
+    },
+    {
+      "aw_id": "hydro-system:70134775",
+      "publication": "Canadian National Topographic System, Minipi Lake, NTS013C, 1:250,000 provincial Land Use Atlas-hosted PDF; printed edition uninspected",
+      "official_url": "https://www.gov.nl.ca/landuseatlas/documents/topo/250000/013C.pdf",
+      "observed_outcome": "The sole original-file request completed HTTPError500 Internal Server Error. No PDF body or original map pixels acquired. The candidate URL followed the established provincial topographic-PDF route; existence of that exact hosted edition was not established.",
+      "outcome_layer": "Completed original HTTP-client response; no separately reported transport or tunnel failure.",
+      "restriction_scope": "Missing exact sheet and equivalent copies, editions offered as recovery of this source, formats, provincial or federal hosts, CanMatrix, catalogue, original, reader, screenshot, cache, mirror and acquisition routes paused. No retry or alternative sheet acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_500_availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional potential detailed original unavailable; independent retained Anderson1985 Figure50 and its Kenamu account supply ordinary full-corridor geographic correspondence."
+    },
+    {
+      "aw_id": "hydro-system:70134775",
+      "publication": "Canadian National Topographic System, Lake Melville, NTS013G, 1:250,000 provincial Land Use Atlas-hosted PDF; printed edition uninspected",
+      "official_url": "https://www.gov.nl.ca/landuseatlas/documents/topo/250000/013G.pdf",
+      "observed_outcome": "The sole original-file request completed HTTPError500 Internal Server Error. No PDF body or original map pixels acquired. The candidate URL followed the established provincial topographic-PDF route; existence of that exact hosted edition was not established.",
+      "outcome_layer": "Completed original HTTP-client response; no separately reported transport or tunnel failure.",
+      "restriction_scope": "Missing exact sheet and equivalent copies, editions offered as recovery of this source, formats, provincial or federal hosts, CanMatrix, catalogue, original, reader, screenshot, cache, mirror and acquisition routes paused. No retry or alternative sheet acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_500_availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional potential detailed original unavailable; independent retained Anderson1985 Figure50 and its Kenamu account supply ordinary full-corridor geographic correspondence."
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "publication": "IBGE2020 Cândido Mendes municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MA/candido_mendes/",
+      "observed_outcome": "The sole web-reader directory open returned Cache miss. No directory body or origin HTTP status was exposed.",
+      "outcome_layer": "Web-reader availability/decoding outcome; origin HTTP status unknown.",
+      "restriction_scope": "Failed directory and equivalent directory-acquisition routes paused; no retry. No associated2020 original was acquired. Independent2010 publications are distinct and were acquired normally.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "directory_availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "publication": "IBGE2020 Centro do Guilherme municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MA/centro_do_guilherme/",
+      "observed_outcome": "The sole web-reader directory open returned (400) Unicode decoding error. No directory body or origin HTTP status was exposed.",
+      "outcome_layer": "Web-reader availability/decoding outcome; origin HTTP status unknown.",
+      "restriction_scope": "Failed directory and equivalent directory-acquisition routes paused; no retry. No associated2020 original was acquired. Independent2010 publications are distinct and were acquired normally.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "directory_reader_decoding_failure",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "publication": "IBGE2020 Maranhãozinho municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MA/maranhaozinho/",
+      "observed_outcome": "The sole web-reader directory open returned Cache miss. No directory body or origin HTTP status was exposed.",
+      "outcome_layer": "Web-reader availability/decoding outcome; origin HTTP status unknown.",
+      "restriction_scope": "Failed directory and equivalent directory-acquisition routes paused; no retry. No associated2020 original was acquired. Independent2010 publications are distinct and were acquired normally.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "directory_availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "publication": "IBGE2020 Nova Olinda do Maranhão municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MA/nova_olinda_do_maranhao/",
+      "observed_outcome": "The sole web-reader directory open returned Cache miss. No directory body or origin HTTP status was exposed.",
+      "outcome_layer": "Web-reader availability/decoding outcome; origin HTTP status unknown.",
+      "restriction_scope": "Failed directory and equivalent directory-acquisition routes paused; no retry. No associated2020 original was acquired. Independent2010 publications are distinct and were acquired normally.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "directory_availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "publication": "Centro Novo do Maranhão-MA, Mapa Municipal Estatístico,2103174;2010 territorial reference",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ma/centro_novo_do_maranhao_v2.pdf",
+      "observed_outcome": "The PDF reader completed an explicit content-size limitation. One sequential original-file acquisition then completed HTTP200, but multiple embedded map image tiles remained blank or black and unreadable in local rendering. No further external acquisition followed.",
+      "outcome_layer": "Initial reader size limit; subsequent origin HTTP200; local PDF image/render limitation. No HTTP denial.",
+      "restriction_scope": "The failed web-reader route was not repeated. Unread source tiles are excluded; no retry, mirror or other reacquisition of missing map content. Available original portions do not close the selected headward connector.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_size_limit_followed_by_original_success_with_local_content_gap",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "publication": "Mapa de Pontos D’Água do Município de Nova Olinda do Maranhão-MA, CPRM2011",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/15547/2/mapa-nova_olinda_ma.pdf",
+      "observed_outcome": "The sole web-reader open returned Internal Error: URL is not accessible via this tool. No map, HTTP status, security reason or authorization reason was exposed.",
+      "outcome_layer": "Unexplained web-reader availability failure; origin HTTP unknown.",
+      "restriction_scope": "Missing publication and equivalents, including original/reader/catalogue/figure/cache/mirror routes, remain paused. No fallback or retry. Discovery snippets are not map evidence.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unexplained_reader_availability_stop",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "publication": "Mapa de Pontos D’Água do Município de Centro Novo do Maranhão-MA, CPRM2011",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/ac216160-76f9-426d-977d-b97add99ec13/content",
+      "observed_outcome": "The sole web-reader open returned Cache miss. No map pixels or origin HTTP status were exposed.",
+      "outcome_layer": "Web-reader availability response; origin HTTP unknown.",
+      "restriction_scope": "Missing publication and equivalent copies, original/reader/catalogue/figure/cache/mirror routes remain paused. No alternative old-bitstream URL was requested. Discovery snippets are not map evidence.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "publication": "Mapa de Pontos D’Água do Município de Maranhãozinho-MA, CPRM2011",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/15527/2/mapa-maranhaozinho.pdf",
+      "observed_outcome": "The PDF text reader opened normally. The first and only requested screenshot of page1 returned Cache miss, without map pixels or origin HTTP status.",
+      "outcome_layer": "Web-reader screenshot availability response; origin HTTP unknown.",
+      "restriction_scope": "Missing original visual material and equivalent PDF/reader/screenshot/cache/mirror routes paused. No original download or alternate image recovery.",
+      "earlier_lawful_prose_exception": "Only actually read prior legend,2011 date and printed base-credit prose remain usable. These describe a CPRM municipal compilation based on IBGE data digitized in2007,1973 SUDENE/DSG topographic sheets and UEMA/NUGEO planimetry. Parsed Rio Maracaçumé labels are not map correspondence.",
+      "limitation_kind": "visual_availability_stop",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:60490135",
+      "publication": "IBGE2010 Maranhão municipal maps: selected headward coverage limitation",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ma/maranhaozinho_v2.pdf",
+      "observed_outcome": "The acquired Centro do Guilherme, Maranhãozinho and Nova Olinda do Maranhão originals do not establish the complete selected southern opening and its continuous connection into the mapped Maracaçumé corridor. Sheet coverage, nearby settlements, administrative boundaries and model connectivity cannot supply the missing river connection.",
+      "outcome_layer": "Cartographic content/coverage limit in available originals; not an HTTP or transport outcome.",
+      "restriction_scope": "Material gap for the initial part of FID13705 only. No host or publication acquisition ban is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_headward_connector_not_established",
+      "material_gap": true
+    },
+    {
+      "aw_id": "hydro-system:60430428",
+      "publication": "IEPA, Capítulo 6: Recursos hídricos superficiais, estuário volume 1 chapter; full parent-volume title and edition not inspected",
+      "official_url": "https://www.iepa.ap.gov.br/estuario/arq_pdf/vol_1/cap_6_recursos_hidricos_superficiais_atual.pdf",
+      "observed_outcome": "The sole original-file request completed with HTTPError502 Bad Gateway. No original body was acquired.",
+      "outcome_layer": "HTTP response reported by the original-file acquisition; no authorization or security denial inferred.",
+      "restriction_scope": "Missing chapter/publication content and equivalent copies, figures, reader/original/cache/mirror routes paused for availability. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_502_availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional supporting chapter supplies no evidence. The two independently acquired original municipal maps supply the complete bounded geographic interpretation."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60430428",
+      "publication": "Mazagão – AP, Mapa Municipal, 1600402, 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/AP/mazagao/1600402_MM.pdf",
+      "observed_outcome": "Printed statistical-purpose disclaimer and reserved reproduction rights were read. The headward feeder is depicted without an established name; parts of the model middle centerline are generalized west of the mapped lowland trunk.",
+      "outcome_layer": "Source-use and cartographic/name-scope limitations, not an access failure",
+      "restriction_scope": "Keep originals/crops/overlays private; factual corridor correspondence and representative downstream-system identity only. No acquisition stop follows from this notice.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    }
+  ]
+}
