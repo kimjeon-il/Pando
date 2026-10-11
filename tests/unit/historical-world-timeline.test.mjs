@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { historicalWorldCases } from '../fixtures/historical-world-cases.mjs';
 import { createEmptyTerritorialState, createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { effectiveTerritorialFlagUrl } from '../../assets/js/modules/country-flags.js';
 
 const compiler = await import('../../tools/historical-world-timeline.mjs').catch(error => {
   if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
@@ -63,4 +64,20 @@ test('compilerRejectsReversedIntervalsAndMissingGeometry', () => {
   assert.throws(() => compiler.compileHistoricalWorldTimeline(reversed), /기간|interval/i);
   const missing = historicalWorldCases(); delete missing.entities.at(-1).geometryVersions[0].geometry;
   assert.throws(() => compiler.compileHistoricalWorldTimeline(missing), /geometry|형상/i);
+});
+test('historical defaults reach root flags and color without promoting a child flag', () => {
+  const input = historicalWorldCases();
+  const flag = 'data:image/svg+xml;base64,' + Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="8"><path fill="#f00" d="M0 0h16v8H0z"/></svg>').toString('base64');
+  for (const id of ['state:test-ukraine', 'state:child']) {
+    const entity = input.entities.find(row => row.entityId === id);
+    Object.assign(entity.metadata, { defaultColor: '#53657A', defaultFlagDataUrl: flag });
+  }
+  const project = compiler.compileHistoricalWorldTimeline(input).project;
+  const root = project.territorialEntities.find(row => row.id === 'state:test-ukraine');
+  assert.equal(root.properties.style.color?.toUpperCase(), '#53657A');
+  assert.equal(effectiveTerritorialFlagUrl(root), flag);
+  const child = project.territorialEntities.find(row => row.id === 'state:child');
+  assert.equal(child.properties.style.color?.toUpperCase(), '#53657A');
+  assert.equal(child.properties.metadata.defaultFlagDataUrl, flag);
+  assert.equal(Object.hasOwn(child.properties.metadata, 'flagDataUrl'), false);
 });

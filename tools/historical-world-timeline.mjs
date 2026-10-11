@@ -96,7 +96,10 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
     if (!first) throw new Error(`Missing source geometry: ${entity.entityId}`);
     const feature = createTerritorialFeature({ id: entity.entityId, entityKind: entity.entityKind,
       name: entity.names.ko || entity.names.en || Object.values(entity.names)[0], geometry: first.geometry,
+      color: entity.metadata?.defaultColor || '',
       notes: entity.metadata?.notes || '', metadata: { ...structuredClone(entity.metadata),
+        ...(entity.entityKind === 'general' && !entity.parentEntityId && entity.metadata?.defaultFlagDataUrl
+          ? { flagDataUrl: entity.metadata.defaultFlagDataUrl } : {}),
         historicalTimeline: { entityId: entity.entityId, lifetime: structuredClone(entity.lifetime),
           sourceInfo: structuredClone(entity.sourceInfo), geometryVersions: entity.geometryVersions.map(withoutGeometry), geometryBindings: [] } },
       sourceEntityId: entity.entityId });
