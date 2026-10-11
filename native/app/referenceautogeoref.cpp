@@ -8,6 +8,8 @@
 #include <optional>
 #include <QLineF>
 #include <QPoint>
+#include <QRectF>
+#include <QRegularExpression>
 #include <QSet>
 #include <QVector>
 
@@ -84,7 +86,7 @@ QVector<Component> components(const QImage& image,int left,int top,int right,int
     return result;
 }
 
-std::optional<Candidate> detect(const QImage& image,const QVariantMap& seed,int searchRadius)
+std::optional<Candidate> detect(const QImage& image,const QVariantMap& seed,int searchRadius,const QRectF& exclusion={})
 {
     QPointF expected,coordinate;if(!pair(seed.value("expectedUv"),expected)||!pair(seed.value("coordinate"),coordinate))return {};
     if(expected.x()<0||expected.x()>1||expected.y()<0||expected.y()>1||coordinate.x()<-180||coordinate.x()>180||coordinate.y()<-90||coordinate.y()>90)return {};
@@ -101,7 +103,8 @@ std::optional<Candidate> detect(const QImage& image,const QVariantMap& seed,int 
             const int w=component.maxX-component.minX+1,h=component.maxY-component.minY+1;
             const double aspect=double(std::min(w,h))/std::max(w,h);if(aspect<.42)continue;
             const double fill=clamp(double(component.pixels)/std::max(1,w*h),0,1);
-            const QPointF center=component.center();const double distance=QLineF(center,expectedPixel).length();if(distance>searchRadius)continue;
+            const QPointF center=component.center();if(!exclusion.isEmpty()&&exclusion.contains(center))continue;
+            const double distance=QLineF(center,expectedPixel).length();if(distance>searchRadius)continue;
             const double mean=component.sumLuma/component.pixels;const double rawContrast=dark?background-mean:mean-background;if(rawContrast<=0)continue;
             const double contrastScore=clamp(rawContrast/96.,0,1),compact=clamp(aspect*std::min(1.,fill/.45),0,1),distanceScore=1-clamp(distance/std::max(1,searchRadius),0,1);
             const double diameter=std::sqrt(std::max(1,w*h)),sizeScore=std::exp(-std::abs(diameter-5.)/5.);
