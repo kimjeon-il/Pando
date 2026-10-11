@@ -1,0 +1,689 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r134",
+  "sources": [
+    {
+      "title": "SIMBIO_HIDROGRAFIA, layer 0 Red Hidrografica",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Undated active cartographic service; read 11 October 2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "evidence_type": "Primary original hydrographic cartography",
+      "actually_inspected": "Headward, middle and lower original maps, covering the full selected FID and all principal junctions.",
+      "cartographic_method": "Official line geometry and server-rendered NOMBRE labels; selected geometry used only for private orientation. No full vector/base dataset acquired.",
+      "use_notice": "No redistribution permission inferred; original maps and private orientation derivatives remain private.",
+      "source_key": "mma-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "limits": "Line-only source does not show reservoir surface or establish present flow. Initial feeder remains unnamed. No current channel survey or formal name-registry determination."
+    },
+    {
+      "title": "SIMBIO_HUMEDALES, layer 0 Inventario Nacional de Humedales",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Undated active inventory service; read 11 October 2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer/0",
+      "evidence_type": "Primary original wetland cartography",
+      "actually_inspected": "Initial stream and narrow continental-wetland patches; distinct artificial reservoir polygon linking Huasco approaches; lower continental-to-marine/coastal wetland transition.",
+      "cartographic_method": "Published ORDEN_1 renderer; server-rendered NOM_HUMDET labels. Artificial wetlands are distinguished from continental and marine/coastal classes by the inspected layer legend.",
+      "use_notice": "Copyright metadata blank; no republication rights inferred.",
+      "source_key": "mma-wetlands",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer",
+      "limits": "Sin Información is missing-name text. Broad Rio Huasco labels on upstream polygons are inventory-group scope, not proof that every stream is named Huasco. Wetland polygons are not current wetted boundaries."
+    },
+    {
+      "title": "SIMBIO_COT, layer 1 COT 2020",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Layer titled 2020; read 11 October 2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer/1",
+      "evidence_type": "Primary original categorical land-cover cartography",
+      "actually_inspected": "Mountain land-cover, agricultural lower-valley corridor and coast margin.",
+      "important_interpretation_limit": "Blue-gray (163,183,207) is Terrenos agricolas, not Cuerpos de agua (169,211,212). The valley and coastal agricultural polygons are not waterbody outlines. This source is not used to close the reservoir or headwater waterbody connections; the independently read wetland inventory does that.",
+      "use_notice": "No hydronyms or current-water-level inference; originals remain private.",
+      "source_key": "mma-cot2020",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "title": "Minuta técnica para elaboración de anteproyecto de la norma secundaria de calidad ambiental para las aguas superficiales de la cuenca del río Huasco, versión 3",
+      "publisher": "SEREMI del Medio Ambiente, Región de Atacama; Ministerio del Medio Ambiente",
+      "date": "May 2019",
+      "evidence_type": "Primary government technical prose; supporting reproduced map",
+      "actually_inspected": "Cover, printed pages 3 and 14, and Figure7 on page14.",
+      "supports": "Tránsito–Carmen formation of Huasco, drainage sequence and maritime outlet context. Figure7 supplies broad basin/relief orientation only.",
+      "use_notice": "Government hosting is not treated as permission to republish original pages/maps.",
+      "source_key": "mma-minuta2019",
+      "official_url": "https://planesynormas.mma.gob.cl/archivos/2019/proyectos/1991_2048.pdf",
+      "limits": "Figure7 credits CENMA2016 using IDE-MMA cartography and is a reproduction. The prose's three-river formulation for Conay is refined by the separately read consultation response. No report length replaces stored model length and no present legal status is asserted."
+    },
+    {
+      "title": "Consolidado de Observaciones y Respuestas del proceso de Consulta Pública, NSCA río Huasco",
+      "publisher": "Ministerio del Medio Ambiente; includes Junta de Vigilancia de la Cuenca del Río Huasco y sus Afluentes observations",
+      "date": "Posted in 2024 archive; relevant observations dated 5 February 2021",
+      "evidence_type": "Primary consultation record and ministry responses; prose only",
+      "actually_inspected": "PDF page6, observations18–20 and corresponding responses.",
+      "supports": "Operator clarifies that Laguna Chica enters Valeriano, while Laguna Grande and Valeriano form Conay; ministry response accepts incorporation of the correction. Corral/Albaricoque are distinguished from direct Tránsito tributaries.",
+      "source_key": "mma-consultation2024",
+      "official_url": "https://planesynormas.mma.gob.cl/archivos/2024/proyectos/2594-2651_Consolidado_de_Observaciones_y_Respuestas_del_proceso_de_Consulta_Publica.pdf",
+      "limits": "No unseen figures or current legal enactment inferred. The hydrological correction is corroborated by inspected map topology."
+    },
+    {
+      "title": "Embalse Santa Juana",
+      "publisher": "Junta de Vigilancia de la Cuenca del Río Huasco y sus Afluentes",
+      "date": "Undated page; read 11 October 2026",
+      "evidence_type": "Primary water-operator prose",
+      "actually_inspected": "Reservoir location, regulation of Huasco flow and hydropower at the foot of the dam.",
+      "source_key": "jvrh-santa",
+      "official_url": "https://www.riohuasco.cl/embalse-santa-juana/",
+      "limits": "Supports identity and function, not present discharge, shoreline or all numerical operational statements. No photograph used as cartography."
+    },
+    {
+      "title": "Estudio ex post de corto y mediano plazo: Embalse Santa Juana, III Región de Atacama",
+      "author": "Orietta Valdés and Valeria Araya; Departamento de Metodologías and Departamento de Estudios",
+      "publisher": "Ministerio de Desarrollo Social, División de Evaluación Social de Inversiones",
+      "date": "2012",
+      "evidence_type": "Primary government evaluation prose",
+      "actually_inspected": "Cover and printed pages32–33,71–75, especially controlled outlet and spillway descriptions.",
+      "source_key": "mds-santa2012",
+      "official_url": "https://sni.gob.cl/wp-content/uploads/1463411403wpdm_Informe-final.pdf",
+      "limits": "Web prose only; unseen report maps excluded. Historical infrastructure descriptions do not establish current operation or inundation."
+    },
+    {
+      "title": "Norma de Calidad Secundaria Río Huasco, Reunión Comité Ampliado; Características de la Cuenca del Río Huasco, embedded presentation in folios218–288",
+      "publisher": "CONAMA Región de Atacama dossier; embedded presentation authorship not independently established",
+      "date": "2007 meeting dossier; hosted in 2015 archive",
+      "evidence_type": "Original government-hosted dossier containing schematic drainage diagrams",
+      "actually_inspected": "Opening dossier and embedded presentation, PDF pages10–12 / presentation pages3–5 / folios227–229.",
+      "supports": "Schematic distinction of Conay, Chollay, Tránsito, Carmen, Huasco, Santa Juana and coastal endpoint.",
+      "source_key": "conama-schematic2007",
+      "official_url": "https://planesynormas.mma.gob.cl/archivos/2015/proyectos/218_288.pdf",
+      "limits": "Schematic supporting topology only; does not locate the selected initial mountain stream. No upstream name inferred from schematic omission."
+    },
+    {
+      "title": "Subcuenca Rio Huasco, código BNA0382",
+      "publisher": "Ministerio del Medio Ambiente, SIMBIO",
+      "date": "Undated active catalogue; read 11 October 2026",
+      "evidence_type": "Primary catalogue prose",
+      "actually_inspected": "Named lower Huasco segmentation from Tránsito/Carmen to Camarones, Jilguero, Maitencillo, Tortolas and desembocadura; municipality and coastal-wetland context.",
+      "use_notice": "Page says cartography is referential and does not commit Chile on borders; its site-use notice is not extended to other publications.",
+      "source_key": "mma-subcuenca0382",
+      "official_url": "https://simbio.mma.gob.cl/Subcuencas/Details/0382",
+      "limits": "Catalogue segmentation supports place context, not independently the selected geometry. No current statutory status inferred."
+    },
+    {
+      "title": "Informe de Glaciares y del Ambiente Periglacial en Territorio Indígena Diaguita-Huascoaltino, Chile",
+      "author": "Jorge Daniel Taillant",
+      "publisher": "Centro de Derechos Humanos y Ambiente (CEDHA)",
+      "date": "11 December 2012",
+      "evidence_type": "Supplementary primary observational report with reproduced Google Earth oblique views",
+      "actually_inspected": "Cover, stated preliminary scope and page30's nearby mountain-lake imagery.",
+      "use_notice": "CEDHA copyright and underlying Google Earth/imagery credits visible; no source image redistribution.",
+      "source_key": "cedha2012-context",
+      "official_url": "https://center-hre.org/wp-content/uploads/Informe-de-Glaciares-y-del-Ambiente-Periglacial-en-Territorio-Ind%C3%ADgena-Diaguita-Huascoaltino-1.pdf",
+      "limits": "Nearby lakes and periglacial terrain only. Its oblique figures do not establish the entire selected feeder/connector or justify transferring Laguna del Encierro onto the model. Core correspondence rests on official hydrographic/wetland maps. No current glacier or mine-condition claim."
+    },
+    {
+      "title": "Northern Land Use Information Series, Joe Lake, sheet 66J, 1:250,000 (1980)",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Management Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66j.jpg",
+      "use_notice": "The introduction calls these interim maps because information can be incomplete or based on preliminary/reconnaissance surveys, and notes approximate thematic boundaries. Information is stated current to November1979; production marginalia give1980. No redistribution permission is inferred from official hosting.",
+      "year": 1980,
+      "scale": "1:250,000",
+      "acquired_scope": "Previously acquired original JPEG read locally for this selected corridor; no new external request. Original map pixels, graticule, relevant streams/lakes and map marginalia were inspected.",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "The headward setting, northward small-lake/stream corridor, eastward bend and longer northwest-trending upper lake-and-stream corridor are within the readable Joe Lake sheet. These are distinct selected components, not all given the name Simpson River.",
+      "limits": "Area coverage and broadly recognizable lake-chain setting do not by themselves settle every selected short connector or junction. The map ends at the 67th parallel. No uniform upper-route hydronym is established. Historic map, not a present registry or flow survey.",
+      "source_key": "r134-nluis-66j-retained"
+    },
+    {
+      "title": "Northern Land Use Information Series, McLoughlin Bay, sheet 66O, 1:250,000 (1980)",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Management Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66o.jpg",
+      "use_notice": "The introduction calls these interim maps because information can be incomplete or based on preliminary/reconnaissance surveys, and notes approximate thematic boundaries. Information is stated current to November1979; production marginalia give1980. No redistribution permission is inferred from official hosting.",
+      "year": 1980,
+      "scale": "1:250,000",
+      "acquired_scope": "Previously acquired original JPEG read locally for this selected corridor; no new external request. Original map pixels, graticule, relevant streams/lakes and map marginalia were inspected.",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "The selected northwest-trending middle corridor enters the southwestern portion of McLoughlin Bay sheet. The map prints Simpson River on the larger western northward river and depicts nearby incoming streams, small lakes and rapids. This supports Simpson River as a bounded middle-corridor candidate.",
+      "limits": "The selected lower course crosses the western sheet boundary; its western excursion, northeast return and actual coastal endpoint lie outside this sheet. Reading the adjacent eastern coast cannot establish the selected outlet. Some selected branch connections within the southwest corridor remain insufficiently resolved.",
+      "source_key": "r134-nluis-66o-retained"
+    },
+    {
+      "title": "An Inferred Sex Differential in Copper Metabolism in Ross’ Geese (Anser rossii): Biogeochemical and Physiological Considerations",
+      "authors": [
+        "Harold C. Hanson",
+        "Robert L. Jones"
+      ],
+      "publisher": "Arctic Institute of North America, Arctic",
+      "year": 1974,
+      "official_url": "https://pubs.aina.ucalgary.ca/arctic/Arctic27-2-111.pdf",
+      "acquired_scope": "The exact original completed HTTP200 application/pdf. The original article, Figure 1 and its caption were read.",
+      "evidence_kind": "regional_compilation_figure_and_primary_article_prose",
+      "supports": "Figure 1 labels Simpson River within the Queen Maud Gulf lowlands and distinguishes regional neighboring rivers. Its caption identifies Karrak Lake as Kangowan Lake on the figure.",
+      "limits": "The small regional geological figure is explicitly after Ryder1969, with geology drawn from Craig1961, Heywood1961 and Fraser1964. It is not treated as independent detailed original hydrographic coverage or a substitute for the stopped Ryder1965 publication. It does not resolve the selected upper feeder, short links, lower branching or eastern coastal outlet. No acquisition of its underlying references was made.",
+      "use_notice": "No permission to redistribute the article or figure is inferred from repository hosting. Only own factual observations and bibliography are included; no original or derivative map is a deliverable.",
+      "source_key": "r134-hanson-jones-1974"
+    },
+    {
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "year": 2024,
+      "edition": "2024/03, as printed on cover",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "acquired_scope": "Exact original completed HTTP200 application/pdf. Relevant coastal prose and front matter read; no chart7083 original acquired or claimed as inspected.",
+      "evidence_kind": "primary_coastal_prose",
+      "supports": "Paragraph205 places the named Simpson River mouth in Queen Maud Gulf southeast of Johnson Point, west of the selected terminal. Paragraph206 distinguishes the intervening coastline eastward toward Klutschak Peninsula as a coast indented by numerous stream mouths.",
+      "limits": "The prose does not identify the selected eastern outlet or show whether it is connected to the named Simpson corridor. It cannot bridge the unobserved lower-river and coastal-branch map gap. Not used as current navigation advice or registry evidence. ARC403 is distinct from the historical ARC401-specific stop.",
+      "use_notice": "Front matter permits noncommercial personal reproduction and requires prior written permission for commercial reproduction. No pages, maps, excerpts or derivatives are republished here.",
+      "source_key": "r134-chs-arc403-2024"
+    },
+    {
+      "title": "Geological Survey of Canada Open File7273, Residual Total Magnetic Field; exact printed edition not inspected",
+      "official_url": "https://publications.gc.ca/collections/collection_2025/rncan-nrcan/m183-2/M183-2-7273.pdf",
+      "acquired_scope": "The web reader reported that the exact URL is not accessible via this tool. No body, original map pixels, HTTP status, security reason or authorization reason was exposed.",
+      "supports": null,
+      "limits": "Exact failed reader route not repeated. Missing original publication/map and equivalent acquisition routes left paused; no technical-only fallback condition was established and no original, mirror or alternative retrieval was attempted. No agency-wide denial is inferred.",
+      "evidence_kind": "failed_acquisition_only",
+      "source_key": "r134-gsc7273-unavailable"
+    },
+    {
+      "title": "Halliwell, Conly and Alisauskas, A pilot study on effects of high white goose populations on aquatic quality at Karrak Lake, Queen Maud Gulf Migratory Bird Sanctuary, Nunavut Territory,2001; CW66-672/2001E-PDF",
+      "official_url": "https://www.publications.gc.ca/site/fra/9.892553/publication.html",
+      "acquired_scope": "The sole catalogue open returned web-reader Cache miss. No catalogue body, report or original map was acquired; no HTTP status was reported.",
+      "supports": null,
+      "limits": "Missing report/catalogue and equivalent copies, formats, map figures, originals, readers, mirrors and acquisition routes paused for availability. No retry or alternate route. Discovery snippets are not substantive evidence.",
+      "evidence_kind": "failed_acquisition_only",
+      "source_key": "r134-halliwell2001-unavailable"
+    },
+    {
+      "title": "Didiuk and Ferguson, Land cover mapping of Queen Maud Gulf Migratory Bird Sanctuary, Nunavut,2005; Canadian Wildlife Service Occasional Paper111, CW69-1/111E-PDF",
+      "official_url": "https://publications.gc.ca/collections/Collection/CW69-1-111E.pdf",
+      "acquired_scope": "The sole original request completed HTTP200, Content-Type text/html; charset=utf-8, with an archived-information page rather than the requested PDF. No original report or map pixels were acquired.",
+      "supports": null,
+      "limits": "Missing original report/map and equivalent copies, formats, figures, reader/cache/mirror and acquisition routes paused for availability. No retry or alternate recovery. The successful HTML response is not successful PDF acquisition.",
+      "evidence_kind": "failed_acquisition_only",
+      "source_key": "r134-cws111-2005-unavailable"
+    },
+    {
+      "title": "Lourenço, Folha NA.22-V-D, Estado do Amapá. Carta Geológica, escala 1:250.000",
+      "authors": "Cristiane Silva de Sousa and Manoel Correa da Costa Neto",
+      "publisher": "CPRM – Serviço Geológico do Brasil, Programa Geologia do Brasil",
+      "year": 2015,
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/20409/9/carta_geologica_lourenco.pdf",
+      "resolved_original_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/f107be5b-7e4c-4cf5-8f5d-f5e90493b349/content",
+      "acquired_scope": "Single original-file request completed HTTP 200, application/pdf;charset=UTF-8. The full-sheet original overview, overlapping southwest/headward/interior and tributary windows, graticule, hydrographic legend, authors and imprint were actually read. The separate 2018 report was not acquired or used.",
+      "supports": "Full selected headward feeder, distinction of the Rio Regina branch, interior Cassiporé and complete selected lower Rio Segundo Braço including its confluence; overlap northward into the municipal map.",
+      "limits": "The 2015 sheet's own bibliographic line also contains a 2014 project reference; the printed map edition is 2015. Its base credits IBGE 2010 with CPRM adjustment and updating against Geocover imagery. This is a thematic geological sheet with a usable hydrographic base, not a modern channel survey or a formal naming registry. It does not cover the terminal estuary.",
+      "reuse_limit": "Original sheet and private working crops/figures remain local. Public-ready output is independently written observations and bibliography only. Official hosting is not treated as a grant of map-redistribution permission.",
+      "source_key": "r134-cprm-lourenco-2015"
+    },
+    {
+      "title": "Oiapoque – AP, Mapa Municipal, 1600501, edição 04/2021",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Coordenação de Estruturas Territoriais",
+      "year": 2021,
+      "collection": "Coleção de Mapas Municipais, 2020 directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/AP/oiapoque/1600501_MM.pdf",
+      "acquired_scope": "Single direct original request completed HTTP 200, application/pdf. The original overview and overlapping headward, interior, tributary, Vila Velha, lowland, lake-connection and terminal windows were rendered and visually read, together with the source legend, graticule and imprint.",
+      "supports": "Overlapping interior Cassiporé and selected western tributary connection; complete remaining northeastern and northward course; Lago Maruani lateral relationship; Taperebá and lower estuarine terminal/open-coast context.",
+      "limits": "The first small selected opening southwest of the Cassiporé locality is not sufficiently depicted in this municipal map alone; the acquired CPRM sheet supplies that material coverage. Statistical reference cartography and its generalized shorelines are not a precise river survey. The map does not establish a hydronym for the selected tributary.",
+      "reuse_limit": "Printed note specifies its IBGE statistical collection/tabulation purpose, disclaims other-use responsibility and reserves reproduction rights. It is not treated as hydrological-survey authority or permission to republish original pixels.",
+      "source_key": "r134-ibge-oiapoque-2021"
+    },
+    {
+      "title": "Plano de Manejo do Parque Nacional do Cabo Orange, Encarte 3 – Análise da Unidade de Conservação",
+      "publisher": "Instituto Chico Mendes de Conservação da Biodiversidade, Ministério do Meio Ambiente",
+      "year": 2010,
+      "official_url": "https://www.gov.br/icmbio/pt-br/assuntos/biodiversidade/unidade-de-conservacao/unidades-de-biomas/marinho/lista-de-ucs/parna-do-cabo-orange/arquivos/encarte-3-pnco.pdf",
+      "acquired_scope": "Single original request completed HTTP 200, application/pdf. Cover/date and institutional credits were read. Original Figure 3.2 (Geologia; PDF page 18), Figure 3.6 (Solos; PDF page 26) and Figure 3.10 (Vegetação; PDF page 42) were visually read. Hydrography prose on PDF pages 27–28 and bounded Taperebá/Maruani context on PDF page 51 were actually read.",
+      "supports": "Independent park-plan cartography and prose corroborate the Cassiporé's northeast-to-north course, Vila Velha and Taperebá setting, lower fluvio-estuarine corridor, lateral freshwater lake context and Atlantic estuary by Cabo Cassiporé.",
+      "limits": "The thematic maps are printed at 1:800,000, dated November 2010, and are regional corroboration rather than the sole source for the small headward or selected tributary connections. The source PDF has inconsistent repeated printed pagination, so PDF-page numbers and figure identifiers identify the actually inspected material. Source-reported lengths were not substituted for retained model lengths.",
+      "attribution": "Figure credits identify IEPA and ICMBio preparation and ANA hydrography, among other inputs. Institutional plan coordination is credited to Marcos da Silva Cunha and Ricardo Motta Pires.",
+      "reuse_limit": "No source maps, images or derivative cartographic figures are for public output; only bounded independently written observations and ordinary bibliography are supplied.",
+      "source_key": "r134-icmbio-cabo-orange-2010-encarte3"
+    },
+    {
+      "title": "Rapport236 — Projets de réserves de biodiversité du massif des lacs Belmont et Magpie, des buttes du lac aux Sauterelles, des basses collines du lac Guernesé et des collines de Brador",
+      "publisher_or_host": "Bureau d’audiences publiques sur l’environnement, Québec",
+      "edition": "February2007",
+      "source_type": "Original primary regional planning cartography with bounded supporting prose.",
+      "map_locator": "Figure2, printed page5 / PDFpage13",
+      "map_basis": "The figure credits PR3ab annex4, DB2.1 and the ministry regional map.",
+      "evidence_scope": "Partial southern corridor and tributary/settlement context; no complete Labrador-headward coverage.",
+      "use_notice": "Publication identifies BAPE as publisher and gives legal-deposit/ISBN information. No redistribution permission is inferred; original or derivative map images are not republished.",
+      "source_key": "bape236-2007",
+      "official_url": "https://archives.bape.gouv.qc.ca/sections/rapports/publications/bape236.pdf"
+    },
+    {
+      "title": "Rivière Saint-Paul — Bonne-Espérance (Municipalité), record57406",
+      "publisher_or_host": "Commission de toponymie du Québec",
+      "source_type": "Primary descriptive naming account, supporting prose only.",
+      "evidence_scope": "Named river’s height-of-land origin setting, southward direction, Esquimaux Bay outlet and western-side village. This is not complete selected-route cartography or formal registration of the model group.",
+      "use_notice": "Government of Québec copyright notice; no source republication.",
+      "source_key": "ctq57406",
+      "official_url": "https://toponymie.gouv.qc.ca/ct/ToposWeb/Fiche.aspx?no_seq=57406"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61433824",
+      "source_keys": [
+        "mma-hydro",
+        "mma-wetlands",
+        "mma-cot2020",
+        "mma-minuta2019",
+        "mma-consultation2024",
+        "jvrh-santa",
+        "mds-santa2012",
+        "conama-schematic2007",
+        "mma-subcuenca0382",
+        "cedha2012-context"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13994
+          ],
+          "component_scope": "Selected mainstem FID 13994",
+          "finding": "Full selected extent supported at generalized corridor scale.",
+          "sources": [
+            "mma-hydro",
+            "mma-wetlands",
+            "mma-consultation2024",
+            "mma-minuta2019",
+            "conama-schematic2007",
+            "jvrh-santa",
+            "mds-santa2012",
+            "mma-cot2020",
+            "mma-subcuenca0382"
+          ],
+          "correspondence": "Full selected extent supported at generalized corridor scale.",
+          "mapped_component_name": null,
+          "subreaches": [
+            {
+              "setting": "Initial southern mountain feeder",
+              "name": null,
+              "observation": "The entire initial northward course follows a mapped stream with small continental-wetland patches, then joins the separately mapped Arroyo de Valeriano branch. The selected feeder is west of that separate branch; nearby lake labels are not borrowed.",
+              "source_keys": [
+                "mma-hydro",
+                "mma-wetlands"
+              ]
+            },
+            {
+              "setting": "Valeriano and Conay",
+              "name": "Río Valeriano / Río Conay",
+              "observation": "The selected corridor turns northwest along Valeriano, receives the Laguna Chica branch and reaches the Laguna Grande junction, then follows Conay southwest past the Corral and Albaricoque tributary settings toward Chollay.",
+              "source_keys": [
+                "mma-hydro",
+                "mma-consultation2024"
+              ]
+            },
+            {
+              "setting": "Tránsito and formative Huasco junction",
+              "name": "Río del Tránsito / Río Huasco",
+              "observation": "After the Chollay confluence the route follows Tránsito northwest, with Pinte, Las Pircas and El Tabaco among mapped side-channel settings. Carmen enters from the south near Alto del Carmen; downstream labels change to Huasco.",
+              "source_keys": [
+                "mma-hydro",
+                "mma-minuta2019",
+                "conama-schematic2007"
+              ]
+            },
+            {
+              "setting": "Santa Juana reservoir",
+              "name": "Embalse Santa Juana",
+              "observation": "The model passes through the elongated artificial-wetland polygon between the mapped Huasco inlet and outlet. The primary operator identifies Santa Juana as regulating the Huasco; the government evaluation describes its controlled outlets and spillway.",
+              "source_keys": [
+                "mma-wetlands",
+                "jvrh-santa",
+                "mds-santa2012"
+              ]
+            },
+            {
+              "setting": "Lower valley and actual coastal terminal",
+              "name": "Río Huasco",
+              "observation": "The westward lower river is continuous through the Vallenar–Freirina–Huasco Bajo corridor into the mapped fluvial/coastal wetland transition. Its terminal lies at the Pacific coastal setting, rather than an inland lake. Exact present mouth position is not asserted.",
+              "source_keys": [
+                "mma-hydro",
+                "mma-wetlands",
+                "mma-cot2020",
+                "mma-minuta2019",
+                "mma-subcuenca0382"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80066184",
+      "source_keys": [
+        "r134-nluis-66j-retained",
+        "r134-nluis-66o-retained",
+        "r134-hanson-jones-1974",
+        "r134-chs-arc403-2024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2512
+          ],
+          "component_scope": "Initial southern feeder and northward chain",
+          "finding": "The Joe Lake original shows a lake-rich headward landscape with small streams and elongate waterbodies across the selected initial feeder. No hydronym was established for the feeder itself. The source was read across the initial component; not every short selected link could be securely resolved.",
+          "sources": [
+            "r134-nluis-66j-retained"
+          ],
+          "correspondence": "partial_original_map_correspondence",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2512
+          ],
+          "component_scope": "Eastward bend and upper lake connections",
+          "finding": "Original66J shows the intervening stream network, larger elongate lake and subsequent northeast/northward lake-and-stream setting of the selected eastward excursion. The small connectors and their branch choice are not elevated from broad spatial agreement to full correspondence.",
+          "sources": [
+            "r134-nluis-66j-retained"
+          ],
+          "correspondence": "partial_original_map_correspondence",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2512
+          ],
+          "component_scope": "Northwest-trending upper lake-and-stream corridor",
+          "finding": "The northern Joe Lake sheet covers the long northwest return through elongated waterbodies, intervening channels and rapid-marked reaches to the northern sheet edge. No name is applied to every lake passage or feeder. Some connector/junction correspondence remains unresolved.",
+          "sources": [
+            "r134-nluis-66j-retained"
+          ],
+          "correspondence": "partial_original_map_correspondence",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2512
+          ],
+          "component_scope": "Middle corridor, western river approach and sheet-boundary transition",
+          "finding": "The McLoughlin Bay original maps the incoming northwest-trending corridor and prints Simpson River on the larger western river. This is substantive original-map support for a bounded Simpson River candidate, but it does not alone establish all selected junctions or the later selected coastal branch.",
+          "sources": [
+            "r134-nluis-66o-retained"
+          ],
+          "correspondence": "partly_supported_named_middle_corridor",
+          "mapped_component_name": "Simpson River",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2512
+          ],
+          "component_scope": "Lower western excursion and northeast return",
+          "finding": "The selected model crosses west of the available66O map frame, continues northwest/north and then bends northeast. The regional1974 compilation labels Simpson River but does not resolve this selected lower route, material branching or return. Detailed original-map correspondence is missing.",
+          "sources": [
+            "r134-hanson-jones-1974"
+          ],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2512
+          ],
+          "component_scope": "Final stream and actual coastal terminal",
+          "finding": "The selected terminal is east of the named Simpson River mouth described in ARC403. The sailing directions separately note many stream mouths farther east. No read original map establishes the selected outlet, its name or its relationship to the Simpson corridor. The nearby named river mouth is not substituted for the selected terminal.",
+          "sources": [
+            "r134-chs-arc403-2024",
+            "r134-hanson-jones-1974"
+          ],
+          "correspondence": "material_original_map_gap",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60212547",
+      "source_keys": [
+        "r134-cprm-lourenco-2015",
+        "r134-ibge-oiapoque-2021",
+        "r134-icmbio-cabo-orange-2010-encarte3"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11581
+          ],
+          "component_scope": "Southwestern opening and Rio Regina junction distinction",
+          "finding": "The original hydrographic base supplies the full small northern/eastern opening and its northeastward feeder through the Cassiporé locality. The separate southeastern Rio Regina channel and material meeting with the downstream corridor are visible. This resolves the coverage limitation of the municipal map's first headward stretch.",
+          "sources": [
+            "r134-cprm-lourenco-2015"
+          ],
+          "correspondence": "Complete bounded geographic correspondence; initial feeder hydronym left null.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            11581,
+            11582,
+            11585
+          ],
+          "component_scope": "Interior Cassiporé and Segundo Braço junction",
+          "finding": "Original maps depict the Cassiporé's northeastward corridor and the selected western branch entering from the Rio Segundo Braço. The tributary is traced as its own branch, with its complete selected lower connection.",
+          "sources": [
+            "r134-cprm-lourenco-2015",
+            "r134-ibge-oiapoque-2021"
+          ],
+          "correspondence": "Complete at ordinary corridor scale; representative identity does not erase tributary distinction.",
+          "mapped_component_name": "Rio Cassiporé / Rio Segundo Braço junction"
+        },
+        {
+          "fragments": [
+            11583
+          ],
+          "component_scope": "Vila Velha bends and northward lowland transition",
+          "finding": "The river continues northeast through the interior settlement corridor, bends near Vila Velha and then becomes predominantly northward in the Cabo Orange lowlands. The original thematic maps and hydrography prose agree with that route.",
+          "sources": [
+            "r134-ibge-oiapoque-2021",
+            "r134-icmbio-cabo-orange-2010-encarte3"
+          ],
+          "correspondence": "Complete; no unread connector between the interior map and the coastal maps.",
+          "mapped_component_name": "Rio Cassiporé"
+        },
+        {
+          "fragments": [
+            11583,
+            11584
+          ],
+          "component_scope": "Lower wetland corridor, lateral Lago Maruani and estuarine ending",
+          "finding": "The lower northward channel is distinct from the western Lago Maruani side waterbody and its short connector. The selected path stays in the river and passes Taperebá to its estuarine endpoint; the estuary continues into the Atlantic west of Cabo Cassiporé. The park maps show the associated várzea, inundated fields and mangrove/fluvio-marine coastal setting. No selected through-lake or reservoir passage is depicted.",
+          "sources": [
+            "r134-ibge-oiapoque-2021",
+            "r134-icmbio-cabo-orange-2010-encarte3"
+          ],
+          "correspondence": "Complete lower and actual terminal setting, with no exact coastline-point claim.",
+          "mapped_component_name": "Rio Cassiporé"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70202296",
+      "source_keys": [
+        "bape236-2007",
+        "ctq57406"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9263
+          ],
+          "component_scope": "Selected mainstem FID 9263",
+          "finding": "Selected geometry read completely for orientation; no admissible original map covering this entire fragment was acquired.",
+          "sources": [],
+          "correspondence": "Selected geometry read completely for orientation; no admissible original map covering this entire fragment was acquired.",
+          "mapped_component_name": null,
+          "unresolved": "Headward lake/channel relationships, material inflows, the complete upper route and its actual connection to the downstream named corridor remain unobserved.",
+          "orientation_only": "The retained fragment initially runs northwest, bends south, and later turns east/southeast toward its successor. These are model observations, not source-derived hydrographic facts."
+        },
+        {
+          "fragments": [
+            9264
+          ],
+          "component_scope": "Selected mainstem FID 9264",
+          "finding": "Partial downstream regional correspondence; the northern approach from the Labrador fragment is missing.",
+          "sources": [
+            "bape236-2007",
+            "ctq57406"
+          ],
+          "correspondence": "Partial downstream regional correspondence; the northern approach from the Labrador fragment is missing.",
+          "mapped_component_name": null,
+          "subcomponents": [
+            {
+              "part": "Québec trunk and major tributaries",
+              "supported_name": "Rivière Saint-Paul",
+              "observations": [
+                "BAPE236 Figure2 shows the Saint-Paul entering from the north, bending southeast and east, receiving the distinct Ruisseau Chanion, continuing south to the separate Bujeault junction, and then running southwest and south toward Rivière-Saint-Paul. This broad bend sequence corresponds to the lower selected corridor; tributary names are not extended onto the selected trunk."
+              ],
+              "source_keys": [
+                "bape236-2007"
+              ],
+              "map_locator": "Figure2, printed page5 / PDFpage13"
+            },
+            {
+              "part": "Lower settlement reach and receiving coast",
+              "supported_name": "Rivière Saint-Paul",
+              "observations": [
+                "The original figure continues the lower river through the Rivière-Saint-Paul settlement/coastal-transition setting into the island-fringed coast. The Commission account separately places the named river outlet in Baie des Esquimaux in the Vieux Fort archipelago, with the village on its western side. This supports the ordinary terminal setting without treating the model sea class as proof of a precise open-Gulf mouth."
+              ],
+              "source_keys": [
+                "bape236-2007",
+                "ctq57406"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61433824",
+      "publication": "SRK Consulting (Chile) SpA, ATEX NI 43-101 Valeriano report, 18 October 2023; full original front matter uninspected",
+      "official_url": "https://atexresources.com/_resources/reports/SRK_ATEX_NI_43-101_Valeriano.pdf",
+      "observed_outcome": "Sole web-reader open returned (400) Timeout fetching. No report body or map pixels acquired.",
+      "outcome_layer": "Web-reader fetch/transport outcome; origin HTTP status unestablished.",
+      "restriction_scope": "Missing report, maps and equivalent copies, formats, figures, original/reader/cache/mirror/catalogue and other acquisition routes paused for availability. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "evidence_boundary": "Discovery bibliography/excerpts are not substantive report evidence. Independent official cartography closes the selected route."
+    },
+    {
+      "aw_id": "hydro-system:80066184",
+      "publication": "Geological Survey of Canada Open File7273, Residual Total Magnetic Field; exact printed edition not inspected",
+      "official_url": "https://publications.gc.ca/collections/collection_2025/rncan-nrcan/m183-2/M183-2-7273.pdf",
+      "observed_outcome": "The web reader reported that the exact URL is not accessible via this tool. No body, original map pixels, HTTP status, security reason or authorization reason was exposed.",
+      "outcome_layer": "Web-reader acquisition; origin HTTP outcome unknown",
+      "restriction_scope": "Exact failed reader route not repeated. Missing original publication/map and equivalent acquisition routes left paused; no technical-only fallback condition was established and no original, mirror or alternative retrieval was attempted. No agency-wide denial is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unexplained_reader_unavailability"
+    },
+    {
+      "aw_id": "hydro-system:80066184",
+      "publication": "Halliwell, Conly and Alisauskas, A pilot study on effects of high white goose populations on aquatic quality at Karrak Lake, Queen Maud Gulf Migratory Bird Sanctuary, Nunavut Territory,2001; CW66-672/2001E-PDF",
+      "official_url": "https://www.publications.gc.ca/site/fra/9.892553/publication.html",
+      "observed_outcome": "The sole catalogue open returned web-reader Cache miss. No catalogue body, report or original map was acquired; no HTTP status was reported.",
+      "outcome_layer": "Web-reader acquisition availability",
+      "restriction_scope": "Missing report/catalogue and equivalent copies, formats, map figures, originals, readers, mirrors and acquisition routes paused for availability. No retry or alternate route. Discovery snippets are not substantive evidence.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:80066184",
+      "publication": "Didiuk and Ferguson, Land cover mapping of Queen Maud Gulf Migratory Bird Sanctuary, Nunavut,2005; Canadian Wildlife Service Occasional Paper111, CW69-1/111E-PDF",
+      "official_url": "https://publications.gc.ca/collections/Collection/CW69-1-111E.pdf",
+      "observed_outcome": "The sole original request completed HTTP200, Content-Type text/html; charset=utf-8, with an archived-information page rather than the requested PDF. No original report or map pixels were acquired.",
+      "outcome_layer": "HTTP-client final response and wrong-content availability outcome",
+      "restriction_scope": "Missing original report/map and equivalent copies, formats, figures, reader/cache/mirror and acquisition routes paused for availability. No retry or alternate recovery. The successful HTML response is not successful PDF acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "wrong_content_availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:60212547",
+      "publication": "Oiapoque – AP, Mapa Municipal, 1600501, edição 04/2021; first selected southwestern feeder coverage",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/AP/oiapoque/1600501_MM.pdf",
+      "observed_outcome": "The original map opened successfully but its small initial southwestern feeder is insufficiently depicted for complete headward correspondence by itself. The independently acquired CPRM Lourenço original depicts this entire selected opening and its connector.",
+      "outcome_layer": "Cartographic content/scale limitation, not HTTP or transport failure",
+      "restriction_scope": "Municipal-map headward coverage limit only; no acquisition stop. The complementary CPRM map closes the geographic interval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_cartographic_coverage_limit_with_independent_original_coverage",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70202296",
+      "publication": "Gower2010, Geology of the Upper St. Paul River Area, southeastern Labrador, Map2010-22 / Open File013B/0030",
+      "official_url": "https://www.gov.nl.ca/iet/files/mines-maps-lab-html-lb-images-map-2010-22.pdf",
+      "observed_outcome": "Sole web-reader open returned (500) Internal Server Error. No original body or map pixels acquired.",
+      "outcome_layer": "Web-reader fetch response reporting500; independently observed origin response/body unestablished.",
+      "restriction_scope": "Missing publication and all equivalent copies, figures, formats, department paths, original/reader/cache/mirror and acquisition routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "evidence_boundary": "Bibliographic identity came from discovery; snippets and unseen maps are not substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:70202296",
+      "publication": "Bourdon et al., Portrait préliminaire de la zone de gestion intégrée de l’eau par bassin versant Duplessis, April2015",
+      "official_url": "https://obvd.qc.ca/wp-content/uploads/2015/10/Portrait-preliminaire.pdf",
+      "observed_outcome": "Sole web-reader request returned Error fetching. No HTTP status, authorization reason or source body exposed.",
+      "outcome_layer": "Unexplained web-reader fetch failure; origin HTTP outcome unknown.",
+      "restriction_scope": "Missing report and all equivalent copies, maps, figures, formats, original/reader/cache/archive/mirror and acquisition routes paused; no automatic fallback or retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_availability_failure",
+      "evidence_boundary": "Discovery bibliography only; report excerpts or maps are not used."
+    },
+    {
+      "aw_id": "hydro-system:70202296",
+      "publication": "NTS012P, CanMatrix1:250,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/012/p/canmatrix_012p_tif.zip",
+      "observed_outcome": "Official directory completed HTTP200 and supplied the exact archive link. Sole original archive acquisition completed HTTPError403 Forbidden. No archive or map body acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel/transport failure reported.",
+      "restriction_scope": "Whole NTS012P CanMatrix1:250,000 publication and equivalent copies, formats, editions offered as this source, viewers, mirrors and all acquisition routes stopped. No retry.",
+      "earlier_lawful_prose_exception": "Directory metadata only.",
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70202296",
+      "publication": "NTS013B/08, CanMatrix1:50,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/013/b/canmatrix_013b08_tif.zip",
+      "observed_outcome": "Exact archive link was available in the previously retained successful official directory. Sole original archive acquisition completed HTTPError403 Forbidden. No archive or map body acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel/transport failure reported.",
+      "restriction_scope": "Whole NTS013B/08 CanMatrix1:50,000 publication and equivalent copies, formats, editions offered as this source, viewers, mirrors and all acquisition routes stopped. No retry.",
+      "earlier_lawful_prose_exception": "Directory metadata only. This independently issued sheet was distinguished from the already stopped013B250k and013B/11 before acquisition.",
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70202296",
+      "publication": "Inventaire des habitats côtiers et marins sensibles de la Basse-Côte-Nord,1999; PDF version January2000",
+      "official_url": "https://catalogue.ogsl.ca/data/zip-cote-nord/ca-cioos_502e654b-c4d1-4a41-8e99-dfd395c7b955/inventaire_habitats_cotiers_et_marins-1999.pdf",
+      "observed_outcome": "Sole original-file acquisition completed HTTPError403 Forbidden. No report body or original map acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel/transport failure reported.",
+      "restriction_scope": "Whole inventory, maps and all equivalent copies, figures, formats, catalogue/original/reader/cache/mirror and acquisition routes stopped. No retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_403_denial",
+      "evidence_boundary": "Discovery bibliography and map list are not substantive evidence."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60212547",
+      "publication": "Oiapoque – AP, Mapa Municipal, 1600501, edição 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/AP/oiapoque/1600501_MM.pdf",
+      "observed_outcome": "Original completed HTTP 200. Printed notice identifies statistical collection/tabulation purpose, disclaims other-use responsibility and reserves reproduction rights.",
+      "outcome_layer": "Readable publication-use notice on successfully acquired original",
+      "restriction_scope": "Purpose and reproduction boundary for the named map; not an access denial. Original and derived map images remain private.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    }
+  ]
+}
