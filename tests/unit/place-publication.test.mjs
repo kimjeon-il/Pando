@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { generatePlaceRelease } from '../../tools/build-place-runtime.mjs';
+import { generatePlaceRelease, validateRuntimeApproval } from '../../tools/build-place-runtime.mjs';
 import { decodePlaceTile } from '../../assets/js/modules/place-codec.js';
 import { normalizePlace, resolvePlaceLabelRows, hasPlaceNameCoverage } from '../../assets/js/modules/place-contract.js';
 import { createPlaceWorkerStore } from '../../assets/js/modules/place-worker-store.js';
@@ -11,17 +11,25 @@ const assets = new URL('../../assets/data/places/', import.meta.url);
 const read = name => readFileSync(new URL(name, assets));
 const catalog = JSON.parse(read('reviewed-records-v1.json').toString('utf8'));
 const manifest = JSON.parse(read('manifest.json').toString('utf8'));
+const approvals = JSON.parse(readFileSync(new URL('../../reports/places/runtime-release-approvals-v1.json', import.meta.url), 'utf8'));
 const publishedBytes = read('places-v1.bin');
 const triple = { ko: true, en: true, native: true };
 const record = id => catalog.records.find(row => row.sourceId === String(id));
 
-test('all 22 reviewed batches are reproducibly published, with no silent loss of names', () => {
+test('only approved source-verified cities in 22 batches are reproducibly published', () => {
   const generated = generatePlaceRelease();
-  assert.equal(generated.recordCount, 264);
+  assert.equal(generated.recordCount, 163);
   assert.equal(catalog.reviewBatches.length, 22);
-  assert.equal(catalog.stats.cityCount, 264);
-  assert.equal(catalog.stats.timelineEntries, 482);
-  assert.equal(new Set(catalog.records.map(row => row.sourceId)).size, 264);
+  assert.equal(catalog.stats.cityCount, 163);
+  assert.equal(catalog.stats.stagedCount, 264);
+  assert.equal(catalog.stats.withheldCount, 101);
+  assert.equal(catalog.stats.unrankedCount, 163);
+  assert.equal(catalog.stats.timelineEntries,
+    catalog.records.reduce((sum, row) => sum + row.nameTimeline.length, 0));
+  assert.equal(new Set(catalog.records.map(row => row.sourceId)).size, 163);
+  assert.equal(catalog.approval.approvedIds, 163);
+  assert.deepEqual(catalog.records.map(row => Number(row.sourceId)),
+    approvals.approvedSourceIds);
   assert.equal(generated.catalogText, read('reviewed-records-v1.json').toString('utf8'));
   assert.ok(generated.bytes.equals(publishedBytes));
   assert.equal(generated.manifestText, read('manifest.json').toString('utf8'));
@@ -32,7 +40,7 @@ test('all 22 reviewed batches are reproducibly published, with no silent loss of
 
 test('published PLAC v3 bytes decode every place with historical name transitions', () => {
   const decoded = decodePlaceTile(publishedBytes);
-  assert.equal(decoded.length, 264);
+  assert.equal(decoded.length, 163);
   const byId = new Map(decoded.map(row => [row.sourceId, row]));
   for (const raw of catalog.records) assert.deepEqual(byId.get(raw.sourceId), normalizePlace(raw));
   const peter = byId.get('498817');
@@ -57,10 +65,32 @@ test('all selected present and historic languages are searchable without custom 
   assert.ok(store.stats().cacheBytes > 0);
 });
 
-test('ambiguous settlements remain unranked pending source review', () => {
-  for (const id of ['8063361', '2110257', '2110394', '5881576', '7828758', '282239']) {
-    assert.equal(record(id)?.kind, 'town', 'ambiguous place incorrectly promoted ' + id);
-  }
+test('unverified and ambiguous cities are absent from published viewport and search', () => {
+  const withheld = ['8063361', '2110257', '2110394', '5881576', '7828758',
+    '282239', '2925533', '2879139', '3046446', '4140963', '281184'];
+  for (const id of withheld) assert.equal(record(id), undefined,
+    'unapproved place must not enter release: ' + id);
   assert.equal(record('2172517')?.kind, 'city');
   assert.equal(record('2172517')?.population, 0);
+  assert.equal(catalog.stats.urbanIdentityFlagged, 0);
+});
+
+test('approval rules fail closed on provisional evidence or unresolved identity', () => {
+  const base = { geonameId: 100001, featureClass: 'P', researchDifficulty: 'B',
+    reviewStatus: 'source-reviewed-selected-facts',
+    displayTimeline: [{ fromYear: 1900, sourceUrl: 'https://example.org/document' }] };
+  assert.doesNotThrow(() => validateRuntimeApproval(base, 17));
+  assert.throws(() => validateRuntimeApproval({ ...base, researchDifficulty: 'A' }, 17),
+    /Unverified historical city/);
+  assert.throws(() => validateRuntimeApproval({ ...base, reviewStatus: 'historical-baseline-provisional' }, 17),
+    /Unverified historical city/);
+  assert.throws(() => validateRuntimeApproval({ ...base,
+    displayTimeline: [{ fromYear: 1801, sourceUrl: 'https://www.geonames.org/100001/' }] }, 17),
+    /Unverified historical city/);
+  assert.throws(() => validateRuntimeApproval({ ...base,
+    candidatePolicyException: { autoPromoted: false } }, 17), /Unresolved city identity/);
+  assert.throws(() => validateRuntimeApproval({ ...base,
+    urbanIdentityReview: { autoTierApproved: false } }, 17), /Unresolved city identity/);
+  assert.throws(() => validateRuntimeApproval({ ...base, geonameId: 3046446 }, 7),
+    /Former Pest city requires/);
 });
