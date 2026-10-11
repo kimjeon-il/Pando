@@ -122,3 +122,23 @@ npx playwright test tests/browser/place-runtime.spec.mjs tests/browser/label-met
 - `temporalEligibility`·연구 근거·`historicalGeography`는 조사본과 JSON 카탈로그에 보존했다. **PLAC v3 바이너리에는 도시 소멸·재건 기간 및 5등급 중요도 자료를 직렬화하지 않는다.** 실제 적용은 별도 계약 확장이 필요하다.
 - GeoNames 원천은 CC BY 4.0이므로 출처·라이선스 귀속이 필요하다. 현재 국가코드로 과거 국가 소속·행정 경계를 결정하지 않는다.
 - GitHub `work/places`에 저장했다고 공개 사이트에 배포된 것은 아니다. 웹 `main` 통합과 실제 배포·앱 릴리스는 별도 검증 및 승인된 절차를 거친다.
+
+## 2026-10-11: 검증된 도시만 지도 런타임에 게시하는 게이트 (work/places)
+
+과거 검수본을 무조건 지도에 게시하지 않는다. `reports/places/runtime-release-approvals-v1.json`에 명시된 **163개 GeoNames ID**만 PLAC v3 실데이터와 검색 색인으로 생성한다. 조사용 22개 배치에는 **264개**가 보존되며, 나머지 **101개**는 출시 자료로 승격하지 않는다.
+
+- 초기 1–15차의 검토된 도시 87개만 우선 포함한다. 1873년부터 독립 도시가 아닌 Pest(3046446)는 `temporalEligibility.activeIntervals`를 타일에서 집행할 때까지 제외한다.
+- 16–22차에서는 B/C로 개별 조사된 도시 중 해당 시기의 명칭에 **GeoNames 외부 HTTPS 근거**가 있고 검토 상태가 provisional/unverified가 아닌 76개만 포함한다. A등급의 역사적 명칭은 잠정이므로 제외한다.
+- `candidatePolicyException.autoPromoted=false` 및 `urbanIdentityReview.autoTierApproved=false`인 장소는 등급이나 수도 여부와 상관없이 금지한다. 새 도시를 조사 JSON에 추가해도 승인 목록에 없으면 검색·타일로 자동 반영되지 않는다.
+- 각 도시의 `temporalEligibility.beforeCityEstablished = suppress-city-label`인 경우 생성기에서 첫 이름 노출 시점을 **검증된 근대 도시 형성일보다 이르게 설정하지 않는다**. 기존 조사용 JSON의 원래 사건일은 바꾸지 않는다. 여러 독립 도시 유효 구간(`activeIntervals`)의 집행은 PLAC v3에서 미지원이므로 해당 레코드의 자동 승격은 금지한다.
+- **주의:** 이것은 도시 *정체와 선택된 명칭 구간의 게시 승인*이지 완전한 1801년 이후 역사적 도시 등급·인구·국경 인증은 아니다. 명칭이 바뀌지 않은 기간의 실제 한국어/영어 용례는 별도 증거가 필요할 수 있다. 모든 승인 기록의 `population=0`과 동일한 라벨 우선순위는 확정된 역사적 상대 순위가 아니다.
+
+실행 계약(노드 표준 라이브러리 기반):
+
+```sh
+node tools/build-place-runtime.mjs
+node tools/build-place-runtime.mjs --check
+node --test tests/unit/place-publication.test.mjs tests/unit/place-codec.test.mjs
+```
+
+세 게시 산출물 `assets/data/places/reviewed-records-v1.json`, `places-v1.bin`, `manifest.json`은 하나의 승인 목록과 22개 조사본으로 결정론적으로 재생성된다. manifest의 검색 prefix·tile 범위·sha256은 **승인된 레코드만** 포함해야 한다. PR 검증은 `place-runtime.yml`이 담당하고, `work/places`에서만 새로 생성된 바이너리를 커밋하는 자동 게시 작업은 `place-curated-release.yml`이 담당한다. `main` 통합과 웹사이트 실배포 및 앱 저장소 이전은 별도 작업이다.
