@@ -271,6 +271,8 @@ export async function composeApplication({ revision }) {
             getGeneration: () => domainAssembly.projectDomain.getGeneration(),
             isBlocked: () => projectSession.state.projectReplacing || projectSession.state.modeProcessing,
             searchPlaces: query => territorialLabels.builtinPlaces.search(query),
+            preparePlaces: () => territorialLabels.preparePlaces({ force: true }),
+            getPlaces: () => territorialLabels.builtinPlaces?.snapshot?.().records || [],
             confirm: options => new Promise(resolve => {
               projectRestore.openConfirmModal({ ...options, onConfirm: () => resolve(true), onCancel: () => resolve(false) });
             }),
