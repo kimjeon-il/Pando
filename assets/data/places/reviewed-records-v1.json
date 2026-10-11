@@ -1,0 +1,2834 @@
+{
+  "schema": "pando-builtin-place-release-v1",
+  "dataContract": "PLAC-v3",
+  "generatedFrom": "reports/places/tier1-major-cities-batch*.json",
+  "status": "generated-working-dataset",
+  "reviewBatches": [
+    {
+      "batch": "batch01",
+      "file": "reports/places/tier1-major-cities-batch01.json",
+      "cityCount": 9,
+      "sourceBlobSha": "a41fa7d25787dd6b12f3228361fd0de4e3046ece"
+    },
+    {
+      "batch": "02-east-asia",
+      "file": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "cityCount": 9,
+      "sourceBlobSha": "b4434cbd2856a35ae6bd481811ee8606c9ebd361"
+    },
+    {
+      "batch": "03-india-southeast-asia",
+      "file": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+      "cityCount": 7,
+      "sourceBlobSha": "9212cbe10cb9337b4cbd2b4eb0574165c3c72393"
+    },
+    {
+      "batch": "04-europe-west-asia",
+      "file": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
+      "cityCount": 5,
+      "sourceBlobSha": "ea845b13fe12d5acde38157a9615f59d5219c2e7"
+    },
+    {
+      "batch": "05-americas",
+      "file": "reports/places/tier1-major-cities-batch05-americas.json",
+      "cityCount": 5,
+      "sourceBlobSha": "de8b9e6ce3ef90620e8e3603d9c304c6916de02a"
+    },
+    {
+      "batch": "06-africa-oceania",
+      "file": "reports/places/tier1-major-cities-batch06-africa-oceania.json",
+      "cityCount": 4,
+      "sourceBlobSha": "49ca9f23d1e634dd9ad72b2b77528dcfc7ba0292"
+    },
+    {
+      "batch": "07-europe-capitals",
+      "file": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "cityCount": 9,
+      "sourceBlobSha": "b46abcd6860f241b295fcb93802e048483cdebbf"
+    },
+    {
+      "batch": "08-northern-eastern-europe",
+      "file": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "cityCount": 8,
+      "sourceBlobSha": "c889a9f21f4a3b974588bbedd42bc7b4ed6b0c93"
+    },
+    {
+      "batch": "09-baltic-belarus-capitals",
+      "file": "reports/places/tier1-major-cities-batch09-baltic-belarus-capitals.json",
+      "cityCount": 4,
+      "sourceBlobSha": "0a6d7cbc994787648ddb3112220c81c1a3fe445c"
+    },
+    {
+      "batch": "10-balkan-southeast-europe-capitals",
+      "file": "reports/places/tier1-major-cities-batch10-balkan-southeast-europe.json",
+      "cityCount": 4,
+      "sourceBlobSha": "7a6d77ffe74b9113a2087e9564c38408c8ed3cb2"
+    },
+    {
+      "batch": "11-western-balkans-capitals",
+      "file": "reports/places/tier1-major-cities-batch11-western-balkans-capitals.json",
+      "cityCount": 5,
+      "sourceBlobSha": "089b9f120ae90c758aa46d0ee25ec34a17ba5a7c"
+    }
+  ],
+  "records": [
+    {
+      "source": "geonames",
+      "sourceId": "264371",
+      "name": "아테네",
+      "nameEn": "Athens",
+      "nameNative": "Αθήνα",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "아티나",
+          "en": "Athens",
+          "native": "آتینا",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1833-03-31",
+          "ko": "아테네",
+          "native": "Ἀθῆναι",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1976,
+          "native": "Ἀθήνα",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1982,
+          "native": "Αθήνα",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        23.72784,
+        37.98376
+      ],
+      "countryCode": "GR",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1833-03-31-greek-korean-display-switch-1976-1982-greek-orthography",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "360630",
+      "name": "카이로",
+      "nameEn": "Cairo",
+      "nameNative": "القاهرة",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "카이로",
+          "en": "Cairo",
+          "native": "قاهره",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1870,
+          "native": "القاهرة",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        31.24967,
+        30.06263
+      ],
+      "countryCode": "EG",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch06-africa-oceania.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1870-native-language-transition",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "456172",
+      "name": "리가",
+      "nameEn": "Riga",
+      "nameNative": "Rīga",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "리가",
+          "en": "Riga",
+          "native": "Riga",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1889-11-21",
+          "native": "Рига",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1918-11-18",
+          "native": "Rīga",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        24.10589,
+        56.946
+      ],
+      "countryCode": "LV",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch09-baltic-belarus-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1889-11-21-decree-and-1918-latvian-name",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "524901",
+      "name": "모스크바",
+      "nameEn": "Moscow",
+      "nameNative": "Москва",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "모스크바",
+          "en": "Moscow",
+          "native": "Москва",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        37.61781,
+        55.75204
+      ],
+      "countryCode": "RU",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "588409",
+      "name": "탈린",
+      "nameEn": "Tallinn",
+      "nameNative": "Tallinn",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "레발",
+          "en": "Reval",
+          "native": "Reval",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1889-11-21",
+          "ko": "레벨",
+          "native": "Ревель",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1918,
+          "ko": "탈린",
+          "en": "Tallinn",
+          "native": "Tallinn",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        24.75353,
+        59.43696
+      ],
+      "countryCode": "EE",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch09-baltic-belarus-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1889-11-21-decree-and-1918-estonian-name",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "593116",
+      "name": "빌뉴스",
+      "nameEn": "Vilnius",
+      "nameNative": "Vilnius",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "빌나",
+          "en": "Vilna",
+          "native": "Вильна",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1918-02-16",
+          "ko": "빌뉴스",
+          "en": "Vilnius",
+          "native": "Vilnius",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1922-03-24",
+          "ko": "빌노",
+          "en": "Wilno",
+          "native": "Wilno",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1939-10-28",
+          "ko": "빌뉴스",
+          "en": "Vilnius",
+          "native": "Vilnius",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        25.2798,
+        54.68916
+      ],
+      "countryCode": "LT",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch09-baltic-belarus-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1918-lithuanian-1922-polish-1939-lithuanian",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "625144",
+      "name": "민스크",
+      "nameEn": "Minsk",
+      "nameNative": "Мінск",
+      "nameNativeExtras": [
+        "Минск"
+      ],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "민스크",
+          "en": "Minsk",
+          "native": "Минскъ",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1918-10-15",
+          "native": "Минск",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1920-07-31",
+          "native": "Менск",
+          "nativeExtras": [
+            "Минск"
+          ]
+        },
+        {
+          "fromDate": "1939-07-29",
+          "native": "Мінск",
+          "nativeExtras": [
+            "Минск"
+          ]
+        },
+        {
+          "fromDate": "1990-09-01",
+          "native": "Мінск",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1996-11-27",
+          "native": "Мінск",
+          "nativeExtras": [
+            "Минск"
+          ]
+        }
+      ],
+      "coordinates": [
+        27.56653,
+        53.90019
+      ],
+      "countryCode": "BY",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch09-baltic-belarus-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1918-10-15-russian-orthography-1920-07-31-multilingual-1939-spelling-1990-1996-language-changes",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "658225",
+      "name": "헬싱키",
+      "nameEn": "Helsinki",
+      "nameNative": "Helsinki",
+      "nameNativeExtras": [
+        "Helsingfors"
+      ],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "헬싱포르스",
+          "en": "Helsingfors",
+          "native": "Helsingfors",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1902-06-19",
+          "ko": "헬싱키",
+          "en": "Helsinki",
+          "native": "Helsinki",
+          "nativeExtras": [
+            "Helsingfors"
+          ]
+        }
+      ],
+      "coordinates": [
+        24.93545,
+        60.16952
+      ],
+      "countryCode": "FI",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1902-bilingual-native-names",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "683506",
+      "name": "부쿠레슈티",
+      "nameEn": "Bucharest",
+      "nameNative": "București",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "부쿠레슈티",
+          "en": "Bucharest",
+          "native": "Букурещй",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1860-02-20",
+          "native": "Bucuresci",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1904-03-30",
+          "native": "București",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        26.10626,
+        44.43225
+      ],
+      "countryCode": "RO",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1860-script-and-1904-orthography",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "703448",
+      "name": "키이우",
+      "nameEn": "Kyiv",
+      "nameNative": "Київ",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "키예프",
+          "en": "Kiev",
+          "native": "Кіевъ",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1918-03-24",
+          "native": "Київ",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1923-08-01",
+          "native": "Київ",
+          "nativeExtras": [
+            "Киев"
+          ]
+        },
+        {
+          "fromDate": "1990-01-01",
+          "native": "Київ",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1991-08-24",
+          "ko": "키이우",
+          "en": "Kyiv"
+        }
+      ],
+      "coordinates": [
+        30.5238,
+        50.45466
+      ],
+      "countryCode": "UA",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1918-1923-1990-1991-language-transitions",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "727011",
+      "name": "소피아",
+      "nameEn": "Sofia",
+      "nameNative": "София",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "소프야",
+          "en": "Sofia",
+          "native": "صوفیه",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1878-07-13",
+          "ko": "소피아",
+          "native": "София",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        23.32415,
+        42.69751
+      ],
+      "countryCode": "BG",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch10-balkan-southeast-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1878-07-13-bulgarian-native-and-korean-display-transition",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "745044",
+      "name": "이스탄불",
+      "nameEn": "Istanbul",
+      "nameNative": "İstanbul",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 330,
+          "ko": "콘스탄티노폴리스",
+          "en": "Constantinople",
+          "native": "Κωνσταντινούπολις",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1453-06-07",
+          "ko": "코스탄티니예",
+          "native": "قسطنطينيه",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1928-11-03",
+          "native": "Kostantiniyye",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1929,
+          "ko": "이스탄불",
+          "en": "Istanbul",
+          "native": "İstanbul",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        28.94966,
+        41.01384
+      ],
+      "countryCode": "TR",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-330-year-exception",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "756135",
+      "name": "바르샤바",
+      "nameEn": "Warsaw",
+      "nameNative": "Warszawa",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "바르샤우",
+          "en": "Warsaw",
+          "native": "Warschau",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1807-07-09",
+          "ko": "바르샤바",
+          "native": "Warszawa",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1868,
+          "native": "Варшава",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1917-12-07",
+          "native": "Warszawa",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        21.01178,
+        52.22977
+      ],
+      "countryCode": "PL",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1807-1868-1917-language-transitions",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "785842",
+      "name": "스코페",
+      "nameEn": "Skopje",
+      "nameNative": "Скопје",
+      "nameNativeExtras": [
+        "Shkupi"
+      ],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "위스퀴프",
+          "en": "Uskub",
+          "native": "اسكوب",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1913-09-07",
+          "ko": "스코플레",
+          "en": "Skoplje",
+          "native": "Скопље",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-05-05",
+          "ko": "스코페",
+          "en": "Skopje",
+          "native": "Скопје",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "2004-12-29",
+          "native": "Скопје",
+          "nativeExtras": [
+            "Shkupi"
+          ]
+        }
+      ],
+      "coordinates": [
+        21.43141,
+        41.99646
+      ],
+      "countryCode": "MK",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch11-western-balkans-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1913-serbian-1945-macedonian-2004-albanian",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "786714",
+      "name": "프리슈티나",
+      "nameEn": "Pristina",
+      "nameNative": "Prishtina",
+      "nameNativeExtras": [
+        "Приштина"
+      ],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "프리슈티네",
+          "en": "Pristina",
+          "native": "پرشتنه",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1913-09-07",
+          "ko": "프리슈티나",
+          "native": "Приштина",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1974-02-27",
+          "native": "Prishtina",
+          "nativeExtras": [
+            "Приштина"
+          ]
+        },
+        {
+          "fromDate": "1990-09-28",
+          "native": "Приштина",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "2000-07-27",
+          "native": "Prishtina",
+          "nativeExtras": [
+            "Приштина"
+          ]
+        }
+      ],
+      "coordinates": [
+        21.16688,
+        42.67272
+      ],
+      "countryCode": "XK",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch11-western-balkans-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1913-serbian-1974-bilingual-1990-serbian-2000-bilingual",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "792680",
+      "name": "베오그라드",
+      "nameEn": "Belgrade",
+      "nameNative": "Београд",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "벨그라드",
+          "en": "Belgrade",
+          "native": "بلغراد",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1815-04-23",
+          "ko": "베오그라드",
+          "native": "Београд",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        20.46513,
+        44.80401
+      ],
+      "countryCode": "RS",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch10-balkan-southeast-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1815-04-23-serbian-native-and-korean-display-transition",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "993800",
+      "name": "요하네스버그",
+      "nameEn": "Johannesburg",
+      "nameNative": "Johannesburg",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1886,
+          "ko": "요하네스버그",
+          "en": "Johannesburg",
+          "native": "Johannesburg",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        28.04363,
+        -26.20227
+      ],
+      "countryCode": "ZA",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch06-africa-oceania.json",
+      "historicalDisplayCoverage": "reviewed-since-1886",
+      "reviewStatus": "verified-source-staging-not-runtime",
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1886,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://joburg.org.za/media_/Newsroom/Pages/2021%20News%20Articles/October/Joburg-still-city-of-opportunities-135-years-later.aspx",
+        "note": "1886년 이전 도시명이 아직 성립하지 않음",
+        "researchNote": "광산촌과 취락이 1886년 금광 발견에 따라 형성됨. 형성의 정확한 월·일은 의견이 일치하지 않으므로 연도 단위로 제한함."
+      }
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1264527",
+      "name": "첸나이",
+      "nameEn": "Chennai",
+      "nameNative": "சென்னை",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "마드라스",
+          "en": "Madras",
+          "native": "சென்னை",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1996-09-30",
+          "ko": "첸나이",
+          "en": "Chennai"
+        }
+      ],
+      "coordinates": [
+        80.27847,
+        13.08784
+      ],
+      "countryCode": "IN",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1273294",
+      "name": "델리",
+      "nameEn": "Delhi",
+      "nameNative": "दिल्ली",
+      "nameNativeExtras": [
+        "دہلی",
+        "ਦਿੱਲੀ"
+      ],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "델리",
+          "en": "Delhi",
+          "native": "دهلی",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1858-11-01",
+          "native": "دہلی",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1947-08-15",
+          "native": "दिल्ली",
+          "nativeExtras": [
+            "دہلی"
+          ]
+        },
+        {
+          "fromDate": "2004-01-26",
+          "native": "दिल्ली",
+          "nativeExtras": [
+            "دہلی",
+            "ਦਿੱਲੀ"
+          ]
+        }
+      ],
+      "coordinates": [
+        77.23149,
+        28.65195
+      ],
+      "countryCode": "IN",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch01.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-mughal-persian-form-provisional",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1275004",
+      "name": "콜카타",
+      "nameEn": "Kolkata",
+      "nameNative": "কলকাতা",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "캘커타",
+          "en": "Calcutta",
+          "native": "কলকাতা",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "2001-01-01",
+          "ko": "콜카타",
+          "en": "Kolkata"
+        }
+      ],
+      "coordinates": [
+        88.36304,
+        22.56263
+      ],
+      "countryCode": "IN",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1275339",
+      "name": "뭄바이",
+      "nameEn": "Mumbai",
+      "nameNative": "मुंबई",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "봄베이",
+          "en": "Bombay",
+          "native": "मुंबई",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1995-05-04",
+          "ko": "뭄바이",
+          "en": "Mumbai"
+        }
+      ],
+      "coordinates": [
+        72.88261,
+        19.07283
+      ],
+      "countryCode": "IN",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1566083",
+      "name": "호찌민",
+      "nameEn": "Ho Chi Minh",
+      "nameNative": "Hồ Chí Minh",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "사이공",
+          "en": "Saigon",
+          "native": "柴棍",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1862-06-05",
+          "native": "Saïgon",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-08-14",
+          "native": "Sài Gòn",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1976-07-02",
+          "ko": "호찌민",
+          "en": "Ho Chi Minh",
+          "native": "Hồ Chí Minh",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        106.62965,
+        10.82302
+      ],
+      "countryCode": "VN",
+      "featureCode": "PPL",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1581130",
+      "name": "하노이",
+      "nameEn": "Hanoi",
+      "nameNative": "Hà Nội",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "탕롱",
+          "en": "Thang Long",
+          "native": "昇龍",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1805,
+          "native": "昇隆",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1831-11-04",
+          "ko": "하노이",
+          "en": "Hanoi",
+          "native": "河內",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1888-10-03",
+          "native": "Hanoï",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-07-20",
+          "native": "Hà Nội",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        105.84117,
+        21.0245
+      ],
+      "countryCode": "VN",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1609350",
+      "name": "방콕",
+      "nameEn": "Bangkok",
+      "nameNative": "กรุงเทพมหานคร",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "방콕",
+          "en": "Bangkok",
+          "native": "กรุงเทพมหานคร",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        100.50144,
+        13.75398
+      ],
+      "countryCode": "TH",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1642911",
+      "name": "자카르타",
+      "nameEn": "Jakarta",
+      "nameNative": "Jakarta",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "바타비아",
+          "en": "Batavia",
+          "native": "Batavia",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1942-12-08",
+          "ko": "자카르타",
+          "en": "Djakarta",
+          "native": "Djakarta",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1972-08-17",
+          "en": "Jakarta",
+          "native": "Jakarta",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        106.84513,
+        -6.21462
+      ],
+      "countryCode": "ID",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1792947",
+      "name": "톈진",
+      "nameEn": "",
+      "nameNative": "",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "천진",
+          "en": "Tientsin",
+          "native": "天津",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1912-01-01",
+          "ko": "톈진"
+        },
+        {
+          "fromDate": "1979-01-01",
+          "en": "Tianjin"
+        }
+      ],
+      "coordinates": [
+        117.17667,
+        39.14222
+      ],
+      "countryCode": "CN",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1796236",
+      "name": "상하이",
+      "nameEn": "Shanghai",
+      "nameNative": "上海",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "상해",
+          "en": "Shanghai",
+          "native": "上海",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1912-01-01",
+          "ko": "상하이"
+        }
+      ],
+      "coordinates": [
+        121.45806,
+        31.22222
+      ],
+      "countryCode": "CN",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch01.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1799962",
+      "name": "난징",
+      "nameEn": "",
+      "nameNative": "",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "남경",
+          "en": "Nanking",
+          "native": "南京",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1853-03-29",
+          "ko": "천경",
+          "en": "T'ien-ching",
+          "native": "天京",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1864-07-19",
+          "ko": "남경",
+          "en": "Nanking",
+          "native": "南京",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1912-01-01",
+          "ko": "난징"
+        },
+        {
+          "fromDate": "1979-01-01",
+          "en": "Nanjing"
+        }
+      ],
+      "coordinates": [
+        118.77778,
+        32.06167
+      ],
+      "countryCode": "CN",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1809858",
+      "name": "광저우",
+      "nameEn": "",
+      "nameNative": "",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "광주",
+          "en": "Canton",
+          "native": "廣州",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1912-01-01",
+          "ko": "광저우"
+        },
+        {
+          "fromDate": "1956-06-01",
+          "native": "广州",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1979-01-01",
+          "en": "Guangzhou"
+        }
+      ],
+      "coordinates": [
+        113.25,
+        23.11667
+      ],
+      "countryCode": "CN",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1816670",
+      "name": "베이징",
+      "nameEn": "Beijing",
+      "nameNative": "北京",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "북경",
+          "en": "Peking",
+          "native": "北京",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1912-01-01",
+          "ko": "베이징"
+        },
+        {
+          "fromDate": "1928-06-28",
+          "ko": "베이핑",
+          "en": "Peiping",
+          "native": "北平",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1937-10-12",
+          "ko": "베이징",
+          "en": "Peking",
+          "native": "北京",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-08-15",
+          "ko": "베이핑",
+          "en": "Peiping",
+          "native": "北平",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1949-09-27",
+          "ko": "베이징",
+          "en": "Peking",
+          "native": "北京",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1979-01-01",
+          "en": "Beijing"
+        }
+      ],
+      "coordinates": [
+        116.39723,
+        39.9075
+      ],
+      "countryCode": "CN",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch01.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1835235",
+      "name": "대전",
+      "nameEn": "Daejeon",
+      "nameNative": "대전",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "대전",
+          "en": "Taejon",
+          "native": "大田",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1910-08-29",
+          "en": "Taiden",
+          "native": "大田",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-08-15",
+          "en": "Taejon",
+          "native": "대전",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "2000-07-07",
+          "en": "Daejeon"
+        }
+      ],
+      "coordinates": [
+        127.38493,
+        36.34913
+      ],
+      "countryCode": "KR",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime",
+      "temporalEligibility": {
+        "cityEstablishedFromDate": "1905-01-01",
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.daejeon.go.kr/drh/DrhContentsHtmlView.do?menuSeq=1719",
+        "note": "1905-01-01 대전역 개통 후 도시 성장",
+        "researchNote": "1905년 1월 1일은 경부선 대전역 개통일이며 이때부터 근대 도시로 지도에 표시한다는 편집상 기준. 1801년 대전 지역의 농촌 지명과 정착 자체를 부정하거나 1905년 법정 시 설치를 뜻하지 않음."
+      }
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1835329",
+      "name": "대구",
+      "nameEn": "Daegu",
+      "nameNative": "대구",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "대구",
+          "en": "Taegu",
+          "native": "大邱",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1910-08-29",
+          "en": "Taikyu",
+          "native": "大邱",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-08-15",
+          "en": "Taegu",
+          "native": "대구",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "2000-07-07",
+          "en": "Daegu"
+        }
+      ],
+      "coordinates": [
+        128.59111,
+        35.87028
+      ],
+      "countryCode": "KR",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1835848",
+      "name": "서울",
+      "nameEn": "Seoul",
+      "nameNative": "서울",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1308,
+          "ko": "한양",
+          "en": "Hanyang",
+          "native": "漢陽",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1395-07-01",
+          "ko": "한성",
+          "en": "Hanseong",
+          "native": "漢城",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1910-10-01",
+          "ko": "경성",
+          "en": "Keijō",
+          "native": "京城",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1946-08-10",
+          "ko": "서울",
+          "en": "Seoul",
+          "native": "서울",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        126.9784,
+        37.566
+      ],
+      "countryCode": "KR",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch01.json",
+      "historicalDisplayCoverage": "reviewed-since-1308-predecessor-deferred",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1838524",
+      "name": "부산",
+      "nameEn": "Busan",
+      "nameNative": "부산",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "부산",
+          "en": "Pusan",
+          "native": "釜山",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1910-08-29",
+          "en": "Fusan",
+          "native": "釜山",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-08-15",
+          "en": "Pusan",
+          "native": "부산",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "2000-07-07",
+          "en": "Busan"
+        }
+      ],
+      "coordinates": [
+        129.03004,
+        35.10168
+      ],
+      "countryCode": "KR",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch01.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1843564",
+      "name": "인천",
+      "nameEn": "Incheon",
+      "nameNative": "인천",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "인천",
+          "en": "Inchon",
+          "native": "仁川",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1910-08-29",
+          "en": "Jinsen",
+          "native": "仁川",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-08-15",
+          "en": "Inchon",
+          "native": "인천",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-10-10",
+          "ko": "제물포",
+          "en": "Chemulpo",
+          "native": "제물포",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1945-10-28",
+          "ko": "인천",
+          "en": "Inchon",
+          "native": "인천",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "2000-07-07",
+          "en": "Incheon"
+        }
+      ],
+      "coordinates": [
+        126.70515,
+        37.45646
+      ],
+      "countryCode": "KR",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1848354",
+      "name": "요코하마",
+      "nameEn": "",
+      "nameNative": "",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromDate": "1859-07-01",
+          "ko": "요코하마",
+          "en": "Yokohama",
+          "native": "横浜",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        139.65,
+        35.43333
+      ],
+      "countryCode": "JP",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1859",
+      "reviewStatus": "verified-source-staging-not-runtime",
+      "temporalEligibility": {
+        "cityEstablishedFromDate": "1859-07-01",
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.city.yokohama.lg.jp/kurashi/kyodo-manabi/library/shuroku/memory/memory4/memory4.html",
+        "note": "1859-07-01 개항부터 근대 도시 라벨",
+        "researchNote": "개항을 도시 라벨의 편집상 시작 기준으로 선택. 이전에는 어촌 横浜村이 있었지만 현대 주요 도시 라벨을 소급하지 않음. 실제 市 행정체 출범일과 구별."
+      }
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1850147",
+      "name": "도쿄",
+      "nameEn": "Tokyo",
+      "nameNative": "東京",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "에도",
+          "en": "Edo",
+          "native": "江戸",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1868-09-03",
+          "ko": "도쿄",
+          "en": "Tokyo",
+          "native": "東京",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        139.69171,
+        35.6895
+      ],
+      "countryCode": "JP",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch01.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1853909",
+      "name": "오사카",
+      "nameEn": "Osaka",
+      "nameNative": "大阪",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "오사카",
+          "en": "Osaka",
+          "native": "大坂",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1868-06-21",
+          "native": "大阪",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        135.50107,
+        34.69379
+      ],
+      "countryCode": "JP",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch01.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1856057",
+      "name": "나고야",
+      "nameEn": "",
+      "nameNative": "",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "나고야",
+          "en": "Nagoya",
+          "native": "名古屋",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        136.90641,
+        35.18147
+      ],
+      "countryCode": "JP",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "1857910",
+      "name": "교토",
+      "nameEn": "",
+      "nameNative": "",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "교토",
+          "en": "Kyoto",
+          "native": "京都",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        135.75385,
+        35.02107
+      ],
+      "countryCode": "JP",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch02-east-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2147714",
+      "name": "시드니",
+      "nameEn": "Sydney",
+      "nameNative": "Sydney",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "시드니",
+          "en": "Sydney",
+          "native": "Sydney",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        151.20732,
+        -33.86785
+      ],
+      "countryCode": "AU",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch06-africa-oceania.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2267057",
+      "name": "리스본",
+      "nameEn": "Lisbon",
+      "nameNative": "Lisboa",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "리스본",
+          "en": "Lisbon",
+          "native": "Lisboa",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        -9.1498,
+        38.72509
+      ],
+      "countryCode": "PT",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2332459",
+      "name": "라고스",
+      "nameEn": "Lagos",
+      "nameNative": "Lagos",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "에코",
+          "en": "Lagos",
+          "native": "Èkó",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1861-08-06",
+          "ko": "라고스",
+          "native": "Lagos",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        3.39467,
+        6.45407
+      ],
+      "countryCode": "NG",
+      "featureCode": "PPLA2",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch06-africa-oceania.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1861-cession-label-transition",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2618425",
+      "name": "코펜하겐",
+      "nameEn": "Copenhagen",
+      "nameNative": "København",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "코펜하겐",
+          "en": "Copenhagen",
+          "native": "Kjøbenhavn",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1906,
+          "native": "København",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        12.56553,
+        55.67594
+      ],
+      "countryCode": "DK",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1906-danish-orthography-transition",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2643743",
+      "name": "런던",
+      "nameEn": "London",
+      "nameNative": "London",
+      "nameNativeExtras": [],
+      "nameTimeline": [],
+      "coordinates": [
+        -0.12574,
+        51.50853
+      ],
+      "countryCode": "GB",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch01.json",
+      "historicalDisplayCoverage": "reviewed-stable-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2661552",
+      "name": "베른",
+      "nameEn": "Bern",
+      "nameNative": "Bern",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "베른",
+          "en": "Bern",
+          "native": "Bern",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        7.44744,
+        46.94809
+      ],
+      "countryCode": "CH",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2673730",
+      "name": "스톡홀름",
+      "nameEn": "Stockholm",
+      "nameNative": "Stockholm",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "스톡홀름",
+          "en": "Stockholm",
+          "native": "Stockholm",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        18.06871,
+        59.32938
+      ],
+      "countryCode": "SE",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2759794",
+      "name": "암스테르담",
+      "nameEn": "Amsterdam",
+      "nameNative": "Amsterdam",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "암스테르담",
+          "en": "Amsterdam",
+          "native": "Amsterdam",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        4.88969,
+        52.37403
+      ],
+      "countryCode": "NL",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2761369",
+      "name": "빈",
+      "nameEn": "Vienna",
+      "nameNative": "Wien",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "빈",
+          "en": "Vienna",
+          "native": "Wien",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        16.37208,
+        48.20849
+      ],
+      "countryCode": "AT",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2800866",
+      "name": "브뤼셀",
+      "nameEn": "Brussels",
+      "nameNative": "Bruxelles",
+      "nameNativeExtras": [
+        "Brussel"
+      ],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "브뤼셀",
+          "en": "Brussels",
+          "native": "Bruxelles",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1823-01-01",
+          "native": "Brussel",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1830-10-04",
+          "native": "Bruxelles",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1921,
+          "native": "Bruxelles",
+          "nativeExtras": [
+            "Brussel"
+          ]
+        }
+      ],
+      "coordinates": [
+        4.34878,
+        50.85045
+      ],
+      "countryCode": "BE",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2950159",
+      "name": "베를린",
+      "nameEn": "Berlin",
+      "nameNative": "Berlin",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "베를린",
+          "en": "Berlin",
+          "native": "Berlin",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        13.41053,
+        52.52437
+      ],
+      "countryCode": "DE",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2964574",
+      "name": "더블린",
+      "nameEn": "Dublin",
+      "nameNative": "Dublin",
+      "nameNativeExtras": [
+        "Baile Átha Cliath"
+      ],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "더블린",
+          "en": "Dublin",
+          "native": "Dublin",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1922-12-06",
+          "native": "Dublin",
+          "nativeExtras": [
+            "Baile Átha Cliath"
+          ]
+        }
+      ],
+      "coordinates": [
+        -6.24889,
+        53.33306
+      ],
+      "countryCode": "IE",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1922-bilingual-editorial-transition",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "2988507",
+      "name": "파리",
+      "nameEn": "Paris",
+      "nameNative": "Paris",
+      "nameNativeExtras": [],
+      "nameTimeline": [],
+      "coordinates": [
+        2.3488,
+        48.85341
+      ],
+      "countryCode": "FR",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch01.json",
+      "historicalDisplayCoverage": "reviewed-stable-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3046446",
+      "name": "페슈트",
+      "nameEn": "Pest",
+      "nameNative": "Pest",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "페슈트",
+          "en": "Pest",
+          "native": "Pest",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        19.0833333,
+        47.5
+      ],
+      "countryCode": "HU",
+      "featureCode": "PPLX",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-until-1873-merger-for-independent-city",
+      "reviewStatus": "verified-source-staging-not-runtime",
+      "temporalEligibility": {
+        "lifecycleReviewStatus": "verified",
+        "reviewedCoverage": {
+          "fromYear": 1801,
+          "untilYear": 2026
+        },
+        "activeIntervals": [
+          {
+            "untilDateExclusive": "1873-11-17",
+            "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
+            "researchNote": "역사적 독립 도시로서의 페슈트 표시는 1873-11-16까지. 1873-11-17부터는 별도 도시 표시를 종료하고 통합된 부다페스트(GeoNames 3054643)를 표시한다. 1801년 이전은 조사 범위 밖이며, 통합 후 Pest라는 지역명 자체가 소멸했다는 뜻은 아니다."
+          }
+        ],
+        "afterIndependentCityMerger": "suppress-city-label",
+        "note": "1873-11-17부터 독립 도시 라벨 제외",
+        "researchNote": "PPLX는 현재 GeoNames의 지역 분류다. 옛 독립 도시로 표시할 때만 city-label eligibility를 부여한다. 현대 Pest의 지역 지명 검색·보존은 독립 도시 표시 제외와 별개. activeIntervals는 현재 조사 데이터에만 존재하며 실제 렌더러는 아직 이를 적용하지 않는다."
+      }
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3054643",
+      "name": "부다페스트",
+      "nameEn": "Budapest",
+      "nameNative": "Budapest",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromDate": "1873-11-17",
+          "ko": "부다페스트",
+          "en": "Budapest",
+          "native": "Budapest",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        19.04045,
+        47.49835
+      ],
+      "countryCode": "HU",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1873",
+      "reviewStatus": "verified-source-staging-not-runtime",
+      "temporalEligibility": {
+        "cityEstablishedFromDate": "1873-11-17",
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
+        "note": "1873년 통합 이전은 별도 취락"
+      }
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3067696",
+      "name": "프라하",
+      "nameEn": "Prague",
+      "nameNative": "Praha",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "프라크",
+          "en": "Prague",
+          "native": "Prag",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1861-11-01",
+          "ko": "프라하",
+          "native": "Praha",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        14.42076,
+        50.08804
+      ],
+      "countryCode": "CZ",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1861-czech-municipal-language-selection",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3117735",
+      "name": "마드리드",
+      "nameEn": "Madrid",
+      "nameNative": "Madrid",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "마드리드",
+          "en": "Madrid",
+          "native": "Madrid",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        -3.70256,
+        40.4165
+      ],
+      "countryCode": "ES",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3143244",
+      "name": "오슬로",
+      "nameEn": "Oslo",
+      "nameNative": "Oslo",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "크리스티아니아",
+          "en": "Christiania",
+          "native": "Christiania",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1897,
+          "native": "Kristiania",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1925-01-01",
+          "ko": "오슬로",
+          "en": "Oslo",
+          "native": "Oslo",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        10.74609,
+        59.91273
+      ],
+      "countryCode": "NO",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1897-orthography-and-1925-official-renaming",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3169070",
+      "name": "로마",
+      "nameEn": "Rome",
+      "nameNative": "Roma",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "로마",
+          "en": "Rome",
+          "native": "Roma",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        12.51133,
+        41.89193
+      ],
+      "countryCode": "IT",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3183875",
+      "name": "티라나",
+      "nameEn": "Tirana",
+      "nameNative": "Tiranë",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "티란",
+          "en": "Tirana",
+          "native": "تیران",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1912-11-26",
+          "ko": "티라나",
+          "native": "Tiranë",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        19.81866,
+        41.32744
+      ],
+      "countryCode": "AL",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch11-western-balkans-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1912-11-26-albanian-name-selection",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3186886",
+      "name": "자그레브",
+      "nameEn": "Zagreb",
+      "nameNative": "Zagreb",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "자그레브",
+          "en": "Agram",
+          "native": "Zagreb",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1918-10-29",
+          "en": "Zagreb"
+        }
+      ],
+      "coordinates": [
+        15.97798,
+        45.81444
+      ],
+      "countryCode": "HR",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch10-balkan-southeast-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1918-english-editorial-transition",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3191281",
+      "name": "사라예보",
+      "nameEn": "Sarajevo",
+      "nameNative": "Sarajevo",
+      "nameNativeExtras": [
+        "Сарајево"
+      ],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "사라이보스나",
+          "en": "Sarajevo",
+          "native": "سرای بوسنه",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1908-10-07",
+          "ko": "사라예보",
+          "native": "Sarajevo",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1918-11-03",
+          "native": "Sarajevo",
+          "nativeExtras": [
+            "Сарајево"
+          ]
+        },
+        {
+          "fromDate": "1994-03-30",
+          "native": "Sarajevo",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "2002-04-19",
+          "native": "Sarajevo",
+          "nativeExtras": [
+            "Сарајево"
+          ]
+        }
+      ],
+      "coordinates": [
+        18.35644,
+        43.84864
+      ],
+      "countryCode": "BA",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch11-western-balkans-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1908-annexation-1918-scripts-1994-latin-only-2002-bilingual",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3193044",
+      "name": "포드고리차",
+      "nameEn": "Podgorica",
+      "nameNative": "Podgorica",
+      "nameNativeExtras": [
+        "Подгорица"
+      ],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "포드고리체",
+          "en": "Podgorica",
+          "native": "پودغوریچه",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1879-02-08",
+          "ko": "포드고리차",
+          "native": "Подгорица",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1946-07-13",
+          "ko": "티토그라드",
+          "en": "Titograd",
+          "native": "Титоград",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1992-04-02",
+          "ko": "포드고리차",
+          "en": "Podgorica",
+          "native": "Podgorica",
+          "nativeExtras": [
+            "Подгорица"
+          ]
+        }
+      ],
+      "coordinates": [
+        19.26309,
+        42.44124
+      ],
+      "countryCode": "ME",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch11-western-balkans-capitals.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1879-02-08-1946-07-13-1992-04-02-name-transitions",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3196359",
+      "name": "류블랴나",
+      "nameEn": "Ljubljana",
+      "nameNative": "Ljubljana",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "라이바흐",
+          "en": "Laibach",
+          "native": "Laibach",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1883-01-01",
+          "ko": "류블랴나",
+          "native": "Ljubljana",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1918-10-29",
+          "en": "Ljubljana"
+        }
+      ],
+      "coordinates": [
+        14.50513,
+        46.05108
+      ],
+      "countryCode": "SI",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch10-balkan-southeast-europe.json",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-1883-native-and-1918-english-transitions",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3435910",
+      "name": "부에노스아이레스",
+      "nameEn": "Buenos Aires",
+      "nameNative": "Buenos Aires",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "부에노스아이레스",
+          "en": "Buenos Aires",
+          "native": "Buenos Ayres",
+          "nativeExtras": []
+        },
+        {
+          "fromYear": 1860,
+          "native": "Buenos Aires",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        -58.37723,
+        -34.61315
+      ],
+      "countryCode": "AR",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch05-americas.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3448439",
+      "name": "상파울루",
+      "nameEn": "São Paulo",
+      "nameNative": "São Paulo",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "상파울루",
+          "en": "São Paulo",
+          "native": "São Paulo",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        -46.63611,
+        -23.5475
+      ],
+      "countryCode": "BR",
+      "featureCode": "PPLA",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch05-americas.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "3530597",
+      "name": "멕시코시티",
+      "nameEn": "Mexico City",
+      "nameNative": "Ciudad de México",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "멕시코시티",
+          "en": "Mexico City",
+          "native": "Ciudad de México",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        -99.12766,
+        19.42847
+      ],
+      "countryCode": "MX",
+      "featureCode": "PPLC",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch05-americas.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "5128581",
+      "name": "뉴욕",
+      "nameEn": "New York",
+      "nameNative": "New York",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "뉴욕",
+          "en": "New York",
+          "native": "New York",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        -74.00597,
+        40.71427
+      ],
+      "countryCode": "US",
+      "featureCode": "PPL",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch05-americas.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    },
+    {
+      "source": "geonames",
+      "sourceId": "5368361",
+      "name": "로스앤젤레스",
+      "nameEn": "Los Angeles",
+      "nameNative": "Los Angeles",
+      "nameNativeExtras": [],
+      "nameTimeline": [
+        {
+          "fromYear": 1801,
+          "ko": "로스앙헬레스",
+          "en": "Los Angeles",
+          "native": "Los Ángeles",
+          "nativeExtras": []
+        },
+        {
+          "fromDate": "1848-05-30",
+          "ko": "로스앤젤레스",
+          "native": "Los Angeles",
+          "nativeExtras": []
+        }
+      ],
+      "coordinates": [
+        -118.24368,
+        34.05223
+      ],
+      "countryCode": "US",
+      "featureCode": "PPLA2",
+      "population": 0,
+      "kind": "city",
+      "priority": 70,
+      "minZoom": 1.25,
+      "reviewFile": "reports/places/tier1-major-cities-batch05-americas.json",
+      "historicalDisplayCoverage": "reviewed-since-1801",
+      "reviewStatus": "verified-source-staging-not-runtime"
+    }
+  ]
+}
