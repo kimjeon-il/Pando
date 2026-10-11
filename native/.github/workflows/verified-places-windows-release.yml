@@ -60,12 +60,17 @@ jobs:
           modules: 'qtshadertools qtimageformats'
           cache: true
 
+      - name: Install Windows zlib
+        shell: pwsh
+        run: vcpkg install zlib:x64-windows
+
       - name: Configure Qt app and place tests
         shell: pwsh
         run: >
           cmake -S . -B build-portable
           -G "Visual Studio 17 2022" -A x64
           "-DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR"
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DPANDOEDITOR_BUILD_APP=ON -DBUILD_TESTING=ON
 
       - name: Build Qt application and focused native place tests
@@ -110,6 +115,12 @@ jobs:
           $archive = Join-Path $PWD 'dist/Pandoeditor-verified-places-windows-x64.zip'
           $sha = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
           "$sha  Pandoeditor-verified-places-windows-x64.zip" | Set-Content -Encoding ascii "$archive.sha256"
+
+      - name: Smoke test bundled Windows app
+        shell: pwsh
+        run: |
+          & (Join-Path $PWD 'dist/Pandoeditor-verified-places/pandoeditor.exe') --smoke-check
+          if ($LASTEXITCODE -ne 0) { throw "Portable smoke check failed; do not release" }
 
       - name: Publish downloadable CI artifact
         uses: actions/upload-artifact@v4
