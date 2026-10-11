@@ -1,0 +1,540 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r77",
+  "sources": [
+    {
+      "source_key": "r77-mrnf-saguenay-south-carte3",
+      "title": "Plan d’affectation du territoire public du Saguenay–Lac-Saint-Jean — Carte 3 : Potentiels, projets et éléments particuliers, Partie Sud",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune, Direction des affaires régionales du Saguenay–Lac-Saint-Jean",
+      "attribution": "© Gouvernement du Québec; legal deposit second trimester 2012. Topographic and administrative base BDTA 250k, MRNF 2011; scale 1:350,000; NAD83, Lambert with 46° and 60° standard parallels.",
+      "year": 2012,
+      "page": "Single southern sheet, whole map plus readable southwestern feeder, Itomamo and Pipmuacan enlargements.",
+      "supports": "Southern lake-country feeder, Itomamo/reservoir route and northern Betsiamites connection; distinction from adjacent lake and drainage routes.",
+      "limits": "Land-use overlays obscure some small channels. Earliest minor feeder and exact reservoir entry vertices are not individually named; planning overlays are not current legal claims.",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Saguenay-Lac-Saint-Jean/CA_03_potentiel-projets-sud-SLSJ_MERN.pdf?1605550932="
+    },
+    {
+      "source_key": "r65-mrnf-saguenay-north-carte3",
+      "title": "Plan d’affectation du territoire public du Saguenay–Lac-Saint-Jean — Carte 3 : Potentiels, projets et éléments particuliers, Partie Nord",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune, Direction des affaires régionales du Saguenay–Lac-Saint-Jean",
+      "attribution": "© Gouvernement du Québec; legal deposit second trimester 2012; BDTA 250k base 2011; scale 1:350,000; NAD83 Québec Lambert.",
+      "year": 2012,
+      "page": "Single northern sheet, eastern upper-Betsiamites/Manouanis corridor and its continuation toward Pipmuacan.",
+      "supports": "Northern selected Betsiamites corridor, Manouanis and intermediate lake setting, distinct from southwestern modeled mainstem.",
+      "limits": "Eastern margin is de-emphasized beyond the planning territory. Exact name of the earliest short tributary feeder is not established; the source supports regional route continuity.",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Saguenay-Lac-Saint-Jean/CA_03_potentiel-projets-nord-SLSJ_MERN.pdf?1605550916="
+    },
+    {
+      "source_key": "r77-bape145",
+      "title": "Rapport d’enquête et d’audience publique 145 — Projets de dérivation partielle des rivières Portneuf et du Sault aux Cochons",
+      "publisher": "Gouvernement du Québec, Bureau d’audiences publiques sur l’environnement",
+      "attribution": "BAPE report 145, legal deposit 2001, ISBN 2-550-36965-3. Figure 1 adapted from deposited PR3.3(a), p. 9; Figure 2 from PR3.3(a), map 2 and DA42, p. 4; Figure 4 from PR3.3(a), p. 31 and map 1, and PR3.3(b), map 1. These historical project maps are distinct from the stopped contemporary Hydro-Québec overview and linked maps.",
+      "year": 2001,
+      "page": "Printed pp. 6–15, PDF pp. 22–31: Figures 1, 2, 4 and 5; accompanying hydrographic description on printed pp. 8 and 14.",
+      "supports": "Basin distinction, named southern aux Sables route and northern reservoir outlet, separate Portneuf alternative, Pipmuacan, lower Betsiamites, Bersimis impoundment/development context and estuarine setting.",
+      "limits": "Historical report about proposed projects. Proposed works, then-current flow, ecology, community statistics and operational claims are not treated as current. Rotated and generalized maps do not establish exact modeled vertices or a contemporary water-routing diagram.",
+      "official_url": "https://archives.bape.gouv.qc.ca/sections/rapports/publications/bape145.pdf"
+    },
+    {
+      "source_key": "r65-cehq-regions0713-annual-lowflow",
+      "title": "Débits spécifiques d’étiage annuels — Régions hydrographiques 07 et 13",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011, updated December 2014. Cartography Marie-Lise Paquin and Eric Levasseur; approved Joëlle Bérubé; BDGA 1:1,000,000 base; scale 1:2,250,000; NAD83 Québec Lambert.",
+      "year": 2011,
+      "page": "Single regional sheet, readable western reservoir/river/coast enlargement.",
+      "supports": "Named lower Betsiamites, Pipmuacan and neighboring La Tourette/Praslin/Outardes/Manicouagan and coastal context.",
+      "limits": "Regional scale and western edge do not individually name the small southern feeder or every northern reach. Low-flow estimates are outside this finding.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_07_13specifique_annuel.pdf"
+    },
+    {
+      "source_key": "r62-cehq-region08-annual-lowflow",
+      "title": "Débits spécifiques d’étiage annuels — Région hydrographique 08",
+      "publisher": "Gouvernement du Québec, Centre d’expertise hydrique du Québec",
+      "attribution": "July 2011. Cartography Marie-Lise Paquin and Eric Levasseur; approved Joëlle Bérubé; BDGA 1:1,000,000 base; scale 1:1,750,000; NAD83 Québec Lambert.",
+      "year": 2011,
+      "page": "Single regional sheet, eastern upper-Betsiamites edge.",
+      "supports": "Corroborating upper Betsiamites corridor east of the Manouane/Opitoune lake setting.",
+      "limits": "Peripheral and partly obscured by legend; not the sole source for any full-route claim and not independent of the CEHQ 07/13 base.",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_08_specifique_annuel.pdf"
+    },
+    {
+      "source_key": "r77-pnn-tatama-2016",
+      "title": "Cambios Bosque 2000–2014 — Parque Nacional Natural Tatamá",
+      "publisher": "Parques Nacionales Naturales de Colombia, Ministerio de Ambiente y Desarrollo Sostenible",
+      "year": 2016,
+      "page": "Single map sheet, 1:100,000; northern Tatamá–Santa Cecilia detail and southern Ingará tributary detail",
+      "supports": "Separates Río Tatamá from Río San Juan / San Juan Bravo; selected upper northward Tatamá route and westward San Juan connection at Santa Cecilia; selected southern Tatamá-massif feeder into the Ingará corridor.",
+      "limits": "Does not cover the whole lower San Juan basin. Exact small headwater names and official spring locations are not established; no present forest-condition claim.",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2018/02/CAMBIO_2000-2014_pTAT.pdf"
+    },
+    {
+      "source_key": "r77-igac-transecto-tatama",
+      "title": "Análisis Geográficos 3 — Transecto Tatamá, Cordillera Occidental: aspectos climatológicos y geomorfológicos",
+      "author": "Antonio Flórez",
+      "publisher": "Instituto Geográfico Agustín Codazzi, Subdirección de Investigación y Divulgación Geográfica",
+      "year": null,
+      "page": "PDF p. 2, Parque Natural Nacional Tatamá, delimitación propuesta, 1:400,000; PDF p. 8, Fig. 1-1, Localización del transecto en la Cordillera Occidental",
+      "supports": "Regional San Juan connection and separation of Tatamá, Ingará, Surama, Tamaná, Condoto and Tapará/Sipí-side drainage. The Ingará tributary system around San José del Palmar is distinguishable from the San Juan trunk.",
+      "limits": "Publication year not verified from the inspected title matter; the map credits a 1982 Risaralda map and older inputs. Proposed park boundary is historical context only. Its river labels are not asserted as a modern alias registry.",
+      "official_url": "https://biblioteca.igac.gov.co/janium/Documentos/Analisis%20Geogaficos%203.pdf"
+    },
+    {
+      "source_key": "r77-codechoco-zonificacion-2016",
+      "title": "Delimitación y Codificación de Áreas, Zonas y Subzonas Hidrográficas del Departamento del Chocó",
+      "publisher": "CODECHOCÓ and ASODEAM; official copy supplied to the Senado de la República",
+      "edition": "Convenio de Cooperación Técnica No. 06 del 2016; Senate response annex published 2025",
+      "year": 2016,
+      "page": "PDF p. 24, Mapa 4; pp. 28–31, Table 13; pp. 58–61, hydrographic coding annex",
+      "supports": "San Juan zone and upper San Juan, Tamaná, Sipí, Cajón, Capoma/Copoma, Munguidó and Calima subzones. Tables place Garrapatas within Sipí and separately list Ingará, Surama, Copoma and Cucurrupí.",
+      "limits": "The reproduced regional map is much coarser than the underlying 1:25,000 delineation described by the report. Subzone membership is not an individual-stream name and does not fix exact tributary name changes.",
+      "official_url": "https://www.senado.gov.co/index.php/documentos/comisiones/constitucionales/comision-quinta/respuestas-a-cuestionarios-debates-de-control-politico/respuestas-a-cuestionarios-debates-de-control-politico-periodo-constitucional-2022-2026/respuestas-a-cuestionarios-debates-de-control-politico-legislatura-20-julio-2024-20-julio-2025/respuestas-debate-abril-23-de-2025-proposicion-no-170-de-2025-estructura-administrativa-y-financiera-de-corpouraba-codechoco-corpoboyaca-y-corpoamazonia/respuestas-codechoco/8784-anexo-3-respuestas-codechoco-proposicion-no-170-de-2025/file"
+    },
+    {
+      "source_key": "r77-wfp-choco-river-network-2021",
+      "title": "Colombia — Departamento de Chocó: Carta de la red fluvial y de los principales puertos",
+      "publisher": "World Food Programme / Logistics Cluster, HQ Emergency GIS Unit",
+      "attribution": "Map credits UNMAP and OCHA boundaries, OpenStreetMap streets, GeoNames towns and WFP logistics infrastructure.",
+      "edition": "5 January 2021, COL_OP_Choco_RiverNetwork_A2P_ES_20210105",
+      "year": 2021,
+      "page": "Single sheet, southern San Juan basin and delta detail",
+      "supports": "Continuous selected San Juan trunk, regional eastern tributary layout, Calima connection and the southern delta continuation, with Tadó, Istmina, Nóvita, Sipí, Cucurrupí, Cabeceras, Docordó and Palestina as anchors.",
+      "limits": "Used for regional hydrographic geometry and town anchors, not alone for tributary names. Some large river-label placements do not agree cleanly with the detailed PNN/IGAC cartography or CODECHOCÓ subzone context; those labels are not transferred to selected tributaries. Very short feeders are below the useful detail of this sheet.",
+      "official_url": "https://logcluster.org/sites/default/files/public/maps/colopchocorivernetworka2pes_20210105.pdf"
+    },
+    {
+      "source_key": "r77-litoral-sanjuan-eot-diagnostico",
+      "title": "Esquema de Ordenamiento Territorial — Diagnóstico del Municipio Litoral del San Juan",
+      "publisher": "Municipio Litoral del San Juan; original institutional copy hosted by Escuela Superior de Administración Pública, CDIM",
+      "year": null,
+      "page": "pp. 59–66, hydrography; especially pp. 61–64 and 65–66",
+      "supports": "Identifies the San Juan receiving river, its named eastern tributary systems and Calima; describes the northern Cabeceras/Docordó branch separately from the southern continuation toward the Pacific at the Valle del Cauca boundary.",
+      "limits": "Publication year not established from inspected front matter. The referenced Mapa 11 is not in the acquired diagnostic PDF and is not claimed as inspected. Historical mouth counts differ within the report and are not adopted.",
+      "official_url": "https://repositoriocdim.esap.edu.co/bitstream/handle/20.500.14471/16385/19395-3.pdf?isAllowed=y&sequence=3"
+    },
+    {
+      "source_key": "r77-colombia-decreto1076-geography",
+      "title": "Decreto 1076 de 2015, Artículo 2.2.1.4.5.1 — Delta del río San Juan",
+      "publisher": "República de Colombia; official ANCP-CCE Relatoría text",
+      "year": 2015,
+      "page": "Artículo 2.2.1.4.5.1, geographical boundary prose",
+      "supports": "Names Brazo San Juan as the southern continuation to Boca San Juan near El Choncho and distinguishes it from Brazo Cabeceras and Brazo Docordó.",
+      "limits": "Used only as a historical geographical naming description. No current legal-status, Ramsar designation, exact boundary or present shoreline determination is made.",
+      "official_url": "https://relatoria.colombiacompra.gov.co/normativa/decreto-1076-de-2015/"
+    },
+    {
+      "source_key": "r77-blm-npra2019-retained",
+      "title": "National Petroleum Reserve in Alaska, GeoPDF map",
+      "publisher": "U.S. Department of the Interior, Bureau of Land Management",
+      "year_note": "Map production date 16 September 2019; base cartography contains older topographic information.",
+      "year": 2019,
+      "page": "Single map sheet; southern Kigalik/Ikpikpuk, middle river, Teshekpuk and Garry Creek/Pogik Bay sectors",
+      "supports": "Lower Kigalik and middle Ikpikpuk correspondence; distinct tributaries and delta alternatives; separate Teshekpuk Lake; western versus modeled southwestern lake connection; northeastern Garry Creek/lake corridor and coastal context.",
+      "limits": "Regional agency cartography, not channel-scale survey or flow evidence. A map label positioned across the lake does not name the modeled cross-lake line or every connecting reach. The northeastern endpoint is inland.",
+      "official_url": "https://www.blm.gov/sites/blm.gov/files/documents/files/Maps_GeoPDF_National_Petroleum_Reserve_Alaska.pdf"
+    },
+    {
+      "source_key": "r77-blm-ofr96-retained",
+      "title": "Water Resources of the Colville River Special Area, National Petroleum Reserve-Alaska, BLM-Alaska Open File Report 96",
+      "authors": [
+        "Jon Kostohrys",
+        "Kristine Kosnik",
+        "Ethan Scott"
+      ],
+      "publisher": "U.S. Department of the Interior, Bureau of Land Management",
+      "year_note": "December 2003.",
+      "year": 2003,
+      "page": "Figure A-30, printed page 32 / PDF page 42; title and attribution pages",
+      "supports": "Explicitly identifies the confluence of Maybe Creek and Kigalik River as the formation of Ikpikpuk River.",
+      "limits": "Used only for this source-junction relationship. The report’s Colville focus and a Maybe Creek photograph are not treated as full-route cartography for the selected group.",
+      "official_url": "https://www.blm.gov/sites/default/files/documents/files/Library_Alaska_OpenFileReport96.pdf"
+    },
+    {
+      "source_key": "r77-usgs-sim2817c",
+      "title": "Geologic map of the Lookout Ridge quadrangle, Alaska, Scientific Investigations Map 2817-C",
+      "authors": [
+        "Charles G. Mull",
+        "David W. Houseknecht",
+        "G. H. Pessel",
+        "Christopher P. Garrity"
+      ],
+      "publisher": "U.S. Geological Survey, in cooperation with Alaska Department of Natural Resources, Division of Oil and Gas; official copy hosted by Alaska Division of Geological & Geophysical Surveys",
+      "year_note": "2006 publication; the map identifies its base as U.S. Geological Survey 1956.",
+      "year": 2006,
+      "page": "Single sheet, eastern Kigalik valley and unnamed southern-feeder detail",
+      "supports": "Depicts the short unnamed northward feeder joining the Kigalik valley near the eastern sheet edge, strengthening geographic identification of the modeled beginning.",
+      "limits": "Historical 1:250,000 geological/topographic sheet. It does not supply an individual name for the feeder, establish the official source of the modeled group, or resolve current flow conditions.",
+      "official_url": "https://dggs.alaska.gov/webpubs/usgs/sim/oversized/sim2817c_sh001.pdf"
+    },
+    {
+      "source_key": "r77-cprm-munim-geodiversity-2019",
+      "title": "Mapa geodiversidade da bacia do Rio Munim, MA",
+      "authors": "José Milton de Oliveira Filho, José Sidney Barros and Gabriel Araújo dos Santos",
+      "publisher": "CPRM – Serviço Geológico do Brasil; official SGB RIGeo repository",
+      "year": 2019,
+      "page": "Single sheet; enlarged central basin map from Buriti-side eastern approach to São Benedito, Nina Rodrigues and the lower coastal corridor",
+      "scale": "1:280,000",
+      "supports": "Complete selected route topology and major bends, settlement anchors, distinction of the Preto approach from southern Munim and Iguará, and lower São José bay context.",
+      "limits": "Geodiversity map with hydrographic base and colored geological units. The broad unit fills are not waterbody boundaries. Exact source, hydronym transitions and present coast are not established. The original map is not republished.",
+      "official_url": "https://rigeo.sgb.gov.br/items/384e7d5b-c735-4f93-b52b-c84018c37ee1"
+    },
+    {
+      "source_key": "r77-cprm-sao-benedito-2011",
+      "title": "Projeto Cadastro de Fontes de Abastecimento por Água Subterrânea, Estado do Maranhão — Relatório Diagnóstico do Município de São Benedito do Rio Preto",
+      "author": "Francisco Lages Correia Filho; consultant contributors Érico Rodrigues Gomes, Ossian Otávio Nunes and José Barbosa Lopes Filho",
+      "publisher": "CPRM – Serviço Geológico do Brasil, Residência de Teresina",
+      "edition": "December 2011",
+      "year": 2011,
+      "page": "Printed p. 23 / PDF p. 21, surface-water geography; cover and credits",
+      "supports": "Preto as the separate Munim tributary, Buriti headwater region and municipal corridor, distinction from Iguará and southern Munim, and Munim continuation through Morros/Axixá toward São José bay.",
+      "limits": "Textual regional hydrography complements the full-route maps. Reported lengths, hydrological generalizations and left/right-bank wording are not adopted as exact model or present-day measurements.",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/13f40516-0c64-4614-9780-e4457db41903/content"
+    },
+    {
+      "source_key": "r65-ana-subbasin33-2016",
+      "title": "Rede Hidrometeorológica Nacional — Sub-Bacia 33 Rios Mearim Itapecuru e Outros; Estações Fluviométricas e Pluviométricas da ANA em Operação",
+      "publisher": "Agência Nacional de Águas, Superintendência de Gestão da Rede Hidrometeorológica, CPLAR/SGH",
+      "edition": "November 2016, version 01",
+      "year": 2016,
+      "page": "Single sheet; northeastern drainage region and enlarged Munim/Preto corridors",
+      "supports": "Independent full drainage continuity, São Benedito and Nina Rodrigues station settings, distinction of southern upstream approaches and lower Munim coastal continuation.",
+      "limits": "Historical station map with overprinted station/basin labels; the accompanying SEMA table, not proximity alone, supplies the exact station-to-river association. No current operating status or formal naming act is asserted.",
+      "official_url": "https://metadados.snirh.gov.br/geonetwork/srv/api/records/92c8c8e2-a82e-4753-9bda-f3a6818e961e/attachments/c04._Sub-Bacia_33_Rios_Mearim_Itapecuru_e_Outros.pdf"
+    },
+    {
+      "source_key": "r52-sema-progestao-2025-report-2026",
+      "title": "Relatório Progestão 2025 — 3º Ciclo, 3º Período de Certificação, Maranhão; Annex 03, Relatório Metodológico de Definição de Cotas de Referência",
+      "author": "Governo do Estado do Maranhão, Secretaria de Estado do Meio Ambiente e Recursos Naturais, Sala de Situação/CPDAm",
+      "publisher": "SEMA Maranhão; official copy hosted by ANA",
+      "edition": "Cover dated 15 April 2026; Annex 03 table credited CPDAm/SEMA 2026",
+      "year": 2026,
+      "page": "Annex 03 Table 1, printed pp. 17–18 / PDF pp. 150–151, especially São Benedito, Munim and Vargem Grande rows",
+      "supports": "São Benedito station on Preto and separate Munim/Iguará stations, tying explicit river names to the selected middle reach and neighboring upper approaches.",
+      "limits": "Point/name evidence supplements full-corridor maps and does not name every intervening vertex or establish exact hydronym boundaries, present flow or the coastal endpoint.",
+      "official_url": "https://progestao.ana.gov.br/progestao-1/certificacao/certificacoes-2013-a-2018/certificacao-2025/certificacao-das-metas-federativas-2025/relatorios-progestao-2025/ma_relatorio_progestao_3operiodo_2025.pdf/%40%40download/file/MA_Relatorio_Progestao_3oPeriodo_2025.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70290945",
+      "source_keys": [
+        "r77-mrnf-saguenay-south-carte3",
+        "r65-mrnf-saguenay-north-carte3",
+        "r77-bape145",
+        "r65-cehq-regions0713-annual-lowflow",
+        "r62-cehq-region08-annual-lowflow"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9408
+          ],
+          "finding": "The southwestern beginning rises north through the Doumic–Moncouche–Le Marié lake-country setting, then follows the north-going aux Sables corridor toward Itomamo. The MRNF southern sheet distinguishes these lakes and the connected hydrographic approach from the nearby Poulin-De Courval, Jalobert and Rouvray settings. No exact name is assigned to the earliest small feeder or every short interlake connection.",
+          "sources": [
+            "r77-mrnf-saguenay-south-carte3",
+            "r77-bape145"
+          ]
+        },
+        {
+          "fragments": [
+            9408
+          ],
+          "finding": "The selected line passes through the Itomamo setting and continues north by the Rivière aux Sables approach into Pipmuacan. BAPE Figure 2 explicitly maps the aux Sables watercourse on both sides of Itomamo and distinguishes its northern reservoir route from the eastern Portneuf outlet. Figure 4 and the MRNF sheet show the corresponding reservoir approach. The selected path does not turn down the separate Portneuf river.",
+          "sources": [
+            "r77-mrnf-saguenay-south-carte3",
+            "r77-bape145"
+          ]
+        },
+        {
+          "fragments": [
+            9408,
+            9409,
+            9410
+          ],
+          "finding": "The modeled northward continuation and broad eastward turn belong to the western Pipmuacan reservoir corridor. The line then bends through the reservoir toward its eastern outlet region. The MRNF southern sheet and BAPE maps distinguish reservoir water from the entering rivers. This is a generalized reservoir traversal, not evidence that all of it is a natural river reach or that its exact centerline follows present shorelines.",
+          "sources": [
+            "r77-mrnf-saguenay-south-carte3",
+            "r77-bape145",
+            "r65-cehq-regions0713-annual-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            9410
+          ],
+          "finding": "Beyond the Pipmuacan crossing, the selected southeastward route follows the mapped Betsiamites corridor through the Bersimis development setting and downstream toward the Saint-Laurent. BAPE Figure 4 identifies Rivière Betsiamites and separately marks the Pipmuacan and Bersimis 2 impoundments, Lac-Cassé/Desroches works and power developments. CEHQ regional cartography independently distinguishes the Betsiamites descent from the neighboring Portneuf, Sault aux Cochons, Outardes and Manicouagan corridors. The model does not resolve dam, gallery, bypass and tailrace choices.",
+          "sources": [
+            "r77-bape145",
+            "r65-cehq-regions0713-annual-lowflow"
+          ]
+        },
+        {
+          "fragments": [
+            9411,
+            9412
+          ],
+          "finding": "The long northern selection approaches the Manouanis lake corridor from the northeast, continues south along the mapped upper Betsiamites past the des Prairies/du Bouchon lake setting, and enters Pipmuacan from the north before joining the modeled mainstem in reservoir water. The northern and southern MRNF sheets together show this route, with Rivière Betsiamites explicitly labeled; the CEHQ Region 08 eastern edge and BAPE basin map corroborate the broader corridor. It is selected as a tributary in this object, despite carrying the Betsiamites name upstream. Its earliest short feeder name and exact lake entry/exit points are not assigned.",
+          "sources": [
+            "r65-mrnf-saguenay-north-carte3",
+            "r77-mrnf-saguenay-south-carte3",
+            "r62-cehq-region08-annual-lowflow",
+            "r77-bape145"
+          ]
+        },
+        {
+          "fragments": [
+            9410
+          ],
+          "finding": "The final selected reach is the lower Betsiamites/estuarine approach to the Saint-Laurent west of the settlement labeled Betsiamites in the historical BAPE map. The sources establish the drainage and coastal setting, not the selected endpoint as an exact mouth, surveyed tidal limit or full estuarine extent.",
+          "sources": [
+            "r77-bape145",
+            "r65-cehq-regions0713-annual-lowflow"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60194304",
+      "source_keys": [
+        "r77-pnn-tatama-2016",
+        "r77-igac-transecto-tatama",
+        "r77-codechoco-zonificacion-2016",
+        "r77-wfp-choco-river-network-2021",
+        "r77-litoral-sanjuan-eot-diagnostico",
+        "r77-colombia-decreto1076-geography"
+      ],
+      "correspondence": [
+        {
+          "selected_fids": [
+            11558
+          ],
+          "finding": "The northeastern modeled beginning follows the northward Río Tatamá corridor past the Pueblo Rico setting and joins the San Juan in the Santa Cecilia setting. Readable PNN river labels and the older IGAC map distinguish Tatamá from the San Juan / San Juan Bravo approaching from the northeast. The model has chosen a tributary route for this upper mainstem portion; its beginning is not asserted to be the official river source.",
+          "sources": [
+            "r77-pnn-tatama-2016",
+            "r77-igac-transecto-tatama"
+          ]
+        },
+        {
+          "selected_fids": [
+            11559,
+            11560,
+            11561
+          ],
+          "finding": "From the Santa Cecilia–Guarato region the selected trunk proceeds generally west through the upper San Juan corridor toward Tadó, then southwest past the Istmina–Andagoya region and down the San Juan valley. The detailed upper sheet, IGAC regional map, CODECHOCÓ San Juan zone and WFP drainage network agree on this receiving-river connection. Adjacent Atrato and Baudó drainage remains separate.",
+          "sources": [
+            "r77-pnn-tatama-2016",
+            "r77-igac-transecto-tatama",
+            "r77-codechoco-zonificacion-2016",
+            "r77-wfp-choco-river-network-2021"
+          ]
+        },
+        {
+          "selected_fids": [
+            11575,
+            11576
+          ],
+          "finding": "The northern long eastern tributary begins south of the Tatamá massif in the San José del Palmar/Ingará setting, then proceeds west into the broader Tamaná receiving corridor before reaching San Juan. PNN cartography supports the eastern feeder and Ingará alignment; the IGAC maps distinguish Ingará, Surama and Tamaná along the regional connection. No single one of those names is extended over the whole two-piece path, and the precise name of the initial minor feeder and exact downstream name transitions are left unassigned.",
+          "sources": [
+            "r77-pnn-tatama-2016",
+            "r77-igac-transecto-tatama",
+            "r77-codechoco-zonificacion-2016",
+            "r77-wfp-choco-river-network-2021"
+          ]
+        },
+        {
+          "selected_fids": [
+            11573,
+            11574
+          ],
+          "finding": "The short eastern approach immediately upstream of the large Sipí-side junction lies in the Cajón tributary setting. Regional drainage and CODECHOCÓ zoning support its San Juan connection. The short upper feeder is not independently assigned a hydronym and Cajón is retained as tributary-system context only.",
+          "sources": [
+            "r77-codechoco-zonificacion-2016",
+            "r77-wfp-choco-river-network-2021"
+          ]
+        },
+        {
+          "selected_fids": [
+            11569,
+            11570,
+            11571,
+            11572
+          ],
+          "finding": "The large eastern branch descends southwest from the cordillera, turns northwest and then west into San Juan in the Sipí–Garrapatas regional corridor. CODECHOCÓ explicitly places Río Garrapatas in the Sipí subzone; the readable regional drainage network supports the selected long loop and its receiving junction. Sipí and Garrapatas are separate component names, not aliases of San Juan, and the exact name transition along the modeled path is not pinned.",
+          "sources": [
+            "r77-codechoco-zonificacion-2016",
+            "r77-wfp-choco-river-network-2021",
+            "r77-litoral-sanjuan-eot-diagnostico"
+          ]
+        },
+        {
+          "selected_fids": [
+            11567,
+            11568,
+            11564,
+            11565
+          ],
+          "finding": "Farther downstream, the two long eastern tributary paths have distinct northwestern lower approaches and eastern/southeastern headward legs. Their shapes and connections match the regional drainage layout within CODECHOCÓ’s Copoma/Capoma and other-direct-to-San-Juan subzone, which separately includes Cucurrupí. The municipal diagnosis likewise distinguishes Copomá and Cucurrupí as tributaries. The regional map is sufficient for their San Juan-system membership; exact whole-path individual names are deliberately not assigned from basin labels or the WFP label placement.",
+          "sources": [
+            "r77-codechoco-zonificacion-2016",
+            "r77-wfp-choco-river-network-2021",
+            "r77-litoral-sanjuan-eot-diagnostico"
+          ]
+        },
+        {
+          "selected_fids": [
+            11566
+          ],
+          "finding": "The isolated short eastern feeder downstream of those larger tributary junctions lies in the lower San Juan/Munguidó regional setting. Its modeled connection is consistent with the regional basin coverage, but the available scale does not independently name or fully depict this small feeder. Its name remains unknown; Munguidó is not transferred to it solely from proximity.",
+          "sources": [
+            "r77-codechoco-zonificacion-2016",
+            "r77-litoral-sanjuan-eot-diagnostico"
+          ]
+        },
+        {
+          "selected_fids": [
+            11562,
+            11563
+          ],
+          "finding": "The southern long tributary runs west through the Calima valley and turns northwest into lower San Juan upstream of the delta. Its broad valley shape, southern position and receiving junction agree with the readable Río Calima drainage line and the independently described Calima–San Juan relationship. Exact headwater initiation, reservoir shoreline and every local bend are outside this regional correspondence.",
+          "sources": [
+            "r77-wfp-choco-river-network-2021",
+            "r77-codechoco-zonificacion-2016",
+            "r77-litoral-sanjuan-eot-diagnostico"
+          ]
+        },
+        {
+          "selected_fids": [
+            11561
+          ],
+          "finding": "Below the Calima junction, the selected trunk turns west through the Malaguita/Palestina setting and follows the southern delta continuation toward Boca San Juan near El Choncho. The municipal text distinguishes the northern Cabeceras branch through Docordó from the southern continuation. Official geographical prose explicitly calls that southern watercourse Brazo San Juan and its outlet Boca San Juan. The selected route is therefore not assigned to Togoromá, Charambirá, Chavica or the northern Docordó branch. The endpoint is a generalized coastal approach, not an exact modern mouth or shoreline.",
+          "sources": [
+            "r77-wfp-choco-river-network-2021",
+            "r77-litoral-sanjuan-eot-diagnostico",
+            "r77-colombia-decreto1076-geography"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80029345",
+      "source_keys": [
+        "r77-blm-npra2019-retained",
+        "r77-blm-ofr96-retained",
+        "r77-usgs-sim2817c"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2321
+          ],
+          "finding": "The southwestern model start lies on a short northward feeder south of Kigalik River. The official Lookout Ridge sheet depicts this feeder and the adjoining Kigalik valley near the Kigal high-ground setting without assigning an individual stream name to the feeder. The model then turns east along the Kigalik corridor. Neither the short feeder nor the selected starting point is treated as the officially named source of Kigalik or Ikpikpuk.",
+          "sources": [
+            "r77-usgs-sim2817c",
+            "r77-blm-npra2019-retained"
+          ]
+        },
+        {
+          "fragments": [
+            2321
+          ],
+          "finding": "The eastward southern reach follows the lower Kigalik River toward the Maybe Creek junction, then turns north into the Ikpikpuk River. The retained BLM report explicitly identifies the confluence of Kigalik River and Maybe Creek as the formation of Ikpikpuk. The eastern Maybe Creek branch and its September Creek setting are not selected headwaters.",
+          "sources": [
+            "r77-blm-npra2019-retained",
+            "r77-blm-ofr96-retained"
+          ]
+        },
+        {
+          "fragments": [
+            2321
+          ],
+          "finding": "The long middle northward section corresponds to the Ikpikpuk River corridor, passing the Howard Hill setting and continuing through its meandering coastal-plain reach. The BLM map separates western approaches including Titaluk/Oumalik and eastern approaches including Price River from that main corridor. These tributaries help identify the selected river but are not separate selected fragments and are not aliases for Ikpikpuk.",
+          "sources": [
+            "r77-blm-npra2019-retained"
+          ]
+        },
+        {
+          "fragments": [
+            2321
+          ],
+          "finding": "The selection departs eastward from the Ikpikpuk corridor before following its lower delta to Smith Bay. The generalized eastward connector traverses the southwestern Teshekpuk lake-plain setting. On the BLM map this modeled departure lies south of the conspicuous western lake/river connection. The map labels Miguakiak River in the western/southern Teshekpuk setting, but that label is not assigned to the complete modeled connector merely because the route links the same broad river and lake areas. No continuous named natural channel is established along that model segment.",
+          "sources": [
+            "r77-blm-npra2019-retained"
+          ]
+        },
+        {
+          "fragments": [
+            2321
+          ],
+          "finding": "The nearly straight eastward crossing runs through Teshekpuk Lake and continues into the eastern lake-margin setting. Teshekpuk remains a separately named lake, not an Ikpikpuk reach or river alias. The modeled cross-lake line and the link into the northeastern lake chain are not identified as surveyed channels, navigable routes, or evidence of eastward drainage from Teshekpuk.",
+          "sources": [
+            "r77-blm-npra2019-retained"
+          ]
+        },
+        {
+          "fragments": [
+            2321
+          ],
+          "finding": "The final northward section corresponds at regional scale to the Garry Creek and elongated-lake corridor east/northeast of Teshekpuk, toward Pogik Bay. The map distinctly shows Smith River farther west and Kogru River farther east/south. The selected terminal point remains within the inland lake-rich corridor, short of the mapped coast. Garry Creek is supported as a component corridor name; the model does not establish that every traversed lake or intervening generalized connector bears that hydronym.",
+          "sources": [
+            "r77-blm-npra2019-retained"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60586043",
+      "source_keys": [
+        "r77-cprm-munim-geodiversity-2019",
+        "r77-cprm-sao-benedito-2011",
+        "r65-ana-subbasin33-2016",
+        "r52-sema-progestao-2025-report-2026"
+      ],
+      "correspondence": [
+        {
+          "finding": "The southeastern beginning runs north on the western Buriti drainage side before turning west through the eastern Preto corridor north of the Chapadinha/Anapurus setting. The CPRM basin map and ANA network map show that connected approach separately from the more southerly Munim trunk. The 2011 report explicitly distinguishes the Preto headwater region in Buriti and its Anapurus–Mata Roma–Chapadinha boundary corridor. The exact first modeled vertex is not claimed to be the reported spring or an official river source.",
+          "sources": [
+            "r77-cprm-munim-geodiversity-2019",
+            "r77-cprm-sao-benedito-2011",
+            "r65-ana-subbasin33-2016"
+          ]
+        },
+        {
+          "finding": "After its long westward eastern reach, the selected course turns north, then west through the São Benedito do Rio Preto setting and bends south toward the receiving Munim junction near the Nina Rodrigues corridor. This distinctive detour is visible in the acquired basin map and the retained ANA sheet. The SEMA table places the São Benedito station on Rio Preto at that middle selected reach, corroborating the component name rather than inferring it solely from a town name.",
+          "sources": [
+            "r77-cprm-munim-geodiversity-2019",
+            "r65-ana-subbasin33-2016",
+            "r52-sema-progestao-2025-report-2026"
+          ]
+        },
+        {
+          "finding": "The mainstem-role fragment boundary lies near the Preto-to-Munim connection. The subsequent selection turns northwest and north through the lower Munim corridor. The southern Munim approach and the Iguará river near Vargem Grande are mapped as distinct contributing routes, not selected replacement headwaters. The station table separately assigns its Vargem Grande-area records to Munim and Iguará, which prevents treating all these neighboring channels as one uniformly named reach.",
+          "sources": [
+            "r77-cprm-munim-geodiversity-2019",
+            "r77-cprm-sao-benedito-2011",
+            "r65-ana-subbasin33-2016",
+            "r52-sema-progestao-2025-report-2026"
+          ]
+        },
+        {
+          "finding": "The lower course continues north past the Presidente Juscelino, Cachoeira Grande and Morros settings toward Axixá, while the eastern Buriti and other side drainages remain separate. The full northward route is shown by both regional maps. Colored geological/alluvial units around the channel on the CPRM sheet are not interpreted as lake polygons or reservoir passages.",
+          "sources": [
+            "r77-cprm-munim-geodiversity-2019",
+            "r65-ana-subbasin33-2016",
+            "r77-cprm-sao-benedito-2011"
+          ]
+        },
+        {
+          "finding": "The selected endpoint is on the lower Munim beyond the Axixá vicinity, approaching the São José bay setting. The source maps and report distinguish that receiving bay from the river and from the western Itapecuru/Arraial coastal system. The model is not extended through the complete bay or to an offshore Atlantic endpoint, and no precise present-day tidal or shoreline boundary is assigned.",
+          "sources": [
+            "r77-cprm-munim-geodiversity-2019",
+            "r77-cprm-sao-benedito-2011",
+            "r65-ana-subbasin33-2016"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

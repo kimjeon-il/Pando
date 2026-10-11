@@ -1,0 +1,434 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r74",
+  "sources": [
+    {
+      "source_key": "r74-nrcan-cbmt-nass",
+      "title": "Canada Base Map - Transportation: labels and geometry, Lambert conformal conic projection (EPSG:3978), Nass drainage views",
+      "publisher": "Natural Resources Canada",
+      "year_note": "Undated live reference-map service read 10 October 2026. Acquired metadata identifies CanVec-derived cartography; the three map windows are views of one publication.",
+      "supports": "Actual named Nass and Bell-Irving routes, short initial feeder connections, major bends and confluences, exclusion of nearby lake bodies from the selection, and lower-channel terminal setting.",
+      "limits": "A transportation-oriented base map generalizes small channels and label placement. It does not certify exact name boundaries, a lake-to-sea source definition, river-mouth coordinates, tidal limits or the precision of modeled vertices. The three windows belong to one publication.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r74-aesa-paraiba-diagnostico-tomo1",
+      "title": "Revisão e Atualização do Plano de Recursos Hídricos da Bacia Hidrográfica do Rio Paraíba — RP-04 Diagnóstico da Bacia, Tomo I",
+      "author": "Equipe técnica da COBRAPE",
+      "publisher": "Estado da Paraíba, Secretaria de Estado da Infraestrutura e dos Recursos Hídricos; report hosted by AESA",
+      "attribution": "COBRAPE technical report commissioned for the Paraíba basin plan. Map credits distinguish COBRAPE 2024 compilation, AESA, ANA, IBGE and other input datasets. Official hosting does not transfer authorship or reproduction rights.",
+      "edition": "Revisão Final, 11 March 2025",
+      "year": 2025,
+      "page": "PDF p. 27 Figure 5.3; pp. 38–40 basin/tributary scope; pp. 55–56 Figures 5.16–5.17; p. 176 Figure 10.6 and lower-estuary prose",
+      "supports": "Actual Umbuzeiro versus Monteiro upper approaches, Paraíba receiving course, Epitácio Pessoa and Acauã reservoir passages, middle southern bend and lower course/estuary context.",
+      "limits": "Regional cartography and historical field/report evidence, not current flow, shoreline, reservoir operation, water rights or a formal naming adjudication. The separate field-visit itinerary is not mistaken for the selected river path.",
+      "official_url": "https://www.aesa.pb.gov.br/assets/uploads/2026/04/Tomo-I.pdf"
+    },
+    {
+      "source_key": "r74-ibge-sao-sebastiao-2022",
+      "title": "Mapa Municipal: São Sebastião do Umbuzeiro, Paraíba, 2515203",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial, edição 2022; map copyright IBGE 2023",
+      "year": 2022,
+      "page": "Single sheet; southwestern feeder, town-side connection, impoundment passage and northeastern outlet",
+      "supports": "Connected initial western feeder toward São Sebastião do Umbuzeiro and the lake/impoundment and outlet corridor labelled Riacho do Umbuzeiro. Distinction from the western Zabelê/Dois Riachos approach and neighboring São João do Tigre drainage.",
+      "limits": "Municipal statistical cartography with generalized drainage; the initial feeder has no separately assigned name. A stream label printed within the impoundment is not treated as a reservoir name.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PB/sao_sebastiao_do_umbuzeiro/A0_2515203_MM.pdf"
+    },
+    {
+      "source_key": "r65-inegi-chihuahua-state",
+      "title": "Condensado Estatal Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "Fourth edition 2024; copyright 2025",
+      "year": 2024,
+      "page": "Single state sheet, PDF p. 1; initial feeder, Las Chepas, El Tintero, Galeana bend, northern corridor, terminal lake and hydrographic legend.",
+      "supports": "Regional continuity of the complete selected route; Constituyente Manuel M. Prieto (Las Chepas) and El Tintero reservoir roles; terminal Santa María identity and intermittent-waterbody symbol; separation from Casas Grandes–Guzmán and Santa Clara–Las Lajas.",
+      "limits": "Scale 1:1,000,000. Generalized cartography cannot establish exact source, inlet or name-transition vertices, modern water extent or current flow.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/chih/794551162774.pdf"
+    },
+    {
+      "source_key": "r74-inegi-guerrero-2010",
+      "title": "Compendio de información geográfica municipal 2010: Guerrero, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Short selected eastern Guerrero feeder at the Bachíniva boundary, separated from the Papigochi drainage to the west.",
+      "limits": "The short stream has no separate hydronym; this map covers only the initial feeder, not the receiving river.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08031.pdf"
+    },
+    {
+      "source_key": "r74-inegi-bachiniva-2010",
+      "title": "Compendio de información geográfica municipal 2010: Bachíniva, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Northward southern valley, Las Chepas reservoir passage, directly labeled Santa María trunk and distinction from El Chorro, La Matanza, Guadalupe and La Casita tributaries.",
+      "limits": "No exact upstream naming boundary or modern reservoir operation is established.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08006.pdf"
+    },
+    {
+      "source_key": "r74-inegi-namiquipa-2010",
+      "title": "Compendio de información geográfica municipal 2010: Namiquipa, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Selected western Santa María corridor and northwestern continuation toward El Tintero; separation from eastern Santa Clara and adjacent small lakes.",
+      "limits": "Generalized municipal map does not establish exact modern channels or present water extent.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08048.pdf"
+    },
+    {
+      "source_key": "r74-inegi-buenaventura-2010",
+      "title": "Compendio de información geográfica municipal 2010: Buenaventura, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "El Tintero passage, southern western valley and northern Santa María corridor after the Galeana bend; separation from Las Lajas and Santa Clara.",
+      "limits": "Galeana lies outside the main municipal coverage and is supported separately. Hydrography-table basin membership was not used as proof of channel identity.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08010.pdf"
+    },
+    {
+      "source_key": "r74-inegi-galeana-2010",
+      "title": "Compendio de información geográfica municipal 2010: Galeana, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Direct Santa María label on the middle valley and actual eastward bend across the northern municipality, with Ojo Caliente and side approaches kept separate.",
+      "limits": "Map supports generalized river continuity, not exact modern routing or a selected crossing of the adjacent Ojo Caliente waterbody.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08023.pdf"
+    },
+    {
+      "source_key": "r69-inegi-ascension-2010",
+      "title": "Compendio de información geográfica municipal 2010: Ascensión, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; southern Santa María river and terminal-lake corridor.",
+      "supports": "Santa María river along Sierra China, its connection to Laguna Santa María, modeled continuation within the elongated lake setting and separation from Guzmán and El Fresnal.",
+      "limits": "No surveyed inlet or endpoint, permanent flow, complete lake crossing, modern water extent or onward outlet/connector is established.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08005.pdf"
+    },
+    {
+      "source_key": "r74-usfs-northfork1982",
+      "title": "Final Environmental Impact Statement and Study Report, North Fork Kern Wild and Scenic River Study",
+      "publisher": "U.S. Department of Agriculture Forest Service, Sequoia National Forest; cooperating National Park Service and State of California",
+      "year_note": "Title page dated August 1982; retained scan includes a later presidential-transmittal addendum.",
+      "year": 1982,
+      "page": "Figure I-2, PDF page 17; appendix E sheets E-1 through E-8, PDF pages 311-318; printed pages 25 and 32-35 for lake and river-segment prose",
+      "supports": "Actual northern mountain branch, upper canyon/junctions, Kern/Little Kern Lake setting, Hockett Peak bend, Little Kern junction, Johnsondale-Kernville and Isabella connection.",
+      "limits": "Historical study with proposed development overlays. The model begins below the full studied headwaters; no claim about current infrastructure or regulatory status.",
+      "official_url": "https://rivers.gov/sites/rivers/files/2023-02/kern-nf-study-eis.pdf"
+    },
+    {
+      "source_key": "r74-kcwa-joint28",
+      "title": "Kern County Water Agency Water District Boundaries and Major Water Conveyance Facilities, Joint Exhibit 28",
+      "publisher": "Kern County Water Agency; official hearing exhibit hosted by California State Water Resources Control Board",
+      "year_note": "Map text contains Created: 10/01/10 and Revised: 10/10/09; this inconsistent production dating is preserved rather than resolved by assumption.",
+      "year": null,
+      "page": "Single map sheet",
+      "supports": "North Fork versus South Fork into Isabella, lower Kern canyon/Bakersfield route and separately labeled northbound Kern River Flood Channel.",
+      "limits": "Regional conveyance map; far mountain headwaters and the complete Tulare terminal grid are outside or beyond its detailed coverage. Historical district boundaries are not current permissions or rights evidence.",
+      "official_url": "https://www.waterboards.ca.gov/waterrights/water_issues/programs/hearings/kernriver_fas/exhibits2009/northkern_joint/joint_28.pdf"
+    },
+    {
+      "source_key": "r74-dwr-drainage2015",
+      "title": "San Joaquin Valley Drainage Monitoring Program 2011-2012, Region Report",
+      "publisher": "California Department of Water Resources, South Central Region Office; copy hosted as Waterboards exhibit RTD-181",
+      "year_note": "Report dated September 2015; Figure 10 map marked 3/29/2012.",
+      "year": 2015,
+      "page": "Figure 7, PDF page 25 (printed 14); Figure 10, PDF page 128 (printed 117), with enlarged Kern/Tulare regional pixels",
+      "supports": "Kern River versus bypass/flood-canal setting, northbound channel separate from aqueduct and adjacent canals, and Tulare lake-bed context.",
+      "limits": "Primary purpose is drainage and groundwater conductivity. Thematic colors do not define river identity; map is rotated and detailed terminal channel naming is not inferred from it.",
+      "official_url": "https://www.waterboards.ca.gov/waterrights/water_issues/programs/bay_delta/california_waterfix/exhibits/docs/RestoretheDelta/part2/RTD_181.pdf"
+    },
+    {
+      "source_key": "r74-kwba-eir2018",
+      "title": "Kern Water Bank Authority Conservation and Storage Project Environmental Impact Report, SCH 2012021041",
+      "publisher": "Kern Water Bank Authority; prepared by ICF",
+      "year_note": "January 2018; key cartographic production marks September 2017; Figure 3.6-3 credits West Yost Associates 2014.",
+      "year": 2018,
+      "page": "Figure 2-3, PDF page 45; Figures 3.6-1 and 3.6-3, PDF pages 151 and 153; printed pages 2-14 and 3.6-11 for explicit transfer/routing prose",
+      "supports": "Winding natural river separate from parallel canals, intertie, Outlet Canal and flood-channel relationship; different documented routing conditions and historical Tulare flood conveyance.",
+      "limits": "Project-specific historical hydrologic account, not present operational information. Modeled environmental scenarios are not observations of current flow.",
+      "official_url": "https://www.kwb.org/files/96a4b604e/eir.pdf"
+    },
+    {
+      "source_key": "r74-epa-tulare2007",
+      "title": "Tulare Lake Basin Hydrology and Hydrography: A Summary of the Movement of Water and Aquatic Species, EPA document 909R07002",
+      "publisher": "Prepared by ECORP Consulting for U.S. Environmental Protection Agency",
+      "year_note": "12 April 2007",
+      "year": 2007,
+      "page": "Map 4, PDF page 123; Map 5, PDF page 124; printed sections 4.4 and 4.5 (pages 30-38) and 4.6.1.7 (page 44)",
+      "supports": "Northbound Kern flood conveyance, dense Tulare canal grid, historical lake/flood-storage setting and separation of natural rivers from engineered water pathways.",
+      "limits": "Historical hydrographic assessment and approximate historical lake extent. No present inundation, operational flow or exact final-channel name is established.",
+      "official_url": "https://www.epa.gov/sites/default/files/2018-05/documents/tulare-fullreport.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70088384",
+      "source_keys": [
+        "r74-nrcan-cbmt-nass"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9143
+          ],
+          "finding": "The selected beginning follows a short, unnamed western stream east into the directly labeled Nass. The map shows a separate Nass continuation arriving from the north; that unselected continuation is not substituted for the actual selected branch. Downstream, the selection follows the southeast-running Nass valley, with Konigus Creek and then Muskaboo Creek arriving from the west. The stream connection at the selected beginning is visible, although the feeder's own hydronym is not established.",
+          "sources": [
+            "r74-nrcan-cbmt-nass"
+          ]
+        },
+        {
+          "fragments": [
+            9144,
+            9145
+          ],
+          "finding": "The next two mainstem pieces follow the named Nass south, then around its prominent westward bend and southwestward continuation near the Taylor River approach, before running west to Bell-Irving. The shape and junction order match the selected route. Nearby Umma Lake and the surrounding lake chains are separate side settings, not names or passages transferred to the selected trunk.",
+          "sources": [
+            "r74-nrcan-cbmt-nass"
+          ]
+        },
+        {
+          "fragments": [
+            9147
+          ],
+          "finding": "The western chain begins on the small northwestern-turning headwater approach shown in the official map, then follows the directly labeled Bell-Irving River south and southwest before turning southeast through the Bell II corridor. It continues east of the Bowser Lake setting. Mehan, Oweegee and Hidden lakes are nearby side features; the selection does not take their lake bodies or the separate Bowser Lake route. An exact naming boundary at the small initial headwater segment is not inferred.",
+          "sources": [
+            "r74-nrcan-cbmt-nass"
+          ]
+        },
+        {
+          "fragments": [
+            9148
+          ],
+          "finding": "Below the Bowser approach, the second western piece continues along the labeled Bell-Irving, turns east and southeast past the separate Dog Lake setting, and joins Nass. This is a tributary component with its own hydronym, not an alias or an upper reach uniformly named Nass.",
+          "sources": [
+            "r74-nrcan-cbmt-nass"
+          ]
+        },
+        {
+          "fragments": [
+            9146
+          ],
+          "finding": "Below Bell-Irving the selected line follows the mapped Nass west briefly, then south and southeast past the Meziadin Lake approach and along the Cassiar Highway corridor. It bends southwest in the Cranberry River setting and continues down the labeled Nass through the Gitlaxksip and Aiyansh settings. Meziadin, Kwinageese, Kinskuch, Dragon and Lava lakes lie on separate approaches rather than on the selected line.",
+          "sources": [
+            "r74-nrcan-cbmt-nass"
+          ]
+        },
+        {
+          "fragments": [
+            9146
+          ],
+          "finding": "The final selected section continues southwest past Laxgalts'ap and ends in the broadened lower Nass channel, where the official map still prints Nass River. The regional overview places the adjoining coastal setting toward Nass Bay. The selected endpoint is upstream of much of that broad estuarine water, so it is not asserted to be a surveyed mouth or a river-to-bay naming boundary; the feature is not extended through Nass Bay or Portland Inlet.",
+          "sources": [
+            "r74-nrcan-cbmt-nass"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60849674",
+      "source_keys": [
+        "r74-aesa-paraiba-diagnostico-tomo1",
+        "r74-ibge-sao-sebastiao-2022"
+      ],
+      "correspondence": [
+        {
+          "finding": "The actual southwestern beginning follows an unnamed western feeder northeast toward São Sebastião do Umbuzeiro. The municipal map shows this connection to the town-side drainage and the impounded waterbody north of town, then a northeastern outlet labelled Riacho do Umbuzeiro. The western Zabelê/Dois Riachos approach is separate, and the printed river label within the impoundment is not a reservoir-name assignment.",
+          "sources": [
+            "r74-ibge-sao-sebastiao-2022"
+          ]
+        },
+        {
+          "finding": "The selected northeastern continuation corresponds to the basin map’s Rio Umbuzeiro approach, which joins the receiving Paraíba in the Congo/Caraúbas corridor. The report distinguishes Umbuzeiro and Sucuru as tributaries of Paraíba. The more northerly Monteiro–Poções–Camalaú approach is not the selected beginning and is not substituted because it is the main river in the report’s general description.",
+          "sources": [
+            "r74-aesa-paraiba-diagnostico-tomo1",
+            "r74-ibge-sao-sebastiao-2022"
+          ]
+        },
+        {
+          "finding": "The selection then follows the Paraíba past the Caraúbas corridor into Epitácio Pessoa at Boqueirão through its southwestern river arm and out to the east. The report’s enlarged reservoir map distinguishes that arm from the separate western/northwestern contributing approaches. Taperoá is a separate northern tributary system rather than this selected headwater route.",
+          "sources": [
+            "r74-aesa-paraiba-diagnostico-tomo1"
+          ]
+        },
+        {
+          "finding": "Below Boqueirão, the actual southern arc and eastward continuation match the named middle Paraíba before the northward Acauã reservoir passage and lower outlet. The report separately identifies Acauã with Argemiro de Figueiredo in its figure title and maps the reservoir arms; Paraibinha remains a separate contributing river. Reservoir names and the Acauã–Araçagi canal are not adopted as uniform names or extra selected routes.",
+          "sources": [
+            "r74-aesa-paraiba-diagnostico-tomo1"
+          ]
+        },
+        {
+          "finding": "The lower northeast/east route matches the Paraíba through the Itabaiana/Pilar and Santa Rita setting. The actual endpoint is near the river’s turn into the broader Santa Rita/João Pessoa estuarine approach. The report maps and describes the downstream estuary continuing north to Costinha/Cabedelo; that complete northern estuary and Atlantic outlet lie beyond the selected line and are not claimed as included.",
+          "sources": [
+            "r74-aesa-paraiba-diagnostico-tomo1"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70781976",
+      "source_keys": [
+        "r65-inegi-chihuahua-state",
+        "r74-inegi-guerrero-2010",
+        "r74-inegi-bachiniva-2010",
+        "r74-inegi-namiquipa-2010",
+        "r74-inegi-buenaventura-2010",
+        "r74-inegi-galeana-2010",
+        "r69-inegi-ascension-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9941
+          ],
+          "finding": "The selected southern beginning runs east through the small northeastern/eastern Guerrero watercourse at the Bachíniva boundary, then bends north into the southern Bachíniva valley. Guerrero and Bachíniva relief pixels support this connected approach. It is not the longer southern stream toward Agua Caliente or an El Chorro/La Matanza headwater substituted for the actual selected feeder. No separate hydronym or official source is assigned to the short initial stream.",
+          "sources": [
+            "r74-inegi-guerrero-2010",
+            "r74-inegi-bachiniva-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9941
+          ],
+          "finding": "The selected northward Bachíniva course passes through the mapped Presa Las Chepas corridor and continues north through the town-and-valley setting into the river labeled Santa María. The state sheet identifies the same reservoir as Constituyente Manuel M. Prieto (Las Chepas). Its storage-waterbody role remains separate from the river name. The mapped El Chorro, La Matanza, Guadalupe and La Casita tributary approaches are not selected replacement headwaters.",
+          "sources": [
+            "r74-inegi-bachiniva-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9941
+          ],
+          "finding": "The route turns northwest into western Namiquipa and then follows the stream directly labeled Santa María between the western uplands and the Cerro La Mina/La Gorra setting. It continues toward the northwestern municipal margin and the El Tintero reservoir. The separate Santa Clara course farther east is not the selected river; nearby Laguna Prieta and Los Ajolotes are not assigned as selected lake passages.",
+          "sources": [
+            "r74-inegi-namiquipa-2010",
+            "r74-inegi-bachiniva-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9941
+          ],
+          "finding": "The selected route enters El Tintero from the south, follows its elongated mapped reservoir corridor and continues north below its northern dam/outlet setting. The state original and southern Buenaventura relief sheet support this passage. The nearby western reservoir arms and the separate eastern Las Lajas reservoir are not additional selected approaches.",
+          "sources": [
+            "r65-inegi-chihuahua-state",
+            "r74-inegi-buenaventura-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9941
+          ],
+          "finding": "Below El Tintero, the line follows the western Buenaventura valley north through the San Buenaventura–La Merced setting into Galeana. The Galeana relief map directly labels the northward trunk Santa María and supports its bend eastward across the northern municipality. The model stays on the main valley route rather than entering the adjacent Ojo Caliente waterbody/side corridor, and it continues toward La Viñata and Los Valencia in the state cartography.",
+          "sources": [
+            "r74-inegi-buenaventura-2010",
+            "r74-inegi-galeana-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9941
+          ],
+          "finding": "After the Galeana bend, the selected course turns northeast and north through the El Progreso–Cerro Madero and Colonia Cerro Blanco settings. The northern Buenaventura map labels the receiving course Santa María and distinguishes it from Los Jagüeyes and La Mula. The state sheet supports its continuation past El Vado Chico and Santa Rosa toward the Ascensión river corridor.",
+          "sources": [
+            "r74-inegi-buenaventura-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        },
+        {
+          "fragments": [
+            9941
+          ],
+          "finding": "The final northward reach matches the Santa María river along the western side of Sierra China and enters the southern end of Laguna Santa María. The selected line then continues northwest within the elongated mapped lake corridor, with its endpoint in the lake setting rather than at an onward river outlet. Ascensión and state cartography separate this depression from Laguna de Guzmán, El Fresnal and adjacent eastern intermittent waters. No connection from the selected terminal to those waters is established.",
+          "sources": [
+            "r69-inegi-ascension-2010",
+            "r65-inegi-chihuahua-state"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70667164",
+      "source_keys": [
+        "r74-usfs-northfork1982",
+        "r74-kcwa-joint28",
+        "r74-dwr-drainage2015",
+        "r74-kwba-eir2018",
+        "r74-epa-tulare2007"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9856
+          ],
+          "finding": "The mountain beginning lies within the upper Kern corridor below the Kings-Kern Divide and north of Junction Meadow. The Forest Service study's Figure I-2 and appendix sheets E-1 through E-3 depict the near-southerly Kern River corridor past Junction Meadow and the separate Kern-Kaweah, Wallace, Whitney, Rock Creek and Big Arroyo approaches. The study calls the studied river North Fork Kern while the topographic base repeatedly labels it Kern River. The selected path follows this corridor rather than an eastern South Fork or a western tributary. The modeled start is not asserted to be the river's official source, and the more northerly Lake South America/headwater region is not automatically included.",
+          "sources": [
+            "r74-usfs-northfork1982"
+          ]
+        },
+        {
+          "fragments": [
+            9856
+          ],
+          "finding": "The route continues through the upper-canyon Kern Lake and Little Kern Lake setting, then takes the distinctive eastward and southwestward turn around the Hockett Peak/Hole-in-the-Ground setting into Kern Flat. The separately drawn Little Kern River joins from the northwest at Forks of the Kern. Appendix sheets E-3 through E-5 directly show these relationships. The two mountain lake names are separate waterbody names, not aliases for the entire river; the generalized modeled line does not establish which precise parts of their changing shorelines or channels are crossed. The study also distinguishes the existing lakes from potential reservoirs shown as historical proposals.",
+          "sources": [
+            "r74-usfs-northfork1982"
+          ]
+        },
+        {
+          "fragments": [
+            9856
+          ],
+          "finding": "South of Forks of the Kern, the selected river follows the Johnsondale Bridge, Fairview, Hospital Flat and Kernville corridor into the northern arm of Isabella Reservoir. The appendix sheets E-6 through E-8 show the river, separate flume/power structures and the reservoir setting. The KCWA map independently labels Kern River North Fork and the separate South Fork inflow from the east. The selection uses the northern arm and western outlet sector of Isabella, without selecting the full South Fork arm or treating the reservoir name as a river alias.",
+          "sources": [
+            "r74-usfs-northfork1982",
+            "r74-kcwa-joint28"
+          ]
+        },
+        {
+          "fragments": [
+            9856
+          ],
+          "finding": "The KCWA original map depicts Kern River southwest from Isabella through its canyon and west through the Bakersfield area. The selected bends and valleyward turn agree at regional scale. KWBA Figure 2-3 distinguishes the winding river through the First and Second Point of Measurement corridor from the parallel Kern River/River Canal, Carrier Canal, Cross Valley Canal and other conveyances. The selection follows the river corridor to the Kern River-California Aqueduct Intertie setting; the nearby canal labels cannot be transferred to all upstream reaches.",
+          "sources": [
+            "r74-kcwa-joint28",
+            "r74-kwba-eir2018"
+          ]
+        },
+        {
+          "fragments": [
+            9856
+          ],
+          "finding": "At the southwestern turn the selection follows the northbound Outlet Canal/Kern River Flood Channel setting, continuing toward the Lost Hills and southern Tulare region. KWBA Figure 2-3 and Figure 3.6-3 explicitly separate the river, Outlet Canal, flood channel and California Aqueduct; their accompanying prose describes gated transfers and differing normal/high-flow routing. The EPA lowland map and DWR regional map distinguish the northbound flood conveyance from the separate aqueduct and adjacent irrigation network. This is positive evidence of engineered conveyance scope, rather than a natural-river name continuing merely because the model assigns a mainstem role.",
+          "sources": [
+            "r74-kwba-eir2018",
+            "r74-kcwa-joint28",
+            "r74-dwr-drainage2015",
+            "r74-epa-tulare2007"
+          ]
+        },
+        {
+          "fragments": [
+            9856,
+            9857
+          ],
+          "finding": "Northward, the modeled route leaves the principal flood-channel approach and follows angular connections into the Tulare lake-bed network; the short second piece is an east-west continuation within that receiving setting. EPA Maps 4 and 5 show a dense major/minor canal grid, separate Tule River Canal and South Fork Kings River Canal approaches, and historical lake and flood-storage areas. These maps support the inland lake-bed correspondence but do not establish the entire selected continuation as a natural Kern River channel or establish one unique hydronym for every selected terminal segment. The modeled endpoint is neither an official river mouth nor proof of a continuous natural connection to the San Joaquin River.",
+          "sources": [
+            "r74-epa-tulare2007",
+            "r74-dwr-drainage2015"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

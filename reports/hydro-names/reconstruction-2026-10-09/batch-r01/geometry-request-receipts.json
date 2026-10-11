@@ -1,0 +1,226 @@
+{
+  "scope": "Only immutable baseline lake evidence and official Natural Earth rights page. No live-deployment equality check.",
+  "transport_note": "Connector tools do not expose wire HTTP status/bytes. Their decoded asset bytes/hashes are recorded separately. Resource URLs identify the requested public repository objects; exact connector arguments are retained.",
+  "requests": [
+    {
+      "request_key": "manifest_fetch",
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/contents/assets/data/hydro/v0.13.1/manifest.json?ref=fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "started_at": "2026-10-09T10:50:35.393Z",
+      "completed_at": "2026-10-09T10:50:35.839Z",
+      "transport_http_status": null,
+      "result": "tool_success",
+      "returned_content_character_count": 52964,
+      "decoded_asset": {
+        "filename": "baseline-manifest.json",
+        "bytes": 52975,
+        "sha256": "c10eaffd375d5f0d90955fa253b02ec73d9daeff261fa5cfde1f73ca89d2bd80",
+        "git_blob_sha": "9a9cdb719351e51d2ff509c410cae8741ac36a0a"
+      }
+    },
+    {
+      "request_key": "lakes_fetch",
+      "tool_request_arguments": {
+        "repository_full_name": "kimjeon-il/Pando",
+        "path": "assets/data/hydro/lakes_base.geojson",
+        "ref": "fd6744f5e72a0c1a107452dbde6d416ab57237db"
+      },
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/contents/assets/data/hydro/lakes_base.geojson?ref=fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "started_at": "2026-10-09T10:50:50.785Z",
+      "completed_at": "2026-10-09T10:50:51.116Z",
+      "transport_http_status": null,
+      "result": "tool_success",
+      "returned_content_character_count": 0,
+      "interpretation": "File metadata returned but content empty; no asset bytes acquired by this request."
+    },
+    {
+      "request_key": "lake_blob_fetch",
+      "tool_request_arguments": {
+        "repository_full_name": "kimjeon-il/Pando",
+        "blob_sha": "02ec805c9ec3347b81b7b6ec3aba5ed5eb0028a8"
+      },
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/git/blobs/02ec805c9ec3347b81b7b6ec3aba5ed5eb0028a8",
+      "started_at": "2026-10-09T10:51:09.903Z",
+      "completed_at": "2026-10-09T10:51:11.619Z",
+      "transport_http_status": null,
+      "result": "tool_success",
+      "returned_content_character_count": 6998424,
+      "decoded_asset": {
+        "filename": "lakes_base.geojson",
+        "bytes": 7016832,
+        "sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+        "git_blob_sha": "02ec805c9ec3347b81b7b6ec3aba5ed5eb0028a8"
+      }
+    },
+    {
+      "request_key": "core_fetch",
+      "tool_request_arguments": {
+        "repository_full_name": "kimjeon-il/Pando",
+        "path": "assets/data/hydro/v0.13.1/metadata-core.json.gz",
+        "ref": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+        "encoding": "base64"
+      },
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/contents/assets/data/hydro/v0.13.1/metadata-core.json.gz?ref=fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "started_at": "2026-10-09T10:51:47.900Z",
+      "completed_at": "2026-10-09T10:51:48.623Z",
+      "transport_http_status": null,
+      "result": "tool_success",
+      "returned_content_character_count": 989050,
+      "decoded_asset": {
+        "filename": "metadata-core.json.gz",
+        "bytes": 729625,
+        "sha256": "700b886134bbc44fa7686f8f2c131be53a73a5c2ebaabb468b50ea3e4000cee5",
+        "git_blob_sha": "625ce46f50ae0c0fccee1c878cf8f36280dba7f4"
+      }
+    },
+    {
+      "request_key": "detail_fetch",
+      "tool_request_arguments": {
+        "repository_full_name": "kimjeon-il/Pando",
+        "path": "assets/data/hydro/v0.13.0/metadata-detail.json.gz",
+        "ref": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+        "encoding": "base64"
+      },
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/contents/assets/data/hydro/v0.13.0/metadata-detail.json.gz?ref=fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "started_at": "2026-10-09T10:51:48.626Z",
+      "completed_at": "2026-10-09T10:51:48.942Z",
+      "transport_http_status": null,
+      "result": "tool_success",
+      "returned_content_character_count": 0,
+      "interpretation": "File metadata returned but content empty; no asset bytes acquired by this request."
+    },
+    {
+      "request_key": "detail_blob_fetch",
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/git/blobs/b00fa5d7414582f8021446e286e36bed517a166f",
+      "started_at": "2026-10-09T10:51:56.950Z",
+      "completed_at": "2026-10-09T10:51:57.441Z",
+      "transport_http_status": null,
+      "result": "tool_error",
+      "returned_content_character_count": null,
+      "error": "HTTPError: 400: GitHub Fetch only accepts UTF-8 text. (Response: None)",
+      "error_code": "INVALID_ARGUMENT",
+      "interpretation": "Connector UTF-8-only format rejection, error400; not a permission denial. Ordinary unauthenticated REST JSON retrieval subsequently succeeded."
+    },
+    {
+      "request_key": "index_fetch",
+      "tool_request_arguments": {
+        "repository_full_name": "kimjeon-il/Pando",
+        "path": "assets/data/hydro/v0.13.0/index.bin.gz",
+        "ref": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+        "encoding": "base64"
+      },
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/contents/assets/data/hydro/v0.13.0/index.bin.gz?ref=fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "started_at": "2026-10-09T10:53:18.669Z",
+      "completed_at": "2026-10-09T10:53:19.166Z",
+      "transport_http_status": null,
+      "result": "tool_success",
+      "returned_content_character_count": 44238,
+      "decoded_asset": {
+        "filename": "index.bin.gz",
+        "bytes": 32632,
+        "sha256": "a68aff611d2be202dbf31ef1fbce476386e1d49b1619b68e9219279be7896906",
+        "git_blob_sha": "c9113f4e6b22d652799c64f8e09cd6b900df4624"
+      }
+    },
+    {
+      "request_key": "worker_fetch",
+      "tool_request_arguments": {
+        "repository_full_name": "kimjeon-il/Pando",
+        "path": "assets/js/workers/hydro-tile-worker.js",
+        "ref": "fd6744f5e72a0c1a107452dbde6d416ab57237db"
+      },
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/contents/assets/js/workers/hydro-tile-worker.js?ref=fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "started_at": "2026-10-09T10:53:59.370Z",
+      "completed_at": "2026-10-09T10:53:59.639Z",
+      "transport_http_status": null,
+      "result": "tool_success",
+      "returned_content_character_count": 31829,
+      "decoded_asset": {
+        "filename": "worker.js",
+        "bytes": 32253,
+        "sha256": "14399a8454fb980fb2adc78b7c52bcd32ea5e1b1f313dcfba301886a6b9ddfec",
+        "git_blob_sha": "2974a78862ce0eb1386061c06341b55c8eabb7ca"
+      }
+    },
+    {
+      "request_key": "boundary_fetch",
+      "tool_request_arguments": {
+        "repository_full_name": "kimjeon-il/Pando",
+        "path": "assets/js/workers/geographic-boundary-core.js",
+        "ref": "fd6744f5e72a0c1a107452dbde6d416ab57237db"
+      },
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/contents/assets/js/workers/geographic-boundary-core.js?ref=fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "started_at": "2026-10-09T10:54:01.272Z",
+      "completed_at": "2026-10-09T10:54:01.552Z",
+      "transport_http_status": null,
+      "result": "tool_success",
+      "returned_content_character_count": 3928,
+      "decoded_asset": {
+        "filename": "boundary.js",
+        "bytes": 3928,
+        "sha256": "b9017382fcc828924608c8a32ddbf2831800475a725b432cad9e6445d33bc8ea",
+        "git_blob_sha": "3c97ed6732be0c51308f33199a8c7138abe2c515"
+      }
+    },
+    {
+      "request_key": "earcut_fetch",
+      "tool_request_arguments": {
+        "repository_full_name": "kimjeon-il/Pando",
+        "path": "assets/js/vendor/earcut.min.js",
+        "ref": "fd6744f5e72a0c1a107452dbde6d416ab57237db"
+      },
+      "resource_url": "https://api.github.com/repos/kimjeon-il/Pando/contents/assets/js/vendor/earcut.min.js?ref=fd6744f5e72a0c1a107452dbde6d416ab57237db",
+      "started_at": "2026-10-09T10:54:02.771Z",
+      "completed_at": "2026-10-09T10:54:03.196Z",
+      "transport_http_status": null,
+      "result": "tool_success",
+      "returned_content_character_count": 7131,
+      "decoded_asset": {
+        "filename": "earcut.js",
+        "bytes": 7131,
+        "sha256": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3",
+        "git_blob_sha": "79cf67e1001350a4da6d9e51c6421da06cd7b556"
+      }
+    },
+    {
+      "request_url": "https://api.github.com/repos/kimjeon-il/Pando/git/blobs/b00fa5d7414582f8021446e286e36bed517a166f",
+      "method": "GET",
+      "started_at": "2026-10-09T10:52:40.855532+00:00",
+      "completed_at": "2026-10-09T10:52:45.496268+00:00",
+      "http_status": 200,
+      "response_bytes": 2302515,
+      "response_sha256": "8a1d4df5e569ff1a77fdd26f7d37e9ee4269fa62f1482a32ff935342281e3ecf",
+      "asset_bytes": 1670972,
+      "asset_sha256": "1416c6932976427e9cb8140f171f4ccb54704111bce49fb8b8260819ce54b2bd",
+      "git_blob_sha_reported": "b00fa5d7414582f8021446e286e36bed517a166f",
+      "result": "http_success"
+    },
+    {
+      "request_url": "https://raw.githubusercontent.com/kimjeon-il/Pando/fd6744f5e72a0c1a107452dbde6d416ab57237db/assets/data/hydro/v0.13.0/shards/s0.bin",
+      "method": "GET",
+      "started_at": "2026-10-09T10:53:58.113018+00:00",
+      "completed_at": "2026-10-09T10:54:02.416252+00:00",
+      "http_status": 200,
+      "response_bytes": 4169624,
+      "response_sha256": "1ae657ac378ae4fb441425a8ce52c38348541717b363b3a8189d3bd7249702a8",
+      "result": "http_success"
+    },
+    {
+      "request_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "method": "GET",
+      "started_at": "2026-10-09T10:54:02.421290+00:00",
+      "completed_at": "2026-10-09T10:54:05.958532+00:00",
+      "http_status": 200,
+      "response_bytes": 38013,
+      "response_sha256": "9bc9cbc663b0e6298b7a8cc216a92b5b223efe87796ba5d74c99a64ed6c12db8",
+      "result": "http_success"
+    },
+    {
+      "key": "official_terms_web_read",
+      "url": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "started": "2026-10-09T10:52:42.116Z",
+      "completed": "2026-10-09T10:52:42.637Z",
+      "result": "Official terms text read through web tool, followed by exact public HTML receipt.",
+      "transport_http_status": null
+    }
+  ]
+}

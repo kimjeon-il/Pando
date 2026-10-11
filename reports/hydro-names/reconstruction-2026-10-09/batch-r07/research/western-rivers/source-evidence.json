@@ -1,0 +1,203 @@
+{
+  "schema": "hydro-name-reconstruction-source-evidence-v1",
+  "batch": "r07",
+  "created_at_utc": "2026-10-09T13:45:45.176475+00:00",
+  "target_aw_ids": [
+    "hydro-system:50668155",
+    "hydro-system:50611851"
+  ],
+  "sources": [
+    {
+      "evidence_id": "WESTERN-BOM-AWRA2012",
+      "publication_id": "BOM-Australian-Water-Resources-Assessment-2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "agency_or_publisher": "Australian Government, Bureau of Meteorology",
+      "official_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "source_date": "2013",
+      "date_basis": "Report copyright states Commonwealth of Australia 2013; 2012 is the assessment title year.",
+      "retrieval": {
+        "requested_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "started_at_utc": "2026-10-09T13:39:38.842251+00:00",
+        "http_status": 200,
+        "final_url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+        "content_type": "application/pdf",
+        "bytes": 26172797,
+        "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+        "completed_at_utc": "2026-10-09T13:39:46.198340+00:00"
+      },
+      "pdf_page_count": 777,
+      "source_role": "Shared official regional maps and river-system usage. Counted once as a publication across both targets.",
+      "target_aw_ids": [
+        "hydro-system:50668155",
+        "hydro-system:50611851"
+      ],
+      "locators": [
+        {
+          "pdf_page_one_based": 530,
+          "printed_page": "Pilbara–Gascoyne chapter, 5",
+          "figure": "11.1",
+          "title": "Major rivers and urban centers in the Pilbara–Gascoyne region",
+          "complete_map_visually_inspected": true,
+          "embedded_raster_dimensions_pixels": [
+            455,
+            666
+          ]
+        },
+        {
+          "pdf_page_one_based": 552,
+          "printed_page": "Pilbara–Gascoyne chapter, 27",
+          "figure": "11.22",
+          "title": "Rivers and catchments in the Pilbara–Gascoyne region",
+          "complete_map_visually_inspected": true
+        },
+        {
+          "pdf_page_one_based": 551,
+          "printed_page": "Pilbara–Gascoyne chapter, 26",
+          "section": "11.5.1 Rivers"
+        }
+      ],
+      "own_factual_extraction": [
+        "The maps distinguish the Murchison and Gascoyne courses from the Wooramel and Lyons rivers. Hope is separately labeled near Lake Annean.",
+        "Section 11.5.1 places Murchison headwaters in the Robinson Range and separately names Hope, Roderick and Sandford as joining rivers.",
+        "The maps cover the selected western-coast river corridors and adjoining inland drainage; basin labels are distinguished from labels following river lines."
+      ],
+      "limits": [
+        "The regional raster is low resolution and has no usable coordinate grid for an exact reach-name crosswalk.",
+        "Two figures from the same report are not independent publications.",
+        "Named neighboring and joining rivers cannot inherit one representative system label."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "full_report_republication_review_completed": false,
+        "published_material": "Own compact factual extraction, source identifiers, retrieval facts, hashes and short quotations only.",
+        "source_license_note": "Copyright page states CC BY Australia 3.0 except logos and certain third-party material; figure-specific third-party attribution was not further resolved. No raw map or report is distributed."
+      }
+    },
+    {
+      "evidence_id": "MURCHISON-DBCA-KALBARRI",
+      "publication_id": "DBCA-ExploreParks-Kalbarri",
+      "title": "Kalbarri National Park",
+      "agency_or_publisher": "Western Australia Department of Biodiversity, Conservation and Attractions",
+      "official_url": "https://exploreparks.dbca.wa.gov.au/park/kalbarri-national-park",
+      "source_date": null,
+      "date_basis": "No publication date established from the acquired page.",
+      "retrieval": {
+        "requested_url": "https://exploreparks.dbca.wa.gov.au/park/kalbarri-national-park",
+        "started_at_utc": "2026-10-09T13:40:13.578500+00:00",
+        "http_status": 200,
+        "final_url": "https://exploreparks.dbca.wa.gov.au/park/kalbarri-national-park",
+        "content_type": "text/html; charset=UTF-8",
+        "bytes": 568435,
+        "sha256": "585c2d564d9804028589add645fc99da4291704d283c105bac119d203d362450",
+        "completed_at_utc": "2026-10-09T13:40:18.702780+00:00"
+      },
+      "target_aw_ids": [
+        "hydro-system:50668155"
+      ],
+      "source_role": "Independent official English usage and lower-river geographic association.",
+      "locators": [
+        {
+          "section": "About this park",
+          "paragraphs": [
+            1,
+            5
+          ]
+        }
+      ],
+      "direct_quote": "Kalbarri National Park surrounds the lower reaches of the Murchison River.",
+      "quote_word_count": 11,
+      "own_factual_extraction": [
+        "DBCA places Kalbarri town at the Murchison mouth and describes the park around its lower gorge."
+      ],
+      "limits": [
+        "Supports the named lower river and coastal setting, not the selected upper-branch name or a surveyed mouth coordinate."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "full_report_republication_review_completed": false,
+        "published_material": "Own compact factual extraction, source identifiers, retrieval facts, hashes and short quotations only."
+      }
+    },
+    {
+      "evidence_id": "GASCOYNE-WA-FACTSHEET2015",
+      "publication_id": "WA-DoW-Managing-Lower-Gascoyne-2015",
+      "title": "Managing the Lower Gascoyne River",
+      "agency_or_publisher": "Government of Western Australia, Department of Water",
+      "official_url": "https://www.wa.gov.au/system/files/2022-09/Managing-the-Lower-Gascoyne-River-fact-sheet.pdf",
+      "source_date": "2015-02",
+      "date_basis": "Copyright/imprint on printed and PDF page 4 states February 2015. URL upload directory is not the publication date.",
+      "retrieval": {
+        "requested_url": "https://www.wa.gov.au/system/files/2022-09/Managing-the-Lower-Gascoyne-River-fact-sheet.pdf",
+        "started_at_utc": "2026-10-09T13:40:18.703771+00:00",
+        "http_status": 200,
+        "final_url": "https://www.wa.gov.au/system/files/2022-09/Managing-the-Lower-Gascoyne-River-fact-sheet.pdf",
+        "content_type": "application/pdf",
+        "bytes": 709981,
+        "sha256": "2cfcbe179b06da994fed195ad3e3867915dfb3421bce6cf099e462c00c6276e5",
+        "completed_at_utc": "2026-10-09T13:40:23.541079+00:00"
+      },
+      "pdf_page_count": 4,
+      "target_aw_ids": [
+        "hydro-system:50611851"
+      ],
+      "source_role": "Independent official English usage at Carnarvon and lower-river water management.",
+      "locators": [
+        {
+          "pdf_page_one_based": 1,
+          "printed_page": "1",
+          "section": "Opening paragraph and Where does the water come from?"
+        },
+        {
+          "pdf_page_one_based": 2,
+          "printed_page": "2",
+          "section": "How is the water managed in Carnarvon?"
+        },
+        {
+          "pdf_page_one_based": 4,
+          "printed_page": "4",
+          "section": "Publication imprint"
+        }
+      ],
+      "direct_quote": "The Carnarvon horticultural industry sources water from the Lower Gascoyne River.",
+      "quote_word_count": 11,
+      "own_factual_extraction": [
+        "The factsheet relates the named lower Gascoyne channel and alluvial groundwater to Carnarvon and the upstream horticultural area."
+      ],
+      "limits": [
+        "Lower-river usage does not establish every eastern headwater name or formal mouth location."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "full_report_republication_review_completed": false,
+        "published_material": "Own compact factual extraction, source identifiers, retrieval facts, hashes and short quotations only."
+      }
+    }
+  ],
+  "distinct_supporting_publications": 3,
+  "supporting_publications_per_target": 2,
+  "shared_publication_counted_once": true,
+  "unused_acquisition_outcomes": [
+    {
+      "requested_publication": "Western Australia Strategic Review of the Surface Water Monitoring Network Report",
+      "retrieval": {
+        "requested_url": "https://www.bom.gov.au/water/regulations/fundingProgram/document/swimps/wa/strategic_review_of_the_surface_water_monitoring_network_report.pdf",
+        "started_at_utc": "2026-10-09T13:42:08.919269+00:00",
+        "http_status": 200,
+        "final_url": "https://www.bom.gov.au/resources/water-information-requirements/providing-national-water-information",
+        "content_type": "text/html; charset=UTF-8",
+        "bytes": 238666,
+        "sha256": "c93e75ae0e6243abf6fea4905187435740f2cd2f32f34e9e21e810e3a6406f47",
+        "completed_at_utc": "2026-10-09T13:42:21.011771+00:00"
+      },
+      "outcome": "HTTP200 redirected to a generic water-information HTML page; no requested report or map acquired.",
+      "used_as_evidence": false,
+      "request_repeated": false,
+      "requested_document_acquired": false
+    }
+  ],
+  "formal_current_name_register_checked": false,
+  "automatic_application": false
+}

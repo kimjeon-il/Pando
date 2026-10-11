@@ -1,0 +1,113 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r24",
+  "scope_aw_ids": [
+    "hydro-system:50691388",
+    "hydro-system:50768223",
+    "hydro-system:50798628"
+  ],
+  "new_external_requests": 0,
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "figures": [
+        {
+          "figure": "4.1",
+          "physical_pdf_page": 120,
+          "printed_chapter_page": 5,
+          "scope": "Major-river regional context; possible Richmond and Hawkesbury blue wording is too indistinct for certified direct-label transcription. Wollondilly upper-channel wording and the town Richmond must be distinguished."
+        },
+        {
+          "figure": "4.22",
+          "physical_pdf_page": 142,
+          "printed_chapter_page": 27,
+          "scope": "Richmond River and Hawkesbury River black basin callouts are context only, not direct name coverage of the selected mainstems."
+        },
+        {
+          "figure": "4.36",
+          "physical_pdf_page": 162,
+          "printed_chapter_page": 47,
+          "scope": "Greater Sydney water-supply schematic distinguishes blue river lines, named Lake Burragorang/Warragamba storage context and green water-transfer arrows; transfers are not natural river paths."
+        },
+        {
+          "figure": "5.1",
+          "physical_pdf_page": 180,
+          "printed_chapter_page": 5,
+          "scope": "Direct blue Snowy and Eucumbene river-line wording distinguishes the lower representative river and northern upper corridor."
+        },
+        {
+          "figure": "5.26",
+          "physical_pdf_page": 205,
+          "printed_chapter_page": 30,
+          "scope": "Snowy Hydro storage-system context and mapped storage symbols; no exact lake or reach-name boundary is established."
+        }
+      ],
+      "observation": "The Hawkesbury River is explicitly identified at Little Wobby in a photograph caption and as the source supplying Richmond-Windsor in prose. The same prose distinguishes Wollondilly and Coxs inflows into Warragamba. Direct Snowy and Eucumbene map labels distinguish lower and upper channels. Richmond remains a geographic candidate because its clear basin wording and indistinct possible line lettering do not establish direct river identity. Gauges in inspected NSW maps have numerical or class symbols, not usable named station evidence. All retained views remain one publication and one source group.",
+      "is_formal_naming_registry": false,
+      "supporting_text_physical_pdf_pages": [
+        141,
+        161,
+        204
+      ],
+      "tables": []
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50691388",
+      "geometry_fids": [
+        6979
+      ],
+      "fragment_count": 1,
+      "part_count": 30,
+      "position_count": 258,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path runs southeast from a northwestern headwater, south through the upper and middle corridor, then east and northeast after a southern bend to the New South Wales coast south of Lismore. Regional geometry is compatible with the Richmond River candidate, but the clearly legible Richmond River wording in Figure 4.22 is a basin callout. Possible blue river-line lettering in the retained regional maps is too indistinct to certify. Neither basin context nor geographic resemblance establishes a directly named representative river identity here. The whole group remains on a naming-scope hold after complete available-source/path review; the upper feeder, any river/storage interfaces, exact name transitions and coastal ending are unassigned at reach level."
+    },
+    {
+      "aw_id": "hydro-system:50768223",
+      "geometry_fids": [
+        7086,
+        7087,
+        7088
+      ],
+      "fragment_count": 3,
+      "part_count": 80,
+      "position_count": 557,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete three-fragment modeled mainstem begins in the southwest, sweeps east around a southern bend, then runs northeast through the upper/storage corridor and curves east toward the coast north of Sydney. The directly identified Hawkesbury River at Little Wobby photograph and the prose identifying Hawkesbury water supply to Richmond-Windsor, together with the full regional path comparison, support Hawkesbury River as a bounded representative system identity. The southwestern upper continuation follows the separately mapped Wollondilly corridor and the Lake Burragorang/Warragamba storage corridor. A modeled mainstem can include differently named feeder reaches. Coxs is a separately named contributor in source prose, not an assignment to a selected branch. Green water-transfer arrows in Figure 4.36 are not natural river geometry. Exact Wollondilly/storage/downstream name transitions, any Nepean or other intermediate naming, river/storage interfaces and the generalized coastal ending remain unassigned at reach level."
+    },
+    {
+      "aw_id": "hydro-system:50798628",
+      "geometry_fids": [
+        7137
+      ],
+      "fragment_count": 1,
+      "part_count": 94,
+      "position_count": 613,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete selected path begins in the far north, runs south through the upper storage corridor, turns east, makes a broad westward middle loop, then continues south to the Victorian coast. Direct blue Snowy river-line wording supports Snowy River as a bounded representative system identity. The northern modeled mainstem follows the separately mapped Eucumbene corridor before the downstream Snowy course; a modeled mainstem can include differently named feeder reaches. The mapped lake and Snowy Hydro storage context do not establish exact lake names, river/storage interfaces or name boundaries on the selected line. Exact Eucumbene-to-Snowy transitions, intervening storage/lake scope and the generalized coastal ending remain unassigned at reach level."
+    }
+  ],
+  "source_limit": "Regional figures and river-specific text support two bounded representative identities and one completed naming-scope hold. They do not resolve upper feeder names throughout, exact name transitions, river/storage/lake interfaces or surveyed coastal endings. No usable named station identity is certified. Original maps and complete paths are omitted; public validators cannot replay their interpretation."
+}

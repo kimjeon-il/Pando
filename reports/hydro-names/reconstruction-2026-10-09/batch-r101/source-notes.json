@@ -1,0 +1,604 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r101",
+  "sources": [
+    {
+      "source_key": "r101-nrcan-cbmt-rae-richardson",
+      "title": "Canada Base Map – Transportation (CBMT3978): Rae River, Richardson River and Richardson Bay surroundings",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Bounded Rae and Richardson river labels; unnamed feeder/lake and southern tributary context; Cox Lake exclusion; Richardson River terminal corridor; Richardson Bay and Coronation Gulf receiving-water labels; direct visual evidence of the unresolved interriver and lower branch correspondence.",
+      "limits": "Independent federal cartographic publication, distinct from CGN/geogratis naming records, Nunavut Coastal Resource Inventory/Gjoa Haven, PCSP2014 and all other stopped reports. No stopped report figure was recovered through this basemap. The service does not establish one continuous selected river identity, a hydronym for the initial feeder, actual flow through the unresolved connector, exact channels, legal naming boundaries or official endpoint vertices. Exact export URLs and view parameters, originals and derivatives remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r101-inegi-tamaulipas-state",
+      "title": "Condensado Estatal Tamaulipas",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "year": 2020,
+      "page": "Single sheet, PDF p. 1. Whole-sheet context, selected corridor, initial approach, reservoir, middle river, terminal and legend/edition information.",
+      "supports": "Route-wide regional context; component separation; Vicente Guerrero reservoir; receiving-river meanders through Abasolo and Soto la Marina to La Pesca; the initial intermittent/disappearing-current distinction and corresponding uncertainty.",
+      "limits": "Scale 1:750,000 derived from 1:250,000 series III. It does not resolve the complete initial modeled connector, exact channel threading, present flow or a legal name-transition boundary. Printed reproduction restriction is preserved: no original map, crop or overlay is included in the deliverable or sent outward.",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/tamps/889463837107.pdf"
+    },
+    {
+      "source_key": "r101-inegi-padilla-2010",
+      "title": "Compendio de información geográfica municipal 2010: Padilla, Tamaulipas",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; hydrologic prose on PDF p. 3.",
+      "supports": "Separate Los Puentes–Pilón junction setting, Purificación and Corona approaches, Vicente Guerrero reservoir and adjacent arms.",
+      "limits": "Municipal extent does not include all of the western initial connector or the coastal river. Does not turn its list of watercourses into complete modeled-route evidence.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28030.pdf"
+    },
+    {
+      "source_key": "r101-inegi-soto-marina-2010",
+      "title": "Compendio de información geográfica municipal 2010: Soto la Marina, Tamaulipas",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Localidades e Infraestructura para el Transporte; p. 7, Relieve; hydrologic prose on p. 3.",
+      "supports": "Explicit Soto la Marina river label, north–south receiving trunk, lower eastward river, La Pesca and Gulf outlet setting, and distinction from surrounding coastal lagoons and southern tributaries.",
+      "limits": "Generalized municipal mapping, not contemporary inlet or flow observations. Does not establish every lower channel thread or an official endpoint coordinate.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28037.pdf"
+    },
+    {
+      "source_key": "r101-inegi-hidalgo-2010",
+      "title": "Compendio de información geográfica municipal 2010: Hidalgo, Tamaulipas",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve; hydrologic prose on p. 3.",
+      "supports": "El Sauz reservoir/outlet setting; distinct Pilón, Purificación and Corona drainage approaches; western connector uncertainty.",
+      "limits": "Does not show a continuous watercourse corresponding to the whole modeled initial northward connector and its eastward continuation. No initial feeder name is accepted from this municipal watercourse inventory.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/28/28016.pdf"
+    },
+    {
+      "source_key": "r101-deal-znieff-2013-21",
+      "title": "Modernisation des ZNIEFF de Guyane — Carte 21",
+      "author": "Biotope",
+      "publisher": "DEAL de Guyane",
+      "attribution": "Sheet credits IGN 500 000 as its source and Biotope for the ecological cartography.",
+      "edition": "Cartographie: Biotope, mars 2013; official inventory update published in 2014",
+      "year": 2013,
+      "supports": "Upper Approuague drainage beside the Massif des Émérillons and Gros Montagne, Mont Marou/Roche Dachine setting, the upper eastern receiving route and separation from adjoining Camopi-side drainage.",
+      "limits": "Regional topographic base with ecological overlays. It does not establish a precisely named spring, each small feeder or a formal headwater/name boundary; the selection extends north beyond this sheet. Source pixels and derivatives remain private.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/jpg/ZM_2013_21.jpg"
+    },
+    {
+      "source_key": "r76-deal-znieff-2013-19",
+      "title": "Modernisation des ZNIEFF de Guyane — Carte 19",
+      "author": "Biotope",
+      "publisher": "DEAL de Guyane",
+      "attribution": "IGN 500 000 base; Biotope ecological cartography.",
+      "edition": "Cartographie: Biotope, mars 2013; official inventory update published in 2014",
+      "year": 2013,
+      "supports": "Saül/Limonade and Mont Marou surroundings, named upper Approuague west and north of Gros Montagne and overlap toward the eastward rapid/tributary sequence.",
+      "limits": "Provides overlapping upper-corridor context, not complete lower-river coverage. Earlier r76 conclusions about Mana were not imported as conclusions about this object.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/jpg/ZM_2013_19_new.jpg"
+    },
+    {
+      "source_key": "r101-deal-znieff-2013-20",
+      "title": "Modernisation des ZNIEFF de Guyane — Carte 20",
+      "author": "Biotope",
+      "publisher": "DEAL de Guyane",
+      "attribution": "IGN 500 000 base; Biotope ecological cartography.",
+      "edition": "Cartographie: Biotope, mars 2013; official inventory update published in 2014",
+      "year": 2013,
+      "supports": "Approuague from Pointe Finie/Sapokaï through Grand Kanori, Machikou and Arataï, the complete two-feature lower-Arataye approach and its confluence, the named northeastern river bends and separate Ekini/Mataroni drainage.",
+      "limits": "Thick ecological boundaries locally follow the river, and the original topographic base is generalized. The northern map edge excludes the complete selected lower and terminal reach; it cannot close that gap by itself.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/jpg/ZM_2013_20.jpg"
+    },
+    {
+      "source_key": "r101-deal-crique-arataye-2014",
+      "title": "ZNIEFF de Guyane, mise à jour 2014: Crique Arataye, n° régional 00290002, n° national 030030071",
+      "publisher": "DEAL de Guyane",
+      "year": 2014,
+      "supports": "Separately identifies the lower Arataye, its Approuague confluence and local Couy, Japigny and Pararé rapid context; uses Arataï wording in the delimitation paragraph.",
+      "limits": "Descriptive ecological sheet, not a new reach survey. Its stated approximate lower-river distance is not equated with the model's selected tributary length. The source's internal type-label inconsistency is irrelevant to the hydronym conclusion, and no current ecological/legal designation is asserted.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/00290002_Crique_Arataye.pdf"
+    },
+    {
+      "source_key": "r75-deal-oyapock-camopi-2018",
+      "title": "Aménagement des sauts du fleuve Oyapock et de la rivière Camopi — Dossier de demande d’autorisation environnementale",
+      "author": "SAFEGE Ingénieurs Conseils",
+      "publisher": "DEAL Guyane; official DGTM Guyane hosting",
+      "attribution": "Carte 2 credits Parc amazonien de Guyane.",
+      "edition": "Version 2, October 2018 cover; interior footers retain February 2018",
+      "year": 2018,
+      "supports": "Regional placement and broad connected Approuague corridor, western Arataye approach, and distinction from Oyapock/Oiapoque and the Atlantic outlet context.",
+      "limits": "This small regional map is contextual evidence; it does not adequately resolve the selected final lower-river approach and is not used to claim full bounded correspondence. The report's Oyapock subject is not an Approuague naming alias.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/dossier_aeu_sauts_oyapock_octobre2018f-compressed.pdf"
+    },
+    {
+      "source_key": "r101-jog-santiago",
+      "title": "Joint Operations Graphic (Air), Santiago de Cuba, Cuba, NF18-14, Series1501 AIR, Edition5, 1:250,000",
+      "publisher": "U.S. National Imagery and Mapping Agency; University of Texas Perry-Castañeda Library archive",
+      "year_note": "Compiled April1988; revised July1995; printed December1997.",
+      "supports": "Initial named Río Cauto near Alto de la Estrella, Gilbert and adjacent reservoir system, Palma Soriano, Palmarito–Mella impoundment, westward continuation and separate Contramaestre, Cañas, Mogote and Baraguá approaches.",
+      "limits": "Historical generalized cartography, not a claim about present discharge, contemporary banks, precise island-side thread, current reservoir operating level, formal naming date or surveyed source/mouth vertex.",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-57254574-nf18-14.jpg"
+    },
+    {
+      "source_key": "r101-jog-holguin",
+      "title": "Joint Operations Graphic (Air), Holguín, Cuba, NF18-10, Series1501 AIR, Edition5, 1:250,000",
+      "publisher": "U.S. National Imagery and Mapping Agency; University of Texas Perry-Castañeda Library archive",
+      "year_note": "Compiled1979; revised September1995; map information as of1994; printed April1997.",
+      "supports": "Westward Cauto from Sabanilla and La Jatía through Cauto el Cristo; surrounding northern streams, reservoirs and canal network remain separate.",
+      "limits": "Historical generalized cartography, not a claim about present discharge, contemporary banks, precise island-side thread, current reservoir operating level, formal naming date or surveyed source/mouth vertex.",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-57254574-nf18-10.jpg"
+    },
+    {
+      "source_key": "r101-jog-camaguey",
+      "title": "Joint Operations Graphic (Air), Camagüey, Cuba, NF18-9, Series1501 AIR, Edition5, 1:250,000",
+      "publisher": "U.S. National Imagery and Mapping Agency; University of Texas Perry-Castañeda Library archive",
+      "year_note": "Compiled1979; revised September1995; map information as of1994; NGA reprint April2005.",
+      "supports": "Middle and lower Cauto through Cauto Cristo, Cauto del Paso reservoir setting, Salado joining area, Guamo Embarcadero and delta outlet; distinguishes Brazo Cauto Norte, Brazo de la Puente and lagoon/marsh areas.",
+      "limits": "Historical generalized cartography, not a claim about present discharge, contemporary banks, precise island-side thread, current reservoir operating level, formal naming date or surveyed source/mouth vertex.",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-57254574-nf18-9.jpg"
+    },
+    {
+      "source_key": "r101-jog-bayamo",
+      "title": "Joint Operations Graphic (Air), Bayamo, Cuba, NF18-13, Series1501 AIR, Edition6, 1:250,000",
+      "publisher": "U.S. National Imagery and Mapping Agency; University of Texas Perry-Castañeda Library archive",
+      "year_note": "Compiled March1984; revised August1995; printed April1997.",
+      "supports": "Southern river and reservoir context: Río Bayamo approaches the southern reservoir arm, while Cautillo and other neighboring rivers are separately labeled.",
+      "limits": "Historical generalized cartography, not a claim about present discharge, contemporary banks, precise island-side thread, current reservoir operating level, formal naming date or surveyed source/mouth vertex.",
+      "official_url": "https://maps.lib.utexas.edu/maps/jog/latin_america/txu-oclc-57254574-nf18-13.jpg"
+    },
+    {
+      "source_key": "r101-delera2007",
+      "title": "Deler-Hernández, Megna, González Lazo and Carcasés Torres, Insectos acuáticos y áreas prioritarias para la conservación en la cuenca alta del río Cauto (Santiago de Cuba, Cuba)",
+      "publisher": "Boletín Sociedad Entomológica Aragonesa40 (2007),451–461; authors at Universidad de Oriente",
+      "supports": "Field-study upper Cauto corridor from its source region through Gilbert and Gota Blanca to Palma Soriano; distinguishes the named tributary approaches and reservoir components.",
+      "limits": "The figure is a study-area schematic, not a coordinate-precise source or mouth survey. Whole-path correspondence rests on the independent primary cartographic sheets. No article figure is being republished.",
+      "official_url": "https://ephemeroptera-galactica.com/pubs/pub_d/pubdelera2007p451.pdf"
+    },
+    {
+      "source_key": "r101-ramsar1236-2002",
+      "title": "Ficha informativa de los Humedales de Ramsar: Humedal Delta del Cauto, completed17 September2002",
+      "publisher": "Cuban site information supplied by Delio Espinosa Morey and Susana Aguilar Mugica, Centro Nacional de Áreas Protegidas; Ramsar Sites Information Service",
+      "supports": "Delta del Cauto as the river’s estuarine, lagoon and marsh receiving complex on Golfo de Guacanayabo; separate Boca Cauto Norte, Boca Cauto Sur and Brazo La Puente settings; named Cauto del Paso dam and its lower-river influence.",
+      "limits": "This is prose evidence for the delta and named components. The PDF checkbox says a map was supplied, but no separate source-map claim or unacquired annex is used. It does not designate a precise current outlet point.",
+      "official_url": "https://rsis.ramsar.org/RISapp/files/RISrep/CU1236RIS.pdf"
+    },
+    {
+      "source_key": "r101-granma-hydraulics2025",
+      "title": "No hay afectaciones a la infraestructura hidráulica de Granma,1 November2025",
+      "publisher": "CNC TV Granma account reproduced by Granma; statement attributed to Marbelis Campos Busquet, territorial Recursos Hidráulicos delegate",
+      "supports": "Primary attributed operator statement names Cauto el Paso on the lower Cauto system and Protesta de Baraguá and Carlos Manuel Céspedes among its upstream Santiago contributions.",
+      "limits": "Used only for names and broad hydrologic relationship. The2025 flood quantities and infrastructure condition are not asserted as current facts. This article supplies no coordinate-precise reservoir crosswalk or map pixels.",
+      "official_url": "https://www.granma.cu/cuba/2025-11-01/no-hay-afectaciones-a-la-infraestructura-hidraulica-de-granma-01-11-2025-09-11-51"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80064967",
+      "source_keys": [
+        "r101-nrcan-cbmt-rae-richardson"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "The southwest selected start lies in a small-stream and lake country west of the Bebensee Lake setting. It follows a broadly northward unnamed valley with several small lakes and ponds. The original map covers the initial tip and the complete approach. Neither a hydronym for this stream nor an official source at the first selected vertex is established. Bebensee Lake lies separately to the southeast and is not the selected source lake.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "Farther north the modeled approach passes through a succession of narrow stream reaches and small lake basins, then turns northeast across the northern lake-and-stream setting. The map shows numerous side inflows. No direct name is printed for the selected feeder, these small lakes or their short connectors. The map supports their local geographic context, but the straight modeled segments are not treated as exact shore, bank or channel alignments.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "The northwestern approach reaches the east-running Rae River setting from the south. The federal map directly labels Rae River along the northern receiving river and shows a separate Richardson River farther south. The southern approach and lake sequence are not made synonymous with the Rae hydronym simply because the later selection lies along Rae River.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "The selection follows the broad Rae River corridor around its northern bend and then eastward. The generalized northern loop departs laterally from some mapped river bends and crosses several side-drainage approaches. Bounded Rae River correspondence is supported by the named main valley and repeated labels; this does not identify a different named channel for every displaced modeled leg.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "Across the long central eastward reach, repeated Rae River labels occur on the same northern river corridor. Numerous tributaries join from the north and smaller lake-fed approaches enter from the south. The separate, also repeatedly labeled Richardson River remains farther south. These are distinct mapped rivers rather than two alternative names for a single continuously selected channel.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "West of Cox Lake, the modeled route turns abruptly south away from the mapped Rae River. The source shows contoured intervening ground, small lakes and separate drainage lines between Rae River and Richardson River. A dashed black line is also present, but it is not the blue watercourse symbology. No continuous blue-mapped waterway is established across the entire selected Rae-to-Richardson connector. This is a material correspondence gap, not merely an unknown hydronym or a demand for pointwise alignment.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "The southward modeled connector passes the small waters west of Cox Lake, reaches the Richardson River corridor and continues farther south. Cox Lake is explicitly labeled between the two rivers and is not traversed by the selection as a mainstem lake. The source does not establish that this southward passage is one continuously flowing or named river connection from Rae River.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "After the first Richardson River encounter, the model continues through the southern tributary and wetland corridor below the main Richardson River bends. At this scale, the repeatedly labeled Richardson River is visibly farther north for part of the same interval, while an unlabeled southern stream runs broadly east toward a later Richardson junction. The selection alternates between or crosses these corridors; the precise branch assignment and its connecting legs remain unresolved. The unlabeled southern stream is not assigned the Richardson name solely from proximity.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "Farther east the route reaches the lower Richardson River corridor where the mapped river turns southeast and then east. The nearby southern tributary approach and several lake-fed drainage lines are distinct components. Richardson River is directly supported for the named receiving and lower river corridor, but does not establish a scalar name for the preceding tributary or uncertain connector.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "The lower selected route makes the pronounced northward turn toward the coast in the repeatedly labeled Richardson River valley. The source shows lakes and side streams east and west of this terminal valley, with some modeled bends laterally displaced from the blue channel. The broad terminal Richardson corridor and its destination are established without claiming exact bank or island-side threading.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "The final modeled extension lies in the Richardson River coastal-outlet setting at Richardson Bay. Both Richardson River and Richardson Bay are directly printed in the detailed coastal map. The selected tip is inside the broader river-mouth and bay-margin setting rather than an independently established surveyed mouth vertex. The map distinguishes the Rae River entrance immediately to the northwest, which is not the selected terminal channel.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        },
+        {
+          "fragments": [
+            2509
+          ],
+          "finding": "The coastal view also explicitly labels Coronation Gulf beyond Richardson Bay and shows Kugluktuk and the separate Coppermine River mouth to the east. The selected path does not terminate on Coppermine River or at Kugluktuk. Richardson Bay and Coronation Gulf are receiving-water identities, not river aliases. The bounded component evidence does not resolve the actual interriver connector or all lower branch assignments.",
+          "sources": [
+            "r101-nrcan-cbmt-rae-richardson"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70856797",
+      "source_keys": [
+        "r101-inegi-tamaulipas-state",
+        "r101-inegi-padilla-2010",
+        "r101-inegi-soto-marina-2010",
+        "r101-inegi-hidalgo-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10377
+          ],
+          "finding": "The modeled western start lies in the Cruz y Carmen surroundings, north of the separately depicted Purificación river. It first turns north toward Ojo de Agua and the El Sauz reservoir-outlet surroundings. The state and Hidalgo originals do not show a continuous watercourse under this complete northward approach, and do not establish the modeled start as an official river source. Neither the locality label nor proximity to El Sauz is promoted to a hydronym or a proven reservoir crossing.",
+          "sources": [
+            "r101-inegi-tamaulipas-state",
+            "r101-inegi-hidalgo-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10377
+          ],
+          "finding": "The model then turns east through the Profesor Graciano Sánchez–San Carlos locality surroundings. The state sheet depicts an eastward intermittent stream from the El Sauz/Ojo de Agua setting and a disappearing-current arrow before the separately depicted Pilón corridor. The model continues across the intervening sector. This is a material source-to-object connector uncertainty, rather than merely an unknown spelling or an unassigned name on an otherwise demonstrated continuous river.",
+          "sources": [
+            "r101-inegi-tamaulipas-state",
+            "r101-inegi-hidalgo-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10377
+          ],
+          "finding": "The Padilla relief map separately labels Arroyo Los Puentes west of Río El Pilón and shows their junction context. The selected eastward approach enters this general feeder/Pilón setting before turning southeast toward Vicente Guerrero. The original supports the bounded Pilón receiving component, but does not remove the uncertainty in the complete western approach or justify assigning Los Puentes uniformly to it. The farther-north Pilón headwater course is not the selected beginning.",
+          "sources": [
+            "r101-inegi-tamaulipas-state",
+            "r101-inegi-padilla-2010",
+            "r101-inegi-hidalgo-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10377
+          ],
+          "finding": "The selected northern reservoir approach follows the mapped Pilón corridor toward the Vicente Guerrero impoundment. Purificación approaches from the west via the Barretal–Corpus Christi–Nueva Villa de Padilla corridor and Corona from the southwest near Güémez. These are distinct incoming waterways; their labels are not substituted for the selected western feeder.",
+          "sources": [
+            "r101-inegi-tamaulipas-state",
+            "r101-inegi-padilla-2010",
+            "r101-inegi-hidalgo-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10377
+          ],
+          "finding": "The selection enters the northern portion of the explicitly labeled Presa Vicente Guerrero and traverses its interior southeastward toward the eastern outlet. The larger southern reservoir arms, Corona approach and Arroyo Grande approach are separately depicted. The selected reservoir transit is treated as an impoundment component, not as a continuously exposed river reach or proof of present water level.",
+          "sources": [
+            "r101-inegi-tamaulipas-state",
+            "r101-inegi-padilla-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10377
+          ],
+          "finding": "Below the eastern outlet, the model follows the mapped meandering river east through the Delicias–Guía del Porvenir surroundings, then turns north and east through the Abasolo–El Contadero sector. The northern incoming streams in the Jiménez direction and surrounding side channels are distinguishable from the selected receiving trunk. The correspondence is to the generalized river corridor, not a certified choice of every bank-side thread or individual meander.",
+          "sources": [
+            "r101-inegi-tamaulipas-state"
+          ]
+        },
+        {
+          "fragments": [
+            10377
+          ],
+          "finding": "From the El Contadero–Nicolás Bravo surroundings, the selected river turns south through the La Peñita and Tampiquito corridor toward Soto la Marina. The state map separates Arroyo El Paisano and other side approaches from this receiving river; the Soto la Marina municipal relief sheet explicitly labels the north–south river Río Soto La Marina. These sources support the lower-river component identity.",
+          "sources": [
+            "r101-inegi-tamaulipas-state",
+            "r101-inegi-soto-marina-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10377
+          ],
+          "finding": "At Soto la Marina the selection turns east through the broad lower-river meanders toward the Vista Hermosa and La Pesca coastal approach. Incoming waterways from the Sierra de Tamaulipas and the southern Palmas drainage are separate branches. The selected river follows the northern margin of the lower lagoon-rich setting rather than traversing every nearby lagoon.",
+          "sources": [
+            "r101-inegi-tamaulipas-state",
+            "r101-inegi-soto-marina-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10377,
+            10378
+          ],
+          "finding": "The two modeled fragments meet within the lower La Pesca approach; the short eastern fragment continues along the same lower Soto la Marina corridor to the coastal mouth setting. Actual state and municipal pixels show the river reaching the Gulf of Mexico near La Pesca. Laguna Almagre lies to the north and the Chovenosa, Contadero, Morelos and Santa Rita waterbodies are separately mapped to the south or nearby; none is adopted as a river alias.",
+          "sources": [
+            "r101-inegi-tamaulipas-state",
+            "r101-inegi-soto-marina-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10378
+          ],
+          "finding": "The terminal setting includes the mapped river mouth, coastal barrier, harbor and adjacent lagoon margins near La Pesca. The generalized model reaches that setting, but its endpoint is not asserted to be an official mouth coordinate, an exact bank or inlet boundary, or evidence of current navigability, continuous discharge or present inlet conditions. The distant Laguna Madre corridor does not become the selected river name.",
+          "sources": [
+            "r101-inegi-tamaulipas-state",
+            "r101-inegi-soto-marina-2010"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60174418",
+      "source_keys": [
+        "r101-deal-znieff-2013-21",
+        "r76-deal-znieff-2013-19",
+        "r101-deal-znieff-2013-20",
+        "r101-deal-crique-arataye-2014",
+        "r75-deal-oyapock-camopi-2018"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11518
+          ],
+          "finding": "Map21 places the southern initial setting beside the Massif des Émérillons and Piton Baron, with the upper Approuague drainage on the western and northwestern side of Gros Montagne. The selected beginning turns north and west before joining the more easterly upper corridor. The source prints Approuague on the receiving course, while the precise initial model vertex is not identified as a named spring or an official natural source. No separate hydronym is invented for the smallest headward feeder.",
+          "sources": [
+            "r101-deal-znieff-2013-21",
+            "r76-deal-znieff-2013-19",
+            "r75-deal-oyapock-camopi-2018"
+          ]
+        },
+        {
+          "fragments": [
+            11518
+          ],
+          "finding": "The eastward upper selection follows the mapped Approuague north of Gros Montagne and the Monts Bakra setting, past the Mont Marou/Roche Dachine surroundings and toward the Pointe Finie–Sapokaï turn. The overlapping Map19, Map21 and southern part of Map20 distinguish this receiving course from Limonade to the west, the northern Crique Calebasse approach, and separate southern Japigny/Kwata and other small tributaries. Named rapids and tributaries remain local context, not additional selected whole-river names.",
+          "sources": [
+            "r101-deal-znieff-2013-21",
+            "r76-deal-znieff-2013-19",
+            "r101-deal-znieff-2013-20"
+          ]
+        },
+        {
+          "fragments": [
+            11519
+          ],
+          "finding": "The northward selected trunk agrees with the repeatedly labeled Approuague corridor through the Grand Kanori/Chapelle Saramaka setting, the Bouchard and Dardanelles approaches, Bois Blanc, the Machikou rapid sequence and the approach to Arataï. Map20 depicts the separate eastern Ekini and more distant Mataroni drainage and the western Mont Chauve/Couy drainage. None is substituted for the selected receiving river. The map supports a river corridor, not a lake or reservoir transit.",
+          "sources": [
+            "r101-deal-znieff-2013-20"
+          ]
+        },
+        {
+          "fragments": [
+            11522
+          ],
+          "finding": "The western tributary selection begins within the lower Arataye corridor rather than at the river's full western headwaters. Its northeastward approach corresponds to the river printed Arataï on Map20, toward the Couy and Pararé surroundings. The northern Porota, Balenfois and other side criques remain distinct; no source name is transferred onto them. The selected modeled length is not used as the source's description of the entire Arataye.",
+          "sources": [
+            "r101-deal-znieff-2013-20",
+            "r101-deal-crique-arataye-2014"
+          ]
+        },
+        {
+          "fragments": [
+            11523,
+            11522,
+            11519,
+            11520
+          ],
+          "finding": "The second tributary piece continues east across the lower Arataye bend sequence near Pararé and the mapped Jepigny/Gravier setting, then turns southeast to the Approuague junction at Arataï. Map20 visibly connects that western branch to the north-flowing receiving trunk. The official Crique Arataye sheet independently describes the lower river and its Approuague confluence. Both selected tributary features therefore retain an Arataye component identity, not an Approuague alias. Their feature boundary is not a formal hydronym boundary.",
+          "sources": [
+            "r101-deal-znieff-2013-20",
+            "r101-deal-crique-arataye-2014"
+          ]
+        },
+        {
+          "fragments": [
+            11520
+          ],
+          "finding": "Below the western tributary confluence the selection runs northeast through the mapped Canari/Taconnet, Aïkoupa and Villaflore surroundings, then the Mathias–Athanaze–Mapaou rapid/bend sequence. Map20 prints Approuague along this course and depicts Ekini approaching from the southeast and Mataroni farther east as distinct waterways. The selected northeastern route continues beyond the northern edge of the adequately read detailed sheet; this final continuation within the fragment is not silently bridged into a completed full-route claim.",
+          "sources": [
+            "r101-deal-znieff-2013-20"
+          ]
+        },
+        {
+          "fragments": [
+            11521,
+            11520
+          ],
+          "finding": "The retained whole-Guyane drainage map shows a broadly connected lower Approuague course northeast of the supported middle river and separates it from the Oyapock, Ouanary and the full Atlantic outlet setting. Its small scale does not sufficiently locate the actual selected final northeastern bend and northward ending or establish a specific terminal waterbody, channel split, estuarine limit or modern mouth. The complete last mainstem fragment and the adjoining northern continuation of 11520 therefore remain materially unestablished at the required bounded correspondence scale.",
+          "sources": [
+            "r75-deal-oyapock-camopi-2018"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70878834",
+      "source_keys": [
+        "r101-jog-santiago",
+        "r101-jog-holguin",
+        "r101-jog-camaguey",
+        "r101-jog-bayamo",
+        "r101-delera2007",
+        "r101-ramsar1236-2002",
+        "r101-granma-hydraulics2025"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10420
+          ],
+          "finding": "The initial selected reach corresponds to the channel labeled Río Cauto on the Santiago de Cuba sheet northeast of Alto de la Estrella in the Sierra Maestra. It approaches the Gilbert impoundment through the mountain valley. This is an initial modeled selection point along the upper river, not an adjudicated natural source. The nearby Río Mogote corridor to the west and the separate Cañas approach to the east are not selected.",
+          "sources": [
+            "r101-jog-santiago",
+            "r101-delera2007"
+          ]
+        },
+        {
+          "fragments": [
+            10420
+          ],
+          "finding": "The retained course traverses the Gilbert reservoir setting, continues through its downstream connection and then the Gota Blanca reservoir setting before returning to the northward river above Palma Soriano. The2007 field study names and distinguishes Gilbert and Gota Blanca and shows their order on the upper Cauto. These are distinct impoundment components; the generalized centerline is not a statement about their present shorelines or operating levels. Charco Mono and its Cañas approach are separate.",
+          "sources": [
+            "r101-jog-santiago",
+            "r101-delera2007"
+          ]
+        },
+        {
+          "fragments": [
+            10420
+          ],
+          "finding": "From the upper reservoirs the selection follows the Cauto past the Cauto Sitio and Palma Soriano setting, then north and northeast toward Candonga and Palmarito. The river course and turns agree with the mapped main channel. The eastern tributary network through the San Luis setting and the western Contramaestre valley remain separate; the selection does not turn up either one.",
+          "sources": [
+            "r101-jog-santiago"
+          ]
+        },
+        {
+          "fragments": [
+            10420
+          ],
+          "finding": "The selection passes through the large mapped impoundment west of Palmarito, Miranda and Mella, then follows the river northwest past Arroyo Blanco and into the westward Cauto reach. The reservoir passage and inlet/outlet corridor are established by the map. Protesta de Baraguá is independently named in the attributed operator account as an upstream Santiago reservoir; the map itself does not print that reservoir name in the inspected lake area, so no legal lake-name boundary is assigned. Río Baraguá and the western Arroyo Mejías approach are separately mapped surrounding waters.",
+          "sources": [
+            "r101-jog-santiago",
+            "r101-granma-hydraulics2025"
+          ]
+        },
+        {
+          "fragments": [
+            10420
+          ],
+          "finding": "The mapped Cauto continues west below the separate northern reservoir and past the Dos Ríos joining setting, where Río Contramaestre approaches from the south. The selected route remains on the Cauto through that junction rather than following Contramaestre, its Carlos Manuel de Céspedes reservoir, or the Río Baire tributary upstream.",
+          "sources": [
+            "r101-jog-santiago"
+          ]
+        },
+        {
+          "fragments": [
+            10420
+          ],
+          "finding": "The Holguín sheet carries the same westward Cauto through Sabanilla and La Jatía and the meandering plain to Cauto el Cristo. The selection follows that river corridor, with generalization across individual bends. The parallel straight canal and ditch network and the Matamoros and other northern approaches are not substituted for the selected river.",
+          "sources": [
+            "r101-jog-holguin",
+            "r101-jog-santiago"
+          ]
+        },
+        {
+          "fragments": [
+            10420
+          ],
+          "finding": "West of Cauto Cristo the selected line continues along the labeled Cauto and through the northern part of the impounded Cauto del Paso setting, then reaches the downstream river beside the Cauto del Paso locality. The reservoir’s broad southern arm is not the selected upstream approach. The adjoining Bayamo sheet labels Río Bayamo entering that southern arm, and separately identifies Cautillo to its east. Their upstream valleys are not part of the chosen mainstem. The Ramsar sheet explicitly names Cauto del Paso dam as influencing the lower river.",
+          "sources": [
+            "r101-jog-camaguey",
+            "r101-jog-bayamo",
+            "r101-ramsar1236-2002"
+          ]
+        },
+        {
+          "fragments": [
+            10420,
+            10421
+          ],
+          "finding": "Below Cauto del Paso the selection follows the large Cauto bends east and north of the Río Cauto town setting, toward the Salado joining area and Guamo Embarcadero. Río Salado is separately labeled on the northern approach. The modeled fragment split lies in this lower-river junction setting and supplies no independent river-name boundary. Brazo de la Puente branches toward the southern coastal plain and is not the chosen downstream route.",
+          "sources": [
+            "r101-jog-camaguey"
+          ]
+        },
+        {
+          "fragments": [
+            10421
+          ],
+          "finding": "West of Guamo Embarcadero the selected route follows the prominently mapped Río Cauto across Ciénaga de Cauto Norte. The separate Brazo Cauto Norte departs toward the more northerly lagoon system, while Lagunas Barbacoas and the Brazo de la Puente complex lie south of the selected meandering trunk. Wetland membership does not imply that the selection crosses every neighboring lagoon.",
+          "sources": [
+            "r101-jog-camaguey",
+            "r101-ramsar1236-2002"
+          ]
+        },
+        {
+          "fragments": [
+            10421
+          ],
+          "finding": "The final selected westward and southwestward bends correspond to the mapped Cauto mouth corridor through the mangrove fringe south of Punta Paso Presto and north of Punta de Jutía, facing Golfo de Guacanayabo. The whole terminal corridor is visible on the Camagüey sheet; this is more than a bounding-box or receiving-basin inference. The short generalized final line is not promoted to a surveyed shoreline crossing, a precise current tidal outlet vertex, or the separate northern Brazo Cauto Norte mouth. Ramsar prose independently establishes the estuarine delta setting.",
+          "sources": [
+            "r101-jog-camaguey",
+            "r101-ramsar1236-2002"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

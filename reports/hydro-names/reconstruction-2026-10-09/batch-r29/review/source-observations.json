@@ -1,0 +1,107 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r29",
+  "scope_aw_ids": [
+    "lakes_base:1159109687",
+    "lakes_base:1159111345",
+    "lakes_base:1159111357"
+  ],
+  "new_external_requests": 0,
+  "distinct_reviewed_publications": 2,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "observations": [
+    {
+      "source_key": "nps_katmai_park_map",
+      "title": "Katmai National Park and Preserve Park Map",
+      "publisher": "National Park Service, U.S. Department of the Interior",
+      "url": "https://www.nps.gov/katm/learn/photosmultimedia/upload/KATM_Park-Map_for_web.pdf",
+      "original_acquired_at_utc": "2026-10-09T13:17:23.188923+00:00",
+      "physical_pdf_pages_viewed": [
+        1
+      ],
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date_verified": false,
+      "role": "Direct water-name labels and regional footprint context for all three targets.",
+      "directly_read_water_labels": [
+        "NONVIANUK LAKE",
+        "LAKE COVILLE",
+        "LAKE GROSVENOR",
+        "LAKE BROOKS"
+      ],
+      "own_observations": "The map shows Nonvianuk Lake south of Kukaklek Lake and west of Kulik Lake. It separately labels Lake Coville on the northwestern arm and Lake Grosvenor on the long eastward and southeastern basin. Lake Brooks lies southwest of Brooks Camp and the Naknek/Iliuk waters. A narrow inter-lake connection is depicted near Grosvenor Lodge; no precise naming boundary is supplied.",
+      "official_catalog_url": "https://www.nps.gov/katm/learn/photosmultimedia/maps.htm",
+      "publication_date": null,
+      "publication_date_note": "A reliable printed publication date was not established; PDF creation and modification metadata are not a publication date.",
+      "authority_scope": "Official park visitor-map cartography establishes usage and generalized association; it is not formal-registry or surveyed-boundary verification."
+    },
+    {
+      "source_key": "nps_naknek_lake_boating_guide",
+      "title": "Naknek Lake Boating Guide",
+      "publisher": "National Park Service, U.S. Department of the Interior",
+      "url": "https://www.nps.gov/katm/planyourvisit/upload/naknek_lake_20130207.pdf",
+      "original_acquired_at_utc": "2026-10-09T13:17:26.392072+00:00",
+      "physical_pdf_pages_viewed": [
+        1,
+        2
+      ],
+      "printed_date": "February 2013",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "role": "Naknek-focused regional context and coverage limitation; not an additional direct selected-lake identity source.",
+      "directly_read_selected_water_labels": [],
+      "own_observations": "The full-lake view gives a geographic grid, Brooks Camp, North Arm and Iliuk Arm context. The southwestern lake outline agrees regionally with the Lake Brooks footprint, but no additional selected-lake name is certified from this guide. Nonvianuk lies outside its coverage, while the full Coville-Grosvenor extent and precise naming boundary are not resolved. The second page focuses on Lake Camp and Bay of Islands. The guide states that many labels use local names and includes third-party basemap credit."
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "aw_id": "lakes_base:1159109687",
+      "source_id": "1159109687",
+      "geometry_fids": [
+        15435
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 29,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "independent_observation": "The complete west-to-east generalized footprint has a broad rounded western basin and a narrower eastern continuation. Its position south of Kukaklek Lake, west of the separately mapped Kulik Lake, and east of the Nonvianuk River matches the water polygon directly labelled NONVIANUK LAKE on the official Katmai park map. The complete source and rendered ring support Nonvianuk Lake as a generalized water identity. This is a regional visual correspondence, not a surveyed shoreline or exact lake-to-river boundary."
+    },
+    {
+      "aw_id": "lakes_base:1159111345",
+      "source_id": "1159111345",
+      "geometry_fids": [
+        15553
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 34,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "independent_observation": "The complete generalized footprint begins with a northwestern north-south arm, bends southeast into a long eastward middle basin, and turns southeast again at its eastern end. The official Katmai park map labels the northwestern water LAKE COVILLE and the eastward/southeastern water LAKE GROSVENOR, with a narrow connection near Grosvenor Lodge. Both mapped waters correspond to portions of this single continuous inventory ring. No one-name identity for the complete polygon is established; Lake Coville and Lake Grosvenor are retained as separately labelled component waters. The precise inter-lake or connecting-channel name boundary is unresolved."
+    },
+    {
+      "aw_id": "lakes_base:1159111357",
+      "source_id": "1159111357",
+      "geometry_fids": [
+        15554
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 15,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "independent_observation": "The complete compact southwest-to-northeast generalized footprint matches the water directly labelled LAKE BROOKS on the official Katmai park map. Its northeastern end lies by Brooks River and Brooks Camp, southwest of the Naknek Lake and Iliuk Arm waters shown separately on the map. The full-lake page of the Naknek boating guide supplies additional regional shoreline and Brooks Camp context, without providing another certified selected-lake name in this review. The complete source and rendered ring support Lake Brooks as a generalized water identity, with exact shoreline, islands and lake-to-river boundary unverified."
+    }
+  ],
+  "source_group_limit": "Two NPS publications are not asserted to provide independent underlying cartography. Only the park map directly supplies the selected-lake naming evidence.",
+  "independent_review_and_source_research_agree": true
+}

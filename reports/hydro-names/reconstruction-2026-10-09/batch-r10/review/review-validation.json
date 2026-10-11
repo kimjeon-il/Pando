@@ -1,0 +1,332 @@
+{
+  "schema": "hydro-independent-river-review-validation-v2",
+  "validated_at_utc": "2026-10-09T14:55:20.579090+00:00",
+  "status": "passed",
+  "durable_only": {
+    "status": "passed",
+    "mode": "durable_only",
+    "scope_aw_ids": [
+      "hydro-system:50766256",
+      "hydro-system:50779535",
+      "hydro-system:50782443"
+    ],
+    "public_input_files_checked": 22,
+    "independent_binary_decoder_replayed": false,
+    "omitted_full_coordinates_rechecked": false,
+    "original_inventory_rechecked": false,
+    "original_prior_index_rechecked": false,
+    "local_evidence_assets_rehashed": 0,
+    "local_evidence_assets_rehashed_by_kind": {},
+    "independent_geometry_checks": [],
+    "independent_queue_check": null,
+    "source_provenance_keys_checked": [
+      "BOM-AWRA2012",
+      "WA-SLUI38-2005",
+      "COLLIE-DWER-HEALTHYRIVERS",
+      "WARREN-DWER-HEALTHYRIVERS",
+      "KALGAN-DWER-NUTRIENT2019",
+      "KALGAN-DWER-RIVERHEALTH",
+      "WARREN-DWER-CATCHMENT-SUPPLEMENT"
+    ],
+    "visual_inspection_repeated": false,
+    "original_hydrorivers_coordinate_equality_verified": false,
+    "network_requests": 0,
+    "automatic_application": false,
+    "geometry_component": {
+      "status": "passed",
+      "scope_aw_ids": [
+        "hydro-system:50766256",
+        "hydro-system:50779535",
+        "hydro-system:50782443"
+      ],
+      "group_count": 3,
+      "fragment_count": 3,
+      "fragment_counts_by_group": [
+        1,
+        1,
+        1
+      ],
+      "source_reach_counts": [
+        36,
+        53,
+        31
+      ],
+      "rendered_part_counts": [
+        36,
+        53,
+        31
+      ],
+      "rendered_coordinate_counts": [
+        218,
+        306,
+        181
+      ],
+      "rendered_part_counts_by_fragment": [
+        36,
+        53,
+        31
+      ],
+      "rendered_coordinate_counts_by_fragment": [
+        218,
+        306,
+        181
+      ],
+      "complete_unpublished_coordinates_rechecked": false,
+      "production_decoder_replayed": false,
+      "actual_metadata_name_states_and_ordered_source_ids_rechecked": true,
+      "prior27_duplicate_count": 0,
+      "original_selected_inventory_rows_rechecked": false,
+      "original_previous_index_rechecked": false,
+      "frozen_component_hashes_rechecked": true,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limitation": "Published factual tables, counts and independent pins are checked; unpublished full coordinates cannot be independently recomputed without the verified input cache."
+    },
+    "durable_only_limitation": "Public facts and hashes are replayed. Omitted full coordinates and original publications are not independently reopened without local inputs; image hashing does not repeat visual review."
+  },
+  "full_local": {
+    "status": "passed",
+    "mode": "full_local",
+    "scope_aw_ids": [
+      "hydro-system:50766256",
+      "hydro-system:50779535",
+      "hydro-system:50782443"
+    ],
+    "public_input_files_checked": 22,
+    "independent_binary_decoder_replayed": true,
+    "omitted_full_coordinates_rechecked": true,
+    "original_inventory_rechecked": true,
+    "original_prior_index_rechecked": true,
+    "local_evidence_assets_rehashed": 31,
+    "local_evidence_assets_rehashed_by_kind": {
+      "original_source_body": 7,
+      "acquisition_receipt": 7,
+      "local_text_extraction": 7,
+      "independently_viewed_map_or_text_derivative": 9,
+      "complete_path_comparison_view": 1
+    },
+    "independent_geometry_checks": [
+      {
+        "aw_id": "hydro-system:50766256",
+        "fid": 7081,
+        "part_count": 36,
+        "coordinate_count": 218,
+        "all_ordered_coordinates_metadata_and_source_ids_checked": true,
+        "internal_part_joins_checked": true
+      },
+      {
+        "aw_id": "hydro-system:50779535",
+        "fid": 7096,
+        "part_count": 53,
+        "coordinate_count": 306,
+        "all_ordered_coordinates_metadata_and_source_ids_checked": true,
+        "internal_part_joins_checked": true
+      },
+      {
+        "aw_id": "hydro-system:50782443",
+        "fid": 7098,
+        "part_count": 31,
+        "coordinate_count": 181,
+        "all_ordered_coordinates_metadata_and_source_ids_checked": true,
+        "internal_part_joins_checked": true
+      }
+    ],
+    "independent_queue_check": {
+      "initial_inventory_rows": 5173,
+      "eligible_targets": 4065,
+      "distinct_reviewed_targets": 30,
+      "distinct_river_groups": 16,
+      "distinct_lakes": 14,
+      "remaining_fresh_index_targets": 4035,
+      "remaining_river_groups": 3439,
+      "remaining_lakes": 596,
+      "historical_never_reviewed_claimed": false
+    },
+    "source_provenance_keys_checked": [
+      "BOM-AWRA2012",
+      "WA-SLUI38-2005",
+      "COLLIE-DWER-HEALTHYRIVERS",
+      "WARREN-DWER-HEALTHYRIVERS",
+      "KALGAN-DWER-NUTRIENT2019",
+      "KALGAN-DWER-RIVERHEALTH",
+      "WARREN-DWER-CATCHMENT-SUPPLEMENT"
+    ],
+    "visual_inspection_repeated": false,
+    "original_hydrorivers_coordinate_equality_verified": false,
+    "network_requests": 0,
+    "automatic_application": false,
+    "geometry_component": {
+      "status": "passed",
+      "scope_aw_ids": [
+        "hydro-system:50766256",
+        "hydro-system:50779535",
+        "hydro-system:50782443"
+      ],
+      "group_count": 3,
+      "fragment_count": 3,
+      "fragment_counts_by_group": [
+        1,
+        1,
+        1
+      ],
+      "source_reach_counts": [
+        36,
+        53,
+        31
+      ],
+      "rendered_part_counts": [
+        36,
+        53,
+        31
+      ],
+      "rendered_coordinate_counts": [
+        218,
+        306,
+        181
+      ],
+      "rendered_part_counts_by_fragment": [
+        36,
+        53,
+        31
+      ],
+      "rendered_coordinate_counts_by_fragment": [
+        218,
+        306,
+        181
+      ],
+      "complete_unpublished_coordinates_rechecked": true,
+      "production_decoder_replayed": true,
+      "actual_metadata_name_states_and_ordered_source_ids_rechecked": true,
+      "prior27_duplicate_count": 0,
+      "original_selected_inventory_rows_rechecked": true,
+      "original_previous_index_rechecked": true,
+      "frozen_component_hashes_rechecked": true,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "durable_only_limitation": "Published factual tables, counts and independent pins are checked; unpublished full coordinates cannot be independently recomputed without the verified input cache."
+    },
+    "durable_only_limitation": "Public facts and hashes are replayed. Omitted full coordinates and original publications are not independently reopened without local inputs; image hashing does not repeat visual review."
+  },
+  "durable_corruption_tests": {
+    "status": "passed",
+    "scope_aw_ids": [
+      "hydro-system:50766256",
+      "hydro-system:50779535",
+      "hydro-system:50782443"
+    ],
+    "durable_only_scope_truthful": true,
+    "corrupt_fixtures_rejected": 35,
+    "fixtures": [
+      "automatic_application",
+      "whole_group_clearance",
+      "per_reach_clearance",
+      "unsupported_korean",
+      "wrong_identifier_domain",
+      "target_order_reversed",
+      "historical_verdict_restoration",
+      "false_original_coordinate_equality",
+      "unsupported_registry_claim",
+      "tributary_distinctions_erased",
+      "source_reach_name_boundary_claim",
+      "unsupported_continuous_flow",
+      "collie_east_name_overstated",
+      "collie_reservoir_parts_named",
+      "warren_tone_distinction_erased",
+      "tone_warren_part_boundary_invented",
+      "kalgan_tidal_length_projected",
+      "kalgan_harbour_boundary_invented",
+      "uniform_river_name",
+      "invented_system_suffix",
+      "connector_name_inheritance",
+      "actual_stage_changed",
+      "cumulative_count_inflated",
+      "prior_duplicate_added",
+      "body_hash_replaced_by_derivative",
+      "printed_date_replaced_by_upload_year",
+      "reused_acquisition_time_overwritten",
+      "whole_path_geometry_hash_changed",
+      "text_page_counted_as_map",
+      "kalgan_report_year_used_as_publication",
+      "supplement_inflates_support_count",
+      "supplement_classed_as_supporting_publication",
+      "registered_overlay_invented",
+      "cached_source_falsely_reacquired",
+      "frozen_source_bytes_changed"
+    ],
+    "local_geometry_fixtures_run": false,
+    "local_original_byte_fixture_run": false,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "full_local_corruption_tests": {
+    "status": "passed",
+    "scope_aw_ids": [
+      "hydro-system:50766256",
+      "hydro-system:50779535",
+      "hydro-system:50782443"
+    ],
+    "durable_only_scope_truthful": true,
+    "corrupt_fixtures_rejected": 42,
+    "fixtures": [
+      "automatic_application",
+      "whole_group_clearance",
+      "per_reach_clearance",
+      "unsupported_korean",
+      "wrong_identifier_domain",
+      "target_order_reversed",
+      "historical_verdict_restoration",
+      "false_original_coordinate_equality",
+      "unsupported_registry_claim",
+      "tributary_distinctions_erased",
+      "source_reach_name_boundary_claim",
+      "unsupported_continuous_flow",
+      "collie_east_name_overstated",
+      "collie_reservoir_parts_named",
+      "warren_tone_distinction_erased",
+      "tone_warren_part_boundary_invented",
+      "kalgan_tidal_length_projected",
+      "kalgan_harbour_boundary_invented",
+      "uniform_river_name",
+      "invented_system_suffix",
+      "connector_name_inheritance",
+      "actual_stage_changed",
+      "cumulative_count_inflated",
+      "prior_duplicate_added",
+      "body_hash_replaced_by_derivative",
+      "printed_date_replaced_by_upload_year",
+      "reused_acquisition_time_overwritten",
+      "whole_path_geometry_hash_changed",
+      "text_page_counted_as_map",
+      "kalgan_report_year_used_as_publication",
+      "supplement_inflates_support_count",
+      "supplement_classed_as_supporting_publication",
+      "registered_overlay_invented",
+      "cached_source_falsely_reacquired",
+      "frozen_source_bytes_changed",
+      "local_fragment_missing",
+      "local_role_changed",
+      "local_terminal_removed",
+      "local_part_order_reversed",
+      "local_interior_coordinate_changed",
+      "local_source_ids_reversed",
+      "local_original_body_byte_changed"
+    ],
+    "local_geometry_fixtures_run": true,
+    "local_original_byte_fixture_run": true,
+    "network_requests": 0,
+    "original_inputs_modified": false
+  },
+  "privacy_check": {
+    "status": "passed",
+    "review_files_scanned": 8,
+    "absolute_local_paths_found": 0,
+    "private_coordination_or_conversation_found": 0,
+    "raw_source_bodies_found": 0,
+    "full_coordinate_arrays_found": 0,
+    "per_part_endpoint_arrays_found": 0,
+    "unwanted_binary_or_image_files_found": 0
+  },
+  "validation_scope_note": "Recorded full-local work and independent visual review apply only to this fixed current batch. Durable-only reruns do not reopen omitted originals, coordinates or image pixels. Prior27 index identity is pinned; old source and geometry findings are not re-audited."
+}

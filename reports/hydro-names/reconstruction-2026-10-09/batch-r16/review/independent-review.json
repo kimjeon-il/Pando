@@ -1,0 +1,198 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "reviewed_at_utc": "2026-10-09T17:08:04.849828+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159108453",
+    "lakes_base:1159108469",
+    "lakes_base:1159109723"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Independent inspection of the original WSA2014 map body, whole-map overview, imprint and all target regions; every complete source and baseline ring was viewed and independently decoded. Present public validation checks included files only.",
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "geometry_modified": false,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0,
+  "prior_distinct_targets": 45,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 48,
+  "duplicate_targets": 0,
+  "counted_unit": "Distinct logical inventory target IDs; not a count of distinct named waterbodies or verified names.",
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "new_pending_access_ids": [],
+  "pending_access_reassessment_performed": false,
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803"
+  ],
+  "new_scope_hold_ids": [
+    "lakes_base:1159108469"
+  ],
+  "cumulative_count_scope": "Recorded fresh-research inventory targets including unresolved scope holds and access gaps, not verified scalar names. Only prior45 membership/follow-up flags and current3 delta were checked; prior source/geometry judgments were not reaudited.",
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159108453",
+      "source_id": "1159108453",
+      "logical_fid": 3964,
+      "geometry_fids": [
+        15339
+      ],
+      "position_count": 33,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Knee Lake",
+      "directly_supported_name_forms": [
+        "Knee Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_mapped_water_shapes_compared": true,
+      "complete_source_and_baseline_geometry_inspected": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "whole_named_water_extent_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "compound_named_waterbody_required_by_evidence": false,
+      "supported_name_scope": "The complete bent polygon corresponds at regional scale to mapped Knee Lake. The northern head, narrow middle, eastward projections, long western edge and southern rounded basin were compared. The outline simplifies island-rich water and irregular bays; it does not establish the full named-lake boundary or the exact transition to the Churchill River.",
+      "limits": [
+        "One regional cartographic publication supports the generalized association; a second independent naming source and formal registry were not established.",
+        "Fine islands, bays and adjoining-river transitions are unresolved. No exact coastline or complete named-water extent is claimed."
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159108469",
+      "source_id": "1159108469",
+      "logical_fid": 3965,
+      "geometry_fids": [
+        15340
+      ],
+      "position_count": 44,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": null,
+      "directly_supported_name_forms": [],
+      "research_category": "whole_polygon_scope_hold",
+      "source_research_category": "whole_polygon_scope_hold",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "actual_mapped_water_shapes_compared": true,
+      "complete_source_and_baseline_geometry_inspected": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "whole_named_water_extent_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "compound_named_waterbody_required_by_evidence": null,
+      "supported_name_scope": "The complete hooked polygon is visible north of Pinehouse. Its long northeastern arm, northwest notch, western lobe and southern hook were compared. Sandfly Lake lettering spans northern water, while the separate Pinehouse Lake label occupies the connected southern complex. The map does not establish which name covers every reach of this selected polygon, nor a reliable partition. Both labels remain contextual, with candidate null and a completed naming-scope hold.",
+      "limits": [
+        "Sandfly Lake and Pinehouse Lake are nearby contextual names; neither is assigned as a whole-target candidate or an exhaustive constituent. Pinehouse settlement text is not a water name.",
+        "Every part is inspectable, so this is a completed bounded assessment with a naming-scope hold. Neither a uniform name, a compound identity, nor a precise name partition is established."
+      ],
+      "constituent_list_exhaustive": false,
+      "exact_name_partition_established": false,
+      "second_named_constituent_established": false,
+      "nearby_contextual_name_forms": [
+        "Sandfly Lake",
+        "Pinehouse Lake"
+      ],
+      "contextual_label_promoted_to_target_name": false,
+      "settlement_label_promoted_to_water_name": false,
+      "candidate_name_role": "unassigned_after_complete_scope_review",
+      "unassigned_region": "The entire hooked feature, including northeastern arm, western lobe and southern hook north of Pinehouse.",
+      "follow_up_scope": "Resolve naming coverage across the full selected outline before assigning any uniform or compound name or changing geometry."
+    },
+    {
+      "aw_id": "lakes_base:1159109723",
+      "source_id": "1159109723",
+      "logical_fid": 4063,
+      "geometry_fids": [
+        15438
+      ],
+      "position_count": 28,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Sandfly Lake",
+      "directly_supported_name_forms": [
+        "Sandfly Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_mapped_water_shapes_compared": true,
+      "complete_source_and_baseline_geometry_inspected": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "whole_named_water_extent_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "compound_named_waterbody_required_by_evidence": false,
+      "supported_name_scope": "The complete eastern basin corresponds at regional scale to water beneath the Lake part of the Sandfly Lake label. Its broad northern cap, western notch, eastern indentation and lower eastward arm taper into the southern tip. The full outline was compared with mapped water and surrounding shore. This supports generalized Sandfly Lake association for the selected feature, not equivalence with the entire named lake or extension of that name to connecting river water.",
+      "limits": [
+        "The selected inventory polygon represents an eastern part of the mapped named-water setting. The number of inventory targets does not establish the number of distinct named waterbodies.",
+        "The one regional map does not resolve fine shoreline, all connecting channels, exact naming boundaries, or the entire named lake. No geometry repair or product-name application is approved."
+      ]
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-09T17:08:04.849828+00:00",
+    "available_source_inspection_completed": true,
+    "full_source_review_completed": true,
+    "original_source_material_included": false,
+    "historical_results_recomputed_by_public_validator": false,
+    "scope": "All three complete-feature bounded map assessments are complete: generalized Knee Lake and eastern-basin Sandfly Lake associations are supported; the middle hooked feature remains unnamed on a scope hold. This current-batch statement does not complete prior pending targets."
+  },
+  "included_evidence_limit": "Included files contain factual observations, bibliography and selected public-domain geometry. Original publications and inspection materials are omitted. Public validation checks only included facts and coordinates; it cannot reproduce omitted visual source judgments or resolve the remaining naming-scope hold."
+}

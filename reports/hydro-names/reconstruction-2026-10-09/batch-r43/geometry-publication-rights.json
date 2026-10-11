@@ -1,0 +1,20 @@
+{
+  "schema": "lake-metadata-publication-scope-v1",
+  "scope_aw_ids": [
+    "lakes_base:1159123751",
+    "lakes_base:1159108211",
+    "lakes_base:1159110219"
+  ],
+  "source_attribution": "Natural Earth 5.0.0 1:10m lake data, as attributed by retained source metadata. Made with Natural Earth.",
+  "official_terms_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "retained_official_terms_basis": "Natural Earth describes its raster and vector map data as public domain. The retained terms were checked privately; no terms body is included.",
+  "publication_scope": "Original factual identifier, geometry-count, bounds and exact name-state summaries only.",
+  "complete_coordinates_in_public_package": false,
+  "per_ring_paths_in_public_package": false,
+  "complete_upstream_assets_in_public_package": false,
+  "binary_packs_or_worker_bodies_in_public_package": false,
+  "omitted_input_fingerprints_in_public_package": false,
+  "original_source_bodies_in_public_package": false,
+  "unrelated_map_rights_asserted": false,
+  "new_external_requests": 0
+}

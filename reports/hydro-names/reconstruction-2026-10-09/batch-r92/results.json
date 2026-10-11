@@ -1,0 +1,404 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r92",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r91",
+    "commit": "c5a805124ff5ff37b2fa0c2b99a77ce36d3f7892",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r91/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61606963",
+    "hydro-system:90090469",
+    "hydro-system:70243334",
+    "hydro-system:61533241"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61606963",
+      "category": "river_group",
+      "system_id": "61606963",
+      "baseline_logical_fid": 3654,
+      "geometry_fids": [
+        14663
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -71.833333,
+        -51.46875,
+        -69.410715,
+        -50.460417
+      ],
+      "rendered_mainstem_length_km": 293.891,
+      "rendered_network_length_km": 293.891,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -71.833333,
+          -51.46875,
+          -69.410715,
+          -50.460417
+        ]
+      },
+      "candidate_name": "Río Coig (Coyle)",
+      "candidate_names": [
+        "Río Coig",
+        "Río Coyle"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Official mapping directly labels Río Pelque on the selected northern headward course and Río Coig (Coyle) on the receiving corridor. The provincial hydrographic map groups the Pelque subbasin within Río Coig o Coyle. The river-group candidate does not rename Pelque, Laguna Sarmiento or Ría Coig.",
+      "geographic_disambiguation": "The selected northwestern approach lies in the Laguna Sarmiento–Estancia La Franka setting, east of the separate Río Bote drainage. It continues southeast into the directly labeled Río Pelque valley, turns south and then east past Estancia El Tero and Bajos Viejos, and follows the northern Pelque approach past the separate Arroyo Barrancas Blancas and Cañadón Deus o Fabre junction settings. It joins the west-to-east Coig near El Chiripá and continues east by Esperanza rather than adopting the western Coig headwaters. The route then bends southeast and south along Coig, with Cañadón Camusu Aike to its east, passes the Brazo Sur junction near Las Horquetas, rounds the Barda Blanca–La Carina bend, and turns northeast through the Moy Aike Chico and Moy Aike Grande corridor. It crosses the mapped RN 3 near Coig Aike and ends at the inner head of Ría Coig. The outer estuary at Puerto Coig, Punta Monte and Punta Sur continues beyond the selected end to Bahía Grande and the Mar Argentino.",
+      "source_keys": [
+        "r92-ign-coig-250k",
+        "r92-ign-pelque-100k",
+        "r92-ssrh-santa-cruz-basins-2025"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Patagonia, Santa Cruz Province, Argentina: Laguna Sarmiento and Río Pelque country, Esperanza, the Coig valley and the inner Ría Coig setting south of Puerto Coig.",
+      "candidate_name_role": "Representative receiving-river identity for the selected Río Pelque approach and downstream Coig corridor to the head of Ría Coig.",
+      "completion_scope": "Completed bounded correspondence of the entire selected mainstem using original official 250k whole-corridor and estuary views, an overlapping original 100k Pelque view, and the previously acquired March 2025 federal provincial hydrographic map. The 100k response covers the black no-data interval in the 250k Pelque mosaic; the whole-corridor view covers the inner estuarine head obscured in the separate estuary-context view. No material selected-path interval remains uncovered. The finding concerns a generalized connected route and representative system, not surveyed channel banks or exact hydronym boundaries.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Río Coig (Coyle)",
+        "headward_component": "Short northwestern feeder/lake-edge setting near Laguna Sarmiento, then the separately named Río Pelque. No exact lake outlet, source point or first named-river vertex is assigned.",
+        "receiving_component": "Río Coig downstream of the Pelque junction near El Chiripá and through Esperanza, Las Horquetas and the lower northeastward valley.",
+        "terminal_component": "Inner head of Ría Coig downstream of the mapped RN 3 crossing near Coig Aike; the Puerto Coig outer estuary and open Atlantic mouth lie beyond the selected endpoint.",
+        "excluded_inferences": [
+          "Do not apply Coig uniformly to Río Pelque, Laguna Sarmiento or the named estuary.",
+          "Do not add the western Coig headwater course, Barrancas Blancas, Deus o Fabre, Camusu Aike or Brazo Sur as selected tributaries.",
+          "No exact source, legal hydronym boundary, current tidal limit, precise bank alignment or official natural river length is established."
+        ],
+        "model_limits": "The 293.891 km value is the generalized modeled-mainstem length. Coarse lake-edge, floodplain and meander shortcuts, and map-edition differences, are not independent evidence for a different river or a surveyed route."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90090469",
+      "category": "river_group",
+      "system_id": "90090469",
+      "baseline_logical_fid": 2854,
+      "geometry_fids": [
+        8869
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -37.2,
+        68.493287,
+        -32.55625,
+        69.6
+      ],
+      "rendered_mainstem_length_km": 293.604,
+      "rendered_network_length_km": 293.604,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -37.2,
+          68.493287,
+          -32.55625,
+          69.6
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The retained official originals support a completed geographic and feature-class review and a whole-route natural-river naming hold. They do not establish a named natural river corresponding to the complete selection. This does not assert that all local marginal streams or glacial watercourses are unnamed.",
+      "geographic_disambiguation": "The complete pinned selection starts at its northwestern end, descends generally south-southeast, makes a shallow low bend and a small east-northeast recovery, and then follows a long eastward to east-southeastward course. Two conspicuous southeastward steps interrupt the middle course. Farther east, a short northward arch precedes the final stepped southeastward limb and its actual southeastern ending. The original sheet and its graticule place the northwestern opening and substantial interior course on the eastern Inland Ice. The route then approaches the irregular glaciated mountain-margin country in the Prinsen af Wales Bjerge and Kangerdlugssuaq region. Watkins Bjerge and Gunnbjørn Fjeld provide context farther east/northeast, while Scoresby Sund is farther north. The final southeastern section reaches the glaciated-margin and fjord-head country around the mapped Kangerdlugssuaq. It must not be characterized solely from the distant ice-interior beginning. The map distinguishes surrounding exposed-rock units, glacier/ice corridors and fjord water, but this historical regional comparison does not establish an exact ice-front crossing, named terminal feature or natural-river mouth for the final vertex. No selected vertex was moved to fit a nearby named feature.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "East Greenland Inland Ice and its southeastern glaciated mountain margin in the Kangerdlugssuaq region, south of Scoresby Sund.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded source-object correspondence for the single selected mainstem, including its northwestern opening, shallow western bend, long eastward middle, southeastward steps, eastern arch and actual southeastern ending. The complete pinned route plot and actual cached coordinate sequence were compared with retained original geological-sheet pixels, readable graticule, regional and fjord-head enlargements, the original Inland Ice legend, and bulletin pages 64–65. This is a completed geographic and naming-scope determination, not a source-acquisition gap. Later name assignment would require positive natural-river identity evidence spanning the selected route. Exact present ice-front, coastline and water/ice boundaries are outside this historical regional comparison.",
+      "naming_scope_details": {
+        "representative_receiving_system": null,
+        "selected_mainstem_sequence": "Northwestern interior opening → south-southeastward descent → shallow western bend and small northeastward recovery → long eastward middle → southeastward steps → stepped eastward course → small eastern northward arch → southeastward limb and ending.",
+        "tributary_scope": "No tributary geometry is selected. Internal coordinate parts do not establish additional natural tributaries.",
+        "feature_class_scope": "Eastern Inland Ice interior followed by an approach to and passage into glaciated mountain-margin/fjord-head country. The original sources do not establish one continuous natural river or one named glacier for the complete selection.",
+        "terminal_scope": "Kangerdlugssuaq glaciated-margin and fjord-head setting in East Greenland. Exact final ice/rock/water relation and named terminal feature remain unassigned.",
+        "nearby_name_scope": "Kangerdlugssuaq, Prinsen af Wales Bjerge, Watkins Bjerge, Gunnbjørn Fjeld, Scoresby Sund and Denmark Strait are regional disambiguation only. None is a proposed river candidate, representative receiving river or assigned endpoint.",
+        "ice_symbol_scope": "Blue ice-surface contours, dashed ice-thickness isopachs, gray bedrock contours and aeromagnetic lineaments are not river evidence.",
+        "displayed_mainstem_length_km": 293.604,
+        "length_limit": "Modeled inventory display length, not an official or measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false,
+        "name_evidence_limit": "Historical regional geological mapping and general glaciology establish setting and naming limits. They are not a river gazetteer, contemporary ice-front survey or direct observation of surface/subglacial water connectivity."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70243334",
+      "category": "river_group",
+      "system_id": "70243334",
+      "baseline_logical_fid": 2997,
+      "geometry_fids": [
+        9318,
+        9317
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -65.895833,
+        50.322636,
+        -64.40625,
+        52.027083
+      ],
+      "rendered_mainstem_length_km": 290.029,
+      "rendered_network_length_km": 290.029,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -65.895833,
+          50.322636,
+          -64.40625,
+          52.027083
+        ]
+      },
+      "candidate_name": "Rivière Magpie",
+      "candidate_names": [
+        "Rivière Magpie"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rivière Magpie Ouest is directly supported for the long upper named river corridor. Lac Magpie is the receiving lake traversed after the west-branch junction, and Rivière Magpie is directly supported for the lower river from the lake to the coastal outlet. The representative name is not assigned uniformly to the west branch, lake or unnamed initial approach.",
+      "geographic_disambiguation": "The selected northwest end is in a small western lake-and-stream chain west of Lac Bright Sand. Its northward bend and east/southeast connection reach the mapped Magpie Ouest below the Bright Sand chain in the Ethel lake vicinity; the northward Bright Sand approach itself is not selected. The route then follows repeatedly labeled Magpie Ouest southeast and south, east of the Manitou drainage, before turning east into the western shore of Lac Magpie. It turns south within that lake and continues down the labeled Magpie river to the coast at Magpie, west of Rivière-Saint-Jean. It does not use the northern Magpie approach to the lake, the neighboring Manitou or Sheldrake rivers, or the Saint-Jean coastal outlet.",
+      "source_keys": [
+        "r92-canada-basemap-magpie"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Québec Côte-Nord, from the western headwater country near the Bright Sand–Ethel lake setting southeast to Lac Magpie and the coastal settlement of Magpie.",
+      "candidate_name_role": "Representative receiving-river identity for the selected western headward approach, Rivière Magpie Ouest, the southern Lac Magpie crossing and lower Rivière Magpie.",
+      "completion_scope": "Completed bounded river-corridor correspondence for both selected mainstem fragments using the two previously acquired Canada Base Map raster exports. The full-route view covers the complete selection; the northern enlargement resolves the initial western branch and its connection to the named Magpie Ouest corridor. Original map labels and waterways were inspected separately from local orientation overlays, including the western lake entrance and lower river outlet. Geographic image extents and aspect ratios agree with the retained export requests. This establishes generalized lake, river and junction correspondence, not exact banks, an official source point, all minor channel names or point-by-point alignment.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Rivière Magpie",
+        "initial_headward_component_name": null,
+        "initial_headward_component": "Small western lake-and-stream approach west of Lac Bright Sand; distinct names not established.",
+        "upper_named_component": "Rivière Magpie Ouest",
+        "lake_component": "Southern part of Lac Magpie, below the western Magpie Ouest entrance.",
+        "lower_river_component": "Rivière Magpie",
+        "terminal_component": "Coastal outlet at Magpie on the north shore of the Gulf of St. Lawrence.",
+        "excluded_inferences": [
+          "Do not apply Rivière Magpie uniformly to Rivière Magpie Ouest, Lac Magpie or the unnamed initial western approach.",
+          "Do not replace the selected western approach with the northern Bright Sand chain or with the northern Rivière Magpie approach to Lac Magpie.",
+          "No separate official name is established for the initial small watercourse and lakes, and no official source point or exhaustive tributary inventory is inferred.",
+          "The inspected cartography does not establish an alternative Indigenous name, naming decision date or Korean name; no gazetteer records were used."
+        ],
+        "model_limits": "The 290.029 km modeled length describes the selected two-fragment route, not an official length of Rivière Magpie or Rivière Magpie Ouest. The retained line generalizes small lakes, meanders, banks and the coastal outlet; no geometry change is proposed."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61533241",
+      "category": "river_group",
+      "system_id": "61533241",
+      "baseline_logical_fid": 3602,
+      "geometry_fids": [
+        14504
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -68.625,
+        -37.397917,
+        -67.00625,
+        -36.047917
+      ],
+      "rendered_mainstem_length_km": 289.9,
+      "rendered_network_length_km": 289.9,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -68.625,
+          -37.397917,
+          -67.00625,
+          -36.047917
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The original IGN western sheet labels the headward watercourse R. Las Calas. The lower map labels Bañados del Potrol and the receiving saline basin Salina Grande o Gran Salitral. These local names cannot be extended over the long intervening upland connector or treated as aliases of one continuously flowing river.",
+      "geographic_disambiguation": "The sole selected mainstem begins near El Chacayal in southern Mendoza, west of Agua Escondida and its separate named arroyo. Its headward corridor is associated with the mapped R. Las Calas toward Puesto El Azufre and Agua Nueva. It then turns east through the Jagüel del Moro setting, passes south of La Humada, and continues southeast across upland near La Esperanza, La Leona, San Guillermo and El Centinela. The selected connector is north of the separate Chical-Co drainage and descends through the barranca setting south of Algarrobo del Águila. Turning south on the western side of the Atuel–Salado lowland, it passes the Las Salinas/El Salitral surroundings and crosses the Playa del Camión and Salitral Blanco salt-flat setting before entering Bañados del Potrol and ending at the northern part of Salina Grande o Gran Salitral. The separately drawn Río Salado or Chadileuvú lies farther east. Neither a lower Atuel mainstem route, a Colorado connection, nor a continuously flowing river from the Mendoza headward section to the saline ending is established.",
+      "source_keys": [
+        "r92-ign-las-calas-gran-salitral"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Mendoza and western La Pampa, Argentina: El Chacayal–Agua Nueva, La Humada upland, western Atuel–Salado lowland and the northern Gran Salitral basin.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded geographic and name-scope review of the entire actual selected cached path against a full original IGN 1:250,000 raster and overlapping western, middle and southern enlargements. Local crops and basic orientation overlays were checked. The southern enlargement contains black mosaic no-data strips; the previously acquired full-extent raster and its readable terminal crop cover those intervals. Two 1:100,000 probes returned entirely blank rasters and contribute no evidence. The hold concerns unsupported whole-route hydrological/name continuity, not an unviewed section of the 1:250,000 map.",
+      "naming_scope_details": {
+        "representative_receiving_river_identity": null,
+        "headward_component": "R. Las Calas, a local original-map label in the El Chacayal–El Azufre–Agua Nueva corridor; not a whole-selection candidate.",
+        "middle_component": "Mapped La Humada upland traversed by the modeled connector; continuous channel and a linking river identity are not established.",
+        "terminal_component": "Bañados del Potrol approach to the northern Gran Salitral / Salina Grande saline basin.",
+        "excluded_inferences": [
+          "Do not assign Atuel, Potrol or Las Calas to all 289.9 km.",
+          "Do not turn a salt-basin or wetland name into a river name.",
+          "Do not equate a dry or possible palaeochannel with current continuous surface flow.",
+          "Do not infer that every local stream is unnamed merely because a whole-system name is unsupported."
+        ],
+        "label_reading_limit": "The original headward label reads R. Las Calas. It supports only the local headward corridor, not a name for the full modeled route.",
+        "model_limits": "The 289.9 km value is the inventory display length, not an official river-length measurement. No precision reconstruction, surveyed junction or exact contemporary water boundary is claimed."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90090469",
+      "hydro-system:61533241"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 311,
+    "non_pending_records": 300,
+    "source_access_pending": 3,
+    "source_material_pending": 8,
+    "source_any_pending": 11,
+    "scope_holds": 102,
+    "river_groups": 213,
+    "lakes": 98,
+    "unrecorded": 3754,
+    "unrecorded_river_groups": 3242,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r92-ign-coig-250k",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r92-ign-pelque-100k",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r92-ssrh-santa-cruz-basins-2025",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/santa_cruz_proy.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r92-canada-basemap-magpie",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r92-ign-las-calas-gran-salitral",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "c5a805124ff5ff37b2fa0c2b99a77ce36d3f7892",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      167,
+      168,
+      169,
+      170
+    ],
+    "next_unrecorded_id": "hydro-system:70287892",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

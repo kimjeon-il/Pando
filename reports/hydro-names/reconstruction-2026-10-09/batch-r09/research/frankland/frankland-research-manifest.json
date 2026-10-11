@@ -1,0 +1,24 @@
+{
+  "schema": "hydro-name-reconstruction-research-manifest-v1",
+  "batch": "r09",
+  "aw_id": "hydro-system:50782475",
+  "frozen_at_utc": "2026-10-09T14:29:31.610625+00:00",
+  "files": [
+    {
+      "file": "source-evidence.json",
+      "bytes": 10012,
+      "sha256": "aa1f56a948832356e1bcf359e5883edf44e2d83ce268bcd9b887b9c2b256720d",
+      "hash_scope": "Exact UTF-8 JSON file bytes, including final newline."
+    },
+    {
+      "file": "frankland-findings.json",
+      "bytes": 6432,
+      "sha256": "f6cb197f942ba170df73a4c04ac2ebca20e80319c596029987c19f58551d9ed1",
+      "hash_scope": "Exact UTF-8 JSON file bytes, including final newline."
+    }
+  ],
+  "raw_sources_and_complete_geometry_included": false,
+  "automatic_application": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

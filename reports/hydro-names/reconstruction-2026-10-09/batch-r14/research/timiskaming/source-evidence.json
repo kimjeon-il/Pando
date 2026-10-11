@@ -1,0 +1,88 @@
+{
+  "schema": "hydro-public-source-evidence-v2",
+  "batch": "r14",
+  "created_at_utc": "2026-10-09T16:24:54.921040+00:00",
+  "sources": [
+    {
+      "source_key": "obvt_portrait_landing",
+      "publisher": "Organisme de bassin versant du Témiscamingue",
+      "title": "Portrait: Le portrait du bassin versant",
+      "publication_date": null,
+      "publication_date_note": "No calendar publication date is established from the inspected page.",
+      "kind": "regional_water_management_body_overview",
+      "url": "https://obvt.ca/le-bassin-versant/le_plan_directeur_de_l_eau/les-sections-du-pde/portrait/",
+      "retrieved_at_utc": "2026-10-09T16:22:05.455840+00:00",
+      "retrieved_this_batch": true,
+      "original_map_visually_inspected": false,
+      "body_inspected": true,
+      "observed_name_forms": [
+        "lac Témiscamingue"
+      ],
+      "identity_map_evidence": false,
+      "independence_group": "obvt_portrait_overview",
+      "source_limit": "The overview uses this French name for a receiving waterbody in its basin description. It does not provide an inspected lake map or establish the extent of this inventory polygon."
+    },
+    {
+      "source_key": "orrpb_reservoirs",
+      "publisher": "Ottawa River Regulation Planning Board",
+      "title": "The Ottawa River Basin and its Reservoirs",
+      "publication_date": null,
+      "publication_date_note": "No calendar publication date is established from the inspected page or embedded map. The image URL date directory is not treated as a publication date.",
+      "kind": "official_water_management_overview_with_basin_schematic",
+      "url": "https://www.ottawariver.ca/about-us/what-we-do/the-ottawa-river-basin-and-its-reservoirs/",
+      "map_url": "https://www.ottawariver.ca/wp-content/uploads/2019/02/Picture1.png",
+      "retrieved_at_utc": "2026-10-09T16:23:10.499920+00:00",
+      "map_retrieved_at_utc": "2026-10-09T16:23:26.826029+00:00",
+      "retrieved_this_batch": true,
+      "original_map_visually_inspected": true,
+      "body_inspected": true,
+      "map_location": "Figure 3, Principal Reservoirs in the Ottawa River Basin",
+      "observed_name_forms": [
+        "Lake Timiskaming",
+        "Timiskaming"
+      ],
+      "identity_map_evidence": false,
+      "independence_group": "orrpb_reservoirs_overview",
+      "source_limit": "The body names Lake Timiskaming and lists Timiskaming as reservoir 4. Figure 3 is a small numbered whole-basin schematic; it cannot resolve all arms, shorelines or downstream termination of this target."
+    }
+  ],
+  "independent_source_count": 2,
+  "independent_cartographic_identity_source_count": 0,
+  "inspected_contextual_map_publication_count": 1,
+  "independence_note": "The OBVT and ORRPB are separate water-management publishers. Both support documented name usage and basin context. The ORRPB map remains contextual and does not establish whole-target correspondence.",
+  "unused_acquisition_outcomes": [
+    {
+      "url": "https://www.cartes.gc.ca/charts-cartes/charts-cartes-fra.asp?img=_1&num=1556&wbdisable=true",
+      "publication": "Canadian Hydrographic Service chart1556 catalogue/preview",
+      "access_outcome": "web Internal Error; HTTP status unavailable",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://www.ontario.ca/page/official-road-map-ontario",
+      "publication": "Ontario official road map landing publication",
+      "access_outcome": "403 Forbidden",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://obvt.ca/wp-content/uploads/2020/12/10-decembre-Milieux-humides-ens-Nord_Capture-241x300.png",
+      "publication": "OBVT northern wetlands thumbnail map",
+      "access_outcome": "Cache miss; HTTP status unavailable",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://obvt.ca/wp-content/uploads/2020/06/Partie_2_Portrait_PDE_OBVT_FINAL2.pdf",
+      "publication": "OBVT Portrait du bassin versant report; landing-page integral PDF",
+      "access_outcome": "web click Internal Error; HTTP status unavailable",
+      "source_content_acquired": false,
+      "used_as_evidence": false
+    }
+  ],
+  "search_snippets_used_as_identity_evidence": false,
+  "included_evidence_limit": "Included records contain official bibliographic references and own factual observations. Original publications and inspection materials are not included. Public offline checks do not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false,
+  "availability_scope_note": "The unsuccessful original-map/report requests were not used as evidence. The acquired schematic is inadequate for full-feature correspondence; the target remains source-limited."
+}

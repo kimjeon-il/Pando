@@ -1,0 +1,418 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r81",
+  "sources": [
+    {
+      "source_key": "r81-usgs-topo-atchafalaya",
+      "title": "USGS Topo, The National Map — Alexandria, Bayou des Glaises and Atchafalaya Basin views",
+      "publisher": "U.S. Geological Survey",
+      "year_note": "Agency service viewed 10 October 2026; survey dates of individual features are not established.",
+      "supports": "Distinct Engineers Canal/Bayou Rouge/Bayou des Glaises upper route, repeated Atchafalaya labels, middle basin channel choices, lake context and lower-river versus terminal marsh setting.",
+      "limits": "Reference cartography and generalized model geometry are not a present-day flow or navigation survey. Exact short connectors, lake-boundary vertices and the final minor-channel name are unassigned. Three windows are one cartographic source, not independent publications.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r81-heritage-sarto",
+      "title": "Bayou des Glaises at Sarto Old Iron Bridge — Water Heritage Trail",
+      "publisher": "Atchafalaya National Heritage Area",
+      "year_note": "Undated program webpage read 10 October 2026; copyright range is not a publication date.",
+      "supports": "Independent Bayou des Glaises name, northeastward course and large bend toward Atchafalaya at Simmesport, separate from former Red River connections.",
+      "limits": "Historical and interpretive geographic account. It does not establish current hydraulic controls, continuous flow, exact source/model alignment or the identity of every selected feeder.",
+      "official_url": "https://waterheritage.atchafalaya.org/trail-sites.php?trail=Sarto-Old-Iron-Bridge"
+    },
+    {
+      "source_key": "r81-usgs-topo-neuse",
+      "title": "USGS Topo, The National Map: selected West Fork Eno–Eno–Neuse corridor",
+      "publisher": "U.S. Geological Survey",
+      "year_note": "Live agency map service viewed 10 October 2026; feature-specific survey and update dates were not established.",
+      "supports": "Readable coverage of both selected fragments; West Fork Eno versus East Fork/Lake Orange distinction; repeated Eno and Neuse labels; impounded receiving connection; middle river and separate tributaries; terminal Neuse widening above New Bern.",
+      "limits": "The four windows are one cartographic source, not four independent publications. Generalized hydrography and labels do not establish exact channel alignment, active flow, formal naming boundaries or source/mouth points. Historic waterbody labels within the large reservoir are not promoted to whole-river aliases.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r81-ncdenr-neuse-basin-2001",
+      "title": "Basin 10 Neuse, State Water Supply Plan",
+      "publisher": "North Carolina Department of Environment and Natural Resources, Division of Water Resources",
+      "year_note": "January 2001 is printed in the document; official six-page PDF text read 10 October 2026.",
+      "supports": "Independent Eno and Flat convergence into the Neuse, upper Neuse impoundment by Falls Lake, downstream town sequence, and separate Contentnea and Trent confluences.",
+      "limits": "Historical regional description, not a precise map of the selected West Fork beginning or endpoint. Its full river description continues beyond the selection; historical supply statistics and projections are not used.",
+      "official_url": "https://files.nc.gov/ncdeq/Water%20Resources/wsp/swsp/swsp_jan2001/final_pdfs/B10_Neuse.pdf"
+    },
+    {
+      "source_key": "r81-ncdeq-eno-withdrawals",
+      "title": "Eno River Management: Major Withdrawals",
+      "publisher": "North Carolina Department of Environmental Quality, Division of Water Resources",
+      "year_note": "Undated management background read 10 October 2026; the page displays a historical 2016 withdrawal-status line, so its operational figures are not treated as current.",
+      "supports": "Independent recognition of West Fork Eno Reservoir, Lake Ben Johnston Reservoir, Corporation Lake Reservoir and Lake Orange as distinct upper Eno water-supply features.",
+      "limits": "Management prose alone does not locate the modeled path or delimit the named reservoir boundaries. Historical capacity and withdrawal-status information is not used for present conditions.",
+      "official_url": "https://www.ncwater.org/Eno_River_Management/withdrawals.php"
+    },
+    {
+      "source_key": "r81-dga-palena-2009",
+      "title": "Informe Técnico N° 7: Reserva del río Palena para la conservación ambiental y el desarrollo local de la cuenca, S.D.T. N° 290",
+      "publisher": "Chile, Ministerio de Obras Públicas, Dirección General de Aguas",
+      "year_note": "November 2009, as printed on the acquired cover; historical report, not a current flow assessment.",
+      "supports": "Palena basin identity; eastern lake outlet returning through Argentina to Chile; Chilean trunk, Rosselot junction at La Junta, separate tributaries and coastal Palena endpoint near Raúl Marín Balmaceda.",
+      "limits": "Figure 11 has little Argentine internal detail. Station information and flow figures are historical; no current station status or exact channel/shoreline boundary is inferred.",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/5a8f7196-fd23-490f-98b5-a1dfcc6c9d5a/content"
+    },
+    {
+      "source_key": "r81-ianglia-carrenleufu-pico-2018",
+      "title": "Inventario Nacional de Glaciares: Cuenca de los ríos Carrenleufú y Pico, subcuencas de los ríos Carrenleufú y Pico, provincia del Chubut",
+      "publisher": "IANIGLA–CONICET and Argentina Ministerio de Ambiente y Desarrollo Sustentable",
+      "year_note": "Map face says May 2018; source cartography notes imagery from 2009 and 2012.",
+      "supports": "Selected Argentine Carrenleufú loop from General Vintter, the return west past Corcovado, northern Hielo and Huemul alternatives, the Encuentro border setting, and selected Pico course south of that system.",
+      "limits": "Argentine glacier-inventory map has unlabelled stream segments and omits much of Chile. It is not a current glacier or channel-change assessment and does not name all selected small feeders.",
+      "official_url": "https://www.glaciaresargentinos.gob.ar/wp-content/uploads/provincias/Chubut/docs/mapas/mapa_final_carrenleufu-pico_19-04-2018.pdf"
+    },
+    {
+      "source_key": "r81-dga-hoyas-palena",
+      "title": "Hoyas hidrográficas de Chile, XI Región Aisén and XII Región Magallanes: Hoya del Río Palena",
+      "publisher": "Dirección General de Aguas; Hans Niemeyer F., consultant; official CIREN repository",
+      "year_note": "Historical volume catalogued in the CIREN filename as 1982; the scanned cover viewed does not itself show that year.",
+      "supports": "Entire selected basin extent, separate Palena and Pico routes, southern hooked headwater within the Lago Verde drainage, Lago Verde–Figueroa–Rosselot connections and receiving Palena corridor.",
+      "limits": "Historical generalized cartography is used for regional correspondence only. It describes an older Claro/Rosselot nomenclature preference; this is not converted into a current whole-system alias. Small feeders and exact lake-entry vertices remain unassigned.",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/ac202d79-f7c4-4faf-921a-421e4f9c0cdc/content"
+    },
+    {
+      "source_key": "r81-minenergia-palena-2016",
+      "title": "Análisis de las condicionantes para el desarrollo hidroeléctrico en las cuencas de los ríos Palena, Cisnes, Aysén, Baker y Pascua, desde el potencial de generación a las dinámicas socio-ambientales — Informe Final",
+      "publisher": "Prepared for Chile Ministerio de Energía by Centro de Ciencias Ambientales EULA-Chile, Universidad de Concepción",
+      "year_note": "December 2016, printed cover.",
+      "supports": "Modern-agency report context for Carrenleufú/Palena transboundary sequence; Turbio–Lago Verde, Pico, Figueroa, Lago Rosselot and Rosselot subbasin roles; distinction from Risopatrón and other coastal waterways.",
+      "limits": "Generalized basin map and supporting text do not establish a uniform river hydronym for lake interiors or minor headwaters. No energy-project, water-right, contemporary flow or numerical basin-area conclusion is adopted.",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/96e056da-8221-4e13-a73b-371a93396c05/content"
+    },
+    {
+      "source_key": "r81-conaf-palena-plan",
+      "title": "Plan de Manejo de la Reserva Nacional Lago Palena",
+      "publisher": "Corporación Nacional Forestal, Chile; maps prepared by Surambiente",
+      "year_note": "2009 planning material; Map 6 is dated October 2009. The more recent hosting date is not treated as the map date.",
+      "supports": "Actual selected western starting approach in the Lago Los Témpanos setting, the northern/western Palena arm and long lake passage; separation from Río Corto, Siberia and the southern Río Quinto drainage; onward river and coastal sequence.",
+      "limits": "Reserve planning cartography, with a historical datum, supports regional branch choice rather than exact vertex/shoreline coincidence. Listed coastal-arm names are not promoted to aliases for the full selected system.",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-de-la-rn-lago-palena/?filename=RNLP.pdf&ind=1719933933805&refresh=68bbf9950aef11757149589&wpdmdl=60127"
+    },
+    {
+      "source_key": "r81-argentina-basin77",
+      "title": "Cuencas de los ríos Carrenleufú y Pico — Cuenca N° 77",
+      "publisher": "Argentina, Subsecretaría de Recursos Hídricos; prepared by Andrea Valladares",
+      "year_note": "Prepared January 2004, printed final page; mainly describes earlier hydrological work.",
+      "supports": "Carrenleufú/Corcovado river names for the Vintter outlet; Argentine bend sequence, Hielo/Huemul/Encuentro tributary distinctions, Pico corridor and shared Palena receiving system.",
+      "limits": "Older text has naming conventions for the Pico/Figueroa/Claro connection that are not flattened into modern aliases. Visual route correspondence comes from the acquired official maps. No historical flow, population or current station-status claim is adopted.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/77.pdf"
+    },
+    {
+      "source_key": "r81-usgs-topo-ogeechee",
+      "title": "USGS Topo, The National Map: Ogeechee River regional, headwater and coastal views",
+      "publisher": "U.S. Geological Survey",
+      "year_note": "Live agency raster service viewed 10 October 2026; no individual feature survey date established.",
+      "supports": "Full geographic correspondence; selected South Fork versus unselected North Fork; named Ogeechee trunk; upper Little Ogeechee/Hamburg Millpond and other tributaries; Canoochee confluence; Richmond Hill and Fort McAllister tidal course; distinct coastal Little Ogeechee network and terminal Intracoastal Waterway setting.",
+      "limits": "Generalized cartographic labels and hydrography do not establish exact channel registration, a uniform name across forks, present flow, navigation safety or formal source/mouth boundaries. The modeled endpoint stops before the complete estuary and open coast.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r81-georgia-epd-ogeechee-plan-2001",
+      "title": "Ogeechee River Basin Management Plan",
+      "publisher": "Georgia Department of Natural Resources, Environmental Protection Division",
+      "year_note": "Cover identifies 2001; the preface heading says 2000. Treated as historical background.",
+      "supports": "Forks, receiving Ogeechee, Canoochee relationship, tidal setting and historical reservoir context.",
+      "limits": "Map screenshot returned a cache miss; no plan map pixels or original PDF bytes were acquired. Historical prose does not determine exact selected channel boundaries or current conditions.",
+      "official_url": "https://epd.georgia.gov/document/publication/ogeechee-river-basin-management-planpdf/download"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70807755",
+      "source_keys": [
+        "r81-usgs-topo-atchafalaya",
+        "r81-heritage-sarto"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10012
+          ],
+          "finding": "The northwestern beginning south of Alexandria follows the Engineers Canal setting southeast, on the southwest side of the Red River. Its downstream route passes the Bayou Latanier and Bayou Floyd surroundings into the Bayou Rouge corridor. The map distinguishes nearby Bayou Robert and the more westerly/southerly Bayou Boeuf. Not every short generalized connector is individually named, and the selected start is not declared an official river source.",
+          "sources": [
+            "r81-usgs-topo-atchafalaya"
+          ]
+        },
+        {
+          "fragments": [
+            10012
+          ],
+          "finding": "The upper modeled course continues east through the Bayou Rouge drainage and joins the Bayou des Glaises setting near Moreauville. It follows the distinctive northeastward approach and large looping course through the Bordelonville/Big Bend area, then the eastern connection toward Simmesport. The readable map and the Heritage Area account independently identify this loop as Bayou des Glaises, not the Red River or a uniformly named upper Atchafalaya. The account describes its connection toward Atchafalaya, but is not a current floodgate or discharge observation.",
+          "sources": [
+            "r81-usgs-topo-atchafalaya",
+            "r81-heritage-sarto"
+          ]
+        },
+        {
+          "fragments": [
+            10012
+          ],
+          "finding": "At Simmesport the model enters the directly labeled Atchafalaya River and runs south through the Melville and Krotz Springs surroundings. It stays on the western Atchafalaya corridor rather than following the large Mississippi channel through the Morganza/Baton Rouge setting. Upper Bayou des Glaises and the separate lower-basin waterways bearing similar names are not assumed to be one continuous same-named bayou.",
+          "sources": [
+            "r81-usgs-topo-atchafalaya"
+          ]
+        },
+        {
+          "fragments": [
+            10012
+          ],
+          "finding": "Below Krotz Springs the selected route continues through the Atchafalaya Basin river and channel complex, crossing the Interstate 10 setting east of Henderson and passing the Bayou Chene surroundings. The map separately depicts broad managed channels, side bayous, swamp waters and lakes. The modeled shortcuts and channel choices are treated as generalized regional correspondence, not a surveyed thalweg or proof of one natural continuously flowing channel.",
+          "sources": [
+            "r81-usgs-topo-atchafalaya"
+          ]
+        },
+        {
+          "fragments": [
+            10012,
+            10013
+          ],
+          "finding": "Farther south the selection proceeds through the Grand Lake/Sixmile Lake and connected lower-channel setting, then turns east toward the Flat Lake and Morgan City area. Lake Fausse Pointe and Lake Verret remain separate off-route waterbodies. The model does not follow the western Wax Lake Outlet to its coastal delta; it reaches the Lower Atchafalaya/Berwick–Morgan City corridor instead. Exact channel/lake boundary vertices and the complete interiors of surrounding lakes are not assigned.",
+          "sources": [
+            "r81-usgs-topo-atchafalaya"
+          ]
+        },
+        {
+          "fragments": [
+            10013,
+            10014
+          ],
+          "finding": "The final sections pass the Morgan City/Berwick crossing and continue into the Lower Atchafalaya setting south of the Intracoastal Waterway. The last modeled line then runs beside the broad river through the Bayou Perrault/Honey Bayou marsh-channel surroundings, with a nearly straight final segment. The map does not establish that entire final segment as the main Lower Atchafalaya channel. Its precise minor-channel identity is left unassigned, and the endpoint is not extended to the full Atchafalaya Bay mouth or the open Gulf.",
+          "sources": [
+            "r81-usgs-topo-atchafalaya"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70691004",
+      "source_keys": [
+        "r81-usgs-topo-neuse",
+        "r81-ncdenr-neuse-basin-2001",
+        "r81-ncdeq-eno-withdrawals"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9867
+          ],
+          "finding": "The actual northern beginning follows the labeled West Fork Eno River into the western impoundment near Cedar Grove and continues south to the Eno River. The neighboring East Fork Eno River and Lake Orange are not the selected upstream branch. NC DEQ independently identifies West Fork Eno Reservoir as a Hillsborough water-storage feature; its historical capacity figures are not used as current measurements.",
+          "sources": [
+            "r81-usgs-topo-neuse",
+            "r81-ncdeq-eno-withdrawals"
+          ]
+        },
+        {
+          "fragments": [
+            9867
+          ],
+          "finding": "Below the upper fork connection, the selected corridor follows the Eno through the Hillsborough lake-and-river setting and eastward across northern Durham. The river and impounded sections retain their own roles. The broad-scale modeled line simplifies bends and locally crosses adjoining land or water, so it is not a surveyed channel or exact reservoir traverse.",
+          "sources": [
+            "r81-usgs-topo-neuse"
+          ]
+        },
+        {
+          "fragments": [
+            9867
+          ],
+          "finding": "The upper Eno route enters the receiving waters beside the separate Flat River approach; Little River and other upstream arms are also distinguishable. The selection continues southeast through the large impounded Neuse corridor. The state basin description identifies the Eno and Flat convergence and the upper Neuse impoundment as Falls Lake. A reservoir passage does not erase the upstream Eno name or establish one hydronym for every arm.",
+          "sources": [
+            "r81-usgs-topo-neuse",
+            "r81-ncdenr-neuse-basin-2001"
+          ]
+        },
+        {
+          "fragments": [
+            9867
+          ],
+          "finding": "Below Falls Lake, the selected route follows repeated Neuse River labels east of Raleigh and onward through the Smithfield, Goldsboro and Kinston settings. Separately mapped tributaries approach the trunk without replacing its identity. The distinctive northeastward bend below Kinston and the Contentnea Creek receiving vicinity correspond to the transition toward the lower selected fragment.",
+          "sources": [
+            "r81-usgs-topo-neuse",
+            "r81-ncdenr-neuse-basin-2001"
+          ]
+        },
+        {
+          "fragments": [
+            9868
+          ],
+          "finding": "The final fragment continues down the labeled lower Neuse past the Streets Ferry and Swift Creek setting. It ends in the widening Neuse near Marsh Island and the Batchelor Creek mouth, above central New Bern. The selected route does not turn up Batchelor Creek, follow the Trent River, or extend across the downstream estuary to Pamlico Sound. Its generalized end is not a formally defined river mouth or tidal boundary.",
+          "sources": [
+            "r81-usgs-topo-neuse"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61575734",
+      "source_keys": [
+        "r81-dga-palena-2009",
+        "r81-ianglia-carrenleufu-pico-2018",
+        "r81-dga-hoyas-palena",
+        "r81-minenergia-palena-2016",
+        "r81-conaf-palena-plan",
+        "r81-argentina-basin77"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14614
+          ],
+          "finding": "The selected western beginning is an unnamed short approach in the Lago Los Témpanos setting, then the northern/western arm of Lago Palena. The detailed CONAF map separates this route from Río Corto immediately to the south and the Siberia approach farther east. The generalized beginning is not replaced by one of those better-known neighboring feeders.",
+          "sources": [
+            "r81-conaf-palena-plan"
+          ]
+        },
+        {
+          "fragments": [
+            14614
+          ],
+          "finding": "The mainstem then makes a substantial eastward passage through the binational Palena/General Vintter lake before reaching its Argentine outlet. These are lake-interior sections of the model, not a river uniformly bearing the Palena hydronym. Argentina’s map independently establishes the outlet and its continuation northeast.",
+          "sources": [
+            "r81-conaf-palena-plan",
+            "r81-ianglia-carrenleufu-pico-2018"
+          ]
+        },
+        {
+          "fragments": [
+            14614,
+            14615
+          ],
+          "finding": "From the lake outlet the selected course follows the Carrenleufú/Corcovado northeast, then north and northwest through the pronounced Argentine bend to the Corcovado vicinity and westward return. It does not substitute the Hielo branch from the north or the Huemul arrival at Corcovado for the selected trunk.",
+          "sources": [
+            "r81-ianglia-carrenleufu-pico-2018",
+            "r81-argentina-basin77"
+          ]
+        },
+        {
+          "fragments": [
+            14616
+          ],
+          "finding": "The westbound course crosses into Chile in the Encuentro border setting and continues as Río Palena. It follows the Palena bends past the separate Tigre/Salto and Tranquilo approaches, turns by the Frío junction, and continues south toward La Junta. The northern Frío corridor and the Engaño/Tigre branch are not selected mainstem alternatives.",
+          "sources": [
+            "r81-dga-palena-2009",
+            "r81-dga-hoyas-palena",
+            "r81-conaf-palena-plan"
+          ]
+        },
+        {
+          "fragments": [
+            14617
+          ],
+          "finding": "Below the Rosselot arrival at La Junta the mainstem follows the lower Palena west and northwest toward the Raúl Marín Balmaceda/Rada Palena coastal mouth setting. The Risopatrón and other side drainages remain tributaries. The terminal generalized line is not extended across the Golfo de Corcovado and no particular historical mouth-arm name is assigned to it.",
+          "sources": [
+            "r81-dga-palena-2009",
+            "r81-dga-hoyas-palena",
+            "r81-conaf-palena-plan"
+          ]
+        },
+        {
+          "fragments": [
+            14618,
+            14619
+          ],
+          "finding": "The southern selected chain begins on a hooked headwater in the Turbio–Lago Verde drainage, then runs northeast toward the Lago Verde outlet/Figueroa connection. The whole-basin map covers this actual southern choice, distinct from the western Bordalí–Lago Rosselot arrival and the eastern Cacique Blanco side drainage. Regional membership and the lake approach are supported; the individual starting feeder and exact lake-entry vertices are not given a hydronym.",
+          "sources": [
+            "r81-dga-hoyas-palena",
+            "r81-minenergia-palena-2016"
+          ]
+        },
+        {
+          "fragments": [
+            14620,
+            14621
+          ],
+          "finding": "The independent eastern tributary selection starts in the Río Pico valley near and west of the Río Pico settlement, follows its westward Argentine bends and crosses into Chile to the Figueroa junction. It is not the northern Carrenleufú, Río Pampas or a selected traversal of the numbered Pico lakes.",
+          "sources": [
+            "r81-ianglia-carrenleufu-pico-2018",
+            "r81-dga-hoyas-palena",
+            "r81-argentina-basin77"
+          ]
+        },
+        {
+          "fragments": [
+            14622,
+            14623
+          ],
+          "finding": "Below the joining Lago Verde and Pico approaches, the selected tributary follows the Figueroa west/northwest, reaches the northern part of Lago Rosselot, and continues through the Rosselot outlet corridor to the Palena at La Junta. This includes a lake connection; Figueroa and Rosselot are component names, not additional aliases for every modeled mainstem and tributary.",
+          "sources": [
+            "r81-dga-palena-2009",
+            "r81-dga-hoyas-palena",
+            "r81-minenergia-palena-2016"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70766389",
+      "source_keys": [
+        "r81-usgs-topo-ogeechee",
+        "r81-georgia-epd-ogeechee-plan-2001"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9925
+          ],
+          "finding": "The selected western beginning and eastward approach follow the South Fork Ogeechee River, including the Interstate 20 crossing and the course south of Crawfordville. The North Fork approaches independently from the north; below their junction the receiving channel is labeled Ogeechee River. The modeled beginning is partway along the mapped South Fork and is not treated as the official headwater source.",
+          "sources": [
+            "r81-usgs-topo-ogeechee"
+          ]
+        },
+        {
+          "fragments": [
+            9925
+          ],
+          "finding": "The upper selected trunk follows the Ogeechee corridor southeast past the Hancock, Warren and Glascock county settings toward Louisville. The upper-basin Little Ogeechee River and Hamburg Millpond lie on a separate western tributary approach. Rocky Comfort Creek approaches from the northeast near Louisville. Neither tributary nor Hamburg Millpond is substituted for the selected route.",
+          "sources": [
+            "r81-usgs-topo-ogeechee"
+          ]
+        },
+        {
+          "fragments": [
+            9925
+          ],
+          "finding": "The long middle section follows the mapped Ogeechee floodplain southeast and then east through the Wadley, Midville and Millen surroundings before turning southeast northeast of Statesboro. Buckhead Creek enters near Millen; Ogeechee Creek is a separate eastern tributary farther downstream. The selection continues through the lower floodplain toward the Savannah and Richmond Hill surroundings rather than following the southwestern Canoochee course.",
+          "sources": [
+            "r81-usgs-topo-ogeechee"
+          ]
+        },
+        {
+          "fragments": [
+            9925,
+            9926
+          ],
+          "finding": "Detailed coastal pixels show the Canoochee River entering the Ogeechee from the west near Interstate 95. The selected route remains on the Ogeechee through the U.S. 17 crossing and the tidal channel beside Richmond Hill. The coastal Little Ogeechee River lies separately to the east, with Grove, Forest and Vernon river settings farther into that estuarine network. These are distinguishable from both the selected trunk and the unrelated upper-basin Little Ogeechee tributary.",
+          "sources": [
+            "r81-usgs-topo-ogeechee"
+          ]
+        },
+        {
+          "fragments": [
+            9926
+          ],
+          "finding": "The lower fragment follows the Ogeechee tidal bends by Richmond Hill and Fort McAllister, then the wide channel east of the Redbird Creek setting. Its endpoint remains in the Ogeechee estuary near the Intracoastal Waterway junction; the map continues the Ogeechee River label east beyond the selected endpoint. The selection does not turn south into Bear River or northeast into the separately labeled Little Ogeechee/Forest River channels. A regional estuarine endpoint is established, not a surveyed mouth or navigation route.",
+          "sources": [
+            "r81-usgs-topo-ogeechee"
+          ]
+        },
+        {
+          "fragments": [
+            9925,
+            9926
+          ],
+          "finding": "The 2001 Georgia basin plan independently identifies the two Ogeechee forks, the southeastward trunk and Canoochee tributary. Its historical surface-water account describes tidal influence and distinguishes small impoundments from large storage reservoirs, which it reports absent at that time. This supports the river-versus-tributary context without claiming present-day dam conditions.",
+          "sources": [
+            "r81-georgia-epd-ogeechee-plan-2001"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

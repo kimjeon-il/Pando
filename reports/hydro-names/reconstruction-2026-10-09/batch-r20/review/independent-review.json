@@ -1,0 +1,339 @@
+{
+  "schema": "hydro-independent-river-review-v4",
+  "batch": "r20",
+  "reviewed_at_utc": "2026-10-09T18:59:52.912579+00:00",
+  "scope_aw_ids": [
+    "hydro-system:50624422",
+    "hydro-system:50663106",
+    "hydro-system:50668362"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Independent visual review of original regional and station-map pages and complete selected baseline paths, with independent private decoding of every selected fragment and original metadata. Public validation checks only included summaries and factual linkage.",
+  "prior_distinct_targets": 57,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 60,
+  "duplicate_targets": 0,
+  "counted_unit": "Distinct logical inventory target IDs, not individual named rivers or verified reach names.",
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "current_batch_follow_up_required_targets": 0,
+  "current_batch_scope_hold_targets": 0,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803",
+    "lakes_base:1159108469",
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087",
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201"
+  ],
+  "new_pending_access_ids": [],
+  "new_scope_hold_ids": [],
+  "pending_access_reassessment_performed": false,
+  "prior_target_source_or_geometry_reaudit_performed": false,
+  "inherited_scope_continuity": [
+    {
+      "aw_id": "lakes_base:1159109723",
+      "candidate_name": "Sandfly Lake",
+      "research_category": "supported_generalized_water_identity",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "supported_name_scope": "The complete eastern basin corresponds at regional scale to water beneath the Lake part of the Sandfly Lake label. Its broad northern cap, western notch, eastern indentation and lower eastward arm taper into the southern tip. The full outline was compared with mapped water and surrounding shore. This supports generalized Sandfly Lake association for the selected feature, not equivalence with the entire named lake or extension of that name to connecting river water.",
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Sandfly Lake"
+        ]
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159116675",
+      "candidate_name": "Lake Ohrid",
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "supported_name_scope": "The entire north-south outline corresponds geographically to mapped water between Struga, Ohrid and Pogradec. Its broad northern cap, northeast shoulder, long east and west sides and rounded southern end were compared. Lake Ohrid is a low-confidence geographic naming candidate from literal wording within a partial conservation overlay, qualified by re-designate. Strong shape correspondence does not establish name coverage or naming authority for the complete selected water polygon. No supported whole-water identity or protected-site/water-boundary equivalence is assigned.",
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_extent_hold",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Name coverage over the complete selected waterbody, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve independent lake-name authority and name coverage over the complete selected waterbody before promoting the Lake Ohrid candidate. Conservation-area wording is insufficient; no geometry repair is prescribed by this hold."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159118183",
+      "candidate_name": "Prespa Lake",
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "supported_name_scope": "The complete northern basin, indented western shore, elongated southwestern lobe, eastern side and southeastern projection correspond geographically to the large water east of Galicica. Prespa Lake is a low-confidence geographic naming candidate from the literal wording in Prespa Lake Monument of Nature over part of the cross-border water. Conservation-area wording does not establish name coverage or naming authority for the entire selected polygon. Great Prespa, exact named-water extent and protected-site/water-boundary equivalence remain unverified; no supported whole-water identity is assigned.",
+      "naming_scope_details": {
+        "candidate_name_role": "geographic_candidate_only_extent_hold",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "Name coverage over the complete selected waterbody, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve independent lake-name authority and name coverage over the complete selected waterbody before promoting the Prespa Lake candidate. Conservation-area wording is insufficient; no geometry repair is prescribed by this hold."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159118201",
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "supported_name_scope": "The complete northeastern head, west-side indentation, east edge and long southwestern tail were compared with the separate southeastern water beneath the Prespa National Park (GR) overlay. No distinct waterbody label for that complete water was established. The park label and neighboring northern-lake designation do not establish a Small/Lesser Prespa name or extend the northern designation to this feature. Its whole-target name remains unassigned after full-outline review.",
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete selected feature, including every source and baseline ring position.",
+        "follow_up_scope": "Obtain evidence that explicitly establishes a waterbody name over the complete selected lake, rather than a park or conservation-designation label, before any name assignment."
+      }
+    }
+  ],
+  "automatic_application": false,
+  "product_application": false,
+  "scalar_product_name_approvals": 0,
+  "geometry_modified": false,
+  "topology_repaired": false,
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "all_reach_names_verified": false,
+  "findings": [
+    {
+      "aw_id": "hydro-system:50624422",
+      "system_id": "50624422",
+      "logical_fid": 1949,
+      "geometry_fids": [
+        6893
+      ],
+      "fragment_count": 1,
+      "part_count": 49,
+      "position_count": 326,
+      "baseline_fragment_roles": [
+        "mainstem"
+      ],
+      "baseline_stage_sequence": [
+        3
+      ],
+      "candidate_name": "Mary River",
+      "directly_supported_name_forms": [
+        "Mary River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+      "reach_level_naming_follow_up_required_before_product_application": true,
+      "supported_name_scope": "The complete selected path extends north from the southern inland headwater through a long northward course, then bends northeast toward the Great Sandy Strait. The directly mapped Mary River monitoring site at Miva, lower-river course and surrounding coastline support Mary River as a representative system identity. The southern upper reaches, any feeder naming transitions and coastal continuation are not assigned individual names. The selected mainstem role does not establish a uniform name for all 49 parts.",
+      "limits": [
+        "The mapped Miva station name directly anchors a river name; the Mary catchment title alone is not identity evidence.",
+        "A single modeled mainstem fragment does not prove that all upstream parts, feeders or coastal continuation have the Mary name.",
+        "The original publication is a regional assessment, not a formal naming-register decision or surveyed mouth map.",
+        "Original HydroRIVERS source-coordinate equality, exact source reach-to-rendered-part mapping and exact contemporary mouth are not verified."
+      ],
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "scalar_product_name_approved": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "all_reach_names_verified": false,
+      "uniform_river_name_for_group": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "exact_surveyed_mouth_verified": false,
+      "topology_repaired": false,
+      "complete_baseline_group_compared": true,
+      "all_selected_branches_considered": true,
+      "private_original_pack_and_metadata_independently_decoded": true,
+      "label_overlap_alone_used_as_identity": false,
+      "catchment_title_alone_used_as_identity": false,
+      "confidence": {
+        "representative_system_association": "moderate",
+        "reach_level_name_assignment": "not established",
+        "formal_naming_authority_verified": false,
+        "numerical_probability_claimed": false,
+        "basis": "One government regional publication supplies directly named river monitoring sites and coarse whole-path geographic correspondence; it does not establish exact reach names or formal registry authority."
+      },
+      "regional_distinct_channel_associations": [],
+      "regional_associations_are_exact_reach_assignments": false
+    },
+    {
+      "aw_id": "hydro-system:50663106",
+      "system_id": "50663106",
+      "logical_fid": 1992,
+      "geometry_fids": [
+        6936
+      ],
+      "fragment_count": 1,
+      "part_count": 76,
+      "position_count": 491,
+      "baseline_fragment_roles": [
+        "mainstem"
+      ],
+      "baseline_stage_sequence": [
+        3
+      ],
+      "candidate_name": "Brisbane River",
+      "directly_supported_name_forms": [
+        "Brisbane River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+      "reach_level_naming_follow_up_required_before_product_application": true,
+      "supported_name_scope": "The complete selected path includes a western upper extension, a northeastward upper bend, the southward middle corridor and a winding eastward lower course toward Moreton Bay. The directly mapped Brisbane River monitoring site at Savages Crossing and whole-path regional correspondence support Brisbane River as a representative system identity. The upper western feeder remains unnamed. Wivenhoe is storage context; neither reservoir passages nor the exact name transition and coastal endpoint receive reach-level names. The modeled mainstem role is not proof of uniform Brisbane naming.",
+      "limits": [
+        "The mapped Savages Crossing station name directly anchors a river name; Brisbane catchment and city names alone are not identity evidence.",
+        "The western upper feeder remains unnamed. Wivenhoe and Somerset storage labels and water-supply arrows do not establish river-name extent.",
+        "The original publication is a regional assessment, not a formal naming-register decision or surveyed mouth map.",
+        "Original HydroRIVERS source-coordinate equality, exact source reach-to-rendered-part mapping and exact contemporary mouth are not verified."
+      ],
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "scalar_product_name_approved": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "all_reach_names_verified": false,
+      "uniform_river_name_for_group": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "exact_surveyed_mouth_verified": false,
+      "topology_repaired": false,
+      "complete_baseline_group_compared": true,
+      "all_selected_branches_considered": true,
+      "private_original_pack_and_metadata_independently_decoded": true,
+      "label_overlap_alone_used_as_identity": false,
+      "catchment_title_alone_used_as_identity": false,
+      "confidence": {
+        "representative_system_association": "moderate",
+        "reach_level_name_assignment": "not established",
+        "formal_naming_authority_verified": false,
+        "numerical_probability_claimed": false,
+        "basis": "One government regional publication supplies directly named river monitoring sites and coarse whole-path geographic correspondence; it does not establish exact reach names or formal registry authority."
+      },
+      "regional_distinct_channel_associations": [],
+      "regional_associations_are_exact_reach_assignments": false
+    },
+    {
+      "aw_id": "hydro-system:50668362",
+      "system_id": "50668362",
+      "logical_fid": 2003,
+      "geometry_fids": [
+        6947
+      ],
+      "fragment_count": 1,
+      "part_count": 34,
+      "position_count": 251,
+      "baseline_fragment_roles": [
+        "mainstem"
+      ],
+      "baseline_stage_sequence": [
+        3
+      ],
+      "candidate_name": "Logan River",
+      "directly_supported_name_forms": [
+        "Logan River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "review_status": "representative_system_supported_with_reach_name_limits",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+      "reach_level_naming_follow_up_required_before_product_application": true,
+      "supported_name_scope": "The complete selected path runs from a southwestern upper extension through a northerly inland corridor, then northeast and east toward the southern Moreton Bay margin. The directly mapped Logan River monitoring site at Yarrahappini and surrounding course support Logan River as a representative system identity. Logan-Albert is a regional catchment grouping, not a compound name assigned to this path. Southwestern headwater or feeder reaches, possible storage-related transitions and the coastal ending remain individually unnamed. No Albert reach assignment is made.",
+      "limits": [
+        "The mapped Yarrahappini station name distinguishes Logan from the Logan-Albert catchment grouping and nearby Nerang.",
+        "The southwestern upper feeder remains unnamed; no Albert river-name or reservoir assignment is inferred from proximity or the modeled mainstem role.",
+        "The original publication is a regional assessment, not a formal naming-register decision or surveyed mouth map.",
+        "Original HydroRIVERS source-coordinate equality, exact source reach-to-rendered-part mapping and exact contemporary mouth are not verified."
+      ],
+      "whole_group_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "scalar_product_name_approved": false,
+      "whole_group_scalar_application_approved": false,
+      "whole_reach_name_application_cleared": false,
+      "all_reach_names_verified": false,
+      "uniform_river_name_for_group": false,
+      "formal_registry_verified": false,
+      "exact_source_reach_name_transitions_verified": false,
+      "exact_surveyed_mouth_verified": false,
+      "topology_repaired": false,
+      "complete_baseline_group_compared": true,
+      "all_selected_branches_considered": true,
+      "private_original_pack_and_metadata_independently_decoded": true,
+      "label_overlap_alone_used_as_identity": false,
+      "catchment_title_alone_used_as_identity": false,
+      "confidence": {
+        "representative_system_association": "moderate",
+        "reach_level_name_assignment": "not established",
+        "formal_naming_authority_verified": false,
+        "numerical_probability_claimed": false,
+        "basis": "One government regional publication supplies directly named river monitoring sites and coarse whole-path geographic correspondence; it does not establish exact reach names or formal registry authority."
+      },
+      "regional_distinct_channel_associations": [],
+      "regional_associations_are_exact_reach_assignments": false
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-09T18:59:52.912579+00:00",
+    "available_source_inspection_completed": true,
+    "full_feature_correspondence_review_completed": true,
+    "original_source_material_included": false,
+    "full_selected_geometry_included": false,
+    "historical_results_recomputed_by_public_validator": false
+  },
+  "included_evidence_limit": "Only public factual summaries, bibliography and included-file integrity are testable here. The omitted original maps, full selected paths, private decoder inputs and past visual judgments cannot be reproduced by public validation. Representative identity is not a uniform name for every reach or a product approval."
+}

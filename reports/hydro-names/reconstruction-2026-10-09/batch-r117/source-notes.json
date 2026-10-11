@@ -1,0 +1,633 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r117",
+  "sources": [
+    {
+      "source_key": "r117-geus-lambert-land-sheet9-2000",
+      "title": "Geological map of Greenland, 1:500 000, Sheet 9, Lambert Land",
+      "author": "Hans F. Jepsen",
+      "publisher": "Geological Survey of Denmark and Greenland (GEUS)",
+      "year": 2000,
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16484",
+      "acquired_scope": "Complete official single-sheet PDF, full-sheet overview, overlapping headward/upper/middle/lake-transition/terminal views, geographic graticule, legend and imprint were actually rendered and visually read.",
+      "supports": "Whole selected FID 8836 corridor and actual terminal setting; distinctions among Inland Ice, exposed southern Kronprins Christian Land/Skallingen, Blåsø context, Nioghalvfjerdsfjorden, Lambert Land, Kap Zachariae and the mapped Zachariae Isstrøm setting.",
+      "limits": "Historical geological cartography with a topographic base prepared from aerial photographs; geographic setting is established at ordinary generalized corridor scale. It does not establish a continuous natural-river identity, current hydrology, current ice fronts or a registry determination.",
+      "reuse_limit": "Custom Dataset Terms restrict redistribution and production or transfer of new maps. The original and every local derivative remain private."
+    },
+    {
+      "source_key": "r111-geus-bulletin18-2009-retained",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000. 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf",
+      "pages": "Printed page 4 regional map and printed page 64 Glaciology prose; bibliography entry for Jepsen 2000.",
+      "acquired_scope": "Lawfully retained complete r111 original was reused without another external acquisition. Its page 4 map pixels and bounded page 64 prose were read.",
+      "supports": "General regional orientation and the distinction between continental Inland Ice and local ice caps/glaciers; bibliography identifies the detailed Lambert Land sheet.",
+      "limits": "Supporting regional/prose context only. The detailed Sheet 9 supplies selected-route correspondence; this overview and general prose do not establish a channel trace, hydronym or current ice statistics.",
+      "reuse_limit": "Copyright GEUS 2009; retained original and local working material remain private. Independently written factual paraphrase only."
+    },
+    {
+      "source_key": "r117-ogs-bedrock-index-northern-2021",
+      "title": "Index to maps, bedrock geology1991–2020, northern sheet",
+      "publisher": "Ontario Geological Survey",
+      "year": 2021,
+      "scale": "1:1,000,000",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf",
+      "bibliographic_citation": "Ontario Geological Survey2021. Index to maps, bedrock geology1991–2020, northern sheet; Ontario Geological Survey, Index Maps, scale1:1,000,000.",
+      "acquired_scope": "Complete official PDF original acquired HTTP200. Full sheet, western headward branches, central and lower corridor, coastal connections, source credits and publication marginalia were visually inspected locally.",
+      "supports": "Full selected-FID corridor and terminal correspondence at ordinary generalized scale, with Lawashi River supported as the representative system identity. The initial selected southern feeder is unlabelled.",
+      "limits": "The source is a regional geological-publication index with a hydrographic base, not a hydrographic survey or official name-register record. Its1:1,000,000 scale does not establish exact banks, mouth vertices, a source lake identity or a uniform hydronym for every upper feeder. The source notes limited editorial review and possible discrepancies in earlier map-base positions. Underlying hydrographic dataset independence is not established.",
+      "source_use_notice": "Queen’s Printer for Ontario copyright2021. The map permits credited quotation of parts. Map outlines compilation and cartographic production are credited to J.Rose; index compilation/editing to the OGS Publication Services Unit. Original maps, local crops and any source derivatives remain private; no redistribution permission is inferred."
+    },
+    {
+      "source_key": "r117-ogs-p3599-revised-2009",
+      "title": "Precambrian geology of the Hudson Bay and James Bay lowlands region interpreted from aeromagnetic data—south sheet; Preliminary MapP.3599–Revised",
+      "publisher": "Ontario Geological Survey",
+      "author": "G.M.Stott",
+      "year": 2009,
+      "scale": "1:500,000",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3599-REV/P3599-REV.pdf",
+      "acquired_scope": "Complete official PDF original acquired HTTP200. Map overview, northern-margin region, sources/credits and first-page use notice inspected.",
+      "supports": "Regional geological and cartographic-source context only. It is not used to supply the lower selected route or terminal, which lie beyond the south-sheet extent.",
+      "limits": "Hydrographic linework is overprinted by geological and geophysical information; this sheet is not the decisive full-corridor source. Digital base information is credited to Ontario Land Information Warehouse/Land Information Ontario1:20,000 and modified1:50,000 NTS maps. This separately compiled geological publication is not the stopped CanMatrix043B/043C scan.",
+      "source_use_notice": "Crown copyright. Non-commercial unsubstantial excerpts with credit are permitted; substantial reproductions including maps/figures and commercial/value-added uses require written permission. The first page describes use terms accepted by opening/viewing the product. No source image, crop, map extract or derived cartography is to be published."
+    },
+    {
+      "source_key": "r117-ogs-kapiskau-listing",
+      "title": "OGS GeoData Listing for KAPISKAU RIVER AREA",
+      "publisher": "Ontario Ministry of Energy and Mines",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mndmfiles/dl/data/records/OGSDataListing_KAPISKAU_RIVER_AREA.html",
+      "acquired_scope": "Normally read official HTML listing.",
+      "supports": "Bibliographic discovery only.",
+      "limits": "Publication titles and nominal area listings are not geographic correspondence or river-name assignments."
+    },
+    {
+      "source_key": "r117-ogs-preliminary-errata",
+      "title": "Errata and Amendments—Preliminary Maps",
+      "publisher": "Ontario Geological Survey",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/errata/pmap_e.html",
+      "acquired_scope": "Normally read official HTML and source links.",
+      "supports": "P.3598–Revised publication/revision identity only.",
+      "limits": "Geological correction prose supplies no hydrographic route evidence."
+    },
+    {
+      "source_key": "r117-nluis-76i",
+      "title": "Northern Land Use Information Series: Overby Lake, sheet 76I",
+      "publisher": "Department of Fisheries and the Environment, Lands Directorate, Environmental Management Service, with Indian and Northern Affairs; originals hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "year": 1978,
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76i.jpg",
+      "acquired_scope": "A single normal official JPEG-original acquisition succeeded HTTP 200. The northern selected headward corridor, rapids, lake links and northern sheet-edge continuation were visually inspected, along with marginalia.",
+      "supports": "The southern selected feeder occupies an unnamed lake-and-stream corridor. It runs north, bends east and northeast through small lakes and rapids, and reaches a broader northwest-oriented lake/river corridor at the northern part of the sheet.",
+      "limits": "Historical 1978 thematic cartography at 1:250,000, using an older topographic base. The introduction calls the information interim and reconnaissance-based and describes thematic boundaries as approximate. Thematic boundaries, diagonal land-use hatching and fish symbols are not hydrographic channels. This is not current registry evidence or an exact modern shore, bank or flow-direction survey. Originals and working images remain private; no redistribution permission is inferred. Base marginalia state information current as of 1963 and printed in 1964. The wider northern corridor is partly covered by the bold sanctuary boundary; no whole-route name is established here."
+    },
+    {
+      "source_key": "r117-nluis-76p",
+      "title": "Northern Land Use Information Series: Brichta Lake, sheet 76P",
+      "publisher": "Department of Fisheries and the Environment, Lands Directorate, Environmental Management Service, with Indian and Northern Affairs; originals hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "year": 1978,
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76p.jpg",
+      "acquired_scope": "A single normal official JPEG-original acquisition succeeded HTTP 200. The whole central corridor was inspected through overlapping original-map views, including the southern lake sequence, west-side middle lakes, northeastward transition, eastern named headwater reach, Brichta Lake relationship and northern sheet edge.",
+      "supports": "The selected route occupies an unnamed western lake-and-stream sequence before approaching the northward river west of Brichta Lake. An eastern headwater reach is labelled Tingmeak River. The northward lower course and its tributaries can be distinguished from the separate Brichta Lake waterbody east of it.",
+      "limits": "Historical 1978 thematic cartography at 1:250,000, using an older topographic base. The introduction calls the information interim and reconnaissance-based and describes thematic boundaries as approximate. Thematic boundaries, diagonal land-use hatching and fish symbols are not hydrographic channels. This is not current registry evidence or an exact modern shore, bank or flow-direction survey. Originals and working images remain private; no redistribution permission is inferred. A material connection between the western lake chain and the northeastward continuation into the lower river remains unresolved where the sanctuary overprint and lake outlines interfere with a continuous hydrographic reading. Having the entire sheet does not establish this connector. The Tingmeak label on the eastern headwater reach is not transferred to the selected western feeder."
+    },
+    {
+      "source_key": "r117-nluis-77a",
+      "title": "Northern Land Use Information Series: Elu Inlet, sheet 77A",
+      "publisher": "Department of Fisheries and the Environment, Lands Directorate, Environmental Management Service, with Indian and Northern Affairs; originals hosted by Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "year": 1978,
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77a.jpg",
+      "acquired_scope": "A single normal official JPEG-original acquisition succeeded HTTP 200. Original map pixels were inspected from the southern sheet edge along the selected lower river, the final coastal approach and the actual inlet/Queen Maud Gulf setting east of Dease Point. Marginal fish-resource comments and map notices were also read.",
+      "supports": "The river is labelled Tingmeak River and continues northward into a small coastal inlet east of Dease Point, opening to Queen Maud Gulf. Nearby Kuugaarjuk River is separately mapped to the west. The fish-resource comments explicitly refer to Tingmeak River, but do not establish the selected western headwater connection.",
+      "limits": "Historical 1978 thematic cartography at 1:250,000, using an older topographic base. The introduction calls the information interim and reconnaissance-based and describes thematic boundaries as approximate. Thematic boundaries, diagonal land-use hatching and fish symbols are not hydrographic channels. This is not current registry evidence or an exact modern shore, bank or flow-direction survey. Originals and working images remain private; no redistribution permission is inferred. The historical coastal channels support the terminal setting only at ordinary corridor scale. No exact current distributary, tidal limit or model terminal vertex is claimed."
+    },
+    {
+      "source_key": "r117-nluis-index-retained",
+      "title": "Northern Land Use Information Series: Northern Land Use, official map index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquired_scope": "The previously acquired official index was read locally; it was not requested again.",
+      "supports": "Sheet titles and exact original links for 76I, 76P and 77A.",
+      "limits": "Bibliographic evidence only; index coverage is not map correspondence."
+    },
+    {
+      "source_key": "r117-gsc-cgm449",
+      "title": "Reconnaissance surficial geology, Brichta Lake, Nunavut, NTS 76-P; Canadian Geoscience Map 449",
+      "publisher": "Natural Resources Canada, Geological Survey of Canada",
+      "author": "D. E. Kerr; cartography by N. Côté",
+      "year": 2022,
+      "catalogue_number": "M183-1/449-2022E-PDF",
+      "scale": "1:125,000",
+      "landing_url": "https://www.publications.gc.ca/site/eng/9.908558/publication.html",
+      "official_url": "https://publications.gc.ca/collections/collection_2023/rncan-nrcan/m183-1/M183-1-449-2022-eng.pdf",
+      "acquired_scope": "The catalogue web reader returned an Internal Error without HTTP status or denial reason. One normal catalogue-original acquisition succeeded HTTP 200 and supplied the exact map link. The subsequent sole linked map request redirected to archived-information HTML, ending HTTP 200 text/html rather than a PDF.",
+      "supports": "Catalogue identity, author, year, scale and nominal coverage only.",
+      "limits": "No original map pixels acquired. Missing map content and equivalent copies, formats, figures, editions used as replacement content, readers, caches, mirrors and acquisition routes remain paused. Earlier catalogue metadata is not selected-route evidence."
+    },
+    {
+      "source_key": "r117-canmatrix-076p",
+      "title": "Brichta Lake, NTS 076P, CanMatrix 1:250,000 topographic sheet; edition not inspected",
+      "publisher": "Natural Resources Canada",
+      "scale": "1:250,000",
+      "landing_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/076/p/",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/076/p/canmatrix_076p_tif.zip",
+      "acquired_scope": "The official directory opened HTTP 200 and supplied the exact archive link. The sole original archive request returned HTTP 403 with a short HTML error, not a map.",
+      "supports": "Directory identity only; no map observations.",
+      "limits": "Whole 076P topographic publication and equivalent map copies, formats, editions offered as the same sheet, mirrors and all acquisition routes stopped. No retry or alternate acquisition. NLUIS76P pixels had been acquired and read before this denial; only those earlier lawful observations are retained."
+    },
+    {
+      "source_key": "r117-inegi-champoton-study-2016",
+      "title": "Estudio de información integrada de la Cuenca Río Champotón y otras",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2016,
+      "isbn": "978-607-739-991-9",
+      "official_url": "https://www.inegi.org.mx/contenido/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/702825086909_1.pdf",
+      "pages_used": "Printed pp. 39, 42, 46–48, 50, 52 and 55; PDF pages 45, 48, 52–54, 56, 58 and 61.",
+      "maps_used": [
+        "Mapa 4.1, Cuencas, printed p. 42",
+        "Mapa 4.2, Magnitud de orden Horton-Strahler, printed p. 47",
+        "Mapa 4.4, Infraestructura hidráulica, printed p. 55"
+      ],
+      "map_scale": "1:800,000; map 4.2 cites the 1:50,000 connected hydrographic network, 2010.",
+      "acquired_scope": "Normal official original-file request succeeded with HTTP 200 and application/pdf. Original map pixels were inspected at overview and local corridor scales. Bounded hydrography, drainage and infrastructure prose was read separately.",
+      "supports": "Full corridor mapping, tributary distinctions, valley drains, named lower river and actual Gulf terminal. Prose independently explains seasonal southern supply through Arrigueña and the shorter named river originating near San Juan Carpizo.",
+      "limits": "Published study and generalized cartography do not establish present flow in each channel, exact hydronym transitions or formal registry status. Basin membership alone was not used as correspondence.",
+      "use_notice": "Printed DR © 2016 INEGI retained. Official hosting is not treated as permission to redistribute source maps; originals and working crops remain private."
+    },
+    {
+      "source_key": "r117-inegi-calakmul-2010",
+      "title": "Compendio de información geográfica municipal 2010: Calakmul, Campeche",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "municipal_code": "04010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/04/04010.pdf",
+      "pages_used": "PDF page 6, Relieve; bounded physical-geography tables.",
+      "acquired_scope": "One normal official PDF-original request succeeded HTTP 200, application/pdf. Original relief/hydrography map pixels were inspected.",
+      "supports": "Southern low-hill and plain setting and generalized drainage geography on the Calakmul side.",
+      "limits": "The small municipal compilation generalizes tributaries and omits some reach labels. It supplements the basin-study route reading rather than independently naming every selected feeder. Its municipal clipped edges are not river terminals.",
+      "use_notice": "INEGI 2010 attribution preserved; no source map or derivative image is distributed."
+    },
+    {
+      "source_key": "r117-inegi-champoton-2010",
+      "title": "Compendio de información geográfica municipal 2010: Champotón, Campeche",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "municipal_code": "04004",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/04/04004.pdf",
+      "pages_used": "PDF page 3, hydrography table, and PDF page 6, Relieve.",
+      "acquired_scope": "Web text reader opened normally, followed sequentially by one successful official original-PDF request, HTTP 200 application/pdf. Original relief/hydrography map pixels were inspected.",
+      "supports": "Independent municipal mapping of the Arrigueña-side drainage setting, the named lower Champotón and the direct Gulf terminal; distinguishes nearby lakes and separate coastal rivers.",
+      "limits": "A municipal hydrography list is not a whole-route name assignment. The small-scale relief map alone does not resolve all connecting drains; those were read in the basin study.",
+      "use_notice": "INEGI 2010 attribution preserved; no original map, crop or overlay is distributed."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90018331",
+      "source_keys": [
+        "r117-geus-lambert-land-sheet9-2000",
+        "r111-geus-bulletin18-2009-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8836
+          ],
+          "component_scope": "Headward opening and long northward ice-side approach",
+          "finding": "The opening lies on mapped Inland Ice west of Lambert Land. Its long northward stretch and short eastward/northeastward steps remain in the western ice-margin corridor toward the southern end of Kronprins Christian Land. The sheet distinguishes this light-blue ice/perennial-snow terrain from the adjacent exposed bedrock. No source label establishes these modeled steps as a named natural river.",
+          "sources": [
+            "r117-geus-lambert-land-sheet9-2000"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "Full ordinary corridor-scale setting covered. Ice-surface contours are not interpreted as a river trace or subglacial drainage.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8836
+          ],
+          "component_scope": "Northern continuation and eastward bend through the Skallingen setting",
+          "finding": "The northward continuation reaches the southern Kronprins Christian Land margin and the eastward bend occupies the exposed-rock and valley setting of Skallingen. The following southward steps approach its southern margin. The source shows geological/terrain units, superficial-deposit valleys and local ice or snow, rather than a continuously named river matching the entire modeled bend.",
+          "sources": [
+            "r117-geus-lambert-land-sheet9-2000"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "The terrain and connecting geographic settings are read from the original sheet. A regional land name is not a hydronym, and geological boundaries or fault traces are not adopted as channels.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8836
+          ],
+          "component_scope": "Southeastward transition into Nioghalvfjerdsfjorden",
+          "finding": "The southeastward sequence leaves the southern Skallingen/Kap Steglich-Petersen setting and enters the ice-covered Nioghalvfjerdsfjorden corridor separating that land from Lambert Land. Blåsø is separately mapped to the west of this transition; it is not assigned as a selected through-lake segment, nor used to infer an unseen river connection. No lake or fjord label licenses naming the whole modeled route.",
+          "sources": [
+            "r117-geus-lambert-land-sheet9-2000"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "The connector is geographically covered. The historical map distinguishes the lake, land and ice-covered fjord setting; present hydrological continuity or flow direction is not established.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8836
+          ],
+          "component_scope": "Southward crossing of Lambert Land",
+          "finding": "The next southward and southeastward intervals reach northwestern Lambert Land, then continue through its mapped ice/perennial-snow areas, exposed bedrock and superficial-deposit corridors toward the southern margin. All of the long descending connector is within the original sheet. No natural-river name or named tributary system is established across these different settings.",
+          "sources": [
+            "r117-geus-lambert-land-sheet9-2000"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "These are source-setting observations at generalized component scale, not exact banks, a surveyed channel, a claim that every short modeled step follows a real river, or an inferred subglacial route.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8836
+          ],
+          "component_scope": "Southern approach, eastward final reach and actual ending",
+          "finding": "The southern approach reaches the Kap Zachariae vicinity on Lambert Land and the final eastward interval ends immediately east of that cape, on the northern side of the historical mapped Zachariae Isstrøm ice/coastal setting. The source separates this ending from the Nioghalvfjerdsfjorden corridor farther north. Jøkelbugten, labeled farther south on the sheet, is not asserted as the selected terminal. No terminal fjord name is assigned by proximity.",
+          "sources": [
+            "r117-geus-lambert-land-sheet9-2000"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "limits": "The actual ending is read at ordinary terminal-corridor scale. The retained model class sea is metadata, not proof of a current surveyed mouth or ice front. This 2000 sheet does not establish contemporary shoreline or glacier-front positions.",
+          "mapped_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70153937",
+      "source_keys": [
+        "r117-ogs-bedrock-index-northern-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9231
+          ],
+          "component_scope": "Western headward branch",
+          "finding": "The selected western start corresponds at generalized scale to the southern of the west-starting headward branches east of Missisa Lake. The printed index traces this branch eastward and then northeast toward the Lawashi corridor. The branch itself is not labelled with a hydronym. No source-lake name or surveyed source point is established.",
+          "sources": [
+            "r117-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "Supported at ordinary generalized corridor scale.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9231
+          ],
+          "component_scope": "Upper branch junctions",
+          "finding": "The selected headward branch passes through the mapped confluence pattern south of the Lawashi label and joins the more northerly labelled Lawashi corridor. The neighbouring northerly branch and other tributaries are kept distinct from the selected initial feeder; no nearby label is propagated across all upstream reaches.",
+          "sources": [
+            "r117-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "Supported at ordinary generalized corridor scale.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9231
+          ],
+          "component_scope": "Central northeastward continuation",
+          "finding": "The map supplies a continuous northeastward river corridor from the upper confluence area through the central lowland, south of the Attawapiskat system and north of the separately labelled Kapiskau system. The long northeastward trend, intervening tributary junctions and change to the lower easterly reach correspond to the selected route.",
+          "sources": [
+            "r117-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "Supported at ordinary generalized corridor scale.",
+          "mapped_component_name": "Lawashi River"
+        },
+        {
+          "fragments": [
+            9231
+          ],
+          "component_scope": "Lower easterly bend and coastal approach",
+          "finding": "The mapped Lawashi corridor bends east and southeast before turning northeast toward James Bay. The river remains geographically distinct from Kapiskau and its associated southern tributaries. Adjacent small waterbodies are not assigned to the selected route merely because they are nearby.",
+          "sources": [
+            "r117-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "Supported at ordinary generalized corridor scale.",
+          "mapped_component_name": "Lawashi River"
+        },
+        {
+          "fragments": [
+            9231
+          ],
+          "component_scope": "Northern connecting channel and actual terminal",
+          "finding": "Near the coastal end, the map shows a southern connection from the Attawapiskat channel system entering the selected lower river before its James Bay outlet. The selected terminal is the coastal outlet southeast of the Attawapiskat mouth, not an inland confluence or lake terminal. The connecting channel is not named in this source reading and is not included as a separate selected FID.",
+          "sources": [
+            "r117-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "Supported at ordinary generalized corridor scale.",
+          "mapped_component_name": "Lawashi River",
+          "receiving_water_name": "James Bay"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80060230",
+      "source_keys": [
+        "r117-nluis-76i",
+        "r117-nluis-76p",
+        "r117-nluis-77a"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2501
+          ],
+          "component_scope": "Southern initial feeder and small lake sequence",
+          "finding": "The initial selected corridor lies in the unnamed lake-studded upland. Its northward feeder turns east and northeast through small elongate lakes and a mapped rapids reach. The observed geography supports this bounded headward portion without assigning the downstream river name to it.",
+          "sources": [
+            "r117-nluis-76i"
+          ],
+          "correspondence": "Supported bounded headward corridor; unnamed.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2501
+          ],
+          "component_scope": "Northern Overby Lake sheet transition into the broad northwest-oriented corridor",
+          "finding": "The small feeder reaches a broader lake/river corridor that continues northwest across the sheet boundary. Its broad setting and lake passage are visible, although a bold sanctuary boundary overlaps much of the central watercourse. These observations do not independently establish a uniform name or all subsequent drainage links.",
+          "sources": [
+            "r117-nluis-76i",
+            "r117-nluis-76p"
+          ],
+          "correspondence": "Bounded lake/corridor observation; no downstream name propagation.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2501
+          ],
+          "component_scope": "Western middle lake chain and its material northeastward connection",
+          "finding": "The selected model follows the western sequence of elongate lakes and streams, then turns northeast toward the lower north-flowing river west of Brichta Lake. Much of the west-side sequence is visible, but the material connection across the sanctuary-boundary overprint cannot be established as a continuous, unambiguous hydrographic link from the source pixels read.",
+          "sources": [
+            "r117-nluis-76p",
+            "r117-gsc-cgm449",
+            "r117-canmatrix-076p"
+          ],
+          "correspondence": "Material connector unresolved; this is more than a missing name on an otherwise completed route.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2501
+          ],
+          "component_scope": "Eastern named headwater reach and middle river west of Brichta Lake",
+          "finding": "An eastern headwater reach bears the Tingmeak River label and leads toward the northward lower course. The selected path uses the western approach instead of this labelled eastern headwater reach. The downstream river corridor west of Brichta Lake is visible, with lateral tributaries and adjacent lakes. Brichta Lake is not assigned as a selected through-lake merely because it is nearby.",
+          "sources": [
+            "r117-nluis-76p"
+          ],
+          "correspondence": "Partial middle/lower river identity; relationship to selected western feeder still depends on the unresolved connector.",
+          "mapped_component_name": "Tingmeak River"
+        },
+        {
+          "fragments": [
+            2501
+          ],
+          "component_scope": "Lower Tingmeak River and southern Elu Inlet sheet continuation",
+          "finding": "The mapped river continues from the northern central sheet into the southern part of Elu Inlet sheet, then runs generally north and northeast across low tundra with small lakes and tributaries. The Tingmeak River label is on this lower corridor.",
+          "sources": [
+            "r117-nluis-76p",
+            "r117-nluis-77a"
+          ],
+          "correspondence": "Supported bounded lower-course geographic and historical cartographic-name correspondence.",
+          "mapped_component_name": "Tingmeak River"
+        },
+        {
+          "fragments": [
+            2501
+          ],
+          "component_scope": "Actual coastal terminal east of Dease Point",
+          "finding": "The selected lower approach reaches the small branched coastal inlet east of Dease Point on Queen Maud Gulf. Kuugaarjuk River is separately depicted immediately to the west. The observed terminal is coastal rather than an inland lake; no precise contemporary outlet branch or endpoint is claimed.",
+          "sources": [
+            "r117-nluis-77a"
+          ],
+          "correspondence": "Supported actual terminal setting at ordinary corridor scale.",
+          "mapped_component_name": "Tingmeak River",
+          "receiving_water_name": "Queen Maud Gulf"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70889692",
+      "source_keys": [
+        "r117-inegi-champoton-study-2016",
+        "r117-inegi-calakmul-2010",
+        "r117-inegi-champoton-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10429
+          ],
+          "component_scope": "Southern headward tributary and Los Pavos corridor",
+          "finding": "The selected headward section is in the low limestone hills and seasonally wet depressions of Calakmul, west of Centauros del Norte. It follows the northward Los Pavos approach toward the San José (Kilómetro Ciento Veinte) road-crossing sector. The selected initial feeder is not given a separate established name.",
+          "sources": [
+            "r117-inegi-champoton-study-2016",
+            "r117-inegi-calakmul-2010"
+          ],
+          "correspondence": "Full headward corridor read at generalized component scale; no precise spring, vertex or permanent-flow claim.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10429
+          ],
+          "component_scope": "Las Pozas branch and Desempeño junction",
+          "finding": "North of the road-crossing sector the selected route corresponds to the Las Pozas arm, which bends west to join the separately mapped Desempeño approach. It then continues north through the flood-prone drainage east of the Xbonil lake corridor. The western Desempeño approach is a separate feeder, not the selected southern headward path.",
+          "sources": [
+            "r117-inegi-champoton-study-2016",
+            "r117-inegi-calakmul-2010"
+          ],
+          "correspondence": "Material upper branch choice and joining route are read on the original connected-drainage map; labels are not propagated across exact unmarked transitions.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10429
+          ],
+          "component_scope": "Arrigueña and the Yohaltún–Edzná drainage connection",
+          "finding": "The selected continuation follows the Arrigueña corridor northwest through the Chilam Balam and Yohaltún setting, then north toward Nayarit de Castellot (Xnohá). The mapped drainage and canal network connects across the Yohaltún–Edzná lowlands to the Champotón head near San Juan Carpizo. Both original basin maps and the hydraulic-infrastructure map show this material connection; the prose explains the seasonal southern tributary supply and agricultural drains.",
+          "sources": [
+            "r117-inegi-champoton-study-2016",
+            "r117-inegi-champoton-2010"
+          ],
+          "correspondence": "Full intervening corridor and drain/river connection read. Seasonal drainage and artificial channels are retained as distinct types of passage.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10429
+          ],
+          "component_scope": "Lower named river through Canasayab, Ulumal and Moquel",
+          "finding": "The named lower river runs west from the San Juan Carpizo area, past Canasayab and Ulumal, then bends north toward Moquel and the coast. This is the lower portion of the selected route. The source treats the named Champotón as a much shorter river than the retained model mainstem, rather than extending its name through every southern tributary and drain.",
+          "sources": [
+            "r117-inegi-champoton-study-2016",
+            "r117-inegi-champoton-2010"
+          ],
+          "correspondence": "Named lower-river correspondence established from original maps and bounded primary prose.",
+          "mapped_component_name": "Río Champotón"
+        },
+        {
+          "fragments": [
+            10429
+          ],
+          "component_scope": "Actual coastal terminal",
+          "finding": "The selected terminal corresponds to the Champotón river mouth at the town of Champotón on the Gulf of Mexico. It is a direct coastal outlet, not a termination in Laguna de Términos or one of the inland lakes.",
+          "sources": [
+            "r117-inegi-champoton-study-2016",
+            "r117-inegi-champoton-2010"
+          ],
+          "correspondence": "Actual terminal setting read at ordinary generalized coastal scale; no exact modern bank or mouth-point claim.",
+          "mapped_component_name": "Río Champotón",
+          "receiving_water_name": "Golfo de México"
+        },
+        {
+          "fragments": [
+            10429
+          ],
+          "component_scope": "Lake and reservoir scope",
+          "finding": "Silvituc, Chama Há and Xbonil are mapped in connected or adjacent western drainage corridors. The selected southern Las Pozas/Los Pavos arm does not require a through-crossing of these named lakes. The reviewed route passes wet lowlands and drains; no named reservoir crossing is established.",
+          "sources": [
+            "r117-inegi-champoton-study-2016",
+            "r117-inegi-calakmul-2010",
+            "r117-inegi-champoton-2010"
+          ],
+          "correspondence": "Material lake context distinguished from the selected channel; adjacent lake names are not assigned to selected reaches.",
+          "mapped_component_name": null
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:90018331",
+      "publication": "Satellite Image Atlas of Glaciers of the World—Greenland, Anker Weidick, 1995; USGS Professional Paper 1386-C",
+      "official_url": "https://pubs.usgs.gov/pp/p1386c/",
+      "observed_outcome": "Inherited r111 stop: the web reader reported Failed to fetch: 403 Forbidden. No new request was made for this target.",
+      "outcome_layer": "Historical HTTP 403 reported by the web reader; no new origin outcome asserted.",
+      "restriction_scope": "Entire publication, Plate 1, PDFs, figures and all equivalent copies, formats, mirrors and acquisition routes remain stopped.",
+      "earlier_lawful_prose_exception": "None used. Search snippets are not evidence.",
+      "material_gap_for_current_target": false
+    },
+    {
+      "aw_id": "hydro-system:70153937",
+      "publication": "Kapiskau River, NTS043B, CanMatrix 1:250,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/043/b/canmatrix_043b_tif.zip",
+      "observed_outcome": "Official sheet directory opened HTTP200 and supplied the exact original archive link. The sole archive request returned HTTP403, text/html, 88 bytes, with a 403 Error body. No map pixels were acquired.",
+      "outcome_layer": "HTTP response from the publication hosting/CDN route, not a reader format limit; no specific reason for the denial established.",
+      "restriction_scope": "Whole NTS043B sheet publication and all equivalent copies, formats, viewers, mirrors and acquisition routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no substantive map or hydrographic prose.",
+      "material_to_final_coverage": false
+    },
+    {
+      "aw_id": "hydro-system:70153937",
+      "publication": "Missisa Lake, NTS043C, CanMatrix 1:250,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/043/c/canmatrix_043c_tif.zip",
+      "observed_outcome": "Official sheet directory opened HTTP200 and supplied the exact original archive link. The sole archive request returned HTTP403, text/html, 88 bytes, with a 403 Error body. No map pixels were acquired.",
+      "outcome_layer": "HTTP response from the publication hosting/CDN route, not a reader format limit; no specific reason for the denial established.",
+      "restriction_scope": "Whole NTS043C sheet publication and all equivalent copies, formats, viewers, mirrors and acquisition routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no substantive map or hydrographic prose.",
+      "material_to_final_coverage": false
+    },
+    {
+      "aw_id": "hydro-system:70153937",
+      "publication": "Southern part of James Bay Lowland, Province of Ontario, Ontario Department of Mines Map1952-03 (1952),1:506,880",
+      "official_url": "https://www.geologyontario.mines.gov.on.ca/persistent-linking?publication=M1952-03",
+      "observed_outcome": "The catalogue-link web-reader request returned Cache miss. No HTTP status, catalogue body or original map was exposed.",
+      "outcome_layer": "Web-reader availability failure; no HTTP access denial established.",
+      "restriction_scope": "Missing publication/map content and equivalent copies, formats, catalogue/original/reader and other acquisition routes remain paused. No retry.",
+      "earlier_lawful_prose_exception": "The separate normally read Kapiskau River Area OGS listing supplied title, year and scale only.",
+      "material_to_final_coverage": false
+    },
+    {
+      "aw_id": "hydro-system:70153937",
+      "publication": "Stott2008, Precambrian geology of the Hudson Bay and James Bay lowlands region interpreted from aeromagnetic data—east sheet; OGS Preliminary MapP.3598–Revised,1:500,000",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mndmaccess/mndm_dir.asp?type=pub&id=P3598-REV",
+      "observed_outcome": "The sole original catalogue-link request returned HTTP200 text/html,17,630 bytes, at https://www.geologyontario.mndm.gov.on.ca/mndmaccess/broken_link.asp. No substantive catalogue or map original was obtained.",
+      "outcome_layer": "HTTP200 wrong-content/broken-link availability outcome.",
+      "restriction_scope": "Missing P.3598–Revised publication/map content and all equivalent copies, editions offered as replacement content, formats, viewers and acquisition routes paused. No retry.",
+      "earlier_lawful_prose_exception": "The distinct OGS Errata and Amendments page was read normally. It gives bibliographic revision context and describes a geological dike correction; it supplies no selected-route geographic correspondence.",
+      "material_to_final_coverage": false
+    },
+    {
+      "aw_id": "hydro-system:70153937",
+      "publication": "De Beers Canada Inc.—Permit to take water, Ontario Environmental Registry notice019-4578, decision8March2022",
+      "official_url": "https://ero.ontario.ca/node/7807",
+      "observed_outcome": "The direct web-reader open returned Cache miss; no HTTP status or page body was exposed by that open.",
+      "outcome_layer": "Web-reader availability failure; no HTTP denial established.",
+      "restriction_scope": "Missing notice content and equivalent routes paused. No retry or original fallback; discovery/search text excluded from substantive evidence.",
+      "earlier_lawful_prose_exception": null,
+      "material_to_final_coverage": false
+    },
+    {
+      "aw_id": "hydro-system:80060230",
+      "publication": "Reconnaissance surficial geology, Brichta Lake, Nunavut, NTS 76-P; Canadian Geoscience Map 449 (2022)",
+      "official_url": "https://publications.gc.ca/collections/collection_2023/rncan-nrcan/m183-1/M183-1-449-2022-eng.pdf",
+      "observed_outcome": "Sole exact linked original request followed HTTP 307 redirect to the archived-information page and ended HTTP 200, Content-Type text/html; charset=utf-8, 19,365 bytes. No PDF or original map pixels acquired.",
+      "outcome_layer": "origin HTTP/content response",
+      "restriction_scope": "Missing original map content and equivalent copies, formats, figures, editions used as replacement content, readers, caches, mirrors and all acquisition routes paused for availability. No retry or further fallback. Distinct independently issued topographic publications are not covered merely by geographic overlap.",
+      "earlier_lawful_prose_exception": "The earlier successfully read catalogue supplies bibliographic metadata only; it does not establish any selected-route connector."
+    },
+    {
+      "aw_id": "hydro-system:80060230",
+      "publication": "Brichta Lake, NTS 076P, CanMatrix 1:250,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/076/p/canmatrix_076p_tif.zip",
+      "observed_outcome": "Sole exact archive request returned HTTP 403, Content-Type text/html, 88 bytes, with a 403 error body. No archive/map acquired.",
+      "outcome_layer": "HTTP response from the source delivery service, not a reported transport-only tunnel failure",
+      "restriction_scope": "Whole NTS 076P CanMatrix topographic publication and equivalent maps, copies, formats, editions offered as the same sheet, mirrors and all acquisition routes stopped. No retry or alternate request.",
+      "earlier_lawful_prose_exception": "Only the successful directory metadata was obtained from this acquisition. Separately and earlier acquired NLUIS76P original pixels remain usable within their already observed scope; they do not resolve the material connector."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:90018331",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 9, Lambert Land, Hans F. Jepsen, 2000",
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS",
+      "observed_outcome": "The DOI web-reader request returned Internal Error: URL is not accessible via this tool. No HTTP status or security/authorization reason was exposed. One subsequent normal acquisition of the known official Dataverse landing page succeeded with HTTP 200. Its exact linked original PDF then succeeded with HTTP 200, application/pdf, and 17,572,731 bytes.",
+      "outcome_layer": "Completed web-tool DOI-routing limitation, followed by successful original HTTP responses.",
+      "restriction_scope": "The failed DOI reader route was not repeated. The technical limitation is resolved for this research through the successfully acquired official original; it is not an access denial or active publication-wide stop.",
+      "earlier_lawful_prose_exception": "The newly acquired landing-page bibliography and terms preceded the original PDF. The complete original map was then rendered and visually read; no discovery snippet is geographic evidence."
+    },
+    {
+      "aw_id": "hydro-system:90018331",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 9, Lambert Land, Hans F. Jepsen, 2000: Custom Dataset Terms",
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS",
+      "observed_outcome": "The successfully read official landing page states Custom Dataset Terms permitting internal use and processing while restricting redistribution and production or transfer of new maps based on processed data.",
+      "outcome_layer": "Successful source-use notice, not an acquisition refusal.",
+      "restriction_scope": "Originals, crops, processed data and any comparison or derived cartographic material remain private. Public consolidation is limited to independently written factual observations and ordinary bibliography.",
+      "earlier_lawful_prose_exception": "Not applicable; the actual current-source notice was read."
+    },
+    {
+      "aw_id": "hydro-system:70153937",
+      "publication": "Victor Diamond Project, federal report",
+      "official_url": "https://iaac-aeic.gc.ca/80C30413-docs/report_e.pdf",
+      "observed_outcome": "The web reader returned400 Content length is too large:30070386. No report body or map was read.",
+      "outcome_layer": "Completed technical reader size limit, not an HTTP401/403, challenge or authorization prohibition.",
+      "restriction_scope": "Exact reader route not repeated. No publication-wide access ban inferred. A normal original fallback was not needed or taken because the acquired OGS index already supplied the bounded correspondence.",
+      "earlier_lawful_prose_exception": null,
+      "used_as_evidence": false
+    },
+    {
+      "aw_id": "hydro-system:80060230",
+      "publication": "Reconnaissance surficial geology, Brichta Lake, Nunavut, NTS 76-P; Canadian Geoscience Map 449 (2022), catalogue reader",
+      "official_url": "https://www.publications.gc.ca/site/eng/9.908558/publication.html",
+      "observed_outcome": "Web reader Internal Error: URL not accessible via this tool; no HTTP status, source body or security/authorization reason provided.",
+      "outcome_layer": "web-reader/tool technical route",
+      "restriction_scope": "Exact failed reader route not retried. This was not by itself a publication-wide access denial. One sequential normal original catalogue request succeeded HTTP 200 afterward. Later missing-map stop below governs further map acquisition.",
+      "earlier_lawful_prose_exception": null
+    }
+  ]
+}

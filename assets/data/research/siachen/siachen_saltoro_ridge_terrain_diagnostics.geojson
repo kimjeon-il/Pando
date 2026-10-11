@@ -1,0 +1,525 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9399965,
+          35.3967479
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 61.25,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 900,
+        "gain_900m": 100.6,
+        "gain_1800m": 100.6,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9386936,
+          35.3970885
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 61.375,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 960,
+        "gain_900m": 121.1,
+        "gain_1800m": 137.4,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.937364,
+          35.3973786
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 61.5,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 1800,
+        "gain_900m": 108.4,
+        "gain_1800m": 146.6,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9360344,
+          35.3976686
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 61.625,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 1800,
+        "gain_900m": 101.4,
+        "gain_1800m": 166.4,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9347047,
+          35.3979586
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 61.75,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 1800,
+        "gain_900m": 98.8,
+        "gain_1800m": 167.4,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9333751,
+          35.3982485
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 61.875,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 1200,
+        "gain_900m": 99.6,
+        "gain_1800m": 148.1,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9320454,
+          35.3985385
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 62.0,
+        "max_offset_900m": -780,
+        "max_offset_1800m": 1290,
+        "gain_900m": 108.7,
+        "gain_1800m": 179.4,
+        "search_edge_900m": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9307157,
+          35.3988284
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 62.125,
+        "max_offset_900m": 510,
+        "max_offset_1800m": 1470,
+        "gain_900m": 183.8,
+        "gain_1800m": 183.9,
+        "search_edge_900m": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.929386,
+          35.3991184
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 62.25,
+        "max_offset_900m": 540,
+        "max_offset_1800m": 540,
+        "gain_900m": 234.9,
+        "gain_1800m": 234.9,
+        "search_edge_900m": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9280563,
+          35.3994083
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 62.375,
+        "max_offset_900m": 780,
+        "max_offset_1800m": 1710,
+        "gain_900m": 205.2,
+        "gain_1800m": 251.2,
+        "search_edge_900m": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9267266,
+          35.3996982
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 62.5,
+        "max_offset_900m": 840,
+        "max_offset_1800m": 1800,
+        "gain_900m": 208.5,
+        "gain_1800m": 323.3,
+        "search_edge_900m": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9253969,
+          35.3999881
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 62.625,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 990,
+        "gain_900m": 220.3,
+        "gain_1800m": 230.4,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9240671,
+          35.400278
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 62.75,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 1020,
+        "gain_900m": 184.2,
+        "gain_1800m": 209.3,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9227374,
+          35.4005678
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 62.875,
+        "max_offset_900m": 780,
+        "max_offset_1800m": 780,
+        "gain_900m": 176.9,
+        "gain_1800m": 176.9,
+        "search_edge_900m": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9214077,
+          35.4008577
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 63.0,
+        "max_offset_900m": 720,
+        "max_offset_1800m": 720,
+        "gain_900m": 231.6,
+        "gain_1800m": 231.6,
+        "search_edge_900m": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.9200779,
+          35.4011475
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "bilafond_north",
+        "station_km": 63.125,
+        "max_offset_900m": 630,
+        "max_offset_1800m": 630,
+        "gain_900m": 167.3,
+        "gain_1800m": 167.3,
+        "search_edge_900m": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.7586265,
+          35.520164
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "mid_ridge_90km",
+        "station_km": 90.525,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 930,
+        "gain_900m": 104.7,
+        "gain_1800m": 104.7,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.7585316,
+          35.5212881
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "mid_ridge_90km",
+        "station_km": 90.65,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 960,
+        "gain_900m": 131.3,
+        "gain_1800m": 137.4,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.7584368,
+          35.5224121
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "mid_ridge_90km",
+        "station_km": 90.775,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 960,
+        "gain_900m": 110.0,
+        "gain_1800m": 117.7,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.758342,
+          35.5235362
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "mid_ridge_90km",
+        "station_km": 90.9,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 1020,
+        "gain_900m": 83.0,
+        "gain_1800m": 95.1,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.7582471,
+          35.5246602
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "mid_ridge_90km",
+        "station_km": 91.025,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 1080,
+        "gain_900m": 50.1,
+        "gain_1800m": 76.7,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.7808776,
+          35.5780861
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "sia_la",
+        "station_km": 99.125,
+        "max_offset_900m": 900,
+        "max_offset_1800m": -1800,
+        "gain_900m": 0.8,
+        "gain_1800m": 216.7,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.7821849,
+          35.5777288
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "sia_la",
+        "station_km": 99.25,
+        "max_offset_900m": 900,
+        "max_offset_1800m": -1800,
+        "gain_900m": 73.5,
+        "gain_1800m": 422.5,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.7834875,
+          35.5773587
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "sia_la",
+        "station_km": 99.375,
+        "max_offset_900m": 900,
+        "max_offset_1800m": -1800,
+        "gain_900m": 96.8,
+        "gain_1800m": 422.1,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.7847902,
+          35.5769887
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "sia_la",
+        "station_km": 99.5,
+        "max_offset_900m": 900,
+        "max_offset_1800m": -1800,
+        "gain_900m": 102.3,
+        "gain_1800m": 373.2,
+        "search_edge_900m": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          76.7860813,
+          35.5768639
+        ]
+      },
+      "properties": {
+        "kind": "dem_cross_profile_diagnostic_not_border",
+        "sector": "sia_la",
+        "station_km": 99.625,
+        "max_offset_900m": 900,
+        "max_offset_1800m": 1800,
+        "gain_900m": 27.9,
+        "gain_1800m": 319.6,
+        "search_edge_900m": true
+      }
+    }
+  ]
+}

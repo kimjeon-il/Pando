@@ -1,0 +1,916 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r124",
+  "sources": [
+    {
+      "title": "Mapa da Bacia Hidrográfica do Rio Caí, G030",
+      "publisher": "Secretaria do Meio Ambiente e Infraestrutura do Rio Grande do Sul; Departamento de Recursos Hídricos e Saneamento",
+      "official_url": "https://www.sema.rs.gov.br/g030-bh-cai",
+      "original_url": "https://www.sema.rs.gov.br/upload/arquivos/202104/29084638-g030.png",
+      "source_type": "Original single-sheet primary basin cartography",
+      "attribution": "Printed footer: Base Cartográfica 1:25.000 (SEMA/FEPAM, 2018); geographic coordinates, SIRGAS 2000. Upload directory is not asserted to be the survey date.",
+      "observed": "Original PNG acquired HTTP200 and visually read in full.",
+      "supports": "Entire Santa Cruz–Caí route through the headward São Francisco de Paula setting, Canela/Gramado, Nova Petrópolis, Vale Real, Feliz, São Sebastião do Caí, Montenegro and lower Caí; tributary separation.",
+      "limits": "Generalized basin map. Does not show every minor feeder or fully map/name all downstream delta channels. No exact source or name-change boundary inferred. Source pixels remain private.",
+      "source_key": "r124-sema-cai-map"
+    },
+    {
+      "title": "Mapa da Bacia Hidrográfica do Rio dos Sinos, G020",
+      "publisher": "Secretaria do Meio Ambiente e Infraestrutura do Rio Grande do Sul; Departamento de Recursos Hídricos e Saneamento",
+      "official_url": "https://www.sema.rs.gov.br/g020-bh-sinos",
+      "original_url": "https://www.sema.rs.gov.br/upload/arquivos/202104/29084636-g020.png",
+      "source_type": "Original single-sheet primary basin cartography",
+      "attribution": "Printed footer: Base Cartográfica 1:25.000 (SEMA/FEPAM, 2018); geographic coordinates, SIRGAS 2000.",
+      "observed": "Original PNG acquired HTTP200 and visually read, especially Esteio–Nova Santa Rita–Canoas lower trunk.",
+      "supports": "FID14009's lower Sinos corridor and its separation from the Caí and Paranhana upper routes.",
+      "limits": "Regional basin cartography; channel-level delta coverage comes from the separate Porto Alegre original. No modern operating condition or exact bank match inferred.",
+      "source_key": "r124-sema-sinos-map"
+    },
+    {
+      "title": "São Francisco de Paula – RS, 4318200, Mapa Municipal",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Coordenação de Estruturas Territoriais",
+      "edition": "04/2021, in the 2020 municipal-map collection",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/sao_francisco_de_paula/4318200_MM.pdf",
+      "source_type": "Original one-sheet municipal reference cartography",
+      "observed": "PDF completed HTTP200; whole sheet and local headward/reservoir/western crops visually read.",
+      "supports": "Small headward feeder setting, westward Santa Cruz approaches, branching reservoir shapes, Eletra/Salto setting, and upper westward Caí continuation north of Canela.",
+      "limits": "Printed notice says semi-automated compilation from IBGE municipal mesh with updates from multiple sources, developed exclusively for IBGE statistical collection/tabulation and not intended for other purposes; IBGE disclaims responsibility for other use. Reproduction rights reserved. Used here only for bounded comparative geographic reading, not as a hydrographic survey or formal naming registry; originals/crops not redistributed.",
+      "source_key": "r124-ibge-sao-francisco-paula-2020"
+    },
+    {
+      "title": "Porto Alegre – RS, 4314902, Mapa Municipal",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Coordenação de Estruturas Territoriais",
+      "edition": "04/2021, in the 2020 municipal-map collection",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/porto_alegre/4314902_MM.pdf",
+      "source_type": "Original one-sheet municipal reference cartography",
+      "observed": "Original PDF completed HTTP200; whole sheet and northern delta crop visually read.",
+      "supports": "Separate labeled Rio Caí and Rio dos Sinos entries, Jacuí delta channels and islands, Porto Alegre terminal setting and distinction from broad downstream Guaíba.",
+      "limits": "Printed notice says semi-automated compilation from IBGE municipal mesh with multi-source updates, intended exclusively for IBGE statistical collection/tabulation, with other use disclaimed. Reproduction rights reserved. Some delta channels carry Rio Guaíba while the report uses Jacuí delta context; no single local name is imposed on the selected terminal. Original and crops remain private.",
+      "source_key": "r124-ibge-porto-alegre-2020"
+    },
+    {
+      "title": "Nota técnica: Bacia hidrográfica do rio Caí: características básicas, mapas, diagrama unifilar e tempo de ondas de cheia",
+      "authors": "Francisco Fernando Noronha Marcuzzo",
+      "publisher": "Serviço Geológico do Brasil, Diretoria de Hidrologia e Gestão Territorial",
+      "edition": "1ª versão, julho de 2025, Porto Alegre",
+      "official_url": "https://rigeo.sgb.gov.br/handle/doc/25616",
+      "original_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/ab618331-c7eb-4810-82b7-165fa00a1fc8/content",
+      "pages": "Printed/PDF pp.11–14 and 29–33; supplementary annotated images pp.48–50",
+      "source_type": "Primary technical report with original compiled cartography, explicitly adapted hydrological diagrams and separately credited Google Earth reproductions",
+      "attribution": "Author's 2025 map on p.14 credits multiple stated ANA/IBGE/SRTM and other basemap inputs. Diagrams pp.30–33 explicitly identify adaptation from Guimarães, Finck and Marcuzzo (2017); they are read as schematics, not original 2017 map inspection. Annex images are credited Google Earth reproductions and are not claimed as independent current satellite acquisitions.",
+      "observed": "Catalogue opened normally, original report completed HTTP200. Prose pp.11–12,29 and original map p.14, adapted diagrams pp.30–33, annotated reproductions pp.48–50 visually read.",
+      "supports": "Santa Cruz-to-Caí naming distinction, whole primary corridor, major tributary sequence, Blang/Salto/Divisa and separate Paranhana transfer, Caí and Sinos entering Jacuí delta upstream of Guaíba.",
+      "limits": "The source's approximate spring and name-transition coordinates, hydrological measurements and published river length are not assigned to the selected model. Schematic network distances and reservoir labels are not precise geometry evidence. Current flow, dam operation and legal status are outside this review.",
+      "reuse_limit": "Printed p.2 permits reproduction provided the source is cited. The task's stricter boundary still keeps source originals, renders and crops private. Third-party imagery credits remain distinct from SGB authorship.",
+      "source_key": "r124-sgb-cai-2025"
+    },
+    {
+      "title": "Qualidade das águas da bacia hidrográfica do rio Caí",
+      "publisher": "Fundação Estadual de Proteção Ambiental Henrique Luis Roessler, Rio Grande do Sul",
+      "official_url": "https://ww3.fepam.rs.gov.br/qualidade/qualidade_cai/cai.asp",
+      "source_type": "Primary agency historical monitoring webpage; supporting prose only",
+      "sections": "Descrição da Área; Usos das águas; Localização dos Pontos de Amostragem",
+      "observed": "Webpage opened normally and relevant prose was read.",
+      "supports": "Named upper/middle/lower Caí settings, separate tributary approaches, Salto/Santa Cruz and transfer context, lower Caí discharge into Jacuí delta.",
+      "limits": "This historical monitoring account does not provide newly inspected source-map pixels or modern water-quality/operating conditions. Its river length, population, pollutant, discharge and extraction figures are not used for this finding.",
+      "source_key": "r124-fepam-cai-description"
+    },
+    {
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrográfica Nacional, layer0 Red Hidrografica",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Undated active service; inspected11 October2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "type": "Primary original hydrographic cartography",
+      "actually_inspected": "Eastern head, upper La Laguna, middle Turbio and lower Elqui original map views.",
+      "cartographic_method": "Server-rendered NOMBRE labels were requested on the official line layer, which has no default labels. No full vector/base dataset was acquired.",
+      "evidence_limit": "The line-only source does not resolve the selected eastern head/connector, reservoir surfaces or topographic ridge crossings.",
+      "use_notice": "Copyright metadata blank; no redistribution permission inferred. Originals and selected-only orientation figures remain private.",
+      "source_key": "mma-simbio-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "title": "SIMBIO_COT, layer1 COT 2020",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Layer titled2020; inspected11 October2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer/layers",
+      "type": "Primary official land-cover cartography",
+      "actually_inspected": "La Laguna reservoir, Puclaro reservoir and Elqui coastal-setting views using the published default USO renderer.",
+      "supports": "Waterbody settings between the hydrographic inlet/outlet approaches; coast orientation.",
+      "evidence_limit": "Categorical polygons contain no hydronyms. The coast view supplies land-cover/coastal context, not an exact estuarine-channel map;2020 land cover is not current wetness.",
+      "use_notice": "Copyright metadata blank; originals/derivatives remain private.",
+      "source_key": "mma-simbio-cot2020",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "title": "Diagnóstico y clasificación de los cursos y cuerpos de agua según objetivos de calidad. Cuenca del río Elqui",
+      "author": "Dirección General de Aguas",
+      "publisher": "Ministerio de Obras Públicas; original hosted by Ministerio del Medio Ambiente",
+      "date": "December2004",
+      "type": "Primary basin-report prose and segment table; supporting reproduced regional map",
+      "actually_inspected": "Printed pages1–4, Table2.1; original Figure2.2 on printed page10; bibliography on page136.",
+      "supports": "Toro–La Laguna/Turbio and Turbio–Claro/Elqui transitions, Incahuaz sequence, Puclaro entrance/exit segments and downstream river to its mouth.",
+      "cartographic_attribution": "Figure2.2 is a reproduced1:1,000,000 Mapa Hidrogeológico figure, credited in the caption to report Ref2.5 (DGA Mapa Hidrogeológico). The surrounding prose has an inconsistent Ref2.4 reference. No standalone underlying map was acquired, and this small reproduced figure is not used to fill the eastern-head gap.",
+      "distinct_publication": "Precisely identified December2004 Elqui report; not the current Vialidad portal, Loa/DGA2014 figures, Codelco Pedernales2023 or an equivalent recovery of those sources.",
+      "use_notice": "Original report/maps remain private; government hosting does not establish unrestricted republication.",
+      "source_key": "dga-elqui-2004",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Elqui.pdf"
+    },
+    {
+      "title": "Embalse La Laguna",
+      "publisher": "Junta de Vigilancia del Río Elqui y sus Afluentes",
+      "date": "Undated page; inspected11 October2026",
+      "type": "Primary water-operator prose",
+      "actually_inspected": "Page body identifying La Laguna reservoir, Río La Laguna inflow, controlled release and complementary regulation with Puclaro.",
+      "evidence_limit": "No model, photograph or3D depiction used as surveyed cartography. Capacity/operational statements are not substituted for selected model metadata.",
+      "source_key": "jvre-laguna",
+      "official_url": "https://www.rioelqui.cl/embalse-la-laguna/"
+    },
+    {
+      "title": "Hidroeléctrica Puclaro",
+      "publisher": "Junta de Vigilancia del Río Elqui y sus Afluentes",
+      "date": "Undated page containing a28October2025 milestone; inspected11October2026",
+      "type": "Primary water-operator prose",
+      "actually_inspected": "Explanation that the plant uses normal Puclaro releases and returns water to the downstream system.",
+      "evidence_limit": "Supports the reservoir outlet/river continuation, not current discharge or legal authorization verification.",
+      "source_key": "jvre-puclaro",
+      "official_url": "https://www.rioelqui.cl/hidraulica-puclaro/"
+    },
+    {
+      "title": "Cuenca Rio Elqui, código BNA043",
+      "publisher": "Ministerio del Medio Ambiente, SIMBIO",
+      "date": "Undated active catalogue; inspected11October2026",
+      "type": "Primary basin/subbasin catalogue prose",
+      "actually_inspected": "Subbasin sequence for La Laguna, Toro, Incahuas, Turbio, Claro and Elqui; lower Santa Gracia-to-mouth reach.",
+      "evidence_limit": "Basin names and catalogued segmentation do not prove the selected eastern connector. No catalogue geometry downloaded.",
+      "use_notice": "Page states its cartography is referential and does not commit Chile regarding boundaries; also states unrestricted use of that cartography. This is not extended into a redistribution claim for different source publications.",
+      "source_key": "mma-elqui-basin043",
+      "official_url": "https://simbio.mma.gob.cl/Cuencas/VistaImpresion/043"
+    },
+    {
+      "title": "Informe Ambiental Complementario. Estudio Actualización Plan Regulador Intercomunal de la Provincia de Elqui. Versión02",
+      "author": "SURPLAN; planning report hosted by Ministerio de Vivienda y Urbanismo",
+      "date": "March2025, as printed on cover; URL path contains2023/01",
+      "type": "Primary planning-report context, relying on cited basin sources",
+      "actually_inspected": "Cover and printed pages41–43, including water-component prose.",
+      "supports": "Regional valley setting and existence of La Laguna/Puclaro reservoirs.",
+      "evidence_limit": "Its river-origin paragraph credits Cade-Idepe2004, so it is not independent evidence of that transition. No unseen report map is claimed.",
+      "use_notice": "No redistribution rights inferred; original and page renders remain private.",
+      "source_key": "minvu-elqui2025",
+      "official_url": "https://www.minvu.gob.cl/wp-content/uploads/2023/01/2.-Informe-Ambiental-Complementario-2_PRI_Elqui.pdf"
+    },
+    {
+      "title": "Impact of forcing on sublimation simulations for a high mountain catchment in the semiarid Andes",
+      "author": "Marion Réveillet; Shelley MacDonell; Simon Gascoin; Christophe Kinnard; Stef Lhermitte; Nicole Schaffer",
+      "publisher": "The Cryosphere14,147–163; Copernicus Publications for EGU",
+      "date": "17January2020",
+      "doi": "https://doi.org/10.5194/tc-14-147-2020",
+      "original_url": "https://tc.copernicus.org/articles/14/147/2020/tc-14-147-2020.pdf",
+      "type": "Primary scientific study and own basin-relief figure",
+      "actually_inspected": "Study-site description, Figure1 and caption on printed page148.",
+      "supports": "La Laguna catchment, reservoir and Tapado glacier in high-Andes relief context.",
+      "evidence_limit": "Figure1 has a scale bar and catchment outline but does not establish the exact selected eastern branch, every drainage connection or a ridge crossing. AWS labels are station names rather than proof of river-name scope. No hydrologic simulation is treated as geographic connectivity evidence.",
+      "use_notice": "Printed Creative Commons Attribution4.0; source original/figure remains private under this task boundary.",
+      "source_key": "reveillet-2020",
+      "official_url": "https://tc.copernicus.org/articles/14/147/2020/"
+    },
+    {
+      "title": "Río Elqui es reconocido como primer humedal urbano de la Región de Coquimbo",
+      "publisher": "Proyecto GEF Humedales Costeros, Ministerio del Medio Ambiente",
+      "date": "5August2022",
+      "type": "Primary official coastal-setting prose",
+      "actually_inspected": "Article body describing the La Serena wetland from Altovalsol to the mouth connecting with the Pacific.",
+      "evidence_limit": "Geographic coastal context only. No current legal-status verification or exact mouth position is inferred; no article photo used as map.",
+      "source_key": "gef-elqui-news2022",
+      "official_url": "https://gef.mma.gob.cl/humedales/rio-elqui-es-reconocido-como-primer-humedal-urbano-de-la-region-de-coquimbo/"
+    },
+    {
+      "title": "Quaternary Geography and Sedimentology of the Humber River Basin and Adjacent Areas",
+      "author": "M. J. Batterson",
+      "publisher": "Government of Newfoundland and Labrador, Department of Mines and Energy, Geological Survey",
+      "year": 2003,
+      "publication_number": "Report 03-02",
+      "acquired_scope": "Original acquired successfully and read locally. Original Figure 1 (printed p.2; PDF p.19), Figure 6 (printed p.8; PDF p.25), title/imprint/use notice and relevant introduction/physiography prose were visually read.",
+      "supports": "Regional Little Grand Lake–Grand Lake–Junction Brook–Deer Lake–lower Humber corridor; Glover Island lake-passage distinction; upper/lower Humber components and actual terminal in Humber Arm at Corner Brook.",
+      "limits": "Figure 1 is generalized geological-study cartography. Its sparse eastern feeder line does not establish the short selected headward eastern loop. Figure 6 concerns the western Grand Lake/Grand Lake Brook divide, not that selected feeder. It is not evidence for present regulated discharge, exact banks or formal names.",
+      "reuse_limit": "The printed notice restricts third-party digital reproduction/copy and requires acknowledgement for derivative products. Originals and working crops remain private.",
+      "source_key": "r124-nl-batterson-report0302",
+      "official_url": "https://www.gov.nl.ca/em/files/mines-geoscience-publications-report0302.pdf"
+    },
+    {
+      "title": "Residual Magnetic Field, Little Grand Lake Map Area (NTS 12A/12), Aeromagnetic Survey – Corner Brook Area",
+      "author": "G. J. Kilfoil and L. A. Cook",
+      "publisher": "Geological Survey, Department of Natural Resources, Government of Newfoundland and Labrador",
+      "year": 2009,
+      "publication_number": "Map 2009-30, Open File NFLD/3058",
+      "scale": "1:50,000",
+      "acquired_scope": "Original acquired successfully and read locally. Full original map and margin were rendered and read; local crops of the eastern feeder and Little Grand Lake were inspected.",
+      "supports": "Detailed lake/stream correspondence west of the sheet edge: initial feeder portions south of the Indian Lake context; westward approach to Little Grand Lake; lake passage and northward outlet to the southwestern Grand Lake basin. Little Grand Lake and Lewaseechjeech Brook labels remain component labels.",
+      "limits": "The selected initial eastward bend crosses beyond the eastern sheet edge into NTS 12A/11. That out-of-sheet connection is not inferred from model connectivity. Magnetic shading overlies parts of the western map, but the broad Little Grand Lake/outlet and adjacent Grand Lake setting remain visible. This is a separately issued provincial geophysical publication with a credited federal topographic base, not the stopped Star Lake CanMatrix sheet.",
+      "reuse_limit": "Printed notice describes preliminary, unedited/unreviewed open-file data, restricts third-party digital reproduction/copy, and requires source acknowledgement for derivatives. Originals/crops remain private.",
+      "source_key": "r124-nl-mag2009-30",
+      "official_url": "https://www.gov.nl.ca/em/files/mines-geoscience-publications-openfiles-mag12a12.pdf"
+    },
+    {
+      "title": "Hydrotechnical Study of the Deer Lake Area, Volume 1: Main Report",
+      "author": "Cumming Cockburn Limited and Nolan, Davis & Associates Limited",
+      "publisher": "Canada–Newfoundland Flood Damage Reduction Program; Newfoundland Department of the Environment",
+      "year": 1987,
+      "edition": "Final report; submission letter dated 13 August 1987, project 7166",
+      "acquired_scope": "Original acquired successfully and read locally. Scanned submission letter, contents, printed pp.1-4, 1-5 and 2-14, and Figure 1.1 were visually read. Local OCR served navigation only.",
+      "supports": "Primary commissioned hydrotechnical prose distinguishes the original Grand Lake discharge via Junction Brook to Upper Humber from the 1925 dam/diversion through Humber Canal directly to Deer Lake. Section 2.4 identifies power-house penstocks, main-dam spillway and log sluiceway as Grand Lake outlet modes, and identifies Deer Lake as the downstream natural reservoir.",
+      "limits": "Historical 1987 operational description. No current gate position, flow volume, persistent flow along Junction Brook or modern management condition is established. Figure 1.1 is only regional study context; no detailed Figure 1.2 observation is claimed. This prose does not substitute for the missing headward connector map.",
+      "source_key": "r124-nl-deerlake-hydrotechnical1987",
+      "official_url": "https://www.canal.gov.nl.ca/reports/frm/FRM_Deer%20Lake/Hydrotechnical%20Study%20of%20the%20Deer%20Lake%20Area_Vol1_Main%20Report.pdf"
+    },
+    {
+      "title": "Quaternary Study of the Puddle Pond, Star Lake and Rainy Lake NTS Map Areas (12A/05, 11 and 14) in West-Central Newfoundland",
+      "author": "J. S. Organ and T. Dyke",
+      "publisher": "Newfoundland and Labrador Department of Natural Resources, Geological Survey",
+      "year": 2019,
+      "publication_number": "Current Research, Report 19-1, pp.227–242",
+      "acquired_scope": "Original acquired successfully and read locally. Original Figure 1, printed p.228/PDF p.2, title and adjacent physiography prose were visually read.",
+      "supports": "Independent regional headward setting around Indian Lake, Caribou Lake and Star Lake and the Long Range Mountains.",
+      "limits": "The regional shaded-relief figure does not resolve the selected small eastern bow or stream-to-stream connection. Nearby lake labels are not selected-feature names; this source is contextual only, not completion of the headward gap.",
+      "source_key": "r124-nl-organ-dyke2019",
+      "official_url": "https://www.gov.nl.ca/em/files/mines-geoscience-publications-currentresearch-2019-organ-2019.pdf"
+    },
+    {
+      "title": "Little Grand Lake Provisional Ecological Reserve",
+      "author": "Parks and Natural Areas Division",
+      "publisher": "Department of Tourism, Culture and Recreation, Government of Newfoundland and Labrador",
+      "year": null,
+      "edition": "Printed issue date not established; PDF metadata date 13 February 2006 is not promoted to a publication edition",
+      "acquired_scope": "Original acquired successfully and read locally. Cover/map panel and accompanying text inspected.",
+      "supports": "Regional reserve context only.",
+      "limits": "The cover contains a provincial locator/reserve boundary illustration over a photograph, not a detailed local river map. It does not resolve the selected headward connector and is not geographic correspondence evidence for any FID.",
+      "source_key": "r124-nl-littlegrand-reserve-brochure",
+      "official_url": "https://www.gov.nl.ca/eccc/files/natural-areas-pdf-little-grand-lake-web.pdf"
+    },
+    {
+      "title": "Região de Planejamento e Gestão das Águas – XIII: Rio Real, Estado da Bahia, 2014",
+      "author": "Instituto do Meio Ambiente e Recursos Hídricos (INEMA), Governo do Estado da Bahia",
+      "publication_date": "2014",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Whole regional sheet, headward river branches, complete Real border corridor, lower estuarine geometry, legend and source credits; private enlarged head and lower-corridor views.",
+      "source_notes": "Scale bar 0–24km. Credits Plano Estadual de Recursos Hídricos2004, Resolução CNRH32/2003, Resoluções CONERH43/2009 and88/2012, and Banco de Dados do INEMA2014. Bahia planning sheet leaves much of inland Sergipe blank; it is supplemented by CPRM for tributary settings.",
+      "use_notice": "No special limited-distribution notice observed in the inspected sheet. Official hosting is not a grant of redistribution rights; original/crops remain private.",
+      "source_key": "INEMA_RPGA_XIII_2014",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/XIII-RPGA-DO-RIO-REAL.pdf"
+    },
+    {
+      "title": "Heliópolis – BA, Mapa Municipal Estatístico, geocódigo2911857",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE)",
+      "publication_date": "Malha territorial2010; edition07/06/2010",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Whole sheet and margin; initial minor headward drainage, Jibóia–Cumbanzê–Real connection, separate Pindorama branch, and source/compilation notices.",
+      "source_notes": "Semi-automatic compilation of IBGE/DSG/other systematic mapping and municipal digital limits, with updates from varied sources and incomplete integration/completeness. Printed note says black limits inherited from raster sheets are outdated and should be disregarded. Those limits are not used to determine the hydronym or a modern legal boundary.",
+      "use_notice": "© IBGE, reproduction rights reserved. Historical generalized municipal reference, not a current hydrological survey. No original/crop redistributed.",
+      "source_key": "IBGE_HELIOPOLIS_2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ba/heliopolis_v2.pdf"
+    },
+    {
+      "title": "Heliópolis – BA, Mapa Municipal, código2911857",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE), Coordenação de Estruturas Territoriais",
+      "publication_date": "Edition04/2021,2020 municipal-map collection",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Full sheet, rural/locality and larger drainage context, margin and intended-use notice. Minor initial channels are sparsely represented and this sheet is not used alone for complete upper-channel coverage.",
+      "source_notes": "Geographic coordinates, SIRGAS2000; scale bar0–1600m. Intended for statistical collection/tabulation rather than a hydrological or legal-channel survey.",
+      "use_notice": "Printed semi-automatic municipal-map notice specifies exclusive intended use for IBGE statistical collection/tabulation, warns against other purposes and disclaims responsibility for such use. © IBGE, reproduction rights reserved. This is retained as a source-use caveat; no originals/crops are redistributed.",
+      "source_key": "IBGE_HELIOPOLIS_2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/heliopolis/2911857_MM.pdf"
+    },
+    {
+      "title": "Jandaíra – BA, Mapa Municipal, código2917904",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE), Coordenação de Estruturas Territoriais",
+      "publication_date": "Edition04/2021,2020 municipal-map collection",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Full sheet and margin; northern lower-Real course, Cachoeira/Abadia–Indiaroba widening, actual selected terminal setting, Pontal–Mangue Seco outer estuary, northern Piauí channels and coast.",
+      "source_notes": "Geographic coordinates, SIRGAS2000; scale bar0–3000m. Generalized municipal reference, not a hydrographic survey or proof of a current precise shoreline/mouth position.",
+      "use_notice": "Printed semi-automatic municipal-map notice specifies exclusive intended use for IBGE statistical collection/tabulation, warns against other purposes and disclaims responsibility for such use. © IBGE, reproduction rights reserved. No original/crop redistributed.",
+      "source_key": "IBGE_JANDAIRA_2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/jandaira/2917904_MM.pdf"
+    },
+    {
+      "title": "Mapa da Rede Hidrometeorológica da Sub-bacia50 adaptado do Projeto Rede Hidrometeorológica Básica; Regionalização da Vazão de95% de Permanência (Q95%), Bacias Hidrográficas do Atlântico Sul – Trecho Leste – Sub-bacia50",
+      "author": "Companhia de Pesquisa de Recursos Minerais, Serviço Geológico do Brasil; technical execution Múcio Valença Virães",
+      "publication_date": "2013",
+      "final_original_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/86c71445-40fa-4b17-85eb-f392a0865949/content",
+      "scale": "1:1,000,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Whole sheet, credits/legend and full Real corridor crop including Heliópolis, Mocambo, Jabiberi/Tobias Barreto, Itamirim, Raposo, Jandaíra and shared estuary. Reservoir symbol near Heliópolis belongs to the separate mapped branch setting.",
+      "source_notes": "Margin says simplified base from IBGE's integrated1-million mapping; hydrometric stations from ANA; basin/drainage-area shapes generated from250,000 terrain data. UTM/WGS84. Appropriate as generalized corridor and junction context, not initial minor-channel or shoreline precision.",
+      "use_notice": "No special limited-distribution notice observed. Original/crop remains private and attribution is preserved.",
+      "source_key": "CPRM_SB50_2013",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/11562/3/mapa_rede_sb50.pdf"
+    },
+    {
+      "title": "Relatório de Monitoramento da Qualidade das Águas: Região de Planejamento e Gestão das Águas Rio Real,1ª Campanha–2012",
+      "author": "Governo do Estado da Bahia, Instituto do Meio Ambiente e Recursos Hídricos, COMON",
+      "publication_date": "Campaign2012; acquired PDF metadata created2016",
+      "evidence_kind": "primary_monitoring_report_with_reproduced_regional_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Cover, credits, pp4–8 monitoring locations and Figure1 onp7. Figure1 is the report's reproduction of the2009 INGÁ RPGA sheet; it is not an independent newly surveyed map.",
+      "observation": "Field station descriptions distinguish Rio Real at the Itapicuru–Tobias Barreto divide and BA-099 at Jandaíra from the Fonte Branca reservoir near Rio Real town. The upstream BA-393 Real station belongs to a different upstream branch setting and is not used to label the selected Jibóia feeder.",
+      "use_notice": "Report and reproduced map attribution retained; no original/crop redistributed.",
+      "source_key": "INEMA_REAL_MONITORA_2012",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/Relatrio_Real_FINAL.pdf"
+    },
+    {
+      "title": "Ações que protegem: Plano Estadual de Proteção e Defesa Civil2021",
+      "author": "Governo de Sergipe, Departamento Estadual de Proteção e Defesa Civil and Secretaria de Estado do Desenvolvimento Urbano e Sustentabilidade",
+      "publication_date": "2021",
+      "evidence_kind": "primary_official_prose",
+      "cartographic_reading": false,
+      "actually_read": "Printedpp54–55, sections4.6.5–4.6.6; Jabiberi entries in printedpp112 and117 dam tables. No plan map pixels acquired or claimed.",
+      "observation": "Identifies Real as the Bahia–Sergipe border river entering the shared Mangue Seco estuary with Piauí, names principal tributaries, and identifies Jabiberi reservoir at Tobias Barreto. Its generalized headwater narrative is not used to replace the selected headward cartographic reading.",
+      "use_notice": "Bounded factual paraphrase only; no source report redistribution.",
+      "source_key": "SERGIPE_DEFESA_CIVIL_2021",
+      "official_url": "https://defesacivil.se.gov.br/wp-content/uploads/2023/10/PLANO-DEFESA-CIVIL-2021.pdf"
+    },
+    {
+      "title": "Relatório de Áreas de Concentração de Aves Migratórias no Brasil, capítulo7: Áreas de concentração de aves migratórias no Brasil, item22",
+      "author": "CEMAVE/ICMBio report site",
+      "publication_date": "Exact chapter edition not established from bounded reading",
+      "evidence_kind": "primary_conservation_report_prose",
+      "cartographic_reading": false,
+      "actually_read": "Item22 on the Piauí,Fundo and Real estuarine complex and the Pontal/Indiaroba setting.",
+      "observation": "Identifies the Piauí–Fundo–Real estuarine complex on the Bahia–Sergipe boundary and the Real margins near Pontal. Supports receiving-setting context only; no linked figure acquired or treated as map evidence.",
+      "use_notice": "Bounded factual paraphrase; no chapter/map redistribution.",
+      "source_key": "CEMAVE_ESTUARY_CH7",
+      "official_url": "https://cemave-sede.github.io/relatorio_aves/cap7.html"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61457744",
+      "source_keys": [
+        "r124-sema-cai-map",
+        "r124-sema-sinos-map",
+        "r124-ibge-sao-francisco-paula-2020",
+        "r124-ibge-porto-alegre-2020",
+        "r124-sgb-cai-2025",
+        "r124-fepam-cai-description"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14006
+          ],
+          "component_scope": "Headward opening in São Francisco de Paula",
+          "finding": "The eastern opening occupies the small drainage network around the Cerrito/Capão do Cerrito–Mangueira de Pedras setting northeast of São Francisco de Paula's urban seat. The IBGE original shows these connected headward streams and the westward approach toward the Rio Santa Cruz reservoir corridor. The model's initial feeder is not asserted to be the report's cited Santa Cruz spring, nor is an adjacent arroio label imposed on it.",
+          "sources": [
+            "r124-ibge-sao-francisco-paula-2020",
+            "r124-sema-cai-map",
+            "r124-sgb-cai-2025"
+          ],
+          "correspondence": "complete; exact initial feeder name unassigned",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14006
+          ],
+          "component_scope": "Blang, Salto and the separate Divisa/Paranhana connections",
+          "finding": "The westward upper route enters the branching Blang reservoir setting and proceeds toward the Salto impoundment at Eletra. The IBGE original independently shows the water-body outlines and continuing Santa Cruz corridor. SGB's original report map and its adapted single-line diagram distinguish the Divisa approach from the north, the Santa Cruz/Blang line, Salto and the separate transfer to UHE Bugres/Rio Paranhana across the drainage divide. The selected mainstem continues northwest/west downstream of Salto toward the Santa Cruz–Caí corridor; it does not follow the transfer tunnel or the Paranhana route.",
+          "sources": [
+            "r124-ibge-sao-francisco-paula-2020",
+            "r124-sgb-cai-2025",
+            "r124-fepam-cai-description"
+          ],
+          "correspondence": "complete; reservoir and artificial-transfer names remain context, not river aliases",
+          "mapped_component_name": "Rio Santa Cruz"
+        },
+        {
+          "fragments": [
+            14006
+          ],
+          "component_scope": "Upper western bends and middle Caí",
+          "finding": "The route turns northwest around the Passo do Inferno/Cará sector, then west along the northern Canela–Gramado side and past the separate Caracol, Macaco and Piaí approaches. It follows the Caí north of Nova Petrópolis, bends southwest through the Vale Real/Feliz setting and south past Bom Princípio. The SEMA map's continuous line and repeated Caí labels, rather than basin membership alone, establish the corridor. SGB prose expressly distinguishes the upstream Santa Cruz name and its downstream transition in western São Francisco de Paula; no precise name-transition vertex is allocated.",
+          "sources": [
+            "r124-sema-cai-map",
+            "r124-ibge-sao-francisco-paula-2020",
+            "r124-sgb-cai-2025",
+            "r124-fepam-cai-description"
+          ],
+          "correspondence": "complete",
+          "mapped_component_name": "Rio Caí"
+        },
+        {
+          "fragments": [
+            14006,
+            14007
+          ],
+          "component_scope": "São Sebastião do Caí, Montenegro and lower river",
+          "finding": "The selected river passes the separate Cadeia approach near São Sebastião do Caí, continues past Pareci Novo and the Maratá approach to Montenegro, makes the distinctive southeastward bend and continues south through the lower floodplain west of Nova Santa Rita. The separate Mineiro approach and the final eastward turn are mapped. The complete intermediate connection is visible; tributary names are not assigned to the selected mainstem.",
+          "sources": [
+            "r124-sema-cai-map",
+            "r124-sgb-cai-2025",
+            "r124-fepam-cai-description"
+          ],
+          "correspondence": "complete",
+          "mapped_component_name": "Rio Caí"
+        },
+        {
+          "fragments": [
+            14007,
+            14008,
+            14009
+          ],
+          "component_scope": "Lower Sinos entry and terminal delta",
+          "finding": "The Caí approaches from the northwest/west and Sinos from the north along the Canoas–Nova Santa Rita side. Both enter the northern Jacuí delta, which has multiple channels around islands before opening into Guaíba farther south. The selected ending is in the delta, not the distant Atlantic coast. IBGE's original map provides actual channel/island geography; SGB's p.33 single-line drawing independently explains the system relationship, and the annotated Google Earth reproduction on p.50 is only supplementary terminal context.",
+          "sources": [
+            "r124-sema-sinos-map",
+            "r124-ibge-porto-alegre-2020",
+            "r124-sgb-cai-2025"
+          ],
+          "correspondence": "complete; individual final delta-channel naming left unassigned",
+          "mapped_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "source_keys": [
+        "mma-simbio-hydro",
+        "mma-simbio-cot2020",
+        "dga-elqui-2004",
+        "jvre-laguna",
+        "jvre-puclaro",
+        "mma-elqui-basin043",
+        "minvu-elqui2025",
+        "reveillet-2020",
+        "gef-elqui-news2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14000
+          ],
+          "component_scope": "Selected mainstem FID14000",
+          "finding": [
+            "The retained fragment begins with a short westward branch and then turns southeast toward the following boundary-aligned fragment.",
+            "The neighboring primary map labels Estero El Empalme and Río Colorado, but those named watercourses lie west of the selected initial setting. No label is transferred to this fragment."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "reveillet-2020"
+          ],
+          "correspondence": "Selected fragment reviewed against the primary eastern hydrographic view and bounded upper-basin scientific map; exact initial-channel correspondence remains unresolved.",
+          "name_scope": "Unknown; null.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14001
+          ],
+          "component_scope": "Selected mainstem FID14001",
+          "finding": [
+            "The selected southward boundary-aligned curve is east of the mapped Colorado valley. Its stored border-aligned flag is model metadata rather than primary evidence of a natural watercourse.",
+            "The scientific relief figure identifies the high mountain La Laguna catchment, but does not provide enough locatable drainage detail to classify this entire connector as a mapped non-channel crossing."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "reveillet-2020"
+          ],
+          "correspondence": "Entire selected extent falls in the inspected eastern hydrographic view; insufficient natural-channel or ridge correspondence.",
+          "name_scope": "Unknown; null.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14002
+          ],
+          "component_scope": "Selected mainstem FID14002",
+          "finding": [
+            "After the unaccounted eastern approach, the selected route reaches the lower Colorado/La Gloria setting and turns north through La Laguna reservoir. COT shows the elongated reservoir between the mapped inlet and outlet approaches.",
+            "La Laguna continues north to Toro; the combined Turbio turns west and then south past the Incaguas, Guanta and Calvario settings. Claro joins near Rivadavia, after which the selected river is Elqui.",
+            "The westward Elqui corridor passes the Vicuña reach and Puclaro reservoir, then the Marquesa and Santa Gracia settings toward La Serena. The lower braided/coastal approach and receiving Pacific setting were read at ordinary generalized scale.",
+            "COT corroborates the Puclaro waterbody and coastal land margin. It does not itself supply hydronyms, exact estuary channels or present water levels."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "mma-simbio-cot2020",
+            "dga-elqui-2004",
+            "jvre-laguna",
+            "jvre-puclaro",
+            "mma-elqui-basin043",
+            "gef-elqui-news2022"
+          ],
+          "correspondence": "Initial westward connection remains incomplete; the subsequent valley corridor, both reservoir passages, major junctions and actual coast are supported.",
+          "name_scope": "Multiple component names; Elqui is supported only for the downstream receiving river.",
+          "mapped_component_name": "La Laguna–Turbio–Elqui corridor after the unresolved initial connector"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70290797",
+      "source_keys": [
+        "r124-nl-mag2009-30",
+        "r124-nl-batterson-report0302",
+        "r124-nl-deerlake-hydrotechnical1987",
+        "r124-nl-organ-dyke2019"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9405
+          ],
+          "component_scope": "Initial eastward upland feeder and eastern return bend",
+          "finding": "The selected opening lies in the upland stream/pond belt south of the Indian Lake context and northeast of Little Grand Lake. Detailed provincial Map 2009-30 covers its western portions, but the initial eastward bow passes beyond that sheet edge before turning southwest. Organ and Dyke Figure 1 supplies regional terrain/lake context only. The complete out-of-sheet stream connector is not actually read.",
+          "sources": [
+            "r124-nl-mag2009-30",
+            "r124-nl-organ-dyke2019"
+          ],
+          "correspondence": "material source coverage pending",
+          "limits": "The gap is a stream/pond connection at ordinary component scale, not a demand for precise bank, vertex or mouth agreement. Unknown opening and small pond names remain null.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9405
+          ],
+          "component_scope": "Westward feeder, Little Grand Lake passage and outlet",
+          "finding": "Beyond the unresolved eastern bow, the westward approach to Little Grand Lake, elongated lake passage and northward outlet toward the southwestern Grand Lake basin are readable. Batterson Figure 1 identifies Lewaseechjeech Brook on the eastern approach; Map 2009-30 separately labels Little Grand Lake and Lewaseechjeech Brook in the lake/outlet corridor.",
+          "sources": [
+            "r124-nl-mag2009-30",
+            "r124-nl-batterson-report0302"
+          ],
+          "correspondence": "supported at ordinary generalized component/corridor scale outside the upstream gap",
+          "limits": "The brook label is retained as a component observation; it does not establish the exact name boundary across all lake passages or the initial branch.",
+          "mapped_component_name": "Lewaseechjeech Brook"
+        },
+        {
+          "fragments": [
+            9405,
+            9406
+          ],
+          "component_scope": "Grand Lake passage beside Glover Island to northern outlet setting",
+          "finding": "The selected corridor enters the southwestern Grand Lake basin, continues northeast through the lake on the southeastern side of Glover Island, then along the principal Grand Lake body to its northern outlet setting. Glover Island and the western lake arm remain separate geographic context. The selected route does not ascend the separately depicted Hinds Lake, Sandy Lake or Birchy Lake tributary systems.",
+          "sources": [
+            "r124-nl-batterson-report0302",
+            "r124-nl-mag2009-30"
+          ],
+          "correspondence": "supported at ordinary generalized component/corridor scale",
+          "limits": "Grand Lake is a lake/reservoir passage, not a scalar river name. Dam-related historical enlargement and adjacent lake connections are acknowledged without mapping every lake reach to Humber River.",
+          "mapped_component_name": "Grand Lake"
+        },
+        {
+          "fragments": [
+            9406,
+            9407
+          ],
+          "component_scope": "Junction Brook, main-dam outlet/spillway and Upper Humber junction",
+          "finding": "The selected northward-then-westward corridor corresponds to the Junction Brook route toward the Upper Humber upstream of Deer Lake. This differs geographically from the separate Humber Canal route to Deer Lake. The 1987 primary hydrotechnical account describes the 1925 Junction Brook dam/diversion and identifies the main-dam spillway among Grand Lake outlet modes.",
+          "sources": [
+            "r124-nl-batterson-report0302",
+            "r124-nl-deerlake-hydrotechnical1987"
+          ],
+          "correspondence": "supported at ordinary generalized component/corridor scale",
+          "limits": "The modeled route through the dam/spillway corridor is not asserted to carry the entire present Grand Lake discharge or to be continuously free-flowing. No present gate or flow condition is established. The Upper Humber approach from the north is not the selected headwater.",
+          "mapped_component_name": "Junction Brook"
+        },
+        {
+          "fragments": [
+            9407
+          ],
+          "component_scope": "Upper Humber below Junction Brook and Deer Lake passage",
+          "finding": "From the Junction Brook/Upper Humber junction, the selected route follows the downstream Upper Humber approach into northeastern Deer Lake, traverses Deer Lake southwestward and reaches its southwestern outlet. The original provincial map distinguishes the river approach, lake body, and downstream river.",
+          "sources": [
+            "r124-nl-batterson-report0302",
+            "r124-nl-deerlake-hydrotechnical1987"
+          ],
+          "correspondence": "supported at ordinary generalized component/corridor scale",
+          "limits": "Deer Lake is a distinct lake passage. The Upper Humber name is not applied to Grand Lake, the southern feeder or the complete modeled selection.",
+          "mapped_component_name": "Upper Humber River"
+        },
+        {
+          "fragments": [
+            9407
+          ],
+          "component_scope": "Lower Humber to actual Humber Arm ending",
+          "finding": "After leaving southwestern Deer Lake, the selected route follows the lower Humber corridor past Little Rapids and Steady Brook through the Corner Brook/Humber gorge setting and ends at the inner Humber Arm of Bay of Islands. This actual terminal differs from the inland lakes and from adjoining Goose Arm or Middle Arm.",
+          "sources": [
+            "r124-nl-batterson-report0302"
+          ],
+          "correspondence": "supported at ordinary generalized component/corridor scale",
+          "limits": "Generalized terminal-setting correspondence only; no exact surveyed mouth, tidal boundary or bank agreement is claimed.",
+          "mapped_component_name": "Humber River"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61070413",
+      "source_keys": [
+        "INEMA_RPGA_XIII_2014",
+        "IBGE_HELIOPOLIS_2010",
+        "IBGE_HELIOPOLIS_2020",
+        "IBGE_JANDAIRA_2020",
+        "CPRM_SB50_2013",
+        "INEMA_REAL_MONITORA_2012",
+        "SERGIPE_DEFESA_CIVIL_2021",
+        "CEMAVE_ESTUARY_CH7"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13874
+          ],
+          "component_scope": "Headward minor drainage south of Cícero Dantas and west/northwest of Heliópolis",
+          "finding": "The first selected section lies in the rural headward drainage around the Serra dos Correia/Calombi–Farmácia setting, continuing south and then east into the Heliópolis tributary corridor. The 2010 IBGE sheet supplies the minor intermittent drainage omitted from the coarser regional map; the 2020 municipal map is substantially more selective and is not used to infer absent minor channels.",
+          "sources": [
+            "IBGE_HELIOPOLIS_2010",
+            "IBGE_HELIOPOLIS_2020",
+            "INEMA_RPGA_XIII_2014"
+          ],
+          "correspondence": "complete at ordinary generalized headward-component scale",
+          "name_scope": "Unlabeled initial feeder; geographical identification without a hydronym assertion.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13874
+          ],
+          "component_scope": "Heliópolis tributary connection into the Real border river",
+          "finding": "The selected route takes the Jibóia-side drainage south of Heliópolis, crosses the Tamarindo/Jibóia rural setting and joins the receiving Cumbanzê corridor, which reaches the Rio Real near the Rio Real locality/Encontro das Águas sector. It does not take the more northeasterly Rio do Saco/Poço Verde head branch. INEMA shows the Jibóia tributary joining the north–south trunk and distinguishes the Baixa do Tubarão branch farther southwest. The original IBGE 2010 sheet shows Pindorama on the different branch near Heliópolis, outside this selected route.",
+          "sources": [
+            "IBGE_HELIOPOLIS_2010",
+            "INEMA_RPGA_XIII_2014",
+            "CPRM_SB50_2013"
+          ],
+          "correspondence": "complete at ordinary generalized corridor and junction scale",
+          "name_scope": "Source labels are component-specific; no exact name-transition position is asserted.",
+          "mapped_component_names": [
+            "Riacho da Jibóia",
+            "Cumbanzê",
+            "Rio Real"
+          ],
+          "lake_reservoir_setting": "Pindorama is an adjacent branch impoundment, not a selected lake passage. No major reservoir/lake traverse interrupts the selected upper connection at the inspected scale."
+        },
+        {
+          "fragments": [
+            13874
+          ],
+          "component_scope": "Middle Rio Real border corridor to Tobias Barreto/Itapicuru",
+          "finding": "The selected line turns into the south/southeast-running border river. INEMA repeatedly prints Rio Real and maps its Baixa do Cabo Verde, Muniz/Roncador and Estiva/Negro-side connections. CPRM independently depicts the same corridor, the Mocambo and Jabiberi tributary junction settings on the Sergipe side, and the passage through Tobias Barreto/Fazenda Tourão. The INEMA 2012 field-monitoring table places its Real sampling station on the Bahia–Sergipe divide between Itapicuru and Tobias Barreto.",
+          "sources": [
+            "INEMA_RPGA_XIII_2014",
+            "CPRM_SB50_2013",
+            "INEMA_REAL_MONITORA_2012",
+            "SERGIPE_DEFESA_CIVIL_2021"
+          ],
+          "correspondence": "complete",
+          "name_scope": "Main middle border-river reach, not its side tributaries.",
+          "mapped_component_name": "Rio Real",
+          "lake_reservoir_setting": "Jabiberi is a separately mapped tributary. The Sergipe 2021 plan lists the Jabiberi reservoir at Tobias Barreto; this is contextual branch infrastructure, not a lake connector followed by the selected mainstem."
+        },
+        {
+          "fragments": [
+            13874
+          ],
+          "component_scope": "Lower Real past Rio Real and Jandaíra municipalities",
+          "finding": "The selected corridor continues southeast past the Rio Real municipality setting and then bends east along northern Jandaíra. INEMA depicts the meandering border river and the Raposo junction; CPRM supplies the Itamirim-side tributary setting and keeps the lower Tabatinga/Macanaír drainage distinct. IBGE Jandaíra shows the lower meanders and continuation through the Cachoeira/Abadia–Indiaroba setting. The Monitora table separately identifies a Rio Real station under the BA-099 bridge at Jandaíra and the off-mainstem Fonte Branca/Rio Real-city reservoir station.",
+          "sources": [
+            "INEMA_RPGA_XIII_2014",
+            "CPRM_SB50_2013",
+            "IBGE_JANDAIRA_2020",
+            "INEMA_REAL_MONITORA_2012"
+          ],
+          "correspondence": "complete",
+          "name_scope": "Lower main river; Fonte Branca reservoir, Raposo, Itamirim and Tabatinga/Macanaír are not uniformly relabeled.",
+          "mapped_component_name": "Rio Real",
+          "lake_reservoir_setting": "No mainstem lake-chain passage is required. The separately sampled Fonte Branca impoundment near Rio Real town is off the selected line."
+        },
+        {
+          "fragments": [
+            13874
+          ],
+          "component_scope": "Actual selected terminal within the Rio Real estuary",
+          "finding": "The selected endpoint falls in the lower river's broad estuarine widening east of Indiaroba, before the northeastward continuation toward Pontal and Mangue Seco. INEMA and IBGE Jandaíra map this widening as Rio Real and show islands/side channels, the coastal sand barrier and the remaining estuarine continuation to the Atlantic entrance. IBGE labels the northern Piauí-side channels as well. The Sergipe plan explicitly describes the shared Mangue Seco estuary of Real and Piauí; CEMAVE additionally identifies the Piauí–Fundo–Real estuarine complex. These are receiving-setting observations, not a claim that the selected line extends to all of those waters.",
+          "sources": [
+            "IBGE_JANDAIRA_2020",
+            "INEMA_RPGA_XIII_2014",
+            "CPRM_SB50_2013",
+            "SERGIPE_DEFESA_CIVIL_2021",
+            "CEMAVE_ESTUARY_CH7"
+          ],
+          "correspondence": "complete at generalized estuarine-component scale",
+          "mapped_component_name": "Rio Real",
+          "terminal_setting": "Broad tidal estuarine reach connected to the Mangue Seco/Piauí–Fundo–Real complex and Atlantic; selected model endpoint is upstream of the open-sea entrance."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61457744",
+      "publication": "Plano de Manejo do Parque Estadual Delta do Jacuí, Mapas e figuras, Encarte I-1",
+      "official_url": "https://www.sema.rs.gov.br/upload/arquivos/202204/29173310-mapas-encarte-i-1.zip",
+      "observed_outcome": "Web-reader click returned Failed to fetch the exact ZIP URL: Cache miss. No HTTP status, source map pixels or archive bytes exposed.",
+      "outcome_layer": "tool/reader availability; origin HTTP outcome unknown",
+      "restriction_scope": "Missing park-plan map/publication content and equivalent copies, figures, formats, original, reader, cache, mirror, screenshot and other acquisition routes paused; no retry or alternate plan acquisition.",
+      "earlier_lawful_prose_exception": "Previously read park landing-page prose remains usable only for its explicit broad description of the Caí, Sinos, Gravataí and Jacuí wetland/delta complex. It is not treated as inspection of the plan maps.",
+      "landing_page": "https://www.sema.rs.gov.br/parque-estadual-delta-do-jacui",
+      "material_coverage_effect": "None remains: independent original SEMA basin, IBGE municipal and SGB report cartography covers all selected components. This optional availability failure does not create source-material pending or source-access-limited classification."
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "publication": "Informe Final GEF – Hidrodinamica Elqui – Dinamica Costera; file title from discovery, full front-matter title uninspected",
+      "official_url": "https://gefhumedales.mma.gob.cl/wp-content/uploads/2024/09/Informe-Final-GEF-Hidrodinamica-Elqui-Dinamica-Costera_compressed.pdf",
+      "observed_outcome": "Sole direct web-reader open reported(502) Bad Gateway. No PDF body or original map pixels obtained.",
+      "outcome_layer": "Web-reader reported HTTP502; no original-file response independently observed",
+      "restriction_scope": "Missing publication and all equivalent copies, formats, figures, original/reader/cache/mirror/screenshot and other acquisition routes remain paused. No retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "publication": "SERNAGEOMIN IR121, IR_Susceptibilidad_RM_Paso_Agua_Negra; full printed title and date not established from an original",
+      "official_url": "https://www.sernageomin.cl/wp-content/uploads/2025/12/IR121_SusceptibilidadRemocionesEnMasaPasoAguaNegra.pdf",
+      "observed_outcome": "Sole web-reader open reported(502) Bad Gateway. No original report, prose or map pixels acquired.",
+      "outcome_layer": "Web-reader reported HTTP502; no original-file response independently observed",
+      "restriction_scope": "Missing publication and all equivalent copies, formats, figures, original/reader/cache/mirror/screenshot and other acquisition routes remain paused. No retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "publication": "Velásquez, Coloma, Murillo, Merino and Ortiz2021, Geología de las áreas Pisco Elqui y Paso del Agua Negra, región de Coquimbo; Carta Geológica de Chile, Serie Geología Básica211–212,1:100,000",
+      "official_url": "https://tiendadigital.sernageomin.cl/en/-basic-geology/3692-2021-geologia-de-las-areas-de-pisco-elqui-y-paso-del-agua-negra-region-de-coquimbo-escala-1100000.html",
+      "observed_outcome": "Official catalogue open reported(502) Bad Gateway. No catalogue body or original map acquired. Bibliography came only from discovery metadata.",
+      "outcome_layer": "Web-reader reported HTTP502; origin not independently observed",
+      "restriction_scope": "Missing publication and all equivalent copies, formats, figures, original/reader/cache/mirror/screenshot and other acquisition routes remain paused. No retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "publication": "Humedal Desembocadura del río Elqui; separate2020 project briefing",
+      "official_url": "https://gefhumedales.mma.gob.cl/wp-content/uploads/2020/07/Humedal-Desembocadura-del-r%C3%ADo-Elqui.pdf",
+      "observed_outcome": "The sole original-file acquisition completed HTTP502 and HTML. No PDF, prose or map was acquired.",
+      "outcome_layer": "Original HTTP response",
+      "restriction_scope": "Missing publication and all equivalent copies, formats, figures, original/reader/cache/mirror/screenshot and other acquisition routes remain paused. No retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "publication": "Resolución833 EXENTA,5August2022, Ministerio del Medio Ambiente, record1179660",
+      "official_url": "https://www.bcn.cl/leychile/navegar?idNorma=1179660",
+      "observed_outcome": "Direct web-reader open returned only an application notice saying the process was taking too long or browser might be incompatible. No substantive resolution body or map obtained; no HTTP denial/status exposed.",
+      "outcome_layer": "Web-reader/application-shell availability",
+      "restriction_scope": "Missing resolution/map content and equivalent acquisition routes paused. No linked original, mirror, screenshot or other recovery request. Discovery text is not legal/map evidence.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "publication": "Embalse La Laguna [material cartográfico], Instituto Geográfico Militar; Biblioteca Nacional Digital record334797, objectMP0003995",
+      "official_url": "https://www.bibliotecanacionaldigital.gob.cl/bnd/631/w3-article-334797.html",
+      "observed_outcome": "Search-discovery catalogue text explicitly displayed “Acceso en Biblioteca Nacional.” Neither catalogue, viewer, thumbnail nor original map was requested after seeing that notice. Exact edition was not independently established.",
+      "outcome_layer": "Access notice in discovery metadata, not an observed HTTP denial",
+      "restriction_scope": "Map and equivalent content excluded from substantive use; no alternate acquisition. Listed geographic names are not original map observations.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "publication": "Embalse La Laguna [material cartográfico], Instituto Geográfico Militar; Biblioteca Nacional Digital record334216, objectMP0003994",
+      "official_url": "https://www.bibliotecanacionaldigital.gob.cl/bnd/631/w3-article-334216.html",
+      "observed_outcome": "Search-discovery catalogue text explicitly displayed “Acceso en Biblioteca Nacional.” Neither catalogue, viewer, thumbnail nor original map was requested after seeing that notice. Exact edition was not independently established.",
+      "outcome_layer": "Access notice in discovery metadata, not an observed HTTP denial",
+      "restriction_scope": "Map and equivalent content excluded from substantive use; no alternate acquisition. Listed geographic names are not original map observations.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:70290797",
+      "publication": "Star Lake, NTS 012A/11, CanMatrix 1:50,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/012/a/canmatrix_012a11_tif.zip",
+      "observed_outcome": "The official directory completed HTTP200 and supplied the exact archive link. Its sole acquisition completed HTTP403 with HTML; no map pixels were obtained.",
+      "outcome_layer": "HTTP 403 reported by completed original-file acquisition; no transport-only reinterpretation.",
+      "restriction_scope": "Whole Star Lake 012A/11 CanMatrix sheet and equivalent copies, editions offered as that same source, formats, figures, viewers, mirrors and all acquisition routes stopped. No retry or alternative acquisition.",
+      "earlier_lawful_prose_exception": "Successful directory metadata only; no substantive map evidence."
+    },
+    {
+      "aw_id": "hydro-system:70290797",
+      "publication": "12A/11 surficial-geology catalogue, including Organ 2014 Surficial geology of the Star Lake map area (Map 2014-05, Open File 12A/11/1551)",
+      "official_url": "https://www.gov.nl.ca/em/mines/maps/surfnl-2/12A-11/",
+      "observed_outcome": "Sole web-reader catalogue open returned Internal Error: Failed to fetch the exact URL: Cache miss. No HTTP status or security/authorization reason reported; no catalogue body or linked original map obtained through that request.",
+      "outcome_layer": "Web-tool/cache availability outcome; origin HTTP status unobserved.",
+      "restriction_scope": "Missing catalogue and intended Star Lake 2014 map acquisition remain paused across equivalent catalogue/original/reader/cache/mirror routes. No retry or alternate recovery was made. Other independently issued provincial publications are not blanket-excluded.",
+      "earlier_lawful_prose_exception": "Discovery metadata identified titles, map numbers, authors, years and scales only; these are not map observations."
+    },
+    {
+      "aw_id": "hydro-system:61070413",
+      "publication": "Heliópolis, SEI mapa municipal com descritivo, municipal code2911857; edition not established from acquired original",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2911857.pdf",
+      "observed_outcome": "The sole original-file acquisition completed HTTP502 and HTML. No map was acquired.",
+      "outcome_layer": "Completed original-file HTTP response.",
+      "restriction_scope": "Missing whole publication/map and equivalent copies, formats, reader/cache/mirror/original and other acquisition routes paused for availability; no retry or alternative acquisition of this SEI map.",
+      "earlier_lawful_prose_exception": null,
+      "effect_on_result": "Optional SEI source unavailable. Independent INEMA, CPRM and IBGE cartography completes the selected corridor, so no material source-pending state remains."
+    },
+    {
+      "aw_id": "hydro-system:61070413",
+      "publication": "IBGE Bahia2010 municipal-statistical-map collection directory, sorted-list route",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ba/?C=N%3BO%3DD",
+      "observed_outcome": "The web-reader directory open returned Cache miss, without HTTP status or authorization/security reason. No directory body was acquired through that open.",
+      "outcome_layer": "web reader/cache",
+      "restriction_scope": "This directory acquisition is paused; no retry or alternate directory route was requested. This was not an HTTP denial of the independent municipal publications. The exact Heliópolis2010 PDF had separately been discovered and was acquired normally; the separate Jandaíra2020 PDF was independently discovered and acquired.",
+      "earlier_lawful_prose_exception": "Search discovery exposed filenames only; those snippets are not map evidence.",
+      "effect_on_result": "No selected-corridor coverage gap."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:61457744",
+      "publication": "IBGE Porto Alegre 2020 municipal-map catalogue directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/porto_alegre/",
+      "observed_outcome": "Web reader returned (400) Unicode decoding error. The one sequential normal original-directory request completed HTTP200, Content-Type text/html;charset=ISO-8859-1 and supplied the 4314902_MM.pdf link. That original PDF then independently completed HTTP200.",
+      "outcome_layer": "reader technical decoding limitation, resolved by allowed sequential original route; no access denial reported",
+      "restriction_scope": "Failed reader route preserved without retry; no publication-wide stop. No requests overlapped.",
+      "earlier_lawful_prose_exception": null,
+      "material_coverage_effect": "None."
+    },
+    {
+      "aw_id": "hydro-system:61457744",
+      "publication": "São Francisco de Paula – RS, Mapa Municipal, 4318200, edição 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/sao_francisco_de_paula/4318200_MM.pdf",
+      "observed_outcome": "Printed statistical intended-use notice, semi-automated/multi-source compilation caveat, disclaimer for other purposes and IBGE reproduction-rights reservation read on the original sheet.",
+      "outcome_layer": "printed source-use and reproduction notice",
+      "restriction_scope": "Retain exact bibliography and caveats; bounded factual reading only, no original/crop distribution. Not an access denial or authorization for survey/registry claims.",
+      "earlier_lawful_prose_exception": null,
+      "material_coverage_effect": "None; used with independent basin/report sources."
+    },
+    {
+      "aw_id": "hydro-system:61457744",
+      "publication": "Porto Alegre – RS, Mapa Municipal, 4314902, edição 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/porto_alegre/4314902_MM.pdf",
+      "observed_outcome": "Printed statistical intended-use notice, semi-automated/multi-source compilation caveat, disclaimer for other purposes and IBGE reproduction-rights reservation read on the original sheet.",
+      "outcome_layer": "printed source-use and reproduction notice",
+      "restriction_scope": "Retain exact bibliography and caveats; bounded factual reading only, no original/crop distribution. Not an access denial or authorization for survey/registry claims.",
+      "earlier_lawful_prose_exception": null,
+      "material_coverage_effect": "None; used with independent basin/report sources."
+    },
+    {
+      "aw_id": "hydro-system:61457744",
+      "publication": "Marcuzzo, Nota técnica: Bacia hidrográfica do rio Caí, 1ª versão, julho 2025",
+      "official_url": "https://rigeo.sgb.gov.br/handle/doc/25616",
+      "observed_outcome": "Original p.2 permits reproduction with source attribution; maps, adapted diagrams and Google Earth reproductions have distinct credits.",
+      "outcome_layer": "printed reuse and attribution notice",
+      "restriction_scope": "Attribution retained; task boundary continues to exclude original maps, screenshots, crops and coordinates from public outputs. Official hosting does not erase third-party imagery credits.",
+      "earlier_lawful_prose_exception": null,
+      "material_coverage_effect": "None."
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "publication": "Informe Ambiental Complementario, PRI Provincia de Elqui, Versión02,March2025",
+      "official_url": "https://www.minvu.gob.cl/wp-content/uploads/2023/01/2.-Informe-Ambiental-Complementario-2_PRI_Elqui.pdf",
+      "observed_outcome": "The reader completed with a content-length limitation. One subsequent normal original request completed HTTP200 with the PDF. The failed reader route was not repeated.",
+      "outcome_layer": "Completed technical reader size limitation, resolved by allowed sequential original",
+      "restriction_scope": "Failed reader route was not repeated. This is not a publication-wide access stop; the complete successful original was used within the stated bounded scope.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:70290797",
+      "publication": "Status of Atlantic Salmon (Salmo salar L.) Stock of Humber River, Newfoundland, 1996; C. C. Mullins, T. R. Porter and J. B. Dempson; DFO Research Document 97/37 (1997)",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/228538.pdf",
+      "observed_outcome": "The original PDF completed HTTP200. Its cover requires author permission before citation. No permission was sought; the report is excluded from substantive public support.",
+      "outcome_layer": "Printed citation-use notice after successful origin acquisition; not HTTP denial, challenge or availability failure.",
+      "restriction_scope": "Do not use this report or equivalent copies as substantive public support without the required permission. No reacquisition or request for author permission undertaken. Independently acquired provincial hydrotechnical/geological evidence is used instead.",
+      "earlier_lawful_prose_exception": "Cover and limited introductory text were read, but their hydrological claims are not carried as public evidence.",
+      "limitation_kind": "citation_use_restriction; not an acquisition denial"
+    },
+    {
+      "aw_id": "hydro-system:70290797",
+      "publication": "Quaternary Geography and Sedimentology of the Humber River Basin and Adjacent Areas",
+      "official_url": "https://www.gov.nl.ca/em/files/mines-geoscience-publications-report0302.pdf",
+      "observed_outcome": "Successful HTTP 200 original. Printed notice restricts digital reproduction or copies to third parties and calls for acknowledgement for derivative products.",
+      "outcome_layer": "Printed reproduction/use notice, not access denial.",
+      "restriction_scope": "Original PDF, extracted material and all local cartographic working figures remain private. Own factual observations and ordinary bibliography only are prepared for consolidation.",
+      "earlier_lawful_prose_exception": "Original cartography and bounded prose were lawfully read."
+    },
+    {
+      "aw_id": "hydro-system:70290797",
+      "publication": "Residual Magnetic Field, Little Grand Lake Map Area (NTS 12A/12), Aeromagnetic Survey – Corner Brook Area",
+      "official_url": "https://www.gov.nl.ca/em/files/mines-geoscience-publications-openfiles-mag12a12.pdf",
+      "observed_outcome": "Successful HTTP 200 original. Printed open-file notice identifies preliminary unreviewed data and restricts third-party digital reproduction/copy; derivatives must acknowledge the source.",
+      "outcome_layer": "Printed reproduction/use notice, not access denial.",
+      "restriction_scope": "Original PDF and local cartographic working figures remain private. Factual observations and ordinary bibliography only are prepared for consolidation.",
+      "earlier_lawful_prose_exception": "Original cartography and map margin were lawfully read."
+    },
+    {
+      "aw_id": "hydro-system:61070413",
+      "publication": "INEMA RPGA map linked from the RPGA landing page; exact map title/edition not inspected",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/MTematico_rpga.pdf",
+      "observed_outcome": "The PDF reader completed with a content-length limitation. No original map pixels were read; the failed reader route was not repeated and no original fallback was requested.",
+      "outcome_layer": "web-reader content-size limit, not observed origin HTTP denial",
+      "restriction_scope": "The failed reader route was not repeated. No original fallback was requested because the specifically identified independent RPGA XIII2014 sheet and other cartography sufficed. This purely technical reader outcome is not characterized as a publication-wide access denial.",
+      "earlier_lawful_prose_exception": "The RPGA landing page opened normally and provided the link; no content from the unseen statewide map is evidence.",
+      "effect_on_result": "No material source gap."
+    }
+  ]
+}

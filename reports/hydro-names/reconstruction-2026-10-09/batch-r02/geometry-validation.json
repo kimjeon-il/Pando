@@ -1,0 +1,91 @@
+{
+  "status": "passed",
+  "validation_runs": [
+    {
+      "status": "passed",
+      "selected_source_ids": [
+        "1159115267",
+        "1159123531",
+        "1159107099"
+      ],
+      "source_feature_count": 3,
+      "baseline_rendered_feature_count": 3,
+      "source_coordinate_counts_including_closure": [
+        95,
+        184,
+        88
+      ],
+      "source_feature_json_tokens_preserved": true,
+      "all_original_input_hashes_and_exact_feature_joins_checked": false,
+      "baseline_production_decoder_replayed": false,
+      "historical_inputs_and_selected_inventory_joins_checked": false,
+      "current_live_deployment_checked": false
+    },
+    {
+      "status": "passed",
+      "selected_source_ids": [
+        "1159115267",
+        "1159123531",
+        "1159107099"
+      ],
+      "source_feature_count": 3,
+      "baseline_rendered_feature_count": 3,
+      "source_coordinate_counts_including_closure": [
+        95,
+        184,
+        88
+      ],
+      "source_feature_json_tokens_preserved": true,
+      "all_original_input_hashes_and_exact_feature_joins_checked": true,
+      "baseline_production_decoder_replayed": true,
+      "historical_inputs_and_selected_inventory_joins_checked": true,
+      "current_live_deployment_checked": false
+    }
+  ],
+  "corrupt_fixtures": [
+    {
+      "case": "source_coordinate_byte_change",
+      "rejected": true,
+      "exit_code": 1
+    },
+    {
+      "case": "rendered_source_id_change",
+      "rejected": true,
+      "exit_code": 1
+    },
+    {
+      "case": "reference_logical_fid_change",
+      "rejected": true,
+      "exit_code": 1
+    },
+    {
+      "case": "pack_offset_changed_with_updated_file_receipt",
+      "rejected": true,
+      "exit_code": 1
+    },
+    {
+      "case": "open_source_ring_with_updated_hashes",
+      "rejected": true,
+      "exit_code": 1
+    },
+    {
+      "case": "false_current_deployment_claim",
+      "rejected": true,
+      "exit_code": 1
+    },
+    {
+      "case": "cached_decoder_byte_change",
+      "rejected": true,
+      "exit_code": 1
+    },
+    {
+      "case": "extractor_rejects_modified_decoder_before_execution",
+      "rejected": true,
+      "exit_code": 1
+    }
+  ],
+  "corrupt_fixture_count": 8,
+  "no_external_requests": true,
+  "verified_at_utc": "2026-10-09T11:37:02Z",
+  "scope": "Geometry component only; source identity names and current live deployment are not evaluated."
+}

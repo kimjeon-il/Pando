@@ -1,0 +1,92 @@
+{
+  "schema": "selected-target-duplicate-check-public-v2",
+  "previous_index_immutable_url": "https://github.com/kimjeon-il/Pando/blob/2f9ed802b52193eb590c96697a9fa21fdeb0aea5/reports/hydro-names/reconstruction-2026-10-09/batch-r13/reconstruction-index.json",
+  "previous_target_count": 39,
+  "previous_aw_ids_in_index_order": [
+    "lakes_base:1159109497",
+    "lakes_base:1159106899",
+    "lakes_base:1159107065",
+    "lakes_base:1159115267",
+    "lakes_base:1159123531",
+    "lakes_base:1159107099",
+    "hydro-system:30624681",
+    "hydro-system:50488324",
+    "hydro-system:40182409",
+    "hydro-system:70152112",
+    "lakes_base:1159123163",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159109553",
+    "lakes_base:1159110303",
+    "lakes_base:1159108091",
+    "hydro-system:50668155",
+    "hydro-system:50611851",
+    "hydro-system:50552041",
+    "hydro-system:50538951",
+    "hydro-system:50631583",
+    "hydro-system:50691033",
+    "hydro-system:50737565",
+    "hydro-system:50756799",
+    "hydro-system:50782475",
+    "hydro-system:50766256",
+    "hydro-system:50779535",
+    "hydro-system:50782443",
+    "lakes_base:1159112291",
+    "lakes_base:1159112821",
+    "lakes_base:1159109155",
+    "lakes_base:1159108391",
+    "lakes_base:1159112839",
+    "lakes_base:1159112207",
+    "lakes_base:1159110463",
+    "lakes_base:1159107033",
+    "lakes_base:1159110475"
+  ],
+  "selected_aw_ids": [
+    "lakes_base:1159108993",
+    "lakes_base:1159109007",
+    "lakes_base:1159108815"
+  ],
+  "selected_unique_count": 3,
+  "intersection_aw_ids": [],
+  "historical_names_used_as_identity_evidence": false,
+  "current_batch_delta": {
+    "selected_current_inventory_targets": 3,
+    "selected_current_target_types": {
+      "lake": 3
+    },
+    "all_current_targets_initially_eligible": true,
+    "initial_eligible_target_count": 4065,
+    "reconstructed_target_count_before": 39,
+    "reconstructed_target_count_after": 42,
+    "remaining_fresh_reconstruction_queue_before": 4026,
+    "remaining_fresh_reconstruction_queue_after": 4023,
+    "remaining_queue_types_before": {
+      "river_group": 3439,
+      "lake": 587
+    },
+    "remaining_queue_types_after": {
+      "river_group": 3439,
+      "lake": 584
+    },
+    "historically_never_reviewed_count_claimed": false,
+    "prior_target_geometry_or_naming_revalidation_performed": false
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821"
+  ],
+  "pending_access_reassessment_performed": false,
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475"
+  ],
+  "scope_hold_reassessment_performed": false,
+  "validation_scope": "Included prior ID list and selected facts only; the linked public previous index is historical provenance and is not retrieved or revalidated."
+}

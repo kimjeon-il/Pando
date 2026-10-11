@@ -1,0 +1,145 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r04",
+  "created_at_utc": "2026-10-09T12:34:20.844177+00:00",
+  "investigation_type": "New inventory investigation, not a recovered historical verdict.",
+  "target": {
+    "aw_id": "lakes_base:1159123567",
+    "source_id": "1159123567",
+    "logical_fid": 4894,
+    "geometry_fids": [
+      16269
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "display_name": "lake-1077",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Emborcação reservoir candidate",
+    "status": "candidate_hold",
+    "official_portuguese_usage_supported": true,
+    "name_original": "Theodomiro Carneiro Santiago (Emborcação)",
+    "name_original_language": "pt",
+    "name_original_scope": "Portuguese reservoir usage in ANA194/2024; not a claim about a formal naming act or a ready product field.",
+    "short_name_candidate": "Emborcação",
+    "name_en": null,
+    "name_ko": null,
+    "formal_naming_authority_verified": false,
+    "exact_whole_feature_extent_verified": false,
+    "identity_confidence": "The exact inventory record and the dam-associated discovery lead are joined. Reservoir naming is independently supported, while complete footprint correspondence remains unverified.",
+    "korean_note": "No direct Korean naming source was acquired; Korean remains null."
+  },
+  "source_supported_names": [
+    {
+      "name": "Theodomiro Carneiro Santiago (Emborcação)",
+      "language": "pt",
+      "scope": "Official reservoir usage and operator plant title",
+      "evidence_ids": [
+        "EMB-ANA-194-2024",
+        "EMB-CEMIG-PLANT"
+      ]
+    }
+  ],
+  "excluded_name_inferences": [
+    {
+      "name": "Theodomiro Sampaio",
+      "origin": "Natural Earth name_alt",
+      "disposition": "Do not promote to a reservoir alias. The acquired primary sources use Carneiro Santiago, so the alternate attribute remains uncorroborated rather than silently corrected."
+    },
+    {
+      "name": "Emborcação Dam",
+      "origin": "Natural Earth dam_name",
+      "disposition": "Dam-associated selection lead, not a literal reservoir name or footprint verdict."
+    }
+  ],
+  "geometry_integrity": {
+    "reference_file": "geometry-reference.json",
+    "source_geometry_file": "selected-lake-geometries.geojson",
+    "baseline_geometry_file": "selected-baseline-lake-geometries.geojson",
+    "source_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          208
+        ]
+      ],
+      "total_coordinates_including_closure": 208,
+      "bbox": [
+        -48.018732954731064,
+        -18.55718952456266,
+        -47.441484901425866,
+        -18.139192464035688
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "deaacbda4b229387d207c276b293c7eff2ed269b908428e8506f2b60ff9ae4aa"
+    },
+    "baseline_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          208
+        ]
+      ],
+      "total_coordinates_including_closure": 208,
+      "bbox": [
+        -48.018733,
+        -18.55719,
+        -47.441485,
+        -18.139192
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "3cfc3956fcaea08050d80ebd82ab67675b2fb0d746ed02d1e2205b9c9f2b1c45"
+    },
+    "source_to_baseline_comparison": {
+      "same_geometry_type": true,
+      "same_part_ring_and_vertex_order": true,
+      "every_coordinate_matches_source_rounded_to_6_decimals": true,
+      "maximum_absolute_coordinate_difference_degrees": 4.993937423591888e-07
+    },
+    "geometry_hashes_independently_recomputed": true,
+    "all_parts_visually_reviewed": true,
+    "visual_scope": "Complete local baseline Polygon, one outer ring and all208 positions, reviewed as an unlabelled source-data plot. This is not an independent official map.",
+    "historical_rendered_area_km2": 714.413,
+    "area_scope": "Recorded inventory metric; not independently corroborated physical reservoir area."
+  },
+  "geographic_assessment": {
+    "full_local_feature_observed": "A continuous, branched polygon runs from the southwest toward the northeast, with several northward and southward arms. The whole outer boundary was reviewed, not only its centroid.",
+    "primary_source_name_scope": "ANA distinguishes this reservoir from the other Paranaíba-system reservoirs, but this distinction does not itself verify the selected polygon’s arms or limits.",
+    "authoritative_whole_feature_map_visually_reviewed": false,
+    "full_authoritative_extent_coverage_established": false,
+    "centroid_only_identification_used": false,
+    "dam_point_only_extent_identification_used": false,
+    "geometry_repairs_performed": false
+  },
+  "remaining_gaps": [
+    "No acquired and visually inspected primary map establishes correspondence between the complete selected polygon and the named reservoir, including every arm and shoreline limit.",
+    "The Natural Earth alternate name remains uncorroborated; no exact English or Korean reservoir form is established.",
+    "Formal naming-act history, contemporary reservoir area and current live deployment equality remain unverified."
+  ],
+  "application": {
+    "automatic_application": false,
+    "whole_feature_scalar_application": false,
+    "whole_feature_alias_application": false,
+    "scalar_product_field_clearance": false,
+    "name_ko_application": false,
+    "product_changes_performed": false,
+    "geometry_changes_performed": false
+  },
+  "evidence_file": "new-lake-source-evidence.json",
+  "selection_file": "new-lake-selection.json",
+  "evidence_ids": [
+    "EMB-ANA-194-2024",
+    "EMB-CEMIG-PLANT",
+    "EMB-NE-ATTRIBUTES"
+  ],
+  "bounded_research_complete": true,
+  "next_step": "Resolve the complete-footprint cartographic gap before a product naming decision. Preserve this candidate and the unsupported alternate-name issue."
+}

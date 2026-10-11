@@ -1,0 +1,165 @@
+{
+  "schema": "hydro-reconstruction-reviewed-lake-batch-v2",
+  "batch": "r17",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three actual logical inventory lake features; not a count of newly approved scalar names.",
+  "counts": {
+    "whole_polygon_scope_hold": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_name_lead_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "selection_count_note": "All three records are new actual-inventory investigations; no historical verdict or exact-ID lead is restored.",
+  "baseline_fragment_count": 3,
+  "lake_feature_count": 3,
+  "lake_source_coordinate_count_including_closures": 66,
+  "lake_baseline_coordinate_count_including_closures": 66,
+  "position_counts_in_target_order": [
+    28,
+    23,
+    15
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108703",
+      "category": "lake",
+      "source_id": "1159108703",
+      "baseline_logical_fid": 3982,
+      "geometry_fids": [
+        15357
+      ],
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "whole_polygon_scope_hold",
+      "supported_name_scope": "The complete north-south outline was compared with the mapped water cluster north of Lac Ile-a-la-Crosse, including its northern head, long western edge, narrowing middle and southeast foot. The regional map has no direct label for this selected cluster. Nearby Lac Ile-a-la-Crosse and Alstead River labels do not establish its identity or naming coverage. The full extent is inspectable, but a whole-target name remains unassigned. The independently inspected Athabasca election map also covers the entire feature and labels Patuanak as a settlement; it supplies no whole-target water name.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_athabasca_ge30"
+      ],
+      "limits": [
+        "No direct target label was established from the regional map; nearby lake, river and settlement labels remain contextual.",
+        "This completed bounded assessment does not establish a uniform name, a compound identity, or a name partition across the full outline."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete selected feature, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve naming coverage across the complete selected outline with adequate independent evidence before assigning any uniform or compound name or changing geometry."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159109993",
+      "category": "lake",
+      "source_id": "1159109993",
+      "baseline_logical_fid": 4082,
+      "geometry_fids": [
+        15457
+      ],
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "whole_polygon_scope_hold",
+      "supported_name_scope": "The complete hooked outline was compared with the northern curved basin, western indentation, eastern edge and long southern taper in the Royal Lake, Steephill Lake and Reindeer River setting. The selected southern tip extends beyond the broadened mapped water. Label adjacency and regional outline similarity do not resolve naming coverage across every reach or establish a precise partition. A uniform or compound target name remains unassigned. The Cumberland election map likewise places Steephill Lake lettering by the northern connected water, without resolving the selected southern taper.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_cumberland_ge30"
+      ],
+      "limits": [
+        "Royal Lake, Steephill Lake and Reindeer River are contextual forms rather than verified constituents of this selected polygon.",
+        "The mismatch at the southern taper is a scope limitation, not a measured error or authorization to repair the geometry. No exact shoreline or naming boundary is established."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete selected feature, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve naming coverage across the complete selected outline with adequate independent evidence before assigning any uniform or compound name or changing geometry."
+      }
+    },
+    {
+      "aw_id": "lakes_base:1159110087",
+      "category": "lake",
+      "source_id": "1159110087",
+      "baseline_logical_fid": 4089,
+      "geometry_fids": [
+        15464
+      ],
+      "candidate_name": null,
+      "research_category": "whole_polygon_scope_hold",
+      "independent_review_status": "whole_polygon_scope_hold",
+      "supported_name_scope": "The complete west-east outline was compared with the mapped broad basin and connected channels west of Wood Lake, including its western head, northern indentation, long southern edge and eastern neck. Wood Lake and Churchill River lettering belong to surrounding connected waters and do not establish the full selected feature name. The original map covers the whole outline, but its naming scope remains unassigned. The Cumberland election map leaves the central basin unnamed, with Penney Lake to the west and Lobb Lake to the southeast; electoral boundary overprints limit local detail.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_cumberland_ge30"
+      ],
+      "limits": [
+        "Connected-water geometry and nearby Wood Lake or Churchill River lettering do not establish complete target identity.",
+        "A single lake name, compound identity and exact river/lake partition remain unresolved; the whole selected outline was still inspectable."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_name_only_lead": false,
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "naming_scope_details": {
+        "candidate_name_role": "unassigned_after_complete_scope_review",
+        "directly_supported_name_forms": [],
+        "constituent_list_exhaustive": false,
+        "exact_name_partition_established": false,
+        "unassigned_region": "The complete selected feature, including every source and baseline ring position.",
+        "follow_up_scope": "Resolve naming coverage across the complete selected outline with adequate independent evidence before assigning any uniform or compound name or changing geometry."
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "6313a90561e29e07241c6004a42e87366a3f9756db65f2051c12b8f845652ca6",
+  "publication_contents": "Own factual evidence and review, exact identifier/coordinate/hash facts, three selected public-domain Natural Earth lake polygons and validators. Raw third-party documents, maps and crops are excluded.",
+  "previous_reconstruction_commit": "9c7301187854cf95bc7751eaee95e129d53259b0"
+}

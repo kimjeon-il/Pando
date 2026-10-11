@@ -1,0 +1,651 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r126",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r125",
+    "commit": "9eb0b6e6887e4960ee95b2fda4c9529006412090",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r125/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:60944193",
+    "hydro-system:61309272",
+    "hydro-system:61554706",
+    "hydro-system:70734796"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:60944193",
+      "category": "river_group",
+      "system_id": "60944193",
+      "original_queue_rank": 304,
+      "baseline_logical_fid": 3460,
+      "geometry_fids": [
+        13819
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -36.5125,
+        -8.831366,
+        -35.134206,
+        -8.422917
+      ],
+      "rendered_mainstem_length_km": 222.247,
+      "rendered_network_length_km": 222.247,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -36.5125,
+          -8.831366,
+          -35.134206,
+          -8.422917
+        ]
+      },
+      "candidate_name": "Rio Una",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Pernambuco, Brazil; São Bento do Una/Riachão feeder, Cachoeirinha–Palmares–Barreiros Una corridor and Várzea do Una Atlantic outlet.",
+      "candidate_name_role": "supported_representative_system_identity",
+      "candidate_names": [
+        "Rio Una"
+      ],
+      "source_keys": [
+        "ibge_pe2015",
+        "ibge_sao_bento2022",
+        "ibge_cachoeirinha2020",
+        "ibge_palmares2020",
+        "ibge_palmares2022",
+        "ibge_coroa2020",
+        "ibge_barreiros2010",
+        "cprm2011",
+        "midr2025"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The one selected mainstem follows a Riachão headward feeder north of São Bento do Una into the Una near Cachoeirinha, then the Una corridor eastward through the Agreste and southeast through Serro Azul, Palmares and the coastal lowlands to the Atlantic at Várzea do Una. Rio Una is supported as representative downstream identity, not as a uniform name for the complete selected route.",
+      "completion_scope": "The one selected mainstem follows a Riachão headward feeder north of São Bento do Una into the Una near Cachoeirinha, then the Una corridor eastward through the Agreste and southeast through Serro Azul, Palmares and the coastal lowlands to the Atlantic at Várzea do Una. Rio Una is supported as representative downstream identity, not as a uniform name for the complete selected route.",
+      "supported_name_scope": "Rio Una is the representative downstream system identity; Riacho Riachão and the unnamed initial feeder retain their separate scopes, as do the Serro Azul reservoir and estuarine passage.",
+      "naming_scope_details": {
+        "representative_system_identity": "Rio Una",
+        "initial_feeder_name": null,
+        "bounded_named_feeder": "Riacho Riachão",
+        "major_reservoir": "Serro Azul",
+        "actual_terminal": "Várzea do Una estuary opening into the Atlantic Ocean",
+        "distinct_neighboring_approach": "Rio Carimã",
+        "component_scope_limits": [
+          "The selected western start is on a feeder north of São Bento do Una, not the prose-described Una spring in Capoeiras.",
+          "Riacho Riachão is a directly observed local stream label on the northern feeder; its exact upstream name boundary is not established. The initial selected piece remains locally unnamed/null.",
+          "Una labels and river continuity support the downstream trunk and terminal. They do not rename every headward feeder, reservoir passage or separate tributary.",
+          "A short estuarine/coastal passage is part of the terminal Una setting, but no uniform scalar name is asserted for it or the entire model feature."
+        ],
+        "whole_feature_uniform_name_established": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:61309272",
+      "category": "river_group",
+      "system_id": "61309272",
+      "original_queue_rank": 305,
+      "baseline_logical_fid": 3518,
+      "geometry_fids": [
+        13947
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -69.722917,
+        -20.822917,
+        -68.8625,
+        -19.670833
+      ],
+      "rendered_mainstem_length_km": 221.936,
+      "rendered_network_length_km": 221.936,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -69.722917,
+          -20.822917,
+          -68.8625,
+          -19.670833
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "naming_scope_details": {
+        "whole_object_candidate": null,
+        "downstream_receiving_identity": null,
+        "terminal_setting_identity": "Salar de Bellavista",
+        "terminal_setting_is_whole_route_name": false,
+        "mapped_component_identities": [
+          {
+            "name": "Quebrada de Tarapacá",
+            "scope": "Named upper/middle valley and mapped southward pampa drainage, excluding inference to every selected head/salar segment."
+          },
+          {
+            "name": "Salar de Pintados",
+            "scope": "Mapped lower saline-depression setting, not a river hydronym."
+          },
+          {
+            "name": "Salar de Bellavista",
+            "source_spelling": "Salar de Bella Vista",
+            "scope": "Mapped final saline terminal setting, not a whole-route river hydronym."
+          }
+        ],
+        "component_scope_limits": [
+          "Do not assign a nearby headwater name to the unnamed selected northeastern branch.",
+          "Quebrada de Tarapacá identifies the observed named upper/middle and mapped pampa component; it is not established as the scalar name of the complete modeled object.",
+          "Do not name all pampa convergence, Pintados saline passage, Bellavista surface traversal and terminal curl after Tarapacá.",
+          "The report distinguishes ordinary infiltration and discontinuous runoff from occasional exceptional flows; neither scenario makes all modeled segments one permanently connected named river.",
+          "Salar de Pintados and Salar de Bellavista are terminal-landform names, not accepted river candidates.",
+          "Unknown component names and all accepted/scalar/Korean names remain null; no automatic application."
+        ]
+      },
+      "completion_scope": {
+        "all_selected_fragments_considered": true,
+        "full_mainstem_and_tributary_corridors_inspected": true,
+        "all_material_confluences_inspected": true,
+        "actual_terminal_settings_inspected": [
+          "Salar de Bellavista saline endorheic lowland"
+        ],
+        "supported_material_junctions": [
+          "Northeastern head branch to westward Tarapacá corridor",
+          "Tarapacá piedmont-to-pampa transition",
+          "Southward pampa drainage convergence toward Pintados",
+          "Pintados–Bellavista transition and Chacarilla joining setting"
+        ],
+        "selected_lake_or_reservoir_passage": "No freshwater lake or reservoir passage asserted; the lower selected components enter and traverse mapped saline-depression/salar terrain.",
+        "unresolved_material_connections": [],
+        "dry_surface_vs_gap": "The absence of an MMA line on the final tail alone would be insufficient. Here the independent original2021 report maps that full interval and terminal as the Bellavista salar, with surrounding relief and saline deposits, so the gap is one of hydronym/continuous-channel scope rather than source coverage.",
+        "precision_scope": "Ordinary generalized corridor/component reading only; no bank, vertex, exact mouth-point or present-day wetness requirement."
+      },
+      "region": "Tarapacá, northern Chile; unnamed northeastern branch, Quebrada de Tarapacá, Pampa del Tamarugal and Pintados–Bellavista saline settings.",
+      "candidate_name_role": "no_supported_whole_route_representative_name; completed_name_scope_hold",
+      "source_keys": [
+        "mma-simbio-hydro-r126",
+        "dga-icass-tamarugal2021"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The full selected route includes a mapped unnamed head, Quebrada de Tarapacá and alluvial/saline pampa terrain ending in Salar de Bellavista. The source maps cover the entire geographic setting but do not establish a representative natural-river identity across the final salar traversal.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Full primary-source correspondence is established for the northeastern unnamed branch, Quebrada de Tarapacá, the southward alluvial Pampa del Tamarugal passage, and the Pintados–Bellavista saline terminal setting. The final tail traverses mapped salar terrain beyond the hydrographic service line. There is no genuine unviewed component or connector gap, but no whole-route river hydronym is established; retain a completed naming-scope hold with candidate null.",
+      "supported_name_scope": null
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "category": "river_group",
+      "system_id": "61554706",
+      "original_queue_rank": 306,
+      "baseline_logical_fid": 3620,
+      "geometry_fids": [
+        14547,
+        14548,
+        14549,
+        14550,
+        14551,
+        14552,
+        14553,
+        14554,
+        14555,
+        14556
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -73.72411,
+        -40.939583,
+        -71.702083,
+        -40.210417
+      ],
+      "rendered_mainstem_length_km": 221.68,
+      "rendered_network_length_km": 558.027,
+      "geometry_summary": {
+        "fragment_count": 10,
+        "mainstem_fragment_count": 4,
+        "tributary_fragment_count": 6,
+        "mainstem_bbox": [
+          -73.72411,
+          -40.360417,
+          -71.702083,
+          -40.210417
+        ]
+      },
+      "candidate_name": "Río Bueno",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": {
+        "all_selected_fragments_considered": true,
+        "full_mainstem_and_tributary_corridors_inspected": false,
+        "all_selected_tributary_joining_settings_inspected": true,
+        "actual_terminal_settings_inspected": [
+          "Pacific mouth of lower Río Bueno north of Punta Dehui"
+        ],
+        "supported_material_junctions": [
+          "Rupumeica–Hueinahue",
+          "Hueinahue into Maihue",
+          "Maihue–Calcurrupe–Ranco",
+          "Ranco–Bueno outlet",
+          "Gaviotas into Rupanco and Rupanco–Rahue outlet",
+          "Coihueco–Rahue setting",
+          "Negro–Rahue south of Osorno",
+          "Damas and Curaco receiving settings of lower Rahue",
+          "Rahue into Bueno",
+          "Golgol into Puyehue",
+          "Puyehue–Pilmaiquén outlet",
+          "Chirre–Pilmaiquén setting",
+          "Pilmaiquén into Bueno"
+        ],
+        "selected_lake_or_reservoir_passages": "Maihue, Ranco, Rupanco and Puyehue lake crossings are named as lakes rather than as a single river. Pilmaiquén hydroelectric/impoundment settings at Rucatayo and Los Lagos are established by operator map/prose; current exact waterlines are not asserted. Constancia is linked through the separate Bonito tributary, not imposed on the selected initial route. The withdrawn Osorno project is not treated as an existing reservoir.",
+        "unresolved_material_connections": [
+          "Initial hooked headward branch before the recognizable westbound Rupumeica corridor. Available primary line cartography does not show it, and no usable terrain/source map establishes its actual start and connection. This is not merely an unknown local hydronym.",
+          "Short upper start before the mapped northeastern tributary/upper Golgol drainage. The acquired line source and small volcanic preview do not establish its actual start/connector setting; no nearby name, Constancia connection or basin membership fills that gap."
+        ],
+        "headward_mismatch_vs_gap": "Absence from the line layer is not proof of non-channel terrain or a ridge crossing. Available primary map/prose establish the broader named drainages, but no adequately readable cartography establishes the actual two initial start/connector settings. The unknown local stream names and unobserved geography are recorded separately.",
+        "needed_to_resume": "A permitted readable primary local map accounting for those two initial settings and their connections at ordinary valley/slope/corridor scale. No precise bank, individual vertex, perennial-flow proof, extra audit or map revalidation is needed."
+      },
+      "region": "Los Ríos and Los Lagos, southern Chile; Rupumeica–Maihue–Ranco–Bueno main route with Rupanco/Rahue/Negro and Puyehue/Pilmaiquén branches.",
+      "candidate_name_role": "bounded_component_identity_only; full_system_material_pending",
+      "candidate_names": [
+        "Río Bueno"
+      ],
+      "source_keys": [
+        "mma-hydro",
+        "dga-bueno2004",
+        "conaf-puyehue2008",
+        "rupanco-study2019",
+        "statkraft-tourism2022",
+        "statkraft-loslagos-current",
+        "statkraft-faq",
+        "interior-decreto1325",
+        "humedales-ranco",
+        "puyehue2020-preview"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "Two actual initial source/connector settings remain unobserved: the hooked branch before mapped Rupumeica in FID 14547 and the short upper start before mapped upper Golgol drainage in FID 14555. All major lake passages, selected tributary joins and the Pacific terminal are supported.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected object is a compound Bueno-basin river/lake network. Mapped corridors establish Rupumeica–Hueinahue–Maihue–Calcurrupe–Ranco–Bueno, the Gaviotas–Rupanco–Rahue branch, lower Negro joining Rahue, and Golgol–Puyehue–Pilmaiquén joining Bueno upstream of Rahue. All lake/outlet and selected tributary joining settings and the Pacific terminal are supported. Two short initial source/connector settings in FIDs14547 and14555 remain unobserved at geographic corridor scale, so this is one material-pending record, not a completed naming-scope hold.",
+      "supported_name_scope": "Río Bueno is a bounded downstream/system candidate only while two selected initial settings remain material pending. Maihue/Ranco, Gaviotas/Rupanco/Rahue/Negro and Golgol/Puyehue/Pilmaiquén retain distinct names.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_downstream_candidate": "Río Bueno",
+        "selected_lake_passages": [
+          "Lago Maihue",
+          "Lago Ranco",
+          "Lago Rupanco",
+          "Lago Puyehue"
+        ],
+        "main_headward_corridor": [
+          "Río Rupumeica",
+          "Río Hueinahue",
+          "Río Calcurrupe"
+        ],
+        "separate_tributary_names": [
+          "Río Gaviotas",
+          "Río Rahue",
+          "Río Negro",
+          "Río Golgol",
+          "Río Pilmaiquén"
+        ],
+        "selected_hydroelectric_settings": [
+          "Rucatayo",
+          "Los Lagos"
+        ],
+        "withdrawn_project_not_existing_reservoir": "Osorno",
+        "actual_terminal": "Pacific mouth of lower Río Bueno north of Punta Dehui",
+        "unresolved_initial_fids": [
+          14547,
+          14555
+        ],
+        "component_scope_limits": [
+          "No hydronym applies uniformly across this river/lake network.",
+          "Río Bueno is restricted to its western receiving corridor/provisional representative candidate; it is not assigned to upstream lakes, Rupumeica, Hueinahue, Calcurrupe, Gaviotas, Rahue, Negro, Golgol or Pilmaiquén.",
+          "Unnamed small headstreams retain null names. Known names attached to adjacent branches are not extended by model connectivity.",
+          "No accepted, scalar, Korean or product naming change."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70734796",
+      "category": "river_group",
+      "system_id": "70734796",
+      "original_queue_rank": 307,
+      "baseline_logical_fid": 3126,
+      "geometry_fids": [
+        9880
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -80.447917,
+        33.36847,
+        -79.235417,
+        34.3125
+      ],
+      "rendered_mainstem_length_km": 221.4,
+      "rendered_network_length_km": 221.4,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -80.447917,
+          33.36847,
+          -79.235417,
+          34.3125
+        ]
+      },
+      "candidate_name": "Black River",
+      "candidate_names": [
+        "Black River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "naming_scope_details": {
+        "bounded_dominant_corridor_name": "Black River",
+        "bounded_name_role": "The principal middle/lower river corridor, from the Scape Ore junction through Kingstree and Andrews to its Great Pee Dee confluence. Together with fully mapped selected feeder connections and the short identified receiving-river extension, this supports a bounded Black River representative system candidate.",
+        "other_named_components": [
+          "Timber Creek",
+          "Black Creek",
+          "Scape Ore Swamp",
+          "Great Pee Dee River"
+        ],
+        "not_a_material_gap": "All selected components, their intervening junction settings, extensive swamp/pond passages and actual endpoint have been read in overlapping original cartography. There is no missing connector, unresolved receiver identity or source-coverage gap.",
+        "why_representative_identity_supported": "The selected headward Timber Creek–Black Creek–Scape Ore sequence is visibly connected into Black River; the route then follows the continuously and repeatedly named Black River past Kingstree and Andrews to its mapped and prose-confirmed Great Pee Dee mouth. The final short continuation is explicitly identified as Great Pee Dee River and does not create a competing unresolved terminal identity. This complete connected corridor supports Black River as the representative river-system identity without requiring every selected component to bear that name.",
+        "why_uniform_scalar_name_remains_null": "The maps distinguish Timber Creek, Black Creek, Scape Ore Swamp, Black River and Great Pee Dee River, and SCDNR expressly ends Black River at the Great Pee Dee confluence. Black River therefore remains a representative system candidate, not a source-attested single name applying uniformly to the entire selected feeder–river–receiver line.",
+        "component_scope_limits": [
+          "The Black River representative system candidate does not rename the selected Timber Creek, Black Creek or Scape Ore Swamp reaches, or the final Great Pee Dee River continuation.",
+          "The upstream Black River east of the selected Scape Ore route is a separately mapped channel; its basin association does not rename the selected feeder.",
+          "Dogwood Pond and broad Black River swamp passages are mapped channel/wetland expansions. They are not assigned the representative river name as separate lake names or presumed to be dam-created reservoirs.",
+          "The retained model terminal class sea is metadata only. The selected endpoint is in Great Pee Dee River immediately upstream of the US 17 crossing at Georgetown, not an Atlantic Ocean mouth.",
+          "No uniform scalar hydronym, legal name boundary, formal registry status, exact official spring or mouth, comprehensive tributary inventory, contemporary flow condition, or cause of model generalization is established."
+        ]
+      },
+      "region": "South Carolina, USA; Timber Creek–Black Creek–Scape Ore Swamp feeder, Black River and short Great Pee Dee receiver extension to Georgetown.",
+      "candidate_name_role": "supported_representative_system_identity",
+      "source_keys": [
+        "r126-usgs-topo-south-carolina",
+        "r126-scdnr-black-scenic"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Full geographic correspondence is established at ordinary corridor scale for the selected Timber Creek–Black Creek–Scape Ore Swamp–Black River–Great Pee Dee River route. The selected line begins northwest of Bishopville, follows the Scape Ore wetland feeder into the Black River, traverses the named Black River corridor through Kingstree and Andrews to its Great Pee Dee confluence, and ends after a short, clearly mapped receiving-river continuation just upstream of US 17 at Georgetown. The connected dominant middle/lower corridor supports Black River as the bounded representative system candidate. Distinct feeder, wetland and receiving-river names are preserved; accepted, whole-feature scalar and Korean names remain null.",
+      "completion_scope": "Full geographic correspondence is established at ordinary corridor scale for the selected Timber Creek–Black Creek–Scape Ore Swamp–Black River–Great Pee Dee River route. The selected line begins northwest of Bishopville, follows the Scape Ore wetland feeder into the Black River, traverses the named Black River corridor through Kingstree and Andrews to its Great Pee Dee confluence, and ends after a short, clearly mapped receiving-river continuation just upstream of US 17 at Georgetown. The connected dominant middle/lower corridor supports Black River as the bounded representative system candidate. Distinct feeder, wetland and receiving-river names are preserved; accepted, whole-feature scalar and Korean names remain null.",
+      "supported_name_scope": "Black River is the representative system identity supported by the connected dominant river corridor. Timber Creek, Black Creek, Scape Ore Swamp and the short final Great Pee Dee continuation remain separately named."
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:61309272"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61554706"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 447,
+    "non_pending_records": 392,
+    "source_access_pending": 3,
+    "source_material_pending": 52,
+    "source_any_pending": 55,
+    "scope_holds": 130,
+    "river_groups": 349,
+    "lakes": 98,
+    "unrecorded": 3618,
+    "unrecorded_river_groups": 3106,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "ibge_pe2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/pe_politico650k_2015.pdf"
+    },
+    {
+      "source_key": "ibge_sao_bento2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PE/sao_bento_do_una/A0_2613008_MM.pdf"
+    },
+    {
+      "source_key": "ibge_cachoeirinha2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/cachoeirinha/2603108_MM.pdf"
+    },
+    {
+      "source_key": "ibge_palmares2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/palmares/2610004_MM.pdf"
+    },
+    {
+      "source_key": "ibge_palmares2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2022/mapas_municipais_estatisticos/PE/palmares_2610004/palmares_2610004_mme_a0.pdf"
+    },
+    {
+      "source_key": "ibge_coroa2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/sao_jose_da_coroa_grande/2613404_MM.pdf"
+    },
+    {
+      "source_key": "ibge_barreiros2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pe/barreiros_v2.pdf"
+    },
+    {
+      "source_key": "cprm2011",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/11221/1/Relatorio_SB39_final.pdf"
+    },
+    {
+      "source_key": "midr2025",
+      "official_url": "https://www.gov.br/mdr/pt-br/noticias/barragem-de-panelas-ii-e-inaugurada-e-reforca-sistema-de-contencao-de-cheias-na-mata-sul-de-pernambuco/"
+    },
+    {
+      "source_key": "mma-simbio-hydro-r126",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "source_key": "dga-icass-tamarugal2021",
+      "official_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/items/52bc7ea1-759e-4603-aea5-c50342b32b63/full"
+    },
+    {
+      "source_key": "mma-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "source_key": "dga-bueno2004",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Bueno.pdf"
+    },
+    {
+      "source_key": "conaf-puyehue2008",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-del-pn-puyehue/?filename=PN-Puyehue.pdf&ind=1719524630924&refresh=8c2196b7&wpdmdl=60069"
+    },
+    {
+      "source_key": "rupanco-study2019",
+      "official_url": "https://cparupanco.org/wp-content/uploads/2020/11/Diagnostico-de-la-aguas-del-Rupanco.pdf"
+    },
+    {
+      "source_key": "statkraft-tourism2022",
+      "official_url": "https://www.statkraft.cl/globalassets/0/.cl/lo-que-hacemos/los-lagos/plan-de-turismo-statkraft_11-04.pdf"
+    },
+    {
+      "source_key": "statkraft-loslagos-current",
+      "official_url": "https://www.statkraft.com/Global-presence/chile/los-lagos-hydropower-plant/"
+    },
+    {
+      "source_key": "statkraft-faq",
+      "official_url": "https://www.statkraft.cl/lo-que-hacemos/nuestros-proyectos/proyecto-los-lagos/despeja-tus-dudas/"
+    },
+    {
+      "source_key": "interior-decreto1325",
+      "official_url": "https://www.bcn.cl/leychile/navegar?f=1988-06-13&i=17549"
+    },
+    {
+      "source_key": "humedales-ranco",
+      "official_url": "https://humedaleslosrios.cl/lagoranco/"
+    },
+    {
+      "source_key": "puyehue2020-preview",
+      "official_url": "https://volcanichazardmaps.org/map/?id=3920"
+    },
+    {
+      "source_key": "r126-usgs-topo-south-carolina",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r126-scdnr-black-scenic",
+      "official_url": "https://www.dnr.sc.gov/water/river/scenic/black.html"
+    },
+    {
+      "source_key": "r126-usgs-circular-1173a-stopped",
+      "official_url": "https://pubs.usgs.gov/circ/1999/circ1173/circ1173a/chapter12.htm"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "9eb0b6e6887e4960ee95b2fda4c9529006412090",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      304,
+      305,
+      306,
+      307
+    ],
+    "next_unrecorded_id": "hydro-system:80255466",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

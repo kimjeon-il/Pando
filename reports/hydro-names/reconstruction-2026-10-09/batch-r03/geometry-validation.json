@@ -1,0 +1,100 @@
+{
+  "status": "passed",
+  "validation_runs": [
+    {
+      "status": "passed",
+      "system_ids": [
+        "30624681",
+        "50488324",
+        "40182409"
+      ],
+      "fragment_count": 9,
+      "source_reach_counts": [
+        255,
+        168,
+        255
+      ],
+      "rendered_coordinate_counts": [
+        1378,
+        1436,
+        1406
+      ],
+      "complete_coordinates_rechecked": false,
+      "production_decoder_replayed": false,
+      "durable_only_limitation": "Without the external cache, unpublished complete coordinates cannot be rechecked.",
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "selected_inventory_originals_rechecked": false,
+      "no_external_requests": true
+    },
+    {
+      "status": "passed",
+      "system_ids": [
+        "30624681",
+        "50488324",
+        "40182409"
+      ],
+      "fragment_count": 9,
+      "source_reach_counts": [
+        255,
+        168,
+        255
+      ],
+      "rendered_coordinate_counts": [
+        1378,
+        1436,
+        1406
+      ],
+      "complete_coordinates_rechecked": true,
+      "production_decoder_replayed": true,
+      "durable_only_limitation": "Without the external cache, unpublished complete coordinates cannot be rechecked.",
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "current_live_deployment_checked": false,
+      "selected_inventory_originals_rechecked": false,
+      "no_external_requests": true
+    }
+  ],
+  "corrupt_fixtures": [
+    {
+      "case": "incorrect_join",
+      "rejected": true
+    },
+    {
+      "case": "lost_tributary",
+      "rejected": true
+    },
+    {
+      "case": "changed_geometry_hash",
+      "rejected": true
+    },
+    {
+      "case": "source_order_changed",
+      "rejected": true
+    },
+    {
+      "case": "missing_fragment",
+      "rejected": true
+    },
+    {
+      "case": "pack_offset_changed",
+      "rejected": true
+    },
+    {
+      "case": "invented_original_equality",
+      "rejected": true
+    },
+    {
+      "case": "invented_live_equality",
+      "rejected": true
+    },
+    {
+      "case": "false_coordinate_redistribution",
+      "rejected": true
+    },
+    {
+      "case": "modified_cached_decoder",
+      "rejected": true
+    }
+  ],
+  "no_external_requests": true
+}

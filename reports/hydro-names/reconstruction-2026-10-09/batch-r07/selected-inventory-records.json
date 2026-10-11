@@ -1,0 +1,140 @@
+{
+  "schema": "selected-river-inventory-facts-v2",
+  "scope_aw_ids": [
+    "hydro-system:50668155",
+    "hydro-system:50611851",
+    "hydro-system:50552041"
+  ],
+  "scope_system_ids": [
+    "50668155",
+    "50611851",
+    "50552041"
+  ],
+  "records": [
+    {
+      "category": "river",
+      "system_id": "50668155",
+      "aw_id": "hydro-system:50668155",
+      "logical_fid": 2000,
+      "geometry_fids": [
+        6944
+      ],
+      "geometry_count": 1,
+      "source_ids_count": 314,
+      "source_ids_sha256": "f797065352f8adfeb4043129fec1ab4a5ad32046b09266de03a4ae07d824e3f7",
+      "bbox": [
+        114.145681,
+        -27.88125,
+        119.020833,
+        -25.90625
+      ],
+      "minimum_stage": 3,
+      "rendered_network_length_km": 932.323,
+      "rendered_mainstem_length_km": 932.323,
+      "inventory_csv_row_exact": {
+        "aw_id": "hydro-system:50668155",
+        "category": "river",
+        "system_id": "50668155",
+        "logical_fid": "2000",
+        "geometry_count": "1",
+        "classification": "no_meaningful_name_in_deployed_data",
+        "display_names": "[\"미명명 수계 50668155\"]",
+        "has_korean_display": "False",
+        "bbox": "[114.145681, -27.88125, 119.020833, -25.90625]",
+        "minimum_stage": "3",
+        "source_id": "",
+        "source_ids_count": "314",
+        "source_ids_sha256": "f797065352f8adfeb4043129fec1ab4a5ad32046b09266de03a4ae07d824e3f7",
+        "rendered_mainstem_length_km": "932.323",
+        "rendered_network_length_km": "932.323",
+        "rendered_area_km2": "",
+        "wikidata_id": ""
+      },
+      "inventory_csv_row_canonical_sha256": "bac095d7ea441a77edd570aebfbf928c52050a63afcc7cf550cee876dd79d573"
+    },
+    {
+      "category": "river",
+      "system_id": "50611851",
+      "aw_id": "hydro-system:50611851",
+      "logical_fid": 1942,
+      "geometry_fids": [
+        6886
+      ],
+      "geometry_count": 1,
+      "source_ids_count": 252,
+      "source_ids_sha256": "56260a476b3d6adb070a0309fef6f9d9b1e342fddecea859c8a54839fab94058",
+      "bbox": [
+        113.639659,
+        -25.272917,
+        119.860417,
+        -24.602083
+      ],
+      "minimum_stage": 3,
+      "rendered_network_length_km": 897.789,
+      "rendered_mainstem_length_km": 897.789,
+      "inventory_csv_row_exact": {
+        "aw_id": "hydro-system:50611851",
+        "category": "river",
+        "system_id": "50611851",
+        "logical_fid": "1942",
+        "geometry_count": "1",
+        "classification": "no_meaningful_name_in_deployed_data",
+        "display_names": "[\"미명명 수계 50611851\"]",
+        "has_korean_display": "False",
+        "bbox": "[113.639659, -25.272917, 119.860417, -24.602083]",
+        "minimum_stage": "3",
+        "source_id": "",
+        "source_ids_count": "252",
+        "source_ids_sha256": "56260a476b3d6adb070a0309fef6f9d9b1e342fddecea859c8a54839fab94058",
+        "rendered_mainstem_length_km": "897.789",
+        "rendered_network_length_km": "897.789",
+        "rendered_area_km2": "",
+        "wikidata_id": ""
+      },
+      "inventory_csv_row_canonical_sha256": "3181598a2f8c69d1871271e6e97f41188e8ca8d911e8eb549dded23b013d6460"
+    },
+    {
+      "category": "river",
+      "system_id": "50552041",
+      "aw_id": "hydro-system:50552041",
+      "logical_fid": 1895,
+      "geometry_fids": [
+        6834
+      ],
+      "geometry_count": 1,
+      "source_ids_count": 181,
+      "source_ids_sha256": "e7515e45dca208f107fbb4731a6edc2f4921b169aac64483b34a656517c934fd",
+      "bbox": [
+        114.921424,
+        -24.160417,
+        119.779167,
+        -21.697917
+      ],
+      "minimum_stage": 3,
+      "rendered_network_length_km": 744.275,
+      "rendered_mainstem_length_km": 744.275,
+      "inventory_csv_row_exact": {
+        "aw_id": "hydro-system:50552041",
+        "category": "river",
+        "system_id": "50552041",
+        "logical_fid": "1895",
+        "geometry_count": "1",
+        "classification": "no_meaningful_name_in_deployed_data",
+        "display_names": "[\"미명명 수계 50552041\"]",
+        "has_korean_display": "False",
+        "bbox": "[114.921424, -24.160417, 119.779167, -21.697917]",
+        "minimum_stage": "3",
+        "source_id": "",
+        "source_ids_count": "181",
+        "source_ids_sha256": "e7515e45dca208f107fbb4731a6edc2f4921b169aac64483b34a656517c934fd",
+        "rendered_mainstem_length_km": "744.275",
+        "rendered_network_length_km": "744.275",
+        "rendered_area_km2": "",
+        "wikidata_id": ""
+      },
+      "inventory_csv_row_canonical_sha256": "f283dabd92a5af473b8796ebc07c04e04b480a138b12412ca911e280b7dd20ec"
+    }
+  ],
+  "all_three_selected_csv_rows_exact": true,
+  "historical_names_used_as_identity_evidence": false
+}

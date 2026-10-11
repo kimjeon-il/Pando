@@ -1,0 +1,323 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r85",
+  "sources": [
+    {
+      "source_key": "r85-usgs-topo-escambia",
+      "title": "The National Map, USGS Topo map service: Conecuh–Escambia corridor and detailed Union Springs / Escambia Bay views",
+      "publisher": "U.S. Geological Survey",
+      "supports": "Named components, complete corridor setting, distinct Old Town Creek northern drainage, absence of a mapped southward connector at Union Springs, and lower Escambia Bay mouth identity.",
+      "limits": "Map edition dates vary by base source and are not asserted. Cartographic correspondence is not a current drainage-engineering survey; missing mapped connectivity is not a proof that no artificial transfer can ever exist. Original rasters, crops and private orientation views remain local.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r85-gsa-conecuh-plan-2004",
+      "title": "Conecuh–Sepulga–Blackwater Rivers Watershed Protection Plan",
+      "authors": "Marlon Cook, Robert M. Baker, Phillip Henderson, Stuart McGregor and Neil Moss",
+      "publisher": "Geological Survey of Alabama; prepared for the Conecuh–Sepulga Clean Water Partnership; official ADEM hosting",
+      "year": 2004,
+      "page": "Printed pp. 22 and 33–34; Figure 5, Upper Conecuh hydrologic unit (PDF page 45).",
+      "supports": "Upper Conecuh headwaters near Union Springs and south-side High Ridge Cuesta setting, regional upper-basin orientation.",
+      "limits": "Historical regional basin map, not an exact modern divide, channel survey or proof of the modeled cross-town connector.",
+      "official_url": "https://adem.alabama.gov/programs/water/nps/files/ConecuhSepulgaBMP.pdf"
+    },
+    {
+      "source_key": "r85-nwfwmd-pensacola-watershed",
+      "title": "Pensacola Watershed",
+      "publisher": "Northwest Florida Water Management District",
+      "supports": "Escambia Bay receiving setting, Conecuh name in Alabama and distinction from the neighboring Blackwater and Yellow rivers.",
+      "limits": "General watershed narrative, not support for every selected headwater cell or an exact name-change boundary. No publication date inferred from the footer.",
+      "official_url": "https://nwfwater.com/water-resources/regional-wetland-mitigation-program/regional-mitigation-plan/pensacola-watershed/"
+    },
+    {
+      "source_key": "r85-ign-topographic-mosaics",
+      "title": "IGN raster topographic mosaics, 1:250,000 and 1:100,000",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "attribution": "Official IGN raster service; layers cartas_mosaicos:cartas_250k and cartas_mosaicos:cartas_100k. Individual sheet edition dates were not exposed in the clipped mosaics and are not asserted.",
+      "supports": "Whole-extent named waterways, settlement context, lagoon/marsh routing, distinct Canal 2 corridor and western model terminus versus Río de Ajó.",
+      "limits": "Cartographic correspondence at generalized scale, not current hydraulic surveying, reach-by-reach topology or model correction. No external vector geometry was acquired.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/gwc/service/wmts?REQUEST=GetCapabilities"
+    },
+    {
+      "source_key": "r85-gba-atlas-2020",
+      "title": "Atlas: Cuencas y Regiones Hídricas–Ambientales de la Provincia de Buenos Aires, Etapa 1",
+      "publisher": "Gobierno de la Provincia de Buenos Aires, Ministerio de Infraestructura y Servicios Públicos",
+      "attribution": "Subsecretaría de Recursos Hídricos, Dirección Provincial de Hidráulica; retained original from the earlier authorized acquisition, independently inspected for this selection.",
+      "year": 2020,
+      "page": "Printed sheet 12, Cuenca Hidrográfica Río Salado, PDF page 17; neighboring drainage-sheet text",
+      "supports": "Separate Chelforó, Langueyú, Canal 1, Canal 2, Canal F, Guido al Mar and Río de Ajó context, with Bahía de Samborombón receiving setting.",
+      "limits": "Regional basin grouping and coarse map scale cannot establish the identity of every modeled lowland connector.",
+      "official_url": "https://www.minfra.gba.gov.ar/web/Hidraulica/Atlas.pdf"
+    },
+    {
+      "source_key": "r85-gba-samborombon-plan-2022",
+      "title": "Plan de Manejo de las Áreas Naturales Protegidas de la Bahía Samborombón, provincia de Buenos Aires",
+      "publisher": "Provincia de Buenos Aires, Organismo Provincial de Desarrollo Sostenible / Dirección de Áreas Naturales Protegidas",
+      "attribution": "2022 document IF-2022-28182710-GDEBA-DAPMAMGP; technical coordination Maricel Giaccardi, preparation/compilation/editing Maricel Giaccardi and Gabriel Castresana. Figure 21 credits FREPLATA, 2004.",
+      "year": 2022,
+      "page": "pp. 84–86, especially Figure 21, Cuenca de la Ría Ajó, p. 85; attribution pp. 1–3",
+      "supports": "Regional Tandileofú/Canal 2–Ría Ajó drainage relationship and distinction between natural rivers and artificial drainage canals.",
+      "limits": "Basin map is generalized and does not prove the selected model's lagoon detour or western coastal extension.",
+      "official_url": "https://normas.gba.gob.ar/anexos/descargar/eB7NALxo.pdf"
+    },
+    {
+      "source_key": "r85-gba-rp11-eia-2014",
+      "title": "Ruta Provincial N° 11, tramo General Conesa–San Clemente del Tuyú: Estudios de Ingeniería y Ambientales, Estudio de Impacto Ambiental",
+      "publisher": "Dirección de Vialidad, Ministerio de Infraestructura, Provincia de Buenos Aires",
+      "attribution": "Cover dates September 2014; interior page footers retain November 2013. Hydrology section quotes the UNLP Departamento de Hidráulica Plan Rural Participativo del Partido de General Lavalle, 2003, provided by DIPSOH.",
+      "year": 2014,
+      "page": "pp. 63–71; Figure 32 p. 67; drainage imagery p. 117",
+      "supports": "Tandileofú–Chelforó–Canal 2 sequence and separate Guido al Mar, Canal 2, El Palenque and Ría de Ajó components; the lower plain includes diffuse drainage and lagoon connections.",
+      "limits": "Historical regional hydraulic description, not proof that the selected model follows those same connected channels today.",
+      "official_url": "https://www.ambiente.gba.gob.ar/sites/default/files/PCAbstract/PC_EsIA_RP11%20Info%20Proyecto%20%282%29.pdf"
+    },
+    {
+      "source_key": "r85-ingemmet-chiquian-21i-1996",
+      "title": "Mapa geológico del cuadrángulo de Chiquián, Hoja 21-i, scale 1:100,000; digital version updated 1996",
+      "authors": "Geology credited on sheet to J. Cobbing and A. W. Sánchez; associated Boletín Serie A 76 bibliographic record credits Cobbing, Sánchez, Martínez and Zárate (1996).",
+      "publisher": "República del Perú, Ministerio de Energía y Minas, Instituto Geológico Minero y Metalúrgico (INGEMMET)",
+      "supports": "Actual initial feeder corridor, receiving Santa, and separation of Conococha, Aguashcocha and the Tuco/Collota-side drainage.",
+      "limits": "Historical geological sheet with hydrographic base. Fine branch allocation within the generalized first cells and a letter-perfect name for the tiny easternmost fork are not claimed. Original map and crops remain local.",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/199/6/A-076-mapa_Chiqui%C3%A1n-21i.pdf"
+    },
+    {
+      "source_key": "r85-mem-santa-basin-1998",
+      "title": "EVAT Cuenca del Río Santa; map imprint: EVAT terminado en junio de 1998",
+      "publisher": "República del Perú, Ministerio de Energía y Minas, Dirección General de Asuntos Ambientales; hosted by MINAM SINIA",
+      "supports": "Continuous named receiving Santa corridor, surrounding tributary distinctions, northward-to-westward bend and Pacific coastal opening.",
+      "limits": "Regional historical basin cartography. SINIA’s catalogue publication date is not the map creation date; its catalogue scale field is not adopted as a reliable map-scale statement. It does not establish a current shoreline or tiny headwater forks.",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-ancash/archivos/public/docs/cuenca-rio-santa_1.pdf"
+    },
+    {
+      "source_key": "r85-sinia-santa-record",
+      "title": "Cuenca hidrográfica del Río Santa - departamento de Ancash",
+      "publisher": "Ministerio del Ambiente, Sistema Nacional de Información Ambiental (SINIA); credits the map to MEM",
+      "supports": "Official attribution, Callejón de Huaylas / Cañón del Pato context and Pacific receiving identity.",
+      "limits": "General headwater narrative describes Aguash/Tuco/Conococha; it does not describe this selected short feeder and is explicitly not applied to it. Catalogue scale and area statements are unnecessary to this finding.",
+      "official_url": "https://sinia.minam.gob.pe/mapas/cuenca-hidrografica-rio-santa-departamento-ancash"
+    },
+    {
+      "source_key": "r85-nrcan-cbmt-maguse",
+      "title": "Canada Base Map - Transportation (CBMT3978), Carnecksluck–Imikula–Heninga–Maguse lake corridor and Maguse River coastal views",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "attribution": "Natural Resources Canada; service copyright identifies His Majesty the King in Right of Canada, as represented by the Minister of Natural Resources Canada.",
+      "year_note": "Undated live cartographic service; feature-specific survey and update dates were not established.",
+      "supports": "Complete selected-route coverage; the actual western feeder and headwater choice; Carnecksluck, Imikula, Heninga and Maguse through-lake roles; direct Maguse River labels above, between and below the lakes; exact selected coastal setting; and separation from nearby drainage alternatives and the farther-south Maguse River locality.",
+      "limits": "Four views form one publication. The modeled geometry and map are generalized, so lake-interior centerlines and exact coastal vertices are not official channel positions. No precise hydronym boundary, naming date, river length or current flow is inferred.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70793175",
+      "source_keys": [
+        "r85-usgs-topo-escambia",
+        "r85-gsa-conecuh-plan-2004",
+        "r85-nwfwmd-pensacola-watershed"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9962
+          ],
+          "finding": "The initial east-to-west reach lies on the Old Town Creek side north of US 82 east of Union Springs. The map carries Old Town Creek northwest/north into a separate drainage setting, while the modeled line turns south through the town toward the Conecuh headwater. No continuous mapped channel establishes this cross-ridge connector. This cannot be treated simply as an ordinary named tributary feeding the Conecuh.",
+          "sources": [
+            "r85-usgs-topo-escambia"
+          ]
+        },
+        {
+          "fragments": [
+            9962
+          ],
+          "finding": "South of Union Springs, the selected valley is repeatedly labeled Conecuh River. Little Conecuh River is a separate eastern arrival. The broader upper-basin map and report place Conecuh headwaters near Union Springs on the southern side of the High Ridge Cuesta setting; that regional evidence supports the distinction without fixing a surveyed divide or an exact name-change vertex.",
+          "sources": [
+            "r85-usgs-topo-escambia",
+            "r85-gsa-conecuh-plan-2004"
+          ]
+        },
+        {
+          "fragments": [
+            9962,
+            9963
+          ],
+          "finding": "The long middle course corresponds to the Conecuh valley past Troy, Brantley, Gantt Lake and the Andalusia-area impoundment setting, continuing southwest and west toward Brewton. Patsaliga and Sepulga enter from separate mapped approaches. The selected fragment boundary is a modeling boundary, not an established river-name boundary.",
+          "sources": [
+            "r85-usgs-topo-escambia"
+          ]
+        },
+        {
+          "fragments": [
+            9963
+          ],
+          "finding": "The lower selection occupies the Escambia River corridor in Florida, passing the Molino/Quintette setting and following the western side of the broad delta to the river opening at Escambia Bay near Ferry Pass. White River, Simpson River and other delta channels remain distinct. The generalized terminal is consistent with the named Escambia opening, but is not an exact surveyed mouth or tidal boundary.",
+          "sources": [
+            "r85-usgs-topo-escambia",
+            "r85-nwfwmd-pensacola-watershed"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61525106",
+      "source_keys": [
+        "r85-ign-topographic-mosaics",
+        "r85-gba-atlas-2020",
+        "r85-gba-samborombon-plan-2022",
+        "r85-gba-rp11-eia-2014"
+      ],
+      "correspondence": [
+        {
+          "interval": "Upstream selected fragment, eastern Tandilia–Ayacucho–Labardén approach",
+          "finding": "The generalized route follows the regional Tandileofú/Chelforó approach through Ayacucho toward Labardén. Federal map pixels distinguish this from the northern Langueyú/Canal 1 and southern Las Chilcas drainage. The provincial highway report describes the Tandileofú–Chelforó–Canal 2 succession, but that prose is not proof of the model's later marsh routing.",
+          "sources": [
+            "r85-ign-topographic-mosaics",
+            "r85-gba-rp11-eia-2014"
+          ]
+        },
+        {
+          "interval": "Maipú and eastern lagoon lowlands within the upstream selected fragment",
+          "finding": "IGN pixels show Canal N° 2 as a distinct engineered corridor north of the substantial selected southeastern detour. The model passes the Ruca Lauquen/Tamangueyú lagoon vicinity and later lagoon/marsh terrain around La Magdalena and La Alicia before turning north. The cartography does not establish one named stream matching this entire connection. Nearby Canal F and other channels cannot be assigned by proximity alone.",
+          "sources": [
+            "r85-ign-topographic-mosaics",
+            "r85-gba-atlas-2020"
+          ]
+        },
+        {
+          "interval": "Fragment junction and northbound final mainstem fragment",
+          "finding": "The selected line crosses the Canal 2 vicinity near the La Colorada/San Jorge sector and continues through lowlands west of the mapped Río de Ajó. The 1:100,000 map confirms the distinct Canal 2 approach, Río de Ajó/General Lavalle setting, broad marshes, and the western coastal position of the modeled terminus. It does not depict a single named river coincident with that entire northbound model segment.",
+          "sources": [
+            "r85-ign-topographic-mosaics"
+          ]
+        },
+        {
+          "interval": "Receiving coast and regional drainage identity",
+          "finding": "Bahía de Samborombón is the supported receiving coastal setting. Provincial maps and text distinguish Canal 2, Canal Guido al Mar, the El Palenque subsystem and Ría de Ajó. A basin-level Ajó association does not establish Río de Ajó as the representative identity of a selection whose final route and outlet are displaced west of that mapped river.",
+          "sources": [
+            "r85-ign-topographic-mosaics",
+            "r85-gba-samborombon-plan-2022",
+            "r85-gba-rp11-eia-2014"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60951399",
+      "source_keys": [
+        "r85-ingemmet-chiquian-21i-1996",
+        "r85-mem-santa-basin-1998",
+        "r85-sinia-santa-record"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13820
+          ],
+          "finding": "The beginning is on the eastern feeder side of Pampa de Lampas Bajo, by Pampa Cancha, above the Santa junction near the Allay Cori / Pariay surroundings. INGEMMET distinguishes Q. Sacsa in the lower feeder drainage and Q. Ancar Ragra farther north. The coarse selection does not warrant assigning every initial cell to one tiny named fork.",
+          "sources": [
+            "r85-ingemmet-chiquian-21i-1996"
+          ]
+        },
+        {
+          "fragments": [
+            13820
+          ],
+          "finding": "Laguna Conococha lies south of the selected corridor; Aguashcocha and the mapped Tuco/Collota-side drainage lie separately to its east. No passage through these lakes is present in the selection. The source record’s general Santa-origin narrative is therefore not substituted for the actual selected start.",
+          "sources": [
+            "r85-ingemmet-chiquian-21i-1996",
+            "r85-sinia-santa-record"
+          ]
+        },
+        {
+          "fragments": [
+            13820
+          ],
+          "finding": "After joining the receiving Santa, the route follows the valley northward through the Recuay–Huaraz–Carhuaz–Yungay–Caraz corridor and toward the Cañón del Pato. The basin map separates the adjoining eastern streams from this receiving axis.",
+          "sources": [
+            "r85-mem-santa-basin-1998",
+            "r85-sinia-santa-record"
+          ]
+        },
+        {
+          "fragments": [
+            13821
+          ],
+          "finding": "The middle fragment occupies the northern westward Santa bend south of the Manta and Tablachaca approaches. Those northern/eastern rivers are distinct tributary systems, not alternate names of the selected course.",
+          "sources": [
+            "r85-mem-santa-basin-1998"
+          ]
+        },
+        {
+          "fragments": [
+            13822
+          ],
+          "finding": "The last fragment continues west and then southwest on the mapped lower Río Santa to the Pacific coastal opening. Its terminal point is treated as a generalized near-mouth setting, without claiming an exact present-day shoreline crossing, tidal limit or surveyed mouth point.",
+          "sources": [
+            "r85-mem-santa-basin-1998"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80217247",
+      "source_keys": [
+        "r85-nrcan-cbmt-maguse"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2669
+          ],
+          "component_scope": "Western beginning and Carnecksluck Lake approach",
+          "finding": "The actual selected beginning lies on a short northwestern small-stream and waterbody corridor. It descends into the northern Carnecksluck Lake setting, turns east along its northern outlet corridor, crosses several small connecting waterbodies, then bends northeast toward southwestern Imikula Lake. The federal western enlargement shows both the selected approach and the distinct southern Nowyak and North Henik lake settings. No river name is inferred for this first feeder and no formal source point is assigned.",
+          "sources": [
+            "r85-nrcan-cbmt-maguse"
+          ]
+        },
+        {
+          "fragments": [
+            2669
+          ],
+          "component_scope": "Imikula Lake and upper named Maguse River",
+          "finding": "The line crosses the southern part of Imikula Lake, exits east into channels directly labeled Maguse River, bends southeast through a broad waterbody corridor, and then turns northeast and east with the same mapped river. Repeated federal river labels anchor the receiving identity immediately downstream of Imikula; the lake is retained as a lake rather than treated as a river alias.",
+          "sources": [
+            "r85-nrcan-cbmt-maguse"
+          ]
+        },
+        {
+          "fragments": [
+            2669
+          ],
+          "component_scope": "Padlei and Heninga Lake middle reach",
+          "finding": "The selected eastward route passes north of Padlei and follows the labeled Maguse River into northern Heninga Lake. It crosses the lake setting and continues through the eastward outlet corridor, where the map again labels Maguse River. Kogtok River is a northern incoming watercourse; Yandle Lake and the southern Heninga/Noomut setting are not substituted for the selected northern passage.",
+          "sources": [
+            "r85-nrcan-cbmt-maguse"
+          ]
+        },
+        {
+          "fragments": [
+            2669
+          ],
+          "component_scope": "Western Maguse Lake arms and southeastward through-lake passage",
+          "finding": "The route follows the named Maguse River into the western lake-arm setting, winds southeast and northeast through the connected arms, then turns southeast down the long mapped Maguse Lake corridor. The lake labels and repeated channel connections cover this whole generalized passage. Carr Lake lies farther north and Tootyak Lake beside the northeastern approach; neither is substituted for the selected Maguse Lake axis. Model segments cutting across islands or lake interiors are not asserted to be surveyed river channels.",
+          "sources": [
+            "r85-nrcan-cbmt-maguse"
+          ]
+        },
+        {
+          "fragments": [
+            2669
+          ],
+          "component_scope": "Lower Maguse River and actual selected coastal ending",
+          "finding": "At the southern Maguse Lake setting the selection turns east into channels repeatedly labeled Maguse River. It continues east through the lower wetland-and-channel corridor and terminates at the estuarine Hudson Bay shore north of Austin Island and Maguse Point. The larger-scale lower map distinguishes this labeled watercourse from the Maguse River locality farther south. The endpoint is not moved to that locality or to the Wallace River drainage to the north. No precise modern tidal limit, mouth-thread choice or continuation across marine waters is assigned.",
+          "sources": [
+            "r85-nrcan-cbmt-maguse"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

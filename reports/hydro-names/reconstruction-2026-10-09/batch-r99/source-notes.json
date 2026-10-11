@@ -1,0 +1,620 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r99",
+  "sources": [
+    {
+      "source_key": "r99-igm-chile-hydrocourses",
+      "title": "SIIE_v3 Quebradas ríos, public natural-watercourse feature layer",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "supports": "Arrieros, Saco and Mantos Blancos correspondence; distinct tributaries; nearby Caracoles coastal valley; the specific source-to-selection gaps described above.",
+      "limits": "Official feature-layer rasters with requested visible line width and name labels, not a scanned map sheet. They do not establish present flow, every artificial watercourse or definitive absence of a channel. No vector geometry was downloaded or altered. The initial whole-route rendering was blank because its scale exceeded the layer’s 160000 minimum-scale display threshold; it was not used as evidence.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r99-gonzalez-carrizo2003",
+      "title": "Segmentación, cinemática y cronología relativa de la deformación tardía de la Falla Salar del Carmen, Sistema de Fallas de Atacama, (23°40′S), norte de Chile",
+      "publisher": "Gabriel González and Daniel Carrizo, Revista Geológica de Chile 30(2), 223–244; official INGEMMET library copy",
+      "year": 2003,
+      "supports": "Salar del Carmen and Sierra del Ancla terrain setting; separate mapped Quebrada Caracoles; alluvial/saline deposit distinctions.",
+      "limits": "Structural-geology study, not a hydraulic-connectivity survey. Fault segments called Mantos Blancos or Caracoles must not be mistaken for channel names. Its map does not resolve the exact final selected connector.",
+      "official_url": "https://app.ingemmet.gob.pe/biblioteca/pdf/RGC30-223.pdf"
+    },
+    {
+      "source_key": "r99-chiappe-rodelas2022-text",
+      "title": "La geoinformática y el análisis espacial como herramientas multidisciplinares en el estudio prospectivo de las rutas arrieras intermedias: El caso de Quebrada de los Arrieros (Antofagasta, Chile)",
+      "publisher": "Carlos Chiappe and Teo Rodelas, Revista de Geografía Norte Grande 83, 2022",
+      "supports": "Arrieros as a Quimal-to-Saco tributary near Sierra Gorda and an episodic drainage setting; only regional text corroboration.",
+      "limits": "No article map pixels acquired. The source does not identify the exact selected initial branch, northern excursion or lower coastal connection. The whole publication and equivalents stopped after 403; no later retrieval.",
+      "official_url": "https://www.scielo.cl/scielo.php?pid=S0718-34022022000300285&script=sci_arttext"
+    },
+    {
+      "source_key": "r99-mma-simbio027",
+      "title": "Cuenca Quebrada Caracoles, código BNA 027",
+      "publisher": "Ministerio del Medio Ambiente, SIMBIO",
+      "supports": "Bounded basin-level regional nomenclature and separate named subbasin settings.",
+      "limits": "No basin map or geometry downloaded, and no linked MOP/DGA publication requested. The catalog is not evidence of the selected channel’s continuity, current flow or a uniform whole-route name.",
+      "official_url": "https://simbio.mma.gob.cl/Cuencas/Details/027"
+    },
+    {
+      "source_key": "r99-e752-gualaco",
+      "title": "Gualaco, Honduras 1:50,000, Series E752, sheet 2961 II, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1970.",
+      "supports": "The initial Río Negro reach, its eastward continuation to Río Grande, the Susmay junction near Gualaco, and the northward Grande valley.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/gualaco-honduras-50k-2961ii-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-paz",
+      "title": "San Francisco de la Paz, Honduras 1:50,000, Series E752, sheet 2960 I, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Compiled in 1985 from best available source materials.",
+      "supports": "The short southern bend of the selected Río Negro approach, including its return onto the Gualaco sheet.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_francisco_de_la_paz-honduras-50k-2960i-1985.pdf"
+    },
+    {
+      "source_key": "r99-e752-antonio",
+      "title": "San Antonio, Honduras 1:50,000, Series E752, sheet 2961 I, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1970.",
+      "supports": "The selected Grande bend through the southern sheet edge near Teguaijinal and Pueblo Viejo.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_antonio-honduras-50k-2961i-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-venta",
+      "title": "La Venta, Honduras 1:50,000, Series E752, sheet 3061 III, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1970.",
+      "supports": "The eastward and then northeastward Río Grande course through the northern Valle de Agalta setting.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/la_venta-honduras-50k-3061iii-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-esteban",
+      "title": "San Esteban, Honduras 1:50,000, Series E752, sheet 3061 IV, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1970.",
+      "supports": "Grande through San Esteban and the confined northward corridor, with the separately entering Tonjagua and Conquire waterways.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/san_esteban-honduras-50k-3061iv-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-naranjal",
+      "title": "El Naranjal, Honduras 1:50,000, Series E752, sheet 3062 III, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1970.",
+      "supports": "The selected confined northward valley, labeled Río Sico o Grande, and its northeastern exit.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/el_naranjal-honduras-50k-3062iii-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-carbon",
+      "title": "El Carbón, Honduras 1:50,000, Series E752, sheet 3062 II, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1970.",
+      "supports": "The connecting Sico o Grande reach through the northwestern corner near El Nanzal and El Paraíso.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/el_carbon-honduras-50k-3062ii-1970.pdf"
+    },
+    {
+      "source_key": "r99-e752-esperanza",
+      "title": "Sierra La Esperanza, Honduras 1:50,000, Series E752, sheet 3062 I, Edition 3-DMA",
+      "publisher": "Instituto Geográfico Nacional, Honduras, in collaboration with the U.S. Defense Mapping Agency; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Field classified in 1991; updated in 1992 using 1980 aerial photography.",
+      "supports": "The eastward middle river, locally labeled Sico o Grande and Sico o Tinto, its large bends and the northeastward exit.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/sierra_la_esperanza-honduras-50k-3062i-1991.pdf"
+    },
+    {
+      "source_key": "r99-e752-mangas",
+      "title": "Las Mangas, Honduras 1:50,000, Series E752, sheet 3162 IV, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1968.",
+      "supports": "The Sico o Tinto corridor along the western sheet, separate from its joining streams.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/las_mangas-honduras-50k-3162iv-1968.pdf"
+    },
+    {
+      "source_key": "r99-e752-macho",
+      "title": "El Macho, Honduras 1:50,000, Series E752, sheet 3163 III, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1968.",
+      "supports": "The northeastward Sico/Tinto/Negro valley, the Guano tributary junction near the modeled fragment split, and the lower confined bends.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/el_macho-honduras-50k-3163iii-1968.pdf"
+    },
+    {
+      "source_key": "r99-e752-iriona",
+      "title": "Iriona, Honduras 1:50,000, Series E752, sheet 3163 I, Edition 2-DMA",
+      "publisher": "Instituto Geográfico Nacional, Honduras, in collaboration with the U.S. Defense Mapping Agency; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Updated and field classified in 1992.",
+      "supports": "The lower river along the southern sheet edge, both transitions onto the Sico sheet, its coastal wetland approach and the distinction from the northern Sangrelaya outlet.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/iriona-honduras-50k-3163i-1992.pdf"
+    },
+    {
+      "source_key": "r99-e752-sico",
+      "title": "Sico, Honduras 1:50,000, Series E752, sheet 3163 II, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1968.",
+      "supports": "The lower Sico bend, the Paulaya tributary junction, and the continuation north and northeast; Paulaya itself is not the selected upstream branch.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/sico-honduras-50k-3163ii-1968.pdf"
+    },
+    {
+      "source_key": "r99-e752-plaplaya",
+      "title": "Plaplaya, Honduras 1:50,000, Series E752, sheet 3263 IV, Edition 1-DMA",
+      "publisher": "U.S. Defense Mapping Agency Hydrographic/Topographic Center; preserved by the University of Texas Perry-Castañeda Library",
+      "year_note": "Map information as of 1968.",
+      "supports": "The lower Río Sico, Tinto o Negro, its coastal wetland distributaries, Bacalar and Ibans lagoons, and the material mismatch between the selected final coastal crossing and the historical mapped channels.",
+      "limits": "Historical primary government cartography. It establishes generalized channel and junction correspondence within the stated scope, not present flow, contemporary banks, exact name boundaries, official headwater coordinates or a legal naming date. The Plaplaya terminal gap is retained explicitly.",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/plaplaya-honduras-50k-3263iv-1968.pdf"
+    },
+    {
+      "source_key": "r99-usgs-national-map-mojave",
+      "title": "The National Map USGS Topo: Holcomb Creek, Deep Creek, Mojave River, Mojave River Wash, Soda Lake and Silver Lake corridor",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Whole selected-route geographic correspondence, directly mapped component labels, tributary exclusions, wash and playa feature classes, and actual Silver Lake interior endpoint.",
+      "limits": "Independently maintained federal cartography, distinct from stopped USGS reports, NPS/BLM/state/municipal publications and equivalents. It does not establish a single survey edition, current wetness, exact channel alignment, continuous flow or a named natural channel across every modeled connector. Exact-view URLs, parameters, originals and derivatives remain private.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r99-usgs-mojave-3d-description",
+      "title": "The Mojave River: A 3D Journey, Detailed Description, July 17, 2021",
+      "publisher": "U.S. Geological Survey, California Water Science Center, in cooperation with the Mojave Water Agency",
+      "supports": "Deep Creek–West Fork junction at the Mojave River Forks Reservoir setting; Mojave corridor through Victorville, Barstow and Afton; separate channels toward East Cronise Lake and Soda Lake.",
+      "limits": "Textual contextual support only, not independent video/map observation, exact selected-line matching or present flow conditions.",
+      "official_url": "https://www.usgs.gov/media/videos/mojave-river-a-3d-journey"
+    },
+    {
+      "source_key": "r99-usgs-soda-lake-description",
+      "title": "Soda Lake, Detailed Description, August 2, 2003",
+      "publisher": "U.S. Geological Survey, Geology and Ecology of National Parks",
+      "supports": "Soda Lake and nearby Silver Lake belong to the former Lake Mojave terminal setting of the Mojave River.",
+      "limits": "Regional prose only; does not prove a continuous surface channel or hydronym along the selected inter-lake and playa-interior model route.",
+      "official_url": "https://www.usgs.gov/media/images/soda-lake"
+    },
+    {
+      "source_key": "r99-nrcan-cbmt-adlatok-ugjoktok",
+      "title": "Canada Base Map - Transportation, CBMT3978: upper lake country, Adlatok corridor and the Ugjuktok/Adlatok bay outlets",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Complete bounded geographic corridor, initial feeder, Ashuapun lake passage, exclusion of Harp and Shapiau lake transits, lower branch choice, and the actual southern coastal ending.",
+      "limits": "Independent CanVec-based federal cartography, not a CGN/gazetteer naming record or a recovery route for stopped provincial, Nunavut or NRCan report figures. English river-component identity comes from the separately retained fisheries account. No single composite feature edition, legal name record, exact banks or present tidal boundary is established.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r99-anderson-labrador-1985-adlatok",
+      "title": "The Rivers of Labrador — Canadian Special Publication of Fisheries and Aquatic Sciences 81",
+      "author": "T. C. Anderson",
+      "publisher": "Fisheries and Oceans Canada, Scientific Information and Publications Branch",
+      "year": 1985,
+      "pages": "Printed pages 274–276; PDF pages 283–285; Adlatok (Ugjoktok) River account, Figure 99 and Table 347.",
+      "supports": "Adlatok system identity, explicit distinction of Ugjoktok as the lower southern branch, the two bay endings, and the separate Harp and Shapio tributary structure.",
+      "limits": "Historical fisheries synthesis, not a current gazetteer or water-management assessment. Its generalized map supplements the detailed federal corridor view and cannot alone resolve the initial minor feeder, exact shorelines or every lake connector. Historical lengths, fish information and development statements are not asserted as current conditions.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61355098",
+      "source_keys": [
+        "r99-igm-chile-hydrocourses",
+        "r99-gonzalez-carrizo2003",
+        "r99-chiappe-rodelas2022-text",
+        "r99-mma-simbio027"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13964
+          ],
+          "finding": "The initial northeastern-moving portion follows a mapped but unlabeled feeder in the eastern upland drainage. The source continues the feeder beyond the selected start. No natural spring, exact source point or component name is assigned to that vertex. Chiappe and Rodelas describe an Arrieros source in the Quimal setting, but that regional description does not prove that the model chose that exact source branch.",
+          "sources": [
+            "r99-igm-chile-hydrocourses",
+            "r99-chiappe-rodelas2022-text"
+          ]
+        },
+        {
+          "fragments": [
+            13964
+          ],
+          "finding": "The retained route bends north and then northwest through a group of parallel tributary approaches, joining the watercourse labeled Q. de Los Arrieros. The mapped channel and model follow the same westward corridor, with generalized deviations around its bends. Nearby tributary lines are not alternative names for the selected route.",
+          "sources": [
+            "r99-igm-chile-hydrocourses"
+          ]
+        },
+        {
+          "fragments": [
+            13964
+          ],
+          "finding": "Before the long southwestward descent, the model makes a conspicuous northward hook outside the Arrieros channel drawn by IGM, then returns to the southwestward corridor. The source depicts a smoother west-to-southwest channel south of that hook. No acquired source establishes a channel, flood route, artificial connection or named flat along the exact selected excursion. The selection was not replaced with the clearer mapped route.",
+          "sources": [
+            "r99-igm-chile-hydrocourses"
+          ]
+        },
+        {
+          "fragments": [
+            13964
+          ],
+          "finding": "After that return, the selected course follows the southwestward channel labeled Q. Saco. Q. Julia joins from the east and Q. del Buitre from the southeast; their upstream courses are not selected. The separate Q. Renacimiento approaches from the northwest. IGM also uses Q. de Los Arrieros on the upper receiving approach, so no single exact legal name-transition point is inferred.",
+          "sources": [
+            "r99-igm-chile-hydrocourses"
+          ]
+        },
+        {
+          "fragments": [
+            13964
+          ],
+          "finding": "The long middle selection continues southwest in the Saco corridor. The eastern Q. San Cristóbal and the lower Q. Mantos Blancos system are distinct source features. Near the western bend the selection passes their receiving setting and then turns south along the channel explicitly labeled Q. Mantos Blancos. The upstream Mantos Blancos branch from the east is not selected as a separate fragment.",
+          "sources": [
+            "r99-igm-chile-hydrocourses"
+          ]
+        },
+        {
+          "fragments": [
+            13964
+          ],
+          "finding": "The lower southward route broadly corresponds to the Mantos Blancos channel in the northern Salar del Carmen/piedmont setting. González and Carrizo map Salar del Carmen east of Sierra del Ancla and separately label Quebrada Caracoles across the coastal range. Their structural map distinguishes alluvial and saline deposits. It is evidence for the terrain setting, not proof of a river crossing the salt flat or a permanent lake transit.",
+          "sources": [
+            "r99-igm-chile-hydrocourses",
+            "r99-gonzalez-carrizo2003"
+          ]
+        },
+        {
+          "fragments": [
+            13964
+          ],
+          "finding": "The final modeled route turns southwest and west away from the drawn Mantos Blancos course, crosses several separately terminating piedmont channels and reaches the Caracoles coastal-valley setting. The IGM line labeled Q. Caracoles is a separate northern approach to the short lower coastal channel. The model locally approaches that lower channel but neither the intervening connector nor the full final coastal tip is established. Q. del Profeta remains a separate southerly drainage, not a substituted route.",
+          "sources": [
+            "r99-igm-chile-hydrocourses",
+            "r99-gonzalez-carrizo2003"
+          ]
+        },
+        {
+          "fragments": [
+            13964
+          ],
+          "finding": "The MMA catalog identifies a Quebrada Caracoles basin and separately lists El Buitre-to-Salar del Carmen and salar-to-outlet subdivisions. This is basin-level nomenclature, not evidence that the entire modeled line is called Caracoles or that its selected connections carry surface water. Its named Salar del Carmen urban wetland entry does not prove a selected wetland crossing.",
+          "sources": [
+            "r99-mma-simbio027"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70933800",
+      "source_keys": [
+        "r99-e752-gualaco",
+        "r99-e752-paz",
+        "r99-e752-antonio",
+        "r99-e752-venta",
+        "r99-e752-esteban",
+        "r99-e752-naranjal",
+        "r99-e752-carbon",
+        "r99-e752-esperanza",
+        "r99-e752-mangas",
+        "r99-e752-macho",
+        "r99-e752-iriona",
+        "r99-e752-sico",
+        "r99-e752-plaplaya"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10572
+          ],
+          "finding": "The starting vertex lies on the western Río Negro corridor on the Gualaco sheet. The selected line bends briefly south onto the northern San Francisco de la Paz sheet, where the same Río Negro is labeled, then returns northeast to the Gualaco sheet. This is a selected point along a named river, not an established natural source. The mapped side streams and uplands are not substituted for this initial channel.",
+          "sources": [
+            "r99-e752-gualaco",
+            "r99-e752-paz"
+          ]
+        },
+        {
+          "fragments": [
+            10572
+          ],
+          "finding": "The selected Río Negro continues through the El Agua Blanca and La Boca setting, then follows the eastward receiving course labeled Río Grande past El Tablón and Cantintrí. It reaches the Susmay junction near Gualaco and turns north on Grande. Río Susmay approaches from the south and is not the selected headward route. The source does not fix an exact contemporary boundary between the Negro and Grande names.",
+          "sources": [
+            "r99-e752-gualaco"
+          ]
+        },
+        {
+          "fragments": [
+            10572
+          ],
+          "finding": "Río Grande continues north through the confined valley east of Gualaco, then turns northeast and east along the southern San Antonio sheet near Teguaijinal and Pueblo Viejo. Across the San Esteban/La Venta sheet edges, the selection follows the broad Grande meander corridor through Valle de Agalta, past El Zapote and the El Barranco setting, and turns northeast toward San Esteban. The retained line simplifies the large mapped meanders.",
+          "sources": [
+            "r99-e752-gualaco",
+            "r99-e752-antonio",
+            "r99-e752-venta",
+            "r99-e752-esteban"
+          ]
+        },
+        {
+          "fragments": [
+            10572
+          ],
+          "finding": "At San Esteban the selected river continues north while Río Tonjagua joins from the east. Farther north Río Conquire is another separately mapped joining waterway. The line remains on Grande and then on the river labeled Río Sico o Grande through the eastern El Naranjal sheet and northwestern El Carbón sheet. The selected middle valley is not the upstream Tonjagua, Conquire or one of the smaller tributaries.",
+          "sources": [
+            "r99-e752-esteban",
+            "r99-e752-naranjal",
+            "r99-e752-carbon"
+          ]
+        },
+        {
+          "fragments": [
+            10572
+          ],
+          "finding": "The Sierra La Esperanza sheet resolves the eastward bend below El Paraíso and Agua Blanca, the long middle meanders and the northeastward exit. It prints Sico o Grande and Sico o Tinto along this connected river. The western Las Mangas sheet continues the Sico o Tinto corridor north and northeast. Joining quebradas remain distinct. No lake or reservoir transit is shown as a selected component in this mountain and foothill portion.",
+          "sources": [
+            "r99-e752-carbon",
+            "r99-e752-esperanza",
+            "r99-e752-mangas"
+          ]
+        },
+        {
+          "fragments": [
+            10572,
+            10573
+          ],
+          "finding": "On El Macho the selection follows the northeastward main valley and passes the separately labeled Río Guano arriving from the southeast. The modeled fragment split is in this main-river/junction setting; it does not create an independent name boundary or select Guano upstream. The river then continues through the confined bends toward El Zapotal and the southern Iriona sheet.",
+          "sources": [
+            "r99-e752-macho"
+          ]
+        },
+        {
+          "fragments": [
+            10573
+          ],
+          "finding": "The lower main river is labeled Río Sico, Tinto o Negro. Its selected course crosses the southern Iriona sheet, dips onto the northern Sico sheet by El Castillo and Sico, passes the Río Paulaya junction, then returns northeast onto Iriona. Paulaya approaches from the south and is a tributary, not the chosen headward branch. Nearby Laguna Verde, Laguna El Siete and Laguna de Chorrerito are distinct floodplain features; no whole-lagoon passage is established from the simplified main-river line.",
+          "sources": [
+            "r99-e752-iriona",
+            "r99-e752-sico"
+          ]
+        },
+        {
+          "fragments": [
+            10573
+          ],
+          "finding": "The Plaplaya sheet shows the selected lower river northeast through the Playa de Kungkung, Klukum, Playa de Lasa Auika and Playa del Ganado setting in the coastal wetlands. Río Caurá, the Bacalar branches and lagoon to the northwest, and Laguna de Ibans to the southeast remain separate mapped components. The selection approaches the Los Cayos/La Criba estuarine junction rather than crossing the main waterbody of either Bacalar or Ibans.",
+          "sources": [
+            "r99-e752-plaplaya"
+          ]
+        },
+        {
+          "fragments": [
+            10573
+          ],
+          "finding": "The final selected leg turns north from the Los Cayos/La Criba estuarine setting, crosses the historical coastal strip and ends seaward of that sheet’s shoreline. The acquired map instead shows the adjacent water route bending northwest to Barra de Plaplaya, with a separate Río Palacios/Bacalar route toward Barra de Palacios and a southeastward Río La Criba connection. The selected northward crossing is not a mapped open channel on this historical sheet. Neither channel migration, a later breach nor a particular modern outlet name has been established. The endpoint is therefore a material source-to-selected-route correspondence gap, not merely an unnamed reach on a proved route.",
+          "sources": [
+            "r99-e752-plaplaya"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70685789",
+      "source_keys": [
+        "r99-usgs-national-map-mojave",
+        "r99-usgs-mojave-3d-description",
+        "r99-usgs-soda-lake-description"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "The selected eastern headward start is on the mapped Holcomb Creek corridor in Holcomb Valley, north of Big Bear Lake. Holcomb Creek continues farther east beyond the selected start. The selection heads west, then southwest and west along repeated Holcomb Creek labels; this is not a determination of the official creek source.",
+          "sources": [
+            "r99-usgs-national-map-mojave"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "The selected lower Holcomb Creek meets Deep Creek near the Rouse Meadows and Bacon Flats surroundings, then turns north along Deep Creek. Upper Deep Creek from the south, Cox Creek from the northeast, and the nearby lake-associated tributaries are distinct approaches, not alternate names for the selected Holcomb beginning.",
+          "sources": [
+            "r99-usgs-national-map-mojave"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "The selection follows Deep Creek north and northwest through its canyon, passing the Willow Creek junction and hot-spring surroundings, then turns west toward its junction with West Fork Mojave River. It does not ascend West Fork Mojave River or traverse Big Bear Lake or Lake Arrowhead.",
+          "sources": [
+            "r99-usgs-national-map-mojave"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "At the Forks, the modeled path enters from the Deep Creek side and turns north into the river labeled Mojave River. The map shows the separate western West Fork approach and the sandy/channel junction. The USGS tour description identifies this junction as the Mojave River Forks Reservoir setting. This is a designated reservoir/dam-junction context, not evidence of a permanently inundated open-water transit.",
+          "sources": [
+            "r99-usgs-national-map-mojave",
+            "r99-usgs-mojave-3d-description"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "The northbound selection follows the Mojave River corridor past Hesperia and through Victorville, then along the long western northward limb. The original map repeatedly labels Mojave River along the broad sandy channel. Local line offsets and simplified bends are visible; the finding establishes the river corridor without certifying precise bank or channel-thread alignment.",
+          "sources": [
+            "r99-usgs-national-map-mojave"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "The route turns northeast and east toward Barstow, passes through its northern river corridor, then continues east in the valley north of the Barstow-Daggett Airport and south of the Calico Mountains and Interstate 15. Repeated Mojave River labels establish the selected main corridor; tributary washes and the separate lake beds are not substituted as mainstem names.",
+          "sources": [
+            "r99-usgs-national-map-mojave"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "Continuing northeast, the selection enters and traverses the Afton Canyon corridor on the mapped Mojave River. Beyond the canyon it proceeds east toward Soda Lake rather than north toward East Cronise Lake. The acquired USGS tour description independently distinguishes those two downstream channel destinations.",
+          "sources": [
+            "r99-usgs-national-map-mojave",
+            "r99-usgs-mojave-3d-description"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "Below Afton Canyon, detailed federal mapping names the eastward sandy drainage Mojave River Wash. The modeled selection crosses the broad wash/fan setting toward the southern Soda Lake basin, with sizeable local offsets from the particular dashed channel shown on the map. Mojave River Wash is a supported lower drainage component; the entire selected wash-plain connector is not represented as one precisely matched natural channel.",
+          "sources": [
+            "r99-usgs-national-map-mojave"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "The selected line enters the mapped Soda Lake dry-lake area, crosses its interior northward, and continues through the narrow northern lake-bed extension toward Baker. Detailed original pixels clearly label Soda Lake and show the modeled line crossing playa surface rather than following a continuously depicted river channel. The source does not establish a river name for the playa-interior line.",
+          "sources": [
+            "r99-usgs-national-map-mojave"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "The detailed original raster depicts a dashed blue drainage connecting Soda Lake’s northern constriction through the Baker road/settlement setting to Silver Lake’s southern end. The selected line occupies this same low inter-lake corridor with local lateral offsets, so the connection is supported at bounded mapped-drainage scale rather than located only across an unmapped strip. No component hydronym, exact channel thread or active/continuous overflow regime is established. Beyond this connection the modeled route crosses Silver Lake’s playa interior and ends inside its northern part, short of the lake’s northern edge. It does not continue down the separate Salt Creek valley west of Silver Lake.",
+          "sources": [
+            "r99-usgs-national-map-mojave"
+          ]
+        },
+        {
+          "fragments": [
+            9866
+          ],
+          "finding": "The independently read USGS Soda Lake description places Soda Lake and nearby Silver Lake in the former Lake Mojave terminal setting of the Mojave River. This supports the regional drainage context. Neither that prose nor the raster establishes a continuously flowing river, a single natural channel across the selected playa interiors, or the modeled tip as an official river mouth.",
+          "sources": [
+            "r99-usgs-soda-lake-description",
+            "r99-usgs-national-map-mojave"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70088267",
+      "source_keys": [
+        "r99-nrcan-cbmt-adlatok-ugjoktok",
+        "r99-anderson-labrador-1985-adlatok"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9141
+          ],
+          "component_scope": "Initial southwestern feeder and small-lake turn",
+          "finding": "The selected start lies in the upland lake-and-stream country north of Gates Lake and Ross Lake. It first follows a small southwestward approach into a southern lake, turns west across that waterbody, and then follows the north-running connected stream and small-lake passage. The cartography shows this specific southern approach rather than requiring a conventional river-source account. No separate name is established for the first stream or small waters, and Gates and Ross are neighboring references rather than selected passages.",
+          "sources": [
+            "r99-nrcan-cbmt-adlatok-ugjoktok"
+          ]
+        },
+        {
+          "fragments": [
+            9141
+          ],
+          "component_scope": "Ashuapun lake passage and northeastern outlet",
+          "finding": "The north-running approach enters the southwestern end of a large northeast-oriented lake. The detailed original prints Ashuapun on its eastern lake waters beside the prominent peninsula. The selection crosses the connected southern and northern lake basins and leaves through the northeastern outlet. Its generalization does not track every island or exact shoreline. Ashuapun is retained as the source map label for this lake setting, without inventing a formal suffix or applying the river name to the lake.",
+          "sources": [
+            "r99-nrcan-cbmt-adlatok-ugjoktok"
+          ]
+        },
+        {
+          "fragments": [
+            9141
+          ],
+          "component_scope": "Northeast valley and northern eastward elbow",
+          "finding": "Below the lake the selected corridor continues northeast through the narrow connected valley, between steep mapped slopes, and reaches the broad northern elbow. It then turns east along the major channel. Northern and southern tributary lake-and-stream approaches are visible but are not substituted for the selected lake outlet and trunk.",
+          "sources": [
+            "r99-nrcan-cbmt-adlatok-ugjoktok"
+          ]
+        },
+        {
+          "fragments": [
+            9141
+          ],
+          "component_scope": "Upper eastward Adlatok corridor",
+          "finding": "The selection continues through the long eastward sequence of widened river waters, narrow connecting reaches and tributary mouths. The western and eastern federal views overlap across this interval. The retained fisheries map places this northern trunk in the Adlatok system; neither an official source-point determination nor a separate name for every widened water surface is inferred. The initial minor feeder and separately labeled lake keep their narrower naming scopes.",
+          "sources": [
+            "r99-nrcan-cbmt-adlatok-ugjoktok",
+            "r99-anderson-labrador-1985-adlatok"
+          ]
+        },
+        {
+          "fragments": [
+            9141
+          ],
+          "component_scope": "Central meander north of Harp Lake",
+          "finding": "The eastward river descends southeast, makes a conspicuous southward loop followed by a northward return, and resumes its southeast course. The federal map distinguishes this selected corridor from the separate southern valley and long Harp Lake. The modeled route does not traverse Harp Lake or the southern lake tributaries merely because they belong to the same drainage.",
+          "sources": [
+            "r99-nrcan-cbmt-adlatok-ugjoktok",
+            "r99-anderson-labrador-1985-adlatok"
+          ]
+        },
+        {
+          "fragments": [
+            9141,
+            9142
+          ],
+          "component_scope": "Harp outlet confluence and lower southward turn",
+          "finding": "The route approaches the Harp Lake outlet junction from the northwest and continues along the receiving river, turning southeast and then south through the lower valley. Harp Lake reaches this junction from the southwest on a separate approach. The division between the two selected fragments is a model boundary in this lower corridor; it is not used as a hydronym transition.",
+          "sources": [
+            "r99-nrcan-cbmt-adlatok-ugjoktok",
+            "r99-anderson-labrador-1985-adlatok"
+          ]
+        },
+        {
+          "fragments": [
+            9142
+          ],
+          "component_scope": "Shapiau tributary setting and eastward receiving river",
+          "finding": "Farther south the selected river bends east near the northern Shapiau outlet setting and proceeds east through the lowland. The separately mapped Shapiau waterbody lies southwest of the selected turn and is not traversed. The fisheries account calls the corresponding separate tributary the Shapio Lake system. The two source wordings are reported in their own scopes, without an adjudicated legal alias or naming-history claim.",
+          "sources": [
+            "r99-nrcan-cbmt-adlatok-ugjoktok",
+            "r99-anderson-labrador-1985-adlatok"
+          ]
+        },
+        {
+          "fragments": [
+            9142
+          ],
+          "component_scope": "Lower bifurcation and selected Ugjoktok branch",
+          "finding": "The enlarged original shows the lower river dividing into a northeastern branch and a southern branch. The selection takes the southern branch, initially southeast and then northeast toward the southern bay opening. The book explicitly assigns Ugjoktok River to the branch ending at Ugjoktok Bay and distinguishes it from the remainder of the Adlatok system. The independently mapped northern branch continues toward Adlatok Bay and is unselected.",
+          "sources": [
+            "r99-nrcan-cbmt-adlatok-ugjoktok",
+            "r99-anderson-labrador-1985-adlatok"
+          ]
+        },
+        {
+          "fragments": [
+            9142
+          ],
+          "component_scope": "Ugjuktok Bay terminal setting",
+          "finding": "The final selection reaches the river-mouth and tidal-flat setting at the southwestern entrance to the water labeled Ugjuktok Bay on the current federal cartography. It is the southern outlet, separate from the Adlatok Bay mouth farther north. The final modeled tip is generalized along the northern side of this mouth setting; an exact shoreline intersection, current tidal limit or precise channel thread is not established. The selection does not extend along the full bay to the open sea.",
+          "sources": [
+            "r99-nrcan-cbmt-adlatok-ugjoktok",
+            "r99-anderson-labrador-1985-adlatok"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

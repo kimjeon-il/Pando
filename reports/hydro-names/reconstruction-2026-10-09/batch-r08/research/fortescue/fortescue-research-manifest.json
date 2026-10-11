@@ -1,0 +1,24 @@
+{
+  "schema": "hydro-research-file-manifest-v1",
+  "frozen_at_utc": "2026-10-09T14:07:15.157994+00:00",
+  "target_aw_id": "hydro-system:50538951",
+  "files": [
+    {
+      "file": "fortescue-findings.json",
+      "bytes": 2029,
+      "sha256": "42e03cafcbf8cdff725bfbf59ef3ee27aa962ecbc05b96c52f2e1827bf9144bd"
+    },
+    {
+      "file": "fortescue-geometry-comparison.json",
+      "bytes": 2467,
+      "sha256": "3653d1aa9aab087f82091b227a8f81f82a5bbe5cc13373760cee7e66acbfa6de"
+    },
+    {
+      "file": "fortescue-source-evidence.json",
+      "bytes": 11541,
+      "sha256": "d133835f9930437983d2d532fc3333eef946dcd0590cff8905e75439a6cd9fbc"
+    }
+  ],
+  "original_pdfs_images_html_or_coordinate_arrays_included": false,
+  "whole_fragment_bounds_and_two_endpoint_facts_only": true
+}

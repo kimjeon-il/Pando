@@ -1,0 +1,928 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r119",
+  "sources": [
+    {
+      "title": "Mapa Vial Ica, hoja 11, July 2017",
+      "author": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "date": "2017-07",
+      "scale": "1:300,000",
+      "format": "One-page A0 original PDF, WGS84–UTM18S",
+      "observed_outcome": "Sole original acquisition completed normally with HTTP200, application/pdf. Original page and private working enlargements inspected.",
+      "observed_layer": "Original cartography",
+      "coverage": "Upper-junction context, Ica valley, Ocucaje, lower desert and actual Pacific terminal",
+      "credits": "Printed inputs: DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP, MINEDU",
+      "use_limits": "Road-map cartography with generalized hydrography, not a hydronym registry. Original map and working enlargements remain private; official hosting is not treated as redistribution permission.",
+      "source_key": "MTC_ICA_2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Departamentales/11-ICA.pdf"
+    },
+    {
+      "title": "Mapa Vial Huancavelica, hoja 09, July 2017",
+      "author": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "date": "2017-07",
+      "scale": "1:275,000",
+      "format": "One-page A0 original PDF, WGS84–UTM18S",
+      "observed_outcome": "Sole original acquisition completed normally with HTTP200, application/pdf. Original page and private working enlargements inspected.",
+      "observed_layer": "Original cartography",
+      "coverage": "Selected eastern headward approach, separate Olaya branch, Santiago corridor and Tambo junction",
+      "credits": "Printed inputs: DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP, MINEDU",
+      "use_limits": "Generalized departmental cartography; not evidence that all displayed tributaries have a common name. Original and working images remain private.",
+      "source_key": "MTC_HUANCAVELICA_2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Departamentales/09-HUANCAVELICA.pdf"
+    },
+    {
+      "title": "Mapa Vial del Distrito de Santiago de Chocorvos, Provincia de Huaytará, Departamento de Huancavelica, hoja090613, August2017",
+      "author": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "date": "2017-08",
+      "scale": "1:110,000",
+      "format": "One-page A1 original PDF; printed datum label WGS1984 UTM Zone18L",
+      "observed_outcome": "Exact original link obtained from the successful official district-map index; sole original acquisition completed normally with HTTP200, application/pdf. Original map pixels inspected.",
+      "observed_layer": "Original cartography",
+      "coverage": "Huarpo–Santiago selected upper corridor, Olaya junction, westward Santiago continuation and Tambo–Ica junction",
+      "credits": "Printed inputs: DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP, MINEDU",
+      "use_limits": "Reach labels establish the upper naming distinction, not a uniform whole-feature hydronym or legal registry status. Original and working images remain private.",
+      "source_key": "MTC_CHOCORVOS_2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Distritales/Huancavelica/HV_090613%20SANTIAGO%20DE%20CHOCORVOS.pdf"
+    },
+    {
+      "title": "Mapa Vial por Distritos (D.S. N°011-2016-MTC)",
+      "author": "Ministerio de Transportes y Comunicaciones",
+      "observed_outcome": "Web text and sequential original HTML opened normally; the original HTML supplied the exact Santiago de Chocorvos PDF link.",
+      "observed_layer": "Bibliographic index only",
+      "coverage": "Publication identification, not geographic correspondence",
+      "source_key": "MTC_DISTRICT_INDEX",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/mapa-ruta-distrital.html"
+    },
+    {
+      "source_key": "r119-usgs-topo-adobe-owens",
+      "title": "USGS Topo, The National Map, composite topographic map service",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_utc_date": "2026-10-11",
+      "source_type": "original primary cartography",
+      "original_map_pixels_observed": true,
+      "observation_scope": "Seven completed original map views cover the selected North Canyon/Adobe Valley head, the full lake and intervening-terrain chain, Black Lake–Benton Hot Springs divide, Blind Spring Valley, Spring Canyon Creek, Hammil/Chalfant and Laws, the entire Owens middle and lower corridor, Tinemaha Reservoir and the actual terminal within the Owens Lake dry bed.",
+      "limits": "Composite cartography; individual compilation dates and legal name boundaries are not established. Generalized comparison only, without exact bank or vertex matching. Mapped dry terrain and lake-bed extensions are not forced into continuous natural river channels. Source rasters, crops and private orientation figures are not published.",
+      "access_outcome": "All seven sequential bounded original PNG responses completed HTTP 200, image/png; each transfer reached its terminal command response before local inspection.",
+      "use_notice": "No distribution licence is inferred from official hosting; only own factual observations and ordinary citations are public-ready."
+    },
+    {
+      "source_key": "r119-mono-trivalley-rfp-2024",
+      "title": "Request for Proposals for the Development of a Numerical Groundwater Flow Model of the Tri-Valley Portion of Owens Valley and Fish Slough Subbasins and Isotope Study in Mono County, California",
+      "publisher": "Mono County and Tri-Valley Groundwater Management District, with Inyo County Water Department project management",
+      "date": "2024-06-27",
+      "official_url": "https://www.monocounty.ca.gov/sites/default/files/fileattachments/tri-valley_groundwater_management_district/page/682/tri-valley_gw_model_rfp_final.pdf",
+      "source_type": "bounded official prose",
+      "pages_read": "Title; printed pages 2 and 4–5, especially Hydrogeology; bibliography metadata",
+      "original_map_pixels_observed": false,
+      "observation_scope": "The county describes Benton, Hammil and Chalfant as Tri-Valley. It identifies the exceptional surface connection to the Owens as a Chalfant–Laws wash flowing during extreme precipitation.",
+      "limits": "Used for this bounded surface-drainage statement only. Groundwater links are not promoted to continuous surface channels. Its Figure 1 was not visually acquired or used. Its citations to other studies do not substitute for reading those studies.",
+      "access_outcome": "PDF text opened normally in the web reader."
+    },
+    {
+      "source_key": "r119-lahontan-table2-1",
+      "title": "Lahontan Region Basin Plan, Chapter 2, Table 2-1: Beneficial Uses of Surface Waters of the Lahontan Region (2024-hosted PDF)",
+      "publisher": "California Regional Water Quality Control Board, Lahontan Region",
+      "official_url": "https://www.waterboards.ca.gov/lahontan/water_issues/programs/basin_plan/docs/2024/r6monobpa.pdf",
+      "source_type": "bounded official table text",
+      "pages_read": "Printed pages 2-22 through 2-25, limited drainage/receiving-water rows",
+      "original_map_pixels_observed": false,
+      "observation_scope": "The table distinguishes the Adobe and Owens hydrologic units. North Canyon Creek is tributary to Adobe Creek; Adobe Reservoir, River Spring Lake and Black Lake are classed as internally drained. It separately lists the Owens River, Tinemaha Reservoir and canals.",
+      "limits": "These are table statements, not original map observations or a name registry. Adobe Reservoir is not silently made an alias of the map label Adobe Lake. A hydrologic-unit label does not name every selected reach.",
+      "access_outcome": "PDF text opened normally in the web reader."
+    },
+    {
+      "source_key": "r119-winitsky-adobe-flora-2021",
+      "title": "Vascular Flora of Adobe Valley and Surrounding Hills, Mono County, California",
+      "author": "Sophie E. Winitsky",
+      "publisher": "Aliso: A Journal of Systematic and Floristic Botany",
+      "date": "2021",
+      "bibliographic_detail": "Volume 38, issue 1, article 3, pages 32–61; DOI 10.5642/aliso.20213801.03",
+      "official_url": "https://scholarship.claremont.edu/aliso/vol38/iss1/3/",
+      "source_type": "original research abstract, bounded prose",
+      "original_map_pixels_observed": false,
+      "observation_scope": "The author describes Adobe Valley as a closed basin surrounded by the Adobe Hills, Benton Range and Glass Mountain region, with a wetland and lake complex.",
+      "limits": "Only the successfully read original abstract and bibliography are used. No article PDF or unseen figure is claimed. This regional description supports the observed terrain distinction but supplies no precise selected line.",
+      "access_outcome": "Publisher/repository landing page and original abstract opened normally.",
+      "use_notice": "Landing page states © 2020 The Author(s) and Creative Commons Attribution 4.0. No source figure or text reproduction is included."
+    },
+    {
+      "source_key": "r119-inyo-lower-owens-project",
+      "title": "Lower Owens River Project",
+      "publisher": "Inyo County Water Department",
+      "official_url": "https://inyowater.org/projects/lorp/",
+      "source_type": "bounded official project prose",
+      "original_map_pixels_observed": false,
+      "observation_scope": "The project description places the restored lower river and delta from south of Aberdeen to Owens Lake and explains its relationship to the Los Angeles Aqueduct diversion.",
+      "limits": "Used only as lower-corridor context. No linked project map was requested, and the prose does not name the selected lake-bed extension as river. No current-flow observation is claimed.",
+      "access_outcome": "Page text opened normally in the web reader.",
+      "use_notice": "Page states Copyright 2026 Inyo County Water Department, All Rights Reserved."
+    },
+    {
+      "source_key": "fep2012-costa55",
+      "title": "Costa oriental. Paisaje natural: Hidrografía: tierra de ríos y lagunas. Unidad natural 1, lámina 55",
+      "authors": "Investigación: Alejandro Reyes y Nelson Olmos",
+      "publisher": "Ediciones Fundación Empresas Polar",
+      "year": 2012,
+      "isbn": "978-980-379-308-1",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/16843/geo_u1_l55_costa_oriental_hidrografia.pdf",
+      "scale": "1:1,633,000",
+      "material_read": "Complete original PDF; map, legend, source panel, title/credits and pertinent prose visually inspected.",
+      "cartographic_provenance": "Publisher's original compiled sheet; source panel names GeoVenezuela 2011 basin mapping, Mota and Francia 2009, Sucre 1994, Anzoátegui 1996 and Monagas 2001 official maps. Those underlying originals were not separately acquired.",
+      "limits": "Regional cartographic evidence; too generalized for the selected upper passage and lower tidal branching.",
+      "use_notice": "Printed legal-deposit and ISBN information present. No redistribution permission inferred; original and working crops remain private."
+    },
+    {
+      "source_key": "fep-monagas51",
+      "title": "Estado Monagas",
+      "author": "Fernando Silva Carreño",
+      "publication": "GeoVenezuela, tomo 6, capítulo 51, pp.660–737",
+      "publisher": "Fundación Empresas Polar, Caracas",
+      "edition": "Chapter extract; publication year not independently verified from the acquired extract.",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/media/1051/gv_t6_c51_p660_737_lres_single_preview.pdf",
+      "material_read": "Complete original PDF acquired. Relevant pp.668–669, 677 and 689–690 prose, headings and caption on p.663 read.",
+      "supports": "Bounded mountain/reservoir and interconnected tidal-wetland context.",
+      "limits": "The regional chapter refers to separate cartographic-appendix maps; these were not included in the extract and are not claimed as observed.",
+      "use_notice": "Publisher rights reserved on the collection site; original extract remains private."
+    },
+    {
+      "source_key": "provea2014-map2",
+      "title": "Análisis de la Situación Ambiental Petrolera Venezolana. Caso estudio: Estados Anzoátegui–Monagas 2012–2014",
+      "publisher": "PROVEA, Informe Especial, Informe Anual enero–diciembre 2014",
+      "map_title": "Mapa N°2: Sitios de derrames petroleros denunciados 2012–2014, Estados Anzoátegui y Monagas",
+      "map_authors": "Elaborado: Geog. Jonathan Torres; revisado: Geog. Jorge Padrón",
+      "map_date": "November 2014",
+      "map_page": "xxxi, PDF page31",
+      "printed_scale": "1:250,000",
+      "official_url": "https://archivo.provea.org/wp-content/uploads/Contaminaci%C3%B3n-Petrolera.pdf",
+      "material_read": "Complete original PDF; map2 pixels, legend and cartographic credits inspected.",
+      "supports": "Independent original thematic cartography of the middle Jusepín–Maturín river corridor.",
+      "limits": "Does not cover the full selected upper or terminal route. No claims about responsibility for pollution are adopted.",
+      "use_notice": "No redistribution permission established; original and working figures remain private."
+    },
+    {
+      "source_key": "pereira-garcia2020-prose",
+      "title": "Morfometría y crecimiento poblacional de Minuca rapax (Crustacea, Decapoda) en el bosque de manglar del río San Juan, estado Monagas, Venezuela",
+      "authors": "Carlos Pereira and José Vicente García",
+      "publication": "Acta Biológica Venezuelica 40(2):151–170, julio–diciembre2020",
+      "edition_note": "Author-uploaded copy; page states accepted February2021 despite the 2020 issue designation.",
+      "material_read": "Author-uploaded article prose on successful web page, principally methods pp.153–154 and publication/author metadata.",
+      "supports": "Primary study context for lower Guarapiche and Francés/Dos Aguas tidal waterways.",
+      "limits": "PDF acquisition subsequently failed. Figure1 was not visually inspected; parsed captions and station coordinates do not establish selected geometry.",
+      "use_notice": "Page identifies author content uploaded by Carlos Pereira on24May2021 and states content may be subject to copyright. No original or derivative shared.",
+      "official_url": "https://www.researchgate.net/publication/351824809_MORFOMETRIA_Y_CRECIMIENTO_POBLACIONAL_DE_Minuca_rapax_CRUSTACEA_DECAPODA_EN_EL_BOSQUE_DE_MANGLAR_DEL_RIO_SAN_JUAN_ESTADO_MONAGAS_VENEZUELA"
+    },
+    {
+      "source_key": "fep-appendix-catalogue",
+      "title": "GeoVenezuela. Apéndice cartográfico. Mapas nacionales y estadales.",
+      "publisher": "Fundación Empresas Polar",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/publicaciones/colecciones/apendice-cartografico/",
+      "material_read": "Catalogue webpage and complete original HTML.",
+      "limits": "The page lists Monagas under state maps without an actual Monagas map link in the inspected HTML. No state-map original acquired or used.",
+      "use_notice": "© Fundación Empresas Polar, todos los derechos reservados."
+    },
+    {
+      "source_key": "MX1",
+      "institution": "INEGI",
+      "title": "Compendio de información geográfica municipal 2010: Mazamitla, Jalisco",
+      "edition": "2010",
+      "map_read": "Relieve, PDF page 6; original pixels inspected",
+      "base": "INEGI topographic information 1:250,000 series III and INEGI-CONAGUA 2007 hydrographic network 1:250,000",
+      "evidence_type": "original primary cartography and municipal table",
+      "use": "Headward Epenche valley and its southern drainage setting.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/14/14059.pdf"
+    },
+    {
+      "source_key": "MX2",
+      "institution": "INEGI",
+      "title": "Compendio de información geográfica municipal 2010: Tamazula de Gordiano, Jalisco",
+      "edition": "2010",
+      "map_read": "Relieve, PDF page 6; original pixels inspected",
+      "base": "INEGI topographic information 1:250,000 series II and III and INEGI-CONAGUA 2007 hydrographic network 1:250,000",
+      "evidence_type": "original primary cartography and municipal table",
+      "use": "Northern tributaries, La Minera, La Cuesta, El Tejolote return valley, Contla confluence and Tamazula corridor; intervening relief.",
+      "official_url": "https://inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/14/14085.pdf"
+    },
+    {
+      "source_key": "MX3",
+      "institution": "INEGI",
+      "title": "Condensado Estatal Jalisco",
+      "edition": "First edition 2020, copyright 2021",
+      "scale": "1:650,000",
+      "map_read": "Single-sheet original; selected Mazamitla–Tamazula–Tuxpan–Naranjo corridor and lateral Trojes network inspected",
+      "base": "Generalized from 1:250,000 series III topography",
+      "evidence_type": "original primary cartography",
+      "use": "Continuous middle/lower corridor context; separates Laguna de Zapotlán and lateral Trojes storage from the selected course.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/jal/889463836964.pdf"
+    },
+    {
+      "source_key": "MX4",
+      "institution": "INEGI",
+      "title": "Condensado Estatal Colima",
+      "edition": "First edition 2020, copyright 2021",
+      "scale": "1:160,000",
+      "map_read": "Single-sheet original; eastern state-border corridor continuously inspected from the northern neatline to Boca de Apiza",
+      "base": "Generalized from 1:250,000 series III topography",
+      "evidence_type": "original primary cartography",
+      "use": "El Naranjo, lower junctions, Coahuayana, canals and adjacent lagoons, coastal plain and actual Pacific terminal.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/col/889463836889.pdf"
+    },
+    {
+      "source_key": "MX5",
+      "institution": "Servicio Geológico Mexicano",
+      "title": "Carta Geológico-Minera Mazamitla E13-B16, Jalisco y Michoacán",
+      "edition": "First edition January 2017",
+      "scale": "1:50,000",
+      "map_read": "Original sheet; Epenche/El Veladero/La Minera and Mesa de Mota southern terrain inspected",
+      "evidence_type": "original primary geological cartography with original INEGI topographic base",
+      "metadata_url": "https://mapserver.sgm.gob.mx/Cartas_Online/metadatos_geol/Mazamitla_GL_MN_E13-B16_NTM.html",
+      "use": "Resolves upper component identities and the interfluve separating the northern channel from the southward Agua Zarca approach.",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1129_E13-B16_GM.pdf"
+    },
+    {
+      "source_key": "MX6",
+      "institution": "Servicio Geológico Mexicano",
+      "title": "Carta Geológico-Minera Tamazula E13-B26, Jalisco",
+      "edition": "First edition March 2017",
+      "scale": "1:50,000",
+      "map_read": "Original sheet; northern Agua Zarca–Tejocote valley and return toward La Garita/Tamazula inspected",
+      "evidence_type": "original primary geological cartography with INEGI topographic base",
+      "metadata_url": "https://mapserver.sgm.gob.mx/Cartas_Online/metadatos_geol/Tamazula_GL_MN_E13-B26_NTM.html",
+      "use": "Resolves southern side of the mapped interfluve and the separate receiving channel.",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1130_E13-B26_GM.pdf"
+    },
+    {
+      "source_key": "MX7",
+      "institution": "Comisión Nacional del Agua / Secretaría de Medio Ambiente y Recursos Naturales; Diario Oficial de la Federación",
+      "title": "ACUERDO por el que se da a conocer el resultado de los estudios técnicos de aguas nacionales superficiales de la subregión hidrológica Río Coahuayana de la Región Hidrológica número 16 Armería-Coahuayana",
+      "edition": "Document codigo 5280550; signed 14 November 2012",
+      "sections_read": [
+        "1.1–1.2 regional setting",
+        "2 Sistema Hidrológico",
+        "2.1 Hidrología Superficial",
+        "2.2 Presas",
+        "8.1 concluding geographic description"
+      ],
+      "evidence_type": "primary prose only",
+      "map_read": null,
+      "use": "Bounded downstream name sequence, tributary context, Trojes and artificial Laguna de Amela supply, and Boca de Apiza terminal. Embedded figures were not acquired or used.",
+      "official_url": "https://sidof.segob.gob.mx/notas/docFuente/5280550"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61186834",
+      "source_keys": [
+        "MTC_ICA_2017",
+        "MTC_HUANCAVELICA_2017",
+        "MTC_CHOCORVOS_2017"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13891
+          ],
+          "component_scope": "Eastern headward corridor",
+          "finding": "The district original shows the selected north-to-south upper corridor in eastern Santiago de Chocorvos, along the Río Huarpo reach near Tincocc Ullpacc and Huarpo. It turns west through the Santa Rosa de Mejorada vicinity. The nearby Río Turpo–Putcca–Olaya branch lies separately to the north.",
+          "sources": [
+            "MTC_CHOCORVOS_2017",
+            "MTC_HUANCAVELICA_2017"
+          ],
+          "mapped_reach_name": "Río Huarpo",
+          "initial_short_segment_name": null,
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            13891
+          ],
+          "component_scope": "Upper Santiago and Olaya junction",
+          "finding": "The selected southern approach continues west and northwest past Santiago de Chocorvos as the mapped Río Santiago. The Río Olaya approaches from the north/east and joins near San Pedro de la Puente. The westward continuation along the San Francisco de Sangayaico boundary also carries the Santiago label.",
+          "sources": [
+            "MTC_CHOCORVOS_2017",
+            "MTC_HUANCAVELICA_2017"
+          ],
+          "mapped_reach_name": "Río Santiago",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            13891
+          ],
+          "component_scope": "Tambo junction and upper Ica",
+          "finding": "Farther west the Santiago corridor meets the northern Tambo branch at the Tincocc area. The downstream channel is labeled Río Ica and continues through the Ramadillas–Huamaní corridor toward San José de los Molinos. This distinguishes the selected eastern route from following Tambo upstream.",
+          "sources": [
+            "MTC_CHOCORVOS_2017",
+            "MTC_HUANCAVELICA_2017",
+            "MTC_ICA_2017"
+          ],
+          "mapped_reach_name": "Río Ica downstream of the junction",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            13891
+          ],
+          "component_scope": "Ica valley and material lateral drainage",
+          "finding": "The original Ica sheet traces the channel through the Los Molinos–Ica urban valley, then south past the Tate/Santiago area to Ocucaje. Lateral drainage enters from the east; the selected course remains the southward valley channel. Laguna de Huacachina lies separately west of the urban corridor and is not a selected passage.",
+          "sources": [
+            "MTC_ICA_2017"
+          ],
+          "mapped_reach_name": "Río Ica",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            13891
+          ],
+          "component_scope": "Lower desert and Pacific terminal",
+          "finding": "Below Ocucaje the mapped river continues through the lower desert rather than ending at the cultivated valley. The sheet labels Río Ica, shows the Gamonal tributary junction, and follows the channel past Hacienda Monte Grande to the Pacific coast; the nearby destination label reads Desembocadura Río Ica. The actual coastal continuation is observed, not inferred from the model's sea terminal.",
+          "sources": [
+            "MTC_ICA_2017"
+          ],
+          "mapped_reach_name": "Río Ica",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        }
+      ],
+      "bounded_primary_prose": {
+        "substantive_hydrographic_prose_used": false,
+        "note": "No substantive primary report prose was obtained from the four failed optional sources. Search snippets, extracted search label lists and unseen figures were excluded. Successful MTC index text supplies bibliographic discovery only; the correspondence rests on inspected original map pixels."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70656560",
+      "source_keys": [
+        "r119-usgs-topo-adobe-owens",
+        "r119-mono-trivalley-rfp-2024",
+        "r119-lahontan-table2-1",
+        "r119-winitsky-adobe-flora-2021",
+        "r119-inyo-lower-owens-project"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Selected western head and North Canyon approach",
+          "finding": "The selected western beginning lies in the Baxter Spring/North Canyon setting beside the Highway 120 corridor. It runs east along the mapped North Canyon Creek corridor toward the Adobe Creek and Indian Meadow setting. The mapped Adobe Creek approaches from the south and continues into Adobe Valley. This is separate from the natural upper Owens River and Lake Crowley corridor visible farther southwest.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens",
+            "r119-lahontan-table2-1"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "These names are bounded local channels. The selected beginning is not asserted to be either river’s exact official source.",
+          "mapped_component_names": [
+            "North Canyon Creek",
+            "Adobe Creek"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Adobe Creek entry and northward Adobe Valley floor",
+          "finding": "After the canyon outlet, the selected line proceeds north across the broad Adobe Valley floor toward Adobe Lake. The original shows Adobe Creek and drainage/ditch traces on the western floor, with extensive intervening open valley terrain. The complete selected interval is observable, but it is not depicted as one continuously named river.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens",
+            "r119-winitsky-adobe-flora-2021"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "Adobe Lake is the cartographic lake label. No alias with the separately listed Adobe Reservoir is assumed.",
+          "mapped_component_names": [
+            "Adobe Creek",
+            "Adobe Lake"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Adobe Lake, River Spring Lakes, Antelope Lake and Black Lake chain",
+          "finding": "The selected line visits Adobe Lake, then runs southeast across the valley’s marshy and lacustrine margin through the River Spring Lakes and Antelope Lake settings, and south along the Black Lake depression. The sources distinguish lakes, wetlands, intermittent tributaries and intervening ground. This observed chain is not treated as a single river or evidence of continuous through-flow.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens",
+            "r119-winitsky-adobe-flora-2021",
+            "r119-lahontan-table2-1"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "Each label belongs to its depicted waterbody or wetland setting. Neither Owens River nor Adobe Creek is extended over the entire chain.",
+          "mapped_component_names": [
+            "Adobe Lake",
+            "River Spring Lakes",
+            "Antelope Lake",
+            "Black Lake"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Black Lake–Benton Hot Springs intervening divide",
+          "finding": "At the south end of the Black Lake depression the selected route turns east across mapped raised terrain toward Benton Hot Springs, before entering the Blind Spring Valley wetland setting. The original depicts the western intermittent drainage and eastern springs/wetland separately, with intervening relief. The closed-basin context independently supports treating this as an observed non-through-channel transition, rather than an unseen connecting river.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens",
+            "r119-winitsky-adobe-flora-2021",
+            "r119-lahontan-table2-1"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "No stream name or continuous natural surface connection is assigned across the divide. The cause of the modeled linkage is not inferred.",
+          "mapped_component_names": [
+            "Black Lake",
+            "Benton Hot Springs",
+            "Blind Spring Valley"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Blind Spring Valley, Benton and Spring Canyon Creek",
+          "finding": "The selected route follows the Blind Spring Valley lowland northeast toward Benton, then turns south into the separately labeled Spring Canyon Creek corridor. The map shows northern Hutchinson Creek and the Benton valley setting independently. Those neighboring labels are not propagated upstream across the divide.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "The selected wetland approach and the named creek are distinct components. Hutchinson Creek is contextual, not the selected head.",
+          "mapped_component_names": [
+            "Blind Spring Valley",
+            "Spring Canyon Creek"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Hammil Valley and southward Spring Canyon Creek corridor",
+          "finding": "South of Benton, the selected route follows the Spring Canyon Creek corridor along the western side of the Highway 6 valley, past the Marble, Pellisier/Birch and Lone Tree tributary settings, then into the southward Chalfant wash terrain. Tributary names and irrigation traces remain separate.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "Spring Canyon Creek is supported locally where labeled. No unsupported scalar extension across the entire Tri-Valley route is made.",
+          "mapped_component_names": [
+            "Spring Canyon Creek"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Chalfant wash, McNally canals and Laws/Owens junction setting",
+          "finding": "The selected lower Tri-Valley line follows the mapped intermittent wash east of Fish Slough into the McNally canal and wetland country near Laws, then joins the Owens River corridor. The source shows the whole wash/canal/wetland transition. Fish Slough is a distinct western channel; the selected path is not renamed after it.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens",
+            "r119-mono-trivalley-rfp-2024"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "The unnamed selected wash remains unnamed. The county’s exceptional Chalfant–Laws surface-flow description supports an episodic connection, not a perennial river or a whole-route hydronym.",
+          "mapped_component_names": [
+            "North McNally Canal",
+            "South McNally Canal",
+            "Owens River"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Owens River from Laws and Bishop to Big Pine",
+          "finding": "From the Laws junction setting the selection runs south and southeast with the mapped Owens River east of Bishop and past Big Pine. The original distinguishes North Fork Bishop Creek, local canals and other tributaries from the named river corridor.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "Owens River is supported as the bounded middle/lower channel identity only. It is not a representative name for the entire selected composite.",
+          "mapped_component_names": [
+            "Owens River"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Tinemaha Reservoir passage and Owens outlet reach",
+          "finding": "The selection enters the Tinemaha Reservoir river reach, traverses its western part at generalized corridor scale, and continues into the mapped Owens River below the impoundment. The reservoir and Tinemaha Creek are separately labeled. The lower view also distinguishes the Los Angeles Aqueduct diversion from the selected Owens River route.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens",
+            "r119-lahontan-table2-1"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "The reservoir passage is not assigned a uniform river scalar name; exact shoreline or dam-point coincidence is not required.",
+          "mapped_component_names": [
+            "Tinemaha Reservoir",
+            "Owens River"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Lower Owens River from Aberdeen through Independence and Lone Pine",
+          "finding": "The selection continues in the Owens River corridor past the Aberdeen, Independence, Manzanar and Lone Pine settings. Original maps show the Los Angeles Aqueduct to the west and other canals/ditches separately. The selected line remains with the river corridor to its delta at the north side of Owens Lake.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens",
+            "r119-inyo-lower-owens-project"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "The named lower-river component is supported. The independent project prose supplies bounded corridor context only.",
+          "mapped_component_names": [
+            "Owens River"
+          ]
+        },
+        {
+          "fragments": [
+            9850
+          ],
+          "component_scope": "Owens Lake delta and actual selected dry-bed terminal",
+          "finding": "Below the lower river and delta approach, the selection continues across the mapped Owens Lake bed, including a subdivided water/pond area, and ends farther into the area explicitly labeled Owens Lake (Dry). The final modeled extension is distinct from the mapped river/delta channel. The actual selected endpoint lies in this named dry-lake basin, not at a separately proven river mouth.",
+          "sources": [
+            "r119-usgs-topo-adobe-owens"
+          ],
+          "correspondence": "Original cartographic geography observed throughout this selected interval; no source-coverage gap asserted.",
+          "name_scope": "Owens Lake is independently observed terminal geography. The final lake-bed extension is not named Owens River; no modern water extent, exact mouth, or flow condition is established.",
+          "mapped_component_names": [
+            "Owens Lake"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60007312",
+      "source_keys": [
+        "fep2012-costa55",
+        "fep-monagas51",
+        "provea2014-map2",
+        "pereira-garcia2020-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10822
+          ],
+          "component_scope": "Headward Turimiquire and El Guamo setting",
+          "finding": "The original 2012 Costa oriental sheet maps El Guamo in the mountainous northern part of the drainage and a connected channel continuing south. Its small-scale representation does not resolve the full selected headward branch or reservoir passage. The chapter's Miraflores Guarapiche photograph caption is location context, not a mapped connector.",
+          "sources": [
+            "fep2012-costa55",
+            "fep-monagas51"
+          ],
+          "correspondence": "partial; material upper correspondence unresolved",
+          "mapped_reach_name": null
+        },
+        {
+          "fragments": [
+            10822
+          ],
+          "component_scope": "Middle Jusepín–Maturín corridor",
+          "finding": "PROVEA's original map 2 places a labeled Río Guarapiche along the eastward river corridor south of Jusepín and toward Maturín. The Río Amana is separately depicted farther south. This supports the selected middle corridor and candidate, while the sheet omits the upper reservoir and terminal region.",
+          "sources": [
+            "provea2014-map2"
+          ],
+          "correspondence": "supported middle corridor only",
+          "mapped_reach_name": "Río Guarapiche"
+        },
+        {
+          "fragments": [
+            10822
+          ],
+          "component_scope": "Regional Guarapiche–San Juan relationship",
+          "finding": "Sheet 55 depicts the southward drainage below El Guamo curving east and northeast into the river network labeled Guarapiche, with an onward junction into Río San Juan. It distinguishes Río de Oro and Río Aragua tributary settings. Channel simplification prevents resolving the selected route through the lower wetland branches.",
+          "sources": [
+            "fep2012-costa55"
+          ],
+          "correspondence": "regional network relationship; detailed material connector pending",
+          "mapped_reach_name": null
+        },
+        {
+          "fragments": [
+            10822
+          ],
+          "component_scope": "Lower tidal wetlands and named channels",
+          "finding": "The Monagas chapter describes interconnected Francés, Toro and Dos Aguas channels in the San Juan wetland system. Pereira and García's methods identify sampling on the Guarapiche, Francés and Dos Aguas waterways and their connection to San Juan. The latter's Figure 1 was not obtained, so the text and station table are not treated as map correspondence.",
+          "sources": [
+            "fep-monagas51",
+            "pereira-garcia2020-prose"
+          ],
+          "correspondence": "bounded prose context only; selected branching unresolved",
+          "mapped_reach_name": null
+        },
+        {
+          "fragments": [
+            10822
+          ],
+          "component_scope": "Actual terminal and receiving water",
+          "finding": "Sheet 55 distinguishes the Guarapiche-to-San Juan junction from the San Juan's farther downstream outlet into the Golfo de Paria. The specific selected final channel and its terminal within that tidal setting remain unresolved; the broad receiving-system depiction does not prove a direct sea mouth for the selected object.",
+          "sources": [
+            "fep2012-costa55"
+          ],
+          "correspondence": "actual selected terminal pending",
+          "mapped_reach_name": null,
+          "receiving_water_name": null,
+          "regional_receiving_system": "Río San Juan–Golfo de Paria"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70895879",
+      "source_keys": [
+        "MX1",
+        "MX2",
+        "MX3",
+        "MX4",
+        "MX5",
+        "MX6",
+        "MX7"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10458
+          ],
+          "component_scope": "Headward Epenche valley",
+          "finding": "The selected northern component occupies the Epenche valley west of Mazamitla, near Epenche Grande. The maps show the local stream descending toward the El Veladero drainage and receiving other local drainage. It is not named Coahuayana throughout, and the study’s generalized Cerro del Tigre origin is not substituted for this selected head.",
+          "sources": [
+            "MX1",
+            "MX5"
+          ],
+          "mapped_component_name": "Epenche",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            10458
+          ],
+          "component_scope": "Northern channel and La Minera junction",
+          "finding": "The northern drainage reaches the El Veladero/La Minera setting east of La Garita. The original maps show its westward outlet toward the La Garita junction, with La Cuesta and other approaches separately drawn.",
+          "sources": [
+            "MX1",
+            "MX2",
+            "MX5"
+          ],
+          "mapped_component_names": [
+            "El Veladero",
+            "La Minera",
+            "La Cuesta"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            10458
+          ],
+          "component_scope": "Mesa de Mota interfluve and southern return",
+          "finding": "Instead of remaining on that westward channel, the selected course extends south across the mapped Mesa de Mota interfluve toward the headward Agua Zarca drainage, then returns northwest along the valley labelled El Tejocote on the finer SGM sheets. INEGI’s municipal map uses El Tejolote for the corresponding return valley. Both sides and intervening terrain are observed. No continuous surface-water channel is shown across the interfluve, and no such flow is inferred. The spelling difference is retained as source-specific component labelling rather than asserted as a formal synonym.",
+          "sources": [
+            "MX2",
+            "MX5",
+            "MX6"
+          ],
+          "mapped_component_names": [
+            "Mesa de Mota",
+            "Agua Zarca",
+            "El Tejocote"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            10458
+          ],
+          "component_scope": "La Garita–Tamazula middle valley",
+          "finding": "After the return to La Garita, the selected course runs southwest through the Tamazula valley, with the Contla approach separately mapped, passes Tamazula de Gordiano and the El Cortijo/Vista Hermosa area, and turns south. The upper composite is not silently replaced by the direct northern-channel route.",
+          "sources": [
+            "MX2",
+            "MX3",
+            "MX5",
+            "MX6"
+          ],
+          "mapped_component_names": [
+            "Tamazula",
+            "Contla"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            10458
+          ],
+          "component_scope": "Tuxpan–Atenquique–Tonilita corridor",
+          "finding": "The selected middle course continues through the San Vicente/Tizatilra setting to Tuxpan, turns west near Atenquique, and then south by Platanar, Tonila/Tonilita and the Jalisco–Colima border valley. The original Colima map and Jalisco sheet label the downstream border stream El Naranjo/Río el Naranjo; the primary study supplies the bounded Tamazula–Tuxpan–Naranjo–Coahuayana sequence.",
+          "sources": [
+            "MX3",
+            "MX4",
+            "MX7"
+          ],
+          "mapped_component_names": [
+            "Río Tuxpan",
+            "El Naranjo"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            10458
+          ],
+          "component_scope": "Tributary and storage junctions",
+          "finding": "The lateral Barreras/Ahuijullo/Trojes drainage and Trojes storage are mapped east of the selected Naranjo corridor, with their outlet entering the border-river system. The selected course does not traverse the Trojes storage basin. Farther down, the Salado approach joins near Las Conchas. The tributary network remains distinct from the selected mainstem and is not renamed after it.",
+          "sources": [
+            "MX3",
+            "MX4",
+            "MX7"
+          ],
+          "mapped_component_names": [
+            "Trojes",
+            "Río Salado",
+            "El Naranjo"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            10458
+          ],
+          "component_scope": "Lower Coahuayana and off-channel water features",
+          "finding": "Below the Las Conchas junction, the selected course follows the Coahuayana border channel through the Callejones/Coahuayana Viejo coastal plain. The original map distinguishes the river, canal lines and adjacent lagoon setting. Laguna de Amela is west of the selected river; primary prose identifies an artificial feeder, not a mainstem passage. No selected lake traversal is inferred from a nearby lagoon label.",
+          "sources": [
+            "MX4",
+            "MX7"
+          ],
+          "mapped_component_names": [
+            "Río Coahuayana",
+            "Laguna de Amela",
+            "Laguna Coahuayana"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            10458
+          ],
+          "component_scope": "Actual coastal terminal",
+          "finding": "The selected lowermost reach continues southwest past Cerro de Ortega and the Coahuayana plain to the river opening at Boca de Apiza on the Pacific coast. This is directly read from the original Colima sheet, not inferred only from the stored sea endpoint or a basin label.",
+          "sources": [
+            "MX4",
+            "MX7"
+          ],
+          "mapped_component_name": "Boca de Apiza / Océano Pacífico",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        }
+      ],
+      "source_reading_limits": {
+        "cartography": "All map observations above come from original downloaded PDFs rendered locally; search excerpts and parsed label lists were discovery aids only.",
+        "prose": "MX7 was read as original web prose. Its unseen embedded figures are not map evidence. Its historic regulatory statements are not offered as current legal advice.",
+        "source_dates": "Map dates and scales are stated individually; recent indexing dates do not replace printed editions.",
+        "source_availability": "All six original map requests completed with HTTP 200 application/pdf; no new denial, challenge, incomplete acquisition or availability stop occurred."
+      }
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61186834",
+      "publication": "Hidrogeología de la cuenca del río Ica. Regiones Ica y Huancavelica [Boletín H3], CONCYTEC catalogue description of INGEMMET publication",
+      "official_url": "https://alicia.concytec.gob.pe/vufind/Record/INGEMMET_a2c6c365161989c1247c65ba7a7e7da8/Description",
+      "observed_outcome": "Web reader returned Cache miss. No HTTP status, catalogue body or map original was exposed.",
+      "outcome_layer": "Web-reader acquisition; origin HTTP outcome unknown",
+      "restriction_scope": "Missing publication/map content and equivalent copies, formats, original, reader, cache, mirror and other acquisition routes paused. No alternate route followed.",
+      "earlier_lawful_prose_exception": null,
+      "material_to_remaining_coverage": false
+    },
+    {
+      "aw_id": "hydro-system:61186834",
+      "publication": "Balance hidrológico de la cuenca integral del río Ica, INRENA–Dirección General de Aguas y Suelos–ATDR Ica,2002",
+      "official_url": "https://www.ana.gob.pe/sites/default/files/publication/files/estudio_hidrologico_ica_0_0.pdf",
+      "observed_outcome": "Sole original-file request completed with HTTP502, Content-Type text/html,150 bytes. No PDF obtained.",
+      "outcome_layer": "Original HTTP acquisition",
+      "restriction_scope": "Missing publication, maps and equivalent copies, formats, original, reader, cache, mirror and other acquisition routes paused. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "material_to_remaining_coverage": false
+    },
+    {
+      "aw_id": "hydro-system:61186834",
+      "publication": "Clasificación de los cuerpos de agua continentales superficiales, R.J.N°056-2018-ANA, publication ANA0001180",
+      "official_url": "https://observatoriochirilu.ana.gob.pe/sites/default/files/Archivos/ANA0001180.pdf",
+      "observed_outcome": "Web reader returned (400) Timeout fetching. No original PDF or map pixels obtained.",
+      "outcome_layer": "Web-reader fetch error;400 is the reader-reported wrapper, not a separately observed origin response",
+      "restriction_scope": "Missing publication and equivalent copies, maps, formats, original, reader, cache, mirror and other acquisition routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": null,
+      "material_to_remaining_coverage": false
+    },
+    {
+      "aw_id": "hydro-system:61186834",
+      "publication": "Evaluación de la veda de los acuíferos Villacurí y Lanchas – Informe Final, ANA, publication ANA0002941_1",
+      "official_url": "https://repositorio.ana.gob.pe/bitstream/handle/20.500.12543/4442/ANA0002941_1.pdf?isAllowed=y&sequence=1",
+      "observed_outcome": "Web reader returned (400) Timeout fetching. No original PDF or substantive prose obtained.",
+      "outcome_layer": "Web-reader fetch error;400 is the reader-reported wrapper, not a separately observed origin response",
+      "restriction_scope": "Missing publication, maps and all equivalent copies, formats, original, reader, cache, mirror and other acquisition routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": null,
+      "material_to_remaining_coverage": false
+    },
+    {
+      "aw_id": "hydro-system:70656560",
+      "publication": "Hydrology 6(1), article 26 (2019), official-hosted file hydrology-06-00026.pdf; title incomplete in pre-stop discovery metadata",
+      "official_url": "https://www.inyowater.org/wp-content/uploads/2019/05/hydrology-06-00026.pdf",
+      "observed_outcome": "The initial web-reader request returned “URL ... is not accessible via this tool,” with no HTTP status or security reason. The one subsequent sequential original-file request completed with HTTP 202, Content-Type text/html, 225 bytes, and SG-Captcha: challenge. No article PDF, prose or figure was acquired.",
+      "outcome_layer": "First outcome: web-reader technical route. Final outcome: completed original HTTP response carrying a CAPTCHA challenge; HTTP 202 is not misreported as HTTP 401/403.",
+      "restriction_scope": "The entire article and all equivalent copies, publisher/DOI routes, formats, figures, mirrors, readers and acquisition routes are stopped. No challenge was followed and no subsequent article/title/DOI acquisition was made.",
+      "earlier_lawful_prose_exception": null,
+      "title_complete": false,
+      "material_geographic_gap_created": false,
+      "public_source_note": "Optional article unavailable behind a CAPTCHA challenge. Independent original USGS cartography and bounded separate primary prose cover the full selected geography, so this does not create an additional source-pending status."
+    },
+    {
+      "aw_id": "hydro-system:60007312",
+      "publication": "Gil-Marín, José Alexander, and Aliser González C. (2020), Modelo de calidad del agua de un río mediante el uso combinado de análisis de componentes principales (ACP) y regresiones lineales múltiples (RLM). Caso de estudio: Cuenca del río Guarapiche, Maturín, Monagas, Venezuela. Anales Científicos81(1):152–172; DOI10.21704/ac.v81i1.1586",
+      "official_url": "https://revistas.lamolina.edu.pe/index.php/acu/article/view/1586",
+      "observed_outcome": "Web reader reported (502) Bad Gateway; no source body or map obtained.",
+      "outcome_layer": "web-reader reported HTTP502; origin response not independently inspected",
+      "restriction_scope": "Missing whole article and equivalent copies, formats, figures, reader/original/mirror and other routes paused for availability. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:60007312",
+      "publication": "Admiralty Chart No.1330, Rio San Juan, published1965",
+      "official_url": "https://commons.wikimedia.org/wiki/File:Admiralty_Chart_No_1330_Rio_San_Juan,_Published_1965.jpg",
+      "observed_outcome": "Web-reader catalogue request returned Cache miss; no HTTP status, body or original pixels exposed.",
+      "outcome_layer": "web-reader availability",
+      "restriction_scope": "Missing chart and equivalent copies, formats, catalogue/original/reader/mirror and other acquisition routes paused. No retry.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:60007312",
+      "publication": "Conservation International, Rapid Assessment Program37, Paria/Venezuela report; exact full title and edition not established from failed acquisition",
+      "official_url": "https://www.conservation.org/docs/default-source/publication-pdfs/rap37_paria_venezuela_dec-2002.pdf?Status=Master&sfvrsn=148d24f7_3",
+      "observed_outcome": "Sole original request completed HTTP404, Content-Type text/html; charset=utf-8. No source PDF or map obtained.",
+      "outcome_layer": "original HTTP response",
+      "restriction_scope": "Missing report, maps and all equivalent copies, formats, figures, reader/cache/mirror and other acquisition routes paused. No retry or alternate request.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:60007312",
+      "publication": "Pereira and García, Morfometría y crecimiento poblacional de Minuca rapax… Acta Biológica Venezuelica40(2):151–170 (2020), linked original PDF and Figure1",
+      "official_url": "https://www.researchgate.net/publication/profile/Carlos-Pereira-11/publication/351824809_MORFOMETRIA_Y_CRECIMIENTO_POBLACIONAL_DE_Minuca_rapax_CRUSTACEA_DECAPODA_EN_EL_BOSQUE_DE_MANGLAR_DEL_RIO_SAN_JUAN_ESTADO_MONAGAS_VENEZUELA/links/60ac2d3545851522bc15229c/MORFOMETRIA-Y-CRECIMIENTO-POBLACIONAL-DE-Minuca-rapax-CRUSTACEA-DECAPODA-EN-EL-BOSQUE-DE-MANGLAR-DEL-RIO-SAN-JUAN-ESTADO-MONAGAS-VENEZUELA.pdf",
+      "observed_outcome": "Author-uploaded landing prose opened normally. The subsequent linked full-text PDF request returned Cache miss; no HTTP status or figure pixels obtained.",
+      "outcome_layer": "web-reader availability",
+      "restriction_scope": "Further acquisition of missing PDF/map/figure content and equivalent originals, copies, formats, screenshots, mirrors and routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": "Only previously read author-uploaded prose, especially methods pp.153–154, remains bounded lower-waterway context. Figure1 and parsed map labels are not cartographic observations."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60007312",
+      "publication": "GeoVenezuela cartographic appendix, Monagas state-map listing",
+      "official_url": "https://bibliofep.fundacionempresaspolar.org/publicaciones/colecciones/apendice-cartografico/",
+      "observed_outcome": "Catalogue text and original HTML opened normally. The Monagas listing had no linked original state map.",
+      "outcome_layer": "successful catalogue; original-map link absent",
+      "restriction_scope": "No access denial or publication-wide stop inferred. The unacquired Monagas state sheets supply no substantive evidence.",
+      "earlier_lawful_prose_exception": "Catalogue bibliography and collection description only."
+    },
+    {
+      "aw_id": "hydro-system:70895879",
+      "publication": "Condensado Estatal Jalisco",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/jal/889463836964.pdf",
+      "observed_outcome": "Printed first-edition 2020/copyright 2021 map requires prior written authorization for full or partial reproduction. This same Jalisco use notice was inherited and was read again on the acquired original.",
+      "outcome_layer": "publication use notice, not origin HTTP or transport failure",
+      "restriction_scope": "Reproduction of the map and derivatives; source originals, crops and overlays remain private. Ordinary factual reading and citations were used.",
+      "earlier_lawful_prose_exception": null,
+      "all_routes_stopped": false,
+      "new_access_stop": false,
+      "newly_observed_or_reobserved": "reobserved inherited use notice"
+    },
+    {
+      "aw_id": "hydro-system:70895879",
+      "publication": "Condensado Estatal Colima",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/col/889463836889.pdf",
+      "observed_outcome": "Printed first-edition 2020/copyright 2021 map requires prior written authorization for full or partial reproduction.",
+      "outcome_layer": "publication use notice, not origin HTTP or transport failure",
+      "restriction_scope": "Reproduction of the map and derivatives; originals, crops and overlays remain private. No reading denial inferred.",
+      "earlier_lawful_prose_exception": null,
+      "all_routes_stopped": false,
+      "new_access_stop": false,
+      "newly_observed_or_reobserved": "newly observed use notice"
+    },
+    {
+      "aw_id": "hydro-system:70895879",
+      "publication": "Carta Geológico-Minera Mazamitla E13-B16, Jalisco y Michoacán",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1129_E13-B16_GM.pdf",
+      "observed_outcome": "Original is copyright 2017, rights reserved. Official metadata identifies the web PDF as freely available and asks users to cite the source/copyright.",
+      "outcome_layer": "publication use notice",
+      "restriction_scope": "Source attribution retained; no original or derivative distributed; no access stop.",
+      "earlier_lawful_prose_exception": null,
+      "all_routes_stopped": false,
+      "new_access_stop": false
+    },
+    {
+      "aw_id": "hydro-system:70895879",
+      "publication": "Carta Geológico-Minera Tamazula E13-B26, Jalisco",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1130_E13-B26_GM.pdf",
+      "observed_outcome": "Original first edition March 2017 carries copyright 2017, rights reserved.",
+      "outcome_layer": "publication use notice",
+      "restriction_scope": "Ordinary factual reading and citation only; source original and derivatives kept private; no access stop.",
+      "earlier_lawful_prose_exception": null,
+      "all_routes_stopped": false,
+      "new_access_stop": false
+    }
+  ]
+}

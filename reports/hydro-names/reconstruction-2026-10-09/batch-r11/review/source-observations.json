@@ -1,0 +1,234 @@
+{
+  "schema": "hydro-independent-source-observations-v2",
+  "reviewed_at_utc": "2026-10-09T15:15:41.336877+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159112291",
+    "lakes_base:1159112821",
+    "lakes_base:1159109155"
+  ],
+  "new_external_requests": 0,
+  "original_naming_source_bodies_rehashed": 4,
+  "original_response_bodies_rehashed_including_unused": 5,
+  "map_publications_pixels_viewed": 2,
+  "map_panels_pixels_viewed": 3,
+  "text_only_capture_count": 1,
+  "failed_original_acquisitions": 3,
+  "source_body_republication_permitted": false,
+  "independent_registered_overlay_claimed": false,
+  "shoreline_overlap_measured": false,
+  "observations": [
+    {
+      "source_key": "manitoba_dauphin_iwmp",
+      "url": "https://www.gov.mb.ca/sd/water/watershed/iwmp/dauphin/documentation/dauphin_lake_iwmp.pdf",
+      "final_url": "https://www.gov.mb.ca/sd/water/watershed/iwmp/dauphin/documentation/dauphin_lake_iwmp.pdf",
+      "body_id": "manitoba_dauphin_iwmp-BODY",
+      "source_body_acquired": true,
+      "source_body_sha256": "35b56a3e9d1ccf221f258581c0f9e8c9d43c63a69ab1304baeb13c60b2fbf400",
+      "request_started_at_utc": "2026-10-09T15:04:35.833911+00:00",
+      "checked_asset_ids": [
+        "manitoba_dauphin_iwmp-BODY",
+        "manitoba_dauphin_iwmp-RECEIPT",
+        "manitoba_dauphin_iwmp-TEXT",
+        "IWMP-P7",
+        "IWMP-P54"
+      ],
+      "map_pixels_viewed": true,
+      "counted_as_naming_source": true,
+      "reused_original_from_prior_batch": false,
+      "printed_date": null,
+      "inspection": "Read the retained original plan text and independently rendered and viewed PDF pages 7 and 54, printed pages 4 and 51, Figures 1 and 14.",
+      "finding": "The complete Dauphin outline and surrounding Lake Winnipegosis/outlet relation agree at generalized scale.",
+      "pdf_creation_date": "2016-01-07",
+      "pdf_modification_date": "2017-12-18",
+      "limit": "No verified printed publication date or exact shoreline currency. The two panels are one source publication."
+    },
+    {
+      "source_key": "eccc_dauphin_reference_index",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=4449",
+      "final_url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=4449",
+      "body_id": "eccc_dauphin_reference_index-BODY",
+      "source_body_acquired": true,
+      "source_body_sha256": "d6bc8c3765b580802af24a96921900fdd6f51266c4ed7b683bbb4ea9f179f04c",
+      "request_started_at_utc": "2026-10-09T15:05:50.136490+00:00",
+      "checked_asset_ids": [
+        "eccc_dauphin_reference_index-BODY",
+        "eccc_dauphin_reference_index-RECEIPT",
+        "eccc_dauphin_reference_index-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "counted_as_naming_source": true,
+      "reused_original_from_prior_batch": false,
+      "printed_date": null,
+      "inspection": "Read the retained original HTML station rows 05LJ816 and 05LJ009, coordinates and date-modified field.",
+      "finding": "Station names use Dauphin Lake at Ochre Beach and at the outlet.",
+      "page_modified_date": "2026-09-11",
+      "limit": "Federal hydrometric usage, not a whole-waterbody boundary or formal naming record; no map pixels viewed."
+    },
+    {
+      "source_key": "wsa_deschambault_map",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "final_url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "body_id": "wsa_deschambault_map-BODY",
+      "source_body_acquired": true,
+      "source_body_sha256": "64744b11dbae7381445b12ad0507487a5a38a82c6fe9de446b98814281d92197",
+      "request_started_at_utc": "2026-10-09T13:17:13.195792+00:00",
+      "checked_asset_ids": [
+        "wsa_deschambault_map-BODY",
+        "wsa_deschambault_map-RECEIPT",
+        "wsa_deschambault_map-TEXT",
+        "WSA-OVERVIEW",
+        "WSA-WEST-EDGE",
+        "WSA-DESCHAMBAULT-CONTEXT",
+        "WSA-DESCHAMBAULT-FULL"
+      ],
+      "map_pixels_viewed": true,
+      "counted_as_naming_source": true,
+      "reused_original_from_prior_batch": true,
+      "printed_date": "2014-11-25",
+      "inspection": "Read the retained original PDF text and imprint, viewed the whole publication and independently rendered full Deschambault and surrounding-water details; checked the western map edge.",
+      "finding": "Deschambault outline supports generalized association with nearby named lakes distinguished. No full named Cold Lake counterpart is established by the western edge.",
+      "scale_denominator": 1750000,
+      "coordinate_reference": "NAD 1983 CSRS UTM Zone 13N",
+      "limit": "Historic thematic map usage; no registered raster overlay, formal registry or exact shoreline proof. No new retrieval occurred."
+    },
+    {
+      "source_key": "manitoba_unused_highway_redirect",
+      "url": "https://www.gov.mb.ca/mit/map/pdf/map4.pdf",
+      "final_url": "https://www.gov.mb.ca/mti/",
+      "body_id": "manitoba_unused_highway_redirect-BODY",
+      "source_body_acquired": true,
+      "source_body_sha256": "4ed4c09597457e616bb7b27c1c4280a6790b22c6a2cf3eb656dde5c0c27bce84",
+      "request_started_at_utc": "2026-10-09T15:04:58.401727+00:00",
+      "checked_asset_ids": [
+        "manitoba_unused_highway_redirect-BODY",
+        "manitoba_unused_highway_redirect-RECEIPT",
+        "manitoba_unused_highway_redirect-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "counted_as_naming_source": false,
+      "reused_original_from_prior_batch": false,
+      "printed_date": null,
+      "inspection": "Read retained original response as HTML and checked the acquisition receipt final URL and content type.",
+      "finding": "The requested highway PDF URL returned the generic Transportation and Infrastructure website.",
+      "limit": "No highway map acquired or viewed; this body contributes no lake-name evidence."
+    },
+    {
+      "source_key": "eccc_deschambault_usage",
+      "url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName",
+      "final_url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=D&type=stationName",
+      "body_id": "eccc_deschambault_usage-BODY",
+      "source_body_acquired": true,
+      "source_body_sha256": "799d07c905e838f481f30816dd808ce219edcc19ef43380682b3d19f324b6dc5",
+      "request_started_at_utc": "2026-10-09T13:18:56.473279+00:00",
+      "checked_asset_ids": [
+        "eccc_deschambault_usage-BODY",
+        "eccc_deschambault_usage-RECEIPT",
+        "eccc_deschambault_usage-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "counted_as_naming_source": true,
+      "reused_original_from_prior_batch": true,
+      "printed_date": null,
+      "inspection": "Read the retained original HTML D-index row 05KF003 and the page date-modified field.",
+      "finding": "The station row uses Deschambault Lake on the Hanson Lake Road.",
+      "page_modified_date": "2026-09-11",
+      "limit": "Ordinary federal hydrometric usage only; not a full-lake map, formal naming register or boundary determination."
+    },
+    {
+      "source_key": "alberta_cold_subregional2019_text",
+      "url": "https://www.alberta.ca/system/files/custom_downloaded_images/cold-lake-sub-regional-planning-map.pdf",
+      "body_id": null,
+      "source_body_acquired": false,
+      "source_body_sha256": null,
+      "text_capture_id": "COLD-SUBREGIONAL-WEB-TEXT",
+      "text_capture_sha256": "91b0e97088df2afed1521cf080f0a589c03d479d012a60f0d3c4d52fc87979ae",
+      "checked_asset_ids": [
+        "COLD-SUBREGIONAL-WEB-TEXT",
+        "COLD-SUBREGIONAL-WEB-TEXT-RECEIPT",
+        "COLD-SUBREGIONAL-FAILURE"
+      ],
+      "map_pixels_viewed": false,
+      "counted_as_naming_source": false,
+      "printed_date_from_text": "2019-07-24",
+      "original_printed_date_verified_from_body": false,
+      "inspection": "Read the full retained pre-denial web text capture and the later acquisition failure receipt. No original PDF or actual screenshot pixels were available.",
+      "finding": "Capture contains Cold Lake labels and a 2019 completion imprint but cannot support whole-shape correspondence.",
+      "limit": "The text capture hash is not an original body hash; this is limited documentary context only."
+    }
+  ],
+  "failed_acquisitions": [
+    {
+      "receipt_id": "COLD-PARKS-FAILURE",
+      "url": "https://www.albertaparks.ca/media/6493109/cold-lake-brochure.pdf",
+      "http_status": 403,
+      "source_body_acquired": false,
+      "source_body_sha256": null,
+      "map_pixels_viewed": false,
+      "completed_at_utc": "2026-10-09T15:05:14.798091+00:00"
+    },
+    {
+      "receipt_id": "COLD-WATER-PLAN-FAILURE",
+      "url": "https://www.alberta.ca/index.php/cold-lake-beaver-river-water-management-plan",
+      "http_status": 403,
+      "source_body_acquired": false,
+      "source_body_sha256": null,
+      "map_pixels_viewed": false,
+      "completed_at_utc": "2026-10-09T15:06:05.134478+00:00"
+    },
+    {
+      "receipt_id": "COLD-SUBREGIONAL-FAILURE",
+      "url": "https://www.alberta.ca/system/files/custom_downloaded_images/cold-lake-sub-regional-planning-map.pdf",
+      "http_status": 403,
+      "source_body_acquired": false,
+      "source_body_sha256": null,
+      "map_pixels_viewed": false,
+      "completed_at_utc": "2026-10-09T15:07:39.496639+00:00"
+    }
+  ],
+  "complete_geometry_observations": [
+    {
+      "aw_id": "lakes_base:1159112291",
+      "source_id": "1159112291",
+      "geometry_fids": [
+        15611
+      ],
+      "logical_fid": 4236,
+      "position_count": 51,
+      "source_geometry_sha256": "ecc67c459a70c6318f77e7a0468330a86462c2d07536e528978de4cfd90e07ef",
+      "baseline_geometry_sha256": "09b4e9413acb08dbe21467eac43f3be57fd4ddbe74a737f28242a092b9d9f2df",
+      "entire_source_and_baseline_geometry_viewed": true,
+      "official_whole_waterbody_map_correspondence_review_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159112821",
+      "source_id": "1159112821",
+      "geometry_fids": [
+        15649
+      ],
+      "logical_fid": 4274,
+      "position_count": 43,
+      "source_geometry_sha256": "f8770a1dc79b78b4ccd789ca150ff84bbd0270eae5c00be1f17375650f50ae61",
+      "baseline_geometry_sha256": "da27f5d708744b529fd015e01a3625cc61689c835d8c5985197f8944b30936bb",
+      "entire_source_and_baseline_geometry_viewed": true,
+      "official_whole_waterbody_map_correspondence_review_completed": false
+    },
+    {
+      "aw_id": "lakes_base:1159109155",
+      "source_id": "1159109155",
+      "geometry_fids": [
+        15393
+      ],
+      "logical_fid": 4018,
+      "position_count": 124,
+      "source_geometry_sha256": "40d02be3722a6fcc5e0007adeb5d4a264fec152079b083476c795f0dd0b77556",
+      "baseline_geometry_sha256": "ac5041a27f712fc64c3b946d9bd73b17bdee7be397a23c3d4a321bea64a8269e",
+      "entire_source_and_baseline_geometry_viewed": true,
+      "official_whole_waterbody_map_correspondence_review_completed": true
+    }
+  ],
+  "complete_geometry_view_asset_ids": [
+    "COMPLETE-SOURCE-BASELINE-VIEW",
+    "DESCHAMBAULT-SOURCE-CONTEXT"
+  ],
+  "hash_limit": "Body, text-capture and map-view hashes cover different bytes. Replay can verify bytes; it does not repeat visual inspection. Durable-only mode does not reopen omitted original publications."
+}

@@ -1,0 +1,434 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r81",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r80",
+    "commit": "103d8d37443e69e9c75943b73d803c910e0661e4",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r80/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70807755",
+    "hydro-system:70691004",
+    "hydro-system:61575734",
+    "hydro-system:70766389"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70807755",
+      "category": "river_group",
+      "system_id": "70807755",
+      "baseline_logical_fid": 3177,
+      "geometry_fids": [
+        10014,
+        10013,
+        10012
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -92.441667,
+        29.612982,
+        -91.210417,
+        31.28125
+      ],
+      "rendered_mainstem_length_km": 333.356,
+      "rendered_network_length_km": 333.356,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -92.441667,
+          29.612982,
+          -91.210417,
+          31.28125
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Atchafalaya River",
+        "Bayou des Glaises",
+        "Bayou Rouge",
+        "Engineers Canal"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Named Atchafalaya receiving trunk through Simmesport, Melville and Krotz Springs, the basin river/channel and lake setting toward Morgan City, and distinct upstream Engineers Canal–Bayou Rouge–Bayou des Glaises components. Individual short upper connectors and the exact terminal watercourse remain unassigned.",
+      "geographic_disambiguation": "The actual upper path is southwest of the Red River and northeast of the principal Bayou Boeuf route. It runs through the Engineers Canal and Bayou Rouge drainage setting, then the large Bayou des Glaises loops to Simmesport. It does not select the Red River approach or the Mississippi/Old River Control connection as its upper course. The long receiving trunk is Atchafalaya, with the Mississippi remaining a separate eastern river. The ending is south of Morgan City in the Lower Atchafalaya/Bayou Perrault–Honey Bayou marsh setting, not the full Atchafalaya Bay outlet or Wax Lake Outlet.",
+      "source_keys": [
+        "r81-usgs-topo-atchafalaya",
+        "r81-heritage-sarto"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central and south-central Louisiana, United States, from south of Alexandria through Avoyelles Parish to the Atchafalaya Basin and south of Morgan City.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed bounded geographic correspondence and naming-scope review of all three selected fragments using three readable federal map windows. The long Atchafalaya receiving corridor is identified, while the selected upstream canal/bayou chain and final marsh-channel extension are preserved separately. The hold concerns whole-line identity and generalized channel choices, not a substantial missing-map or source-access gap. No current through-flow or exact channel registration is established.",
+      "naming_scope_details": {
+        "receiving_component": "Atchafalaya River is supported, but this is a whole-selection scope hold rather than a uniform accepted name.",
+        "upper_components": "Engineers Canal, Bayou Rouge and Bayou des Glaises are separately scoped selected corridor components. Nearby bayou labels are not automatically aliases or names for every connector.",
+        "terminal_scope": "Lower river and marsh-channel approach south of Morgan City; the exact final minor watercourse and contemporary main-channel alignment remain unassigned.",
+        "hold_reason": "The model combines an extensive upstream canal/bayou chain, Atchafalaya basin channel/lake choices, and a final off-trunk marsh-channel extension. A single whole-line hydronym and continuous natural-channel interpretation are not established. This is not merely a search for an insignificant feeder name.",
+        "model_limits": "333.356 modeled km and three mainstem-role fragments do not establish official river length, source, outlet, hydronym boundaries or current surface flow. No Korean name is assigned.",
+        "separately_named_corridor_parts": [
+          "Atchafalaya River",
+          "Bayou des Glaises",
+          "Bayou Rouge",
+          "Engineers Canal"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed bounded geographic correspondence and naming-scope review of all three selected fragments using three readable federal map windows. The long Atchafalaya receiving corridor is identified, while the selected upstream canal/bayou chain and final marsh-channel extension are preserved separately. The hold concerns whole-line identity and generalized channel choices, not a substantial missing-map or source-access gap. No current through-flow or exact channel registration is established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70691004",
+      "category": "river_group",
+      "system_id": "70691004",
+      "baseline_logical_fid": 3116,
+      "geometry_fids": [
+        9868,
+        9867
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -79.189583,
+        35.147917,
+        -77.058395,
+        36.179167
+      ],
+      "rendered_mainstem_length_km": 333.09,
+      "rendered_network_length_km": 333.09,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -79.189583,
+          35.147917,
+          -77.058395,
+          36.179167
+        ]
+      },
+      "candidate_name": "Neuse River",
+      "candidate_names": [
+        "Neuse River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "West Fork Eno River and then Eno River identify the actual upper selected approach. Neuse River directly identifies the receiving impounded corridor and downstream trunk. Reservoirs retain their own waterbody roles; no uniform name or complete source-to-Pamlico-Sound extent is implied.",
+      "geographic_disambiguation": "The selection starts on the West Fork Eno River near Cedar Grove, passes its western reservoir and joins the Eno through Hillsborough and northern Durham. Lake Orange and East Fork Eno River are the adjacent unselected eastern headwater branch. The selection enters the Falls Lake receiving corridor and follows the Neuse east of Raleigh, past Smithfield, Goldsboro and Kinston, then to the broadening river near Marsh Island and Batchelor Creek above New Bern. Flat River, Little River, Contentnea Creek, Swift Creek, Batchelor Creek and Trent River keep distinct tributary or contextual roles. The endpoint is upstream of central New Bern and the Trent confluence, rather than the Neuse mouth at Pamlico Sound.",
+      "source_keys": [
+        "r81-usgs-topo-neuse",
+        "r81-ncdenr-neuse-basin-2001",
+        "r81-ncdeq-eno-withdrawals"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "North-central and eastern North Carolina, United States",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "The entire two-fragment selection was compared with one readable original regional map and three enlarged original views resolving the West Fork Eno beginning, Eno-to-Falls receiving connection, and lower Neuse endpoint. State basin prose independently establishes the Eno/Flat-to-Neuse and Falls Lake relationship. The selected upper tributary has a different hydronym, but the connected receiving identity is clear. No substantial selected interval lacks readable cartography; exact channel registration, reservoir traverses, formal source point and hydronym boundaries are not adjudicated.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Neuse River",
+        "headwater_scope": "West Fork Eno River and Eno River are separately named connected upper components of the selection. East Fork Eno River and Lake Orange are an adjacent unselected branch.",
+        "impoundment_scope": "The western headwater impoundment corresponds to the West Fork Eno Reservoir setting; the main receiving impoundment is Falls Lake as established by state prose. Lake and river identities are not silently merged. Individual small Eno impoundments and exact historical inundated-channel names are not exhaustively assigned.",
+        "tributary_scope": "Both selected fragments are modeled mainstem; there are no separately selected tributary fragments. This model role does not make West Fork Eno or Eno uniformly named Neuse. Flat River, Little River, Contentnea Creek, Swift Creek, Batchelor Creek and Trent River are distinguishable contextual tributaries, not alternative representative names.",
+        "terminal_scope": "The widening Neuse above New Bern near Marsh Island and Batchelor Creek. The selected extent stops before the Trent confluence and well before Pamlico Sound; no complete Neuse estuary or official mouth point is claimed.",
+        "model_limits": "The modeled 333.09 km is not an official river length. Model membership and generalized through-lake or across-bend segments do not establish a formal source, continuous present-day flow, exact channel positions, or uniform name coverage. No Korean form, naming date or complete alias history is established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61575734",
+      "category": "river_group",
+      "system_id": "61575734",
+      "baseline_logical_fid": 3642,
+      "geometry_fids": [
+        14617,
+        14623,
+        14616,
+        14622,
+        14615,
+        14619,
+        14621,
+        14614,
+        14618,
+        14620
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -72.972917,
+        -44.539583,
+        -71.222917,
+        -43.522917
+      ],
+      "rendered_mainstem_length_km": 332.405,
+      "rendered_network_length_km": 537.567,
+      "geometry_summary": {
+        "fragment_count": 10,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -72.972917,
+          -44.014583,
+          -71.222917,
+          -43.522917
+        ]
+      },
+      "candidate_name": "Río Palena",
+      "candidate_names": [
+        "Río Palena"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Palena for the representative receiving system and Chilean trunk; Carrenleufú/Corcovado for the Argentine upper river; Pico, Figueroa and Rosselot retain their component roles. Lake names remain lake names and minor initial feeders remain unnamed.",
+      "geographic_disambiguation": "The selection is the Palena basin south of Yelcho/Futaleufú and north of Cisnes. Its mainstem begins at the western Los Témpanos approach, traverses Lago Palena/General Vintter, loops north through Argentina and returns west past Corcovado to Chile. The southern network combines the Lago Verde drainage with the independently selected Pico valley, then Figueroa and Rosselot to La Junta. The lower trunk ends at the Palena coastal mouth setting, rather than the neighboring Corcovado, Tic Toc, Rodríguez, Risopatrón or Cisnes corridors.",
+      "source_keys": [
+        "r81-dga-palena-2009",
+        "r81-ianglia-carrenleufu-pico-2018",
+        "r81-dga-hoyas-palena",
+        "r81-minenergia-palena-2016",
+        "r81-conaf-palena-plan",
+        "r81-argentina-basin77"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Patagonia: Los Lagos and Aysén, Chile, and Chubut, Argentina",
+      "candidate_name_role": "bounded_representative_receiving_system_identity_with_distinct_transboundary_river_lake_and_tributary_components",
+      "completion_scope": "Completed bounded regional correspondence of all four mainstem and six tributary fragments against readable official map pixels. Detail mapping resolves the actual western lake-headwater choice and the Argentine loop; whole-basin maps cover the southern hooked feeder, lake connections and coastal ending. Exact shoreline vertices and names for every small feeder are intentionally outside this finding. The stopped optional Lago Verde report leaves no unresolved regional coverage gap.",
+      "naming_scope_details": {
+        "representative_receiving_system": "Río Palena",
+        "argentine_upper_river": "Río Carrenleufú, also called Río Corcovado in the acquired Argentine account; no Indigenous-language equivalence is inferred.",
+        "western_start": "Unnamed approach in the Lago Los Témpanos setting and northern/western arm of Lago Palena; not Río Corto or Siberia.",
+        "lake_components": "Lago Los Témpanos setting, Palena/General Vintter interior, Lago Verde approach and Lago Rosselot connection retain distinct lake roles.",
+        "tributary_components": "Southern Lago Verde drainage and eastern Pico, followed by Figueroa and Rosselot; older Claro nomenclature is described only as historical source usage.",
+        "model_limits": "Modeled mainstem status and length are not an official source, surveyed river length, river-name boundary, current flow claim or evidence for Korean/Indigenous aliases."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70766389",
+      "category": "river_group",
+      "system_id": "70766389",
+      "baseline_logical_fid": 3143,
+      "geometry_fids": [
+        9926,
+        9925
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -83.041667,
+        31.857076,
+        -81.140654,
+        33.55
+      ],
+      "rendered_mainstem_length_km": 332.152,
+      "rendered_network_length_km": 332.152,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -83.041667,
+          31.857076,
+          -81.140654,
+          33.55
+        ]
+      },
+      "candidate_name": "Ogeechee River",
+      "candidate_names": [
+        "Ogeechee River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "South Fork Ogeechee River labels identify the selected upstream approach. Ogeechee River labels identify the receiving trunk and lower tidal channel. North Fork Ogeechee River, the upper-basin Little Ogeechee River, Canoochee River and the coastal Little Ogeechee River are distinct waterways, not alternative names for the complete selection.",
+      "geographic_disambiguation": "The actual route begins near the South Fork Ogeechee River crossing of Interstate 20 east of Siloam, follows that fork east to its junction with the unselected North Fork south of Crawfordville, and turns southeast along the Ogeechee. It continues through the Louisville and Millen surroundings, northeast of Statesboro, and west of Savannah to the Canoochee confluence near the Interstate 95 and U.S. 17 crossings. The coastal fragment passes Richmond Hill and Fort McAllister, ending in the Ogeechee estuarine channel near the Intracoastal Waterway junction north of the Bear River approach. It does not continue east through the whole estuary to the open Atlantic.",
+      "source_keys": [
+        "r81-usgs-topo-ogeechee",
+        "r81-georgia-epd-ogeechee-plan-2001"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central and southeastern Georgia, United States",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Both selected mainstem fragments were inspected over their full extent against a readable original USGS regional raster and separate enlarged headwater and coastal exports. The North/South Fork junction, upper tributaries, middle floodplain, Canoochee junction, tidal bends and terminal estuarine setting are covered without a substantial unreadable interval. Generalized geometry clips bends and is locally offset from mapped channels; precise channel registration, formal hydronym boundaries and an exact natural mouth are not established. The named South Fork approach is compatible with the bounded receiving-river identity.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 332.152,
+        "length_limit": "Generalized model display length, not a measured natural-river length.",
+        "upstream_selected_name": "South Fork Ogeechee River",
+        "upstream_alternative_not_selected": "North Fork Ogeechee River",
+        "uniform_whole_route_hydronym_asserted": false,
+        "complete_natural_source_to_ocean_extent_asserted": false,
+        "current_flow_or_navigation_conditions_asserted": false
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70807755"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 267,
+    "non_pending_records": 259,
+    "source_access_pending": 3,
+    "source_material_pending": 5,
+    "source_any_pending": 8,
+    "scope_holds": 85,
+    "river_groups": 169,
+    "lakes": 98,
+    "unrecorded": 3798,
+    "unrecorded_river_groups": 3286,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r81-usgs-topo-atchafalaya",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r81-heritage-sarto",
+      "official_url": "https://waterheritage.atchafalaya.org/trail-sites.php?trail=Sarto-Old-Iron-Bridge"
+    },
+    {
+      "source_key": "r81-usgs-topo-neuse",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r81-ncdenr-neuse-basin-2001",
+      "official_url": "https://files.nc.gov/ncdeq/Water%20Resources/wsp/swsp/swsp_jan2001/final_pdfs/B10_Neuse.pdf"
+    },
+    {
+      "source_key": "r81-ncdeq-eno-withdrawals",
+      "official_url": "https://www.ncwater.org/Eno_River_Management/withdrawals.php"
+    },
+    {
+      "source_key": "r81-dga-palena-2009",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/5a8f7196-fd23-490f-98b5-a1dfcc6c9d5a/content"
+    },
+    {
+      "source_key": "r81-ianglia-carrenleufu-pico-2018",
+      "official_url": "https://www.glaciaresargentinos.gob.ar/wp-content/uploads/provincias/Chubut/docs/mapas/mapa_final_carrenleufu-pico_19-04-2018.pdf"
+    },
+    {
+      "source_key": "r81-dga-hoyas-palena",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/ac202d79-f7c4-4faf-921a-421e4f9c0cdc/content"
+    },
+    {
+      "source_key": "r81-minenergia-palena-2016",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/96e056da-8221-4e13-a73b-371a93396c05/content"
+    },
+    {
+      "source_key": "r81-conaf-palena-plan",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-de-la-rn-lago-palena/?filename=RNLP.pdf&ind=1719933933805&refresh=68bbf9950aef11757149589&wpdmdl=60127"
+    },
+    {
+      "source_key": "r81-argentina-basin77",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/77.pdf"
+    },
+    {
+      "source_key": "r81-usgs-topo-ogeechee",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r81-georgia-epd-ogeechee-plan-2001",
+      "official_url": "https://epd.georgia.gov/document/publication/ogeechee-river-basin-management-planpdf/download"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "103d8d37443e69e9c75943b73d803c910e0661e4",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      123,
+      124,
+      125,
+      126
+    ],
+    "next_unrecorded_id": "hydro-system:60013422",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

@@ -1,0 +1,376 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "batch": "r40",
+  "reviewed_at_utc": "2026-10-10T01:50:33.247258Z",
+  "scope_aw_ids": [
+    "lakes_base:1159109187",
+    "lakes_base:1159107159",
+    "lakes_base:1159112345"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Original OGS map pixels, complete source and baseline-rendered ring plots, independently registered outlines, wider context, imprint and credits. All 165 ordered positions across three single-ring Polygons were compared with original source geometry, decoded geometry and exact original inventory/core/detail joins. The original primary viewport geographic controls and coordinate system were reopened, a full six-parameter affine was independently derived from all four controls, cross terms retained, and MediaBox/CropBox offsets explicitly applied. All 165 registrations agree with the comparison overlays; all three original crop pixel arrays match fresh PDF renders. The largest control residual is under 0.001 PDF point; this is registration consistency, not shoreline accuracy. Initial pixel observations were refined using original water/land fill and wider context before final reconciliation. Original hydrographic coverage is available throughout all three selected footprints. The production decoder was not independently replayed by this reviewer.",
+  "prior_distinct_targets": 114,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 117,
+  "duplicate_targets": 0,
+  "counted_unit": "Distinct logical inventory lake target IDs; repeated map labels do not increase the target count.",
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "current_batch_follow_up_required_targets": 0,
+  "current_batch_scope_hold_targets": 0,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803",
+    "lakes_base:1159108469",
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087",
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201",
+    "hydro-system:50738894",
+    "hydro-system:50691388",
+    "hydro-system:50443984",
+    "hydro-system:50442438",
+    "hydro-system:50442579",
+    "hydro-system:50487926",
+    "hydro-system:50503092",
+    "lakes_base:1159111345",
+    "lakes_base:1159107899",
+    "lakes_base:1159108505",
+    "lakes_base:1159106799",
+    "lakes_base:1159107747",
+    "lakes_base:1159109455",
+    "lakes_base:1159109439",
+    "lakes_base:1159109395",
+    "lakes_base:1159112221",
+    "lakes_base:1159112237",
+    "lakes_base:1159109819",
+    "lakes_base:1159109421"
+  ],
+  "new_pending_access_ids": [],
+  "new_scope_hold_ids": [],
+  "pending_access_reassessment_performed": false,
+  "prior_target_source_or_geometry_reaudit_performed": false,
+  "automatic_application": false,
+  "product_application": false,
+  "scalar_product_name_approvals": 0,
+  "geometry_modified": false,
+  "topology_repaired": false,
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "private_original_packed_decoder_independently_replayed": false,
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159109187",
+      "source_id": "1159109187",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 66,
+      "category": "lake",
+      "baseline_logical_fid": 4021,
+      "geometry_fids": [
+        15396
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Attawapiskat Lake",
+      "candidate_names": [
+        "Attawapiskat Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "supported_generalized_identity_with_material_extent_limits",
+      "candidate_name_role": "generalized_research_identity_not_product_scalar",
+      "directly_supported_name_forms": [
+        "Attawapiskat Lake"
+      ],
+      "source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No pending source or generalized identity work is required for this bounded research assessment. Exact shorelines, formal registry status, Korean form and product naming are not approved.",
+      "supported_name_scope": "The complete selected generalized ring follows the Attawapiskat Lake body, including its northward finger, western and southwestern protrusions, central neck and long southeastern reach. Detailed bays, islands, channels and branching continuations are generalized or omitted, and some coarse edges cross mapped land. The entire detailed named-lake extent and exact adjoining-water transitions are unverified. This supports a generalized research association only; scalar product naming is not approved.",
+      "source_observation_id": "lakes_base:1159109187",
+      "limits": [
+        "The complete selected generalized ring follows the Attawapiskat Lake body, including its northward finger, western and southwestern protrusions, central neck and long southeastern reach. Detailed bays, islands, channels and branching continuations are generalized or omitted, and some coarse edges cross mapped land. The entire detailed named-lake extent and exact adjoining-water transitions are unverified.",
+        "A single official thematic map provides these cartographic associations. The underlying hydrographic dataset and formal naming-registry authority are not independently verified.",
+        "No Korean form, additional alias or exact name partition is certified; surrounding names are context only."
+      ],
+      "geographic_disambiguation": "Northern Ontario, Canada, at the broad branching Attawapiskat Lake body east of Kabania Lake",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Attawapiskat Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Attawapiskat Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete selected generalized ring follows the Attawapiskat Lake body, including its northward finger, western and southwestern protrusions, central neck and long southeastern reach. Detailed bays, islands, channels and branching continuations are generalized or omitted, and some coarse edges cross mapped land. The entire detailed named-lake extent and exact adjoining-water transitions are unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high",
+        "whole_selected_single_name": "supported_generalized_identity",
+        "exact_named_extent": "unverified",
+        "basis": "Original blue Attawapiskat Lake typography and the complete 66-position outline support a generalized association with the branching lake body. All protrusions and the southeastern reach were compared with original hydrography and wider context. Nearby Kabania, Mameigwess and Fishbasket lakes remain separate contextual waters; publication index lines and graticules are not name boundaries."
+      },
+      "source_material_pending": false,
+      "complete_geometry_inspection_performed": true,
+      "complete_source_map_coverage_available": true
+    },
+    {
+      "aw_id": "lakes_base:1159107159",
+      "source_id": "1159107159",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 76,
+      "category": "lake",
+      "baseline_logical_fid": 3869,
+      "geometry_fids": [
+        15244
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Wunnummin Lake",
+      "candidate_names": [
+        "Wunnummin Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "supported_generalized_identity_with_material_extent_limits",
+      "candidate_name_role": "generalized_research_identity_not_product_scalar",
+      "directly_supported_name_forms": [
+        "Wunnummin Lake"
+      ],
+      "source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No pending source or generalized identity work is required for this bounded research assessment. Exact shorelines, formal registry status, Korean form and product naming are not approved.",
+      "supported_name_scope": "The complete selected generalized ring follows the Wunnummin Lake complex across its southwestern taper, western and northwestern reach, north-central finger, northeastern lobe and southern hook. The printed label is positioned on white land just south of the pale-cyan water, not in a separate southern basin. Fine inlets, islands, channels and branching extensions are generalized or omitted; exact named-water boundaries and entire detailed lake representation are unverified. This supports a generalized research association only; scalar product naming is not approved.",
+      "source_observation_id": "lakes_base:1159107159",
+      "limits": [
+        "The complete selected generalized ring follows the Wunnummin Lake complex across its southwestern taper, western and northwestern reach, north-central finger, northeastern lobe and southern hook. The printed label is positioned on white land just south of the pale-cyan water, not in a separate southern basin. Fine inlets, islands, channels and branching extensions are generalized or omitted; exact named-water boundaries and entire detailed lake representation are unverified.",
+        "A single official thematic map provides these cartographic associations. The underlying hydrographic dataset and formal naming-registry authority are not independently verified.",
+        "No Korean form, additional alias or exact name partition is certified; surrounding names are context only."
+      ],
+      "geographic_disambiguation": "Northern Ontario, Canada, at the branching Wunnummin Lake body southeast of Maria Lake and Kingfisher Lake",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Wunnummin Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Wunnummin Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete selected generalized ring follows the Wunnummin Lake complex across its southwestern taper, western and northwestern reach, north-central finger, northeastern lobe and southern hook. The printed label is positioned on white land just south of the pale-cyan water, not in a separate southern basin. Fine inlets, islands, channels and branching extensions are generalized or omitted; exact named-water boundaries and entire detailed lake representation are unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high",
+        "whole_selected_single_name": "supported_generalized_identity",
+        "exact_named_extent": "unverified",
+        "basis": "Original typography reads Wunnummin Lake. Complete 76-position geometry, wider context and original pale-cyan water versus white land support that generalized lake association. The label sits south of the selected water on land; it does not demonstrate a missing southern basin. Maria Lake and Kingfisher Lake are separately labelled surrounding waters and are not aliases or selected named components."
+      },
+      "source_material_pending": false,
+      "complete_geometry_inspection_performed": true,
+      "complete_source_map_coverage_available": true
+    },
+    {
+      "aw_id": "lakes_base:1159112345",
+      "source_id": "1159112345",
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 23,
+      "category": "lake",
+      "baseline_logical_fid": 4240,
+      "geometry_fids": [
+        15615
+      ],
+      "fragment_count": 1,
+      "candidate_name": "Missisa Lake",
+      "candidate_names": [
+        "Missisa Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "review_status": "supported_generalized_identity_with_material_extent_limits",
+      "candidate_name_role": "generalized_research_identity_not_product_scalar",
+      "directly_supported_name_forms": [
+        "Missisa Lake"
+      ],
+      "source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "context_source_keys": [],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No pending source or generalized identity work is required for this bounded research assessment. Exact shorelines, formal registry status, Korean form and product naming are not approved.",
+      "supported_name_scope": "The complete selected generalized ring follows the principal Missisa Lake body: northern rounded cap, long southeastern side, broad southern end and western notch with short lobe. Coarse western and southern segments cross detailed mapped shores and omit fine bays and small connected northern waters. Exact shoreline, adjoining-water transitions and the entire detailed named-lake extent remain unverified. This supports a generalized research association only; scalar product naming is not approved.",
+      "source_observation_id": "lakes_base:1159112345",
+      "limits": [
+        "The complete selected generalized ring follows the principal Missisa Lake body: northern rounded cap, long southeastern side, broad southern end and western notch with short lobe. Coarse western and southern segments cross detailed mapped shores and omit fine bays and small connected northern waters. Exact shoreline, adjoining-water transitions and the entire detailed named-lake extent remain unverified.",
+        "A single official thematic map provides these cartographic associations. The underlying hydrographic dataset and formal naming-registry authority are not independently verified.",
+        "No Korean form, additional alias or exact name partition is certified; surrounding names are context only."
+      ],
+      "geographic_disambiguation": "Northern Ontario, Canada, at the rounded Missisa Lake body north of the Kapiskau River",
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "korean_name": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "product_application": false,
+      "whole_feature_scalar_name_approved": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "exact_name_extent_verified": false,
+      "geometry_modified": false,
+      "all_selected_parts_and_rings_considered": true,
+      "source_and_rendered_full_footprints_compared": true,
+      "bounding_box_alone_used_as_identity": false,
+      "registered_overlay_performed": true,
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "naming_scope_details": {
+        "selected_polygon_count": 1,
+        "separately_labelled_water_names": [
+          "Missisa Lake"
+        ],
+        "multiple_named_lakes_in_one_polygon": false,
+        "one_named_generalized_water_identity_supported": true,
+        "whole_polygon_single_name_supported": true,
+        "whole_polygon_scalar_application_approved": false,
+        "precise_name_boundary_verified": false,
+        "formal_registry_verified": false,
+        "subdivision_or_geometry_repair_performed": false,
+        "supported_component_associations": [
+          {
+            "name": "Missisa Lake",
+            "scope": "Complete selected generalized footprint with stated material extent limits"
+          }
+        ],
+        "component_associations_are_exact_geometric_assignments": false,
+        "independent_cartographic_dataset_confirmed": false,
+        "entire_detailed_named_lake_representation_verified": false,
+        "material_extent_limit": "The complete selected generalized ring follows the principal Missisa Lake body: northern rounded cap, long southeastern side, broad southern end and western notch with short lobe. Coarse western and southern segments cross detailed mapped shores and omit fine bays and small connected northern waters. Exact shoreline, adjoining-water transitions and the entire detailed named-lake extent remain unverified.",
+        "supported_component_names_exhaustive": true,
+        "unresolved_named_extents": [],
+        "unresolved_selected_parts": []
+      },
+      "name_confidence": {
+        "direct_label_reading": "high",
+        "local_named_water_association": "high",
+        "whole_selected_single_name": "supported_generalized_identity",
+        "exact_named_extent": "unverified",
+        "basis": "Original blue Missisa Lake typography lies within the compact water body corresponding to the complete 23-position generalized ring. The northern cap, southeastern side, southern end and western notch were compared. Kapiskau River is distinct southern context; the red geological-publication coverage outlines do not divide named waters."
+      },
+      "source_material_pending": false,
+      "complete_geometry_inspection_performed": true,
+      "complete_source_map_coverage_available": true
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-10T01:50:33.247258Z",
+    "available_source_inspection_completed": true,
+    "full_feature_correspondence_review_completed": true,
+    "original_source_material_included": false,
+    "full_selected_geometry_included": false,
+    "historical_results_recomputed_by_public_validator": false,
+    "full_feature_correspondence_review_completed_count": 3,
+    "source_material_pending_count": 0
+  },
+  "included_evidence_limit": "Public factual observations and bibliography are consolidated in source-observations.json. Checks validate included records, bounded geometry summaries, arithmetic and included-file integrity. Omitted original PDFs, map pixels, complete polygons, registration and visual judgments are not replayed.",
+  "independent_source_comparison_completed": true,
+  "current_batch_source_material_pending_targets": 0,
+  "new_pending_material_ids": [],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285"
+  ]
+}

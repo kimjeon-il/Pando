@@ -1,0 +1,293 @@
+{
+  "status": "passed",
+  "validation_scope": "included-summary-evidence-only",
+  "validation_runs": [
+    {
+      "status": "passed",
+      "validation_scope": "included-summary-evidence-only",
+      "scope_aw_ids": [
+        "hydro-system:50729167",
+        "hydro-system:50738894",
+        "hydro-system:50746648"
+      ],
+      "fragment_counts": [
+        1,
+        1,
+        1
+      ],
+      "part_counts": [
+        61,
+        29,
+        42
+      ],
+      "position_counts": [
+        432,
+        192,
+        302
+      ],
+      "included_identity_role_name_state_counts_and_bounds_rechecked": true,
+      "included_selected_inventory_summary_join_rechecked": true,
+      "included_current_three_queue_delta_rechecked": true,
+      "prior63_duplicate_count": 0,
+      "preserved_pending_access_count": 2,
+      "preserved_scope_hold_count": 17,
+      "prior_target_geometry_or_naming_revalidation_performed": false,
+      "production_decoder_replayed": false,
+      "full_coordinate_order_checks_reproduced": false,
+      "original_hydrorivers_source_equality_verified": false,
+      "original_inventory_or_previous_index_revalidated": false,
+      "frozen_component_hashes_rechecked": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "validation_limit": "Only included summaries, selected metadata and file hashes are validated. Omitted source bodies, full coordinates, decoder dependencies, original inventory and prior-index bytes cannot be reconstructed or checked by this public validator."
+    }
+  ],
+  "corrupt_fixtures": [
+    {
+      "case": "selected_system_id_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "fragment_fid_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "logical_fid_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "fragment_index_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "fragment_count_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "mainstem_tributary_role_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "part_count_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "position_count_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "part_position_count_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "bounds_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "core_name_state_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "detail_absent_name_inserted",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "merged_name_state_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "automatic_application_enabled",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "source_reach_count_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "terminal_class_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "inventory_category_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-inventory-records.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "inventory_logical_fid_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-inventory-records.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "inventory_eligibility_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-inventory-records.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "inventory_count_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-inventory-records.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "prior63_ID_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "queue_delta_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "pending_access_ID_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "scope_hold_ID_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "rights_clearance_claim_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-publication-rights.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "full_coordinates_public_claim_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-publication-rights.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "group_fragment_count_changed",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "group_role_sequence_changed",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "group_part_count_changed",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "group_position_count_changed",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "group_bounds_changed",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "false_live_deployment_claim",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "false_original_source_equality_claim",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "false_public_decoder_replay_claim",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "broadened_public_validation_scope",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "fragment_omitted",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "fragment_duplicated",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "fragment_order_reversed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-river-metadata.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "omitted_input_interface_added",
+      "rejected": true,
+      "expected_check": "reference summary pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "raw_coordinate_file_added",
+      "rejected": true,
+      "expected_check": "prohibited public geometry file",
+      "editable_artifact_receipt_rebased": false
+    }
+  ],
+  "corrupt_fixture_count": 40,
+  "durable_corrupt_fixture_count": 40,
+  "included_input_files_unchanged": true,
+  "omitted_input_replay_interfaces_absent": true,
+  "full_coordinate_checks_reproduced": false,
+  "no_external_requests": true
+}

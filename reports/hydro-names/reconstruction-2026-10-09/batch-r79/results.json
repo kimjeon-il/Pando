@@ -1,0 +1,430 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r79",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r78",
+    "commit": "0a94e5ca3019b01ee3bdbfecd8b8799603002f5b",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r78/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:90109409",
+    "hydro-system:70896641",
+    "hydro-system:60098487",
+    "hydro-system:70660085"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:90109409",
+      "category": "river_group",
+      "system_id": "90109409",
+      "baseline_logical_fid": 2871,
+      "geometry_fids": [
+        8889
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -40.377083,
+        65.50625,
+        -39.6125,
+        68.495833
+      ],
+      "rendered_mainstem_length_km": 348.887,
+      "rendered_network_length_km": 348.887,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -40.377083,
+          65.50625,
+          -39.6125,
+          68.495833
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for the complete modeled Inland Ice path. This completed feature-class and naming-scope hold does not claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "The single selected line begins in the northern interior, trends southwest, then follows very long near-north–south model legs near 40°W with small westward steps. Its final short southeastward turn ends in the southeastern glaciated marginal setting, west of the Tasiilaq/Ammasalik coastal region. It is not assigned to a specific outlet glacier, fjord or marginal stream.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southeastern Greenland Inland Ice, approximately along 40°W from the interior toward the southeastern glaciated margin.",
+      "completion_scope": "Readable coverage supports the completed scope hold. Positive natural-river identity evidence would be required before any later name assignment; no further acquisition is pending now.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 348.887,
+        "length_limit": "Model display length, not a measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false,
+        "candidate_names_scope": "No whole-route natural river candidate; terminal glacier/fjord/stream identity remains unassigned."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70896641",
+      "category": "river_group",
+      "system_id": "70896641",
+      "baseline_logical_fid": 3273,
+      "geometry_fids": [
+        10462,
+        10460,
+        10461,
+        10459
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -91.339583,
+        17.63125,
+        -89.760417,
+        18.627083
+      ],
+      "rendered_mainstem_length_km": 347.933,
+      "rendered_network_length_km": 347.933,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -91.339583,
+          17.63125,
+          -89.760417,
+          18.627083
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Río Candelaria"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The selected lower and middle river agrees with Candelaria. The eastern modeled continuation through the Mirador–Paxbán karst lowlands, the separate Julubal approach, and the Laguna Panlao–Laguna de Términos receiving setting retain distinct scopes.",
+      "geographic_disambiguation": "The western Guatemalan course enters Mexico on the mapped Candelaria corridor, runs north through the southern Candelaria municipality and then west through the Candelaria municipal setting before turning north across Carmen toward Laguna Panlao. The northeastern Río Caribe approach is separate from the selected southern route. The eastern modeled extension reaches the Mirador–Los Lagartos lowlands and the Paxbán border vicinity. Río Julubal is a separately labeled northern approach, and its name is not extended over that entire eastern route. The southern Río Xan, Chocop and San Pedro drainage corridors and the western Chumpán corridor are not substituted for the selection.",
+      "source_keys": [
+        "r79-inegi-candelaria-2010",
+        "r79-inegi-carmen-2010",
+        "r79-inegi-e1509-2023",
+        "r79-conred-san-andres-2015",
+        "r79-ensley-mirador-karst-2021"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Petén, Guatemala, and southern Campeche, Mexico; Mirador–Paxbán lowlands to Candelaria and the eastern Laguna de Términos margin.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed bounded correspondence review of all four selected mainstem-role fragments using readable official Mexican and Guatemalan map pixels and a primary karst-drainage study. The whole selected extent has regional cartographic coverage. The unresolved question is whether the generalized eastern karst route can be represented as one continuous named surface river, especially its straight border-aligned connector. This is a naming and feature-scope hold, not an unresolved source-access gap. No further source acquisition is required for this bounded finding; whole-group naming or application still requires resolving that scope.",
+      "naming_scope_details": {
+        "directly_supported_component_name": "Río Candelaria for the western Guatemalan receiving channel and the Mexican middle and lower river.",
+        "upper_scope": "The Mirador–Paxbán extension remains a modeled karst-drainage approach. No uniform upstream river name, precise hydronym-transition point, or surveyed official river source is assigned.",
+        "julubal_scope": "Río Julubal is directly mapped as a separate northern approach. It is useful disambiguation, not an established name for every eastern selected fragment.",
+        "terminal_scope": "Laguna Panlao and Laguna de Términos identify the regional receiving-lagoon setting. The exact contemporary shoreline, tidal boundary and full lagoon-interior channel identity are not established.",
+        "reservoir_scope": "No selected dam or reservoir passage is established. Mapped natural lagoons and wetlands are not relabeled as reservoirs.",
+        "hold_reason": "A material eastern portion is a generalized karst route with intermittent, wetland and potential subsurface components, including a straight border-aligned connection. Treating the complete line as one continuous named river is unestablished. The supported downstream name is preserved without forcing it onto that route.",
+        "nearby_exclusions": "Río Caribe, Arroyo Negro, Julubal, Xan, Chocop, San Pedro, Chumpán, Mamantel and the named lagoons retain distinct cartographic identities. Basin membership, flood-hazard shading and inferred groundwater flow do not prove a single named surface river.",
+        "historical_source_scope": "INEGI municipal maps are 2010 compilations. E1509 is sixth edition 2023, copyright 2024. CONRED is edition 2015 using IGN 2010–2015 basic cartography, despite its later hosting path. The karst study was published in 2021. No source is treated as a present water-level or flow observation.",
+        "model_limits": "Four mainstem-role pieces and 347.933 modeled km do not establish an official river length, official source or one name throughout the selected system. The fragment roles do not mean each reach is a perennial natural river. Private graticule-based orientation was approximate, not surveyed georeferencing. No Korean name is established.",
+        "separately_named_corridor_parts": [
+          "Río Candelaria"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed bounded correspondence review of all four selected mainstem-role fragments using readable official Mexican and Guatemalan map pixels and a primary karst-drainage study. The whole selected extent has regional cartographic coverage. The unresolved question is whether the generalized eastern karst route can be represented as one continuous named surface river, especially its straight border-aligned connector. This is a naming and feature-scope hold, not an unresolved source-access gap. No further source acquisition is required for this bounded finding; whole-group naming or application still requires resolving that scope."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60098487",
+      "category": "river_group",
+      "system_id": "60098487",
+      "baseline_logical_fid": 3367,
+      "geometry_fids": [
+        11381,
+        11380,
+        11379
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -57.018434,
+        4.525,
+        -56.447917,
+        5.970558
+      ],
+      "rendered_mainstem_length_km": 347.073,
+      "rendered_network_length_km": 347.073,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -57.018434,
+          4.525,
+          -56.447917,
+          5.970558
+        ]
+      },
+      "candidate_name": "Nickerie River",
+      "candidate_names": [
+        "Nickerie River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The connected upper-to-lower Nickerie corridor and its representative system identity. The separately mapped Fallawatra branch, western lower tributary, Nanni Creek and Corantijn are not included as selected component rivers.",
+      "geographic_disambiguation": "The selected upper route lies on the Van Eeden Falls side of the Bakhuis Range and turns northeast before joining the northward trunk west of Coppename. It takes neither the distinct southerly Fallawatra branch nor the eastward Wajombo connection. The lower meanders and northwestward run past the Wageningen and Henar settings toward Nieuw-Nickerie distinguish the selection from the western lower tributary and the much larger Corantijn corridor. Maratakka is not adopted from the preliminary regional lead.",
+      "source_keys": [
+        "r63-nhn-suriname-rivers-map-2003",
+        "r67-naturalis-holthuis-suriname-map",
+        "r67-hydromet-water-quality-2024q1"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western and northwestern Suriname, from the Bakhuis-side upper drainage to the lower Nickerie coastal approach near Nieuw-Nickerie.",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Completed for bounded representative-system identity. Readable institutional cartography depicts the selected Bakhuis-side upper approach, the northeastward bend, the separate Fallawatra junction and northward trunk; the ministry map independently corroborates the lower route and official Nickerie usage. Generalized headmost bends and the precise coastal endpoint remain unassigned at reach/vertex level, rather than constituting an uncorroborated substantial route extension.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Nickerie River; the contemporary ministry report uses this name for the mapped lower corridor and describes an origin in the Bakhuis Mountains.",
+        "upper_scope": "The actual southwestern selected approach was inspected against the mapped upper Nickerie and Van Eeden Falls setting. The generalized first feeder is left unnamed; an official source point or uniform headwater hydronym is not inferred.",
+        "branch_choices": "Fallawatra is a separately labelled southern branch of the upper Nickerie, and Wajombo is a separately drawn eastward connection. Neither is the selected upper route. The unlabelled western lower tributary is also not followed by the selected path; Maratakka is not asserted as its source-verified name here.",
+        "terminal_scope": "The lower Nickerie coastal approach near Nieuw-Nickerie, bounded to the selected endpoint. No precise mouth, complete common coastal outlet, Corantijn continuation or open-ocean geometry is established.",
+        "lake_scope": "No lake or reservoir passage is established along the selected corridor. Nanni Creek and the ministry map’s Nani swamp sampling locations are neighboring context, not selected lake components.",
+        "source_authority_limit": "The Naturalis-hosted maps are original institutional illustrations rather than governmental naming adjudications. The ministry’s own water-quality map independently supports lower-river name usage and route correspondence. Generalized and historical cartography is not used to assert present navigation, infrastructure, boundaries or precise reach-name limits.",
+        "model_limits": "Modeled mainstem membership, length and stage-piece boundaries do not establish an official river length, current flow, natural source limit or hydronym boundary. No Korean form, formal naming date or historical/Indigenous alias equivalence is determined."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70660085",
+      "category": "river_group",
+      "system_id": "70660085",
+      "baseline_logical_fid": 3108,
+      "geometry_fids": [
+        9852
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -116.897917,
+        35.647917,
+        -116.202083,
+        37.28125
+      ],
+      "rendered_mainstem_length_km": 346.604,
+      "rendered_network_length_km": 346.604,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -116.897917,
+          35.647917,
+          -116.202083,
+          37.28125
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Amargosa River",
+        "Salt Creek"
+      ],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Amargosa River for the principal named river; East Fork Thirsty Canyon and Thirsty Canyon as upper landform/corridor labels, not independently established stream names; Salt Creek for the separate central Death Valley channel setting reached at the modeled terminal end.",
+      "geographic_disambiguation": "The selection descends from the East Fork Thirsty Canyon setting into Oasis Valley, passes Beatty, follows the Amargosa Desert east of the Funeral Mountains, continues through the Shoshone and Tecopa surroundings, bends west near Dumont Dunes, and returns northwest through southern Death Valley into Badwater Basin. Its far terminal section approaches the central Death Valley Salt Creek corridor. That Salt Creek is distinct from the identically named southern tributary shown near the Amargosa River's great bend. Rocket Wash, Beatty Wash, Fortymile Wash and Topopah Wash are distinguishable neighboring or tributary corridors, not alternative names for the selected long river.",
+      "source_keys": [
+        "r79-usgs-topo-amargosa",
+        "r79-nps-deva-backcountry",
+        "r79-nps-deva-gmp",
+        "r79-blm-amargosa-canyon"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southwestern Nevada and eastern California, United States",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "Completed bounded correspondence and naming-scope review of the entire selected fragment. Original federal raster cartography covers the whole route, with separately inspected upper-canyon and terminal-playa detail. The hold is substantive: the modeled path joins the named Amargosa corridor, a broad playa-interior extension, and a separately named Salt Creek setting. It is not caused by a substantial missing map or inaccessible-source gap. The upper canyon extension alone is not treated as decisive against a representative Amargosa identity.",
+      "naming_scope_details": {
+        "separately_named_corridor_parts": [
+          "Amargosa River",
+          "Salt Creek"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "Completed bounded correspondence and naming-scope review of the entire selected fragment. Original federal raster cartography covers the whole route, with separately inspected upper-canyon and terminal-playa detail. The hold is substantive: the modeled path joins the named Amargosa corridor, a broad playa-interior extension, and a separately named Salt Creek setting. It is not caused by a substantial missing map or inaccessible-source gap. The upper canyon extension alone is not treated as decisive against a representative Amargosa identity."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90109409",
+      "hydro-system:70896641",
+      "hydro-system:70660085"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 3,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 259,
+    "non_pending_records": 251,
+    "source_access_pending": 3,
+    "source_material_pending": 5,
+    "source_any_pending": 8,
+    "scope_holds": 81,
+    "river_groups": 161,
+    "lakes": 98,
+    "unrecorded": 3806,
+    "unrecorded_river_groups": 3294,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r79-inegi-candelaria-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/04/04011.pdf"
+    },
+    {
+      "source_key": "r79-inegi-carmen-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/04/04003.pdf"
+    },
+    {
+      "source_key": "r79-inegi-e1509-2023",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154458_geo.pdf"
+    },
+    {
+      "source_key": "r79-conred-san-andres-2015",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2025/11/PETEN%201704.pdf"
+    },
+    {
+      "source_key": "r79-ensley-mirador-karst-2021",
+      "official_url": "https://doi.org/10.1371/journal.pone.0255496"
+    },
+    {
+      "source_key": "r63-nhn-suriname-rivers-map-2003",
+      "official_url": "https://repository.naturalis.nl/pub/603310/Blumea_supplement_15.pdf"
+    },
+    {
+      "source_key": "r67-naturalis-holthuis-suriname-map",
+      "official_url": "https://repository.naturalis.nl/pub/317569/ZV1959044001.pdf"
+    },
+    {
+      "source_key": "r67-hydromet-water-quality-2024q1",
+      "official_url": "https://hydromet.sr/wp-content/uploads/2025/06/WQ-FINAL-Jan-Mar-2024_compressed.pdf"
+    },
+    {
+      "source_key": "r79-usgs-topo-amargosa",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r79-nps-deva-backcountry",
+      "official_url": "https://www.nps.gov/deva/planyourvisit/upload/508-Backcountry-and-Wilderness-Access-map_.pdf"
+    },
+    {
+      "source_key": "r79-nps-deva-gmp",
+      "official_url": "https://www.nps.gov/deva/general-management-plan.htm"
+    },
+    {
+      "source_key": "r79-blm-amargosa-canyon",
+      "official_url": "https://www.blm.gov/sites/default/files/docs/2022-10/Public%20Room_CA_Amargosa%20Canyon.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "0a94e5ca3019b01ee3bdbfecd8b8799603002f5b",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      115,
+      116,
+      117,
+      118
+    ],
+    "next_unrecorded_id": "hydro-system:90104636",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

@@ -1,0 +1,560 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r108",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r107",
+    "commit": "6b644711efe1835f9415ecd676f6401f828310ae",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r107/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:80048422",
+    "hydro-system:61544601",
+    "hydro-system:70803081",
+    "hydro-system:80152740"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:80048422",
+      "category": "river_group",
+      "system_id": "80048422",
+      "baseline_logical_fid": 885,
+      "geometry_fids": [
+        2490
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -112.289583,
+        68.947264,
+        -108.527168,
+        69.814583
+      ],
+      "rendered_mainstem_length_km": 254.088,
+      "rendered_network_length_km": 254.088,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -112.289583,
+          68.947264,
+          -108.527168,
+          69.814583
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Paalliq",
+        "Lauchlan River",
+        "Paalik",
+        "Byron Bay"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Paalliq is directly and repeatedly printed along the eastern lower river, its lake-like widenings, and its approach to Byron Bay. Fisheries and Oceans Canada associates this river with Lauchlan River and the local spelling Paalik; the Inuinnaqtun version prints Paalliq. These are source-attributed spellings, not a formal naming-date or preferred-spelling adjudication.",
+      "geographic_disambiguation": "The route lies west of the Wellington Bay fisheries and extends far inland northwest of Byron Bay. The opening crosses a lobed western lake complex before a northeastward reversal into smaller eastern lakes; farther southeast it passes broad unnamed lakes and a north-south channel corridor before entering the elongated east-west lake country upstream of Paalliq. The named lower river trends east and southeast to the northwestern shore of Byron Bay. The identification is tied to the actual lower channel and receiving bay, rather than proximity to a regional name.",
+      "source_keys": [
+        "r108-nrcan-cbmt-paalliq",
+        "r108-dfo-cambridge2021",
+        "r108-kristofferson2002",
+        "r108-dfo-cambridge2021-inuinnaqtun"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "South-central Victoria Island, Nunavut, Canada, from northwestern interior lake country through the Paalliq/Lauchlan corridor to Byron Bay.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "All of the single retained feature and its 57 constituent sublines received geographic coverage in five successful original federal raster views. Original northwest, middle and southeast pixels, the focused northwest connector, and necessary local original crops were inspected alongside separate orientation copies. Complete geographic coverage has not established the required northwest lake-to-lake passage. The independent fisheries thesis corroborates the regional basin and lower outlet, but does not resolve that passage.",
+      "material_pending_reason": "At the northwest reversal, the selection leaves the southern arm of the larger western lake complex and passes northeast through a separate small-lake sequence before turning east. Detailed original cartography shows intervening contoured ridge/land intervals, separate lake margins, and channels taking other routes; a continuous aquatic connector following this selected component sequence was not established. A general basin association or the well-supported downstream name cannot supply that missing connection. This is not a claim that every modeled vertex must coincide with the source, that the geometry is proved wrong, or that no connection can exist.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_named_river_components": [
+          "Paalliq / Lauchlan River"
+        ],
+        "source_attributed_local_spelling": "Paalik in the English DFO plan; Paalliq in its Inuinnaqtun table and national cartography",
+        "selected_named_lake_components": [],
+        "initial_headward_component_name": null,
+        "initial_lake_names": null,
+        "short_lake_connector_names": null,
+        "terminal_receiving_water": "Byron Bay",
+        "broader_receiving_water": "Dease Strait",
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "No single hydronym is assigned to the complete selected feature while its northwest connector remains unestablished.",
+          "No official renaming date, exclusive preferred orthography or legal name extent is inferred from the fisheries table.",
+          "No current flow direction through the unresolved passage, interbasin transfer, bifurcation or undocumented channel is inferred.",
+          "No surveyed source or mouth, legal boundary, current channel condition or official river length is asserted.",
+          "No Korean name is proposed; Canadian CGN/geogratis name records remain excluded.",
+          "No completed identity, completed scope hold or extra access-pending count is claimed."
+        ],
+        "model_limits": "Generalized component and corridor comparison only. Original geometry used solely for private orientation; no geometry editing, rerouting or validation. The unresolved issue is an actual connection between selected components, not pointwise map fit.",
+        "separately_named_corridor_parts": [
+          "Paalliq",
+          "Lauchlan River",
+          "Paalik",
+          "Byron Bay"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "All of the single retained feature and its 57 constituent sublines received geographic coverage in five successful original federal raster views. Original northwest, middle and southeast pixels, the focused northwest connector, and necessary local original crops were inspected alongside separate orientation copies. Complete geographic coverage has not established the required northwest lake-to-lake passage. The independent fisheries thesis corroborates the regional basin and lower outlet, but does not resolve that passage."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61544601",
+      "category": "river_group",
+      "system_id": "61544601",
+      "baseline_logical_fid": 3609,
+      "geometry_fids": [
+        14513,
+        14517,
+        14512,
+        14516,
+        14511,
+        14514,
+        14515
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -73.413711,
+        -38.860417,
+        -71.50625,
+        -38.252083
+      ],
+      "rendered_mainstem_length_km": 252.845,
+      "rendered_network_length_km": 477.573,
+      "geometry_summary": {
+        "fragment_count": 7,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -73.413711,
+          -38.752083,
+          -71.841667,
+          -38.252083
+        ]
+      },
+      "candidate_name": "Río Imperial",
+      "candidate_names": [
+        "Río Imperial"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Imperial is the representative downstream system identity; distinct component names are retained and no full-river or full-basin extent is inferred.",
+      "geographic_disambiguation": "The modeled mainstem follows Quino and Colpi/Pangueco into Cholchol, rather than selecting Traiguén, northern Lumaco or Quillén as its opening. The long eastern branch follows Cautín; the southern branch is lower Quepe. The terminal is Imperial water east of the Moncul confluence, not Moncul, Lago Budi, Laguna Trovolhue or the Pacific outlet.",
+      "source_keys": [
+        "r108-igm-rivers",
+        "r108-igm-water",
+        "r108-esri-imagery",
+        "r108-bcn-araucania",
+        "r108-sernatur2012",
+        "r108-chileestuyo-cautin"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Araucanía, Chile: Quino–Colpi/Cholchol and Cautín–Quepe corridors to the lower Imperial estuary at Nehuentúe.",
+      "candidate_name_role": "Supported representative identity of the complete seven-feature connected selection; not a scalar name for Quino, Colpi/Pangueco, Cholchol, Cautín or Quepe.",
+      "completion_scope": "All seven complete cached paths reviewed against independent original source renderings, including three mainstem and four tributary features, initial corridors, joining settings and the exact selected estuarine terminal. This is generalized corridor correspondence, not pointwise fitting, source-vector comparison, geometry revalidation, a current hydrological survey or precision assignment of every name transition.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Imperial",
+        "initial_headward_component_name": "Río Quino-side upper drainage",
+        "initial_headward_scope": "Selected upper Quino valley approach south of the separate Quino Chico and Traiguén corridors; not every small feeder given an independent name.",
+        "selected_lakes": [],
+        "selected_reservoirs": [],
+        "selected_tributary_scope": "14515 upper and middle Cautín;14516 lower Cautín;14514 lower Quepe only;14517 terminal Cautín connector below Quepe to the Cholchol/Imperial formation setting.",
+        "receiving_waterbody_name": "Lower Río Imperial estuary in the Nehuentúe–Moncul surroundings.",
+        "terminal_limit": "Interior Imperial estuarine water opposite Nehuentúe, east/upstream of the Moncul joining setting. The southward estuary and Pacific outlet remain outside the selected path.",
+        "source_label_variation": "IGM labels the westward Quino continuation Río Colpi o Pangueco. Cholchol identifies the southward trunk, while an upper southward segment also carries a Lumaco label. This localized naming variation does not obscure the connected bounded geography.",
+        "excluded_inferences": [
+          "No scalar name assigned to every selected feature.",
+          "No full Traiguén, Lumaco, Quillén, Quepe, Moncul, Budi or Trovolhue course inferred from nearby junctions.",
+          "No exact natural spring, headwater summit, local name-change boundary, estuary salinity, current mouth position or image acquisition date inferred.",
+          "The rendered length is model metadata, not an official river-length assertion."
+        ],
+        "model_limits": "All cached geometry left unchanged; ordinary coarse meanders, braid generalization and short valley-opening offsets are not treated as material source gaps.",
+        "source_availability_limits": [
+          {
+            "publication": "Gobierno Regional de La Araucanía Hidrografía webpage",
+            "url": "https://www.gorearaucania.cl/index.php?id=397&no_cache=1",
+            "observed_limit": "One reader timeout; no content acquired, original GET or further request. Optional source not used. This does not create a correspondence gap."
+          }
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70803081",
+      "category": "river_group",
+      "system_id": "70803081",
+      "baseline_logical_fid": 3169,
+      "geometry_fids": [
+        9987
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -84.73125,
+        29.972695,
+        -83.797917,
+        31.429167
+      ],
+      "rendered_mainstem_length_km": 251.947,
+      "rendered_network_length_km": 251.947,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -84.73125,
+          29.972695,
+          -83.797917,
+          31.429167
+        ]
+      },
+      "candidate_name": "Ochlockonee River",
+      "candidate_names": [
+        "Ochlockonee River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Ochlockonee River is the representative identity of the complete selected connected corridor. Lake Talquin is the named reservoir traversed within that system; the terminal receiving water is Ochlockonee Bay. This does not assign the river hydronym to the whole reservoir or bay, or to neighboring tributaries.",
+      "geographic_disambiguation": "Direct original cartography was read in geographic order over the entire feature. The opening takes Ochlockonee River itself, not either separate Little Ochlockonee River. The line stays west of Lakes Iamonia and Jackson, crosses Talquin from its eastern river arm rather than the northern Little River arm, reaches the lower turn from Jackson Bluff rather than Telogia Creek, and remains on the main Ochlockonee tidal outlet rather than turning into Crooked River or using the Sopchoppy mouth. The endpoint is at western Ochlockonee Bay, not the open Gulf.",
+      "source_keys": [
+        "r108-usgs-national-map-ochlockonee",
+        "r108-georgia-ochlockonee-plan2002",
+        "r108-nwfwmd-ochlockonee-swim2017"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southwestern Georgia and the Florida Panhandle, United States: Worth and Colquitt counties through the Thomas-Grady corridor, Lake Talquin and the lower Ochlockonee to western Ochlockonee Bay.",
+      "candidate_name_role": "Supported representative river-system identity for the entire selected mainstem, with its Lake Talquin crossing and terminal estuarine setting kept explicit.",
+      "completion_scope": "All 63 constituent sublines of feature 9987 were inspected against three overlapping original national raster views, their original local enlargements and separately marked orientation copies. Those views cover every selected interval, headward junction, reservoir crossing, middle reach and final estuarine branch. Independent Georgia and Florida plans provide bounded descriptive corroboration. No material route connection or branch remains unresolved; ordinary generalized meanders and exact river-to-reservoir or river-to-bay label boundaries are not treated as gaps.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Ochlockonee River",
+        "selected_headward_component": "Ochlockonee River, selected upper reach in Worth County",
+        "selected_named_lake_components": [
+          "Lake Talquin"
+        ],
+        "terminal_receiving_water": "Ochlockonee Bay",
+        "exact_legal_name_change_boundary": null,
+        "excluded_inferences": [
+          "No claim that the first selected vertex is the official river source or the last vertex is a surveyed mouth.",
+          "No whole-basin equivalence: Georgia planning boundaries include separately draining waters that are outside this selected river.",
+          "No Little Ochlockonee, Little River, Telogia Creek, Crooked River or Sopchoppy River alias is assigned to the complete selection.",
+          "No precise submerged channel, tidal-flow direction, present discharge, statutory naming boundary, Korean name or alternative-language name is inferred.",
+          "The retained rendered length is model metadata, not an official measured river length.",
+          "Supported representative identity is research only; accepted and scalar names remain null and automatic application is false."
+        ],
+        "model_limits": "Generalized component and corridor correspondence only. No geometry change, pointwise fit, rerouting or geometry revalidation was performed.",
+        "source_availability_limits": [
+          {
+            "publication": "NWFWMD Ochlockonee River and Bay SWIM Plan, September 2017, June 2021 errata file",
+            "url": "https://nwfwater.com/content/download/18958/127421/Ochlockonee%20River%20and%20Bay%20SWIM%20Plan%20June2021_errata.pdf",
+            "observed_limit": "The optional Figure 2-3 screenshot returned Cache miss after successful text reads. No figure pixels were acquired. The plan is used only for actual prose; no further request was made. Independent national cartography completes all required corridor coverage."
+          }
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80152740",
+      "category": "river_group",
+      "system_id": "80152740",
+      "baseline_logical_fid": 947,
+      "geometry_fids": [
+        2577
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -91.19375,
+        64.123163,
+        -89.994151,
+        65.585417
+      ],
+      "rendered_mainstem_length_km": 251.624,
+      "rendered_network_length_km": 251.624,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -91.19375,
+          64.123163,
+          -89.994151,
+          65.585417
+        ]
+      },
+      "candidate_name": "Lorillard River",
+      "candidate_names": [
+        "Lorillard River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Original federal cartography repeatedly labels Lorillard River along the southbound and eastbound trunk, the long middle valley and the final eastward outlet reach. Its separately mapped northwest headward branch is distinguished from the selected northern feeder. The complete selection is a connected feeder-to-Lorillard route, not evidence of one uniform hydronym along every constituent subline.",
+      "geographic_disambiguation": "The selected opening occupies small lake-and-stream country west of a larger eastern lake, enters their common southbound channel, turns southwest to the northwest Lorillard branch, continues south and then east through broad rapids-and-island reaches, and turns into the long southeastward valley east of Hazard Hills. The lower route turns west, crosses a broad lake-like river reach southward, and bends east into the coastal outlet complex. The distinct Connery River and Smoke Lake setting southwest of the outlet is not selected as a continuation.",
+      "source_keys": [
+        "r108-nrcan-cbmt-lorillard",
+        "r108-eccc-lorillard-station-index",
+        "r108-gsc8149-tehery-wager-prose"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Kivalliq, Nunavut, Canada: the lake country south of Wager Bay, the Lorillard River corridor east of Hazard Hills, and the Daly Bay coastal setting.",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "All of the single retained feature and its 48 constituent sublines were read against six successful original national raster views: complete corridor, upper, middle, lower, detailed opening and detailed terminal. The actual lake/stream relationships, joining branches, long trunk and coastal outlet setting are established at generalized component scale. There is no unresolved material branch or connector. Straight lake passages, island and bank shortcuts, and exact hydronym or estuary-transition limits are ordinary model/name-scope limitations, not unresolved correspondence.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Lorillard River",
+        "representative_system_identity": "Lorillard River",
+        "bounded_named_river_components": [
+          "Lorillard River"
+        ],
+        "selected_named_lake_components": [],
+        "initial_headward_component_name": null,
+        "terminal_receiving_water": "Daly Bay coastal setting, supported by the independently read ECCC hydrometric station name and original coastal cartography.",
+        "neighboring_distinctions": [
+          "The separately mapped northwest Lorillard branch is not the selected northern feeder.",
+          "Connery River and Smoke Lake lie southwest of the lower selection and are not adopted as aliases or selected continuations.",
+          "Hazard Hills provide western middle-valley context; they are not a waterway name."
+        ],
+        "unassigned": "Individual opening lakes and feeder; a uniform hydronym for broad lake passages; exact legal name-transition locations; formal distributary names; the precise natural source, mouth and tidal boundary; Korean or other-language names.",
+        "excluded_inferences": [
+          "No uniform Lorillard name is assigned to the complete modeled feature.",
+          "No current legal naming decision or official naming date is inferred from cartographic labels.",
+          "No rendered model length is treated as an official river length.",
+          "No precise source or mouth point, perennial-flow status, navigation claim or present-day field condition is inferred."
+        ],
+        "model_limits": "Generalized component and corridor correspondence only. No pointwise fitting, channel rerouting, geometry edits or geometry revalidation.",
+        "source_availability_limits": [
+          {
+            "publication": "Brian Johnston, Lorillard River trip report, Canadian Canoe Routes",
+            "url": "https://www.myccr.com/canoeroutes/lorillard-river",
+            "observed_limit": "Sole reader 403. Whole report and equivalents excluded; no substantive source evidence used. Independent original national cartography completes the route."
+          },
+          {
+            "publication": "GSC Open File 8149,2016",
+            "url": "https://publications.gc.ca/collections/collection_2018/rncan-nrcan/m183-2/M183-2-8149-eng.pdf",
+            "observed_limit": "Reader prose acquired; screenshot Cache miss and original GET archived-notice HTML, so no map pixels. Used only within actually read prose scope."
+          },
+          {
+            "publication": "ECCC station 06OA001 reference index",
+            "url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnNum=06OA001",
+            "observed_limit": "Optional detail page Cache miss; no further request. Successfully opened station-number index supplies the cited station name, not an exact position."
+          }
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:80048422"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 375,
+    "non_pending_records": 339,
+    "source_access_pending": 3,
+    "source_material_pending": 33,
+    "source_any_pending": 36,
+    "scope_holds": 112,
+    "river_groups": 277,
+    "lakes": 98,
+    "unrecorded": 3690,
+    "unrecorded_river_groups": 3178,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r108-nrcan-cbmt-paalliq",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r108-dfo-cambridge2021",
+      "official_url": "https://www.dfo-mpo.gc.ca/fisheries-peches/ifmp-gmp/arctic-char-omble-chev/arctic-char-omble-chev-eng.html"
+    },
+    {
+      "source_key": "r108-kristofferson2002",
+      "official_url": "https://mspace.lib.umanitoba.ca/bitstream/handle/1993/19912/Kristofferson_Identification_of.pdf"
+    },
+    {
+      "source_key": "r108-dfo-cambridge2021-inuinnaqtun",
+      "official_url": "https://www.dfo-mpo.gc.ca/fisheries-peches/ifmp-gmp/arctic-char-omble-chev/doc/arctic-char-omble-chev-inuinnaqtun.pdf"
+    },
+    {
+      "source_key": "r108-igm-rivers",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r108-igm-water",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r108-esri-imagery",
+      "official_url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r108-bcn-araucania",
+      "official_url": "https://www.bcn.cl/siit/nuestropais/region9/hidrografia.htm"
+    },
+    {
+      "source_key": "r108-sernatur2012",
+      "official_url": "https://www.sernatur.cl/wp-content/uploads/2018/09/IX-REGION-DE-LA-ARAUCANIA.pdf"
+    },
+    {
+      "source_key": "r108-chileestuyo-cautin",
+      "official_url": "https://chileestuyo.cl/destacado/rio-cautin/"
+    },
+    {
+      "source_key": "r108-usgs-national-map-ochlockonee",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r108-georgia-ochlockonee-plan2002",
+      "official_url": "https://epd.georgia.gov/document/publication/ochlockonee-river-basin-management-planpdf/download"
+    },
+    {
+      "source_key": "r108-nwfwmd-ochlockonee-swim2017",
+      "official_url": "https://nwfwater.com/content/download/18958/127421/Ochlockonee%20River%20and%20Bay%20SWIM%20Plan%20June2021_errata.pdf"
+    },
+    {
+      "source_key": "r108-nrcan-cbmt-lorillard",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r108-eccc-lorillard-station-index",
+      "official_url": "https://wateroffice.ec.gc.ca/station_metadata/station_index_e.html?stationLike=06&type=stationNumber"
+    },
+    {
+      "source_key": "r108-gsc8149-tehery-wager-prose",
+      "official_url": "https://publications.gc.ca/collections/collection_2018/rncan-nrcan/m183-2/M183-2-8149-eng.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "6b644711efe1835f9415ecd676f6401f828310ae",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      232,
+      233,
+      234,
+      235
+    ],
+    "next_unrecorded_id": "hydro-system:70310822",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

@@ -19,6 +19,14 @@
         "sourceBasis": "HistoGIS German Empire 1871-02-27..1919-12-31 (CC BY 4.0)",
         "hgisAlignment": "Compared against OSHistory hgis-germany-transformer correction lines; source already aligns substantially closer to correction targets, so the transform is not applied a second time.",
         "heligolandPatch": "High-resolution modern coastlines: Helgoland from Pleiades-preserved OSM relation 3787052; Düne from OSM way 273992076.",
+        "heligoland1914GeometryStatus": {
+          "status": "provisional-modern-proxy",
+          "periodReferenceDate": "1914-07-31",
+          "historicalIslandOutlinesDigitized": false,
+          "modernComponents": ["Helgoland Hauptinsel", "Düne"],
+          "auditedEvidence": "tools/historical-library/working/german-empire-1914-helgoland-temporal-qa.json",
+          "doNotTreatAsVerified1914Shoreline": true
+        },
         "refinementRequired": true,
         "sourceLicense": "HistoGIS CC BY 4.0; OSM-derived island coastlines ODbL 1.0",
         "normalization": "Removed consecutive duplicate coordinates from source geometry where present; no shape-altering simplification applied.",

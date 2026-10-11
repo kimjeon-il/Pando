@@ -1,0 +1,78 @@
+{
+  "schema": "hydro-bounded-lake-findings-v1",
+  "batch": "r11",
+  "frozen_at_utc": "2026-10-09T15:11:20.123461+00:00",
+  "target_count": 2,
+  "new_actual_inventory_targets": 2,
+  "full_feature_correspondence_review_completed_count": 1,
+  "source_limited_unresolved_count": 1,
+  "compound_named_waterbody_required_by_evidence": false,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159112821",
+      "source_id": "1159112821",
+      "candidate_name": "Cold Lake",
+      "directly_supported_name_forms": [
+        "Cold Lake"
+      ],
+      "research_category": "unresolved_full_feature_correspondence",
+      "supported_name_scope": "Text-only provincial map evidence contains Cold Lake, but placement and full lake outline were not acquired. This geographic lead is not a verified association with the complete source polygon.",
+      "source_keys": [
+        "alberta_cold_subregional2019_text"
+      ],
+      "correspondence_observations": [
+        "The complete43-position source ring was inspected: a broad northern body with two southern lobes, spanning both sides of110°W.",
+        "No usable official map pixels were acquired for comparison. Centroid, bounding box and search snippets are insufficient to confirm the whole feature."
+      ],
+      "name_scope_limits": [
+        "Three distinct provincial source acquisitions were source-limited by HTTP403; no same-publication alternative route was used after a403.",
+        "The only retained official source content is a planning-map text extraction, whose repeated name could label the lake or community.",
+        "No full-feature identity, formal naming decision, registry status, Korean form or exact shoreline was established."
+      ],
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159109155",
+      "source_id": "1159109155",
+      "candidate_name": "Deschambault Lake",
+      "directly_supported_name_forms": [
+        "Deschambault Lake",
+        "DESCHAMBAULT LAKE"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized source polygon corresponds to Deschambault Lake on the WSA map. This supports a generalized waterbody identity, not an exact shoreline or scalar-name approval.",
+      "source_keys": [
+        "wsa_deschambault_map",
+        "eccc_deschambault_usage"
+      ],
+      "correspondence_observations": [
+        "Full-outline comparison links the broad southern basin, west-projecting shoulder, narrow central connection and northeast arm to the single mapped Deschambault waterbody.",
+        "Wapawekka Lake lies west, Jan Lake east, and the Ballantyne River reaches the southwestern basin; these provide named map context beyond label proximity.",
+        "The124-position generalized ring omits islands, narrow northern bays and an eastern south-pointing spur shown on the map. Jan Lake is separately mapped and is not included in this identification."
+      ],
+      "name_scope_limits": [
+        "The2014 thematic map is regional and carries an accuracy/currency disclaimer.",
+        "The hydrometric index independently supports name usage only. No formal naming instrument, current registry status, precise shoreline fit, surveyed boundary or Korean form was established."
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "publication_scope": "Own factual extraction and source metadata only; no third-party original bodies, complete extracted texts, map images, crops or map-derived vectors.",
+  "automatic_application": false
+}

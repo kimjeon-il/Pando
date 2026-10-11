@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "initial_inventory_rows": 5173,
+  "initial_eligible_targets": 4065,
+  "reviewed_index_targets": 75,
+  "remaining_without_reconstructed_record": 3990,
+  "remaining_by_type": {
+    "river_group": 3418,
+    "lake": 572
+  },
+  "recorded_index_targets": 75,
+  "pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815"
+  ],
+  "pending_access_count": 2,
+  "scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207",
+    "lakes_base:1159110475",
+    "lakes_base:1159108993",
+    "lakes_base:1159109803",
+    "lakes_base:1159108469",
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087",
+    "lakes_base:1159116675",
+    "lakes_base:1159118183",
+    "lakes_base:1159118201",
+    "hydro-system:50738894",
+    "hydro-system:50691388",
+    "hydro-system:50443984"
+  ],
+  "scope_hold_count": 20,
+  "queue_order": "original_inventory_row_order",
+  "scope": "Remaining means absent from this fresh reconstructed index. It does not mean historically never researched; the unavailable historical504-record ledger is not reconstructed.",
+  "network_calls": 0,
+  "automatic_application": false
+}

@@ -1,0 +1,221 @@
+{
+  "schema": "hydro-own-source-evidence-v1",
+  "target_aw_id": "lakes_base:1159115267",
+  "created_at_utc": "2026-10-09T11:38:31.944383+00:00",
+  "content_type": "Own factual extraction and original-response acquisition receipts. Paraphrases are not raw original documents.",
+  "sources": [
+    {
+      "id": "ZHARI-ALI-WATER-2018",
+      "url": "https://sl.al.gov.cn/info/1903/2872.htm",
+      "title": "使人心旷神怡的扎日南木错",
+      "agency_or_publisher": "阿里地区水利局 (Ali Prefecture Water Resources Bureau)",
+      "source_date": "2018-12-29",
+      "acquisition": {
+        "url": "https://sl.al.gov.cn/info/1903/2872.htm",
+        "final_url": "https://sl.al.gov.cn/info/1903/2872.htm",
+        "http_status": 200,
+        "request_started_at_utc": "2026-10-09T11:33:11.942331+00:00",
+        "retrieved_at_utc": "2026-10-09T11:33:17.874447+00:00",
+        "bytes": 51769,
+        "sha256": "70cd65fdbd30efde2f3e3c5c914c2036560821c0d9e2cae534b668616a413695",
+        "content_type": "text/html",
+        "timestamp_scope": "Original response body read completed at retrieved_at_utc; body bytes and hash are for that response."
+      },
+      "read_location": "Page title and single lake-description paragraph.",
+      "own_factual_extraction": "Official local-government usage gives 扎日南木错 in the title and 扎日南木措 in the body. It expressly gives aliases 塔热错 and 特里纳木错, places the lake in 措勤县 near the county town, and reports a lake area of 998 km². Its length/width, hydrological and elevation figures are descriptive historical values rather than a boundary dataset.",
+      "direct_quote": "扎日南木措位于措勤县境内，又称塔热错、特里纳木错",
+      "original_cached_locally": true,
+      "raw_original_in_publishable_package": false,
+      "scope_limits": [
+        "Official usage, not an inspected naming-registry decision.",
+        "No coordinates, full-lake map, Tibetan-script spelling or naming-effective date on the inspected page."
+      ]
+    },
+    {
+      "id": "ZHARI-ALI-2023",
+      "url": "https://www.al.gov.cn/info/1610/63386.htm",
+      "title": "扎日南木错：镶嵌于羌塘大地的蓝宝石",
+      "agency_or_publisher": "阿里地区行政公署 (Ali Prefecture Administration); page credits 天上阿里",
+      "source_date": "2023-10-07",
+      "acquisition": {
+        "url": "https://www.al.gov.cn/info/1610/63386.htm",
+        "final_url": "https://www.al.gov.cn/info/1610/63386.htm",
+        "http_status": 200,
+        "request_started_at_utc": "2026-10-09T11:32:45.326304+00:00",
+        "retrieved_at_utc": "2026-10-09T11:32:50.903191+00:00",
+        "bytes": 50425,
+        "sha256": "1cc467663015d2b6c30d0164abee651b558fd481ef9bd30e7e46f993c0ee3130",
+        "content_type": "text/html",
+        "timestamp_scope": "Original response body read completed at retrieved_at_utc; body bytes and hash are for that response."
+      },
+      "read_location": "Article title, publication line and first paragraph.",
+      "own_factual_extraction": "The administration’s page uses 扎日南木错 and places it northeast of 措勤县 in 阿里地区, with an area of 1023 km² and elevation of 4613 m. This is later official published usage; it does not date the underlying area survey.",
+      "direct_quote": null,
+      "original_cached_locally": true,
+      "raw_original_in_publishable_package": false,
+      "scope_limits": [
+        "Same prefectural-government lineage as the water-bureau source; not counted as a wholly independent authority.",
+        "No formal naming act, Tibetan script or exact water extent is supplied."
+      ]
+    },
+    {
+      "id": "ZHARI-NIGLAS-2021",
+      "url": "https://niglas.cas.cn/xwdt_1_1/yjjz/202112/t20211224_6326926.html",
+      "title": "青藏高原湖泊快速扩张引发大规模的流域重组",
+      "agency_or_publisher": "中国科学院南京地理与湖泊研究所 (Nanjing Institute of Geography and Limnology, CAS)",
+      "source_date": "2021-12-24",
+      "acquisition": {
+        "url": "https://niglas.cas.cn/xwdt_1_1/yjjz/202112/t20211224_6326926.html",
+        "final_url": "https://niglas.cas.cn/xwdt_1_1/yjjz/202112/t20211224_6326926.html",
+        "http_status": 200,
+        "request_started_at_utc": "2026-10-09T11:32:39.347669+00:00",
+        "retrieved_at_utc": "2026-10-09T11:32:45.325023+00:00",
+        "bytes": 29419,
+        "sha256": "62d97cb07613f0161404581252f1eae0c9d3351f959ab1c3789306a4f710e96f",
+        "content_type": "text/html",
+        "timestamp_scope": "Original response body read completed at retrieved_at_utc; body bytes and hash are for that response."
+      },
+      "read_location": "Research-news narrative after Figure 2; Figure 2 lower-left map and longitudinal section.",
+      "own_factual_extraction": "The institute reports its own research finding that overflow from northern 蔡几错 contributed to expansion of 扎日南木错 from 2017 onward. Its text distinguishes overflow-connected upstream and downstream lakes from physically merged lakes. Figure 2 shows 蔡几错 and 齐格错 north of the target, with 2000 and 2018 lake outlines, and labels the downstream waterbody 扎日南木错. The southern target lake is cropped from that figure, so this map only supports adjacency and hydrological scope.",
+      "direct_quote": null,
+      "original_cached_locally": true,
+      "raw_original_in_publishable_package": false,
+      "figure_acquisition": {
+        "url": "https://niglas.cas.cn/xwdt_1_1/yjjz/202112/W020211224311928164670.png",
+        "final_url": "https://niglas.cas.cn/xwdt_1_1/yjjz/202112/W020211224311928164670.png",
+        "http_status": 200,
+        "request_started_at_utc": "2026-10-09T11:33:04.365454+00:00",
+        "retrieved_at_utc": "2026-10-09T11:33:11.941552+00:00",
+        "bytes": 191385,
+        "sha256": "68fe99e5fc8ab1a8d6a106477d6f5cd67a50f4b94f6c506859ab3acc09d98a5c",
+        "content_type": "image/png",
+        "timestamp_scope": "Original response body read completed at retrieved_at_utc; body bytes and hash are for that response."
+      },
+      "figure_locator": {
+        "figure_number": 2,
+        "original_dimensions_px": [
+          600,
+          396
+        ],
+        "coordinate_labels": "85°20′E, 85°30′E, 85°40′E and 31°10′N visible in lower-left inset",
+        "coverage": "Northern target shoreline and northern adjacent lake system; not complete target outline",
+        "formal_georeferencing": false
+      },
+      "scope_limits": [
+        "Figures and article constitute one research-publication lineage, not multiple independent sources.",
+        "The reported historical overflow does not authorize combining all connected lakes into one named lake.",
+        "No current shoreline, official naming-register status or Tibetan-script spelling established."
+      ]
+    },
+    {
+      "id": "ZHARI-SUN-2021",
+      "url": "https://www.frontiersin.org/journals/earth-science/articles/10.3389/feart.2021.640553/full",
+      "title": "Detecting Lake Level Change From 1992 to 2019 of Zhari Namco in Tibet Using Altimetry Data of TOPEX/Poseidon and Jason-1/2/3 Missions",
+      "agency_or_publisher": "Frontiers in Earth Science; authors Mingzhi Sun, Jinyun Guo, Jiajia Yuan, Xin Liu, Haihong Wang and Chengming Li; Shandong University of Science and Technology, Wuhan University and Chinese Academy of Surveying and Mapping",
+      "source_date": "2021-03-29",
+      "acquisition": {
+        "url": "https://www.frontiersin.org/journals/earth-science/articles/10.3389/feart.2021.640553/full",
+        "final_url": "https://www.frontiersin.org/journals/earth-science/articles/10.3389/feart.2021.640553/full",
+        "http_status": 200,
+        "request_started_at_utc": "2026-10-09T11:34:04.880743+00:00",
+        "retrieved_at_utc": "2026-10-09T11:34:10.081241+00:00",
+        "bytes": 919589,
+        "sha256": "922d6b2672226bcd15945f9dbc1b05da85f11b4a3fe6a4107933ff284f8eec97",
+        "content_type": "text/html;charset=utf-8",
+        "timestamp_scope": "Original response body read completed at retrieved_at_utc; body bytes and hash are for that response."
+      },
+      "read_location": "Study Area section; Figure 1 right panel; Lake Area section and Figure 11.",
+      "own_factual_extraction": "Original research uses the English name Zhari Namco and reports alias Chi-jih. It gives a study-area span of 30°44′–31°05′N, 85°19′–85°54′E. Figure 1 depicts the full named lake separately from its much larger drainage basin. Whole-outline visual comparison against that figure supports the target’s broad western basin and southeast-curving arm as this lake. The article reports area growth from 961.3 km² in 1995 to 1046.3 km² in 2018; Figure 11 is a time-series chart, not another shoreline map.",
+      "direct_quote": "Zhari Namco (alias Chi-jih)",
+      "original_cached_locally": true,
+      "raw_original_in_publishable_package": false,
+      "doi": "10.3389/feart.2021.640553",
+      "figure_acquisitions": [
+        {
+          "url": "https://www.frontiersin.org/files/Articles/640553/xml-images/feart-09-640553-g001.webp",
+          "final_url": "https://www.frontiersin.org/files/Articles/640553/xml-images/feart-09-640553-g001.webp",
+          "http_status": 200,
+          "request_started_at_utc": "2026-10-09T11:34:31.478352+00:00",
+          "retrieved_at_utc": "2026-10-09T11:34:36.179842+00:00",
+          "bytes": 1789392,
+          "sha256": "cc55e4f15df34a7f9bde327c8e9da1e7dedcdbeefb7a3997ce8f0525549e664d",
+          "content_type": "image/webp",
+          "timestamp_scope": "Original response body read completed at retrieved_at_utc; body bytes and hash are for that response."
+        },
+        {
+          "url": "https://www.frontiersin.org/files/Articles/640553/xml-images/feart-09-640553-g011.webp",
+          "final_url": "https://www.frontiersin.org/files/Articles/640553/xml-images/feart-09-640553-g011.webp",
+          "http_status": 200,
+          "request_started_at_utc": "2026-10-09T11:36:07.310042+00:00",
+          "retrieved_at_utc": "2026-10-09T11:36:10.916596+00:00",
+          "bytes": 224252,
+          "sha256": "f44602bc9a97f94f75d110c0e56459035a80b48050b74bc4ae881aed3e4b6cfe",
+          "content_type": "image/webp",
+          "timestamp_scope": "Original response body read completed at retrieved_at_utc; body bytes and hash are for that response."
+        }
+      ],
+      "rights": {
+        "license": "CC BY 4.0",
+        "license_url": "http://creativecommons.org/licenses/by/4.0/",
+        "rights_statement_location": "Original article copyright statement",
+        "copyright_holder": "© 2021 Sun, Guo, Yuan, Liu, Wang and Li.",
+        "raw_figures_in_publishable_package": false
+      },
+      "figure_locator": {
+        "figure_number": 1,
+        "panel": "Right-hand lake and basin inset",
+        "original_dimensions_px": [
+          2500,
+          1082
+        ],
+        "map_rect_approx_original_px": [
+          1666,
+          49,
+          2390,
+          850
+        ],
+        "complete_waterbody_extent_in_panel": true,
+        "partly_obscured_shoreline": "Satellite-track marks and pass79/pass90 labels obscure short portions of the lake edge.",
+        "full_waterbody_distinguished_from_basin": true
+      },
+      "scope_limits": [
+        "English scientific usage and source-reported alias are distinct from official Chinese usage.",
+        "Figure 1’s exact lake-outline source, survey date and CRS are unspecified in the inspected caption/text. Independence from Natural Earth as a geometry source is not established.",
+        "The figure cannot prove vertex-level shoreline accuracy or the absence of islands.",
+        "The article is not a national or local naming-register decision."
+      ]
+    }
+  ],
+  "independence_assessment": {
+    "three_publication_lineages": [
+      "Ali local-government usage, with two related pages",
+      "NIGLAS primary hydrological research summary and figure",
+      "Sun et al. 2021 original altimetry research, on its publisher website"
+    ],
+    "independent_cartographic_accuracy_claimed": false,
+    "reason": "Scientific and government naming uses are separate lineages. The exact data lineage of the Sun et al. map shoreline is unspecified, so its geometry is not counted as an independent survey."
+  },
+  "non_evidence_acquisition_failures": [
+    {
+      "title": "青藏高原南部断面湖泊基础考察顺利完成（一）",
+      "agency": "中国科学院青藏高原研究所",
+      "acquisition": {
+        "url": "https://www.itpcas.cas.cn/xwzx/zhxw/200911/t20091106_2649928.html",
+        "final_url": "https://www.itpcas.cas.cn/xwzx/zhxw/200911/t20091106_2649928.html",
+        "http_status": 502,
+        "request_started_at_utc": "2026-10-09T11:33:18.388021+00:00",
+        "retrieved_at_utc": "2026-10-09T11:33:23.056412+00:00",
+        "bytes": 170,
+        "sha256": "c6ff1582ddc218da82674eb3ff3691bc317db7ae6b3c68435002484575138b50",
+        "content_type": "text/html",
+        "timestamp_scope": "Original response body read completed at retrieved_at_utc; body bytes and hash are for that response."
+      },
+      "outcome": "HTTP 502 error body, not acquired article content",
+      "used_as_evidence": false,
+      "retried": false,
+      "alternative_route_attempted": false
+    }
+  ],
+  "raw_source_publication_policy": "Original HTML and map bodies remain outside this package; only source facts, URLs, dates, sizes and hashes are included.",
+  "automatic_application": false
+}

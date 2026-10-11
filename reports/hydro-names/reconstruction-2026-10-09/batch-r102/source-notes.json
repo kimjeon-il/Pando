@@ -1,0 +1,414 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r102",
+  "sources": [
+    {
+      "source_key": "r102-nrcan-cbmt-arrowsmith",
+      "title": "Canada Base Map – Transportation (CBMT3978): Arrowsmith River and Pelly Bay surroundings",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Complete bounded feeder-to-Arrowsmith-to-inner-estuary correspondence; repeated direct Arrowsmith River labels; selected lake and tributary setting; Pelly Bay receiving-water label; exclusion of adjacent Kellett River.",
+      "limits": "Independent federal cartography, distinct from CGN/geogratis naming records and every stopped report. No stopped report figure was recovered through the basemap. Does not establish individual names for small lakes or initial feeder, exact banks or contemporary active channels, a legal hydronym boundary, or surveyed source/mouth vertices. Exact export parameters, originals and derivatives remain private.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r102-chs-arc402-2025",
+      "title": "Canadian Sailing Directions, ARC402: Eastern Arctic, January2025, chapter6 page6-10 paragraph172",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "supports": "Arrowsmith River enters Pelly Bay across a broad floodplain; De Stael Point marks the northern side of its mouth; Kellett River is separately identified nearby.",
+      "limits": "Coastal prose supports the terminal setting only, not the inland feeder or every selected reach. This is ARC402, distinct from the stopped ARC401 publication. The front matter permits noncommercial personal reproduction and requires permission for commercial reproduction. No source pages, maps, prose extracts or derivatives are supplied for public reproduction; the finding contains only factual synthesis and a bibliography. Not used as current navigation advice.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC402-eng-202501-41273515.pdf"
+    },
+    {
+      "source_key": "r102-inegi-durango-municipal-2010",
+      "title": "Compendio de información geográfica municipal 2010: Durango, Durango",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 7, Relieve; p. 6, Localidades e Infraestructura para el Transporte; p. 4, hydrologic inventory.",
+      "supports": "Complete initial eastern approach into El Toro, upper west/northwest course, northern tributary distinctions and separation from the Río Chico/San Manuel/El Cigarrero setting. Original linework overlaps the state sheet's upper receiving corridor.",
+      "limits": "Municipal map generalized from national topographic information at 1:250,000 series II/III and other sources listed on the sheet. Does not name the easternmost twig separately, establish an official source point, extend El Toro uniformly downstream, or fix a formal name-transition boundary. Inventory membership alone was not used as route evidence.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10005.pdf"
+    },
+    {
+      "source_key": "r102-inegi-sinaloa-state-2020",
+      "title": "Condensado Estatal Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "year": 2020,
+      "page": "Single sheet, PDF p. 1; complete upper overlap, mountain course, reservoir, lower river, terminal setting and legend/edition information.",
+      "supports": "Upper river continuation and tributary junctions, explicit Río Presidio mountain/lower-river labels, Picachos transit, Siqueros–Villa Unión corridor, Barrón outlet and separation from neighboring river systems and coastal lagoons.",
+      "limits": "First edition 2020, copyright 2021, scale 1:700,000 derived from 1:250,000 series III. The sheet does not cover the easternmost selected headward section, which is supplied by the overlapping Durango municipal original. It does not establish current inlet conditions, exact channel threading or a legal name boundary. Its printed prior-written-authorization requirement for full or partial reproduction is preserved: no original, map crop, overlay or source image is shared outward.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; East Greenland Inland Ice and glaciated margins in both the Watkins Bjerge–Nansen Fjord head region and the Mont Forel–upper Sermilik region north of Tasiilaq/Ammassalik, with original graticule and Inland Ice legend.",
+      "supports": "Generalized whole-route geographic setting, ice-covered interior and marginal mountain terrain, regional place-name disambiguation, and the distinction between mapped ice/geological symbols and natural-river evidence.",
+      "limits": "Historical regional geological mapping. It is not a river gazetteer or contemporary ice-front survey and establishes neither a full-route natural-river identity nor exact surface/subglacial flow, terminal water connection or surveyed mouth.",
+      "reuse_limit": "GEUS custom dataset terms permit bounded internal processing but restrict redistribution of originals and processed data and production or transfer of new maps. Original maps, local crops and comparison materials remain private; only independently written factual prose and ordinary public source URLs may be propagated.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Pages 64–65, Glaciology.",
+      "supports": "Continental Inland Ice versus local ice caps and glaciers; the geological sheet’s surface, thickness and bedrock contour conventions; general glacier-margin and fjord context.",
+      "limits": "No selected-route hydronym or connectivity evidence. Figure 46 is a different southern West Greenland locality north-northeast of Søndre Strømfjord; Figure 47 contains general model diagrams. Historical numerical or mass-balance statements are not asserted as current.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80057706",
+      "source_keys": [
+        "r102-nrcan-cbmt-arrowsmith",
+        "r102-chs-arc402-2025"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "The initial southeastern tip lies in an unnamed small-lake, stream and wetland setting. The selected approach first turns west and then north-northwest along the minor lake-and-stream corridor. The detailed federal view covers the whole initial turn and nearby alternative drainage lines. No printed hydronym for this feeder, named source lake or official source vertex is established.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith"
+          ]
+        },
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "The headward approach continues through a sequence of small waters and narrow connecting reaches in the southwestern feeder valley. The generalized line simplifies bends and lake margins, but the bounded stream-and-lake approach can be followed into the widened receiving-water setting to the north. The lakes and short connectors retain unknown individual names; the representative river identity is not assigned to each one.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith"
+          ]
+        },
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "The selected southwestern feeder enters the western side of the larger lake-and-channel setting associated with Arrowsmith River. The map explicitly labels the separate southeastern approach Arrowsmith River and shows its connection with the widened northern receiving reach. This distinguishes the unnamed selected headward feeder from the named southeastern river approach rather than treating all upstream branches as synonymous.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith"
+          ]
+        },
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "Beyond that receiving setting, the selected course runs north through widened lake-like reaches, then turns around the pronounced eastern bend and southwest along the broad river corridor. Arrowsmith River labels recur on the connected main channel. Side streams and lake-fed approaches enter from both sides, including an eastern lake complex beside the bend; those waters are not given the river name merely from proximity.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith"
+          ]
+        },
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "The broad southwest-trending section rounds the western end of the large southern loop and turns north. The federal map repeatedly prints Arrowsmith River on the same corridor, including the wide alluvial reach, its narrow northern continuation and the next northeast-running reach. The loop is part of the named river corridor rather than a switch to a second named river.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith"
+          ]
+        },
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "The middle northward sequence includes narrow channels, widened waters, wetland margins and numerous tributary junctions. Arrowsmith River labels recur through this full interval. The larger lakes east and west feed side drainage systems; their presence does not make every nearby lake a selected mainstem lake. Ordinary bend offsets in the generalized line do not require an invented interriver connector.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith"
+          ]
+        },
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "At the northern middle bend, the selected northward corridor reaches the broad east-running river and continues east and northeast. The source labels Arrowsmith River on the southern approach and on the receiving eastward reach, with a substantial mapped side approach from the west. The named common corridor is established across the junction; no separate tributary name is inferred.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith"
+          ]
+        },
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "The lower selection follows the north-northeast Arrowsmith valley through an extensive alluvial and branching-channel setting. The map shows multiple side channels, islands, small lakes and tributary entries, while repeated Arrowsmith River labels identify the selected main valley. This is bounded corridor correspondence, not a claim about an exact active thread, island-side routing or current flow distribution.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith"
+          ]
+        },
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "The final selected extension turns east-northeast into the broad, explicitly labeled Arrowsmith River estuarine reach. The modeled tip is inside that widened reach, landward of the outer mouth beside De Stael Point and Atiqsilivik Island. It is not established as an exact surveyed mouth vertex or as a path extending to the open bay shoreline.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith"
+          ]
+        },
+        {
+          "fragments": [
+            2499
+          ],
+          "finding": "The wider coastal view directly labels Pelly Bay and distinguishes the Kellett River entrance on the opposite side of the bay head. CHS ARC402, chapter6 paragraph172, independently places De Stael Point north of the Arrowsmith mouth and describes Arrowsmith entering Pelly Bay across a broad floodplain; it separately identifies Kellett River. These observations establish the receiving setting and exclude substituting the neighboring Kellett River for this selection.",
+          "sources": [
+            "r102-nrcan-cbmt-arrowsmith",
+            "r102-chs-arc402-2025"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70860483",
+      "source_keys": [
+        "r102-inegi-durango-municipal-2010",
+        "r102-inegi-sinaloa-state-2020"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "The selected eastern start corresponds to the short headward approach that joins the mapped El Toro upper drainage in western Durango municipality. The relief original shows the initial branch and its bend into the westward channel, rather than merely placing a name somewhere inside the selection's bounding box. El Toro is labeled on the connected downstream upper course; the easternmost twig has no separately established name and is not asserted to be the official source of the Presidio.",
+          "sources": [
+            "r102-inegi-durango-municipal-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "The El Toro corridor continues west and then northwest through successive junctions. The original relief map distinguishes northern approaches labeled Corral de Piedra and El Varal, with Tablillas farther northwest, from the selected eastern El Toro approach. San Manuel and Río Chico lie in the separate eastern drainage setting, and El Cigarrero lies to the south. These neighboring labels are not substituted for the selected initial route.",
+          "sources": [
+            "r102-inegi-durango-municipal-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "The selected northwestern turn and subsequent southwestward continuation overlap the state sheet's connected upper river in the San José de Ánimas–Unidos Venceremos surroundings. The municipal relief line and state river network supply overlapping corridor coverage across the western edge of Durango municipality. The source sheet separately shows tributaries approaching from the Nueva Patria and northern mountain surroundings; a locality name is not treated as a hydronym.",
+          "sources": [
+            "r102-inegi-durango-municipal-2010",
+            "r102-inegi-sinaloa-state-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "The selection then follows the winding river southwest and west, north of El Zapote and the San Jerónimo–La Campana surroundings, through the mapped hydroelectric-installation setting and toward the Durango–Sinaloa boundary. The state map shows the southern approach from the El Salto–Las Adjuntas surroundings joining this receiving corridor; that separate approach is not the selected headwater. The upper river remains distinct from the Piaxtla–Tayoltita drainage farther north.",
+          "sources": [
+            "r102-inegi-sinaloa-state-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "Across the mountain boundary, the river turns southwest and then south along the channel explicitly labeled Río Presidio. It continues through the El Tecomate de la Noria–Guamúchil–El Zapote corridor. Incoming streams from the La Ciudad/La Mesa de los Negros direction and the western mountain slopes are depicted separately. The selected line follows the receiving river rather than adopting the name of a nearby settlement or side branch.",
+          "sources": [
+            "r102-inegi-sinaloa-state-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "The selection enters the northeastern/eastern approach to the explicitly mapped Presa Picachos, in the Los Copales–Palmillas surroundings, and passes through the reservoir toward its southern outlet. The state original separates the impoundment, surrounding arms and upstream approaches from the exposed lower river. This is treated as a reservoir transit, not a continuously exposed river reach, and does not establish present reservoir level or operation.",
+          "sources": [
+            "r102-inegi-sinaloa-state-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "Below Picachos, the selection follows the southward river through the Pichilingue–Los Cerritos–El Recodo sector, then through the El Verde–Siqueros surroundings. The lower channel is again labeled Río Presidio. The separate Quelite river northwest of the selection and the Pánuco drainage east of Concordia are clearly different waterways. The mapped route and junction sequence, rather than overall proximity, support the identity.",
+          "sources": [
+            "r102-inegi-sinaloa-state-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "The selected lower Presidio continues south past the Siqueros–Escamillas–La Embocada surroundings and west of El Roble toward Villa Unión. The state sheet distinguishes the river's meandering corridor from straight irrigation channels, roads and neighboring small waterbodies. Correspondence is to the generalized river corridor, without certifying a particular bank-side thread or every individual bend.",
+          "sources": [
+            "r102-inegi-sinaloa-state-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "At Villa Unión the selection turns southwest along the lower river beside the airport/El Walamo surroundings toward Barrón and the coastal margin. The original map shows the river reaching the Pacific coast in this sector. Lagoon and inundation symbols east and southeast of the lower channel identify a coastal-wetland setting; the route is not represented as traversing every nearby lagoon.",
+          "sources": [
+            "r102-inegi-sinaloa-state-2020"
+          ]
+        },
+        {
+          "fragments": [
+            10382
+          ],
+          "finding": "The terminal selected setting is the coastal river outlet near Barrón, northwest of Laguna el Huizache. The same original separately labels Estero Urías near Mazatlán to the northwest and Laguna el Caimanero farther southeast, and distinguishes the Baluarte river farther east. None is a Presidio alias. The endpoint is not asserted to be an official mouth coordinate, a precise present inlet boundary, or evidence of a permanently open mouth, current discharge or navigability.",
+          "sources": [
+            "r102-inegi-sinaloa-state-2020"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90091482",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8871
+          ],
+          "component_scope": "Northwestern opening and first southeastward descent",
+          "finding": "The selected opening descends southeast from its northernmost interior end before turning toward the east. The original regional sheet and graticule place this part in the eastern ice-covered interior, north of the later Watkins Bjerge mountain section. The source portrays ice contours rather than a corresponding named natural-river line. The first model vertex is not established as a surveyed river source.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8871
+          ],
+          "component_scope": "Long eastward upper course, shallow sag and northeasterly recovery",
+          "finding": "The line continues mainly eastward with successive small southerly steps, reaches a shallow low bend, then recovers northeast and east before the next descent. Original pixels show the ice-covered approach to the glaciated uplands between the broader Geikie Plateau and Watkins Bjerge settings. The changing modeled direction was considered as a whole corridor. Neither nearby regional labels nor blue ice contours establish a named river along this interval.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8871
+          ],
+          "component_scope": "Eastern turn and nearly southward middle leg",
+          "finding": "After the upper recovery, the selection turns southeast and then nearly south. This part approaches the glaciated Watkins Bjerge surroundings, where the sheet distinguishes exposed geological units from glacier and ice-filled corridors. Gunnbjørn Fjeld and Watkins Bjerge label the surrounding mountain geography, not a river matching the selection. The complete eastern leg is included in the source review rather than inferred from the interior opening.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8871
+          ],
+          "component_scope": "Southwestward return and lower southward descent",
+          "finding": "The model next bends southwest, then descends south before turning east-southeast. The original source continues to show glaciated mountain-margin terrain with intervening ice corridors and exposed rocks. The southwestward return is not assigned a separate tributary or glacier name, and the map does not establish a natural-river identity for its connecting course.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8871
+          ],
+          "component_scope": "Actual southeastern terminal limb",
+          "finding": "The final limb steps east-southeast, makes a longer southeastward descent and finishes with a short predominantly eastward tip. Regional and terminal original pixels place this end toward the Nansen Fjord head setting within the glaciated mountain margin. Nansen Fjord is directly mapped as a nearby fjord, not as the selected river or an exact terminal vertex assignment. No particular glacier, current calving front, river mouth or final surface-water connection is established.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8871
+          ],
+          "component_scope": "Whole selected feature and cartographic limits",
+          "finding": "The selection contains one mainstem geometry and no tributary geometry. Its internal coordinate parts were considered together as one pinned selection. The map and bulletin support the ice-covered-to-glaciated-mountain setting but not one continuously named natural river. Blue surface contours, dashed ice-thickness isopachs and sub-ice bedrock contours are different feature classes. The map’s aeromagnetic-lineament convention applies south of 68°N and is not river evidence for this target north of that parallel.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90104821",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8882
+          ],
+          "component_scope": "Northern opening and southeastward drift",
+          "finding": "The first selected interval runs generally south with an eastward drift through several small steps. Original map pixels and the graticule place the northern opening on the continental Inland Ice, well inland of the irregular East Greenland exposed-rock margin. Surface, thickness and bedrock contours cross the region, but none constitutes a corresponding named natural-river trace. The model’s opening point is not an established surveyed river source.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8882
+          ],
+          "component_scope": "Long near-meridional upper and middle course",
+          "finding": "The route continues predominantly south through long almost straight intervals with limited east-west offsets, including a small eastern return before the later southwestward turn. The whole central corridor remains in the ice-covered interior setting shown by the original map, rather than the surrounding coastal fjords or the nearby named mountains. No hydronym or continuous independently mapped river course is established for this long interior section.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8882
+          ],
+          "component_scope": "Southwestward middle-lower descent",
+          "finding": "The selected course turns southwest, alternates diagonal and southward steps, and reaches a long straight southern interval. The source pixels show its approach toward the southeastern ice margin and the mountainous Mont Forel surroundings. The blue lineament and contour conventions are not natural-river evidence. No surface or subglacial water connection is inferred merely from the long straight modeled segments.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8882
+          ],
+          "component_scope": "Long southern interval and westernmost lower bend",
+          "finding": "After the southwestward approach, the selection descends almost due south, offsets farther southwest and reaches its westernmost lower bend. The original regional and detailed southern pixels distinguish Inland Ice, narrowing ice/glacier corridors and exposed marginal rock. This lower terrain is not characterized solely as homogeneous ice interior. A natural river, a named glacier or an exact ice-margin crossing is not established for this component.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8882
+          ],
+          "component_scope": "Southeastward terminal limb and actual southern endpoint",
+          "finding": "The final part turns southeast from the western lower bend, with short nearly southward intervals, and ends at the actual southern tip. At generalized corridor scale, the original map places this in the glaciated mountain margin south/southwest of Mont Forel and north of Tasiilaq/Ammassalik, in the wider upper Sermilik region. Readable terminal pixels show ice-filled valleys, exposed geological units and the regional fjord system. Sermilik is a mapped fjord name used only for orientation; the source does not warrant assigning the selected endpoint to a particular fjord arm, glacier front or natural-river mouth.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8882
+          ],
+          "component_scope": "Complete selected mainstem and symbol-class limit",
+          "finding": "One mainstem and no tributary geometry are selected. Internal MultiLineString parts were read together as the complete modeled route. Neither original establishes a named natural river extending from the ice-interior opening to the glaciated southern ending. The Inland Ice legend distinguishes surface contours, dashed thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments; the latter are stated to apply south of 68°N and are visible in the southern regional context, not evidence of selected river channels.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

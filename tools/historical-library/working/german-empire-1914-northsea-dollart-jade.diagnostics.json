@@ -85,5 +85,16 @@
     "allRingsClosed": true,
     "properSelfIntersections": 0,
     "controlPointsPassed": true
+  },
+  "historicalValidation": {
+    "geometryPatchApplied": "modern-detail-densification-only",
+    "independent1914CoastlineVectorDigitized": false,
+    "periodMapRasterReferencedButNotGeoreferenced": true,
+    "periodMapWmsLastAccess": "HTTP 401 (recorded in periodControlReferences)",
+    "independentHistoricallyCorrectShorelineMeasured": false,
+    "maxFlatZoom64ScreenDifferenceCssPx": null,
+    "periodBoundaryVerification": "not-run",
+    "interpretation": "Topological and inside/outside tests marked passed in validation do NOT demonstrate 1914 shoreline correctness. The <=150 m proximity rule can copy later reclaimed-coast detail and must not be equated to historical evidence.",
+    "geometryModificationRequired": "selective independent 1914 sheet control for Dollart/Emden, Leybucht, Jade and Wilhelmshaven before final historical promotion"
   }
 }

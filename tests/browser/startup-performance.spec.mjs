@@ -25,7 +25,7 @@ test('Android-density mobile viewport caps the map backing store at DPR two', as
   expect(metrics.canvasBackingPixels[1] / metrics.viewportCss[1]).toBeLessThanOrEqual(2.01);
 });
 
-test('versioned core assets are reused from Cache Storage on reload', async ({ page }) => {
+test('immutable core assets are reused from Cache Storage on reload', async ({ page }) => {
   test.setTimeout(180_000);
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
@@ -48,9 +48,8 @@ test('a damaged cached country asset is deleted and recovered from the network',
   await page.goto('/');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
   await page.evaluate(async packetUrl => {
-    const revision = window.PANDOLAB_DATA_REVISION;
-    const cache = await caches.open(`pandolab-data-${revision}`);
-    const url = new URL(`/assets/data/${packetUrl}?v=${encodeURIComponent(revision)}`, location.href);
+    const cache = await caches.open('pandolab-world-content-v1');
+    const url = new URL(packetUrl, new URL('assets/data/', new URL('./', location.href)));
     await cache.put(url, new Response(new Uint8Array([1, 2, 3, 4]), { headers: { 'Content-Type': 'application/gzip' } }));
   }, worldAssets.canonicalCountryPacket.url);
   let recoveryRequests = 0;
@@ -75,11 +74,11 @@ test('constrained devices request the high-quality mesh only after geometry is a
   let releaseGeometry;
   const geometryGate = new Promise(resolve => { releaseGeometry = resolve; });
   let meshRequested = false;
-  await page.route('**/countries-canonical-v0.32.0.pcg.gz*', async route => {
+  await page.route(`**/${worldAssets.canonicalCountryPacket.url}*`, async route => {
     await geometryGate;
     await route.continue();
   });
-  await page.route('**/world-mesh-v0.12.6.bin.gz*', async route => {
+  await page.route(`**/${worldAssets.canonicalMesh.url}*`, async route => {
     meshRequested = true;
     await route.continue();
   });

@@ -1,0 +1,396 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r61",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r60",
+    "commit": "a59f53158abd7d2aca3ad7ed18ddc5c8c8e81801",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r60/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61603772",
+    "hydro-system:70014971",
+    "hydro-system:90065584",
+    "hydro-system:61596500"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61603772",
+      "category": "river_group",
+      "system_id": "61603772",
+      "baseline_logical_fid": 3653,
+      "geometry_fids": [
+        14659,
+        14661,
+        14657,
+        14656,
+        14655,
+        14660,
+        14662,
+        14654,
+        14658
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -73.50625,
+        -50.770647,
+        -68.613506,
+        -48.985417
+      ],
+      "rendered_mainstem_length_km": 521.952,
+      "rendered_network_length_km": 906.386,
+      "geometry_summary": {
+        "fragment_count": 9,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -73.50625,
+          -50.277083,
+          -68.613506,
+          -49.55
+        ]
+      },
+      "candidate_name": "Río Santa Cruz",
+      "candidate_names": [
+        "Río Santa Cruz"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Santa Cruz supports the representative identity of this selected drainage group and directly names its long eastern river corridor downstream of Lago Argentino. The western modeled mainstem includes glaciated headwaters and Lago Argentino passages; northern and southwestern contributions include separately named lakes and connecting waters. The candidate is not a uniform hydronym for all nine fragments or every modeled vertex.",
+      "geographic_disambiguation": "All nine selected fragments were compared with the original March 2025 federal provincial hydrographic map, including readable western-lake, entire Santa Cruz corridor, lower-river and legend enlargements. The glacial western branches, two major lakes, La Leona connection and long eastward river distinguish this group from the separate Chico–Chalía system to the north and Coig–Gallegos drainages to the south. The modeled lake-crossing lines are interpreted as network connectors, not literal named river channels across open water.",
+      "source_keys": [
+        "ssrh_santa_cruz_basins_2025",
+        "apn_los_glaciares_leaflet_2017_text"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Patagonia, Santa Cruz Province, Argentina: the western Lago Argentino and Lago Viedma drainage, the eastward Santa Cruz valley, and the lower corridor near Comandante Luis Piedrabuena and Puerto Santa Cruz.",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Completed bounded representative-system correspondence across all nine selected fragments. Exact glacier-source assignments, first named river vertices, lake-arm transition points and the final fluvial–estuarine boundary remain unassigned. Those finer boundaries are not necessary for the representative-system finding. Three failed additional publications are recorded separately and do not leave this assessment pending.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río Santa Cruz",
+        "river_scope": "The name is directly supported for the eastern river downstream of Lago Argentino and as a representative identity for the larger selected drainage group.",
+        "upper_scope": "The northwestern modeled mainstem includes glaciated headwater and Lago Argentino northern-arm settings. No exact glacier, spring, first river-name vertex or uniform upper-river name is assigned.",
+        "lake_scope": "Lago Argentino and Lago Viedma retain lake identity. Straight modeled open-water connectors and display fragment boundaries do not define river channels or official hydronym limits.",
+        "tributary_scope": "The northern Lago Viedma–La Leona contribution and the southwestern Frías/lake-arm contribution retain separate geographic scope. Exact names for every upstream connector and southern arm transition are unnecessary and remain unassigned.",
+        "terminal_scope": "The selected endpoint is treated as the lower Santa Cruz/upper-estuarine setting near the Piedrabuena–Puerto Santa Cruz corridor, not as an exact sea-mouth or tidal-limit determination. Río Chico and the outer shared estuarine/coastal waters remain separate scope.",
+        "model_limits": "Nine display fragments and four modeled-mainstem pieces do not establish a continuous single-name river, natural source-to-mouth length or legal naming boundaries. Formal naming history, aliases and Korean translation remain unassigned. The finding uses whole-route and lake/tributary relationships rather than a bounding box, nearest label or modeled-mainstem membership alone."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70014971",
+      "category": "river_group",
+      "system_id": "70014971",
+      "baseline_logical_fid": 2907,
+      "geometry_fids": [
+        8956,
+        8955,
+        8954,
+        8953
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -75.197917,
+        56.847917,
+        -70.091157,
+        58.79375
+      ],
+      "rendered_mainstem_length_km": 520.0,
+      "rendered_network_length_km": 520.0,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -75.197917,
+          56.847917,
+          -70.091157,
+          58.79375
+        ]
+      },
+      "candidate_name": "Rivière aux Feuilles system (Nunavik)",
+      "candidate_names": [
+        "Rivière aux Feuilles"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rivière aux Feuilles supports the representative system identity and the long northeastward river trunk downstream of Lac Minto. The selected headward approach, lake passage and estuarine entrance retain distinct scope; no exact river-to-lake or river-to-estuary boundary vertices are assigned.",
+      "geographic_disambiguation": "All four selected mainstem pieces were inspected as an actual connected route. Its southern approach, Minto lake setting, northeastward trunk, bends beside separately mapped contributing rivers, lower passage south of Lac Viennaux and terminal approach northwest of Tasiujaq jointly distinguish it from nearby Hudson Bay drainages and the Mélèzes–Koksoak system.",
+      "source_keys": [
+        "r61-cehq-region10-summer-lowflow",
+        "r61-qc-viennaux-conservation"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Nunavik, Nord-du-Québec, Canada: Lac Minto drainage across the Ungava Peninsula to the western Lac aux Feuilles entrance northwest of Tasiujaq.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed for bounded representative-system correspondence using two original official maps. A specific name for the initial feeder and precise lake-entry, outflow and tidal-limit vertices remain unassigned. These limits do not prevent identification of the connected system. Unsuccessful optional geological, territorial and botanical publications were not needed for the final assessment.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rivière aux Feuilles",
+        "geographic_qualifier": "Nunavik; editorial disambiguation only.",
+        "upper_scope": "Southern headward approach and Lac Minto passage, followed by the northeastward Feuilles outlet corridor. No specific tributary name is assigned to the initial feeder.",
+        "tributary_scope": "Charpentier, Nedlouc, Vernot, La Goudalie and Vizien are separately mapped contextual branches, not aliases or additional selected tributary pieces. All four selected pieces are modeled as mainstem.",
+        "lake_scope": "Lac Minto is a distinct waterbody traversed by the modeled headward route. Lac Viennaux is contextual and off the selected trunk. Lac aux Feuilles is separately mapped at the terminal coastal setting.",
+        "terminal_scope": "River approach to the western Lac aux Feuilles entrance northwest of Tasiujaq. Exact freshwater–tidal transition and the complete estuary or Ungava Bay passage are not assigned to the selection.",
+        "model_limits": "Modeled mainstem membership does not establish a continuous official hydronym. Rendered model length is not an official natural-river length. No naming date, Indigenous-name equivalence, historical alias sequence or Korean form was established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90065584",
+      "category": "river_group",
+      "system_id": "90065584",
+      "baseline_logical_fid": 2844,
+      "geometry_fids": [
+        8855
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -37.064583,
+        71.747917,
+        -28.490224,
+        72.575
+      ],
+      "rendered_mainstem_length_km": 519.111,
+      "rendered_network_length_km": 519.111,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -37.064583,
+          71.747917,
+          -28.490224,
+          72.575
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for the complete modeled Inland Ice path. This completed feature-class and naming-scope hold does not claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "East-central Greenland Inland Ice: interior southeast of the mapped Summit/GRIP setting toward the glacier and inner-fjord setting north of Charcot Land. Charcot Land and Nordvestfjord provide regional context, not an assigned river or glacier name.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "Readable coverage supports the completed scope hold. Positive natural-river identity evidence would be required before any later name assignment; no further acquisition is pending now.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 519.111,
+        "length_limit": "Model display length, not a measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:61596500",
+      "category": "river_group",
+      "system_id": "61596500",
+      "baseline_logical_fid": 3647,
+      "geometry_fids": [
+        14641
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -70.575,
+        -47.86875,
+        -65.921436,
+        -46.43125
+      ],
+      "rendered_mainstem_length_km": 513.328,
+      "rendered_network_length_km": 513.328,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -70.575,
+          -47.86875,
+          -65.921436,
+          -46.43125
+        ]
+      },
+      "candidate_name": "Río Deseado",
+      "candidate_names": [
+        "Río Deseado"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Deseado supports the representative identity of the selected corridor. The modeled initial feeder corresponds to the separately mapped Cañadón Botello, and the coastal continuation reaches the Ría Deseado setting. The candidate is not a uniform hydronym for the entire modeled line, a naming decision for the upstream feeder, or a replacement name for the ría.",
+      "geographic_disambiguation": "The complete selected fragment was compared visually with the official Deseado basin hydrographic map, the March 2025 province-wide hydrographic map and readable upper-to-coast enlargements. The western feeder and junction sequence, eastward middle course, successive southeastern turns and coastal return toward Puerto Deseado identify the Deseado corridor. Adjacent Fénix, Pinturas and El Pluma contributions were examined as separate source-to-mouth context rather than inferred to be selected from basin membership.",
+      "source_keys": [
+        "argentina_deseado_basin68",
+        "argentina_santa_cruz_basins_2025",
+        "ianigla_deseado_superior_2018",
+        "santa_cruz_municipios"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Santa Cruz, Argentina: the upper Deseado east of Perito Moreno, the corridor south of Las Heras and Pico Truncado, and the lower valley toward Puerto Deseado.",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Completed bounded representative-system correspondence for the entire single selected fragment, including its differently named initial feeder and coastal setting. Exact spring, feeder-to-river transition vertex, river-to-ría boundary and tidal-channel attribution remain unassigned. They do not prevent the representative finding.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río Deseado",
+        "upper_scope": "Cañadón Botello is a separately mapped feeder corresponding to the selected northwestern approach. The basin narrative's cañadón del Deseado, Fénix Grande and Pinturas source context is not used to overwrite that more specific map label. No exact hydronym-transition vertex or natural spring is assigned.",
+        "tributary_scope": "Fénix Grande, Pinturas and Cañadón El Pluma remain distinct wider-system contributions. They are not whole-group aliases and are not added to the selected geometry. The single modeled fragment does not make its entire line one named river.",
+        "terminal_scope": "The final corridor reaches the Ría Deseado/Puerto Deseado coastal setting. Ría Deseado retains separate scope; neither the precise river–ría transition nor individual estuarine channels are resolved.",
+        "model_limits": "Identity follows the entire visible route and junction context, not the bounding box, nearest label, MAIN_RIV value or modeled fragment role. Display length is not a measured natural-river length. Detailed geometry validity, flow permanence, formal naming history, aliases and Korean translation were not determined."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90065584"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 187,
+    "non_pending_records": 182,
+    "source_access_pending": 3,
+    "source_material_pending": 2,
+    "source_any_pending": 5,
+    "scope_holds": 61,
+    "river_groups": 89,
+    "lakes": 98,
+    "unrecorded": 3878,
+    "unrecorded_river_groups": 3366,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "ssrh_santa_cruz_basins_2025",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/santa_cruz_proy.pdf"
+    },
+    {
+      "source_key": "apn_los_glaciares_leaflet_2017_text",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/folleto_info_gral_pnlg_espanol_digital.pdf"
+    },
+    {
+      "source_key": "r61-cehq-region10-summer-lowflow",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r61-qc-viennaux-conservation",
+      "official_url": "https://www.environnement.gouv.qc.ca/biodiversite/reserves-bio/viennaux/PSC_Viennaux.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "argentina_deseado_basin68",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/68.pdf"
+    },
+    {
+      "source_key": "argentina_santa_cruz_basins_2025",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/santa_cruz_proy.pdf"
+    },
+    {
+      "source_key": "ianigla_deseado_superior_2018",
+      "official_url": "https://www.glaciaresargentinos.gob.ar/wp-content/uploads/provincias/Santa_Cruz/docs/informes/informe_final_rio_deseado_20-04-2018.pdf"
+    },
+    {
+      "source_key": "santa_cruz_municipios",
+      "official_url": "https://www.santacruz.gob.ar/nuestra-provincia/municipios/"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "a59f53158abd7d2aca3ad7ed18ddc5c8c8e81801",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      43,
+      44,
+      45,
+      46
+    ],
+    "next_unrecorded_id": "hydro-system:70846951",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

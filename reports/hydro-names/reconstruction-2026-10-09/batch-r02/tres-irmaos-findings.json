@@ -1,0 +1,195 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r02",
+  "created_at_utc": "2026-10-09T11:40:16.634867+00:00",
+  "target": {
+    "aw_id": "lakes_base:1159123531",
+    "source_id": "1159123531",
+    "source_feature_zero_based_index": 1074,
+    "historical_baseline_fid": 16267,
+    "historical_baseline_logical_fid": 4892,
+    "historical_bbox": [
+      -51.271162,
+      -21.108149,
+      -50.30344,
+      -20.591834
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Três Irmãos reservoir on the lower Rio Tietê",
+    "name_original": "Represa Três Irmãos",
+    "name_original_language": "pt",
+    "name_en": null,
+    "name_ko": null,
+    "identity_confidence": "High for the generalized feature’s main reservoir association; not a claim that all polygon area is water.",
+    "status": "Supported identity candidate with substantial visible geometry-fidelity mismatch; review required.",
+    "scope": "Single generalized reservoir feature, including simplified lateral arms; not the whole interconnected Tietê–Paraná reservoir system.",
+    "official_portuguese_proper_name_usage_supported": true,
+    "complete_portuguese_map_form_supported_by_operator": true,
+    "current_formal_naming_authority_verified": false,
+    "formal_authority_note": "Operator map usage and ONS operational usage do not establish a current legally registered name or reservoir boundary.",
+    "english_note": "No acquired primary original establishes an English name in this research; do not populate by translation.",
+    "korean_note": "No direct Korean naming evidence was acquired; do not transliterate automatically."
+  },
+  "prominent_geometry_warning": {
+    "accurate_water_mask": false,
+    "shoreline_fidelity": "Visibly poor in the diagnostic whole-feature overlay.",
+    "observation": "The main NW–SE waterbody is the correct reservoir association, but broad source margins and several southern projections include substantial mapped land. The detailed upstream water near Buritama continues beyond the simplified eastern end.",
+    "quantified_water_or_land_fraction": null,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "geometry-reference.json",
+    "reference_file_sha256_at_read": "d24e7ea22531cf9aa53537905845b858340aeb7e8bafe28052cfd8c41bfb034e",
+    "full_source_file": "selected-lake-geometries.geojson",
+    "full_source_file_sha256": "8ea152040c35d213855c96e2b07d1bd61b3be66eda3157d894f05901929adedb",
+    "baseline_rendered_file": "selected-baseline-rendered-geometries.geojson",
+    "baseline_rendered_file_sha256": "778cb5fab315b001992400910c4ce3d50684fe1549eae2b12a78287a14c9ced2",
+    "source_asset_sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c",
+    "source_feature_canonical_sha256": "b7d15b6f7afb5b1ecf7e51ee954256c2dbc05487d50559bbf161a3508e813690",
+    "source_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          184
+        ]
+      ],
+      "total_coordinates_including_closure": 184,
+      "bbox": [
+        -51.27116219540888,
+        -21.108149050285704,
+        -50.30344012746352,
+        -20.591834371296756
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "5676fc044d6e7215838f2b5fedac547c9ea6c02269cc771b2933ce8af685bdf8"
+    },
+    "baseline_rendered_geometry": {
+      "type": "Polygon",
+      "polygon_part_count": 1,
+      "ring_counts_by_part": [
+        1
+      ],
+      "coordinate_counts_by_part_and_ring": [
+        [
+          184
+        ]
+      ],
+      "total_coordinates_including_closure": 184,
+      "bbox": [
+        -51.271162,
+        -21.108149,
+        -50.30344,
+        -20.591834
+      ],
+      "all_rings_closed": true,
+      "canonical_geometry_sha256": "9b1b6a2f1bb0b1106481465f58e1d0b310cc5a304b6e502a1c19befc3ee75045"
+    },
+    "source_to_baseline_comparison": {
+      "same_geometry_type": true,
+      "same_part_ring_and_vertex_order": true,
+      "every_coordinate_matches_source_rounded_to_6_decimals": true,
+      "maximum_absolute_coordinate_difference_degrees": 4.996883049557255e-07
+    },
+    "source_geometry_hash_independently_recomputed": true,
+    "full_source_polygon_inspected": true,
+    "all_184_vertices_in_diagnostic_overlay": true,
+    "coordinate_and_ring_order_unchanged": true,
+    "historical_rendered_area_km2": 946.448,
+    "historical_area_is_not_official_reservoir_area": true
+  },
+  "spatial_identity_check": {
+    "method": "Complete source outline and complete pinned baseline geometry reviewed against the acquired report’s two maps, with a diagnostic grid alignment of all 184 source vertices on page 40. Identity is not inferred from a nearby dam point alone.",
+    "evidence_ids": [
+      "TRES-IRMAOS-TIJOA-RSA-2022",
+      "TRES-IRMAOS-ONS-TIETE-2022"
+    ],
+    "full_source_parts_reviewed": 1,
+    "full_source_rings_reviewed": 1,
+    "holes_in_source": 0,
+    "hole_scope": "No interior ring is encoded. No island inventory or island-exact water mask has been verified.",
+    "observations": [
+      "The diagonal main basin and order of lateral projections coincide at regional scale with the named waterbody.",
+      "The source is much coarser than the map: broad margins cross mapped land and several southern projections only approximately follow tributary valleys.",
+      "There is no detected inclusion of the full Ilha Solteira, Jupiá or Nova Avanhandava reservoir, but no exhaustive overlap test against separately named water polygons was possible."
+    ],
+    "coordinate_anchors_from_input_only": {
+      "westernmost": [
+        -51.27116219540888,
+        -20.63481153385797
+      ],
+      "easternmost": [
+        -50.30344012746352,
+        -21.055752235656257
+      ],
+      "southernmost": [
+        -50.59868734697659,
+        -21.108149050285704
+      ],
+      "northernmost": [
+        -51.14679335169575,
+        -20.591834371296756
+      ]
+    },
+    "coordinate_anchor_note": "Exact input vertices only; not independently surveyed source coordinates.",
+    "diagnostic_registered_overlay_performed": true,
+    "formal_geodetic_registration_performed": false,
+    "registration_details_locator": "tres-irmaos-source-evidence.json diagnostic_map_registration",
+    "surveyed_shoreline_verified": false,
+    "precision_land_inclusion_metric_computed": false,
+    "whole_actual_reservoir_boundary_verified": false
+  },
+  "adjacent_water_and_tributary_scope": [
+    {
+      "feature": "Canal de Pereira Barreto / Rio São José dos Dourados / Ilha Solteira",
+      "relation": "A separately described canal-linked system north of the target; no authority to extend Três Irmãos naming across it.",
+      "whole_neighboring_waterbody_inclusion_detected": false,
+      "every_local_connection_overlap_excluded": false
+    },
+    {
+      "feature": "Downstream Rio Tietê and the Três Irmãos lock-channel confluence",
+      "relation": "Explicitly downstream in the operator monitoring description; not separately renamed as reservoir water.",
+      "exact_dam_and_mouth_limits_in_source_verified": false
+    },
+    {
+      "feature": "Nova Avanhandava",
+      "relation": "The upstream installation is separately labeled; its reservoir identity is not merged into this candidate.",
+      "whole_neighboring_waterbody_inclusion_detected": false
+    },
+    {
+      "feature": "Lateral tributary arms",
+      "relation": "Only generalized reservoir-arm membership is suggested by the map. No individual tributary name or exact mouth boundary is assigned.",
+      "individual_tributary_names_applied": false
+    },
+    {
+      "feature": "Mapped land within broad margins and southern projections",
+      "relation": "Concrete whole-feature mismatch visible in the diagnostic overlay; cannot be treated as precise reservoir area.",
+      "observed": true
+    }
+  ],
+  "evidence_file": "tres-irmaos-source-evidence.json",
+  "evidence_file_sha256": "bab9ff409131b0c35b759e63116631cb17943ea21daa05113b5287d33f806836",
+  "scope_limits": [
+    "Only immutable historical baseline geometry is pinned; no assertion is made about a current deployment.",
+    "The source retains its placeholder and blank language fields. Findings are research evidence, not a product edit.",
+    "Government water-plan cartography was not acquired after two individual 502 failures; operator mapping is the acquired spatial source.",
+    "The English-bearing dissertation abstract could not be acquired because its request timed out; search snippets were not used as evidence.",
+    "Raw report pages, imagery and derived map crops are excluded from publication because redistribution rights were not established."
+  ],
+  "review_gate": {
+    "independent_review_required": true,
+    "automatic_application": false,
+    "scalar_product_name_application": false,
+    "geometry_replacement": false,
+    "korean_name_application": false,
+    "english_name_application": false,
+    "product_changes": false,
+    "deployment": false
+  }
+}

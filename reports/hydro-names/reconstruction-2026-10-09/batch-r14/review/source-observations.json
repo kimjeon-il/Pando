@@ -1,0 +1,79 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "reviewed_at_utc": "2026-10-09T16:29:13.560744+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159108993",
+    "lakes_base:1159109007",
+    "lakes_base:1159108815"
+  ],
+  "observation_scope": "Past independent available-source observations; present public validation checks included factual linkage only.",
+  "new_external_requests": 0,
+  "distinct_acquired_publications": 4,
+  "distinct_cartographic_identity_publications": 1,
+  "inspected_contextual_map_publication_count": 2,
+  "unused_unavailable_publications": 4,
+  "shoreline_overlap_measured": false,
+  "survey_registration_verified": false,
+  "observations": [
+    {
+      "source_key": "cpra_fy2024_plan",
+      "url": "https://coastal.la.gov/wp-content/uploads/2023/04/CPRA_FY24-AP_20230418-compressed.pdf",
+      "publication_date": null,
+      "edition": "Fiscal Year 2024",
+      "pages": [
+        28,
+        90
+      ],
+      "role": "Grand Lake main-basin association and White Lake generalized identity",
+      "observation": "The readable Grand Lake label is northwest of the separate White Lake heart-shaped water. Complete target areas are shown. Northern/eastern connections and the southeast projection of the Grand target are not individually name-assigned. Repeated panels are one publication."
+    },
+    {
+      "source_key": "louisiana_celcp2011",
+      "url": "https://coast.noaa.gov/data/czm/landconservation/media/celcpplanlafinal.pdf",
+      "publication_date": "2011-05",
+      "pages": [
+        12,
+        30,
+        40
+      ],
+      "role": "Mermentau basin and coastal hydrologic context",
+      "observation": "The plan describes controlled basin drainage and runoff impoundment with a regional coastal-marsh gradient. The basin and protected-feature maps give context without readable target name partitions or current salinity measurements."
+    },
+    {
+      "source_key": "obvt_portrait_landing",
+      "url": "https://obvt.ca/le-bassin-versant/le_plan_directeur_de_l_eau/les-sections-du-pde/portrait/",
+      "publication_date": null,
+      "role": "Documented French body usage and basin context",
+      "observation": "The basin overview explicitly uses lac Témiscamingue for a receiving waterbody. The linked full report was not acquired; the overview does not establish complete geometry or formal naming equivalence."
+    },
+    {
+      "source_key": "orrpb_reservoirs",
+      "url": "https://www.ottawariver.ca/about-us/what-we-do/the-ottawa-river-basin-and-its-reservoirs/",
+      "map_url": "https://www.ottawariver.ca/wp-content/uploads/2019/02/Picture1.png",
+      "publication_date": null,
+      "role": "Documented English body usage, reservoir table and contextual basin schematic",
+      "observation": "The body uses Lake Timiskaming and the table links Timiskaming to reservoir 4. The small whole-basin map provides regional placement but does not resolve all target arms, marker-obscured water or lake/downstream endpoint. Its URL directory is not a publication date."
+    }
+  ],
+  "complete_geometry_observations": [
+    {
+      "aw_id": "lakes_base:1159108993",
+      "position_count": 43,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159109007",
+      "position_count": 31,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159108815",
+      "position_count": 62,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": false
+    }
+  ],
+  "included_evidence_limit": "Included files contain factual observations, bibliography and selected public-domain geometry. Original publications and inspection materials are omitted. Public validation checks only included facts and coordinates; it cannot reproduce omitted visual source judgments or complete the pending Timiskaming assessment."
+}

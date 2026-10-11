@@ -1,0 +1,190 @@
+{
+  "schema": "hydro-reconstruction-reviewed-river-batch-v2",
+  "batch": "r20",
+  "research_completed_targets": 3,
+  "bounded_research_attempts": 3,
+  "independently_reviewed_targets": 3,
+  "independent_identity_review_completed_targets": 3,
+  "source_access_limited_targets": 0,
+  "pending_full_feature_source_review_targets": 0,
+  "counting_unit": "Three logical MAIN_RIV inventory groups; not three uniformly named channels or scalar-name approvals.",
+  "counts": {
+    "supported_representative_system_identity": 3
+  },
+  "pending_source_only_targets": 0,
+  "historical_exact_ID_lead_targets": 0,
+  "historical_name_lead_targets": 0,
+  "new_inventory_targets": 3,
+  "baseline_fragment_count": 3,
+  "river_line_part_count": 159,
+  "distinct_source_reach_count": 159,
+  "river_rendered_coordinate_count": 1068,
+  "part_counts_in_target_order": [
+    49,
+    76,
+    34
+  ],
+  "position_counts_in_target_order": [
+    326,
+    491,
+    251
+  ],
+  "fragment_part_counts_in_target_order": [
+    [
+      49
+    ],
+    [
+      76
+    ],
+    [
+      34
+    ]
+  ],
+  "fragment_position_counts_in_target_order": [
+    [
+      326
+    ],
+    [
+      491
+    ],
+    [
+      251
+    ]
+  ],
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_group_scalar_name_approvals": 0,
+  "all_reach_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:50624422",
+      "category": "river_group",
+      "system_id": "50624422",
+      "baseline_logical_fid": 1949,
+      "geometry_fids": [
+        6893
+      ],
+      "candidate_name": "Mary River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path extends north from the southern inland headwater through a long northward course, then bends northeast toward the Great Sandy Strait. The directly mapped Mary River monitoring site at Miva, lower-river course and surrounding coastline support Mary River as a representative system identity. The southern upper reaches, any feeder naming transitions and coastal continuation are not assigned individual names. The selected mainstem role does not establish a uniform name for all 49 parts.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The mapped Miva station name directly anchors a river name; the Mary catchment title alone is not identity evidence.",
+        "A single modeled mainstem fragment does not prove that all upstream parts, feeders or coastal continuation have the Mary name.",
+        "The original publication is a regional assessment, not a formal naming-register decision or surveyed mouth map.",
+        "Original HydroRIVERS source-coordinate equality, exact source reach-to-rendered-part mapping and exact contemporary mouth are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Mary River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:50663106",
+      "category": "river_group",
+      "system_id": "50663106",
+      "baseline_logical_fid": 1992,
+      "geometry_fids": [
+        6936
+      ],
+      "candidate_name": "Brisbane River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path includes a western upper extension, a northeastward upper bend, the southward middle corridor and a winding eastward lower course toward Moreton Bay. The directly mapped Brisbane River monitoring site at Savages Crossing and whole-path regional correspondence support Brisbane River as a representative system identity. The upper western feeder remains unnamed. Wivenhoe is storage context; neither reservoir passages nor the exact name transition and coastal endpoint receive reach-level names. The modeled mainstem role is not proof of uniform Brisbane naming.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The mapped Savages Crossing station name directly anchors a river name; Brisbane catchment and city names alone are not identity evidence.",
+        "The western upper feeder remains unnamed. Wivenhoe and Somerset storage labels and water-supply arrows do not establish river-name extent.",
+        "The original publication is a regional assessment, not a formal naming-register decision or surveyed mouth map.",
+        "Original HydroRIVERS source-coordinate equality, exact source reach-to-rendered-part mapping and exact contemporary mouth are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Brisbane River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:50668362",
+      "category": "river_group",
+      "system_id": "50668362",
+      "baseline_logical_fid": 2003,
+      "geometry_fids": [
+        6947
+      ],
+      "candidate_name": "Logan River",
+      "research_category": "supported_representative_system_identity",
+      "independent_review_status": "representative_system_supported_with_reach_name_limits",
+      "supported_name_scope": "The complete selected path runs from a southwestern upper extension through a northerly inland corridor, then northeast and east toward the southern Moreton Bay margin. The directly mapped Logan River monitoring site at Yarrahappini and surrounding course support Logan River as a representative system identity. Logan-Albert is a regional catchment grouping, not a compound name assigned to this path. Southwestern headwater or feeder reaches, possible storage-related transitions and the coastal ending remain individually unnamed. No Albert reach assignment is made.",
+      "source_keys": [
+        "bom_australian_water_resources_assessment_2012"
+      ],
+      "limits": [
+        "The mapped Yarrahappini station name distinguishes Logan from the Logan-Albert catchment grouping and nearby Nerang.",
+        "The southwestern upper feeder remains unnamed; no Albert river-name or reservoir assignment is inferred from proximity or the modeled mainstem role.",
+        "The original publication is a regional assessment, not a formal naming-register decision or surveyed mouth map.",
+        "Original HydroRIVERS source-coordinate equality, exact source reach-to-rendered-part mapping and exact contemporary mouth are not verified."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_group_scalar_name": null,
+      "all_reach_names_verified": false,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_details": {
+        "directly_supported_name_forms": [
+          "Logan River"
+        ],
+        "follow_up_scope": "No follow-up is required to complete the bounded representative-system assessment. Any separately authorized name application would require headwater/feeder naming evidence, exact river/storage transitions and coastal scope before any per-reach or group scalar name application.",
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "b31074c1076da1730a887d68ad87b8f9afd43ad7f2417e04cef9b2fb9af22cad",
+  "publication_contents": "Own factual findings, bounded identity/count/bounds/name-state summaries and included-file validation. Full river paths, original reports, maps and private review materials are not distributed.",
+  "previous_reconstruction_commit": "57f20ae532ef66469ea2687c5ba428d3bf257756"
+}

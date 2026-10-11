@@ -1,0 +1,2134 @@
+{
+  "schema": "pando-places-tier1-review-v6",
+  "batch": "17-africa-capitals",
+  "status": "verified-source-staging-not-runtime",
+  "checkedOn": "2026-10-11",
+  "source": "GeoNames CC BY 4.0 contemporary GeoNames IDs and coordinates; historical municipal, government, academic, UNESCO, parliamentary, and contemporary journalism linked per period",
+  "selection": "25 distinct modern African capital or government-seat settlements not present in batches 01–16. City names, urban lifecycle, sovereignty, and city rank are independent.",
+  "coordinateConvention": "Modern GeoNames WGS84 EPSG:4326 representative city points; not historical borders, village geometries or relocations.",
+  "countryCodeSemantics": "sourceCountryCode and featureCode describe present-day GeoNames identities and never historical state allegiance or historical rank.",
+  "historicalDisplayPolicyFile": "reports/places/historical-display-policy.json",
+  "koreanMapLabelPolicyFile": "reports/places/korean-map-label-policy.json",
+  "historicalDisplayStatus": "timeline-staged-not-runtime",
+  "coverageNote": "A-class 1801 or modern-city baseline is only a provisional map editorial selection; it does not assert no historical renamings or attested contemporaneous Korean/English spellings. Exact legal dates are used only where independently documented.",
+  "reviewMethod": "Use existing staged place identity policy, separate city and historic predecessor, classify A/B/C, record documentary name transitions, generate period choices, validate without overwriting older files.",
+  "qualityNotes": [
+    "25 GeoNames IDs were checked against all 113 records from batches 01–16. Names, identity, source provenance and exact dates must remain separate.",
+    "Rutana GeoNames ID 433635 was explicitly rejected as a false match for Gitega; correct Gitega ID 426272 is a PPLC, whereas Bujumbura ID 425378 is now PPLA.",
+    "Bujumbura old Usumbura until 1962; Gitega new German administrative town in 1912. Relocation of Burundi's capital is not a rename.",
+    "Addis Ababa modern settlement 1887 per mayor's office; Djibouti 1888 per interior ministry; Windhoek 1890-10-18 per city council.",
+    "Windhoek German Windhuk spelling standard 1903-05-14; official form Windhoek restored in 1918. South African military occupation in 1915 alone is not a naming trigger.",
+    "Harare Fort Salisbury/Salisbury transitions are separated from officially documented Salisbury to Harare change 1982-04-18.",
+    "Gaborone: 1964 planned administrative city, name Gaberones to Gaborone in 1969 (not inferred exact day), distinct from historic Tlokweng and Government Camp.",
+    "Maputo: law decree 10/76 issued 1976-03-13 names capital Maputo, effective retroactively 1976-02-05; public announcement 1976-02-03 separately recognized.",
+    "Port Louis: municipal annual report explicitly documents Port Nord Ouest in 1801, Port Napoléon from 1803, Port Louis restored in 1810.",
+    "Victoria Seychelles: former L'Établissement du Roi renamed Victoria in 1841 per Seychelles National Museum, not during 1811 military conquest.",
+    "Antananarivo: Tananarive French administrative label and 1976 reversal recorded at year granularity, avoiding false exact legal day.",
+    "Khartoum 1885–1898 destruction/urban decline and nearby Omdurman require a separate verified urban eligibility audit; no unsourced active intervals added.",
+    "A-class city timelines are provisional coverage and require source-by-era review before claiming fully verified historical continuity.",
+    "No inference of historic national affiliation from GeoNames country code; no urban rank, historical population, tile or runtime release.",
+    "No changes to 1–16 staged batches, main, app or release manifest.",
+    "Lilongwe source point corrected to latest GeoNames PPLC 927967 (-13.966919, 33.787247); earlier non-GeoNames representative point was rejected."
+  ],
+  "difficultySummary": {
+    "A": 5,
+    "B": 13,
+    "C": 7
+  },
+  "stats": {
+    "cityCount": 25,
+    "historicalNamePeriods": 37,
+    "additionalTimelinePeriods": 12,
+    "originalStagedCities": 113
+  },
+  "records": [
+    {
+      "geonameId": 2538475,
+      "names": [
+        {
+          "text": "라바트",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/1401/"
+        },
+        {
+          "text": "Rabat",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/1401/",
+          "script": "Latn"
+        },
+        {
+          "text": "الرباط",
+          "language": "ar",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/1401/",
+          "script": "Arab"
+        }
+      ],
+      "latitude": 34.01325,
+      "longitude": -6.83255,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2538475/",
+      "sourceCountryCode": "MA",
+      "defaultDisplayNameKo": "라바트",
+      "defaultDisplayNameEn": "Rabat",
+      "defaultDisplayNameNative": "الرباط",
+      "defaultNativeLanguage": "ar",
+      "defaultNativeNames": [
+        {
+          "text": "الرباط",
+          "language": "ar",
+          "script": "Arab"
+        }
+      ],
+      "shortDescriptionKo": "아랍어 원어명 유지",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "라바트",
+          "nameEn": "Rabat",
+          "nameNative": "الرباط",
+          "nativeLanguage": "ar",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://whc.unesco.org/en/list/1401/",
+          "note": "1801년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1801년 역사 지명 조사 범위에서 선택한 현지 지명 الرباط의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "الرباط",
+              "language": "ar",
+              "script": "Arab"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
+      "researchDifficulty": "A",
+      "reviewStatus": "editorial-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 2507480,
+      "names": [
+        {
+          "text": "알제",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/565/"
+        },
+        {
+          "text": "Algiers",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/565/",
+          "script": "Latn"
+        },
+        {
+          "text": "الجزائر",
+          "language": "ar",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/565/",
+          "script": "Arab"
+        }
+      ],
+      "latitude": 36.73225,
+      "longitude": 3.08746,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2507480/",
+      "sourceCountryCode": "DZ",
+      "defaultDisplayNameKo": "알제",
+      "defaultDisplayNameEn": "Algiers",
+      "defaultDisplayNameNative": "الجزائر",
+      "defaultNativeLanguage": "ar",
+      "defaultNativeNames": [
+        {
+          "text": "الجزائر",
+          "language": "ar",
+          "script": "Arab"
+        }
+      ],
+      "shortDescriptionKo": "아랍어와 프랑스어 구별",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "알제",
+          "nameEn": "Algiers",
+          "nameNative": "الجزائر",
+          "nativeLanguage": "ar",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://whc.unesco.org/en/list/565/",
+          "note": "1801년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1801년 역사 지명 조사 범위에서 선택한 현지 지명 الجزائر의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "الجزائر",
+              "language": "ar",
+              "script": "Arab"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 2464470,
+      "names": [
+        {
+          "text": "튀니스",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/36/"
+        },
+        {
+          "text": "Tunis",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/36/",
+          "script": "Latn"
+        },
+        {
+          "text": "تونس",
+          "language": "ar",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/36/",
+          "script": "Arab"
+        }
+      ],
+      "latitude": 36.81897,
+      "longitude": 10.16579,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2464470/",
+      "sourceCountryCode": "TN",
+      "defaultDisplayNameKo": "튀니스",
+      "defaultDisplayNameEn": "Tunis",
+      "defaultDisplayNameNative": "تونس",
+      "defaultNativeLanguage": "ar",
+      "defaultNativeNames": [
+        {
+          "text": "تونس",
+          "language": "ar",
+          "script": "Arab"
+        }
+      ],
+      "shortDescriptionKo": "아랍어 원어명 유지",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "튀니스",
+          "nameEn": "Tunis",
+          "nameNative": "تونس",
+          "nativeLanguage": "ar",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://whc.unesco.org/en/list/36/",
+          "note": "1801년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1801년 역사 지명 조사 범위에서 선택한 현지 지명 تونس의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "تونس",
+              "language": "ar",
+              "script": "Arab"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
+      "researchDifficulty": "A",
+      "reviewStatus": "editorial-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 2210247,
+      "names": [
+        {
+          "text": "트리폴리",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Tripoli-Libya"
+        },
+        {
+          "text": "Tripoli",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Tripoli-Libya",
+          "script": "Latn"
+        },
+        {
+          "text": "طرابلس",
+          "language": "ar",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Tripoli-Libya",
+          "script": "Arab"
+        }
+      ],
+      "latitude": 32.88743,
+      "longitude": 13.18733,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/2210247/",
+      "sourceCountryCode": "LY",
+      "defaultDisplayNameKo": "트리폴리",
+      "defaultDisplayNameEn": "Tripoli",
+      "defaultDisplayNameNative": "طرابلس",
+      "defaultNativeLanguage": "ar",
+      "defaultNativeNames": [
+        {
+          "text": "طرابلس",
+          "language": "ar",
+          "script": "Arab"
+        }
+      ],
+      "shortDescriptionKo": "아랍어명과 영어명 구별",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "트리폴리",
+          "nameEn": "Tripoli",
+          "nameNative": "طرابلس",
+          "nativeLanguage": "ar",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://www.britannica.com/place/Tripoli-Libya",
+          "note": "1801년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1801년 역사 지명 조사 범위에서 선택한 현지 지명 طرابلس의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "طرابلس",
+              "language": "ar",
+              "script": "Arab"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
+      "researchDifficulty": "A",
+      "reviewStatus": "editorial-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 379252,
+      "names": [
+        {
+          "text": "하르툼",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Khartoum"
+        },
+        {
+          "text": "Khartoum",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Khartoum",
+          "script": "Latn"
+        },
+        {
+          "text": "الخرطوم",
+          "language": "ar",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Khartoum",
+          "script": "Arab"
+        }
+      ],
+      "latitude": 15.55177,
+      "longitude": 32.53241,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/379252/",
+      "sourceCountryCode": "SD",
+      "defaultDisplayNameKo": "하르툼",
+      "defaultDisplayNameEn": "Khartoum",
+      "defaultDisplayNameNative": "الخرطوم",
+      "defaultNativeLanguage": "ar",
+      "defaultNativeNames": [
+        {
+          "text": "الخرطوم",
+          "language": "ar",
+          "script": "Arab"
+        }
+      ],
+      "shortDescriptionKo": "1821년 근대도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1821,
+          "nameKo": "하르툼",
+          "nameEn": "Khartoum",
+          "nameNative": "الخرطوم",
+          "nativeLanguage": "ar",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://www.britannica.com/place/Khartoum",
+          "note": "1821년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1821년 역사 지명 조사 범위에서 선택한 현지 지명 الخرطوم의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "الخرطوم",
+              "language": "ar",
+              "script": "Arab"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다.",
+        "1885~1898년 시가지의 소멸·재편과 인근 옴두르만을 고려한 활성기간 판정은 보류한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1821,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.britannica.com/place/Khartoum",
+        "note": "이집트령 근대 행정도시의 형성을 1821년으로 선정",
+        "researchNote": "이집트령 근대 행정도시의 형성을 1821년으로 선정. 1885~1898년 쇠퇴·재점유, 인근 옴두르만의 별도 시가지는 도시 활성 구간의 후속 검증 대상."
+      }
+    },
+    {
+      "geonameId": 344979,
+      "names": [
+        {
+          "text": "아디스아바바",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://addismayor.gov.et/faqs"
+        },
+        {
+          "text": "Addis Ababa",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://addismayor.gov.et/faqs",
+          "script": "Latn"
+        },
+        {
+          "text": "አዲስ አበባ",
+          "language": "am",
+          "usage": "standard",
+          "sourceUrl": "https://addismayor.gov.et/faqs",
+          "script": "Ethi"
+        }
+      ],
+      "latitude": 9.02497,
+      "longitude": 38.74689,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/344979/",
+      "sourceCountryCode": "ET",
+      "defaultDisplayNameKo": "아디스아바바",
+      "defaultDisplayNameEn": "Addis Ababa",
+      "defaultDisplayNameNative": "አዲስ አበባ",
+      "defaultNativeLanguage": "am",
+      "defaultNativeNames": [
+        {
+          "text": "አዲስ አበባ",
+          "language": "am",
+          "script": "Ethi"
+        }
+      ],
+      "shortDescriptionKo": "1887년 수도 취락 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1887,
+          "nameKo": "아디스아바바",
+          "nameEn": "Addis Ababa",
+          "nameNative": "አዲስ አበባ",
+          "nativeLanguage": "am",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://addismayor.gov.et/faqs",
+          "note": "1887년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1887년 역사 지명 조사 범위에서 선택한 현지 지명 አዲስ አበባ의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "አዲስ አበባ",
+              "language": "am",
+              "script": "Ethi"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1887,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://addismayor.gov.et/faqs",
+        "note": "시 시장실은 메넬리크 2세와 타이투가 1887년 현",
+        "researchNote": "시 시장실은 메넬리크 2세와 타이투가 1887년 현 도시에 정착하며 도시를 설립했다고 확인. 엔토토·온천 마을은 별도 전신과 구분."
+      }
+    },
+    {
+      "geonameId": 184745,
+      "names": [
+        {
+          "text": "나이로비",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://nairobiassembly.go.ke/ncca/wp-content/uploads/paperlaid/2023/NAIROBI-CITY-COUNTY-INTEGRATED-DEVELOPMENT-PLAN-FOR-2023-2027-1.pdf"
+        },
+        {
+          "text": "Nairobi",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://nairobiassembly.go.ke/ncca/wp-content/uploads/paperlaid/2023/NAIROBI-CITY-COUNTY-INTEGRATED-DEVELOPMENT-PLAN-FOR-2023-2027-1.pdf",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -1.28333,
+      "longitude": 36.81667,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/184745/",
+      "sourceCountryCode": "KE",
+      "defaultDisplayNameKo": "나이로비",
+      "defaultDisplayNameEn": "Nairobi",
+      "defaultDisplayNameNative": "Nairobi",
+      "defaultNativeLanguage": "sw",
+      "defaultNativeNames": [
+        {
+          "text": "Nairobi",
+          "language": "sw",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1899년 철도도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1899,
+          "nameKo": "나이로비",
+          "nameEn": "Nairobi",
+          "nameNative": "Nairobi",
+          "nativeLanguage": "sw",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://nairobiassembly.go.ke/ncca/wp-content/uploads/paperlaid/2023/NAIROBI-CITY-COUNTY-INTEGRATED-DEVELOPMENT-PLAN-FOR-2023-2027-1.pdf",
+          "note": "1899년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1899년 역사 지명 조사 범위에서 선택한 현지 지명 Nairobi의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Nairobi",
+              "language": "sw",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1899,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://nairobiassembly.go.ke/ncca/wp-content/uploads/paperlaid/2023/NAIROBI-CITY-COUNTY-INTEGRATED-DEVELOPMENT-PLAN-FOR-2023-2027-1.pdf",
+        "note": "우간다 철도건설 거점에서 1899년 근대 나이로비가",
+        "researchNote": "우간다 철도건설 거점에서 1899년 근대 나이로비가 형성됨. 철도기지의 성립과 법정 시 지위의 시점은 별도 개념."
+      }
+    },
+    {
+      "geonameId": 160196,
+      "names": [
+        {
+          "text": "도도마",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Dodoma"
+        },
+        {
+          "text": "Dodoma",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Dodoma",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -6.17221,
+      "longitude": 35.73947,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/160196/",
+      "sourceCountryCode": "TZ",
+      "defaultDisplayNameKo": "도도마",
+      "defaultDisplayNameEn": "Dodoma",
+      "defaultDisplayNameNative": "Dodoma",
+      "defaultNativeLanguage": "sw",
+      "defaultNativeNames": [
+        {
+          "text": "Dodoma",
+          "language": "sw",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1907년 철도도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1907,
+          "nameKo": "도도마",
+          "nameEn": "Dodoma",
+          "nameNative": "Dodoma",
+          "nativeLanguage": "sw",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://www.britannica.com/place/Dodoma",
+          "note": "1907년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1907년 역사 지명 조사 범위에서 선택한 현지 지명 Dodoma의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Dodoma",
+              "language": "sw",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1907,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.britannica.com/place/Dodoma",
+        "note": "독일령 철도 거점에서 1907년 근대 도도마가 형성",
+        "researchNote": "독일령 철도 거점에서 1907년 근대 도도마가 형성. 이전의 Idodomya 마을·1970년대 수도 계획은 동일 현대 도시 객체의 법정 개칭이 아님."
+      }
+    },
+    {
+      "geonameId": 232422,
+      "names": [
+        {
+          "text": "캄팔라",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.kcca.go.ug/news/1198/about-the-authority"
+        },
+        {
+          "text": "Kampala",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.kcca.go.ug/news/1198/about-the-authority",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 0.31628,
+      "longitude": 32.58219,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/232422/",
+      "sourceCountryCode": "UG",
+      "defaultDisplayNameKo": "캄팔라",
+      "defaultDisplayNameEn": "Kampala",
+      "defaultDisplayNameNative": "Kampala",
+      "defaultNativeLanguage": "lg",
+      "defaultNativeNames": [
+        {
+          "text": "Kampala",
+          "language": "lg",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1890년 근대도시 성장",
+      "displayTimeline": [
+        {
+          "fromYear": 1890,
+          "nameKo": "캄팔라",
+          "nameEn": "Kampala",
+          "nameNative": "Kampala",
+          "nativeLanguage": "lg",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://www.kcca.go.ug/news/1198/about-the-authority",
+          "note": "1890년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1890년 역사 지명 조사 범위에서 선택한 현지 지명 Kampala의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Kampala",
+              "language": "lg",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1890,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.kcca.go.ug/news/1198/about-the-authority",
+        "note": "우간다 수도청은 1890년 Old Kampala H",
+        "researchNote": "우간다 수도청은 1890년 Old Kampala Hill의 영국 요새를 근대 도시 성장 출발점으로 기록. 이전 부간다 왕궁·Mengo는 별개."
+      }
+    },
+    {
+      "geonameId": 202061,
+      "names": [
+        {
+          "text": "키갈리",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://blackfacts.com/fact/kigali-city-rwanda-1907"
+        },
+        {
+          "text": "Kigali",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://blackfacts.com/fact/kigali-city-rwanda-1907",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -1.94995,
+      "longitude": 30.05885,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/202061/",
+      "sourceCountryCode": "RW",
+      "defaultDisplayNameKo": "키갈리",
+      "defaultDisplayNameEn": "Kigali",
+      "defaultDisplayNameNative": "Kigali",
+      "defaultNativeLanguage": "rw",
+      "defaultNativeNames": [
+        {
+          "text": "Kigali",
+          "language": "rw",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1907년 식민지 행정도시",
+      "displayTimeline": [
+        {
+          "fromYear": 1907,
+          "nameKo": "키갈리",
+          "nameEn": "Kigali",
+          "nameNative": "Kigali",
+          "nativeLanguage": "rw",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://blackfacts.com/fact/kigali-city-rwanda-1907",
+          "note": "1907년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1907년 역사 지명 조사 범위에서 선택한 현지 지명 Kigali의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Kigali",
+              "language": "rw",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1907,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://blackfacts.com/fact/kigali-city-rwanda-1907",
+        "note": "1907년 독일 행정거점의 새 시가지 형성을 근대 ",
+        "researchNote": "1907년 독일 행정거점의 새 시가지 형성을 근대 키갈리 출발점으로 선정. 이전 지역 취락이나 왕국 중심의 존재를 부정하지 않는다."
+      }
+    },
+    {
+      "geonameId": 425378,
+      "names": [
+        {
+          "text": "우숨부라",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://bujumbura.org/history/usumbura/"
+        },
+        {
+          "text": "Usumbura",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://bujumbura.org/history/usumbura/",
+          "script": "Latn"
+        },
+        {
+          "text": "부줌부라",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://bujumbura.org/history/usumbura/"
+        },
+        {
+          "text": "Bujumbura",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://bujumbura.org/history/usumbura/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -3.381928,
+      "longitude": 29.36142,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/425378/",
+      "sourceCountryCode": "BI",
+      "defaultDisplayNameKo": "부줌부라",
+      "defaultDisplayNameEn": "Bujumbura",
+      "defaultDisplayNameNative": "Bujumbura",
+      "defaultNativeLanguage": "rn",
+      "defaultNativeNames": [
+        {
+          "text": "Bujumbura",
+          "language": "rn",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1962년 우숨부라 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1897,
+          "nameKo": "우숨부라",
+          "nameEn": "Usumbura",
+          "nameNative": "Usumbura",
+          "nativeLanguage": "de",
+          "kind": "historicalGermanAdministrativeTown",
+          "sourceUrl": "https://bujumbura.org/history/usumbura/",
+          "note": "1897년 독일 통치하 군사·행정 거점 Usumbu",
+          "researchNote": "1897년 독일 통치하 군사·행정 거점 Usumbura 도시 형성을 현 부줌부라와 연계. 더 이전의 마을·연안 취락과 현대 도시 경계를 동일시하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Usumbura",
+              "language": "de",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1962,
+          "nameKo": "부줌부라",
+          "nameEn": "Bujumbura",
+          "nameNative": "Bujumbura",
+          "nativeLanguage": "rn",
+          "kind": "independenceEraOfficialRenaming",
+          "sourceUrl": "https://bujumbura.org/history/usumbura/",
+          "note": "부룬디 독립의 해에 Usumbura가 Bujumbu",
+          "researchNote": "부룬디 독립의 해에 Usumbura가 Bujumbura로 변경. 1962년 7월 1일 독립일이 도시명 변경의 독립적 법정 시행일로 증명된 것은 아니므로 연도만 기록.",
+          "nativeNames": [
+            {
+              "text": "Bujumbura",
+              "language": "rn",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다.",
+        "부줌부라 GeoNames PPLA와 정치수도 기테가 PPLC는 별도 정착지 ID이고 2019년 수도 이전은 개칭이 아니다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1897,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://bujumbura.org/history/usumbura/",
+        "note": "1897년 독일 군사거점 Usumbura 시가지 형",
+        "researchNote": "1897년 독일 군사거점 Usumbura 시가지 형성. 현 부줌부라의 정확한 법정 시 설립과 이전 호숫가 촌락의 존재를 동일시하지 않는다."
+      }
+    },
+    {
+      "geonameId": 426272,
+      "names": [
+        {
+          "text": "기테가",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://imaf.cnrs.fr/spip.php?article943=&lang=en"
+        },
+        {
+          "text": "Gitega",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://imaf.cnrs.fr/spip.php?article943=&lang=en",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -3.427077,
+      "longitude": 29.924628,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/426272/",
+      "sourceCountryCode": "BI",
+      "defaultDisplayNameKo": "기테가",
+      "defaultDisplayNameEn": "Gitega",
+      "defaultDisplayNameNative": "Gitega",
+      "defaultNativeLanguage": "rn",
+      "defaultNativeNames": [
+        {
+          "text": "Gitega",
+          "language": "rn",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1912년 근대 기테가 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1912,
+          "nameKo": "기테가",
+          "nameEn": "Gitega",
+          "nameNative": "Gitega",
+          "nativeLanguage": "rn",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://imaf.cnrs.fr/spip.php?article943=&lang=en",
+          "note": "1912년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1912년 역사 지명 조사 범위에서 선택한 현지 지명 Gitega의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Gitega",
+              "language": "rn",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다.",
+        "독일어 Kitega 철자를 독립 법정 개칭일이 확인되지 않은 별칭으로 추가하지 않는다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1912,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://imaf.cnrs.fr/spip.php?article943=&lang=en",
+        "note": "아프리카 연구소 IMAF 소속 역사학자 연구에 따르",
+        "researchNote": "아프리카 연구소 IMAF 소속 역사학자 연구에 따르면 독일 식민 정부가 1912년에 새 행정도시 기테가를 조성. 앞선 왕국의 모든 거처와 동일시하지 않는다."
+      }
+    },
+    {
+      "geonameId": 373303,
+      "names": [
+        {
+          "text": "주바",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.southsudan.net/history-of-juba/"
+        },
+        {
+          "text": "Juba",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.southsudan.net/history-of-juba/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 4.85165,
+      "longitude": 31.58247,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/373303/",
+      "sourceCountryCode": "SS",
+      "defaultDisplayNameKo": "주바",
+      "defaultDisplayNameEn": "Juba",
+      "defaultDisplayNameNative": "Juba",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Juba",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1927년 근대도시 건설",
+      "displayTimeline": [
+        {
+          "fromYear": 1927,
+          "nameKo": "주바",
+          "nameEn": "Juba",
+          "nameNative": "Juba",
+          "nativeLanguage": "en",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://www.southsudan.net/history-of-juba/",
+          "note": "1927년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1927년 역사 지명 조사 범위에서 선택한 현지 지명 Juba의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Juba",
+              "language": "en",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1927,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.southsudan.net/history-of-juba/",
+        "note": "1920~21년 기존 바리족 Juba 마을·선교 거",
+        "researchNote": "1920~21년 기존 바리족 Juba 마을·선교 거점과 별개로 1927년 근대 도심 건설이 시작됨. 도시 형성 이전 바리족 지명 검색은 별도 남겨둔다."
+      }
+    },
+    {
+      "geonameId": 343300,
+      "names": [
+        {
+          "text": "아스마라",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/1550/"
+        },
+        {
+          "text": "Asmara",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/1550/",
+          "script": "Latn"
+        },
+        {
+          "text": "ኣስመራ",
+          "language": "ti",
+          "usage": "standard",
+          "sourceUrl": "https://whc.unesco.org/en/list/1550/",
+          "script": "Ethi"
+        }
+      ],
+      "latitude": 15.33805,
+      "longitude": 38.93184,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/343300/",
+      "sourceCountryCode": "ER",
+      "defaultDisplayNameKo": "아스마라",
+      "defaultDisplayNameEn": "Asmara",
+      "defaultDisplayNameNative": "ኣስመራ",
+      "defaultNativeLanguage": "ti",
+      "defaultNativeNames": [
+        {
+          "text": "ኣስመራ",
+          "language": "ti",
+          "script": "Ethi"
+        }
+      ],
+      "shortDescriptionKo": "티그리냐어 원어명",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "아스마라",
+          "nameEn": "Asmara",
+          "nameNative": "ኣስመራ",
+          "nativeLanguage": "ti",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://whc.unesco.org/en/list/1550/",
+          "note": "1801년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1801년 역사 지명 조사 범위에서 선택한 현지 지명 ኣስመራ의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "ኣስመራ",
+              "language": "ti",
+              "script": "Ethi"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
+      "researchDifficulty": "A",
+      "reviewStatus": "editorial-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 53654,
+      "names": [
+        {
+          "text": "모가디슈",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Mogadishu"
+        },
+        {
+          "text": "Mogadishu",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Mogadishu",
+          "script": "Latn"
+        },
+        {
+          "text": "Muqdisho",
+          "language": "so",
+          "usage": "standard",
+          "sourceUrl": "https://www.britannica.com/place/Mogadishu",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 2.03711,
+      "longitude": 45.34375,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/53654/",
+      "sourceCountryCode": "SO",
+      "defaultDisplayNameKo": "모가디슈",
+      "defaultDisplayNameEn": "Mogadishu",
+      "defaultDisplayNameNative": "Muqdisho",
+      "defaultNativeLanguage": "so",
+      "defaultNativeNames": [
+        {
+          "text": "Muqdisho",
+          "language": "so",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "소말리어 원어명 유지",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "모가디슈",
+          "nameEn": "Mogadishu",
+          "nameNative": "Muqdisho",
+          "nativeLanguage": "so",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://www.britannica.com/place/Mogadishu",
+          "note": "1801년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1801년 역사 지명 조사 범위에서 선택한 현지 지명 Muqdisho의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Muqdisho",
+              "language": "so",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
+      "researchDifficulty": "A",
+      "reviewStatus": "editorial-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 223817,
+      "names": [
+        {
+          "text": "지부티",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://interieur.gouv.dj/djibouti-ville/"
+        },
+        {
+          "text": "Djibouti",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://interieur.gouv.dj/djibouti-ville/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 11.58901,
+      "longitude": 43.14503,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/223817/",
+      "sourceCountryCode": "DJ",
+      "defaultDisplayNameKo": "지부티",
+      "defaultDisplayNameEn": "Djibouti",
+      "defaultDisplayNameNative": "Djibouti",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Djibouti",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1888년 신도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1888,
+          "nameKo": "지부티",
+          "nameEn": "Djibouti",
+          "nameNative": "Djibouti",
+          "nativeLanguage": "fr",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://interieur.gouv.dj/djibouti-ville/",
+          "note": "1888년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1888년 역사 지명 조사 범위에서 선택한 현지 지명 Djibouti의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Djibouti",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다.",
+        "아랍어·프랑스어 동시 원어 표기는 공식 근거가 확인되는 시기별 다국어 검증에서 확장한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1888,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://interieur.gouv.dj/djibouti-ville/",
+        "note": "지부티 내무부에 따르면 1888년 프랑스가 이 도시",
+        "researchNote": "지부티 내무부에 따르면 1888년 프랑스가 이 도시를 창설. 오보크의 앞선 도시 연혁이나 지리 위치를 같은 현대 도심으로 이식하지 않는다."
+      }
+    },
+    {
+      "geonameId": 927967,
+      "names": [
+        {
+          "text": "릴롱궤",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://lilongwe.org/history/founding/"
+        },
+        {
+          "text": "Lilongwe",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://lilongwe.org/history/founding/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -13.966919,
+      "longitude": 33.787247,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/927967/",
+      "sourceCountryCode": "MW",
+      "defaultDisplayNameKo": "릴롱궤",
+      "defaultDisplayNameEn": "Lilongwe",
+      "defaultDisplayNameNative": "Lilongwe",
+      "defaultNativeLanguage": "ny",
+      "defaultNativeNames": [
+        {
+          "text": "Lilongwe",
+          "language": "ny",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1902년경 행정도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1902,
+          "nameKo": "릴롱궤",
+          "nameEn": "Lilongwe",
+          "nameNative": "Lilongwe",
+          "nativeLanguage": "ny",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://lilongwe.org/history/founding/",
+          "note": "1902년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1902년 역사 지명 조사 범위에서 선택한 현지 지명 Lilongwe의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Lilongwe",
+              "language": "ny",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "coordinateVerification": "GeoNames PPLC 927967 latest latitude -13.966919 longitude 33.787247, distinguished from alternate map pin -13.987511 / 33.768144"
+    },
+    {
+      "geonameId": 909137,
+      "names": [
+        {
+          "text": "루사카",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.lsk.gov.zm/?page_id=25"
+        },
+        {
+          "text": "Lusaka",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.lsk.gov.zm/?page_id=25",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -15.40669,
+      "longitude": 28.28713,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/909137/",
+      "sourceCountryCode": "ZM",
+      "defaultDisplayNameKo": "루사카",
+      "defaultDisplayNameEn": "Lusaka",
+      "defaultDisplayNameNative": "Lusaka",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Lusaka",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1913년 행정도시 형성",
+      "displayTimeline": [
+        {
+          "fromYear": 1913,
+          "nameKo": "루사카",
+          "nameEn": "Lusaka",
+          "nameNative": "Lusaka",
+          "nativeLanguage": "en",
+          "kind": "historicalLocalNameEditorialBaseline",
+          "sourceUrl": "https://www.lsk.gov.zm/?page_id=25",
+          "note": "1913년 역사 지명 조사 범위에서 선택한 현지 지",
+          "researchNote": "1913년 역사 지명 조사 범위에서 선택한 현지 지명 Lusaka의 편집 기준. 이전 도시 존재, 당대 한국어·영어 표기 실사용, 다른 역사적 지명 변화의 부재가 검증됐다는 의미는 아니다.",
+          "nativeNames": [
+            {
+              "text": "Lusaka",
+              "language": "en",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 890299,
+      "names": [
+        {
+          "text": "포트솔즈베리",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.britannica.com/place/Harare"
+        },
+        {
+          "text": "Fort Salisbury",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.britannica.com/place/Harare",
+          "script": "Latn"
+        },
+        {
+          "text": "솔즈베리",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.britannica.com/place/Harare"
+        },
+        {
+          "text": "Salisbury",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.britannica.com/place/Harare",
+          "script": "Latn"
+        },
+        {
+          "text": "하라레",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.upi.com/Archives/1982/04/18/Zimbabwe-changes-name-of-capital/9207387954000/"
+        },
+        {
+          "text": "Harare",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.upi.com/Archives/1982/04/18/Zimbabwe-changes-name-of-capital/9207387954000/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -17.82772,
+      "longitude": 31.05337,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/890299/",
+      "sourceCountryCode": "ZW",
+      "defaultDisplayNameKo": "하라레",
+      "defaultDisplayNameEn": "Harare",
+      "defaultDisplayNameNative": "Harare",
+      "defaultNativeLanguage": "sn",
+      "defaultNativeNames": [
+        {
+          "text": "Harare",
+          "language": "sn",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1890·1897·1982년 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1890,
+          "nameKo": "포트솔즈베리",
+          "nameEn": "Fort Salisbury",
+          "nameNative": "Fort Salisbury",
+          "nativeLanguage": "en",
+          "kind": "settlementFoundingName",
+          "sourceUrl": "https://www.britannica.com/place/Harare",
+          "note": "1890년 Fort Salisbury라는 식민지 군",
+          "researchNote": "1890년 Fort Salisbury라는 식민지 군사요새를 건설했고 이후 Salisbury 도시로 발전. 요새 설립과 현대 도시계획 구역을 동일시하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Fort Salisbury",
+              "language": "en",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1897,
+          "nameKo": "솔즈베리",
+          "nameEn": "Salisbury",
+          "nameNative": "Salisbury",
+          "nativeLanguage": "en",
+          "kind": "historicalMunicipalNameSelection",
+          "sourceUrl": "https://www.britannica.com/place/Harare",
+          "note": "1897년 Salisbury 시 자치단체 지위를 기",
+          "researchNote": "1897년 Salisbury 시 자치단체 지위를 기준으로 Fort를 뺀 도시명으로 편집 선택. 법정 개칭일이 1897년이라는 주장은 아니다.",
+          "nativeNames": [
+            {
+              "text": "Salisbury",
+              "language": "en",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromDate": "1982-04-18",
+          "nameKo": "하라레",
+          "nameEn": "Harare",
+          "nameNative": "Harare",
+          "nativeLanguage": "sn",
+          "kind": "officialRenaming",
+          "sourceUrl": "https://www.upi.com/Archives/1982/04/18/Zimbabwe-changes-name-of-capital/9207387954000/",
+          "note": "1982년 4월 18일 독립 2주년에 짐바브웨 수도",
+          "researchNote": "1982년 4월 18일 독립 2주년에 짐바브웨 수도 Salisbury를 Harare로 공식 개칭한 당대 보도. 원어는 쇼나어 이름으로 선정.",
+          "nativeNames": [
+            {
+              "text": "Harare",
+              "language": "sn",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1890,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.britannica.com/place/Harare",
+        "note": "1890년 Fort Salisbury 요새 및 취락",
+        "researchNote": "1890년 Fort Salisbury 요새 및 취락 창설을 근대 하라레 도시 형성으로 선정. 1897년 행정 지위와 1982년 개칭은 별도 사건."
+      }
+    },
+    {
+      "geonameId": 933773,
+      "names": [
+        {
+          "text": "개버로니스",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.getty.edu/vow/TGNFullDisplay?english=N&find=1039921&nation=&place=&subjectid=1088036"
+        },
+        {
+          "text": "Gaberones",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.getty.edu/vow/TGNFullDisplay?english=N&find=1039921&nation=&place=&subjectid=1088036",
+          "script": "Latn"
+        },
+        {
+          "text": "가보로네",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.getty.edu/vow/TGNFullDisplay?english=N&find=1039921&nation=&place=&subjectid=1088036"
+        },
+        {
+          "text": "Gaborone",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.getty.edu/vow/TGNFullDisplay?english=N&find=1039921&nation=&place=&subjectid=1088036",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -24.65451,
+      "longitude": 25.90859,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/933773/",
+      "sourceCountryCode": "BW",
+      "defaultDisplayNameKo": "가보로네",
+      "defaultDisplayNameEn": "Gaborone",
+      "defaultDisplayNameNative": "Gaborone",
+      "defaultNativeLanguage": "tn",
+      "defaultNativeNames": [
+        {
+          "text": "Gaborone",
+          "language": "tn",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1969년 개버로니스 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1964,
+          "nameKo": "개버로니스",
+          "nameEn": "Gaberones",
+          "nameNative": "Gaberones",
+          "nativeLanguage": "en",
+          "kind": "plannedCityHistoricName",
+          "sourceUrl": "https://www.getty.edu/vow/TGNFullDisplay?english=N&find=1039921&nation=&place=&subjectid=1088036",
+          "note": "1964년 인근 오래된 Government Camp",
+          "researchNote": "1964년 인근 오래된 Government Camp·촌락과 구별해 독립국의 계획수도 건설. 당대 영어 표기는 Gaberones.",
+          "nativeNames": [
+            {
+              "text": "Gaberones",
+              "language": "en",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1969,
+          "nameKo": "가보로네",
+          "nameEn": "Gaborone",
+          "nameNative": "Gaborone",
+          "nativeLanguage": "tn",
+          "kind": "officialRenaming",
+          "sourceUrl": "https://www.getty.edu/vow/TGNFullDisplay?english=N&find=1039921&nation=&place=&subjectid=1088036",
+          "note": "Getty 지명등록부는 Gaberones를 1969",
+          "researchNote": "Getty 지명등록부는 Gaberones를 1969년 이전 이름, Gaborone를 1969년 이후 대표형으로 제시. 정확한 법 시행일을 임의 확정하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Gaborone",
+              "language": "tn",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromYear": 1964,
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.getty.edu/vow/TGNFullDisplay?english=N&find=1039921&nation=&place=&subjectid=1088036",
+        "note": "1964년 현대 수도 시가지 착공. 훨씬 앞선 Ga",
+        "researchNote": "1964년 현대 수도 시가지 착공. 훨씬 앞선 Gaberones 정부기지·Tlokweng 토착 마을과 별도 도시 정체를 보존한다."
+      }
+    },
+    {
+      "geonameId": 3352136,
+      "names": [
+        {
+          "text": "빈트후크",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.windhoekcc.org.na/history-and-heritage/"
+        },
+        {
+          "text": "Windhoek",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.windhoekcc.org.na/history-and-heritage/",
+          "script": "Latn"
+        },
+        {
+          "text": "Windhuk",
+          "language": "de",
+          "usage": "historical",
+          "sourceUrl": "https://core.ac.uk/download/pdf/236363043.pdf",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -22.55941,
+      "longitude": 17.08323,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/3352136/",
+      "sourceCountryCode": "NA",
+      "defaultDisplayNameKo": "빈트후크",
+      "defaultDisplayNameEn": "Windhoek",
+      "defaultDisplayNameNative": "Windhoek",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Windhoek",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1903·1918년 철자 변경",
+      "displayTimeline": [
+        {
+          "fromDate": "1890-10-18",
+          "nameKo": "빈트후크",
+          "nameEn": "Windhoek",
+          "nameNative": "Windhoek",
+          "nativeLanguage": "de",
+          "kind": "modernTownFoundation",
+          "sourceUrl": "https://www.windhoekcc.org.na/history-and-heritage/",
+          "note": "시의회는 1890년 10월 18일 근대 식민도시의 ",
+          "researchNote": "시의회는 1890년 10월 18일 근대 식민도시의 요새 Alte Feste 건설을 도시 형성 기점으로 확인. 토착 온천·촌락의 고유명은 별도 지리 관계로 관리.",
+          "nativeNames": [
+            {
+              "text": "Windhoek",
+              "language": "de",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromDate": "1903-05-14",
+          "nameNative": "Windhuk",
+          "nativeLanguage": "de",
+          "kind": "officialGermanOrthographicStandard",
+          "sourceUrl": "https://core.ac.uk/download/pdf/236363043.pdf",
+          "note": "1903년 5월 14일 독일령 행정 문서에서 Win",
+          "researchNote": "1903년 5월 14일 독일령 행정 문서에서 Windhuk 철자를 공식화한 규정을 반영. 국제 영어명 Windhoek까지 동시에 일괄 개칭하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Windhuk",
+              "language": "de",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1918,
+          "nameNative": "Windhoek",
+          "nativeLanguage": "en",
+          "kind": "postColonialOfficialNameSelection",
+          "sourceUrl": "https://de.wiki.li//Windhoek",
+          "note": "1918년 Windhoek 공식 철자 복귀를 연도 ",
+          "researchNote": "1918년 Windhoek 공식 철자 복귀를 연도 정밀도로 기록. 1915년 군사 점령만으로 원어를 즉시 영어로 변경한 것으로 간주하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Windhoek",
+              "language": "en",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ],
+      "temporalEligibility": {
+        "cityEstablishedFromDate": "1890-10-18",
+        "beforeCityEstablished": "suppress-city-label",
+        "sourceUrl": "https://www.windhoekcc.org.na/history-and-heritage/",
+        "note": "시의회가 확인한 1890-10-18 Alte Fes",
+        "researchNote": "시의회가 확인한 1890-10-18 Alte Feste 요새 건설 시점을 근대 도시 형성 연혁으로 선정. 지역의 옛 토착 정착지와 현대 시 경계는 동일하지 않다."
+      }
+    },
+    {
+      "geonameId": 1040652,
+      "names": [
+        {
+          "text": "로렌수마르케스",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://livrozilla.com/doc/988158/as-altera%C3%A7%C3%B5es-topon%C3%ADmicas-e-os-carimbos---fep"
+        },
+        {
+          "text": "Lourenço Marques",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://livrozilla.com/doc/988158/as-altera%C3%A7%C3%B5es-topon%C3%ADmicas-e-os-carimbos---fep",
+          "script": "Latn"
+        },
+        {
+          "text": "마푸투",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://livrozilla.com/doc/988158/as-altera%C3%A7%C3%B5es-topon%C3%ADmicas-e-os-carimbos---fep"
+        },
+        {
+          "text": "Maputo",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://livrozilla.com/doc/988158/as-altera%C3%A7%C3%B5es-topon%C3%ADmicas-e-os-carimbos---fep",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -25.96553,
+      "longitude": 32.58322,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/1040652/",
+      "sourceCountryCode": "MZ",
+      "defaultDisplayNameKo": "마푸투",
+      "defaultDisplayNameEn": "Maputo",
+      "defaultDisplayNameNative": "Maputo",
+      "defaultNativeLanguage": "pt",
+      "defaultNativeNames": [
+        {
+          "text": "Maputo",
+          "language": "pt",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1976년 마푸투로 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "로렌수마르케스",
+          "nameEn": "Lourenço Marques",
+          "nameNative": "Lourenço Marques",
+          "nativeLanguage": "pt",
+          "kind": "colonialLocalName",
+          "sourceUrl": "https://livrozilla.com/doc/988158/as-altera%C3%A7%C3%B5es-topon%C3%ADmicas-e-os-carimbos---fep",
+          "note": "19세기 초 포르투갈어 원어명 Lourenço Ma",
+          "researchNote": "19세기 초 포르투갈어 원어명 Lourenço Marques를 선택. 1887년 법정 도시 승격과 1898년 식민지 수도 지정은 이름 변경이 아니다.",
+          "nativeNames": [
+            {
+              "text": "Lourenço Marques",
+              "language": "pt",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromDate": "1976-02-05",
+          "nameKo": "마푸투",
+          "nameEn": "Maputo",
+          "nameNative": "Maputo",
+          "nativeLanguage": "pt",
+          "kind": "officialRenamingRetroactiveEffect",
+          "sourceUrl": "https://livrozilla.com/doc/988158/as-altera%C3%A7%C3%B5es-topon%C3%ADmicas-e-os-carimbos---fep",
+          "note": "1976년 2월 3일 발표·3월 13일 Decret",
+          "researchNote": "1976년 2월 3일 발표·3월 13일 Decreto-Lei 10/76 공포; 제3조에 따른 법적 효력은 2월 5일로 소급. 세 날짜를 혼동하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Maputo",
+              "language": "pt",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 1070940,
+      "names": [
+        {
+          "text": "안타나나리보",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1976/09/18/tananarive-redevient-antananarivo_2965528_1819218.html"
+        },
+        {
+          "text": "Antananarivo",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1976/09/18/tananarive-redevient-antananarivo_2965528_1819218.html",
+          "script": "Latn"
+        },
+        {
+          "text": "타나나리브",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1976/09/18/tananarive-redevient-antananarivo_2965528_1819218.html"
+        },
+        {
+          "text": "Tananarive",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1976/09/18/tananarive-redevient-antananarivo_2965528_1819218.html",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -18.91368,
+      "longitude": 47.53613,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/1070940/",
+      "sourceCountryCode": "MG",
+      "defaultDisplayNameKo": "안타나나리보",
+      "defaultDisplayNameEn": "Antananarivo",
+      "defaultDisplayNameNative": "Antananarivo",
+      "defaultNativeLanguage": "mg",
+      "defaultNativeNames": [
+        {
+          "text": "Antananarivo",
+          "language": "mg",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "식민지기 타나나리브 표기",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "안타나나리보",
+          "nameEn": "Antananarivo",
+          "nameNative": "Antananarivo",
+          "nativeLanguage": "mg",
+          "kind": "precolonialMalagasyName",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1976/09/18/tananarive-redevient-antananarivo_2965528_1819218.html",
+          "note": "1801년 메리나 왕국 시기의 말라가시어 원어명 A",
+          "researchNote": "1801년 메리나 왕국 시기의 말라가시어 원어명 Antananarivo를 지도 대표형으로 선정. 영어·한국어 표기는 당대 실사용 법정명임을 뜻하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Antananarivo",
+              "language": "mg",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1896,
+          "nameKo": "타나나리브",
+          "nameEn": "Tananarive",
+          "nameNative": "Tananarive",
+          "nativeLanguage": "fr",
+          "kind": "colonialFrenchOfficialNameEditorialSelection",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1976/09/18/tananarive-redevient-antananarivo_2965528_1819218.html",
+          "note": "1896년 프랑스 식민지 편입을 기준으로 Tanan",
+          "researchNote": "1896년 프랑스 식민지 편입을 기준으로 Tananarive 행정 대표형 선정. 원래 말라가시어 Antananarivo의 사용이 소멸한 것은 아니며 정확한 법정 개칭일은 확인되지 않았다.",
+          "nativeNames": [
+            {
+              "text": "Tananarive",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1976,
+          "nameKo": "안타나나리보",
+          "nameEn": "Antananarivo",
+          "nameNative": "Antananarivo",
+          "nativeLanguage": "mg",
+          "kind": "postcolonialLocalNameRestoration",
+          "sourceUrl": "https://www.lemonde.fr/archives/article/1976/09/18/tananarive-redevient-antananarivo_2965528_1819218.html",
+          "note": "1976년 르몽드 당시 기사는 Tananarive의",
+          "researchNote": "1976년 르몽드 당시 기사는 Tananarive의 Antananarivo 복원을 확인. 9월 18일 기사 게재일을 확정적 법 시행일로 간주하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Antananarivo",
+              "language": "mg",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 934154,
+      "names": [
+        {
+          "text": "포르노르우에스트",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://mccpl.mu/wp-content/uploads/2024/10/Annual_reportJuly2018-June-2019.pdf"
+        },
+        {
+          "text": "Port Nord Ouest",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://mccpl.mu/wp-content/uploads/2024/10/Annual_reportJuly2018-June-2019.pdf",
+          "script": "Latn"
+        },
+        {
+          "text": "포르나폴레옹",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://mccpl.mu/wp-content/uploads/2024/10/Annual_reportJuly2018-June-2019.pdf"
+        },
+        {
+          "text": "Port Napoléon",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://mccpl.mu/wp-content/uploads/2024/10/Annual_reportJuly2018-June-2019.pdf",
+          "script": "Latn"
+        },
+        {
+          "text": "포트루이스",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://mccpl.mu/wp-content/uploads/2024/10/Annual_reportJuly2018-June-2019.pdf"
+        },
+        {
+          "text": "Port Louis",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://mccpl.mu/wp-content/uploads/2024/10/Annual_reportJuly2018-June-2019.pdf",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -20.16194,
+      "longitude": 57.49889,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/934154/",
+      "sourceCountryCode": "MU",
+      "defaultDisplayNameKo": "포트루이스",
+      "defaultDisplayNameEn": "Port Louis",
+      "defaultDisplayNameNative": "Port Louis",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Port Louis",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1803·1810년 법정 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "포르노르우에스트",
+          "nameEn": "Port Nord Ouest",
+          "nameNative": "Port Nord Ouest",
+          "nativeLanguage": "fr",
+          "kind": "historicalLocalName",
+          "sourceUrl": "https://mccpl.mu/wp-content/uploads/2024/10/Annual_reportJuly2018-June-2019.pdf",
+          "note": "포트루이스 시의회 연차보고서는 1795~1803년 ",
+          "researchNote": "포트루이스 시의회 연차보고서는 1795~1803년 포르노르우에스트를 당시 공식 명칭으로 제시. 1801년을 조사 기준으로 사용하며 현재명 Port Louis를 소급하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Port Nord Ouest",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1803,
+          "nameKo": "포르나폴레옹",
+          "nameEn": "Port Napoléon",
+          "nameNative": "Port Napoléon",
+          "nativeLanguage": "fr",
+          "kind": "officialNapoleonicRenaming",
+          "sourceUrl": "https://mccpl.mu/wp-content/uploads/2024/10/Annual_reportJuly2018-June-2019.pdf",
+          "note": "1803년 데카앵 총독 통치 아래 Port Napo",
+          "researchNote": "1803년 데카앵 총독 통치 아래 Port Napoléon으로 개칭. 정확한 효력일 미상으로 연도만 기록하며 1804년 황제 즉위일로 대체하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Port Napoléon",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1810,
+          "nameKo": "포트루이스",
+          "nameEn": "Port Louis",
+          "nameNative": "Port Louis",
+          "nativeLanguage": "fr",
+          "kind": "historicalNameRestoration",
+          "sourceUrl": "https://mccpl.mu/wp-content/uploads/2024/10/Annual_reportJuly2018-June-2019.pdf",
+          "note": "1810년 영국의 모리셔스 점령 후 총독 로버트 파",
+          "researchNote": "1810년 영국의 모리셔스 점령 후 총독 로버트 파콰가 Port Louis 원래 이름을 복원. 1814년 영국 영유 조약 비준일과는 별개이다.",
+          "nativeNames": [
+            {
+              "text": "Port Louis",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "C",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    },
+    {
+      "geonameId": 241131,
+      "names": [
+        {
+          "text": "레타블리스망뒤루아",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://seychellesnationalmuseums.org/history/"
+        },
+        {
+          "text": "L'Établissement du Roi",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://seychellesnationalmuseums.org/history/",
+          "script": "Latn"
+        },
+        {
+          "text": "빅토리아",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://seychellesnationalmuseums.org/history/"
+        },
+        {
+          "text": "Victoria",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://seychellesnationalmuseums.org/history/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": -4.62001,
+      "longitude": 55.45501,
+      "featureClass": "P",
+      "featureCode": "PPLC",
+      "sourceUrl": "https://www.geonames.org/241131/",
+      "sourceCountryCode": "SC",
+      "defaultDisplayNameKo": "빅토리아",
+      "defaultDisplayNameEn": "Victoria",
+      "defaultDisplayNameNative": "Victoria",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Victoria",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1841년 프랑스어명 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "레타블리스망뒤루아",
+          "nameEn": "L'Établissement du Roi",
+          "nameNative": "L'Établissement du Roi",
+          "nativeLanguage": "fr",
+          "kind": "historicalFrenchSettlementName",
+          "sourceUrl": "https://seychellesnationalmuseums.org/history/",
+          "note": "세이셸 국립박물관은 1778년 마에섬에 프랑스어 L",
+          "researchNote": "세이셸 국립박물관은 1778년 마에섬에 프랑스어 L'Établissement du Roi 취락 건설을 확인. 1801년 해당 취락을 역사 지명으로 지도에 표시.",
+          "nativeNames": [
+            {
+              "text": "L'Établissement du Roi",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ]
+        },
+        {
+          "fromYear": 1841,
+          "nameKo": "빅토리아",
+          "nameEn": "Victoria",
+          "nameNative": "Victoria",
+          "nativeLanguage": "en",
+          "kind": "officialBritishRenaming",
+          "sourceUrl": "https://seychellesnationalmuseums.org/history/",
+          "note": "1841년 영국 통치기 L'Établissement",
+          "researchNote": "1841년 영국 통치기 L'Établissement du Roi를 여왕 이름 Victoria로 공식 변경. 1811년 영국 점령 날짜를 이름 변경일로 처리하지 않는다.",
+          "nativeNames": [
+            {
+              "text": "Victoria",
+              "language": "en",
+              "script": "Latn"
+            }
+          ]
+        }
+      ],
+      "historicalDisplayCoverage": "sourced-selected-historical-transitions-not-exhaustive",
+      "researchDifficulty": "B",
+      "reviewStatus": "source-reviewed-selected-facts",
+      "nameSelectionNotes": [
+        "선택된 시대별 한국어·영어·원어명만 names[]에 수록하고 비선택 별명·약칭·추정 번역을 등록하지 않는다.",
+        "현행 GeoNames 좌표·국가코드·수도코드로 역사적 국경, 도시등급, 옛 면적을 유추하지 않는다.",
+        "도시의 표시 유효기간, 지명 변천, 국가별 시점 영토는 각각 독립적인 조사 대상으로 처리한다."
+      ]
+    }
+  ]
+}

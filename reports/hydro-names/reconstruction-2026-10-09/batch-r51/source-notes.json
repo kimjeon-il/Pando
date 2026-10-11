@@ -1,0 +1,211 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r51",
+  "sources": [
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; northern interior, northeastern ice margin, graticule and Inland Ice legend",
+      "supports": "Interior-ice setting of the long modeled route, glacial-margin setting of its eastern end and distinction between mapped contours, nearby geographical labels and river-name evidence.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. The source supports the feature-class scope conclusion, not proof of flow, connectivity or a formal river name. The historical 1995 ice margin is not asserted to be the current margin.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. Original map and all local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "p. 11 Preface; pp. 64–65 Glaciology and fig. 47; pp. 113–115 place names register",
+      "supports": "The Inland Ice is Greenland’s continental ice sheet; the map depicts surface elevation, ice thickness and sub-ice bedrock contours. The register locates nearby coastal landmarks and distinguishes their locations from the interior route.",
+      "limits": "General glaciology and a register of map labels do not identify the modeled mainstem as a named natural river. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical source.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "INEGI_SONORA_CONDENSADO_2024_2025",
+      "title": "Condensado Estatal Sonora",
+      "author": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "year": 2024,
+      "publication_year": 2025,
+      "page": "Single map sheet, PDF page 1; fourth edition 2024, copyright 2025; scale 1:970,000",
+      "limits": "Planimetric information derived from INEGI 1:250,000 sixth-edition 2023 topographic coverage. Supports regional route, direct labels and distinct storage/canal context; does not establish an exact name for every generalized reach or a present-day storage shoreline. The map has an INEGI copyright notice; no source pixels are included in public findings.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/son/794551162958.pdf"
+    },
+    {
+      "source_key": "INEGI_MADERA_2010_RELIEVE",
+      "title": "Compendio de información geográfica municipal 2010. Madera, Chihuahua",
+      "author": "INEGI",
+      "year": 2010,
+      "page": "PDF page 6 of 10, Relieve; hydrography table on PDF page 3",
+      "limits": "Municipal map based on topographic series II/III and INEGI–CONAGUA 2007 digital hydrographic mapping. Corroborates the separate Negro/Chuhuichupa/El Gavilán labels in the eastern headwater setting, not the complete lower river or precise name-change locations.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08040.pdf"
+    },
+    {
+      "source_key": "INEGI_DIVISADEROS_2010_RELIEVE",
+      "title": "Compendio de información geográfica municipal 2010. Divisaderos, Sonora",
+      "author": "INEGI",
+      "year": 2010,
+      "page": "PDF page 6 of 10, Relieve; hydrography table on PDF page 3",
+      "limits": "Direct Río Bavispe label on the eastern municipal boundary supports a bounded reach well below the northern loop. Municipal hydrography also lists Yaqui, but the table alone is not used to assign that name to the entire rendered course.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26024.pdf"
+    },
+    {
+      "source_key": "INEGI_CONOCIENDO_SONORA_2017_MAP",
+      "title": "Conociendo Sonora, séptima edición",
+      "author": "INEGI",
+      "year": 2017,
+      "page": "PDF page 24 of 25, Sonora map; scale 1:2,800,000",
+      "limits": "Broad corroboration of connected storage sequence, lower Río Yaqui and the separate Río Sonora drainage. Its smaller scale and sparse labels do not resolve the eastern headwater or every junction. Municipal/state boundaries reflect June 2016 geography.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/estudios/conociendo/702825097288.pdf"
+    },
+    {
+      "source_key": "twdb_r67_fig9_1967",
+      "title": "Reconnaissance of the Chemical Quality of Surface Waters of the Trinity River Basin, Texas, Report 67: Figure 9, Geologic Map of the Trinity River Basin Showing Location of Streamflow and Chemical-Quality Data-Collection Sites as of December 31, 1965",
+      "author": "Donald Leifeste and Leon S. Hughes, U.S. Geological Survey, with Texas Water Development Board",
+      "year": 1967,
+      "page": "Figure 9, one-sheet map",
+      "limits": "Acquired official PDF and inspected full map plus readable northern crop. Historical 1965 mapping supports channel names, branch layout and lower corridor; it predates Livingston impoundment and does not establish modern reservoir or delta boundaries.",
+      "official_url": "https://www.twdb.texas.gov/publications/reports/numbered_reports/doc/R67/Figures/r67_Fig9.pdf"
+    },
+    {
+      "source_key": "twdb_tamu_flows_2016",
+      "title": "Analyses of Flows of the Brazos and Trinity Rivers and Tributaries",
+      "author": "Ralph Wurbs and Yiwen Zhang, Texas A&M University, for Texas Water Development Board",
+      "year": 2016,
+      "page": "Printed pp. 53–56, 71; PDF pp. 56–59, 74; Figures 4.1–4.2 and Table 4.1",
+      "limits": "September 2016 report acquired in full. Figures were visually inspected and named-station table read. Regional channel/station mapping supports correspondence, not every modeled vertex or exact naming transition; historical station inclusion is not a present-operation claim.",
+      "official_url": "https://www.twdb.texas.gov/publications/reports/contracted_reports/doc/1348311643_TAMU.pdf"
+    },
+    {
+      "source_key": "tra_basin_master_plan_2016",
+      "title": "Trinity River Basin Master Plan",
+      "author": "Trinity River Authority of Texas",
+      "year": 2016,
+      "page": "PDF/printed pp. 7, 18–19; Figure 1a, Figure 2j, Table 2c",
+      "limits": "Official link redirected to its hosted Revize PDF; original acquired. Full basin and reservoir figures were visually read with the reservoir key. Basin identity and reservoir passages are supported; map boundaries are too generalized for exact reach-name assignment.",
+      "official_url": "https://www.trinityra.org/Documents%20Center/Basin%20Planning/Reports/Basin%20Master%20Plan/Master_Plan_2016_Final-2.pdf"
+    },
+    {
+      "source_key": "twdb_trinity_basin_overview",
+      "title": "River Basins: Trinity River Basin",
+      "author": "Texas Water Development Board",
+      "year": null,
+      "page": "Unpaginated basin overview, read 2026-10-10",
+      "limits": "Readable official text directly distinguishes the West/Elm confluence from the downstream Trinity River and its Trinity Bay destination. This text supplements rather than replaces mapped correspondence.",
+      "official_url": "https://www.twdb.texas.gov/surfacewater/rivers/river_basins/trinity/index.asp"
+    },
+    {
+      "source_key": "usgs_dallas_station_08057000",
+      "title": "Monitoring location Trinity Rv at Dallas, TX, USGS-08057000",
+      "author": "U.S. Geological Survey",
+      "year": null,
+      "page": "Unpaginated location metadata, read 2026-10-10",
+      "limits": "Direct station name and map-derived location support the Dallas part of the selected route. A point observation cannot name the complete group or define a confluence boundary.",
+      "official_url": "https://waterdata.usgs.gov/monitoring-location/USGS-08057000"
+    },
+    {
+      "source_key": "tpwd_lower_trinity_segment",
+      "title": "Ecologically Significant River and Stream Segments: Trinity River (Downstream of Lake Livingston)",
+      "author": "Texas Parks and Wildlife Department",
+      "year": null,
+      "page": "Unpaginated lower-river description, read 2026-10-10",
+      "limits": "Official text supports lower-river and bay context. Linked Figure 48 image returned cache miss and was not acquired or used as visual evidence; no retry. The quoted ecological segment limits are not treated as river-name limits.",
+      "official_url": "https://tpwd.texas.gov/publications/pwdpubs/pwd_rp_t3200_1059c/trinity_river2.phtml"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:90027011",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": {
+        "object_scope": "Both actual cached modeled mainstem pieces were considered together over the complete displayed route; the group bounding box was not substituted for the route.",
+        "displayed_mainstem_length_km": 972.886,
+        "displayed_length_limit": "Retained model display length, not an independently established natural-river length.",
+        "full_path_finding": "The southern interior leg, eastward interior bend, northward turn, long undulating eastward reach and southeastern approach occupy the Inland Ice on the readable official map. The short final piece remains in the northeastern ice-margin corridor between the inland ice and coastal exposed land. Map graticule, ice shading, contour legend and coastal landmarks supply the geographical correspondence.",
+        "map_interpretation": "Blue surface contours, dashed ice-thickness isopachs and grey sub-ice bedrock contours describe ice and underlying terrain; they were not read as river courses. The coastal labels Bildsøe Nunatakker, Skærfjorden and Storstrømmen do not name the complete modeled line.",
+        "name_limit": "Neither retained original establishes this full route as one named surface river, one named subglacial river or one named glacier. Proximity to a glacier or fjord cannot support a river-system name.",
+        "conclusion": "The complete geographical and feature-class scope review is supported by readable material. Retain null names and no automatic application; assigning a name later requires positive river-identity evidence.",
+        "tributary_scope": "Two displayed mainstem pieces are covered. This finding does not name every tributary or other drainage feature."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70828572",
+      "source_keys": [
+        "INEGI_SONORA_CONDENSADO_2024_2025",
+        "INEGI_MADERA_2010_RELIEVE",
+        "INEGI_DIVISADEROS_2010_RELIEVE",
+        "INEGI_CONOCIENDO_SONORA_2017_MAP"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10250
+          ],
+          "finding": "The eastern beginning follows the northwestward Río Negro corridor near La Norteña and Mesa El Poleo. The state sheet labels Río Negro directly; the Madera relief sheet independently distinguishes Río Negro, Chuhuichupa and El Gavilán. Those neighboring headwater names are not treated as synonyms or assigned wholesale to this fragment."
+        },
+        {
+          "fragments": [
+            10250
+          ],
+          "finding": "Beyond the Mesa Tres Ríos area, the route follows Río Bavispe north past the Huachinera/Bacerac/Bavispe setting, loops west near Colonia Morelos, then runs south through the Lázaro Cárdenas storage area. The northern reversal and the separate Agua Prieta/Batevito approach distinguish the selected course."
+        },
+        {
+          "fragments": [
+            10250
+          ],
+          "finding": "The southward Bavispe corridor continues past Villa Hidalgo and the Huásabas/Granados setting. The Divisaderos municipal map directly labels Río Bavispe on its eastern boundary, matching the selected western-side descent below the reservoir."
+        },
+        {
+          "fragments": [
+            10250
+          ],
+          "finding": "Farther downstream, the route joins the mapped Yaqui corridor, bends west into Plutarco Elías Calles storage and turns south past Soyopa/Onavas toward Cumuripa. The Aros approach from the east is a separate feeder, not the highlighted headwater route."
+        },
+        {
+          "fragments": [
+            10250,
+            10251
+          ],
+          "finding": "The model-fragment join lies in the Cumuripa/upper Álvaro Obregón storage setting. Fragment 10251 continues through the Oviáchic corridor, downstream past the Agua Caliente/Dique Diez setting, then west across the lower Yaqui plain toward the coast near Huírivis. Regional and state maps show the lower river independently of the irrigation-canal grid."
+        },
+        {
+          "fragments": [
+            10250,
+            10251
+          ],
+          "finding": "Both actual mainstem pieces were inspected in full. Storage crossings are generalized modeled routing, and the river-group identity does not mean that reservoir passages, small headwater segments, canals or every individual reach bear the name Río Yaqui. Exact modern shoreline or distributary correspondence is not claimed."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70806440",
+      "source_keys": [
+        "twdb_r67_fig9_1967",
+        "twdb_tamu_flows_2016",
+        "tra_basin_master_plan_2016",
+        "twdb_trinity_basin_overview",
+        "usgs_dallas_station_08057000",
+        "tpwd_lower_trinity_segment"
+      ],
+      "correspondence": [
+        "All three selected cached mainstem pieces, 9992–9994, were examined against the acquired basin maps. Their full northwest-to-southeast route, Fort Worth–Dallas turn, middle-valley bends, Livingston passage and coastal ending correspond to the Trinity system. This is route correspondence, not inference from the bounding box or MAIN_RIV alone.",
+        "Piece 9992 follows the western headwater branch into Lake Bridgeport, south toward Eagle Mountain Reservoir and Lake Worth, and east through Fort Worth toward Dallas. TWDB Report 67 Figure 9 directly labels that branch West Fork Trinity and separately depicts Clear Fork, Elm Fork and East Fork. The selected western route is not an assignment to those other forks.",
+        "The TRA 2016 reservoir map, keyed to Table 2c, distinguishes Bridgeport (2), Eagle Mountain (4), Worth (5) and Livingston (27). Their mapped positions and connecting watercourse agree with the selected route. Generalized lines crossing these water bodies retain reservoir-passage qualifications; exact entry and exit vertices were not assigned names.",
+        "Piece 9993 starts in the western Dallas vicinity and continues southeast past the Rosser and Trinidad corridors. TWDB states that the Trinity River begins at the Elm/West Fork confluence near Dallas; the modeled 9992/9993 seam is not assumed to be that naming transition. The directly named USGS Dallas station lies on the selected downstream Dallas corridor.",
+        "Piece 9994 continues along the middle Trinity corridor past Oakwood, Crockett, Midway and Riverside, crosses the Lake Livingston corridor, and follows the lower river toward Romayor, Liberty, Wallisville and Trinity Bay. The acquired 2016 flow report’s Figure 4.2 and Table 4.1 distinguish West Fork stations at Fort Worth/Grand Prairie from Trinity stations at Dallas, Rosser, Trinidad, Oakwood, Crockett, Midway, Riverside and Romayor.",
+        "The southern ending agrees with the lower Trinity-to-Trinity Bay setting in Report 67 and the TRA map. TPWD separately describes the lower named Trinity segment reaching Trinity Bay and notes interconnected sloughs/bayous below Interstate 10. No precise modern distributary, slough, mouth-channel boundary or tidal limit is assigned to the generalized endpoint."
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

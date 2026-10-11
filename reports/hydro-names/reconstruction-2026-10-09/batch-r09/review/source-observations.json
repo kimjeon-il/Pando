@@ -1,0 +1,215 @@
+{
+  "schema": "hydro-independent-source-observations-v2",
+  "scope_aw_ids": [
+    "hydro-system:50737565",
+    "hydro-system:50756799",
+    "hydro-system:50782475"
+  ],
+  "new_external_requests": 0,
+  "source_body_republication_permitted": false,
+  "original_naming_source_bodies_rehashed": 7,
+  "independent_registered_overlay_claimed": false,
+  "exact_source_reach_name_transitions_verified": false,
+  "observations": [
+    {
+      "source_key": "BOM-AWRA2012",
+      "research_source_aliases": [
+        "MOORE-MURRAY-BOM-AWRA2012",
+        "FRANKLAND-BOM-AWRA2012"
+      ],
+      "body_id": "BOM-AWRA2012-BODY",
+      "source_body_sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+      "checked_asset_ids": [
+        "BOM-AWRA2012-BODY",
+        "BOM-AWRA2012-RECEIPT",
+        "BOM-AWRA2012-TEXT",
+        "BOM-AWRA2012-VIEW-1",
+        "BOM-AWRA2012-VIEW-2"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "The two Southwest Coast maps place Moore north of Perth, Murray westward toward Mandurah and the Gordon-labelled corridor inland from the south coast. River-region labels are not individual channel names. These are two figures from one publication, reused under two source aliases.",
+      "printed_date": "2013",
+      "assessment_year": 2012,
+      "copyright_year": 2013,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T13:39:38.842251+00:00",
+      "reused_original_from_prior_batch": true
+    },
+    {
+      "source_key": "WA-SLUI38-2005",
+      "research_source_aliases": [
+        "WA-SLUI38-2005"
+      ],
+      "body_id": "WA-SLUI38-2005-BODY",
+      "source_body_sha256": "409f638c71046d932f916c38f0c4d7940953f9a8bcdd44f450af18a21b6e1d95",
+      "checked_asset_ids": [
+        "WA-SLUI38-2005-BODY",
+        "WA-SLUI38-2005-RECEIPT",
+        "WA-SLUI38-2005-TEXT",
+        "WA-SLUI38-2005-VIEW-1",
+        "WA-SLUI38-2005-VIEW-2",
+        "WA-SLUI38-2005-VIEW-3",
+        "WA-SLUI38-2005-VIEW-4"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "Printed45 and Figure3.27 distinguish Hotham and Williams upstream of the Murray, with the named river continuing through the Darling Range toward Peel Inlet. The full selected inland path is regionally consistent with the Hotham-to-Murray corridor; this is a map inference, not a verified part-name crosswalk. Printed57 explicitly distinguishes Marchagee, Coonderoo, Moore River North and Moore River East Branch before the lower Moore reaches Guilderton. Figure3.37 supports the full southward then coastward course. Coonderoo spelling was checked in the visible original.",
+      "printed_date": "2005-01",
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:25:45.505268+00:00",
+      "reused_original_from_prior_batch": false
+    },
+    {
+      "source_key": "MOORE-DWER-HEALTHYRIVERS",
+      "research_source_aliases": [
+        "MOORE-DWER-HEALTHYRIVERS"
+      ],
+      "body_id": "MOORE-DWER-HEALTHYRIVERS-BODY",
+      "source_body_sha256": "3a2f1ca45c5e828b068b4a1c292b27f17f0255b3c4b29cdbf99a3c27e7cb4ea8",
+      "checked_asset_ids": [
+        "MOORE-DWER-HEALTHYRIVERS-BODY",
+        "MOORE-DWER-HEALTHYRIVERS-RECEIPT",
+        "MOORE-DWER-HEALTHYRIVERS-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "The monitoring-site list separately uses Moore River and Moore River North Branch, plus Gingin Brook, Lennard Brook and other tributaries. The text corroborates English usage and naming distinctions; the interactive map was not inspected.",
+      "printed_date": null,
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:24:07.002341+00:00",
+      "reused_original_from_prior_batch": false
+    },
+    {
+      "source_key": "MURRAY-DWER-HEALTHYRIVERS",
+      "research_source_aliases": [
+        "MURRAY-DWER-HEALTHYRIVERS"
+      ],
+      "body_id": "MURRAY-DWER-HEALTHYRIVERS-BODY",
+      "source_body_sha256": "165dc761ecf60bbf0217d4bb1550a9ab2f0198af37001b0bafda6b23839a7065",
+      "checked_asset_ids": [
+        "MURRAY-DWER-HEALTHYRIVERS-BODY",
+        "MURRAY-DWER-HEALTHYRIVERS-RECEIPT",
+        "MURRAY-DWER-HEALTHYRIVERS-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "The profile places Hotham and Williams in the wheatbelt, Murray through the Darling Range to Pinjarra, Dandalup joining downstream and the outlet in the Peel-Harvey Estuary near Mandurah. This establishes the Western Australian context and excludes interpreting the sea endpoint as the named river mouth.",
+      "printed_date": null,
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:24:16.224746+00:00",
+      "reused_original_from_prior_batch": false
+    },
+    {
+      "source_key": "DWER-PEEL-HARVEY2021-PAGE",
+      "research_source_aliases": [
+        "DWER-PEEL-HARVEY2021-PAGE"
+      ],
+      "body_id": "DWER-PEEL-HARVEY2021-PAGE-BODY",
+      "source_body_sha256": "cc5463b0f9294e06983ac6b11dde1a5f37c1c05c9eca0445eee12ab2838e8c6c",
+      "checked_asset_ids": [
+        "DWER-PEEL-HARVEY2021-PAGE-BODY",
+        "DWER-PEEL-HARVEY2021-PAGE-RECEIPT",
+        "DWER-PEEL-HARVEY2021-PAGE-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "The acquired landing page separates Peel Inlet and Harvey Estuary from estuarine river portions and the Mandurah Channel and Dawesville Cut ocean connections. It supports connector caution for both selected Murray fragments. Only the landing page was read; its linked report was not acquired or inspected.",
+      "printed_date": "2021-08-01",
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": "2023-06-09",
+      "original_requested_at_utc": "2026-10-09T14:27:11.938931+00:00",
+      "reused_original_from_prior_batch": false
+    },
+    {
+      "source_key": "FRANKLAND-WA-WRM44",
+      "research_source_aliases": [
+        "FRANKLAND-WA-WRM44"
+      ],
+      "body_id": "FRANKLAND-WA-WRM44-BODY",
+      "source_body_sha256": "eecba47216090f5102f44fbc6a599b2eb3188f156d225533d9b9841b3475c664",
+      "checked_asset_ids": [
+        "FRANKLAND-WA-WRM44-BODY",
+        "FRANKLAND-WA-WRM44-RECEIPT",
+        "FRANKLAND-WA-WRM44-TEXT",
+        "FRANKLAND-WA-WRM44-VIEW-1",
+        "FRANKLAND-WA-WRM44-VIEW-2",
+        "FRANKLAND-WA-WRM44-VIEW-3",
+        "FRANKLAND-WA-WRM44-VIEW-4",
+        "FRANKLAND-WA-WRM44-VIEW-5",
+        "FRANKLAND-WA-WRM44-VIEW-6"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "Printed2:1 explicitly uses Gordon-Frankland River for the combined main channel, identifies Gordon upstream and Frankland downstream with the transition north of Muir Highway. Figure6.3 labels Gordon on the distinctive middle westward bend, agreeing with the selected full route. Figure1.1 supplies catchment context; Figure4.1 separates Frankland River, Nornalup Inlet and its entrance. The northern extension and exact part-level boundaries remain unresolved.",
+      "printed_date": "2004-09",
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:24:25.569145+00:00",
+      "reused_original_from_prior_batch": false
+    },
+    {
+      "source_key": "FRANKLAND-DBCA-MARINE-PARK",
+      "research_source_aliases": [
+        "FRANKLAND-DBCA-MARINE-PARK"
+      ],
+      "body_id": "FRANKLAND-DBCA-MARINE-PARK-BODY",
+      "source_body_sha256": "7a5432720f30a5c9103d1d29434c241b1206ed0f3f76dd5f721976f68f923960",
+      "checked_asset_ids": [
+        "FRANKLAND-DBCA-MARINE-PARK-BODY",
+        "FRANKLAND-DBCA-MARINE-PARK-RECEIPT",
+        "FRANKLAND-DBCA-MARINE-PARK-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "The page distinguishes Frankland, Deep and Walpole rivers from the Walpole and Nornalup inlets. It corroborates tidal and estuarine context, not the exact baseline connector or a name for every part.",
+      "printed_date": null,
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:24:34.031293+00:00",
+      "reused_original_from_prior_batch": false
+    }
+  ],
+  "complete_path_observations": [
+    {
+      "aw_id": "hydro-system:50737565",
+      "geometry_canonical_sha256": "192f7df5944983feae9207c32f5d6216833d765f7c1da0eb480c6bdf1652c59e",
+      "geometry_hash_scope": "Canonical ordered list of all fragment geometries in this group",
+      "geometry_fids": [
+        7039
+      ],
+      "part_count": 103,
+      "coordinate_count": 561,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The complete northern inland loop and long southward route turn west and southwest to Guilderton, agreeing with official Moore regional mapping and course descriptions. Moore River is a representative system identity only. Marchagee, Coonderoo, Moore River North and East Branch retain distinct names; the northern extension and exact branch transitions are unresolved."
+    },
+    {
+      "aw_id": "hydro-system:50756799",
+      "geometry_canonical_sha256": "1a6991a7dabfa41a8d6ca77727c9dc95f31b937b411fb9c208fc155298baafa2",
+      "geometry_hash_scope": "Canonical ordered list of all fragment geometries in this group",
+      "geometry_fids": [
+        7072,
+        7073
+      ],
+      "part_count": 71,
+      "coordinate_count": 423,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The complete Western Australian route agrees regionally with the Hotham-to-Murray corridor through the Darling Range toward Pinjarra and Peel Inlet. Both joined baseline mainstem fragments are reviewed, including the short northward terminal continuation. Murray River is a representative identity; Hotham, Williams, estuary and ocean-connector naming remain separate and no exact name boundary is assigned."
+    },
+    {
+      "aw_id": "hydro-system:50782475",
+      "geometry_canonical_sha256": "42e354f667a1c472db3f61064de902a65a35cc996a4fbb19f992249a467905cd",
+      "geometry_hash_scope": "Canonical ordered list of all fragment geometries in this group",
+      "geometry_fids": [
+        7099
+      ],
+      "part_count": 66,
+      "coordinate_count": 412,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The complete inland-to-southwest route and distinctive middle westward bend agree with Gordon mapping and the downstream Frankland corridor. Gordon-Frankland River is the source wording for the combined main channel and supports representative combined-system identity. Gordon River, Frankland River and Nornalup Inlet remain distinct; the northern starting extension and exact named transitions are unresolved."
+    }
+  ],
+  "map_independence_note": "BoM figures and research aliases represent one reused publication. SLUI38, WRM44 and the official web pages supply distinct publications with different scopes. Reprinted maps and shared publishers do not establish independent surveys. The previously cached WA inventory was source-worker context only and is not counted as naming evidence here."
+}

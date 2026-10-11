@@ -1,0 +1,189 @@
+{
+  "schema": "hydro-original-source-observations-v3",
+  "batch": "r41",
+  "scope_aw_ids": [
+    "lakes_base:1159110095",
+    "lakes_base:1159108225",
+    "lakes_base:1159108715"
+  ],
+  "new_external_requests": 3,
+  "new_external_requests_scope": "Two bounded official discovery searches checked companion-sheet identity. Southern proved unsuitable and was not downloaded; the original series locator identified adjacent West-Central, and one verified West-Central original body was acquired. Northern was retained from r40. The independent reviewer made no external requests, and no stopped resource was retried.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": null,
+  "new_original_source_acquisitions_this_batch": 1,
+  "distinct_reviewed_publications": 2,
+  "distinct_cartographic_identity_publications": 2,
+  "independent_source_groups": 1,
+  "source_group_definition": "Two companion Ontario Geological Survey original publications from one publisher and series. Two sheets do not establish two independent hydrographic datasets.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All 85 Northern Sheet and 25 West-Central Sheet ordered-position registrations were independently recomputed from original projected WKT/GPTS/LPTS controls using full affines, both cross terms and original MediaBox/CropBox offsets. Eight original detail/context crop arrays match fresh renders. Maximum control residuals are under 0.001 PDF point; these measure affine consistency, not map positional or shoreline accuracy. No manual shoreline fitting was used. Crop containment did not establish source coverage: the initial Northern Whitestone gap was closed only by the West-Central original.",
+  "observations": [
+    {
+      "source_key": "ogs_index_bedrock_northern_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991\u20132020, Northern Sheet",
+      "publisher": "Ontario Geological Survey",
+      "url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf",
+      "original_acquired_at_utc": "2026-10-10T01:44:15.182007+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2021",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The original suggested citation identifies Ontario Geological Survey 2021. Copyright year 2021 is recorded separately. The title interval 1991\u20132020 describes indexed map coverage; no publication month or day is established.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r40",
+      "directly_read_water_labels": [
+        "Severn Lake",
+        "Whitestone Lake",
+        "Finger Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Bearbone Lake",
+        "Knife Lake",
+        "Opasquia Lake",
+        "Angekum Lake",
+        "Sandy Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Generalized Severn Lake and Finger Lake associations; readable Whitestone Lake text and missing-coverage context only for the second target.",
+      "authority_scope": "Official provincial thematic cartographic usage supports bounded generalized water identity. It is not a formal naming-registry decision and does not certify exact shoreline or name partitions.",
+      "registered_overlay_performed": true,
+      "own_observations": "Original blue Severn Lake text and pale-cyan water correspond to the complete 24-position selected outline. The northern cap, western shoulder and southern taper were compared with original shores and wider context. Bearbone Lake to the south and Knife Lake to the west are separate contextual waters. Narrow connecting reaches do not establish exact name boundaries; coarse land crossings do not by themselves defeat the generalized association. Original blue Finger Lake text spans the pale-cyan main body corresponding to the complete 36-position ring. The northwestern inlet and eastern cap align at generalized scale; the coarse southern edge omits a lobe and northern edges cross land between inlets. Opasquia Lake and Angekum Lake are separate northern waters; Sandy Lake lies southeast beyond connecting water. None is assigned as an alias or selected named component. The Whitestone Lake label is readable, but nearly all selected-footprint hydrography is absent on this sheet. Label proximity alone does not establish the selected-water association.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "Publication Services Unit, Ontario Geological Survey compiled and edited the index; J. Rose is credited for map outlines and cartographic production. The credits caution that coverage outlines and the topographic base may differ and that editorial review was limited.",
+      "printed_copyright_year": "2021",
+      "printed_bibliographic_citation_year": "2021",
+      "hydrographic_base_provider": null,
+      "original_requested_at_utc": "2026-10-10T01:44:07.664713+00:00"
+    },
+    {
+      "source_key": "ogs_index_bedrock_west_central_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991\u20132020, West-Central Sheet",
+      "publisher": "Ontario Geological Survey",
+      "url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-WestCentral.pdf",
+      "original_acquired_at_utc": "2026-10-10T02:07:35.288175+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": true,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2021",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The original suggested citation identifies Ontario Geological Survey 2021. Copyright year 2021 is recorded separately. The title interval 1991\u20132020 describes indexed map coverage; no publication month or day is established.",
+      "review_reused_original_acquired_earlier_this_batch": true,
+      "review_reused_original_acquired_in_prior_batch": false,
+      "original_acquisition_batch": "r41",
+      "directly_read_water_labels": [
+        "Whitestone Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Cat Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Original hydrographic coverage closes the second target material gap and supports generalized Whitestone Lake identity with substantial shoreline discrepancy.",
+      "authority_scope": "Official provincial thematic cartographic usage supports bounded generalized water identity. It is not a formal naming-registry decision and does not certify exact shoreline or name partitions.",
+      "registered_overlay_performed": true,
+      "own_observations": "The West-Central original shows blue Whitestone Lake text on white land east of pale-cyan water through the northern and central selected footprint. All 25 positions were compared with the complete mapped body and wider context. The coarse rounded southern lobe overshoots the mapped shore onto white land; fine western and eastern inlets are generalized. Cat Lake lies separately farther south, beyond intervening water, and is not a selected component. The Northern Sheet text alone was insufficient because its base hydrography stops across this footprint; the newly inspected West-Central original closes that specific material gap.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "Publication Services Unit, Ontario Geological Survey compiled and edited the index; J. Rose is credited for map outlines and cartographic production. The credits caution that coverage outlines and the topographic base may differ and that editorial review was limited.",
+      "printed_copyright_year": "2021",
+      "printed_bibliographic_citation_year": "2021",
+      "hydrographic_base_provider": null,
+      "original_requested_at_utc": "2026-10-10T02:07:26.442841+00:00"
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159110095",
+      "aw_id": "lakes_base:1159110095",
+      "source_id": "1159110095",
+      "geometry_fids": [
+        15465
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 24,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original blue Severn Lake text and pale-cyan water correspond to the complete 24-position selected outline. The northern cap, western shoulder and southern taper were compared with original shores and wider context. Bearbone Lake to the south and Knife Lake to the west are separate contextual waters. Narrow connecting reaches do not establish exact name boundaries; coarse land crossings do not by themselves defeat the generalized association."
+    },
+    {
+      "observation_id": "lakes_base:1159108225",
+      "aw_id": "lakes_base:1159108225",
+      "source_id": "1159108225",
+      "geometry_fids": [
+        15322
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 25,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_west_central_2021"
+      ],
+      "context_source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "independent_observation": "The West-Central original shows blue Whitestone Lake text on white land east of pale-cyan water through the northern and central selected footprint. All 25 positions were compared with the complete mapped body and wider context. The coarse rounded southern lobe overshoots the mapped shore onto white land; fine western and eastern inlets are generalized. Cat Lake lies separately farther south, beyond intervening water, and is not a selected component. The Northern Sheet text alone was insufficient because its base hydrography stops across this footprint; the newly inspected West-Central original closes that specific material gap."
+    },
+    {
+      "observation_id": "lakes_base:1159108715",
+      "aw_id": "lakes_base:1159108715",
+      "source_id": "1159108715",
+      "geometry_fids": [
+        15358
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 36,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original blue Finger Lake text spans the pale-cyan main body corresponding to the complete 36-position ring. The northwestern inlet and eastern cap align at generalized scale; the coarse southern edge omits a lobe and northern edges cross land between inlets. Opasquia Lake and Angekum Lake are separate northern waters; Sandy Lake lies southeast beyond connecting water. None is assigned as an alias or selected named component."
+    }
+  ],
+  "source_group_limit": "Two companion official thematic publications supply generalized associations. One publisher and series are represented; independence of their underlying hydrographic base and formal naming-registry authority remain unverified.",
+  "independent_review_and_source_research_agree": true,
+  "request_accounting": {
+    "search_tool_calls": 2,
+    "search_queries": 2,
+    "explicit_web_open_requests": 0,
+    "original_body_requests": 1,
+    "new_original_bodies_acquired": 1,
+    "new_source_access_denials": 0,
+    "new_source_availability_failures": 0,
+    "stopped_resource_requests": 0,
+    "additional_source_acquisitions_planned": false
+  }
+}

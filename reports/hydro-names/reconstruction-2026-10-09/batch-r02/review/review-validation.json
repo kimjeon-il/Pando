@@ -1,0 +1,101 @@
+{
+  "schema": "hydro-independent-review-validation-v1",
+  "verified_at_utc": "2026-10-09T11:47:19.815091+00:00",
+  "validation_runs": [
+    {
+      "status": "passed",
+      "validation_mode": "package_only",
+      "package_input_count": 18,
+      "public_shapes_order_and_hashes_checked": true,
+      "public_findings_and_source_flags_checked": true,
+      "local_original_sources_hash_checked": 0,
+      "independent_binary_decode_performed": false,
+      "independent_binary_decode": [],
+      "production_decoder_replayed": false,
+      "historical_selected_inventory_joins_rechecked": false,
+      "network_requests": 0,
+      "current_live_deployment_checked": false,
+      "automatic_application": false,
+      "scalar_product_name_approvals": 0
+    },
+    {
+      "status": "passed",
+      "validation_mode": "complete_local_inputs",
+      "package_input_count": 18,
+      "public_shapes_order_and_hashes_checked": true,
+      "public_findings_and_source_flags_checked": true,
+      "local_original_sources_hash_checked": 13,
+      "independent_binary_decode_performed": true,
+      "independent_binary_decode": [
+        {
+          "source_id": "1159115267",
+          "fid": 15789,
+          "logical_fid": 4414,
+          "coordinate_count_including_closure": 95,
+          "original_feature_bytes_preserved": true,
+          "independent_binary_geometry_matches": true,
+          "ordered_coordinate_comparison": "passed"
+        },
+        {
+          "source_id": "1159123531",
+          "fid": 16267,
+          "logical_fid": 4892,
+          "coordinate_count_including_closure": 184,
+          "original_feature_bytes_preserved": true,
+          "independent_binary_geometry_matches": true,
+          "ordered_coordinate_comparison": "passed"
+        },
+        {
+          "source_id": "1159107099",
+          "fid": 15239,
+          "logical_fid": 3864,
+          "coordinate_count_including_closure": 88,
+          "original_feature_bytes_preserved": true,
+          "independent_binary_geometry_matches": true,
+          "ordered_coordinate_comparison": "passed"
+        }
+      ],
+      "production_decoder_replayed": true,
+      "historical_selected_inventory_joins_rechecked": true,
+      "network_requests": 0,
+      "current_live_deployment_checked": false,
+      "automatic_application": false,
+      "scalar_product_name_approvals": 0
+    }
+  ],
+  "corrupt_fixtures": {
+    "status": "passed",
+    "fixture_count": 5,
+    "fixtures": [
+      {
+        "case": "frozen_source_coordinate_changed",
+        "rejected": true,
+        "exit_code": 1
+      },
+      {
+        "case": "raw_original_source_changed",
+        "rejected": true,
+        "exit_code": 1
+      },
+      {
+        "case": "korean_name_fabricated",
+        "rejected": true,
+        "exit_code": 1
+      },
+      {
+        "case": "reservoir_water_mask_hold_removed",
+        "rejected": true,
+        "exit_code": 1
+      },
+      {
+        "case": "tathlina_lead_substituted",
+        "rejected": true,
+        "exit_code": 1
+      }
+    ],
+    "original_inputs_modified": false,
+    "network_requests": 0
+  },
+  "raw_source_contents_published": false,
+  "scope": "Frozen three-target research review. No network requests, product edits or current-deployment claim."
+}

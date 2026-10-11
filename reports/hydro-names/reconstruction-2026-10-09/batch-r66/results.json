@@ -1,0 +1,387 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r66",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r65",
+    "commit": "621e7f282b53c44987913975084d35a20e960637",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r65/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:60740555",
+    "hydro-system:70025373",
+    "hydro-system:90002174",
+    "hydro-system:70817659"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:60740555",
+      "category": "river_group",
+      "system_id": "60740555",
+      "baseline_logical_fid": 3442,
+      "geometry_fids": [
+        13800,
+        13801,
+        13799
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -38.6875,
+        -7.63125,
+        -36.66875,
+        -5.091259
+      ],
+      "rendered_mainstem_length_km": 459.062,
+      "rendered_network_length_km": 459.062,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -38.6875,
+          -7.63125,
+          -36.66875,
+          -5.091259
+        ]
+      },
+      "candidate_name": "Piancó–Piranhas–Açu system",
+      "candidate_names": [
+        "Rio Piancó",
+        "Rio Piranhas",
+        "Rio Açu"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The selected route supports the composite Piancó–Piranhas–Açu identity through the southwestern Paraíba headwater setting, Coremas, the middle Piranhas and Armando Ribeiro Gonçalves to the lower Açu near Macau. The component names have different reach scopes; no one name is assigned to every fragment.",
+      "geographic_disambiguation": "All three selected mainstem pieces were inspected against official whole-basin maps. The southwestern Piancó approach, two major reservoir settings, northeastward Piranhas and northward lower Açu distinguish this route from the separate upper Piranhas through São José de Piranhas, the Peixe and the eastern Seridó network. The state name Paraíba does not imply the separate Rio Paraíba.",
+      "source_keys": [
+        "r66-ana-pianco-piranhas-acu-plan-2018"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southwestern Paraíba to the northern Rio Grande do Norte coast, Brazil: Santa Inês–Conceição–Itaporanga–Piancó–Coremas–Pombal, Jardim de Piranhas–Jucurutu and Assú–Macau.",
+      "candidate_name_role": "bounded_representative_composite_system_identity",
+      "completion_scope": "Completed bounded representative correspondence using readable original official cartography and its explicit river-sequence text. The extreme initial feeder-name limit, precise reservoir crossing channels, hydronym-transition vertices and the final coastal distributary/mouth boundary remain unassigned. These are limits of the completed finding, not pending source acquisition.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Piancó–Piranhas–Açu",
+        "composite_scope": "The plan explicitly describes this successive main-course sequence. System is an editorial qualifier; the three component river names are not interchangeable aliases for the whole selection.",
+        "upper_scope": "Southwestern Santa Inês feeder setting into the Piancó corridor. The exact natural source point and Riacho Santa Inês/Piancó transition are not asserted.",
+        "reservoir_scope": "Curema/Mãe-d’Água at Coremas and Engenheiro Armando Ribeiro Gonçalves support route correspondence. The selection does not represent their complete waterbody outlines or every reservoir arm.",
+        "tributary_scope": "Upper Piranhas, Peixe, Espinharas, Seridó, Paraú and Pataxó are distinct mapped contributing context, not additional selected branches or replacement names for the entire route.",
+        "terminal_scope": "Lower Açu in the coastal Macau setting; no exact estuarine channel, ocean mouth, tidal limit or full delta-network assignment.",
+        "model_limits": "Modeled mainstem and fragment boundaries do not prove formal hydronym continuity. No natural-river length, naming history, Korean name, current flow permanence, reservoir operating status or navigation claim is made."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70025373",
+      "category": "river_group",
+      "system_id": "70025373",
+      "baseline_logical_fid": 2917,
+      "geometry_fids": [
+        8993,
+        8992,
+        8995,
+        8991,
+        8990,
+        8994
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -67.71875,
+        55.347917,
+        -65.820833,
+        58.083086
+      ],
+      "rendered_mainstem_length_km": 457.28,
+      "rendered_network_length_km": 649.264,
+      "geometry_summary": {
+        "fragment_count": 6,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -67.71875,
+          55.347917,
+          -65.820833,
+          58.083086
+        ]
+      },
+      "candidate_name": "Rivière à la Baleine system (Ungava Bay; Wheeler tributary)",
+      "candidate_names": [
+        "Rivière à la Baleine",
+        "Rivière Wheeler"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rivière à la Baleine supports the named downstream trunk and representative Ungava-draining system. Rivière Wheeler separately identifies the selected western tributary corridor. Neither name is assigned uniformly to every initial feeder, lake passage or terminal water segment.",
+      "geographic_disambiguation": "The selected southern feeder, Jeannin–Ninawawe lake setting, westward middle bend, northward lower trunk, western Wheeler confluence and southern Ungava coastal ending jointly identify this river system. This is the Rivière à la Baleine of Ungava Bay, geographically separate from the Petite and Grande rivières de la Baleine draining toward Hudson Bay. The selection does not follow the adjacent Marralik, Qurlutuq, George or Koksoak trunks.",
+      "source_keys": [
+        "r61-cehq-region10-summer-lowflow",
+        "r66-krg-masterplan-ungava-maps"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Eastern Nunavik, Nord-du-Québec, Canada: southern lake country west of the De Pas–George drainage, continuing northwest toward the southern Ungava Bay coast east of the Koksoak corridor.",
+      "candidate_name_role": "bounded_representative_system_identity_with_distinct_tributary",
+      "completion_scope": "Completed for bounded representative-system identity after inspecting the whole selected mainstem and both western tributary pieces against readable primary map pixels. Individual initial feeder names, an exact sequence through small upper lakes, hydronym transition vertices and a surveyed tidal or mouth boundary remain unassigned. These limits do not prevent identification of the representative connected system.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rivière à la Baleine",
+        "distinct_selected_tributary_name": "Rivière Wheeler",
+        "upper_scope": "The complete southern selected approach was inspected. Its first small feeder is left unnamed, and no claim is made that the selected southern endpoint is the officially named river source. The river-system label does not substitute a textbook or gazetteer source route for the actual selected line.",
+        "lake_scope": "Jeannin and Ninawawe provide the supported middle-upper lake setting. Champdoré and Tudor are eastern contextual anchors, not automatically assigned selected lake traversals. Exact small-lake identities and lake-entry/exit positions are not established from regional cartography.",
+        "tributary_scope": "The two western fragments form the selected Wheeler branch. Its hydronym remains separate from the representative Baleine system name. Nearby Chaumaux, Kuugulualuk and other depicted branches are not added to the selection merely because they occur on the source maps.",
+        "terminal_scope": "Lower river and coastal approach toward Ungava Bay; not a certified mouth, tidal limit or complete marine continuation.",
+        "historical_source_scope": "The CEHQ sheet dates to 2011. The Kativik plan is titled 2020 and contains ministry maps dated July 2020 and January 2022. Their protected-area boundaries, proposals and legal status are used only as cartographic context, not as statements of current designation.",
+        "model_limits": "Fragment boundaries do not establish hydronym boundaries. Model length is not official river length. No formal naming date, historical alias sequence, Indigenous-name equivalence or Korean form is established. No gazetteer-derived naming prose is used."
+      }
+    },
+    {
+      "aw_id": "hydro-system:90002174",
+      "category": "river_group",
+      "system_id": "90002174",
+      "baseline_logical_fid": 2817,
+      "geometry_fids": [
+        8826
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -49.738748,
+        77.758333,
+        -48.085417,
+        81.66875
+      ],
+      "rendered_mainstem_length_km": 455.544,
+      "rendered_network_length_km": 455.544,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -49.738748,
+          77.758333,
+          -48.085417,
+          81.66875
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "No natural river identity is established for the complete modeled Inland Ice path. This completed feature-class and naming-scope hold does not claim that every nearby marginal stream is unnamed.",
+      "geographic_disambiguation": "Northern Greenland Inland Ice, extending north toward the marginal terrain in the wider Sherard Osborn Fjord–Victoria Fjord region. The nearby fjord names provide regional context only; the exact terminal natural feature is unassigned.",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "Readable coverage supports the completed scope hold. Positive natural-river identity evidence would be required before any later name assignment; no further acquisition is pending now.",
+      "naming_scope_details": {
+        "displayed_mainstem_length_km": 455.544,
+        "length_limit": "Model display length, not a measured natural-river length.",
+        "exact_terminal_feature_assigned": false,
+        "current_ice_margin_or_flow_asserted": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:70817659",
+      "category": "river_group",
+      "system_id": "70817659",
+      "baseline_logical_fid": 3190,
+      "geometry_fids": [
+        10235
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -111.860643,
+        28.790353,
+        -109.960417,
+        30.966667
+      ],
+      "rendered_mainstem_length_km": 440.391,
+      "rendered_network_length_km": 440.391,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -111.860643,
+          28.790353,
+          -109.960417,
+          30.966667
+        ]
+      },
+      "candidate_name": "Río Sonora system (Cananea–Hermosillo coastal-plain corridor)",
+      "candidate_names": [
+        "Río Sonora"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Sonora is directly supported for the principal valley and Hermosillo approach. The exact initial feeder, reservoir surfaces, Canal Hermosillo and other lower-plain channels retain separate scope. The name is not extended to every modeled segment or to an asserted present-day continuous coastal river.",
+      "geographic_disambiguation": "The complete selected course begins southeast of Cananea, bends southeast toward Bacoachi, follows the Sonora valley through the Arizpe, Banámichi, Aconchi and Baviácora settings, turns southwest by Ures, passes the El Molinito and Abelardo L. Rodríguez storage settings, and extends west across the Hermosillo plain toward the Bahía de Kino–Punta Blanca coastal sector. Bacanuchi to the west of the upper valley, San Miguel de Horcasitas north of Hermosillo and the more easterly Yaqui drainage are distinct mapped corridors.",
+      "source_keys": [
+        "r66-inegi-sonora-state-2024-2025",
+        "r66-inegi-cananea-2010",
+        "r66-inegi-hermosillo-2010"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "North-central and western Sonora, Mexico; Hermosillo and the Gulf of California coastal plain.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence using the entire selected mainstem and readable official state and municipal map pixels. The initial feeder, precise hydronym transitions, reservoir boundaries and individual western plain or outlet segments remain unassigned. These are explicit limits of the representative finding, not pending acquisition or a claim that the whole modeled line carries one name.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río Sonora",
+        "upper_scope": "Southeastern Cananea approach and the Sonora-side corridor toward Bacoachi. Cananea map pixels distinguish Sonora, Bacanuchi, Los Ajos and other streams, but a precise initial feeder or source point is not assigned.",
+        "reservoir_scope": "Ingeniero Rodolfo Félix Valdés (El Molinito) and Abelardo L. Rodríguez are distinct storage settings in the Hermosillo approach. The cartography does not establish current water levels, shoreline positions or a river hydronym covering every reservoir segment.",
+        "tributary_scope": "Bacanuchi and San Miguel de Horcasitas are separately mapped contributions. The latter approaches Hermosillo from the north; neither name is applied to the entire selected course.",
+        "terminal_scope": "Western Hermosillo plain and Bahía de Kino–Punta Blanca coastal sector. Canal Hermosillo and the network of separately mapped dry/intermittent channels preclude treating the entire modeled terminal extension as one directly verified Río Sonora reach. No exact estuary boundary or contemporary river mouth is assigned.",
+        "model_limits": "A continuous modeled mainstem does not demonstrate one hydronym, perennial flow, a present-day source-to-sea surface-water connection or an official river length. The source maps have different reference dates. No Korean form or historical name sequence was established."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90002174"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 207,
+    "non_pending_records": 202,
+    "source_access_pending": 3,
+    "source_material_pending": 2,
+    "source_any_pending": 5,
+    "scope_holds": 66,
+    "river_groups": 109,
+    "lakes": 98,
+    "unrecorded": 3858,
+    "unrecorded_river_groups": 3346,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r66-ana-pianco-piranhas-acu-plan-2018",
+      "official_url": "https://www.gov.br/ana/pt-br/assuntos/gestao-das-aguas/planos-de-recursos-hidricos/planos-de-recursos-hidricos-de-bacias-hidrograficas/planos-de-bacias-hidrograficas-interfederativas/pianco-piranhas-acu/PlanodeRecursosHdricosdaBaciaHidrogrficadoRioPiancPiranhasAu2.pdf"
+    },
+    {
+      "source_key": "r61-cehq-region10-summer-lowflow",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r66-krg-masterplan-ungava-maps",
+      "official_url": "https://www.krg.ca/en-CA/assets/renewable-resources/MasterPlan%28FR%29.pdf"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r66-inegi-sonora-state-2024-2025",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/son/794551162958.pdf"
+    },
+    {
+      "source_key": "r66-inegi-cananea-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26019.pdf"
+    },
+    {
+      "source_key": "r66-inegi-hermosillo-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26030.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "621e7f282b53c44987913975084d35a20e960637",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      63,
+      64,
+      65,
+      66
+    ],
+    "next_unrecorded_id": "hydro-system:60103042",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

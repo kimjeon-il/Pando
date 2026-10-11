@@ -1,0 +1,374 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r58",
+  "sources": [
+    {
+      "source_key": "r58-gba-atlas-salado-2020",
+      "title": "Atlas: Cuencas y Regiones Hídricas–Ambientales de la Provincia de Buenos Aires, Etapa 1",
+      "publisher": "Gobierno de la Provincia de Buenos Aires, Ministerio de Infraestructura y Servicios Públicos",
+      "attribution": "Subsecretaría de Recursos Hídricos, Dirección Provincial de Hidráulica; coordinated by its Departamento de Estudios Ambientales y Sociales. Introduction credits IGN, INDEC and provincial technical studies; cover and preface mark the province's bicentennial.",
+      "year": 2020,
+      "page": "Printed sheet 12, Cuenca Hidrográfica Río Salado (PDF page 17); front matter",
+      "supports": "Brandsen–Las Flores approach, upper and lower Salado course and settlement sequence, coastal outlet, distinct tributary and canal context.",
+      "limits": "Regional atlas uses IGN cartographic bases and modeled basin outlines. It is not a reach-level gazetteer or a current survey of channel works.",
+      "official_url": "https://www.minfra.gba.gov.ar/web/Hidraulica/Atlas.pdf"
+    },
+    {
+      "source_key": "r58-ssrh-salado-48-2006",
+      "title": "Cuenca del Río Salado de Buenos Aires, Cuenca Nº 48",
+      "publisher": "Subsecretaría de Recursos Hídricos, Argentina; official Argentina.gob.ar water-resources archive",
+      "attribution": "Prepared by Paula Sarafian, 05/06, as credited on printed page 9. Page 3 maps are credited as own elaboration based on SSRH (2002); the account identifies its historical and plan sources.",
+      "year": 2006,
+      "page": "Printed pp. 1–5 and 9; Lagunas and Cursos Principales maps p. 3",
+      "supports": "Brandsen–Blanca Grande–Las Flores sequence; separate Vallimanca/Saladillo and canal connections; Junín lake district and Salado outlet.",
+      "limits": "Historical synthesis and generalized mapping, not confirmation of every selected model link or present-day hydraulic condition.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/48_nueva.pdf"
+    },
+    {
+      "source_key": "r58-gba-salado-plan-page",
+      "title": "Cuenca del Río Salado",
+      "publisher": "Dirección Provincial de Hidráulica, Gobierno de la Provincia de Buenos Aires",
+      "attribution": "Official Plan Maestro Integral basin webpage; regional physical and environmental descriptions.",
+      "page": "Regiones Hídricas; Arroyo Vallimanca–Arroyo Las Flores; Zona Deprimida",
+      "supports": "Separate river/tributary systems, wetland confluence and artificial-drainage distinctions.",
+      "limits": "Regional context only; plan-wide descriptions do not name every modeled reach.",
+      "official_url": "https://www.gba.gob.ar/hidraulica/interior_bonaerense/cuenca_salado"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; west-central Inland Ice around 66–68°N, western graticule and margin, Søndre Strømfjord context and Inland Ice legend",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology, including Figure 47",
+      "supports": "Identifies Inland Ice as the continental ice sheet and explains the surface, thickness and sub-ice bedrock contours; provides no natural river identity for the modeled path.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r58-qc-patp-regional-2012",
+      "title": "Plan d’affectation du territoire public de la Côte-Nord — Carte 1 : Territoire d’application",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune",
+      "attribution": "Direction générale de la Côte-Nord; © Gouvernement du Québec. Scale 1:3,500,000; hydrographic base BDGA 1M, MRNF 2003.",
+      "year": 2012,
+      "page": "Single sheet; regional context and enlarged western upper-route area",
+      "supports": "Complete regional drainage context, characteristic western upper-route bends and their continuation toward the named lower corridor.",
+      "limits": "Generalized administrative cartography. It supports representative-system correspondence, not a precise source, every small feeder, formal hydronym boundaries or an international/interprovincial boundary ruling.",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Cote-Nord/CA_01_territoire-application-PATP_CN_MERN.pdf?1605016518="
+    },
+    {
+      "source_key": "r58-qc-patp-east-2012",
+      "title": "Plan d’affectation du territoire public de la Côte-Nord — Carte 2 : Droits, statuts et activités usuelles — Partie est",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune",
+      "attribution": "Direction générale de la Côte-Nord; © Gouvernement du Québec. Scale 1:500,000; topographic and administrative base BDTA 250k, MRNF 2004.",
+      "year": 2012,
+      "page": "Single sheet; upper continuation, Fourmont/confluence context, middle and lower corridor",
+      "supports": "Channel and lake-chain correspondence, separate northeast tributary and direct lower-corridor Petit Mécatina label.",
+      "limits": "The westernmost upper approach lies outside this sheet. Labrador context is sparsely labeled; small tributary and lake-transition names are not established. Administrative/activity overlays are not hydronym boundaries.",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Cote-Nord/CA_02_droits-statuts-activites-est-PATP_CN_MERN.pdf.pdf?1592922714="
+    },
+    {
+      "source_key": "r58-qc-mecatina-delta-2005",
+      "title": "Les tourbières du delta de la rivière du Petit Mécatina, Québec — Hors-série",
+      "authors": "Pierre Grondin, Denis Hotte et Jean Noël",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune, Direction de la recherche forestière, with Ministère du Développement durable, de l’Environnement et des Parcs, Service des parcs",
+      "attribution": "© Gouvernement du Québec; Figure 11 pocket map uses an aerial-photograph mosaic from 2001 and observation points from September 2004.",
+      "year": 2005,
+      "page": "Title/imprint and Figure 11 pocket map, final PDF page 146",
+      "supports": "Explicit distinction between the eastward Petit Mécatina branch and southern Nétagamiou outlet; split and coastal channel form.",
+      "limits": "Historical ecological/aerial mapping. It does not establish current shoreline, detailed modern channel conditions or a name for the upstream regional system by itself.",
+      "official_url": "https://diffusion.mern.gouv.qc.ca/public/Biblio/Mono/2011/10/1099319.pdf"
+    },
+    {
+      "source_key": "r58-nl-mecatina-above-fourmont",
+      "title": "Canada Newfoundland Water Quality Station Profile: NF02XA0001, Little Mecatina River Above Lac Fourmont",
+      "publisher": "Government of Newfoundland and Labrador, CANAL",
+      "attribution": "Official provincial water-quality station profile.",
+      "supports": "English river form and upper river corridor above Fourmont.",
+      "limits": "Station/corridor evidence, not complete-path visual mapping. Development, ecological and monitoring-status statements are not adopted.",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF02XA0001"
+    },
+    {
+      "source_key": "r58-nl-fourmont-outlet",
+      "title": "Canada Newfoundland Water Quality Station Profile: NF02XA0029, Lac Fourmont at Outlet",
+      "publisher": "Government of Newfoundland and Labrador, CANAL",
+      "attribution": "Official provincial water-quality station profile.",
+      "supports": "Fourmont lake and its eastern outlet to Little Mecatina River.",
+      "limits": "Point and geographic relationship only; no precise modeled lake-transition vertex is established.",
+      "official_url": "https://www.canal.gov.nl.ca/root/main/station_details_e.asp?envirodat=NF02XA0029"
+    },
+    {
+      "source_key": "r58-qc-mecatina-station",
+      "title": "Fiche signalétique de la station 075705 — Du Petit Mécatina",
+      "publisher": "Québec, Ministère de l’Environnement, de la Lutte contre les changements climatiques, de la Faune et des Parcs",
+      "attribution": "Official provincial hydrometric station profile; federal station 02XA008.",
+      "supports": "Petit Mécatina river wording and station upstream of Nétagamiou.",
+      "limits": "No discharge series or operating-state assessment used. Station naming alone does not name the whole group.",
+      "official_url": "https://www.cehq.gouv.qc.ca/hydrometrie/historique_donnees/fiche_station.asp?NoStation=075705"
+    },
+    {
+      "source_key": "r58-canada-salmon-rivers-annex6",
+      "title": "Règlement de pêche du Québec (1990), DORS/90-214 — Annexe 6, Liste des rivières à saumon",
+      "publisher": "Government of Canada, Justice Laws Website",
+      "attribution": "Federal consolidated regulatory text; entries 70 and 78.",
+      "supports": "Separately named coastal channels; Nétagamiou upstream connection to Petit Mécatina and southern endpoint context.",
+      "limits": "Used solely as geographic name/relationship evidence, not legal or fishing advice. Regulatory reach limits do not define the entire hydronym or every modeled vertex.",
+      "official_url": "https://laws-lois.justice.gc.ca/fra/reglements/dors-90-214/page-11.html"
+    },
+    {
+      "source_key": "r58-gnwt-southern-arctic-map",
+      "title": "Ecological Regions of the Northwest Territories: Southern Arctic, overview map",
+      "publisher": "Government of the Northwest Territories, Department of Environment and Natural Resources",
+      "attribution": "Ecosystem Classification Group (2012); sheet credits ENR, Government of NWT data, March 2010, Lambert Conformal Conic, NAD83 (CSRS).",
+      "year": 2012,
+      "page": "Single-sheet Tundra Plains panel",
+      "supports": "Connected upper, middle and lower Horton route; separation of Horton Lake, adjacent drainages and coastal setting.",
+      "limits": "Regional ecological cartography, not a detailed name-boundary or modern-channel survey; headwater feeders and delta branches are not individually named.",
+      "official_url": "https://www.gov.nt.ca/ecc/en/node/1560"
+    },
+    {
+      "source_key": "r58-gnwt-southern-arctic-report",
+      "title": "Ecological Regions of the Northwest Territories: Southern Arctic",
+      "publisher": "Government of the Northwest Territories, Department of Environment and Natural Resources",
+      "attribution": "Ecosystem Classification Group (2012), Yellowknife, Northwest Territories, x + 170 pages plus insert map.",
+      "year": 2012,
+      "page": "Printed pp. 54, 56, 58, 72 and 74; Figure 31 on p. 149",
+      "supports": "East-to-west upper Horton north of the lake; Horton Upland, Central and West Horton corridor; tributary and Smoking Hills separation.",
+      "limits": "Ecological regional descriptions corroborate map correspondence but do not specify exact hydronym transitions, surveyed sources or channel boundaries.",
+      "official_url": "https://www.gov.nt.ca/ecc/en/southern-arctic-ecological-land-classification-report"
+    },
+    {
+      "source_key": "r58-nasa-horton-delta",
+      "title": "Horton River Delta, Arctic Canada",
+      "publisher": "NASA Earth Observatory",
+      "attribution": "Image by Jesse Allen and Robert Simmon using EO-1 ALI data from the NASA EO-1 team; caption by Michon Scott. Image acquired 31 July 2012; article dated 4 September 2012.",
+      "year": 2012,
+      "page": "Direct article and linked EO-1 image",
+      "supports": "Horton discharges to Franklin Bay; active delta and abandoned meander context are distinct.",
+      "limits": "2012 imagery and explanatory text provide terminal context, not current navigation, exact model georegistration or formal abandoned-channel names.",
+      "official_url": "https://science.nasa.gov/earth/earth-observatory/horton-river-delta-arctic-canada-79044/"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61519656",
+      "source_keys": [
+        "r58-gba-atlas-salado-2020",
+        "r58-ssrh-salado-48-2006",
+        "r58-gba-salado-plan-page"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14469
+          ],
+          "finding": "The southern endpoint approaches northwest west of Olavarría, turns near Blanca Grande and continues northeast. The atlas resolves Brandsen and the subsequent Las Flores corridor; the national account describes Brandsen feeding Blanca Grande and Las Flores leaving it. The southernmost modeled feeder is left unnamed, and the lake passage is not renamed as a river.",
+          "sources": [
+            "r58-gba-atlas-salado-2020",
+            "r58-ssrh-salado-48-2006"
+          ]
+        },
+        {
+          "fragments": [
+            14469,
+            14470
+          ],
+          "finding": "The selected line runs northeast past the General Alvear setting, south of Saladillo, then east and north through the Las Flores confluence lowlands. This corresponds to the separate Las Flores approach, not the upper Salado route. The national account distinguishes the Flores Grande lake, Chileno and Canal 16 connections; these provide network context without assigning each modeled link an official channel name.",
+          "sources": [
+            "r58-gba-atlas-salado-2020",
+            "r58-ssrh-salado-48-2006"
+          ]
+        },
+        {
+          "fragments": [
+            14470,
+            14471
+          ],
+          "finding": "After the confluence southeast of Roque Pérez, the selection follows the Salado east/southeast through the Monte–General Belgrano setting. Its subsequent pronounced southern bend north of Castelli and turn northeast to the coast match the atlas's repeatedly labeled Río Salado. Canal 15, drawn separately farther south, is not an alias or replacement for this selected terminal route.",
+          "sources": [
+            "r58-gba-atlas-salado-2020"
+          ]
+        },
+        {
+          "fragments": [
+            14471,
+            14472
+          ],
+          "finding": "The selected eastern endpoint corresponds to the Salado's Bahía Samborombón outlet setting. The southern grouped feeder enters near the lower-course bend, amid the separate Camarones/Gualicho and engineered-drainage network. The sources support that regional context, without establishing one hydronym for every part of this model-linked feeder or an exact tidal shoreline vertex.",
+          "sources": [
+            "r58-gba-atlas-salado-2020",
+            "r58-ssrh-salado-48-2006"
+          ]
+        },
+        {
+          "fragments": [
+            14473,
+            14474,
+            14475,
+            14476,
+            14477
+          ],
+          "finding": "The grouped northern branch follows the upper Salado through the Junín lake district and the Bragado–Alberti/Chivilcoy corridor to the lower junction, although the model calls it tributary. The western branch occupies the Vallimanca–Saladillo lowlands, where the provincial plan distinguishes streams, wetlands and artificial drainage. These relationships support a Salado-system representative name, not a blanket rename of all nine pieces.",
+          "sources": [
+            "r58-gba-atlas-salado-2020",
+            "r58-ssrh-salado-48-2006",
+            "r58-gba-salado-plan-page"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90096824",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "The complete single selected line was inspected: the eastern southward leg, the long westward interior run, its broad southern trough, the northwestward rise and final short western sequence. No additional tributary fragment is present.",
+        "The long eastern and central sections occupy mapped Inland Ice. The western sequence approaches the western ice/land margin north/northeast of the mapped Søndre Strømfjord locality. Readable graticule, land/ice configuration and the actual sequence of bends support regional feature-class correspondence, not a named-river alignment.",
+        "The original map does not establish this entire line as one named surface river, subglacial river or glacier. No nearby locality, fjord or possible marginal-stream name is transferred to the full interior route; its exact terminal natural-feature identity remains unassigned.",
+        "The legend separates ice-surface contours, ice-thickness isopachs, sub-ice bedrock contours and the aeromagnetic lineaments drawn south of 68°N. None supplies a river name. Historical mapping does not establish present ice margins, actual flow or hydraulic connectivity."
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70237748",
+      "source_keys": [
+        "r58-qc-patp-regional-2012",
+        "r58-qc-patp-east-2012",
+        "r58-qc-mecatina-delta-2005",
+        "r58-nl-mecatina-above-fourmont",
+        "r58-nl-fourmont-outlet",
+        "r58-qc-mecatina-station",
+        "r58-canada-salmon-rivers-annex6"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9312
+          ],
+          "finding": "The regional PATP sheet preserves the western southeastward approach, the broad eastward corridor with its successive northward bends, and the later southeast descent. This distinctive sequence joins the route continued on the eastern sheet and is separate from the Churchill corridor to the north and the Romaine and Natashquan systems farther west or southwest. The regional scale supports drainage correspondence; it does not establish the exact source or a name for every initial feeder and lake passage.",
+          "sources": [
+            "r58-qc-patp-regional-2012"
+          ]
+        },
+        {
+          "fragments": [
+            9312,
+            9313
+          ],
+          "finding": "The eastward continuation approaches and traverses the elongated Fourmont lake corridor before turning southeast. The eastern PATP hydrographic base shows the connecting channel and waterbody shapes. The provincial station profile directly names Little Mecatina River above Lac Fourmont, while the separate lake-outlet profile identifies Fourmont as a lake with an outlet into that river. The lake name is not treated as a river alias, and the model fragment join is not a naming boundary.",
+          "sources": [
+            "r58-qc-patp-east-2012",
+            "r58-nl-mecatina-above-fourmont",
+            "r58-nl-fourmont-outlet"
+          ]
+        },
+        {
+          "fragments": [
+            9315
+          ],
+          "finding": "The short northeast branch approaches the main corridor near the Fourmont outlet and the southward turn. Its separate confluence and surrounding lake-channel setting are visible on the eastern PATP sheet. It remains a distinct tributary fragment; neither its whole local name nor a uniform Petit Mécatina name is inferred from model membership.",
+          "sources": [
+            "r58-qc-patp-east-2012"
+          ]
+        },
+        {
+          "fragments": [
+            9314
+          ],
+          "finding": "The long southern piece follows the eastern sheet’s channel from the northern lake passages through the extended southward descent, eastward bulge and renewed southern course. Rivière du Petit Mécatina is printed along this same lower corridor. The provincial hydrometric profile independently places the Petit Mécatina station upstream of the Nétagamiou junction. Neighboring Olomane and other coastal drainages remain separate.",
+          "sources": [
+            "r58-qc-patp-east-2012",
+            "r58-qc-mecatina-station"
+          ]
+        },
+        {
+          "fragments": [
+            9314
+          ],
+          "finding": "At the coastal split, the selected line continues south rather than following the eastern branch. The forestry report’s original Figure 11 aerial mosaic separately labels the southward channel Rivière Nétagamiou and the eastward channel Rivière du Petit Mécatina. The federal salmon-river schedule independently describes Nétagamiou as extending upstream to Petit Mécatina and places its lower limit at the selected southern coastal outlet. Nétagamiou is therefore preserved as a distinct terminal name, not a synonym for the entire group or a tributary flowing toward Petit Mécatina.",
+          "sources": [
+            "r58-qc-mecatina-delta-2005",
+            "r58-canada-salmon-rivers-annex6"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80037182",
+      "source_keys": [
+        "r58-gnwt-southern-arctic-map",
+        "r58-gnwt-southern-arctic-report",
+        "r58-nasa-horton-delta"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2344
+          ],
+          "finding": "The eastern end runs west through the upper drainage north of Horton Lake, with a southward dip before turning northwest. The ecological map shows this river corridor separately from the lake; the South Horton Plain description identifies the east-to-west watercourse as Horton River. The model endpoint is not certified as its named source.",
+          "sources": [
+            "r58-gnwt-southern-arctic-map",
+            "r58-gnwt-southern-arctic-report"
+          ]
+        },
+        {
+          "fragments": [
+            2344
+          ],
+          "finding": "The next long north-northwest reach traverses the dissected Horton Upland. The original map labels Horton River on this connected trunk and separates the dendritic feeder valleys from the Hornaday drainage farther east. Small tributary names are not distributed onto the selected line.",
+          "sources": [
+            "r58-gnwt-southern-arctic-map",
+            "r58-gnwt-southern-arctic-report"
+          ]
+        },
+        {
+          "fragments": [
+            2344
+          ],
+          "finding": "The central path bends northwest across the Horton plains, then makes its conspicuous westward elbow before resuming a northwest course. This sequence matches the mapped Horton trunk through the Central and West Horton settings; nearby lakes and the West River and Coal Creek tributaries retain separate scope.",
+          "sources": [
+            "r58-gnwt-southern-arctic-map",
+            "r58-gnwt-southern-arctic-report"
+          ]
+        },
+        {
+          "fragments": [
+            2344
+          ],
+          "finding": "The lower course turns north along the Smoking Hills, preserving the successive large meanders shown on the original hydrographic base. The report identifies Horton as crossing these hills in a confined valley, distinct from Anderson River on their western side.",
+          "sources": [
+            "r58-gnwt-southern-arctic-map",
+            "r58-gnwt-southern-arctic-report"
+          ]
+        },
+        {
+          "fragments": [
+            2344
+          ],
+          "finding": "The final coastal approach corresponds to the Horton–Franklin Bay setting. NASA imagery and direct text distinguish the active delta from abandoned meanders farther north. The model ends with a straight coastal extension, so that endpoint is not adopted as a surveyed modern mouth, current distributary or named abandoned channel.",
+          "sources": [
+            "r58-gnwt-southern-arctic-map",
+            "r58-nasa-horton-delta"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

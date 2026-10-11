@@ -1,0 +1,194 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r33",
+  "scope_aw_ids": [
+    "lakes_base:1159108505",
+    "lakes_base:1159111821",
+    "lakes_base:1159112235"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "No external requests or original-source acquisitions were made in r33 or this independent review. Three retained originals were reused locally.",
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 3,
+  "distinct_cartographic_identity_publications": 3,
+  "independent_source_groups": 2,
+  "source_group_definition": "Two publisher groups: Water Security Agency and Elections Saskatchewan. Two Elections constituency sheets do not constitute two independently verified hydrographic datasets.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "Retained geospatial map registration aids full-footprint comparison but does not certify surveyed shorelines, exact named-water partitions or present conditions.",
+  "observations": [
+    {
+      "source_key": "wsa_completed_watershed_plans_2014",
+      "title": "Map of Saskatchewan Showing Completed Watershed Plans",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "original_acquired_at_utc": "2026-10-09T13:17:20.296694+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": null,
+      "publication_date_verified": false,
+      "publication_date_note": "The printed map production date is verified. A publication date is not independently established; URL directory and HTTP modification dates are not publication dates.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": null,
+      "original_acquisition_batch_note": "Receipt timestamp verified; the original acquisition batch is not established here. Retained r17 reuse supplies the inspected original.",
+      "directly_read_water_labels": [
+        "Hatchet Lake",
+        "Tazin Lake",
+        "Charcoal Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Corson Lake",
+        "Scrimes Lake",
+        "Kingston Lake",
+        "Waspison Lake",
+        "Sava Lake"
+      ],
+      "physical_pdf_page": 1,
+      "role": "Direct water labels and complete selected-footprint regional context.",
+      "authority_scope": "Official planning/electoral cartographic usage supports bounded water associations. No formal naming-registry decision, current shoreline or exact name boundary is established.",
+      "printed_scale": "1:1,750,000 at 22 by 34 inches",
+      "cartographic_credit_observed": "Map and datasets credited to Government of Saskatchewan, 2014; produced by Water Security Agency, Geomatics.",
+      "own_observations": "The map directly labels Hatchet Lake, Tazin Lake and Charcoal Lake over the corresponding selected waters. It shows distinct nearby water outlines but does not label Phillips Lake. Its warning says accuracy and completeness vary and advises confirmation where precision or currency matters.",
+      "printed_production_date": "2014-11-25"
+    },
+    {
+      "source_key": "elections_athabasca_ge30",
+      "title": "Athabasca constituency map, GE30",
+      "publisher": "Elections Saskatchewan",
+      "url": "https://cdn.elections.sk.ca/maps-ge30/Athabasca_GE30.pdf",
+      "original_acquired_at_utc": "2026-10-09T17:19:23.727056+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": null,
+      "publication_date_verified": false,
+      "publication_date_note": "Printed creation string 02/10/2023, Version 1.0. Month/day ordering and a publication date were not independently established.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r17",
+      "original_acquisition_batch_note": "Successful r17 acquisition receipt verified.",
+      "directly_read_water_labels": [
+        "Tazin Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Tsalwor Lake"
+      ],
+      "physical_pdf_page": 1,
+      "role": "Direct water labels and complete selected-footprint regional context.",
+      "authority_scope": "Official planning/electoral cartographic usage supports bounded water associations. No formal naming-registry decision, current shoreline or exact name boundary is established.",
+      "printed_creation_date": "02/10/2023",
+      "printed_version": "1.0",
+      "cartographic_credit_observed": "Credits adapted Information Services Corporation of Saskatchewan cadastral surface data, administrative overlays and OpenStreetMap, using ESRI software.",
+      "own_observations": "Tazin Lake is directly labelled on the large east-west basin. Tsalwor Lake is separately labelled southwest/west and outside the ring. The thin eastern extension and northern fingers exceed the generalized selected outline."
+    },
+    {
+      "source_key": "elections_cumberland_ge30",
+      "title": "Cumberland constituency map, GE30",
+      "publisher": "Elections Saskatchewan",
+      "url": "https://cdn.elections.sk.ca/maps-ge30/Cumberland_GE30.pdf",
+      "original_acquired_at_utc": "2026-10-09T17:19:27.981345+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": null,
+      "publication_date_verified": false,
+      "publication_date_note": "Printed creation string 02/10/2023, Version 1.0. Month/day ordering and a publication date were not independently established.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r17",
+      "original_acquisition_batch_note": "Successful r17 acquisition receipt verified.",
+      "directly_read_water_labels": [
+        "Hatchet Lake",
+        "Phillips Lake",
+        "Charcoal Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Corson Lake",
+        "LeDrew Lake",
+        "Kingston Lake",
+        "Daschuk Lake",
+        "Gibson Lake",
+        "Sava Lake",
+        "Melnick Lake",
+        "Morrison Lake"
+      ],
+      "physical_pdf_page": 1,
+      "role": "Direct water labels and complete selected-footprint regional context.",
+      "authority_scope": "Official planning/electoral cartographic usage supports bounded water associations. No formal naming-registry decision, current shoreline or exact name boundary is established.",
+      "printed_creation_date": "02/10/2023",
+      "printed_version": "1.0",
+      "cartographic_credit_observed": "Credits adapted Information Services Corporation of Saskatchewan cadastral surface data, administrative overlays and OpenStreetMap, using ESRI software.",
+      "own_observations": "Hatchet Lake and a distinct Phillips Lake label are both implicated by the selected Hatchet-region ring; Corson and LeDrew remain outside. Charcoal Lake is directly labelled on the northeast-oriented selected water, with Daschuk separately east and Kingston, Gibson, Sava and other waters around it. Thin southwestern Charcoal water and part of the southeastern lobe extend beyond the ring."
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159108505",
+      "aw_id": "lakes_base:1159108505",
+      "source_id": "1159108505",
+      "geometry_fids": [
+        15343
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 35,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_cumberland_ge30"
+      ],
+      "independent_observation": "The full selected ring has a broad southwest basin, a long nearly straight northern edge, an inward northeast shoreline and a narrow southern tip. Both maps directly label its main water Hatchet Lake. The Elections map separately labels Phillips Lake on the northern/northwestern water implicated inside this generalized ring; WSA does not print that additional name. Corson Lake lies north/northwest and LeDrew Lake southwest, outside the selected footprint. The complete outline and surrounding waters support the Hatchet association, but the Phillips-labelled inclusion prevents a single name for the whole selected polygon. Label position alone does not establish the precise Hatchet-Phillips-Corson partitions."
+    },
+    {
+      "observation_id": "lakes_base:1159111821",
+      "aw_id": "lakes_base:1159111821",
+      "source_id": "1159111821",
+      "geometry_fids": [
+        15576
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 87,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_athabasca_ge30"
+      ],
+      "independent_observation": "The complete selected ring follows a broad east-west basin with two northwestern projections, a north-central indented shore and an eastern/southeastern hook. Both maps directly label this water Tazin Lake. Tsalwor Lake is separately labelled southwest/west of and outside the selected ring. The retained maps show a narrow northeastern/eastern extension and fine northern fingers beyond the generalized outline; islands and peninsula indentations are also simplified. The whole selected generalized footprint supports Tazin Lake, without certifying the full detailed named-lake extent."
+    },
+    {
+      "observation_id": "lakes_base:1159112235",
+      "aw_id": "lakes_base:1159112235",
+      "source_id": "1159112235",
+      "geometry_fids": [
+        15606
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 42,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_cumberland_ge30"
+      ],
+      "independent_observation": "The complete selected ring follows the southwest-to-northeast central Charcoal Lake basin and long northeastern arm, with a southwestern shoulder and southeastern notch. Both maps directly print Charcoal Lake over this water. Daschuk Lake lies separately to the east, Kingston Lake northwest, Gibson Lake south, Sava Lake southeast and Melnick Lake farther southeast; none is an alias. The narrow southwestern continuation and part of the southeastern lobe extend beyond the ring, while the northern fork, islands and fine shore indentations are simplified. Cochrane River is surrounding river context, not an alternative lake name."
+    }
+  ],
+  "source_group_limit": "Three cartographic publications in two publisher groups. Shared underlying hydrographic data may exist; no formal naming registry was checked.",
+  "independent_review_and_source_research_agree": true
+}

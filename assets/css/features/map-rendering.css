@@ -623,6 +623,12 @@
   font-weight: var(--ui-weight-semibold);
 }
 
+.user-label-text .user-label-secondary {
+  font-size: .85em;
+  font-weight: 400;
+  opacity: .78;
+}
+
 .draft-shape.cut-pending {
   stroke: var(--map-selection-halo);
   fill: var(--map-selection-halo);

@@ -1,0 +1,109 @@
+{
+  "schema": "hydro-name-source-evidence-v1",
+  "batch": "r07",
+  "target_aw_id": "hydro-system:50552041",
+  "checked_at_utc": "2026-10-09T13:43:31.606738+00:00",
+  "sources": [
+    {
+      "evidence_id": "ASH-WA-AGRICULTURE-1988",
+      "title": "An inventory and condition survey of rangelands in the Ashburton River catchment, Western Australia, Technical Bulletin62, revised edition",
+      "agency": "Western Australian Department of Agriculture; official copy hosted by DBCA",
+      "publication_date": "1988-06",
+      "original_url": "https://library.dbca.wa.gov.au/Journals/082156/082156-62.pdf",
+      "acquisition": {
+        "method": "Direct original PDF GET; local pdftotext extraction and selected-page PNG rendering",
+        "requested_at_utc": "2026-10-09T13:40:12.318994+00:00",
+        "http_status": 200,
+        "original_pdf": {
+          "bytes": 12714134,
+          "sha256": "60e2298701646345510d95006ee26dd877ab0a4c39e89b225a9de12b0cb12c5b",
+          "hash_scope": "Complete original PDF response bytes",
+          "included_in_public_package": false
+        },
+        "local_text": {
+          "bytes": 1580562,
+          "sha256": "4bfe660880db7197608798a1ea3d9673b73f624caa90a6f92fbb31ec38bb0a5b",
+          "hash_scope": "Local pdftotext -layout derivative of original PDF",
+          "included_in_public_package": false
+        },
+        "viewed_map_renders": [
+          {
+            "label": "dbca-page9.png",
+            "bytes": 1170303,
+            "sha256": "025071cf82b6c3968070b3dad38ce52ddaed5784d81956676f77ed1254f74fb5",
+            "hash_scope": "Local selected-page rendering; not original publisher image bytes",
+            "included_in_public_package": false
+          },
+          {
+            "label": "dbca-page22.png",
+            "bytes": 757734,
+            "sha256": "4effa2cd3920b86354c934cf734002773d5eeadd587bdd10a84619bc678af356",
+            "hash_scope": "Local selected-page rendering; not original publisher image bytes",
+            "included_in_public_package": false
+          },
+          {
+            "label": "dbca-page22-readable.png",
+            "bytes": 642998,
+            "sha256": "899a11ba491840934943f16237e90f43bf98138594cf43a6b57ebe07f1d613ad",
+            "hash_scope": "Local selected-page rendering; not original publisher image bytes",
+            "included_in_public_package": false
+          }
+        ]
+      },
+      "locators": [
+        "PDF page9 / printed7, Figure1 and Introduction",
+        "PDF page21 / printed19, Geology and geomorphic provinces",
+        "PDF page22 / printed20, Figure9",
+        "PDF page24 / printed22, Ashburton Valley Province"
+      ],
+      "own_factual_extraction": "Figure1 names the main river corridor from the eastern interior toward Onslow. Figure9 shows the same broad route through Eastern Plains, Ashburton Valley and Coastal Plains. Text describes west-northwest drainage and distinguishes tributaries including Angelo River, Turee Creek, Seven-Mile Creek, Henry River and Irregully Creek.",
+      "map_visually_reviewed": true,
+      "formal_registry_status_established": false,
+      "raw_source_republished": false
+    },
+    {
+      "evidence_id": "ASH-DWER-HG34-2009",
+      "title": "The Pilbara coast water study, Hydrogeological record series HG34",
+      "agency": "Western Australian Department of Water; current official WA Government hosting",
+      "publication_date": "2009-03",
+      "original_url": "https://www.wa.gov.au/system/files/2022-04/Pilbara-coast-water-study.pdf",
+      "acquisition": {
+        "method": "Direct original PDF GET; local pdftotext extraction and selected-page PNG rendering",
+        "requested_at_utc": "2026-10-09T13:40:04.521980+00:00",
+        "http_status": 200,
+        "original_pdf": {
+          "bytes": 25303279,
+          "sha256": "ad18a47f680e13180f23fe950883e5c14ae2e6e03313db5c3f865dab95fabbd6",
+          "hash_scope": "Complete original PDF response bytes",
+          "included_in_public_package": false
+        },
+        "local_text": {
+          "bytes": 393702,
+          "sha256": "a20d16fa091d761e0280e269e52fc630d663b1543549fe5bd03ed03507a63923",
+          "hash_scope": "Local pdftotext -layout derivative of original PDF",
+          "included_in_public_package": false
+        },
+        "viewed_map_renders": [
+          {
+            "label": "dwer-page172.png",
+            "bytes": 848603,
+            "sha256": "d4cafb84d5b578bc07a297832f1ff3afc1f7af7d7b4c75f235f361bf30f0bcc0",
+            "hash_scope": "Local selected-page rendering; not original publisher image bytes",
+            "included_in_public_package": false
+          }
+        ]
+      },
+      "locators": [
+        "PDF pages171-173 / printed159-161, section6.3.3",
+        "PDF page172 / printed160, Figure52: Ashburton River area"
+      ],
+      "own_factual_extraction": "Section6.3.3 describes the lower Ashburton running north across the Onslow coastal floodplain to a mouth about20km west of Onslow. Figure52 labels Ashburton River along its lower corridor. This independently supports the lower-river name and does not resolve inland reach boundaries.",
+      "map_visually_reviewed": true,
+      "formal_registry_status_established": false,
+      "raw_source_republished": false
+    }
+  ],
+  "independence": "Separate1988 land-resource survey and2009 hydrogeological study, with different purposes and authorship. Shared regional geography is not counted as separate per-reach validation.",
+  "acquisition_stop": "Bounded representative evidence reached; no further source acquisition needed.",
+  "new_failed_resource_requests": []
+}

@@ -1,0 +1,697 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r143",
+  "sources": [
+    {
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Undated active service; inspected 11 October 2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "evidence_type": "Primary original official hydrographic cartography",
+      "actually_inspected": "Entire selected opening-to-coast corridor, all main changes of direction and material joining settings. Original images and private crops inspected before comparison with the selected orientation line.",
+      "cartographic_method": "Published polyline geometry, original simple solid-blue line renderer, and source-server rendering of the published NOMBRE field. The default service has no labels; only labeling was enabled for reading, not geometry editing.",
+      "supports": "Agua de la Piedra, Juncal, Carrizalillo and Pan de Azúcar sequence; connected mapped branches and confluences.",
+      "limits": "No coastline or terrain background; initial and lower model offsets read only at ordinary corridor scale. The simple line renderer does not classify present flow or perennial water. Formal registry status unverified.",
+      "use_notice": "Layer copyright and description fields blank. No redistribution permission inferred; source images and private derivatives remain private.",
+      "source_key": "mma-hydro-r143",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "title": "Guía de Parques Nacionales / Parques Nacionales y Áreas Silvestres Protegidas de Chile, 2nd edition",
+      "editors": "Gina Michea A.; M. Isabel Campodonico L.",
+      "publisher": "Corporación Nacional Forestal, Gerencia de Operaciones, Departamento Patrimonio Silvestre; Gobierno de Chile",
+      "date": "January 2001",
+      "isbn": "956-7669-06-6",
+      "host": "Memoria Chilena, Biblioteca Nacional de Chile",
+      "evidence_type": "Primary CONAF park guide with original park infographic and bounded supporting prose",
+      "actually_inspected": "Cover and colophon at PDF pages 2–3; Pan de Azúcar hydrography at printed page 65 / PDF 61; original park map and its river/quebrada legend at printed page 71 / PDF 67.",
+      "cartographic_attribution": "Colophon credits Edgardo Cosgrove C. for protected-area infographics. Its separate regional maps are credited to Turiscom; no uninspected regional-map claim is made.",
+      "supports": "Named lower quebrada, nearby coastal settlement/island/beaches, Pacific terminal setting, and occasional rather than perennial runoff.",
+      "limits": "Historical generalized park infographic, not a current bank or active-mouth survey. Its park tourism information and unrelated nationwide content are not used.",
+      "use_notice": "The colophon prohibits total or partial reproduction without CONAF’s express authorization. This ordinary no-reproduction notice is preserved; only factual observations and citation are shared. No original page, map, crop or derivative is redistributed.",
+      "source_key": "conaf-guide2001",
+      "official_url": "https://www.memoriachilena.gob.cl/archivos2/pdfs/mc0027526.pdf"
+    },
+    {
+      "title": "Subcuenca Quebrada Pan de Azucar, Código BNA 0310",
+      "publisher": "Ministerio del Medio Ambiente, SIMBIO",
+      "date": "Undated active catalogue; inspected 11 October 2026",
+      "evidence_type": "Primary official catalogue prose; not map correspondence",
+      "actually_inspected": "Opened page’s subbasin name and subdivision table, including Juncal to Carrizo, Carrizalillo between Carrizo and Doña Inés Chica, and Pan de Azúcar from Doña Inés Chica to the outlet.",
+      "supports": "Bounded naming segmentation and junction context corroborating the independently inspected original hydrography.",
+      "limits": "Basin hierarchy and catalogue labels alone do not establish selected geometry; no legal or current conservation-status claim used.",
+      "use_notice": "Page describes its cartography as referential and includes a Chilean border disclaimer. This page-specific notice is not extended to other publications.",
+      "source_key": "mma-subcuenca0310",
+      "official_url": "https://simbio.mma.gob.cl/Subcuencas/Details/0310"
+    },
+    {
+      "title": "Mapa Vial de la Provincia de San Miguel",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "edition": "Abril de 2017; Sistema Nacional de Carreteras, Clasificador de Rutas D.S. N° 011-2016-MTC",
+      "sheet_code": "CA-11",
+      "scale": "1:175,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "Single-sheet original, including map legend and relevant selected river corridor; enlarged local crops read privately.",
+      "map_evidence": "Directly read hydrographic linework, labels, junctions, settlement context and printed UTM grid. The independent road/cartographic publication is not a copy or recovery route for the excluded ANA plan or service.",
+      "limits": "Road-map hydrography is generalized and does not establish legal name boundaries, a uniform whole-route name or exact bank geometry. Road symbols were distinguished from river symbols. Source credits DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP and MINEDU. Originals and working crops remain private; official hosting is not taken as redistribution permission.",
+      "source_key": "r143-mtc-san-miguel-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Cajamarca/CA-11%20San%20Miguel.pdf"
+    },
+    {
+      "title": "Mapa Vial de la Provincia de Santa Cruz",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "edition": "Abril de 2017; Sistema Nacional de Carreteras, Clasificador de Rutas D.S. N° 011-2016-MTC",
+      "sheet_code": "CA-13",
+      "scale": "1:125,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "Single-sheet original, including map legend and relevant selected river corridor; enlarged local crops read privately.",
+      "map_evidence": "Directly read hydrographic linework, labels, junctions, settlement context and printed UTM grid. The independent road/cartographic publication is not a copy or recovery route for the excluded ANA plan or service.",
+      "limits": "Road-map hydrography is generalized and does not establish legal name boundaries, a uniform whole-route name or exact bank geometry. Road symbols were distinguished from river symbols. Source credits DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP and MINEDU. Originals and working crops remain private; official hosting is not taken as redistribution permission.",
+      "source_key": "r143-mtc-santa-cruz-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Cajamarca/CA-13%20Santa%20Cruz.pdf"
+    },
+    {
+      "title": "Mapa Vial de la Provincia de Chiclayo",
+      "publisher": "Ministerio de Transportes y Comunicaciones, Dirección General de Caminos y Ferrocarriles, Dirección de Caminos, E.T. Mapas Viales",
+      "edition": "Abril de 2017; Sistema Nacional de Carreteras, Clasificador de Rutas D.S. N° 011-2016-MTC",
+      "sheet_code": "LA-01",
+      "scale": "1:225,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "Single-sheet original, including map legend and relevant selected river corridor; enlarged local crops read privately.",
+      "map_evidence": "Directly read hydrographic linework, labels, junctions, settlement context and printed UTM grid. The independent road/cartographic publication is not a copy or recovery route for the excluded ANA plan or service.",
+      "limits": "Road-map hydrography is generalized and does not establish legal name boundaries, a uniform whole-route name or exact bank geometry. Road symbols were distinguished from river symbols. Source credits DGCF, PVN, PVD, GTT, OGPP, IGN, INEI, SERNANP and MINEDU. Originals and working crops remain private; official hosting is not taken as redistribution permission.",
+      "source_key": "r143-mtc-chiclayo-2017",
+      "official_url": "https://portal.mtc.gob.pe/transportes/caminos/normas_carreteras/Mapas%20Provinciales/Lambayeque/LA-01%20Chiclayo.pdf"
+    },
+    {
+      "title": "Plan de Ordenamiento Territorial del Distrito de Olmos, Volumen III: Mapa Base Región Lambayeque (RG-01); supporting map RG-06, Mapa Ubicación de Elementos Arqueológicos Región Lambayeque",
+      "publisher": "Municipalidad Distrital de Olmos / Proyecto Especial Olmos Tinajones (PEOT), Gobierno Regional de Lambayeque",
+      "edition": "Setiembre 2010",
+      "scale": "1:350,000",
+      "primary_original": true,
+      "original_map_read": true,
+      "pages_read": "PDF pages 2 and 7 (RG-01 and RG-06), with bounded enlargements of the selected Chancay, Tinajones relationship, La Puntilla, Reque and coastal corridor. RG-01 supplies the principal supplementary evidence.",
+      "map_evidence": "Original regional map explicitly distinguishes the Tinajones reservoir outline from the selected Chancay river; shows La Puntilla branching and Reque to the Pacific by Eten.",
+      "limits": "Regional rather than surveyed channel scale. The 2010 municipal/PEOT cartographic publication is independent of the failed 2013 ANA plan and the halted ANA administrative map-service acquisition. No missing ANA figure is used or recovered. Originals and working figures remain private.",
+      "source_key": "r143-peot-olmos-base-2010",
+      "official_url": "https://www.muniolmos.gob.pe/files/recursos_infor/POT_OLMOS_VOLUMEN_III.pdf"
+    },
+    {
+      "title": "Ministro de Agricultura recorrió Sistema Hidráulico Tinajones",
+      "publisher": "Gobierno Regional de Lambayeque / Proyecto Especial Olmos Tinajones",
+      "date": "2021-09-13",
+      "primary_original": true,
+      "original_map_read": false,
+      "prose_read": true,
+      "bounded_prose_observation": "Calls the captured watercourse río Chancay Lambayeque and explicitly distinguishes La Puntilla's Taymi and Lambayeque diversions from Río Reque.",
+      "limits": "Bounded operational prose supports the name and lower branch distinction; it is not the geometric basis for headwater or whole-route correspondence. No unseen article image is treated as map evidence.",
+      "source_key": "r143-peot-tinajones-visit-2021",
+      "official_url": "https://historico.regionlambayeque.gob.pe/web/noticia/detalle/34551?pass=MTA1Nw%3D%3D"
+    },
+    {
+      "title": "Estudio Geoquímico de las Aguas que Drenan la Cuenca del Río Tuy, Venezuela",
+      "authors": [
+        "Williams Meléndez",
+        "Nadeztha Hernández",
+        "Carlos Barrios"
+      ],
+      "publisher": "Revista Científica y Tecnológica UPSE; authors affiliated with Universidad Central de Venezuela, Instituto de Ciencias de la Tierra",
+      "publication": "Vol. IV, no.3, pp.46–55, December2017; UPSE repository labels its deposit2018",
+      "observed_final_url": "https://repositorio.upse.edu.ec/server/api/core/bitstreams/900f166b-8c1f-4267-b620-babfebb44aa5/content",
+      "source_type": "Primary field-study publication with its original Figure1 hydrographic sampling map and direct methods/station table",
+      "cartography_read": "Figure1, printed page48 (PDF page3), visually inspected from the successfully acquired PDF. Full main river and major tributaries shown.",
+      "prose_read": "Printed pages48–50, study area, methods and Table1. Sampling campaign February2010.",
+      "limits": "Generalized shaded-relief field map with a scale bar, not a legal naming register or detailed modern survey. It does not establish the name of the selected southwestern feeder. The source-reported river lengths are not substituted for the retained model length. Original and local rendered figures remain private.",
+      "source_key": "r143-tuy-melendez-2017",
+      "official_url": "https://repositorio.upse.edu.ec/bitstream/46000/7301/1/UPSE-RCT-2018-Vol.4-No.3-005.pdf"
+    },
+    {
+      "title": "Mapa Político, Estado Aragua",
+      "authors": [
+        "Instituto Geográfico de Venezuela Simón Bolívar"
+      ],
+      "publisher": "Instituto Geográfico de Venezuela Simón Bolívar, Ministerio del Poder Popular para el Ambiente",
+      "edition": "Primera edición2010",
+      "scale": "1:250,000",
+      "source_type": "Original official regional cartography, acquired as a PDF reproduction from a third-party geography archive, not from the issuing government server",
+      "cartography_read": "Full-sheet margin/legend and corridor-scale local views from Las Guacamayas/La Mora/El Consejo through Tácata, Cúa, Ocumare and Santa Teresa to Aragüita; reservoir and tributary relationships inspected.",
+      "limits": "Political-map hydrography at1:250,000 supports generalized connections, not exact bank/vertex or present-day channel positions. The eastern edge does not cover the entire lower Tuy; the primary UPSE map supplies that continuation. Printed prior-authorization requirement for reproduction is preserved.",
+      "source_key": "r143-aragua-igvsb-2010",
+      "official_url": "https://arquivosgeo.wordpress.com/wp-content/uploads/2018/01/mapa-del-estado-aragua-y-sus-municipios.pdf"
+    },
+    {
+      "bibliography": "Rodríguez, Luz María, and Carlos Galán (2010). Las zonas kársticas de la Sierra de Perijá, Venezuela: Cavidades estudiadas y rasgos geológico-estructurales. Boletín de la Sociedad Venezolana de Espeleología42:7–19; author re-edition with additional color photographs,17 PDF pages.",
+      "source_kind": "Primary investigator regional cartography and field-study prose; author re-edition.",
+      "read_scope": "PDFpage3 Figure1 regional relief/drainage map and context; PDFpage6 Figure3 detailed Guasare/Socuy map; PDFpage12 Figure8 Cerro Pintado map; related methods/karst prose.",
+      "primary_map_pixels_read": true,
+      "map_provenance": "Figure1 uses SRTM shaded-relief base from Garrity et al.2004. Figure3 uses Radar NC-18-8 MEM1977, Miller1960/Kellogg1984 geological bases and1991 airphoto interpretation. Figure8 is based on1991 air photography. These are observations of the acquired authors’ figures, not claims to have acquired the underlying publications.",
+      "source_key": "r143-rodriguez-galan2010",
+      "official_url": "https://www.aranzadi.eus/fileadmin/docs/espeleologia/ZonasKarsticasPerija_Venezuela_2010.pdf",
+      "limits": "General regional overview is relief-obscured for the entire selected southwestern upper route. Detailed Figure3 does not cover the entire upper opening. No current flow or exact bank geometry claim. Original and crops kept private."
+    },
+    {
+      "bibliography": "Rincón, José E. (2017). Los ríos en la vertiente occidental del Lago de Maracaibo. Chapter1, pp15–28, in Douglas Rodríguez-Olarte (ed.), Ríos en riesgo de Venezuela, Volumen1. Colección Recursos Hidrobiológicos de Venezuela, Universidad Centroccidental Lisandro Alvarado, Barquisimeto. First digital edition15February2017; ISBN978-980-12-9350-7.",
+      "source_kind": "Regional expert synthesis incorporating original information and published research; original chapter cartography.",
+      "read_scope": "Printed pp16–17, PDFpages18–19, Guasare–Limón section and Figure1; book title/copyright and contents.",
+      "primary_map_pixels_read": true,
+      "map_provenance": "Chapter Figure1 is a regional drainage map of the western Maracaibo systems, including separate Guasare/Socuy courses; original publication figure read.",
+      "source_key": "r143-rincon2017",
+      "official_url": "https://acading.org.ve/wp-content/uploads/2023/02/2017_Rios_Riesgo_Venezuela_V1_libro.pdf",
+      "limits": "Figure1 is generalized and insufficient for the first selected headward connector. Names and branch/reservoir relationships supported; source-stated total lengths are not substituted for retained196.160km metadata. © the authors2017; keep original and crops private."
+    },
+    {
+      "bibliography": "Barboza, Flora; Ana Marta Francisco; Jacinto Sánchez; and Ernesto Medina (2024). Influencia del régimen hidrológico sobre la composición de sedimentos de manglares en la Bahía de El Tablazo (Sistema de Maracaibo). Boletín del Centro de Investigaciones Biológicas58(1):45–66. DOI10.5281/zenodo.13288599.",
+      "doi_url": "https://doi.org/10.5281/zenodo.13288599",
+      "source_kind": "Primary field research and original terminal study-area map.",
+      "read_scope": "Printed pp45–48, especially Figure1 at printedp48/PDFpage5.",
+      "primary_map_pixels_read": true,
+      "map_provenance": "Figure1 by Grisel Velásquez, Unidad de Sistemas de Información Geográfica, Centro de Ecología, IVIC; Landsat9 images007052–007053 dated20221124; WGS84 and12km scale bar.",
+      "source_key": "r143-barboza2024",
+      "official_url": "https://produccioncientificaluz.org/index.php/boletin/article/download/42561/49579/",
+      "limits": "Supports lower Limón and Urubá/Tablazo terminal only. No entire watershed or headward coverage; no exact shore or present-day channel-position assertion. Original and crops private."
+    },
+    {
+      "bibliography": "Rivas, Zulay; José Sánchez; Federico Troncone; Rómulo Márquez; Hilda Ledo de Medina; Marinela Colina; and Elizabeth Gutiérrez (2009). Nitrógeno y fósforo totales de los ríos tributarios al sistema lago de Maracaibo, Venezuela. Interciencia34(5), May2009.",
+      "source_kind": "Primary-author regional scientific prose; map not acquired.",
+      "read_scope": "Area-of-study and Guasare/Limón paragraphs only.",
+      "primary_map_pixels_read": false,
+      "source_key": "r143-rivas2009-prose",
+      "official_url": "https://ve.scielo.org/scielo.php?Ing=es&pid=S0378-18442009000500004&script=sci_arttext&tlng=es",
+      "limits": "Previously read prose places Guasare headwaters at Cerro Pintado, distinguishes the Limón confluence system and describes Sinamaica/Urubá lowlands. Failed Figure1 and search snippets supply no cartographic evidence."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61395110",
+      "source_keys": [
+        "mma-hydro-r143",
+        "conaf-guide2001",
+        "mma-subcuenca0310"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13982
+          ],
+          "component_scope": "Northeastern opening and short head arm",
+          "finding": "The selected opening is in the southeastern head-arm cluster of the drainage labeled Agua de la Piedra, south of the distinct Incaguasi network. The original detailed map shows the initial northward elbow and its connection into the westward channel. The model’s short outer tip extends beyond the mapped arm tip, so only generalized head-corridor correspondence is asserted; the head-arm name remains unknown.",
+          "sources": [
+            "mma-hydro-r143"
+          ],
+          "correspondence": "Complete at generalized head/component scale, without exact endpoint equivalence.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13982
+          ],
+          "component_scope": "Agua de la Piedra upper corridor",
+          "finding": "Repeated labels occur on the westward selected drainage. Original map geometry shows the full upper corridor and the joining setting of the northern Nacimiento/Oreganito drainage and southern Bolsón drainage, followed by labels for Juncal.",
+          "sources": [
+            "mma-hydro-r143"
+          ],
+          "correspondence": "Complete upper corridor and principal junction setting.",
+          "mapped_component_name": "Quebrada Agua de la Piedra"
+        },
+        {
+          "fragments": [
+            13982
+          ],
+          "component_scope": "Juncal middle corridor",
+          "finding": "The selected route continues west-southwest along the map’s Juncal line, with the Ciclón and other eastern/southern branches kept distinct. The source maps its full southwestward bend toward the Carrizo convergence; the catalogue separately identifies Juncal upstream of the Carrizo junction.",
+          "sources": [
+            "mma-hydro-r143",
+            "mma-subcuenca0310"
+          ],
+          "correspondence": "Complete corridor and bend.",
+          "mapped_component_name": "Quebrada Juncal"
+        },
+        {
+          "fragments": [
+            13982
+          ],
+          "component_scope": "Carrizo junction and Carrizalillo continuation",
+          "finding": "The original overview shows the eastern Carrizo branch joining the selected Juncal route, after which the westward corridor carries Carrizalillo labels. The branch joining and full western continuation are seen in the original maps, rather than inferred only from catchment membership.",
+          "sources": [
+            "mma-hydro-r143",
+            "mma-subcuenca0310"
+          ],
+          "correspondence": "Complete material junction and westward corridor.",
+          "mapped_component_name": "Quebrada del Carrizalillo"
+        },
+        {
+          "fragments": [
+            13982
+          ],
+          "component_scope": "Lower Carrizalillo and Doña Inés Chica joining setting",
+          "finding": "The lower detailed original map covers the westward Carrizalillo valley, the southeastern Doña Inés Chica connection and additional northern branching. The modeled line is locally offset toward northern side channels within this connected mapped drainage setting. The catalogue distinguishes Carrizalillo above Doña Inés Chica from Pan de Azúcar below it; no exact uniform-name boundary is assigned to model vertices.",
+          "sources": [
+            "mma-hydro-r143",
+            "mma-subcuenca0310"
+          ],
+          "correspondence": "Complete generalized lower valley/junction setting; no exact branch-alignment claim.",
+          "mapped_component_name": "Quebrada Carrizalillo"
+        },
+        {
+          "fragments": [
+            13982
+          ],
+          "component_scope": "Lower Pan de Azúcar quebrada",
+          "finding": "Repeated Pan de Azúcar labels follow the selected southwestward lower corridor. The maps distinguish joining Grande, Salitrosa and Agua Salada drainages from the selected trunk. CONAF’s original legend explicitly distinguishes quebradas from rivers, and its prose describes occasional watercourses in the park.",
+          "sources": [
+            "mma-hydro-r143",
+            "mma-subcuenca0310",
+            "conaf-guide2001"
+          ],
+          "correspondence": "Complete lower dry-drainage corridor and material side-channel settings.",
+          "mapped_component_name": "Quebrada Pan de Azúcar"
+        },
+        {
+          "fragments": [
+            13982
+          ],
+          "component_scope": "Actual Pacific terminal setting",
+          "finding": "The selected terminal follows the lower mapped trunk to the coast. CONAF’s original park map depicts the named quebrada meeting the Pacific beside Caleta Pan de Azúcar, near Playa Los Piqueros and north of the separate Coquimbo/Castillo systems. It supplies the sea/coast context absent from the hydrography-only white-background service; exact present mouth position is not claimed.",
+          "sources": [
+            "mma-hydro-r143",
+            "conaf-guide2001"
+          ],
+          "correspondence": "Complete generalized coastal terminal setting.",
+          "mapped_component_name": "Quebrada Pan de Azúcar"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60838388",
+      "source_keys": [
+        "r143-mtc-san-miguel-2017",
+        "r143-mtc-santa-cruz-2017",
+        "r143-mtc-chiclayo-2017",
+        "r143-peot-olmos-base-2010",
+        "r143-peot-tinajones-visit-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13812
+          ],
+          "component_scope": "Headward seasonal channel west of the PE-3N corridor north of El Empalme, entering Río Llantén",
+          "finding": "The San Miguel original depicts a short dashed headwater channel west of the road in the Coimolache–El Empalme setting, joining the solid channel labelled Río Llanten. The selected southward opening and westward turn correspond to this feeder-to-river setting. The separate eastern arm of the labelled river is not the selected opening. The unnamed dashed feeder is not assigned the Llantén name simply because it feeds that river.",
+          "sources": [
+            "r143-mtc-san-miguel-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": null,
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13812
+          ],
+          "component_scope": "Río Llantén west through Quilcate and north through Catilluc, Challagón and Tongod",
+          "finding": "The original San Miguel sheet traces the westward river below Quilcate and Shilshil, then the northward bend below Catilluc and the successive Tongod–Callarco–La Lucuma reaches. The overlapping Santa Cruz sheet exposes the same river independently of the heavier CA-102 road symbols. The selected branch uses this river corridor; adjacent roads and parallel tributaries were not substituted for it.",
+          "sources": [
+            "r143-mtc-san-miguel-2017",
+            "r143-mtc-santa-cruz-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Llantén",
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13812
+          ],
+          "component_scope": "Tongod and Yauyucan/San Pablo corridor to the Río San Juan junction near Ninabamba and Uticyacu",
+          "finding": "Santa Cruz maps the north-running channel from the Tongod/Chilal corridor past San Pablo, Yauyucan and Ninabamba, then the material junction with Río San Juan arriving from the east. The map prints Río Chancay on the selected north-south channel and on the receiving northwestern continuation. This supports continuity and that map's local naming, without establishing an exact legally defined Llantén/Chancay transition. The selected route does not turn east onto San Juan or Tacamache.",
+          "sources": [
+            "r143-mtc-san-miguel-2017",
+            "r143-mtc-santa-cruz-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Chancay",
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13812
+          ],
+          "component_scope": "Río Chancay west past Uticyacu, San Lorenzo and Chancaybaños, then southwest along the Santa Cruz valley to Río Cañad",
+          "finding": "The Santa Cruz original traces the selected broad northwestern bend from the San Juan junction, west through the San Lorenzo/Chancaybaños reach and then southwest along the western side of Santa Cruz de Succhabamba. Its southern bend receives the mapped Río Cañad from the southeast near the road crossing north of Catache. Both junction geometry and downstream continuation are readable at corridor scale.",
+          "sources": [
+            "r143-mtc-santa-cruz-2017"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Chancay",
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13812
+          ],
+          "component_scope": "Chancay through Catache and the Cirato and Cumbil/Maichil junction settings to Chongoyape",
+          "finding": "Santa Cruz and Chiclayo overlap on the westward Chancay valley through Catache, the tributary labelled Río Cirato, the Cumbil bridge/Maichil tributary setting and the continuation to Raca Rumi–Chongoyape. The selected river follows the mapped receiving trunk below these material tributary junctions. PEOT RG-01 independently places Chancay in this same corridor and distinguishes its southern Chilal tributary.",
+          "sources": [
+            "r143-mtc-santa-cruz-2017",
+            "r143-mtc-chiclayo-2017",
+            "r143-peot-olmos-base-2010"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Chancay",
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13812
+          ],
+          "component_scope": "Chancay southwest through Huaca Blanca, Tablazos and Wadington to La Puntilla; Tinajones reservoir relationship",
+          "finding": "MTC Chiclayo traces the main river southwest to La Puntilla. PEOT's original RG-01 map distinctly outlines Reservorio Tinajones northwest of the selected river, while the selected channel passes southeast of the reservoir through the Huaca Blanca–Tablazos–Wadington corridor to Desaguadero/La Puntilla. Thus the selected line is not interpreted as a passage through Tinajones. The reservoir label in the generalized MTC map is not used to move the selected line into a lake.",
+          "sources": [
+            "r143-mtc-chiclayo-2017",
+            "r143-peot-olmos-base-2010"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Chancay",
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13812
+          ],
+          "component_scope": "La Puntilla southern branch into Río Reque, past La Vega, Pucalá and the Tumán/Chiclayo plain",
+          "finding": "MTC explicitly labels separate Río Taymi, Río Lambayeque and Río Reque courses at and west of La Puntilla. The selected southwestern branch is the Reque course, passing La Vega/Huaca de Piedra and then continuing through the Pucalá–Tumán plain toward Reque. PEOT RG-01 shows the same southern branch, distinct from the northern Lambayeque course and from the Boró and Collique reservoirs. The 2021 PEOT prose independently states that La Puntilla distributes water to Taymi, Lambayeque and Río Reque. Neither the northern branches nor those reservoirs are part of this selected mainstem.",
+          "sources": [
+            "r143-mtc-chiclayo-2017",
+            "r143-peot-olmos-base-2010",
+            "r143-peot-tinajones-visit-2021"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Reque",
+          "material_gap": null
+        },
+        {
+          "fragments": [
+            13812
+          ],
+          "component_scope": "Río Reque past the Reque bridge and Monsefú/Eten plain to the Pacific coast",
+          "finding": "MTC Chiclayo depicts the selected river through the Reque bridge/Larán setting and southwest across the Monsefú–Eten plain, with the Río Reque label at the coastal reach beside Eten. PEOT RG-01 also traces the same river past Monsefú and Eten to the Pacific, separately from Puerto Eten to the south. This establishes the actual terminal setting at ordinary generalized mouth/corridor scale; no exact present-day bank, estuary outline or surveyed mouth-point claim is made.",
+          "sources": [
+            "r143-mtc-chiclayo-2017",
+            "r143-peot-olmos-base-2010"
+          ],
+          "correspondence": "mapped_corridor_supported",
+          "mapped_component_name": "Río Reque",
+          "material_gap": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60005186",
+      "source_keys": [
+        "r143-tuy-melendez-2017",
+        "r143-aragua-igvsb-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10818
+          ],
+          "component_scope": "western selected opening",
+          "finding": "A blue feeder rises southwest of El Consejo in the Las Guacamayas area, runs north toward La Mora, then east into the named Tuy corridor near El Consejo. This is the selected opening; the separately mapped northern Tuy branch descends through the Santa Rita area.",
+          "sources": [
+            "r143-aragua-igvsb-2010"
+          ],
+          "correspondence": "complete at generalized component/corridor scale",
+          "name_scope": "The initial southwestern feeder is unnamed on this map. Do not extend Río Tuy upstream over it or identify the selected start with the northern Tuy source near Colonia Tovar.",
+          "source_locator": "Upper-central Aragua map, Las Guacamayas–La Mora–El Consejo area, with the 67°15′W and 10°15′N graticule for ordinary orientation."
+        },
+        {
+          "fragments": [
+            10818
+          ],
+          "component_scope": "El Consejo–Las Tejerías/Guayas–Boca de Cagua–Tácata corridor",
+          "finding": "The connected channel continues east by El Consejo and below Las Tejerías/Guayas, then bends southeast toward Tácata. The map directly labels the downstream channel Río Tuy. The field study distinguishes Quebrada Guayas and Río Guare from main-channel stations.",
+          "sources": [
+            "r143-aragua-igvsb-2010",
+            "r143-tuy-melendez-2017"
+          ],
+          "correspondence": "complete at generalized component/corridor scale",
+          "name_scope": "Río Tuy is supported for the receiving main-river corridor; tributary names retain their separate scope.",
+          "source_locator": "Aragua map upper-central/eastern portion; UPSE Figure1 and Table1 stations5–11."
+        },
+        {
+          "fragments": [
+            10818
+          ],
+          "component_scope": "Tácata–Cúa–Ocumare–San Francisco de Yare–Santa Teresa",
+          "finding": "The river swings southeast through the Cúa/Ocumare valley and turns north toward Yare and Santa Teresa. Mapped Ocumarito, Lagartijo and Quebrada Seca reservoirs occupy side waters rather than a required through-reservoir passage of the selected river. The primary field map and station table separate Ocumarito, Charallave, Marare, Súcuta and Guaire tributary observations.",
+          "sources": [
+            "r143-aragua-igvsb-2010",
+            "r143-tuy-melendez-2017"
+          ],
+          "correspondence": "complete at generalized component/corridor scale",
+          "name_scope": "No reservoir or side-branch reach inherits the representative Tuy name. Main-channel station Lagartijo is not equated with traversal of Embalse Lagartijo.",
+          "source_locator": "Aragua map eastern corridor and reservoir context; UPSE Figure1 and Table1 stations11–22."
+        },
+        {
+          "fragments": [
+            10818
+          ],
+          "component_scope": "Santa Teresa–Aragüita–Caucagua/Cuira junction region–Panaquire",
+          "finding": "The mapped main corridor continues east from the Santa Teresa/Guaire junction area, receives separately mapped Taguacita, Taguaza, Caucagua and Cuira branches, and continues by Panaquire. The field map supplies connected linework, not merely a Tuy basin outline.",
+          "sources": [
+            "r143-tuy-melendez-2017",
+            "r143-aragua-igvsb-2010"
+          ],
+          "correspondence": "complete at generalized component/corridor scale",
+          "name_scope": "The downstream representative river does not rename these tributaries. Embalse Taguaza is mapped on side drainage, not on the selected main path.",
+          "source_locator": "UPSE Figure1 and Table1 stations21–30; Aragua map eastern edge supplies overlap through Aragüita and side-water Taguaza context."
+        },
+        {
+          "fragments": [
+            10818
+          ],
+          "component_scope": "lower Barlovento plain and terminal",
+          "finding": "The eastern main river winds across the lower plain, turns northward and then northeast to the Caribbean coastline. The field campaign terminates at Boca de Paparo, which the study identifies as the river mouth. The selected terminal corresponds to that direct coastal setting.",
+          "sources": [
+            "r143-tuy-melendez-2017"
+          ],
+          "correspondence": "complete at generalized component/corridor scale",
+          "name_scope": "The terminal finding is Caribbean discharge at Boca de Paparo at ordinary coastal-corridor scale; no exact mouth-point or modern shoreline agreement is asserted.",
+          "source_locator": "UPSE Figure1 lower-right corridor to station36; Table1 stations29–36 and study-area/methods prose on printed page49."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60001814",
+      "source_keys": [
+        "r143-rodriguez-galan2010",
+        "r143-rincon2017",
+        "r143-barboza2024",
+        "r143-rivas2009-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10752
+          ],
+          "component_scope": "Southwestern opening below the Cerro Pintado sector and upper connector",
+          "finding": "The acquired regional overview places the headward Guasare valley in the Perijá mountain belt, and Figure8 locates the Cerro Pintado cave/karst setting. Neither Figure8 nor the relief-heavy Figure1 provides a sufficiently clear route from the selected southwestern start into the detailed middle-valley map. Prose naming Cerro Pintado does not close this material gap.",
+          "sources": [
+            "r143-rodriguez-galan2010",
+            "r143-rincon2017",
+            "r143-rivas2009-prose"
+          ],
+          "correspondence": "Regional headward setting only; actual entire selected opening and its connector pending.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10752
+          ],
+          "component_scope": "Guasare middle valley northeastward beside the separate Socuy valley",
+          "finding": "Rodríguez and Galán Figure3 maps the long northeast-running Guasare valley, western and eastern side drainage including Caño Grande/Pan Grande and smaller tributaries, and the separate parallel Socuy corridor to its southeast. The selection follows the Guasare valley through this setting rather than the Socuy branch. The article describes underground flow in a Guasare interval, without licensing precise subterranean-channel reconstruction.",
+          "sources": [
+            "r143-rodriguez-galan2010",
+            "r143-rincon2017"
+          ],
+          "correspondence": "Primary middle-valley map read, with overlapping regional context.",
+          "mapped_component_name": "Río Guasare"
+        },
+        {
+          "fragments": [
+            10752
+          ],
+          "component_scope": "Northward foothill bend and eastward lowland Guasare approach",
+          "finding": "The mapped Guasare exits the northeast-trending mountain valley, turns north and then east along the northern edge of the foothills. The separate southeastern Socuy/Cachirí reservoir-drainage branch remains distinguishable; the selected route stays on the northern approach.",
+          "sources": [
+            "r143-rodriguez-galan2010",
+            "r143-rincon2017"
+          ],
+          "correspondence": "Regional original maps read at generalized corridor scale.",
+          "mapped_component_name": "Río Guasare"
+        },
+        {
+          "fragments": [
+            10752
+          ],
+          "component_scope": "Guasare–Socuy receiving junction and Limón wetland approach",
+          "finding": "The regional maps show the northern Guasare and southern Socuy approaches joining in the lowland before the receiving channel enters the coastal wetland/lagoon complex. Rincón explicitly applies Limón after Socuy joins Guasare. The selected eastward receiving route is consistent with this mapped continuation. No precise naming-boundary vertex is claimed.",
+          "sources": [
+            "r143-rodriguez-galan2010",
+            "r143-rincon2017",
+            "r143-rivas2009-prose"
+          ],
+          "correspondence": "Junction setting and onward lowland/lagoon corridor read in regional maps; naming transition supported by prose.",
+          "mapped_component_names": [
+            "Río Guasare",
+            "Río Socuy",
+            "Río Limón"
+          ]
+        },
+        {
+          "fragments": [
+            10752
+          ],
+          "component_scope": "Sinamaica-associated lower channel and actual Urubá terminal",
+          "finding": "Barboza et al. Figure1, prepared by IVIC UniSIG, maps and labels the lower Río Limón emerging from the Sinamaica wetland setting into Bahía de Urubá, west/northwest of Isla de Toas. Urubá opens into Bahía El Tablazo and the wider Maracaibo system. This resolves the selected actual terminal setting as the Limón estuarine outlet, without equating the terminal to the open Gulf coast or renaming the lagoon/bay passage.",
+          "sources": [
+            "r143-barboza2024",
+            "r143-rodriguez-galan2010",
+            "r143-rincon2017"
+          ],
+          "correspondence": "Original terminal map and overlapping regional context read.",
+          "mapped_component_names": [
+            "Río Limón",
+            "Bahía de Urubá"
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61395110",
+      "publication": "Guía de Parques Nacionales / Parques Nacionales y Áreas Silvestres Protegidas de Chile, CONAF, 2nd edition, January 2001",
+      "official_url": "https://www.memoriachilena.gob.cl/archivos2/pdfs/mc0027526.pdf",
+      "observed_outcome": "The web-reader request reported (400) Content length is too large. A single subsequent normal original-file request completed HTTP 200 application/pdf and supplied the complete original.",
+      "outcome_layer": "Initial web-reader size/format limitation, not origin HTTP 400 and not an authorization denial. Subsequent original HTTP-client response 200.",
+      "restriction_scope": "Failed oversized-reader route was not retried. The completed explicit technical size limitation did not impose a publication-wide denial; one permitted sequential original acquisition succeeded. No equivalent mirror used.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "resolved_technical_reader_size_limit",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60838388",
+      "publication": "Plan de Gestión de Recursos Hídricos – Cuenca Chancay-Lambayeque, 18 November 2013 version (title/version identified through discovery; original unacquired)",
+      "official_url": "https://www.ana.gob.pe/sites/default/files/publication/files/plan-chlamb-ed2a-final-version18nov013_0.pdf",
+      "observed_outcome": "The sole original-file request completed HTTP 502, Content-Type text/html. No PDF or original map was acquired.",
+      "outcome_layer": "HTTP response reported by completed direct acquisition; not an HTTP 401/403 access-denial observation.",
+      "restriction_scope": "Missing whole plan, maps and all equivalent copies, formats, originals, readers, caches, mirrors and acquisition routes paused. No retry or equivalent recovery followed.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "material_effect": "Optional excluded publication; the independent MTC and PEOT maps fully establish the bounded selected corridor."
+    },
+    {
+      "aw_id": "hydro-system:60838388",
+      "publication": "Mapa ALA Chancay - Lambayeque / Mapa General AAA - ALA, Mapas_ALA/Capas_ALA_Chancay_Lambayeque cartographic service",
+      "official_url": "https://geosnirh.ana.gob.pe/server/rest/services/Mapas_ALA/Capas_ALA_Chancay_Lambayeque/MapServer",
+      "observed_outcome": "The sole metadata acquisition started and yielded a running command. The subsequent terminal-status request was denied at the tool layer. No terminal HTTP outcome or source body was established; no local metadata file or original map was inspected. Its independence from the unavailable related ANA plan remained unestablished when this request began. No content was used and no further acquisition route was attempted.",
+      "outcome_layer": "Tool-layer acquisition stop; origin HTTP outcome unknown.",
+      "restriction_scope": "This service and equivalent metadata, map, original, reader, catalogue, cache, mirror and other acquisition routes remain stopped. The status request was not retried and no partial file was inspected.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "material_effect": "The service supplied no substantive evidence. Independent MTC and PEOT maps close the selected geographic scope, so this optional source stop does not create material-pending or source-access-pending status.",
+      "requested_resource": "https://geosnirh.ana.gob.pe/server/rest/services/Mapas_ALA/Capas_ALA_Chancay_Lambayeque/MapServer?f=pjson"
+    },
+    {
+      "aw_id": "hydro-system:60005186",
+      "publication": "Influencia de aportes fluviales en playas arenosas de Higuerote, costa central de Venezuela (2011)",
+      "official_url": "https://www.scielo.cl/scielo.php?pid=S0718-560X2011000100006&script=sci_arttext",
+      "observed_outcome": "The sole web-reader open returned Internal Error with the explicit result (400) Timeout fetching. No publication body or figure pixels were obtained.",
+      "outcome_layer": "Web-reader fetch/transport outcome; direct origin HTTP status unestablished.",
+      "restriction_scope": "Whole missing article and equivalent copies, formats, figures, original/reader/cache/catalogue/mirror and other acquisition routes paused for availability. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_timeout",
+      "material_gap": false,
+      "material_effect": "Optional coastal corroboration only. The successfully acquired independent UPSE original already maps the selected river to its Caribbean terminal and describes Boca de Paparo."
+    },
+    {
+      "aw_id": "hydro-system:60005186",
+      "publication": "La Victoria, Venezuela, DCN Hoja 6746, 1:100,000, third edition 1972; original sheet not inspected",
+      "official_url": "https://commons.wikimedia.org/wiki/File%3AHoja_6746_-_LA_VICTORIA%2C_CAGUA%2C_VILLA_DE_CURA%2C_TEJER%C3%8DAS_-_DCN_1972.jpg",
+      "observed_outcome": "The Wikimedia regional category opened normally. The sole linked file-description-page click returned Cache miss. No original map pixels or HTTP status were exposed.",
+      "outcome_layer": "Web-reader fetch/transport outcome; origin HTTP status unestablished.",
+      "restriction_scope": "This missing sheet publication and equivalent copies, formats, editions offered as recovery, original/reader/cache/catalogue/mirror and other acquisition routes paused. No original-file request, retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "Earlier category metadata only: sheet number, geographic title and image size. The edition was independently discovered in bibliographic search metadata; no unseen sheet content used.",
+      "limitation_kind": "availability_cache_miss",
+      "material_gap": false,
+      "material_effect": "Optional higher-detail opening corroboration unavailable. The independent IGVSB 2010 Aragua original already depicts the entire selected southwestern feeder and its connection to the Tuy."
+    },
+    {
+      "aw_id": "hydro-system:60001814",
+      "publication": "Rivas et al.2009, Nitrógeno y fósforo totales de los ríos tributarios al sistema lago de Maracaibo, Venezuela; Figure1",
+      "official_url": "https://ve.scielo.org/img/fbpe/inci/v34n5/art04fig1.gif",
+      "observed_outcome": "HTML article opened normally. The sole linked Figure1 image request returned Cache miss; no HTTP status or map pixels exposed.",
+      "outcome_layer": "Web-reader image acquisition availability; not an observed origin denial.",
+      "restriction_scope": "Missing visual material and equivalent original/reader/screenshot/cache/mirror routes paused; no retry or alternate recovery.",
+      "earlier_lawful_prose_exception": "Only the earlier actually read article text remains usable, within prose scope.",
+      "limitation_kind": "availability_stop",
+      "material_effect": "Figure supplies no evidence. Independent original maps establish middle/lower settings; upper opening remains unresolved.",
+      "ordinary_publication_url": "https://ve.scielo.org/scielo.php?Ing=es&pid=S0378-18442009000500004&script=sci_arttext&tlng=es"
+    },
+    {
+      "aw_id": "hydro-system:60001814",
+      "publication": "Cambios espaciales de la composición florística, atributos estructurales…; Ciencia article35982, download38379; complete title/year unestablished from the failed acquisition",
+      "official_url": "https://www.produccioncientifica.luz.edu.ve/index.php/ciencia/article/download/35982/38379/",
+      "observed_outcome": "Sole original-file acquisition completed HTTP502, text/html; no PDF content read.",
+      "outcome_layer": "Completed HTTP response reported by original-file transfer; origin versus intervening gateway not independently established.",
+      "restriction_scope": "Whole missing publication and equivalents, figures, reader/cache/mirror/other formats and acquisition routes paused. No retry or alternate request.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_effect": "No evidence used. Independent Barboza2024 map resolves the terminal setting."
+    },
+    {
+      "aw_id": "hydro-system:60001814",
+      "publication": "Dirección de Cartografía Nacional, Hoja5647, Alto Guasare / Serranía de Perijá; Commons filename identifies DCN1969; printed sheet/edition uninspected",
+      "official_url": "https://commons.wikimedia.org/wiki/File%3AHoja_5647_-_SERRAN%C3%8DA_DE_PERIJ%C3%81_-_DCN_1969.jpg",
+      "observed_outcome": "Sole catalogue opening returned Cache miss; no HTTP status, original image or printed use notice obtained.",
+      "outcome_layer": "Web-reader catalogue availability; not an observed origin denial.",
+      "restriction_scope": "Missing sheet and equivalent catalogue/original/image/reader/cache/mirror and other acquisition routes paused. No original-link or alternate route attempted.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_effect": "Potential detailed opening coverage remains unavailable, and the actual selected upper connector remains material pending. Discovery metadata is not cartographic evidence."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:61395110",
+      "publication": "Guía de Parques Nacionales / Parques Nacionales y Áreas Silvestres Protegidas de Chile, CONAF, 2nd edition, January 2001",
+      "official_url": "https://www.memoriachilena.gob.cl/archivos2/pdfs/mc0027526.pdf",
+      "observed_outcome": "The inspected original colophon prohibits total or partial reproduction without express CONAF authorization.",
+      "outcome_layer": "Printed source-use notice on a successfully acquired original; not an access denial.",
+      "restriction_scope": "No republication of original pages, maps, crops or derivative source imagery. Ordinary factual reading and own bounded observations remain usable; no redistribution permission inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60005186",
+      "publication": "Mapa Político, Estado Aragua, IGVSB, primera edición 2010, 1:250,000",
+      "official_url": "https://arquivosgeo.wordpress.com/wp-content/uploads/2018/01/mapa-del-estado-aragua-y-sus-municipios.pdf",
+      "observed_outcome": "Original PDF reproduction completed HTTP200 and was visually read. The printed margin prohibits total or partial reproduction by any means without prior authorization of Instituto Geográfico de Venezuela Simón Bolívar.",
+      "outcome_layer": "Printed ordinary reproduction/copyright notice on successfully acquired primary cartography.",
+      "restriction_scope": "Preserve the reproduction limitation; source originals, crops and overlays remain private. This is not a limited-distribution/officials-only notice and is not treated as a factual-reading prohibition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    }
+  ]
+}

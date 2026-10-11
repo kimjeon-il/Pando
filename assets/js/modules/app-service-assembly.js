@@ -106,6 +106,7 @@ export function createServiceAssembly() {
       APP_VERSION: dependencies.platformConfigurationA.APP_VERSION,
       ASSET_REVISION: dependencies.layerPresentation.ASSET_REVISION,
       DATA_REVISION: dependencies.physicalConfig.DATA_REVISION,
+      sharedBoundaryCacheUrls: globalThis.PANDOLAB_WORLD_SHARED_BOUNDARY_CACHE_URLS || null,
       PHYSICAL_DATA_BASE_URL: dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL,
       TERRAIN_RASTER_MANIFEST_URL: dependencies.physicalConfig.TERRAIN_RASTER_MANIFEST_URL,
       onTerrainSourceChanged: manifest => { dependencies.projectState.state.terrainManifest = manifest; },

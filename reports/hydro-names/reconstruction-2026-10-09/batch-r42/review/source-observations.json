@@ -1,0 +1,189 @@
+{
+  "schema": "hydro-original-source-observations-v3",
+  "batch": "r42",
+  "scope_aw_ids": [
+    "lakes_base:1159110041",
+    "lakes_base:1159108693",
+    "lakes_base:1159108673"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "Retained original Northern and West-Central sheets were read locally. No external search, original-body request or source acquisition occurred in this batch.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": null,
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 2,
+  "distinct_cartographic_identity_publications": 2,
+  "independent_source_groups": 1,
+  "source_group_definition": "Two companion Ontario Geological Survey publications from one publisher and series. They do not establish independent hydrographic datasets.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All 113 selected ordered positions were independently registered from fresh original projected WKT/GPTS/LPTS controls with full affines, both cross terms and explicit MediaBox/CropBox offsets. Six original detail/context arrays and four credit/imprint arrays match fresh renders. Maximum control residuals are under 0.001 PDF point; this measures affine consistency, not shoreline or name-boundary accuracy. No manual shoreline fitting was used. Readable whole-footprint hydrography was confirmed visually, not inferred from crop containment.",
+  "observations": [
+    {
+      "source_key": "ogs_index_bedrock_northern_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991\u20132020, Northern Sheet",
+      "publisher": "Ontario Geological Survey",
+      "url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf",
+      "original_acquired_at_utc": "2026-10-10T01:44:15.182007+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2021",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The original suggested citation identifies Ontario Geological Survey 2021. Copyright year 2021 is recorded separately. The title interval 1991\u20132020 describes indexed map coverage; no publication month or day is established.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r40",
+      "directly_read_water_labels": [],
+      "nearby_distinct_water_labels": [
+        "Muskrat Dam Lake",
+        "Severn",
+        "River",
+        "Windigo"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Readable selected-water coverage and surrounding names establish an unnamed identity/extent scope hold; no selected lake name assigned.",
+      "authority_scope": "Official provincial thematic cartographic usage supports only these bounded scope observations. It is not a formal naming-registry decision and does not certify exact shoreline or name partitions.",
+      "registered_overlay_performed": true,
+      "own_observations": "Original Northern Sheet pixels show the complete eight-position outline on the southwestern widening of connected pale-cyan water. Severn and River text is split around this area, while Muskrat Dam Lake is printed over the northeastern larger water beyond a narrow continuation. Windigo labels a tributary farther south. No selected-water lake label is established; none of these contextual names is assigned to the whole ring. Readable hydrography supports an identity/extent scope hold, not material or access pending.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "Publication Services Unit, Ontario Geological Survey compiled and edited the index; J. Rose is credited for map outlines and cartographic production. The credits caution that coverage outlines and the topographic base may differ and that editorial review was limited.",
+      "printed_copyright_year": "2021",
+      "printed_bibliographic_citation_year": "2021",
+      "hydrographic_base_provider": null,
+      "original_requested_at_utc": "2026-10-10T01:44:07.664713+00:00"
+    },
+    {
+      "source_key": "ogs_index_bedrock_west_central_2021",
+      "title": "Index to Maps, Bedrock Geology, 1991\u20132020, West-Central Sheet",
+      "publisher": "Ontario Geological Survey",
+      "url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-WestCentral.pdf",
+      "original_acquired_at_utc": "2026-10-10T02:07:35.288175+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2021",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The original suggested citation identifies Ontario Geological Survey 2021. Copyright year 2021 is recorded separately. The title interval 1991\u20132020 describes indexed map coverage; no publication month or day is established.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r41",
+      "directly_read_water_labels": [
+        "Cat Lake",
+        "Kapikik Lake",
+        "Zionz Lake",
+        "Fawcett Lake",
+        "Gull Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Whitestone Lake",
+        "Gitche Lake",
+        "Cat River",
+        "Bamaji Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Readable complete selected footprints establish compound scope holds for Cat/Kapikik and Zionz/Fawcett/partial Gull associations.",
+      "authority_scope": "Official provincial thematic cartographic usage supports only these bounded scope observations. It is not a formal naming-registry decision and does not certify exact shoreline or name partitions.",
+      "registered_overlay_performed": true,
+      "own_observations": "Original West-Central pixels and all 53 registered positions show the broad Cat Lake body and eastern branch connected through a narrower southern stretch to the selected lobe carrying Kapikik Lake. The southern named association is substantial. Whitestone Lake farther north and Zionz Lake farther south are contextual. Cat Lake and Kapikik Lake are separate printed water names, not aliases; a single scalar name would conceal the compound scope. Coarse edges cross mapped land and omit fine water features. Original West-Central pixels and all 52 registered positions show Zionz Lake in the northern lobe and Fawcett Lake beside the east-central lobe. Western and southern selected portions overlap only part of water associated with Gull Lake; no whole-Gull inclusion is asserted. Narrow reaches connect these areas, and coarse westward tips overshoot mapped water onto land. Kapikik Lake to the north and Cat River/Bamaji Lake farther southeast are contextual. The three printed lake names are component associations, not aliases or exact geometric partitions.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "Publication Services Unit, Ontario Geological Survey compiled and edited the index; J. Rose is credited for map outlines and cartographic production. The credits caution that coverage outlines and the topographic base may differ and that editorial review was limited.",
+      "printed_copyright_year": "2021",
+      "printed_bibliographic_citation_year": "2021",
+      "hydrographic_base_provider": null,
+      "original_requested_at_utc": "2026-10-10T02:07:26.442841+00:00"
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159110041",
+      "aw_id": "lakes_base:1159110041",
+      "source_id": "1159110041",
+      "geometry_fids": [
+        15461
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 8,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [],
+      "context_source_keys": [
+        "ogs_index_bedrock_northern_2021"
+      ],
+      "independent_observation": "Original Northern Sheet pixels show the complete eight-position outline on the southwestern widening of connected pale-cyan water. Severn and River text is split around this area, while Muskrat Dam Lake is printed over the northeastern larger water beyond a narrow continuation. Windigo labels a tributary farther south. No selected-water lake label is established; none of these contextual names is assigned to the whole ring. Readable hydrography supports an identity/extent scope hold, not material or access pending."
+    },
+    {
+      "observation_id": "lakes_base:1159108693",
+      "aw_id": "lakes_base:1159108693",
+      "source_id": "1159108693",
+      "geometry_fids": [
+        15356
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 53,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_west_central_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original West-Central pixels and all 53 registered positions show the broad Cat Lake body and eastern branch connected through a narrower southern stretch to the selected lobe carrying Kapikik Lake. The southern named association is substantial. Whitestone Lake farther north and Zionz Lake farther south are contextual. Cat Lake and Kapikik Lake are separate printed water names, not aliases; a single scalar name would conceal the compound scope. Coarse edges cross mapped land and omit fine water features."
+    },
+    {
+      "observation_id": "lakes_base:1159108673",
+      "aw_id": "lakes_base:1159108673",
+      "source_id": "1159108673",
+      "geometry_fids": [
+        15355
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 52,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "complete_source_map_coverage_available": true,
+      "full_feature_source_identity_review_completed": true,
+      "source_material_pending": false,
+      "source_keys": [
+        "ogs_index_bedrock_west_central_2021"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original West-Central pixels and all 52 registered positions show Zionz Lake in the northern lobe and Fawcett Lake beside the east-central lobe. Western and southern selected portions overlap only part of water associated with Gull Lake; no whole-Gull inclusion is asserted. Narrow reaches connect these areas, and coarse westward tips overshoot mapped water onto land. Kapikik Lake to the north and Cat River/Bamaji Lake farther southeast are contextual. The three printed lake names are component associations, not aliases or exact geometric partitions."
+    }
+  ],
+  "source_group_limit": "Official thematic cartography supports the recorded scope observations and bounded component associations. Formal naming-registry authority and underlying hydrographic dataset independence remain unverified.",
+  "independent_review_and_source_research_agree": true,
+  "request_accounting": {
+    "search_tool_calls": 0,
+    "search_queries": 0,
+    "explicit_web_open_requests": 0,
+    "original_body_requests": 0,
+    "new_original_bodies_acquired": 0,
+    "new_source_access_denials": 0,
+    "new_source_availability_failures": 0,
+    "stopped_resource_requests": 0,
+    "additional_source_acquisitions_planned": false
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r16",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r16",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "8c96653c6012fc44d17d4f06f19e4da39198aeca",
+  "scope": "Three bounded new actual-inventory lake investigations against complete generalized source and retained baseline polygons. Cumulative index and pinned initial inventory recover the fresh-reconstruction remainder, not the unavailable historical504 ledger.",
+  "automatic_application": false,
+  "product_changes": false,
+  "full_river_coordinates_included": false,
+  "selected_public_domain_lake_features": 3,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 34,
+  "bytes_excluding_self": 227311,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 5828,
+      "sha256": "b97875c233401eb22760dd039f5f9af569fb2d2c86dd944a3c835481f28e9f9c"
+    },
+    "geometry-README.md": {
+      "bytes": 6205,
+      "sha256": "05cd266e75cbd4b712ad6560c04f4747f0c4bc429d8163d82d5d981d8cc01722"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1613,
+      "sha256": "2998c061eb722f4731bc5dbdbcd6c20d94f85897e976cab9df7529f821a5b50b"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 3294,
+      "sha256": "597c2847a629a290c87916e95f649766e32ee3300521f25605de7de08ab0ea3f"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 993,
+      "sha256": "95acd1f37b2c96566df7210294783a1ec8713babe3bf7e9af366de635085dbeb"
+    },
+    "geometry-reference.json": {
+      "bytes": 18786,
+      "sha256": "247abe39ae8e6cac6619a372ea4d53c3d95c00080767adbe8b9c72f83a49efb2"
+    },
+    "geometry-support.py": {
+      "bytes": 2400,
+      "sha256": "dd6a583181c1527cdd0646f3ce6aee207570042c14e3fa4ebc3d35a36e752d33"
+    },
+    "geometry-validation.json": {
+      "bytes": 8523,
+      "sha256": "e60d309de3f974ba37efb77b38e876decc75b1a5245d81db6f006c183dddd667"
+    },
+    "queue-recovery-validation.json": {
+      "bytes": 2631,
+      "sha256": "97ac7ca7a3c226cbe79cdb77568d0f9e30b37763d06d0cf2592441d0a0a9f794"
+    },
+    "reconstruction-index.json": {
+      "bytes": 34253,
+      "sha256": "6d58dce8cd9ba13b3303c8aeca722d363699e7c93cbb74243b8c5b39f70ef13a"
+    },
+    "recover-remaining-queue.py": {
+      "bytes": 4247,
+      "sha256": "7dcf8d54e845094c3a2b5f9eab43860af6b5e7fa887a816b34904982bcb598b6"
+    },
+    "research/saskatchewan/README.md": {
+      "bytes": 1704,
+      "sha256": "6d58eed8e5d62c868f6990d9d728bdcfae6ceee6ef767879a53c2cdac7550e44"
+    },
+    "research/saskatchewan/findings.json": {
+      "bytes": 10201,
+      "sha256": "ffd80bfe23dc350a3a917337eab4180edc090f7810451476daad10bf6406b135"
+    },
+    "research/saskatchewan/map-scope-review.json": {
+      "bytes": 5115,
+      "sha256": "a5b132b16670fdefa8a2d662d5e468178e3c2800f5f846ae6f49031259caf26e"
+    },
+    "research/saskatchewan/research-manifest.json": {
+      "bytes": 1095,
+      "sha256": "bbd6f7d6b32617a356573a058efc89d3093f923fe40f69c14b0c93039338bf13"
+    },
+    "research/saskatchewan/source-evidence.json": {
+      "bytes": 2577,
+      "sha256": "7df0e999725d658866511259ce6c740df3945022e8b0c65ebf346a26ba64b9e1"
+    },
+    "research/saskatchewan/target-identity-facts.json": {
+      "bytes": 3663,
+      "sha256": "691897fe435de1e935589c03f53a0298f077c9a5156d812e2910925131b7ecdc"
+    },
+    "results.json": {
+      "bytes": 8107,
+      "sha256": "acd2dc6a1e2b4febd1a196240712dca536069f8c2b058c98d8ceb7c3fd8bd83c"
+    },
+    "review/README.md": {
+      "bytes": 3729,
+      "sha256": "485281e97c9e577c5333db071a9936e4962ffabdd869f8b391d5c71603484a5c"
+    },
+    "review/independent-review.json": {
+      "bytes": 10340,
+      "sha256": "13f141db8432056a4a72bed9db63a8f412b0efff8b82b233fdcac5a4c8bec57e"
+    },
+    "review/public-input-pins.json": {
+      "bytes": 3178,
+      "sha256": "8c21aef0827696971779637b6fc284ab8acf27e104c34ca445e4c9d2e95edbc2"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1510,
+      "sha256": "f0bcff1834ea9fdc3f13e2c9c4677f7654fe22c622a465c17775db1853c22704"
+    },
+    "review/review-validation.json": {
+      "bytes": 6084,
+      "sha256": "55c18736561b1af00e6f6b328be693b9b91cb0586c0873e6af0cdec5b063ca1f"
+    },
+    "review/source-observations.json": {
+      "bytes": 2665,
+      "sha256": "6e393c55e99cb5316daf67333fad5e94e781d1d2318f54792f1b0d3ac52323f0"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 7282,
+      "sha256": "27df04f07472ba5b988efb7c41cf8c99bbdbbb1d331f4073b6e4a5abf41798a0"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 17327,
+      "sha256": "fa69016432b7708ed631e5439da7d62d94dca5479a3ae31d4e6fca4e5386e33b"
+    },
+    "selected-baseline-rendered-geometries.geojson": {
+      "bytes": 3745,
+      "sha256": "ad793b9278b018744814f5c2e3303cf29f26df7c7657cefcb192f3dcceae13ce"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 4410,
+      "sha256": "91603b34a0983f4ec78ae53d33338f97e46110993d3f6788b01974f34c57e8d7"
+    },
+    "selected-lake-geometries.geojson": {
+      "bytes": 5543,
+      "sha256": "f597a101de001200a0ca74ee8fb96726a09048b0ace76e4c6876ce7ab691b9fc"
+    },
+    "source-publication-rights.json": {
+      "bytes": 996,
+      "sha256": "d35056fef3ac96b9ff58407e5874d009a003f90339ed0b56146782f49f7b61a4"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 9648,
+      "sha256": "7f3c8a4c6aedbc99089fa5c2e24104d81509712fc822835c3c26a806a7262029"
+    },
+    "test-remaining-queue.py": {
+      "bytes": 3472,
+      "sha256": "22964a9590e30efe8e7339557e1c8aee1cea7952532143fa32d06a1f2e6c1df3"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 16487,
+      "sha256": "c1a0b6cc89978d6efd71346a6055ae30c67f3b4747a57386166a8397b7ed3cdb"
+    },
+    "validate-package.py": {
+      "bytes": 9660,
+      "sha256": "e72a8a13fcef9690e53c6513e6678a7d03af3630b8f69029a38c79c7e4802883"
+    }
+  }
+}

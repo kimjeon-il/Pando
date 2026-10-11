@@ -1,0 +1,123 @@
+{
+  "schema": "hydro-river-geometry-summary-public-v1",
+  "batch": "r28",
+  "created_at_utc": "2026-10-09T21:50:06.503750Z",
+  "scope_system_ids": [
+    "50691388",
+    "50738894"
+  ],
+  "scope_aw_ids": [
+    "hydro-system:50691388",
+    "hydro-system:50738894"
+  ],
+  "baseline": {
+    "repository": "kimjeon-il/Pando",
+    "git_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "hydro_version": "0.13.1",
+    "current_live_deployment_checked": false,
+    "current_live_deployment_equality_claimed": false
+  },
+  "validation_scope": "included-summary-evidence-only",
+  "identity_domains": "MAIN_RIV systemId, awId, logical_fid and individual geometry fid are distinct. FIDs apply only to the pinned baseline.",
+  "groups": [
+    {
+      "aw_id": "hydro-system:50691388",
+      "system_id": "50691388",
+      "logical_fid": 2023,
+      "geometry_fids": [
+        6979
+      ],
+      "role_sequence": [
+        "mainstem"
+      ],
+      "part_count": 30,
+      "bounds": [
+        152.691667,
+        -29.06875,
+        153.592891,
+        -28.354167
+      ],
+      "fragment_count": 1,
+      "position_count": 258,
+      "source_reach_count": 30,
+      "fragment_part_counts": [
+        30
+      ],
+      "fragment_position_counts": [
+        258
+      ],
+      "minimum_stage": 3
+    },
+    {
+      "aw_id": "hydro-system:50738894",
+      "system_id": "50738894",
+      "logical_fid": 2085,
+      "geometry_fids": [
+        7043
+      ],
+      "role_sequence": [
+        "mainstem"
+      ],
+      "part_count": 29,
+      "bounds": [
+        152.20625,
+        -31.48125,
+        152.916629,
+        -31.139583
+      ],
+      "fragment_count": 1,
+      "position_count": 192,
+      "source_reach_count": 29,
+      "fragment_part_counts": [
+        29
+      ],
+      "fragment_position_counts": [
+        192
+      ],
+      "minimum_stage": 3
+    }
+  ],
+  "public_coordinate_policy": "Full rendered coordinates, per-part paths and omitted-input fingerprints are not published.",
+  "original_hydrorivers_geometry": {
+    "source_coordinate_equality_verified": false,
+    "reach_boundary_coordinate_mapping_verified": false
+  },
+  "name_scope": {
+    "name_verdict_established": false,
+    "representative_name_automatically_applies_to_tributaries": false,
+    "automatic_application": false,
+    "historical_names_used_as_identity_evidence": false
+  },
+  "historical_private_verification": {
+    "all_selected_fragments_decoded": true,
+    "ordered_baseline_positions_and_metadata_checked": true,
+    "original_selected_inventory_join_checked": true,
+    "public_validator_reproduces_these_omitted_input_checks": false
+  },
+  "limits": [
+    "The public validator checks only included summaries, metadata and file hashes. It cannot reproduce omitted geometry, original inventory or production-decoder checks.",
+    "Private verification decoded the complete selected baseline groups without geometry repair, simplification, reordering or reversal.",
+    "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part mapping remain unverified.",
+    "A group includes only the represented baseline fragments, not an independently verified complete catchment network.",
+    "Placeholder names and geometry summaries do not establish geographic names. A mainstem name does not automatically cover tributaries.",
+    "No current deployment check or maximal topology audit was performed."
+  ],
+  "artifacts": {
+    "selected-river-metadata.json": {
+      "bytes": 3258,
+      "sha256": "f51629c597b171384cd2ed0078330b31b80da12a520df5ff88825e4a909eabe3"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 1444,
+      "sha256": "b313c4b6251e893e597e714e5881e48f16d89bc620cfa8548ffd4826a2b5245d"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 5886,
+      "sha256": "72c004b8747a63174c6dd606803b117e3dfdad8ecc8dc50108bf14edc235f4b4"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 640,
+      "sha256": "51f5fe8f3347871da45d1b197ba498324e9e3541a54bd46dcd920ab0688dfe92"
+    }
+  }
+}

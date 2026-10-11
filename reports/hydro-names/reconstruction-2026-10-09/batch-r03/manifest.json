@@ -1,0 +1,151 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r03",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r03",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "d89d00bb5237d486761965762c94c96d71b7b6c7",
+  "scope": "Three bounded fresh river-group reviews; missing historical504record ledger not restored. No all-reach naming approval.",
+  "automatic_application": false,
+  "product_changes": false,
+  "full_river_coordinates_included": false,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 33,
+  "bytes_excluding_self": 271572,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 4696,
+      "sha256": "58b6576ca2b628de5892080a3cd573f231db7a189c911c0db168f1683d944760"
+    },
+    "extract-baseline-geometries.mjs": {
+      "bytes": 5680,
+      "sha256": "7c1f70e70cf88872e5ef911fb488e16fec11f600323be7804ea94153bc3d1f6d"
+    },
+    "flinders-findings.json": {
+      "bytes": 12233,
+      "sha256": "528135e39c0bc6fa5284420318ba2c54990fc56a9676619977c762841927728c"
+    },
+    "flinders-source-evidence.json": {
+      "bytes": 8536,
+      "sha256": "ae6038d6a3e7b10c5aa09d37675f9be737a29f71fbe8e8a56e970d385f1c5c94"
+    },
+    "geometry-README.md": {
+      "bytes": 4521,
+      "sha256": "18f1f63c1e49ddc98893c280b59acb023ca07491af3824492aad393be33dd969"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1508,
+      "sha256": "63e5995359bc135d3bbb2a6cc315c11cd48fc47646725e6cd7a7a085cc8e4eaf"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 1700,
+      "sha256": "3fe46fdae55bf8a80cf06dfc4e89b5ba4259e896704ca360f7f4b9bb081ce1cb"
+    },
+    "geometry-reference.json": {
+      "bytes": 14476,
+      "sha256": "dda29f9508dea5f110fa871626e7afacd322ef09b536fcb72b91221bb2d6a479"
+    },
+    "geometry-request-receipts.json": {
+      "bytes": 5989,
+      "sha256": "7c12f7151e83da092ca3010f16e42e8212c89bc0c4c5509af438a53808e15dcd"
+    },
+    "geometry-validation.json": {
+      "bytes": 2326,
+      "sha256": "fe1b66853bdce650e1385ffe3c91ce4e67b8e6e9a2afa7c50956bfba4b864eb8"
+    },
+    "nura-findings.json": {
+      "bytes": 9327,
+      "sha256": "04d3a8f8816123a422eccba9399b909c265c9e7b41fd2b736149e115e173748d"
+    },
+    "nura-source-evidence.json": {
+      "bytes": 11423,
+      "sha256": "680a3ece92678b6a27ed4b73eb54ff772ca67ce7c42aaa711f57a2a1dc4986cd"
+    },
+    "reconstruction-index.json": {
+      "bytes": 5024,
+      "sha256": "c1acff67170c119542b13285bfd951e0a1b87f95910878ad777518ca93cd8b00"
+    },
+    "results.json": {
+      "bytes": 6421,
+      "sha256": "485b61e9021a2e7bc4b9fe39882c1018973cdfff900e3a72c19291aa74834a31"
+    },
+    "review/README.md": {
+      "bytes": 3798,
+      "sha256": "ca2157cad022c7e68ba94a98b52becc18fc3e1ba351f31a5c2bcdafdbce84b8d"
+    },
+    "review/frozen-input-pins.json": {
+      "bytes": 10702,
+      "sha256": "9b314f108834c3b56b8831c50ee700cfce901f07ef12b2c83fcdbe5f27641e81"
+    },
+    "review/independent-review.json": {
+      "bytes": 9736,
+      "sha256": "ad86ff9ef39e15cd64f52ed240649f4f7cc531a177050b57ee3fd4c205fe2710"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1455,
+      "sha256": "f80e4bef362fe5594c2e298aece9d465d041cc2eac11ed5c232650db965bc21d"
+    },
+    "review/review-validation.json": {
+      "bytes": 4774,
+      "sha256": "da4e17bd47d446f369b8b7b7c057391ab14911417d649f53bb53e3702d6f2e1f"
+    },
+    "review/source-observations.json": {
+      "bytes": 5385,
+      "sha256": "1c8a205808afc6a8c9db7d07949f44a9a0647e62348098a0a80adb75db4e7059"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 3947,
+      "sha256": "d35eb4bd69c8f26bea02b00fdecdd60257788a97958466c49ade35e622c82cb0"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 16229,
+      "sha256": "989c702b007b6019f687743e7ef94953f11a6db6e08d839b2b2c581f6c58e420"
+    },
+    "sarysu-findings.json": {
+      "bytes": 11773,
+      "sha256": "474dfe5f9b4dc7eb4ff34684b937f3e5829fef2e9778fb40f07c763c5a10aca9"
+    },
+    "sarysu-source-evidence.json": {
+      "bytes": 11997,
+      "sha256": "c0fba3f255d17cd67865a125fb3b8e792e9b3dfc3eb8504ce254661923633760"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 3781,
+      "sha256": "46faac003f887e09458b043d21ac104e6eef3da607a145b29f3272917d400f90"
+    },
+    "selected-pack-receipts.json": {
+      "bytes": 1367,
+      "sha256": "c5e35e935cb63cf9ae659bd56ec8ffe44a302dadc3a93241da8768d1751d8c80"
+    },
+    "selected-river-metadata.json": {
+      "bytes": 26505,
+      "sha256": "13d6d672441080947111b38ae75234b1d1b54025e91c5c0e0195edb6d55fa6e2"
+    },
+    "source-access-observations.json": {
+      "bytes": 3371,
+      "sha256": "f14b4cd9fc0d177453bacf75cafd43b0ab74cbe9b2965a7d3715d17d3871c937"
+    },
+    "source-publication-rights.json": {
+      "bytes": 1121,
+      "sha256": "97375b94f52879d1b97142c7fb2bd568892a70cb92f0cea4746c62b492e0b7be"
+    },
+    "source-reach-manifest.json": {
+      "bytes": 34120,
+      "sha256": "7c712ac9c5d8764fd11b03cb0566ba61a51443a30b5845a6fabc48c7bf18fcf8"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 3889,
+      "sha256": "f49ff2839bf70471addc4782ebf10906cc0f3c8cedbe936dbe757ab10b5736bd"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 18378,
+      "sha256": "e9f7e91f965f2654449404aea5d0b348ad1b1d47b3542e724dd6b5035cddf8e6"
+    },
+    "validate-package.py": {
+      "bytes": 5384,
+      "sha256": "8f08e79e5a832c7490bd705492df988dd111b048e467546f262e7d0f5135c0ff"
+    }
+  }
+}

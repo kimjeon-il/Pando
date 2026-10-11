@@ -1,0 +1,919 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r113",
+  "sources": [
+    {
+      "source_key": "r113-aafc-nluis-index",
+      "title": "Northern Land Use Information Series (NLUIS): Northern Land Use, map index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquired_scope": "Index text read successfully. It lists Jesse Harbour 98A, Lennie River 98B and combined Bernard River 98D_C. It gives a series publication interval of 1972–1986 and scale 1:250,000.",
+      "supports": "Bibliographic identification only.",
+      "limits": "Index titles and nominal sheet coverage do not establish selected-route correspondence. Individual sheet dates, notices and map content were not observed."
+    },
+    {
+      "source_key": "r113-eccc-banks1-page",
+      "title": "Banks Island Migratory Bird Sanctuary No. 1",
+      "publisher": "Environment and Climate Change Canada, Canadian Wildlife Service",
+      "date_modified": "2024-04-03",
+      "official_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/banks-island-number-1.html",
+      "acquired_scope": "Web-reader prose read successfully, especially Landscape and Map of the area.",
+      "supports": "Regional context: rivers descend from the central uplands toward the Beaufort Sea; the west-coast reaches are described as braided, entering broad shallow marshy deltas. The map alternative text names Bernard among several rivers.",
+      "limits": "Regional descriptions and alternative text do not trace the selected headward course, connectors, branch choices or actual terminal. No original map pixels were observed. No current-law, permit, travel-safety or registry determination is made."
+    },
+    {
+      "source_key": "r113-aafc-nluis-98d_c",
+      "title": "Northern Land Use Information Series, Bernard River, sheet 98D_C, 1:250,000",
+      "publisher": "Agriculture Canada / Environment Canada / Indian and Northern Affairs Canada; official scan hosted by Agriculture and Agri-Food Canada",
+      "year": null,
+      "edition": "Individual edition unobserved; series index gives 1972–1986",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98d_c.jpg",
+      "acquired_scope": "One original map link requested through the successfully read index; web reader returned Cache miss. No original pixels.",
+      "supports": "No substantive cartographic evidence.",
+      "limits": "No map labels, connections, river course, terminal, individual edition or printed use notice was observed. No retry or alternative acquisition followed."
+    },
+    {
+      "source_key": "r113-aafc-nluis-98a",
+      "title": "Northern Land Use Information Series, Jesse Harbour, sheet 98A, 1:250,000",
+      "publisher": "Agriculture Canada / Environment Canada / Indian and Northern Affairs Canada; official scan hosted by Agriculture and Agri-Food Canada",
+      "year": null,
+      "edition": "Individual edition unobserved; series index gives 1972–1986",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98a.jpg",
+      "acquired_scope": "One original map link requested through the successfully read index; web reader returned Cache miss. No original pixels.",
+      "supports": "No substantive cartographic evidence.",
+      "limits": "No map labels, connections, river course, terminal, individual edition or printed use notice was observed. No retry or alternative acquisition followed."
+    },
+    {
+      "source_key": "r113-eccc-banks1-map",
+      "title": "Map of Banks Island Migratory Bird Sanctuary No. 1",
+      "publisher": "Environment and Climate Change Canada",
+      "official_url": "https://www.canada.ca/content/canadasite/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/banks-island-number-1/_jcr_content/par/mwsadaptiveimage_421121137/image.img.jpg/1533923086627.jpg",
+      "landing_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/banks-island-number-1.html",
+      "edition": "Individual map edition/date unobserved",
+      "acquired_scope": "The web image open returned a reference without observable image pixels. One sequential original-image acquisition was cancelled before an HTTP outcome. No pixels were read.",
+      "supports": "No substantive cartographic evidence.",
+      "limits": "The map and equivalent retrieval routes remain stopped. The earlier normally read webpage prose remains limited regional context; alternative text is not original cartography."
+    },
+    {
+      "source_key": "r113-gsc-cgm35-catalogue",
+      "title": "Geology, tectonic assemblage map of Aulavik, Banks Island and northwestern Victoria Island, Northwest Territories; Canadian Geoscience Map 35, preliminary version (2013), catalogue landing page",
+      "publisher": "Natural Resources Canada, Geological Survey of Canada",
+      "author": "Harrison et al.; full author list unobserved",
+      "year": 2013,
+      "catalogue_number": "M183-1/35-2013E-PDF",
+      "official_url": "https://publications.gc.ca/site/eng/445930/publication.html",
+      "acquired_scope": "Only discovery metadata seen; one catalogue-page request returned Cache miss. No source map or original PDF acquired.",
+      "supports": "No substantive evidence.",
+      "limits": "Discovery metadata is not source map reading. The map, advertised later edition and geodatabase were not retrieved. Missing publication content remains paused."
+    },
+    {
+      "source_key": "r113-nature-capillaries-2024",
+      "title": "The capillaries of the Arctic tundra",
+      "publisher": "Nature Water / Springer Nature",
+      "year": 2024,
+      "official_url": "https://www.nature.com/articles/s44221-024-00276-9",
+      "acquired_scope": "Article request failed; no article prose or figure read.",
+      "supports": "No substantive evidence.",
+      "limits": "The web reader reported (500), redirection to the publisher identity endpoint, and a non-retryable error. Neither an origin HTTP 401/403 nor article access entitlement was observed. All article/equivalent routes remain stopped; snippets excluded."
+    },
+    {
+      "source_key": "r113-cbmt-inherited-stop",
+      "title": "BaseMaps/CBMT3978 (MapServer)",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer",
+      "acquired_scope": "Not requested for this target.",
+      "supports": "No target evidence.",
+      "limits": "Inherited r112 publication/service-wide stop after a returned PNG request failed with transport/tunnel 403. Origin image-server status was unobserved. No equivalent viewer, cache or other route requested."
+    },
+    {
+      "source_key": "ign-topo250k-r113",
+      "title": "Cartas topográficas 1:250.000, mosaico: Serrano–Coronel Charlone–General Villegas–Colonia Seré–Berutti corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Composite historical sheets; individual sheet dates not established.",
+      "material_read": "Four overlapping original bounded map views: head, middle, lower and terminal. Originals and private orientation overlays were visually inspected.",
+      "limits": "Geographic surroundings and actual terminal are covered. Cartographic landscape coverage alone does not prove the unresolved modeled connections. A white patch north/east of Charlone and a strip south of Berutti occur in the mosaic; continuous 1:500,000 geographic overview is separately available. Neither patch is used as watercourse evidence.",
+      "use_notice": "Previously normally acquired service capabilities contain a public-access/reuse statement referring to Argentine Law 27.275. Source rasters, crops and overlays nevertheless remain private under this task boundary."
+    },
+    {
+      "source_key": "ign-topo500k-r113",
+      "title": "Mosaico cartas 1:500.000, febrero 2026 service layer",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "The service layer identifies febrero_2026; constituent sheet revision dates not established.",
+      "material_read": "One original bounded continuous overview covering the whole selected corridor and actual terminal.",
+      "limits": "Generalized regional topography supplies geographic context, not proof of a continuous modeled watercourse or modern channel operation."
+    },
+    {
+      "source_key": "ina-flood2017",
+      "title": "Inundaciones en la cuenca A1 del Río Salado Bonaerense: elementos para el diagnóstico de situación",
+      "publisher": "Instituto Nacional del Agua, Dirección de Sistemas de Información y Alerta Hidrológico, Área de Sensores Remotos y SIG",
+      "authors": [
+        "Leandro Giordano",
+        "Juan Bianchi",
+        "Tomás Calvi"
+      ],
+      "date": "2017-01-14",
+      "official_url": "https://www.ina.gov.ar/alerta/pdf/informe_nw_2017.pdf",
+      "material_read": "Original PDF acquired normally. Cover, synopsis and methodology prose read; PDF pages 15–17 visually read: General Villegas, General Villegas (Sur), and Roque Sáenz Peña change-detection maps.",
+      "supports": "Independent observed distribution of inundated basins around the selected northern/middle settings in December 2016.",
+      "limits": "Historical surface-water change masks compare 29 and 13 December 2016. They show patchy inundation, cannot establish water-transfer direction or all modeled links, and do not cover the selected Berutti terminal.",
+      "use_notice": "Rendered maps include Bing and ©2017 Microsoft Corporation attribution. Original report and derived working figures remain private."
+    },
+    {
+      "source_key": "gba-plan-salado",
+      "title": "Cuenca Salado: Plan Maestro Integral Río Salado",
+      "publisher": "Provincia de Buenos Aires, Dirección Provincial de Hidráulica",
+      "official_url": "https://www.gba.gob.ar/node/21778",
+      "material_read": "Official page sections Introducción, Ubicación and Región Noroeste/physical characteristics; original prose only.",
+      "supports": "Regional interdunal drainage limitations and southward excess-water movement toward Hinojo–Las Tunas; distinct engineered connection to the Salado.",
+      "limits": "Regional narrative and listed projects are not a map of the selected route, and do not establish current operations or its terminal hydronym."
+    },
+    {
+      "source_key": "ada-a4-prose",
+      "title": "Información y estado de avance programas Subregión A4",
+      "publisher": "Autoridad del Agua, Dirección Provincial de Planificación Hídrica y Monitoreo Hídrico, Provincia de Buenos Aires",
+      "edition": "2024 material: report refers to March–June 2024 observations and is hosted in an October 2024 directory; exact publication date not established.",
+      "official_url": "https://ada.gba.gov.ar/wp-content/uploads/2024/10/informe-A4-final.pdf",
+      "pages": "Numbered pp.6–8, Información hidrométrica disponible en la subregión A4.",
+      "material_read": "Web-reader prose opened normally; subsequent original PDF acquisition failed. No report figures visually acquired.",
+      "supports": "Regional Quinto, La Dulce, Vidania and Cuero de Zorro canal sequence toward Hinojo–Las Tunas.",
+      "limits": "Context only. Unseen figures are not source-correspondence evidence. Full original/missing-map acquisition is now paused after HTTP502."
+    },
+    {
+      "source_key": "villegas-emergency2017",
+      "title": "Plan Municipal de Emergencia del Partido de General Villegas, 2017",
+      "publisher": "Municipalidad de General Villegas, Junta Municipal de Defensa Civil; SIBOM",
+      "year": 2017,
+      "official_url": "https://sibom.slyt.gba.gob.ar/bulletins/313/contents/1155905/download_annex?annex_id=794",
+      "material_read": "Web-reader original prose, introductory and problem-identification sections, PDF pages 2–3.",
+      "supports": "Coronel Charlone/Fernando Martí place-name context; local flood setting includes rainfall, surface movement and shallow groundwater.",
+      "limits": "Municipal emergency plan does not establish this modeled watercourse or supply a full-route hydronym. No plan figure correspondence is claimed."
+    },
+    {
+      "source_key": "r113-bc-rescue-map",
+      "title": "Cariboo-Chilcotin Forest District Rescue Map, file dccv12-rescue_map.pdf",
+      "publisher": "Province of British Columbia",
+      "year": null,
+      "type": "Primary original provincial cartography",
+      "inspection": "Original PDF acquired HTTP200; complete western Dean portion and enlarged headward/lake/middle sectors visually read.",
+      "supports": "Labeled Nimpo Lake, Anahim Lake, Abuntlet Lake and Dean River corridor; surrounding tributary and road context.",
+      "limits": "Rescue-purpose regional map; initial small eastern feeder not drawn completely. Printed warning says evacuation-site coordinates derive from TRIM base mapping and are not field-verified. This is not used to establish surveyed river vertices. No source image redistribution.",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/natural-resource-use/resource-roads/local-road-safety-information/cariboo-chilcotin/dccv12-rescue_map.pdf"
+    },
+    {
+      "source_key": "r113-bc-structure-093c",
+      "title": "Stuart-Nechako FSR Structure Location Map, sheet093C",
+      "publisher": "Province of British Columbia",
+      "year": 2022,
+      "type": "Primary original provincial cartography",
+      "inspection": "Original single-page georeferenced PDF acquired HTTP200 and read visually in headward, lake and northern-middle crops. PDF creation metadata is March2022; no more precise printed publication date asserted.",
+      "supports": "Physical channel/lake continuity from the upper receiving corridor through the plateau lake chain and northwestern Dean bend into Tweedsmuir.",
+      "limits": "Road/structure emphasis, sparse hydrographic labels and no complete portrayal of the smallest selected eastern feeder. Local selection overlay used only for orientation; no fit metric, geometry edit or validation.",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/natural-resource-use/resource-roads/local-road-safety-information/stuart-nechako/stuart-nechako_fsr_structure_location_map_093c.pdf"
+    },
+    {
+      "source_key": "r113-bc-fishing-2025-27",
+      "title": "2025–2027 BC Freshwater Fishing Regulations Synopsis, Region5 Cariboo, printed page44: Lower Portions of the Dean River",
+      "publisher": "Province of British Columbia",
+      "year": 2025,
+      "type": "Primary original cartography with supporting waterbody table",
+      "inspection": "Original PDF acquired HTTP200; map and associated Dean River table read visually on PDF page50, printed page44.",
+      "supports": "Dean trunk from the Anahim direction past the Itasyuko branch from Sigutlat Lake, Takia confluence, Crag Creek, lower bends, canyon and Dean Channel/Kimsquit terminal.",
+      "limits": "Generalized regulatory map. Classification arrows and upstream Anahim label are not literal lake geometry. No current fishing advice or legal-boundary reconstruction is offered.",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/2025-2027_freshwater_fishing_regulations_synopsis.pdf"
+    },
+    {
+      "source_key": "r113-dean-guardian-2023",
+      "title": "Durham, Louis (December2023), Dean River Guardian Program Summary Report, 2023 Region5",
+      "publisher": "British Columbia Conservation Foundation; funded by Habitat Conservation Trust Foundation; hosted in BC Aquatic Report Catalogue",
+      "year": 2023,
+      "type": "Primary field-program report with independently authored original study map",
+      "inspection": "Original PDF acquired HTTP200. Introduction p5, study area/table1 p6 and Figure1 p7 read; Figure1 rendered and visually inspected.",
+      "supports": "Mapped lower river from Crag Creek to Dean Channel, associated lower tributary junctions and canyon-to-mouth section; confirms that upper/lower terminology here is relative to the lower canyon.",
+      "limits": "Figure1 uses a credited composite background with its own study-route overlay; no underlying map service was requested. Report is a distinct2023 field publication, not inherited SK108. Its broad Aktaklin Lake headwaters prose does not identify the model-selected eastern feeder; that association is not used to close the gap. Printed distances are not adopted as model or official river lengths.",
+      "official_url": "https://a100.gov.bc.ca/pub/acat/documents/r63004/2023DeanRiverGuardianSummary_1711485244875_A36E2C4913.pdf"
+    },
+    {
+      "source_key": "r113-bc-parks-dean-corridor",
+      "title": "Dean River Corridor Conservancy",
+      "publisher": "BC Parks",
+      "type": "Supporting primary prose",
+      "inspection": "Official page opened normally in web reader.",
+      "supports": "Lower Dean River corridor connects Dean River Conservancy to the ocean.",
+      "limits": "No detailed map acquired from this page; prose does not resolve the headwater feeder.",
+      "official_url": "https://bcparks.ca/dean-river-corridor-conservancy/"
+    },
+    {
+      "source_key": "r113-bc-parks-dean-conservancy",
+      "title": "Dean River Conservancy",
+      "publisher": "BC Parks",
+      "type": "Supporting primary prose",
+      "inspection": "Official page opened normally in web reader.",
+      "supports": "Dean River crosses coastal mountains and links the interior to the coast; conservancy borders western Tweedsmuir.",
+      "limits": "Regional prose only; no substituted cartographic evidence.",
+      "official_url": "https://bcparks.ca/dean-river-conservancy/"
+    },
+    {
+      "source_key": "r113-bcgs-bella-coola-2003",
+      "title": "Diakow et al. (2003), Geology of the Eastern Bella Coola Map Area (93D), West-Central British Columbia, Geological Fieldwork2002, Paper2003-1, pp65–76",
+      "publisher": "British Columbia Geological Survey",
+      "year": 2003,
+      "type": "Primary geological publication with regional cartography",
+      "inspection": "Original PDF acquired HTTP200; Figures1–2 on printed pp66/68 and legend p69 visually inspected.",
+      "supports": "Independent regional coastal-mountain, Tweedsmuir and Dean Channel context.",
+      "limits": "Geological overprint and schematic river portrayal do not supply missing feeder or detailed lake connections; contextual only.",
+      "official_url": "https://cmscontent.nrs.gov.bc.ca/geoscience/PublicationCatalogue/Paper/BCGS_P2003-01-06_Diakow.pdf"
+    },
+    {
+      "title": "Maracás — mapa municipal com descritivo dos limites",
+      "author": "Bahia, Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "November 2014",
+      "boundary_edition": "May 2014",
+      "sheet_identifier": "2920502",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography_and_sheet_boundary_prose",
+      "acquisition": "One original PDF acquisition completed with HTTP 200; page pixels rendered and examined privately.",
+      "actually_read": "Whole-sheet context and targeted corridor views, hydrography symbols, river labels, material junctions, relevant boundary-table entries and source/date notes.",
+      "cartographic_reading": true,
+      "source_notes": "Original SEI municipal cartography, scale 1:100,000, SIRGAS 2000 / UTM zone 24S. The sheet credits SUDENE 1977 topographic sheets, DERBA 2007 transport and IBGE 2010 localities, with SEI municipal-boundary fieldwork and urban updates. Map and legal boundary table were read; source originals and working views remain private.",
+      "use_notice": "No reading restriction observed on the inspected sheet. Official hosting is not treated as permission to redistribute the original, crops or derived maps.",
+      "source_key": "SEI_MARACAS",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2920502.pdf"
+    },
+    {
+      "title": "Planaltino — mapa municipal com descritivo dos limites",
+      "author": "Bahia, Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "November 2014",
+      "boundary_edition": "May 2014",
+      "sheet_identifier": "2924900",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography_and_sheet_boundary_prose",
+      "acquisition": "One original PDF acquisition completed with HTTP 200; page pixels rendered and examined privately.",
+      "actually_read": "Whole-sheet context and targeted corridor views, hydrography symbols, river labels, material junctions, relevant boundary-table entries and source/date notes.",
+      "cartographic_reading": true,
+      "source_notes": "Original SEI municipal cartography, scale 1:100,000, SIRGAS 2000 / UTM zone 24S. The sheet credits SUDENE 1977 topographic sheets, DERBA 2007 transport and IBGE 2010 localities, with SEI municipal-boundary fieldwork and urban updates. Map and legal boundary table were read; source originals and working views remain private.",
+      "use_notice": "No reading restriction observed on the inspected sheet. Official hosting is not treated as permission to redistribute the original, crops or derived maps.",
+      "source_key": "SEI_PLANALTINO",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2924900.pdf"
+    },
+    {
+      "title": "Irajuba — mapa municipal com descritivo dos limites",
+      "author": "Bahia, Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "November 2014",
+      "boundary_edition": "May 2014",
+      "sheet_identifier": "2914208",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography_and_sheet_boundary_prose",
+      "acquisition": "One original PDF acquisition completed with HTTP 200; page pixels rendered and examined privately.",
+      "actually_read": "Whole-sheet context and targeted corridor views, hydrography symbols, river labels, material junctions, relevant boundary-table entries and source/date notes.",
+      "cartographic_reading": true,
+      "source_notes": "Original SEI municipal cartography, scale 1:100,000, SIRGAS 2000 / UTM zone 24S. The sheet credits SUDENE 1977 topographic sheets, DERBA 2007 transport and IBGE 2010 localities, with SEI municipal-boundary fieldwork and urban updates. Map and legal boundary table were read; source originals and working views remain private.",
+      "use_notice": "No reading restriction observed on the inspected sheet. Official hosting is not treated as permission to redistribute the original, crops or derived maps.",
+      "source_key": "SEI_IRAJUBA",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2914208.pdf"
+    },
+    {
+      "title": "Santa Inês — mapa municipal com descritivo dos limites",
+      "author": "Bahia, Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "March 2023",
+      "boundary_edition": "2 September 2022",
+      "sheet_identifier": "2927903",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography_and_sheet_boundary_prose",
+      "acquisition": "One original PDF acquisition completed with HTTP 200; page pixels rendered and examined privately.",
+      "actually_read": "Whole-sheet context and targeted corridor views, hydrography symbols, river labels, material junctions, relevant boundary-table entries and source/date notes.",
+      "cartographic_reading": true,
+      "source_notes": "Original SEI municipal cartography, scale 1:100,000, SIRGAS 2000 / UTM zone 24S. The sheet credits SUDENE 1977 topographic sheets, DERBA 2007 transport and IBGE 2010 localities, with SEI municipal-boundary fieldwork and urban updates. Map and legal boundary table were read; source originals and working views remain private.",
+      "use_notice": "No reading restriction observed on the inspected sheet. Official hosting is not treated as permission to redistribute the original, crops or derived maps.",
+      "source_key": "SEI_SANTAINES",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2927903.pdf"
+    },
+    {
+      "title": "Ubaíra — mapa municipal com descritivo dos limites",
+      "author": "Bahia, Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "March 2023",
+      "boundary_edition": "2 September 2022",
+      "sheet_identifier": "2932101",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography_and_sheet_boundary_prose",
+      "acquisition": "One original PDF acquisition completed with HTTP 200; page pixels rendered and examined privately.",
+      "actually_read": "Whole-sheet context and targeted corridor views, hydrography symbols, river labels, material junctions, relevant boundary-table entries and source/date notes.",
+      "cartographic_reading": true,
+      "source_notes": "Original SEI municipal cartography, scale 1:100,000, SIRGAS 2000 / UTM zone 24S. The sheet credits SUDENE 1977 topographic sheets, DERBA 2007 transport and IBGE 2010 localities, with SEI municipal-boundary fieldwork and urban updates. Map and legal boundary table were read; source originals and working views remain private.",
+      "use_notice": "No reading restriction observed on the inspected sheet. Official hosting is not treated as permission to redistribute the original, crops or derived maps.",
+      "source_key": "SEI_UBAIRA",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2932101.pdf"
+    },
+    {
+      "title": "Laje — mapa municipal com descritivo dos limites",
+      "author": "Bahia, Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "November 2014",
+      "boundary_edition": "May 2014",
+      "sheet_identifier": "2918803",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography_and_sheet_boundary_prose",
+      "acquisition": "One original PDF acquisition completed with HTTP 200; page pixels rendered and examined privately.",
+      "actually_read": "Whole-sheet context and targeted corridor views, hydrography symbols, river labels, material junctions, relevant boundary-table entries and source/date notes.",
+      "cartographic_reading": true,
+      "source_notes": "Original SEI municipal cartography, scale 1:100,000, SIRGAS 2000 / UTM zone 24S. The sheet credits SUDENE 1977 topographic sheets, DERBA 2007 transport and IBGE 2010 localities, with SEI municipal-boundary fieldwork and urban updates. Map and legal boundary table were read; source originals and working views remain private.",
+      "use_notice": "No reading restriction observed on the inspected sheet. Official hosting is not treated as permission to redistribute the original, crops or derived maps.",
+      "source_key": "SEI_LAJE",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2918803.pdf"
+    },
+    {
+      "title": "Valença — mapa municipal com descritivo dos limites",
+      "author": "Bahia, Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "January 2015",
+      "boundary_edition": "23 January 2015",
+      "sheet_identifier": "2932903",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography_and_sheet_boundary_prose",
+      "acquisition": "One original PDF acquisition completed with HTTP 200; page pixels rendered and examined privately.",
+      "actually_read": "Whole-sheet context and targeted corridor views, hydrography symbols, river labels, material junctions, relevant boundary-table entries and source/date notes.",
+      "cartographic_reading": true,
+      "source_notes": "Original SEI municipal cartography, scale 1:100,000, SIRGAS 2000 / UTM zone 24S. The sheet credits SUDENE 1977 topographic sheets, DERBA 2007 transport and IBGE 2010 localities, with SEI municipal-boundary fieldwork and urban updates. Map and legal boundary table were read; source originals and working views remain private.",
+      "use_notice": "No reading restriction observed on the inspected sheet. Official hosting is not treated as permission to redistribute the original, crops or derived maps.",
+      "source_key": "SEI_VALENCA",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2932903.pdf"
+    },
+    {
+      "title": "Plano Territorial de Desenvolvimento Rural Sustentável e Solidário – PTDRSS do Vale do Jiquiriçá",
+      "author": "Colegiado Territorial do Vale do Jiquiriçá; Universidade Federal do Recôncavo da Bahia, Núcleo de Extensão em Desenvolvimento Territorial",
+      "publication_date": "April 2017",
+      "place": "Amargosa, Bahia",
+      "evidence_kind": "primary_territorial_planning_prose",
+      "actually_read": "Title/catalogue pages and bounded environmental description at PDF pages 25–27 (zero-based indexes 24–26), especially headwaters and estuary paragraph on PDF page 25.",
+      "observation": "The territorial plan places Rio Jiquiriçá headwaters in Maracás and its estuary south of Baía de Todos os Santos and north of Rio Una. This is bounded regional corroboration, not reach-level naming proof.",
+      "cartographic_reading": false,
+      "map_limits": "Figures 3–5 were not visually acquired or used; parsed figure text and source citations are not counted as original cartographic observations.",
+      "length_limit": "Its approximately 275 km statement is not substituted for the retained 239.935 km model length.",
+      "acquisition": "Web PDF text reader succeeded; subsequent cached text finds succeeded.",
+      "use_notice": "No redistribution permission inferred; no original figures or lengthy source passages included.",
+      "source_key": "PTDRSS2017",
+      "official_url": "https://www.ba.gov.br/seplan/sites/site-seplan/files/2025-07/Plano%20Territorial%20de%20Desenvolvimento%20do%20Vale%20do%20Jiquiri%C3%A7%C3%A1.pdf"
+    },
+    {
+      "title": "CBH Recôncavo Sul",
+      "author": "Instituto do Meio Ambiente e Recursos Hídricos (INEMA), Bahia",
+      "publication_date": "6 September 2011; stated update 4 November 2014",
+      "evidence_kind": "primary_agency_regional_prose",
+      "actually_read": "Basin characterization, regional extent and principal-river list.",
+      "observation": "The agency names rio Jequiriçá among the Recôncavo Sul rivers. Basin membership alone is not used to assign this selected geometry.",
+      "cartographic_reading": false,
+      "acquisition": "Web HTML reader succeeded.",
+      "source_key": "INEMA_CBH",
+      "official_url": "https://www.ba.gov.br/inema/gestao-2/comites-de-bacias/comites/cbh-reconcavo-sul"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80015064",
+      "source_keys": [
+        "r113-aafc-nluis-index",
+        "r113-eccc-banks1-page",
+        "r113-aafc-nluis-98d_c",
+        "r113-aafc-nluis-98a",
+        "r113-eccc-banks1-map",
+        "r113-gsc-cgm35-catalogue",
+        "r113-nature-capillaries-2024",
+        "r113-cbmt-inherited-stop"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2301
+          ],
+          "component_scope": "Headward northeastward opening",
+          "finding": "The retained mainstem geometry begins inland and trends northeast before turning north. Its real stream identity, source setting and any lake or wetland passage have not been established.",
+          "correspondence": "unresolved: model orientation only, no original cartographic component reading",
+          "sources": [
+            "r113-aafc-nluis-98a"
+          ],
+          "limits": "No exact headwater, lake/stream link, branch junction, naming extent or terminal identity is established."
+        },
+        {
+          "fragments": [
+            2301
+          ],
+          "component_scope": "Upper northward and northwestward bends",
+          "finding": "The retained geometry bends northwest, then north and northeast. No source map establishes its natural corridor, tributary junctions or material stream/lake links.",
+          "correspondence": "unresolved: model orientation only, no original cartographic component reading",
+          "sources": [
+            "r113-aafc-nluis-98a"
+          ],
+          "limits": "No exact headwater, lake/stream link, branch junction, naming extent or terminal identity is established."
+        },
+        {
+          "fragments": [
+            2301
+          ],
+          "component_scope": "Central northward continuation",
+          "finding": "The selected model continues predominantly north with a series of bends before turning northwest. Its connection from the southern component into the long lower course remains unverified.",
+          "correspondence": "unresolved: model orientation only, no original cartographic component reading",
+          "sources": [
+            "r113-aafc-nluis-98a",
+            "r113-aafc-nluis-98d_c"
+          ],
+          "limits": "No exact headwater, lake/stream link, branch junction, naming extent or terminal identity is established."
+        },
+        {
+          "fragments": [
+            2301
+          ],
+          "component_scope": "Northwestward elbow and long westward lower course",
+          "finding": "The model turns toward the northwest and then follows a long westward course. Bernard River is a regional discovery lead, but no acquired original map ties that name to this selected course or demonstrates all material junctions.",
+          "correspondence": "unresolved: model orientation only, no original cartographic component reading",
+          "sources": [
+            "r113-aafc-nluis-98d_c",
+            "r113-eccc-banks1-page",
+            "r113-eccc-banks1-map"
+          ],
+          "limits": "No exact headwater, lake/stream link, branch junction, naming extent or terminal identity is established."
+        },
+        {
+          "fragments": [
+            2301
+          ],
+          "component_scope": "Actual coastal terminal",
+          "finding": "The retained model ends toward the west-northwest and its terminal class is sea. Regional prose identifies the Beaufort Sea as the destination of western Banks Island rivers, but the actual selected mouth branch, estuary/coastal waterbody, shore connection and final reach remain unverified.",
+          "correspondence": "unresolved: model orientation only, no original cartographic component reading",
+          "sources": [
+            "r113-aafc-nluis-98d_c",
+            "r113-eccc-banks1-page",
+            "r113-eccc-banks1-map"
+          ],
+          "limits": "No exact headwater, lake/stream link, branch junction, naming extent or terminal identity is established."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61520170",
+      "source_keys": [
+        "ign-topo250k-r113",
+        "ign-topo500k-r113",
+        "ina-flood2017",
+        "gba-plan-salado",
+        "ada-a4-prose",
+        "villegas-emergency2017"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14479
+          ],
+          "component_scope": "Headward Serrano setting",
+          "finding": "The selected head lies west of Serrano and east of the narrow Laguna La Amarga. It crosses the Serrano–San Joaquín road/rail corridor, bends south and then east across the Route 4 setting, and proceeds southeast through the Los Ceibos country. The maps do not show a named stream or a connection from Laguna La Amarga to this selected head.",
+          "correspondence": "Original bounded maps read. Landscape orientation supported; actual headward watercourse connection unresolved.",
+          "sources": [
+            "ign-topo250k-r113",
+            "ign-topo500k-r113",
+            "ina-flood2017"
+          ]
+        },
+        {
+          "fragments": [
+            14479
+          ],
+          "component_scope": "Coronel Charlone and Gronda",
+          "finding": "The line reaches the Coronel Charlone/Fernando Martí setting, crosses the Hipólito Bouchard–Santa Regina transport corridor, then passes west of Gronda and Emilio V. Bunge. It follows country east of the north–south meridian boundary after crossing into Buenos Aires. No river hydronym or connected course for this selected passage is established.",
+          "correspondence": "Original cartography and bounded municipal place-name context read; hydrological connector pending.",
+          "sources": [
+            "ign-topo250k-r113",
+            "ign-topo500k-r113",
+            "villegas-emergency2017"
+          ]
+        },
+        {
+          "fragments": [
+            14479
+          ],
+          "component_scope": "San Bernardo to General Villegas",
+          "finding": "South of Gronda the modeled line passes the San Bernardo, Santa Elena and San José settings, turns markedly east, then southeast toward General Villegas. It crosses the road/rail network on the west and southwest side of the city, away from the Banderaló–Villa Sauze corridor farther west. Scattered lakes and marshes are mapped, without a continuous source-supported connection along this route.",
+          "correspondence": "Original geographic and historical inundation-map coverage; actual middle connection unresolved.",
+          "sources": [
+            "ign-topo250k-r113",
+            "ign-topo500k-r113",
+            "ina-flood2017"
+          ]
+        },
+        {
+          "fragments": [
+            14479
+          ],
+          "component_scope": "Tres Algarrobos–Pradere–Colonia Seré",
+          "finding": "The route continues through La Unión/San Eduardo and San Justo/La Fe marsh country west of Tres Algarrobos. It passes the Pradere lake and railway setting, then bends southeast and east through the La María Elisa/La Emilia/La Adelita country before crossing Route 70 and the railway east of Colonia Seré. Mapped lowlands and water bodies support local corridor setting, but not all intervening basin connections.",
+          "correspondence": "Original maps read; local wetland correspondence supported with material inter-basin gaps.",
+          "sources": [
+            "ign-topo250k-r113",
+            "ign-topo500k-r113",
+            "ina-flood2017"
+          ]
+        },
+        {
+          "fragments": [
+            14479
+          ],
+          "component_scope": "Francisco de Vitoria and lower lakes",
+          "finding": "East of Colonia Seré, the selected southward leg passes the La Negrita, Santa Susana, La Paz and Santa Lucía settings to Francisco de Vitoria. It approaches the elongated lake at Los Plátanos, bends east across the Mitre/El Guarany country and turns south by the San Félix–Santa Clotilde lakes, before heading east/southeast through Los Aromos. These are several mapped lakes and depressions, not a single established river name. Their complete interconnections remain unresolved.",
+          "correspondence": "Original lower cartography read; lake/depression geography supported, full connector evidence incomplete.",
+          "sources": [
+            "ign-topo250k-r113",
+            "ign-topo500k-r113"
+          ]
+        },
+        {
+          "fragments": [
+            14479
+          ],
+          "component_scope": "Actual terminal",
+          "finding": "The final southeastward leg turns northeast inside an elongated unnamed lake north/northeast of Berutti, north of the railway and national Route 5 setting, west of the La Eva area. Both the 1:250,000 map and the 1:500,000 overview show the terminal lake setting. The selected line does not continue across the railway into the Hinojo–Las Tunas lakes to the south.",
+          "correspondence": "Original terminal cartography read. Terminal lake name remains unknown; no outlet continuation inferred.",
+          "sources": [
+            "ign-topo250k-r113",
+            "ign-topo500k-r113"
+          ]
+        },
+        {
+          "fragments": [
+            14479
+          ],
+          "component_scope": "Branches, reservoirs and regional drainage",
+          "finding": "Only one selected mainstem FID is retained; no separate branch or reservoir passage is established. Provincial hydrology describes an interdunal, poorly drained plain with southward excess-water movement and engineered links. ADA prose separately describes the Quinto–La Dulce–Vidania–Cuero de Zorro chain toward Hinojo–Las Tunas. Those regional relationships do not establish the selected Serrano–Charlone route or its final lake connection.",
+          "correspondence": "Cartography plus bounded primary prose. No substitution of basin association for source correspondence.",
+          "sources": [
+            "ign-topo250k-r113",
+            "gba-plan-salado",
+            "ada-a4-prose"
+          ]
+        }
+      ],
+      "remaining_material_gaps": [
+        {
+          "fid": 14479,
+          "component": "Serrano–Coronel Charlone headward connection",
+          "gap": "The original maps locate the selected head east of Laguna La Amarga and west of Serrano, then the route turns through Los Ceibos toward the Coronel Charlone/Fernando Martí settlement and transport crossing. A watercourse joining those settings along this selected headward route is not drawn or otherwise established. The separate La Amarga/Quinto association cannot supply that connector."
+        },
+        {
+          "fid": 14479,
+          "component": "Charlone–General Villegas middle connection",
+          "gap": "The modeled route passes the Gronda and San Bernardo settings, bends east across the Santa Elena–San José country and reaches the western/southwestern side of General Villegas. Original topography and independent event-inundation mapping show plains and separate depressions but do not establish this long selected hydrological connection."
+        },
+        {
+          "fid": 14479,
+          "component": "General Villegas–Colonia Seré and lower inter-lake links",
+          "gap": "The maps locate local marshes and elongate lakes along the San Justo/La Fe–Pradere–Colonia Seré–Francisco de Vitoria–Berutti corridor. Some selected stretches correspond to those wetland/lake settings, but the inter-basin transfers, including long eastward turns, are not established by the acquired sources. This is a component/connector evidence gap, not a demand for exact banks or every model vertex to fit."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70156165",
+      "source_keys": [
+        "r113-bc-rescue-map",
+        "r113-bc-structure-093c",
+        "r113-bc-fishing-2025-27",
+        "r113-dean-guardian-2023",
+        "r113-bc-parks-dean-corridor",
+        "r113-bc-parks-dean-conservancy",
+        "r113-bcgs-bella-coola-2003"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9232
+          ],
+          "component_scope": "Selected eastern initial feeder and southward turn into the upper receiving channel",
+          "finding": "The selected geometry begins on the plateau east of the mapped upper lake-and-channel corridor, initially runs west, then turns south. Both provincial original maps show the receiving channel and adjacent headwater drainage, but do not portray the complete selected initial feeder. Its connection is therefore not established by basin association, the report’s broad Aktaklin headwaters statement or model connectivity.",
+          "correspondence": "Material source/connector coverage pending, confined to this initial component.",
+          "sources": [
+            "r113-bc-rescue-map",
+            "r113-bc-structure-093c",
+            "r113-dean-guardian-2023"
+          ],
+          "name_limit": "No primary-map name is established for this selected initial feeder."
+        },
+        {
+          "fragments": [
+            9232
+          ],
+          "component_scope": "Upper receiving channel and Nimpo Lake passage",
+          "finding": "Below the unresolved feeder, original provincial cartography shows the westward receiving drainage bending northwest by the Towdystan setting, entering the elongated Nimpo lake waters and leaving along the continuing northwestern corridor. Other nearby lake chains remain separate.",
+          "correspondence": "Supported at ordinary generalized component/corridor scale below the initial gap.",
+          "sources": [
+            "r113-bc-rescue-map",
+            "r113-bc-structure-093c"
+          ],
+          "name_limit": "Nimpo Lake is retained as a lake name. Small intervening channel and broadened-water names remain unestablished."
+        },
+        {
+          "fragments": [
+            9232
+          ],
+          "component_scope": "Anahim Lake, Abuntlet Lake and north-trending Dean corridor",
+          "finding": "Provincial maps show the selected continuation through the Anahim Lake setting and the connected Abuntlet lake/corridor north of the highway, then north past the lateral lake-and-tributary network toward the Tanswanket area. Inlets, lake passages, outlets and the continuation are visible at generalized scale.",
+          "correspondence": "Material lake and connecting-channel geography supported.",
+          "sources": [
+            "r113-bc-rescue-map",
+            "r113-bc-structure-093c",
+            "r113-bc-fishing-2025-27"
+          ],
+          "name_limit": "Separate lake names are preserved. The Dean label supports the receiving river corridor without renaming lakes or all minor channels."
+        },
+        {
+          "fragments": [
+            9232
+          ],
+          "component_scope": "Northwest turn, Tweedsmuir middle corridor and Itasyuko/Sigutlat branch",
+          "finding": "The structure map follows the selected northwestern bend west into Tweedsmuir; the fishing map continues the Dean route while distinguishing the northern Itasyuko River branch from Sigutlat Lake. The selection remains on the westward/southwestern Dean course and does not traverse that lateral lake.",
+          "correspondence": "Supported at ordinary generalized corridor scale.",
+          "sources": [
+            "r113-bc-structure-093c",
+            "r113-bc-fishing-2025-27"
+          ],
+          "name_limit": "Sigutlat Lake and Itasyuko River are distinct side-system labels, not names for the selected trunk."
+        },
+        {
+          "fragments": [
+            9232,
+            9233
+          ],
+          "component_scope": "Takia junction and westward Dean toward the lower fragment",
+          "finding": "The original fishing map identifies the major Takia River entering from the east/southeast at the lower end of the Dean’s southern turn; the selected Dean turns west. Crag Creek and subsequent lower tributary settings orient the continuation into the fragment spanning the lower river. Neither Takia nor lateral creeks are included as selected headwater branches.",
+          "correspondence": "Major junction and fragment transition supported at generalized scale; no pointwise boundary claim.",
+          "sources": [
+            "r113-bc-fishing-2025-27",
+            "r113-dean-guardian-2023"
+          ],
+          "name_limit": "Dean is the trunk label; Takia and Crag are lateral names."
+        },
+        {
+          "fragments": [
+            9233
+          ],
+          "component_scope": "Lower Dean bends, canyon and actual Dean Channel terminal",
+          "finding": "The Guardian original Figure1 and provincial fishing map both show the lower corridor, including the prominent northern bend, return west past the lower tributary network, lower canyon and final southward mouth reach into Dean Channel near Kimsquit. The observed mouth corresponds to the actual selected terminal; it is not inferred merely from coastal basin membership.",
+          "correspondence": "Actual generalized coastal terminal supported; no exact tidal boundary or surveyed mouth vertex asserted.",
+          "sources": [
+            "r113-bc-fishing-2025-27",
+            "r113-dean-guardian-2023",
+            "r113-bc-parks-dean-corridor"
+          ],
+          "name_limit": "Dean Channel is the receiving coastal waterbody; neither the channel nor nearby Kimsquit place/river name replaces the selected river’s name."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61135391",
+      "source_keys": [
+        "SEI_MARACAS",
+        "SEI_PLANALTINO",
+        "SEI_IRAJUBA",
+        "SEI_SANTAINES",
+        "SEI_UBAIRA",
+        "SEI_LAJE",
+        "SEI_VALENCA",
+        "PTDRSS2017",
+        "INEMA_CBH"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13884
+          ],
+          "component_scope": "Selected headward river east of Maracás",
+          "finding": "Maracás sheet shows the upper drainage east of the town running past the Santo Antônio do Boqueirão/Contendas setting to the named Jiquiriçá reach at the Caboclo confluence (P11), then north past Peixe toward Fazenda Nova (P10). The separate western/northern Palma drainage is not the selected route. The actual selected start is downstream of the municipal headwater setting, rather than proof of an exact named spring.",
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "sources": [
+            "SEI_MARACAS",
+            "PTDRSS2017"
+          ],
+          "name_limit": "Representative upper-system correspondence established; no separate hydronym assigned to the exact initial short modeled feeder."
+        },
+        {
+          "fragments": [
+            13884
+          ],
+          "component_scope": "Northern bend along the Planaltino–Lajedo do Tabocal setting",
+          "finding": "Planaltino sheet shows the same connected Jiquiriçá corridor between its P18 (Preto confluence) and P17 (Borracha confluence), including the pronounced northward and eastward bend near Boca do Caminho/Ponto Alegre. It overlaps both the Maracás and Irajuba source views; the unavailable Lajedo sheet is not needed for this connection.",
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "sources": [
+            "SEI_PLANALTINO",
+            "SEI_MARACAS",
+            "SEI_IRAJUBA"
+          ],
+          "name_limit": "This is a bounded component observation, not an accepted scalar name for FID 13884."
+        },
+        {
+          "fragments": [
+            13884
+          ],
+          "component_scope": "Açude do Mocó and Irajuba connector",
+          "finding": "Irajuba sheet shows the Jiquiriçá reach at Borracha, the small mapped waterbody at Mocó, and the northward channel through the Irajuba setting into the eastbound Jiquiriçá/Jequiriçá corridor. Its P15 boundary description explicitly identifies the centre of Açude do Mocó on Rio Jiquiriçá. The separate Geléia channel joins from the south; it is not the selected northward passage.",
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "sources": [
+            "SEI_IRAJUBA"
+          ],
+          "name_limit": "Açude do Mocó is a separately identified small impoundment component. Its name is not a river-wide name; locally unlabelled portions of the northward connector retain null component names."
+        },
+        {
+          "fragments": [
+            13884
+          ],
+          "component_scope": "Irajuba eastern reach, Xenxém confluence and Santa Inês",
+          "finding": "Irajuba and Santa Inês sheets overlap across the named Jequiriçá/Jiquiriçá corridor. The Xenxém joins from the north at Santa Inês P20; the route continues through Santa Inês toward the Meio/Melo junction at P07 near Engenheiro França. This distinct Santa Inês sheet closes the inter-sheet middle-corridor coverage rather than relying on a nearby town label.",
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "sources": [
+            "SEI_IRAJUBA",
+            "SEI_SANTAINES"
+          ],
+          "name_limit": "This is a bounded component observation, not an accepted scalar name for FID 13884."
+        },
+        {
+          "fragments": [
+            13884
+          ],
+          "component_scope": "Ubaíra to Jiquiriçá middle valley",
+          "finding": "Santa Inês and Ubaíra original maps overlap through Engenheiro França, Jenipapo and Lagoa das Flechas. The river continues past Ubaíra to Estopa, Cachoeira dos Prazeres and Jiquiriçá. Ubaíra P15 identifies the Estopa/Caiana tributary joining the river. The route is followed along the connected mapped channel, not inferred from the municipality name.",
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "sources": [
+            "SEI_SANTAINES",
+            "SEI_UBAIRA"
+          ],
+          "name_limit": "This is a bounded component observation, not an accepted scalar name for FID 13884."
+        },
+        {
+          "fragments": [
+            13884
+          ],
+          "component_scope": "Mutuípe, Ribeirão/Jiquiriçá Mirim junction and Laje",
+          "finding": "The eastern Ubaíra map overlaps the western Laje map at Jiquiriçá. Laje map follows the river through Mutuípe, the Ribeirão or Jiquiriçá Mirim tributary junction (P33), Cariri junction (P32), and Laje. Jiquiriçá/Jequiriçá labels occur on the trunk; the Ribeirão/Jiquiriçá Mirim tributary and the separate rio da Dona system are not renamed as the trunk.",
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "sources": [
+            "SEI_UBAIRA",
+            "SEI_LAJE"
+          ],
+          "name_limit": "This is a bounded component observation, not an accepted scalar name for FID 13884."
+        },
+        {
+          "fragments": [
+            13884
+          ],
+          "component_scope": "Lower meanders and tributary junctions toward the coastal plain",
+          "finding": "Laje and Valença sheets overlap across the broad meanders and the road-crossing setting at Ponte de Jequiriçá. They show the Riachão tributary connection and the riachão dos Vieiras junction (Laje P24 / Valença P08), then the lower Rio Jequiriçá corridor and further northern tributaries before the tidal widening. No additional large lake or reservoir passage is shown on the selected lower corridor at this map scale.",
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "sources": [
+            "SEI_LAJE",
+            "SEI_VALENCA"
+          ],
+          "name_limit": "This is a bounded component observation, not an accepted scalar name for FID 13884."
+        },
+        {
+          "fragments": [
+            13884
+          ],
+          "component_scope": "Actual estuarine and Atlantic terminal north of Guaibim",
+          "finding": "Valença original map traces Rio Jequiriçá into the broad irregular estuarine reach, through the lower bend beside the Ilha Dráida label and to the Atlantic shoreline at P09, north of Guaibim. The boundary table explicitly identifies P09 as the Jiquiriçá mouth in the Atlantic. Rio Una and the Valença/Tinharé outlet farther south are visibly distinct. The 2017 plan corroborates the north-of-Una estuarine setting.",
+          "correspondence": "supported_at_generalized_corridor_scale",
+          "sources": [
+            "SEI_VALENCA",
+            "PTDRSS2017"
+          ],
+          "name_limit": "Representative river-mouth correspondence only; no separate scalar hydronym assigned to every tidal water surface or estuarine connector."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:80015064",
+      "publication": "Northern Land Use Information Series, Bernard River, sheet 98D_C, 1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98d_c.jpg",
+      "observed_outcome": "Web reader returned Cache miss. No HTTP status, access-denial reason or source pixels were provided.",
+      "outcome_layer": "web-reader availability failure; origin HTTP response unobserved",
+      "restriction_scope": "Missing sheet map and equivalent copies, formats, crops and all acquisition routes paused. No retry or fallback. Distinct sheets are not automatically covered.",
+      "earlier_lawful_prose_exception": "Only the separate successful NLUIS index supplies bibliographic metadata, not local map observations."
+    },
+    {
+      "aw_id": "hydro-system:80015064",
+      "publication": "Northern Land Use Information Series, Jesse Harbour, sheet 98A, 1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_98a.jpg",
+      "observed_outcome": "Web reader returned Cache miss. No HTTP status, access-denial reason or source pixels were provided.",
+      "outcome_layer": "web-reader availability failure; origin HTTP response unobserved",
+      "restriction_scope": "Missing sheet map and equivalent copies, formats, crops and all acquisition routes paused. No retry or fallback. Distinct sheets are not automatically covered.",
+      "earlier_lawful_prose_exception": "Only the separate successful NLUIS index supplies bibliographic metadata, not local map observations."
+    },
+    {
+      "aw_id": "hydro-system:80015064",
+      "publication": "Banks Island Migratory Bird Sanctuary No. 1, accompanying map",
+      "official_url": "https://www.canada.ca/content/canadasite/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/banks-island-number-1/_jcr_content/par/mwsadaptiveimage_421121137/image.img.jpg/1533923086627.jpg",
+      "observed_outcome": "Web image open returned a reference without observable pixels. A subsequent original-image acquisition was cancelled before an HTTP response; no source pixels were acquired.",
+      "outcome_layer": "acquisition cancellation before transport/origin outcome; no HTTP status observed",
+      "restriction_scope": "Publication and equivalent copies, formats, figures and all acquisition routes stopped after cancellation. No retry or alternate route. Earlier actually read webpage prose is the sole retained exception.",
+      "earlier_lawful_prose_exception": "The Landscape section and map alternative description were read before cancellation. They supply regional context and a Bernard River mention only, not selected-route cartographic correspondence.",
+      "landing_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/banks-island-number-1.html"
+    },
+    {
+      "aw_id": "hydro-system:80015064",
+      "publication": "Geology, tectonic assemblage map of Aulavik, Banks Island and northwestern Victoria Island, Northwest Territories; Canadian Geoscience Map 35, preliminary version (2013), catalogue landing page",
+      "official_url": "https://publications.gc.ca/site/eng/445930/publication.html",
+      "observed_outcome": "The catalogue-page web request returned Cache miss. No HTTP status or authorization reason was provided; no original map acquired.",
+      "outcome_layer": "web-reader availability failure; origin HTTP response unobserved",
+      "restriction_scope": "Missing publication content and equivalent routes remain paused; no original-file, later-edition or mirror acquisition followed.",
+      "earlier_lawful_prose_exception": "None used. Search-discovery catalogue metadata is not substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:80015064",
+      "publication": "The capillaries of the Arctic tundra, Nature Water (2024), article s44221-024-00276-9",
+      "official_url": "https://www.nature.com/articles/s44221-024-00276-9",
+      "observed_outcome": "The web reader reported a 500 error and redirect to the publisher identity endpoint at idp.nature.com/authorize, which was inaccessible through the tool. No article prose or figures were obtained; origin article response status was unobserved.",
+      "outcome_layer": "web-tool reported 500 and identity-endpoint redirect; origin article response status unobserved",
+      "restriction_scope": "Whole article and equivalent publisher, DOI, PDF, figure, supplement, mirror and acquisition routes stopped. No retry or alternative route.",
+      "earlier_lawful_prose_exception": "None; search snippets not used as evidence."
+    },
+    {
+      "aw_id": "hydro-system:61520170",
+      "publication": "Información y estado de avance programas Subregión A4, Autoridad del Agua, 2024 material",
+      "official_url": "https://ada.gba.gov.ar/wp-content/uploads/2024/10/informe-A4-final.pdf",
+      "observed_outcome": "The PDF opened normally in the web text reader. The subsequent single original-file acquisition returned HTTP502 Bad Gateway; no original PDF body or map pixels were acquired.",
+      "outcome_layer": "HTTP response to original acquisition; origin/intermediary identity not independently established. Availability limitation, not observed HTTP401/403 or access challenge.",
+      "restriction_scope": "Further acquisition of the missing original/maps and equivalent content, copies, formats or routes is paused. No retry or alternative visual route followed.",
+      "earlier_lawful_prose_exception": "Actually read web-reader prose on regional hydrology, especially pp.6–8, remains usable only within its limited scope. No unseen map or parsed figure-label claim.",
+      "material_effect": "A potential corroborating map was unavailable. Independent IGN maps supply complete landscape coverage, but selected hydrological connectors remain materially unresolved for independent evidential reasons."
+    },
+    {
+      "aw_id": "hydro-system:70156165",
+      "publication": "Tweedsmuir Park brochure, BC Parks",
+      "official_url": "https://nrs.objectstore.gov.bc.ca/kuwyyf/tweedsmuir_park_brochure_25bc9bd0ca.pdf",
+      "observed_outcome": "The original PDF acquisition was cancelled before a completed response. No HTTP status, body or map pixels were obtained.",
+      "outcome_layer": "Acquisition cancellation; origin HTTP unobserved.",
+      "restriction_scope": "Entire brochure and equivalent copies, figures, formats and acquisition routes stopped. No retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Optional brochure; the unresolved initial feeder is not claimed to have been mapped by this brochure."
+    },
+    {
+      "aw_id": "hydro-system:70156165",
+      "publication": "BC Timber Sales, FSP Map Riparian, Halfway Ranch, 4 February 2019, 1:100,000",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/forestry/bc-timber-sales/environmental-stewardship-sustainability/forest-stewardship-plans/cariboo-chilcotin/maps-fsp-tcc-riparian/map8_halfwayranch_part_crip.pdf",
+      "observed_outcome": "PDF opened in the web text reader; first screenshot of its sole map page returned Cache miss. No HTTP status or denial was reported and no map pixels were acquired.",
+      "outcome_layer": "web screenshot/cache availability",
+      "restriction_scope": "Missing map content and equivalent original-file, alternate-reader, screenshot and mirror routes paused without retry.",
+      "earlier_lawful_prose_exception": "Previously parsed legend establishes title, date, scale, datum and publication identity only. Parsed river labels are not used as cartographic correspondence.",
+      "material_effect": "Not itself an additional primary pending count; independent maps establish the downstream corridor."
+    },
+    {
+      "aw_id": "hydro-system:70156165",
+      "publication": "Satah Mountain, British Columbia, NTS093C/07 CanMatrix original map; publisher catalogue identifies 1981, edition number not established",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/093/c/canmatrix_093c07_tif.zip",
+      "observed_outcome": "First original ZIP acquisition returned curl error22: requested URL returned error403, with http_code=403 and no body.",
+      "outcome_layer": "HTTP403 reported by original-file transfer; no tunnel message was exposed",
+      "restriction_scope": "Whole sheet07 publication and all equivalent copies, formats, crops, viewers and acquisition routes stopped. No retry, mirror, Toporama or CBMT route used.",
+      "earlier_lawful_prose_exception": "Successful directory and publisher catalogue metadata remain bibliographic only, not map observations.",
+      "material_effect": "The independent provincial maps do not show the complete initial eastern feeder; the unavailable historical sheet supplies no missing cartographic evidence."
+    },
+    {
+      "aw_id": "hydro-system:61135391",
+      "publication": "Plano de Recursos Hídricos e Proposta de Enquadramento dos Corpos de Água das Bacias Hidrográficas do Recôncavo Sul — PF-03 Síntese Executiva do PRHRS",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/uploads/2021/04/PF-03-S%C3%ADntese-Executiva-do-PRHRS.pdf",
+      "observed_outcome": "Original acquisition was cancelled before a completed outcome; origin HTTP status remains unknown. The publication and equivalent routes were excluded, and no document evidence was used.",
+      "outcome_layer": "Acquisition cancellation before a completed HTTP outcome.",
+      "restriction_scope": "Entire publication and equivalent copies, formats, mirrors, figures and routes stopped; no retry, polling or alternate retrieval after the cancellation.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": false
+    },
+    {
+      "aw_id": "hydro-system:61135391",
+      "publication": "Lajedo do Tabocal — SEI mapa municipal com descritivo, November 2014, municipal code 2919058",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/vigente/mapa_com_descritivo_atual_2919058.pdf",
+      "observed_outcome": "Original PDF request returned HTTP 502; no map acquired or used. Missing publication content and equivalents remain paused.",
+      "outcome_layer": "HTTP response as reported by curl; no authorization denial inferred",
+      "restriction_scope": "Missing publication content and all equivalent copies/formats/routes paused for availability. No retry or alternate route. Distinct original maps of other municipalities are not this publication.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": false
+    },
+    {
+      "aw_id": "hydro-system:61135391",
+      "publication": "Pesquisa da UFRB desenvolve mapas hidrográfico e de saneamento do Recôncavo Sul",
+      "official_url": "https://www1.ufrb.edu.br/portal/noticias/4723-pesquisa-da-ufrb-desenvolve-mapas-hidrografico-e-de-saneamento-do-reconcavo-sul",
+      "observed_outcome": "The reader could not access the requested URL; one original fallback returned HTTP 200 with unrelated homepage content rather than the article/maps. Missing publication content remains paused; search excerpts are not evidence.",
+      "outcome_layer": "Initial tool-reader technical routing limitation; subsequent original HTTP 200 wrong-content availability outcome",
+      "restriction_scope": "Further acquisition of this missing announcement/article and its equivalent map material is paused. No repeated reader, original, migrated article or mirror route followed.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:70156165",
+      "publication": "NRCan CanMatrix 1:50,000 300dpi, NTS093C directory",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/093/c/",
+      "observed_outcome": "Web reader reported URL is not accessible via this tool, with no HTTP status or security/authorization reason. A single sequential original directory acquisition then succeeded HTTP200 and exposed the real sheet07 ZIP link.",
+      "outcome_layer": "technical metadata-reader limitation followed by successful original metadata acquisition",
+      "restriction_scope": "Failed reader route not repeated; no publication-wide denial inferred from this metadata error. Later sheet07 HTTP403 remains independently binding.",
+      "earlier_lawful_prose_exception": "Directory link metadata only; no map evidence."
+    }
+  ]
+}

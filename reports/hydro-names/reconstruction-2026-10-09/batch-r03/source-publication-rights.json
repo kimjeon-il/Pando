@@ -1,0 +1,15 @@
+{
+  "schema": "hydro-publication-rights-v1",
+  "batch": "r03",
+  "included": "Own factual extraction, short naming quotations, IDs and ordered identifier citations, role/count/bounds/endpoint observations, whole-geometry hashes, immutable input receipts and original validation code.",
+  "raw_third_party_sources_included": false,
+  "full_river_coordinates_included": false,
+  "river_geojson_or_binary_packs_included": false,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "geometry_rights_file": "geometry-publication-rights.json",
+  "stand_alone_geometry_redistribution_cleared": false,
+  "scope_note": "The prior Natural Earth public-domain finding is not applied to HydroRIVERS. Complete locally decoded river coordinates are omitted; the published records do not claim an open license for that dataset.",
+  "reproducibility_limit": "Published facts/hash consistency can be checked alone. Repeating full coordinate/decoder and original-source verification requires the separately acquired inputs; their immutable locations and content hashes are recorded.",
+  "automatic_application": false
+}

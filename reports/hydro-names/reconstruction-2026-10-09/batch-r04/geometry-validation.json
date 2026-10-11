@@ -1,0 +1,86 @@
+{
+  "status": "passed",
+  "validation_runs": [
+    {
+      "status": "passed",
+      "scope_aw_ids": [
+        "hydro-system:70152112",
+        "lakes_base:1159123163",
+        "lakes_base:1159123567"
+      ],
+      "lake_coordinate_counts": [
+        92,
+        208
+      ],
+      "river_fragment_count": 3,
+      "river_coordinate_counts": [
+        1279
+      ],
+      "included_full_lake_coordinates_rechecked": true,
+      "omitted_full_river_coordinates_rechecked": false,
+      "production_decoder_replayed": false,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "selected_inventory_originals_rechecked": false,
+      "current_live_deployment_checked": false,
+      "durable_only_limitation": "Included lake coordinates are fully inspectable; complete river geometry is omitted and requires the optional verified local cache for coordinate rechecking.",
+      "no_external_requests": true
+    },
+    {
+      "status": "passed",
+      "scope_aw_ids": [
+        "hydro-system:70152112",
+        "lakes_base:1159123163",
+        "lakes_base:1159123567"
+      ],
+      "lake_coordinate_counts": [
+        92,
+        208
+      ],
+      "river_fragment_count": 3,
+      "river_coordinate_counts": [
+        1279
+      ],
+      "included_full_lake_coordinates_rechecked": true,
+      "omitted_full_river_coordinates_rechecked": true,
+      "production_decoder_replayed": true,
+      "original_hydrorivers_coordinate_equality_verified": false,
+      "selected_inventory_originals_rechecked": true,
+      "current_live_deployment_checked": false,
+      "durable_only_limitation": "Included lake coordinates are fully inspectable; complete river geometry is omitted and requires the optional verified local cache for coordinate rechecking.",
+      "no_external_requests": true
+    }
+  ],
+  "corrupt_fixtures": [
+    {
+      "case": "included_lake_vertex_changed",
+      "rejected": true,
+      "artifact_receipt_updated": true
+    },
+    {
+      "case": "river_role_changed",
+      "rejected": true,
+      "artifact_receipt_updated": true
+    },
+    {
+      "case": "river_source_reach_order_changed",
+      "rejected": true,
+      "artifact_receipt_updated": true
+    },
+    {
+      "case": "pack_offset_changed",
+      "rejected": true,
+      "artifact_receipt_updated": true
+    },
+    {
+      "case": "false_current_deployment_claim",
+      "rejected": true,
+      "artifact_receipt_updated": false
+    },
+    {
+      "case": "changed_decoder_rejected_before_execution",
+      "rejected": true
+    }
+  ],
+  "corrupt_fixture_count": 6,
+  "no_external_requests": true
+}

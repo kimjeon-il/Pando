@@ -1,0 +1,121 @@
+{
+  "schema": "hydro-northern-lake-source-evidence-v1",
+  "created_at_utc": "2026-10-09T11:39:24.661305+00:00",
+  "target_aw_id": "lakes_base:1159107099",
+  "source_evidence_count": 3,
+  "sources": [
+    {
+      "source_id": "NLUIS-85B-1975",
+      "title": "Buffalo Lake, sheet 85B, Land Use Information Series",
+      "agency": "Lands Directorate, Environmental Management Service, Department of the Environment, Canada; hosted by Agriculture and Agri-Food Canada",
+      "publication_year": 1975,
+      "publication_date_basis": "Year printed in original bottom imprint",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_85b.jpg",
+      "discovery_index_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "original_retrieval": {
+        "request_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_85b.jpg",
+        "final_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_85b.jpg",
+        "request_time_utc": "2026-10-09T11:35:52.841072+00:00",
+        "response_time_utc": "2026-10-09T11:35:56.108022+00:00",
+        "status": 200,
+        "bytes": 12504648,
+        "sha256": "58bf7697ea15924badb0f3c573e96ad82ef6d51e181ee483459be8a7d414ed49",
+        "content_type": "image/jpeg"
+      },
+      "supporting_index_retrieval": {
+        "request_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+        "final_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+        "request_time_utc": "2026-10-09T11:35:29.361352+00:00",
+        "response_time_utc": "2026-10-09T11:35:32.468939+00:00",
+        "status": 200,
+        "bytes": 143186,
+        "sha256": "85aa748f994da291132c7dc7142db356a770af60625250cf993affee7ca6acdc"
+      },
+      "source_kind": "Original government thematic cartographic sheet, inspected as raster",
+      "source_scope_preflight": "Distinct federal land-use map, not a gazetteer or naming-register record.",
+      "short_quote": "BUFFALO LAKE",
+      "own_factual_extraction": [
+        "The printed frame spans 116–114°W and 60–61°N. Scale is 1:250,000; the sheet states Transverse Mercator and North American Datum 1927.",
+        "The name is printed across the complete large basin in the southwest quadrant, whose broad western arm, northeastern head and south-projecting lobe correspond to the complete target polygon.",
+        "The adjoining-sheet inset locates Buffalo Lake on 85B and Tathlina Lake on 85C to the west."
+      ],
+      "map_coverage": "Complete target basin and adjacent smaller waters; Great Slave Lake and Hay River supply northern/western context.",
+      "registration": "Manual visual comparison against printed geographic graticule, complete geometry coordinates and distinctive outline; no fitted raster transformation or residual-error calculation. Historical datum differs from modern source coordinates.",
+      "evidence_limit": "Historical mapped name and generalized basin identity; no present-day cadastral/survey shoreline or formal naming decision is established."
+    },
+    {
+      "source_id": "GNWT-OILGAS-2023-F5",
+      "title": "Northwest Territories Oil and Gas Annual Report 2023, Figure 5: Cameron Hills Land Disposition Map",
+      "agency": "Government of the Northwest Territories, Industry, Tourism and Investment, Mineral and Petroleum Resources Division",
+      "report_year": 2023,
+      "publication_date": null,
+      "date_detail": "Map document filename printed on figure contains Mar6_2024; PDF creation metadata is 2024-09-17T16:15:02Z. These are production metadata, not a confirmed publication date.",
+      "official_url": "https://www.iti.gov.nt.ca/sites/iti/files/1432-0-GNWT-ITI-OilGas-AR2023_ENGLISH.pdf",
+      "original_retrieval": {
+        "request_url": "https://www.iti.gov.nt.ca/sites/iti/files/1432-0-GNWT-ITI-OilGas-AR2023_ENGLISH.pdf",
+        "final_url": "https://www.iti.gov.nt.ca/sites/iti/files/1432-0-GNWT-ITI-OilGas-AR2023_ENGLISH.pdf",
+        "request_time_utc": "2026-10-09T11:33:28.386535+00:00",
+        "response_time_utc": "2026-10-09T11:33:38.096819+00:00",
+        "status": 200,
+        "bytes": 12475738,
+        "sha256": "c62b3e161093fb0bcbf51b4eadb2a6a0b8ab1073660c46b556077989afb9b070",
+        "content_type": "application/pdf"
+      },
+      "source_kind": "Original government annual report and regional map, page 15 (PDF page 15)",
+      "source_scope_preflight": "Distinct territorial petroleum report and map, not a geographical-name register.",
+      "short_quote": "Tathlina Lake",
+      "own_factual_extraction": [
+        "Tathlina is shown between 118°W and 117°W near 60°30′N, west of Enterprise; the target polygon lies east of 116°W.",
+        "Kakisa Lake is north of Tathlina. Buffalo Lake appears east/southeast of Enterprise, but its eastern portion is cut by the map frame.",
+        "Figure metadata states WGS84 and a modified Lambert conformal conic projection."
+      ],
+      "map_coverage": "Cameron Hills region, both candidate names and nearby lakes; Buffalo basin only partially covered.",
+      "registration": "Printed meridians and parallels used for regional disambiguation only.",
+      "evidence_limit": "Independently excludes Tathlina geographically; cannot alone prove the full Buffalo perimeter because coverage is clipped."
+    },
+    {
+      "source_id": "GNWT-BISON-216-2012-F2",
+      "title": "Bison Control Area Program: Annual Report of Survey Activities, November 2006–April 2007, Manuscript Report No. 216",
+      "agency": "Government of the Northwest Territories, Environment and Natural Resources",
+      "authors": [
+        "Bart Hartop",
+        "William Mandeville",
+        "Nahum Lee",
+        "Deborah Johnson"
+      ],
+      "publication_year": 2012,
+      "publication_date_basis": "Cover year",
+      "official_url": "https://www.gov.nt.ca/ecc/sites/ecc/files/216_manuscript.pdf",
+      "original_retrieval": {
+        "request_url": "https://www.gov.nt.ca/ecc/sites/ecc/files/216_manuscript.pdf",
+        "final_url": "https://www.gov.nt.ca/ecc/sites/ecc/files/216_manuscript.pdf",
+        "request_time_utc": "2026-10-09T11:33:38.100634+00:00",
+        "response_time_utc": "2026-10-09T11:33:45.742611+00:00",
+        "status": 200,
+        "bytes": 7726804,
+        "sha256": "e29c78eb7dff2d7c26c116b384885f8afbcb02efc9835b77c4c306d2e414ba26",
+        "content_type": "application/pdf"
+      },
+      "source_kind": "Original government wildlife-survey report, Figure 2 on printed page 6 (PDF page 11); supplementary regional panels on printed page 49 (PDF page 54)",
+      "source_scope_preflight": "Distinct wildlife surveillance report, not a gazetteer or naming publication.",
+      "short_quote": "Buffalo Lake",
+      "own_factual_extraction": [
+        "The regional map labels Buffalo Lake east of Enterprise and southeast of Hay River, beside Wood Buffalo National Park; Tathlina is separately labeled west of Enterprise and south of Kakisa.",
+        "The full named Buffalo basin is visible with a westward arm, northeastern head and southern lobe. The companion regional panel repeats the two distinct lake labels."
+      ],
+      "map_coverage": "Broad southern Northwest Territories overview includes Great Slave, Kakisa, Tathlina, Buffalo, Trout and Bistcho lakes.",
+      "registration": "Relative regional placement and whole-basin outline comparison; Figure 2 has no readable geographic graticule, so it is not the numerical registration source.",
+      "evidence_limit": "Corroborates regional identity; thematic small-scale map does not validate precise shorelines or island exclusions."
+    }
+  ],
+  "independence": "Three separately published official thematic originals from two government jurisdictions. Common upstream base hydrography is possible; independent shoreline surveys are not claimed.",
+  "observation_method": "Actual original images/PDF pages were downloaded and visually inspected using complete-page previews and readable detail crops; discovery snippets were not used as proof.",
+  "source_retrieval_errors": [],
+  "copyright_handling": {
+    "raw_originals_included": false,
+    "map_scans_or_pdf_crops_included": false,
+    "published_content": "Own factual extraction, brief map-name quotations, official URLs, retrieval timestamps, byte counts and SHA-256 hashes.",
+    "geometry_rights_reference": "geometry-publication-rights.json"
+  },
+  "automatic_application": false
+}

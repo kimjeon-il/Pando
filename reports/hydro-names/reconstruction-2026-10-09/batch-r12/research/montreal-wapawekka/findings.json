@@ -1,0 +1,84 @@
+{
+  "schema": "hydro-bounded-lake-findings-v2",
+  "batch": "r12",
+  "frozen_at_utc": "2026-10-09T15:30:00.364418+00:00",
+  "target_count": 2,
+  "new_actual_inventory_targets": 2,
+  "full_feature_correspondence_review_completed_count": 2,
+  "source_limited_unresolved_count": 0,
+  "compound_named_waterbody_required_by_evidence": false,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108391",
+      "source_id": "1159108391",
+      "candidate_name": "Montreal Lake",
+      "directly_supported_name_forms": [
+        "Montreal Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized target polygon corresponds to the single mapped Montreal Lake waterbody. This supports bounded cartographic identity only.",
+      "source_keys": [
+        "wsa_montreal_wapawekka_map"
+      ],
+      "correspondence_observations": [
+        "The complete north-south target ring matches the mapped broad northern basin, west-projecting middle shoulder, eastern narrowing and long southern extension ending in a point.",
+        "The source extends from approximately 54.05 to 54.51 degrees north. The map places this single named lake south of Lac La Ronge, southeast of Weyakwin Lake, east of Crean Lake and north of Bittern Lake.",
+        "The mapped northern narrow inlet and finer shore indentations are more detailed than the source polygon. Nearby Bittern Lake remains separate; the full target does not require a compound lake identity."
+      ],
+      "name_scope_limits": [
+        "One regional thematic map supports the identification; no second independent name source is claimed.",
+        "The map is dated 2014 and does not establish current shoreline, surveyed boundary, formal naming decision, current registry status or a Korean name.",
+        "Full-feature review completion means the complete generalized source and baseline outline were checked, not that every shoreline vertex agrees with the official map or a scalar name is ready for application."
+      ],
+      "compound_named_waterbody_required_by_evidence": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No unresolved gap remains for the bounded generalized identity question. Formal registry and exact shoreline verification remain outside this completed scope.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159112839",
+      "source_id": "1159112839",
+      "candidate_name": "Wapawekka Lake",
+      "directly_supported_name_forms": [
+        "Wapawekka Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized target polygon corresponds to the single mapped Wapawekka Lake waterbody. This supports bounded cartographic identity only.",
+      "source_keys": [
+        "wsa_montreal_wapawekka_map"
+      ],
+      "correspondence_observations": [
+        "The complete east-west target ring matches the mapped broad western basin, pronounced southwestern-to-southern lobe and elongated eastern arm ending at the eastern outlet.",
+        "Lac La Ronge is mapped separately to the northwest and Deschambault Lake separately to the east. This regional arrangement and the whole basin outline support the association beyond proximity to the label.",
+        "The source polygon generalizes the shoreline and broadens the thin mapped eastern arm. It does not extend into Lac La Ronge or Deschambault Lake; no compound named-waterbody identity is required at the reviewed generalized scale."
+      ],
+      "name_scope_limits": [
+        "One regional thematic map supports the identification; no second independent name source is claimed.",
+        "The map is dated 2014 and does not establish current shoreline, surveyed boundary, formal naming decision, current registry status or a Korean name.",
+        "Full-feature review completion means the complete generalized source and baseline outline were checked, not that every shoreline vertex agrees with the official map or a scalar name is ready for application."
+      ],
+      "compound_named_waterbody_required_by_evidence": false,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "follow_up_scope": "No unresolved gap remains for the bounded generalized identity question. Formal registry and exact shoreline verification remain outside this completed scope.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "publication_scope": "Own factual evidence and source metadata only; no raw source bodies or derivative map images.",
+  "automatic_application": false,
+  "recorded_review_scope": "Historical full-feature map assessment. Completion flags report that assessment, not an automated reproduction of the map judgment.",
+  "included_evidence_limit": "The included files retain factual observations, bibliographic references and selected public-domain lake geometry. The original publications and inspection materials are not included. Offline validation checks the included records and geometry; it does not reopen those publications or reproduce visual map judgments."
+}

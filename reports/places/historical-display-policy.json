@@ -1,0 +1,235 @@
+{
+  "schema": "pando-places-historical-display-policy-v2",
+  "status": "staged-data-only-no-runtime-renderer",
+  "mapLanguage": "ko",
+  "historicalReviewFromYear": 1801,
+  "purpose": "Select period-specific Korean, English and one native map name for the same historically valid local toponym; distinguish authority-backed local names, real city renamings and map-editor transcription conventions.",
+  "recordFields": {
+    "defaultDisplayNameKo": "Current Korean map name; mandatory and must match names[].text with language ko",
+    "displayTimeline": "Chronologically ordered name change points with exact or approximate start; per-period nativeNames[] can replace the full list for approved multilingual localities, while scalar nameNative retains the primary.",
+    "shortDescriptionKo": "Screen-facing concise Korean city description, maximum 28 Unicode code points",
+    "contextualDisplayNames": "Regime/polity-specific historical names; never auto-apply based solely on date.",
+    "temporalEligibility": "Optional, separately verified urban-city-label eligibility. Legacy cityEstablishedFromYear/cityEstablishedFromDate remains readable. Future activeIntervals[] may delimit one or more urban-eligibility episodes with exact/approximate endpoints; no dates or historic rank can be inferred from nameTimeline or modern GeoNames.",
+    "names": "Only chosen current and period-specific Korean/English/native map names, plus documented concurrently official multilingual names. Do not store nonpreferred alternate names, informal aliases, abbreviations, unused transliterations or search-only variants. Keep former selected names for historical timelines.",
+    "defaultNativeNames": "Optional ordered list of current native names for a documented multilingual-city exception; first form equals defaultDisplayNameNative/defaultNativeLanguage.",
+    "historicalGeography": "Keep former city sites, relocations, administrative successors, settlement precursors, and ruins as sourced identity/geographical relations; links never automatically transfer urban eligibility, historical coordinates, identity, or rank."
+  },
+  "timelineEntry": {
+    "nameKo": "Reference to names[] (ko)",
+    "fromDate": "YYYY-MM-DD, inclusive, Gregorian calendar, verified exact date",
+    "fromYear": "YYYY, inclusive approximate year-granularity change; not Jan 1 evidence",
+    "kind": "historicalLocalName | officialRenaming | koreanEditorialTranscription",
+    "sourceUrl": "Source for the change"
+  },
+  "resolution": [
+    "First evaluate city-label temporalEligibility only when its review evidence is adequate. Preserve prior staged cityEstablishedFromYear/Date data for backwards compatibility. A proposed activeIntervals[] extension may express start, loss, and reactivation; unknown temporal boundaries must remain indeterminate. The present runtime does not yet enforce either staging rule.",
+    "Identify the stable civil authority and period-appropriate official/local city name for the map date. Temporary military occupation, changing front lines or an occupier's administrative language do not automatically change the native map-name slot. Treat formal territorial cession/incorporation as a reason to verify the long-term official name, never as an unconditional rename.",
+    "Resolve the English and Korean preferred names from that selected native toponym for the same date; use established period-appropriate exonyms where warranted and never mix a prior or subsequent official city name's translations.",
+    "For a user-specified map date, select the most recent applicable displayTimeline entry.",
+    "A fromDate rule is exact on/after the Gregorian date. A fromYear rule permits year-level label selection; if an exact day is queried within its boundary year, flag the result as approximate rather than claiming a precise effective date.",
+    "The first entry's fromYear 1801 means only that the historic-name survey begins in the nineteenth century; it does not establish the city's founding date.",
+    "If no temporalEligibility blocks the city, but displayTimeline is empty or the requested date precedes the first documented label, use defaultDisplayNameKo only as historicalAccuracy=unverified, never as a verified contemporary name.",
+    "Use a contextual official name only when a documented actual city-name change is tied to the valid governing authority and date, not simply because occupying troops control the city.",
+    "Chinese style changes at 1912-01-01 are Korean editorial conventions, not Chinese city renamings. Japan uses Korean transcriptions of Japanese local readings; do not generate Sino-Korean kanji readings.",
+    "Store only the chosen name for each language and historical display period, including authenticated concurrent official native-language forms; do not retain unused aliases, nicknames, abbreviations, parallel romanizations or search-only variants in names[]. Older batches may need subsequent targeted cleanup.",
+    "Map-label displayTimeline values follow documented PandoEditor editorial conventions, even when they differ from contemporary Korean regulatory or national language guidance; keep standardization events as optional historical metadata, not forced display transitions.",
+    "A settlement can bear a historical name before it becomes a place of a selected city rank. Village/fishing-harbor existence and administrative legal status do not automatically qualify it for one of the city's five planned tiers. Suppress only the city-label layer when a verified urban eligibility interval excludes the map date; retain archival name/search/ruins.",
+    "Do not resolve city-label eligibility from name-display transitions, 1801 review coverage, modern GeoNames feature classes/population, or present-day sourceCountryCode; never infer a historic city founding or destruction date from those fields.",
+    "In a future interval-aware resolver, return eligible/ineligible/unresolved. For exact fromDate the start day is included, exact untilDateExclusive excludes that day. For year-only beginnings/endings, a calendar-day query within a boundary year is unresolved rather than silently converted to Jan 1 or Dec 31.",
+    "For a verified relocation to a different urban site, do not automatically shift a historic point: preserve a separate old-site ID and successor-site ID linked through historicalGeography. Simple renaming, continuous same-site growth and temporary abandonment/reoccupation of the same substantiated settlement can use one stable ID with multiple eligible intervals."
+  ],
+  "displayText": {
+    "maxDescriptionCodepoints": 28,
+    "requiredField": "shortDescriptionKo",
+    "rendererRule": "Show only shortDescriptionKo and shortened note/detail for summaries; never render researchNote/researchDetail directly.",
+    "overflowRule": "Even short strings need responsive wrapping or truncation in future UI; do not assume a fixed character limit alone guarantees no clipping.",
+    "retainProvenance": "Original extended note/detail is preserved in researchNote/researchDetail where shortened."
+  },
+  "caveats": [
+    "Historical timelining is about label selection only; it does not create old boundary polygons or infer state affiliation from GeoNames sourceCountryCode.",
+    "This policy is staged only; no production manifest or map runtime was changed.",
+    "City establishment date/year is not interchangeable with land being inhabited; it gates the named city object only, not earlier settlements.",
+    "The one-preferred-name-per-ko/en/native-per-date rule is new staging policy only. It does not certify existing batches or change runtime behavior.",
+    "Changing sovereignty alone does not prove a local place-name change; the official usage of the responsible authority, not modern political boundaries, is the criterion.",
+    "Multilingual nativeNames arrays are staging-only data and are not yet encoded by the current scalar PLAC v2 runtime. Dates selected as editorial thresholds must not be labeled legal first-use dates.",
+    "Historical city-label activity and settlement-name existence are separate. A suppressed city label must not delete the record, its names, ruins, searchability or linked historical relationships.",
+    "Multiple city-label activity intervals, dissolution/re-establishment and precise urban-class thresholds are policy-only future staging fields. No modern city was assigned a new first/last displayed year by this change.",
+    "A reviewed date range is required before interpreting absence of activeIntervals coverage as absence of a city; outside it or on an uncertain year-only boundary, eligibility remains unresolved."
+  ],
+  "temporalEligibility": {
+    "cityEstablishedFromYear": "Year of clearly documented city formation, not a Jan 1 effective day",
+    "cityEstablishedFromDate": "Only use if exact historical first establishment date is known and uncontroversial",
+    "beforeCityEstablished": "suppress-city-label",
+    "scope": "Urban-centre city-label eligibility over map time, not the existence of a named village/harbor/site, administrative boundary, city charter, site ruin or name spelling.",
+    "stagingExtensionStatus": "policy-specified-only; not yet serialized in PLAC v2 or enforced in UI",
+    "reviewStatusField": "lifecycleReviewStatus",
+    "reviewStatusValues": [
+      "unreviewed",
+      "provisional",
+      "verified"
+    ],
+    "coverageField": "reviewedCoverage",
+    "reviewedCoverageDescription": "Optional evidenced range of map dates/years over which urban eligibility has actually been audited. Absence of city-label episodes is meaningful only within a verified reviewedCoverage; outside it the result is unresolved. Do not treat a dataset's 1801 name-survey start as coverage proof.",
+    "futureIntervalsField": "activeIntervals",
+    "intervalShape": {
+      "fromDate": "Optional exact YYYY-MM-DD inclusive start, Gregorian calendar, use only with independent documentary support.",
+      "fromYear": "Optional year in which the city became eligible; exact date in that year UNKNOWN. Mutually exclusive with fromDate.",
+      "untilDateExclusive": "Optional exact YYYY-MM-DD first day city is NOT eligible; an exact end boundary is exclusive. Mutually exclusive with untilYear.",
+      "untilYear": "Optional year DURING which city-label eligibility ceased; a day queried within that year is indeterminate. Mutually exclusive with untilDateExclusive.",
+      "sourceUrl": "Evidence for this specific urban qualification, not just for the existence of the toponym.",
+      "researchNote": "Explain the local settlement/city threshold choice, relocation or discontinuity, uncertainties and review scope.",
+      "requireEndpoint": "Each eligible period must have at least one bounded endpoint, unless a separately verified complete historical survey justifies a fully open interval."
+    },
+    "intervalsMeaning": "Ordered set of non-overlapping eligibility episodes for one continuous geographic settlement identity; gaps denote ineligible dates only within verified reviewedCoverage. Multiple episodes support decline, abandonment and revival.",
+    "boundarySemantics": {
+      "exactStart": "fromDate is inclusive.",
+      "exactEnd": "untilDateExclusive is exclusive; record the first inactive day rather than an inclusive last day.",
+      "yearStart": "fromYear denotes a transition sometime within that calendar year. Earlier years are outside; the boundary year itself is unresolved at day precision.",
+      "yearEnd": "untilYear denotes a transition sometime within that calendar year. Later years are outside; the boundary year itself is unresolved at day precision.",
+      "openStart": "Omission of fromDate/fromYear means the episode's beginning is not bounded by the evidence; does not mean a verified city has existed forever.",
+      "openEnd": "Omission of untilDateExclusive/untilYear means no verified cessation is specified; does not assert immortality.",
+      "resultValues": [
+        "eligible",
+        "ineligible",
+        "unresolved"
+      ],
+      "provisional": "A provisional or unreviewed lifecycle cannot be used as proof that a city label must appear or disappear."
+    },
+    "legacyCompatibility": {
+      "supportedFields": [
+        "cityEstablishedFromYear",
+        "cityEstablishedFromDate",
+        "beforeCityEstablished"
+      ],
+      "migration": "Keep legacy fields untouched until a separate audited migration; single founding threshold can later map to the first eligible period only when its meaning and evidence are checked. Do not silently reinterpret city founding year as date first eligible for a five-tier city label.",
+      "conflict": "Do not emit conflicting legacy formation gates and verified interval gates; demand explicit reconciliation and regression tests before running."
+    },
+    "nonGoals": [
+      "Choosing the five historic city grade thresholds or any new minZoom/priority",
+      "Assigning Yokohama, Daejeon, Busan or ancient Ye a city-label start or end date in this policy update",
+      "Changing GeoNames PPL/PPLA/PPLH source classifications automatically",
+      "Deleting historical place records, hiding historic ruins, or creating new city polygons"
+    ],
+    "relationshipToOtherFields": {
+      "displayTimeline": "Only language-specific name selection changes; name availability cannot establish urban life.",
+      "rankTimeline": "Deferred separate historic relative importance/tier system. Ineligible period never coerced to rank 5.",
+      "historicalGeography": "Verified old sites, former settlements, and relocated administrative successors linked without conflating identities.",
+      "modernFeatureCode": "Modern GeoNames class/feature code is discovery metadata, never a historical active-interval proof."
+    }
+  },
+  "koreanEditorialNameAuthority": {
+    "policy": "PandoEditor independently chooses Korean labels for historical maps. South Korean National Institute of Korean Language standards may be evidence, not controlling rules.",
+    "examples": [
+      {
+        "subject": "Spain",
+        "preferred": "에스파냐",
+        "notRequired": "스페인",
+        "kind": "preferredKoreanExonym"
+      },
+      {
+        "subject": "Kyiv",
+        "before": "1991-08-24",
+        "nameKo": "키예프",
+        "fromInclusive": "1991-08-24",
+        "nameKoAfter": "키이우",
+        "kind": "historicalMapEditorialPolicy"
+      }
+    ],
+    "distinction": "Do not treat editorial map labels, naming standards, sovereignty shifts and historical city renamings as equivalent."
+  },
+  "policyRevision": "2026-10-09-wartime-continuity-no-aliases",
+  "preferredNameSelection": {
+    "scope": "At each map date, one selected preferred name for Korean (ko) and English (en); ordinarily one native name, with up to three simultaneous native forms only for a documented multilingual-city exception.",
+    "maxPreferredNamesPerSlotAtAnyInstant": {
+      "ko": 1,
+      "en": 1,
+      "native": 3
+    },
+    "availability": "Zero names is allowed for an unverified language/era; never fill missing slots by guessing or copy/pasting another language.",
+    "temporalRule": "Store transitions only when a slot's preferred value actually changes. A ko-only change does not require duplicating or altering en/native. Do not create annual copies of unchanged values.",
+    "selectionOrder": [
+      "Identify the sustained civil naming regime and competent local authority for the map date, distinguishing formal territorial transfers and lasting civil administration from temporary wartime occupation or shifting battle lines.",
+      "Select the period's attested local official/preferred city name. Do not replace its native language with the occupying army's language solely because of military rule, occupation administration or a unilateral annexation claim.",
+      "For that same selected native toponym and period, select one corresponding English name and one corresponding Korean name where evidence supports them; established exonyms are permitted and need not be literal transliterations.",
+      "Apply explicit Korean editorial exceptions, including the mainland-China 1912-01-01 style boundary, without misidentifying them as official changes of the Chinese city name.",
+      "Re-evaluate a name when an actual official city renaming, lasting legal territorial transfer, independence with changed official naming practice or orthography reform occurs. A transient wartime occupation or a temporary re-use of an occupier's exonym never triggers an automatic language switch or reversal.",
+      "Use one native name by default. In a documented genuinely multilingual place, allow up to three simultaneous period-appropriate official/local names, each with language and script; designate the first as the scalar primary, do not classify the others as nicknames."
+    ],
+    "classification": {
+      "actualOfficialRename": "Historical change in the local name or legally adopted city name. Record the real date/period and evidence; do not confuse with a change of Korean transcription.",
+      "historicalKoreanSinoReading": "Historical Korean map-label reading for Chinese-language place names in mainland China before the 1912-01-01 founding of the Republic of China. It is editorial transcription history, not a local-city rename.",
+      "historicalEditorialName": "A deliberately selected period-specific Korean map name with explicit evidence; nonselected historical exonyms and informal bynames do not qualify by default.",
+      "alternate": "A nonpreferred synonym, nickname, informal abbreviation or redundant romanization is excluded from names[]; this category is not a storage exception."
+    },
+    "exclusionByDefault": [
+      "All nonselected informal bynames, nicknames, abbreviations and historical aliases, even if common or searchable.",
+      "Alternative romanizations, competing orthographic/script variants and pronunciation spellings without a separately selected historical display period.",
+      "An occupier's language rendering added only because troops temporarily captured or administered the place.",
+      "Search-only aliases and nonselected foreign exonyms: do not duplicate these inside city name staging records."
+    ],
+    "exceptions": {
+      "multilingual": "A location with demonstrably multiple officially used local languages may preserve and select up to three native names concurrently for the same map date, each with its distinct language/script and justified period. Keep one primary for the existing scalar runtime, but retain the two additional selected names in ordered nativeNames arrays. Any more official languages require separate archival handling rather than an extra selected name. This is a data-selection rule, not an automatic display-by-zoom decision.",
+      "historicallySignificant": "Retain a former name only when it is the chosen preferred ko/en/native city label for a grounded historical period; a historical mention by itself does not qualify as an alias exception.",
+      "approval": "Only verified co-official multilingual native names or period-preferred historic names can expand names[] beyond three modern names; search-demand and personal naming preference alone are not exceptions."
+    },
+    "implementationBoundary": "The revised policy applies to future city-name reviews and to five newly re-reviewed batch-03 cities. Existing batches may still contain legacy alternate entries pending city-by-city cleanup; do not silently rewrite unreviewed batches or alter published PLAC tiles/renderers.",
+    "authorityAndCorrespondence": {
+      "nativeNameSource": "At a map date, prefer the established local civil city's name and script. Only replace this when an official change or lasting legal territorial transfer yields a different official name. Temporary wartime military occupation is not grounds for language substitution.",
+      "mixedLanguageAdministration": "At a map date use the governing authority's and local administration's documented official usage. Prefer one local native name, or in exceptional multilingual places permit an ordered set of up to three co-used official/local names with evidence, each tagged by language/script. The scalar primary remains the first name.",
+      "englishNameSource": "Choose the English name corresponding to the selected native official city toponym for the same historical period, using an established English exonym when appropriate; direct transliteration is not required. Do not attach an English name for a different period's local toponym.",
+      "koreanNameSource": "Choose the Korean name corresponding to that same selected native official city toponym for the same historical period, using the established or PandoEditor editorial Korean form rather than requiring mechanical phonetic transcription; apply documented regional exceptions such as the mainland-China 1912-01-01 Korean reading switch.",
+      "changeTriggers": "Actual legal renaming, meaningful civil-name reform, lasting territorial transfer, or established orthography reform can change the selected slot. Temporary occupation, fluctuating frontlines, short-term military government, or occupier exonym use cannot on their own change ko/en/native.",
+      "evidenceRule": "Record the governing polity or competent authority, dates, chosen original name, language and sources when reviewing each case. Do not infer historical governance, language or local-name official status from modern GeoNames sourceCountryCode or today's labels. If evidence is insufficient, hold the proposed slot/transition for review rather than inventing a name.",
+      "timeAlignment": "Korean and English each represent the same city and period-specific official/local toponym(s), normally anchored to the selected primary local form. A documented multilingual city may carry at most three contemporary native forms without converting them into separate historical cities."
+    },
+    "nativeNameCardinality": {
+      "normalNativeNames": 1,
+      "maxNativeNamesUnderApprovedMultilingualException": 3,
+      "countSemantics": "Native names are full per-period ordered language-specific values; not arbitrary aliases or three spellings of the same language.",
+      "langIdentifiers": "Each form requires a verified local language identifier and its script; choose the first as the primary for the existing scalar place contract.",
+      "storageForStagedBatches": "Use defaultNativeNames[] (current ordered list) and displayTimeline[].nativeNames[] (ordered replacement list when number/membership changes); keep defaultDisplayNameNative/defaultNativeLanguage and nameNative/nativeLanguage as the primary for current scalar consumers.",
+      "futurePresentation": "Whether and how many names appear at each map scale is explicitly deferred. This rule only defines name selection and storage.",
+      "ruleBoundary": "Existing published PLAC v2 and renderers still only support the scalar primary name. Do not silently concatenate native forms into the scalar field."
+    },
+    "wartimeOccupationAndLegalTransfer": {
+      "defaultWartimeRule": "During war, military occupation, shifting front lines and temporary military government leave the previously established local official/native city name unchanged; never translate names into occupier language automatically.",
+      "unilateralAnnexation": "An occupier's unilateral annexation or administrative declaration is not by itself sufficient to replace the local map name; evaluate established usage and legal/territorial status separately.",
+      "lastingTerritorialChange": "After a treaty-backed cession or formal territorial incorporation, review the sustained local civil administration's official name and language; change the slot only if actual local naming practice changed.",
+      "actualRenamingDuringOccupation": "An evidenced official renaming that establishes a local city name may be stored even under occupation. Example: Batavia→Djakarta 1942-12-08. Choose the locally documented name Djakarta, not an automatic Japanese rendering; do not revert because of 1947–1949 Dutch military/administrative usage.",
+      "independenceAndSpelling": "Independence, long-term official language selection and orthography reforms require source-based review; do not create name changes when the chosen value stays identical.",
+      "scope": "Historical preferred map labels only, not retrospective legal judgement of sovereignty or boundaries."
+    },
+    "nameStoragePolicy": {
+      "onlyCurrentAndPeriodSelected": true,
+      "prohibitSearchAliases": true,
+      "prohibitNicknamesAndAbbreviations": true,
+      "prohibitUnusedRomanizations": true,
+      "preserveHistoricPreferredNames": true,
+      "allowDocumentedConcurrentOfficialNativeLanguages": true,
+      "reason": "One preferred ko/en/native per date, with approved documented native co-official language exceptions. An older name is kept only when it appears in an actual displayTimeline period."
+    }
+  },
+  "historicalCityIdentity": {
+    "stableIdentityRule": "Retain a stable place identity through genuine renaming or verified continuous growth of the same settlement, even when it began as a fishing village or small rural site; historical non-urban years remain archived and can have no city label.",
+    "separateIdentityRule": "Where an ancient city was destroyed and a new settlement/administrative centre moved to a materially different site, use separate city records/IDs. Link successor/predecessor with an explicit relationship, location, governing period and evidence.",
+    "sameSiteReactivationRule": "A substantiated re-occupation/restoration of the same city's location may retain a single ID with multiple activeIntervals; do not automatically merge distant later names or ruins.",
+    "extinctCities": "Historically attested abandoned/destroyed cities must remain eligible for the same historical place database and search even if absent from present-day GeoNames cities500. PPLH/PPLW/PPLQ may aid discovery but do not themselves confirm inclusion, boundaries or dates.",
+    "featureClassesNotAuthoritative": "Do not derive old cities from the present administrative role, modern administrative centroids, language aliases, current populations, or preselected tier of an imported review batch.",
+    "relatedPlaceStorage": "Use historicalGeography relations or a dedicated future predecessor/successor edge; related-place links do not automatically imply one identity or an identical coordinate."
+  },
+  "lifecycleFollowup": {
+    "now": "Policy and validation only. The original city names, existing temporalEligibility values, 15 batch records, historic tier/rank data, production tile manifests, codec, browser worker and Qt renderer are unchanged.",
+    "later": [
+      "Audit existing five-tier thresholds, source-date precision and urban qualification for individual places.",
+      "Research specific start/end dates for Yokohama, Daejeon and other modern-built cities; research destruction/site relocation for Ye and other extinct cities.",
+      "Review or assign urban eligibility periods and separate identity links; distinguish confirmed facts from editorial thresholds.",
+      "Implement interval persistence and three-valued date resolution in shared contract/Web/App, with migration and tests. Only then connect city-label visibility."
+    ],
+    "explicitlyDeferred": [
+      "City-grade timeline",
+      "Display-by-zoom rules",
+      "Assigning candidate first/last city-label dates",
+      "Historical ruins UI/search indexing"
+    ]
+  }
+}

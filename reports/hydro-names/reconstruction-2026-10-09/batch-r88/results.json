@@ -1,0 +1,458 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r88",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r87",
+    "commit": "4074d204588070908c24b481db5a147de0b5281c",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r87/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61516431",
+    "hydro-system:61512854",
+    "hydro-system:70972107",
+    "hydro-system:70157569"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61516431",
+      "category": "river_group",
+      "system_id": "61516431",
+      "baseline_logical_fid": 3585,
+      "geometry_fids": [
+        14461,
+        14460,
+        14459,
+        14463,
+        14458,
+        14462,
+        14464
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -72.426372,
+        -36.54375,
+        -70.947917,
+        -35.313249
+      ],
+      "rendered_mainstem_length_km": 307.91,
+      "rendered_network_length_km": 406.533,
+      "geometry_summary": {
+        "fragment_count": 7,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -72.426372,
+          -36.54375,
+          -71.28125,
+          -35.313249
+        ]
+      },
+      "candidate_name": "Río Maule",
+      "candidate_names": [
+        "Río Maule"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The modeled mainstem follows Río Perquilauquén, then Río Loncomilla, then the lower Río Maule. Two eastern side fragments connect a short lower Río Colorado approach near Las Garzas with the middle Maule through the Colbún corridor. The remaining short side fragment is in the Río Claro–Maule confluence setting near Corinto.",
+      "geographic_disambiguation": "The selected southern headward course belongs to Río Perquilauquén, whose upper course makes a pronounced southward turn and returns northwest along the Maule–Ñuble boundary north and northeast of San Fabián de Alico. It is separate from Río Ñuble and the Los Sauces/Huemules drainage farther east and south. The selection continues northwest past the Villa Baviera and San Gregorio surroundings, turns north east of Quella, then follows the lower Perquilauquén eastward past the Purapel junction to the Loncomilla headward junction. Loncomilla carries the selected mainstem north through the Bodega, Melozal and Villa Alegre surroundings to the Maule near San Javier. The lower Maule then runs northwest and west past the Corinto/Curtiduría and Toconey surroundings to its estuarine mouth at Constitución. The long eastern side selection starts on the short lower Colorado approach near Las Garzas and continues down the Maule past La Suiza and Armerillo, through the Colbún reservoir corridor and west to the Loncomilla junction. It does not select the complete upper Maule, Laguna del Maule, the complete Colorado, or the Melado headwaters. The very short northern side fragment occupies the terminal Claro–Maule junction setting near Corinto; its coarse cells do not establish an exact individual braided-channel allocation.",
+      "source_keys": [
+        "r88-mop-maule-map",
+        "r88-mop-nuble-map",
+        "r88-dga-maule-plan"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central Chile, Maule and Ñuble regions: the Perquilauquén headward corridor northeast of San Fabián de Alico, the Loncomilla valley, middle Maule and lower Maule to Constitución.",
+      "candidate_name_role": "Representative receiving-river system identity; the selected Perquilauquén, Loncomilla and lower Colorado components retain their distinct names.",
+      "completion_scope": "Completed bounded cartographic correspondence of all four mainstem and three side fragments using two readable original MOP regional maps and the DGA Maule plan. The southern Perquilauquén headward turn, lower Colorado approach, Colbún crossing, Loncomilla and lower Maule connectors, short Claro-junction fragment and Constitución terminal setting were inspected. Distinct upstream names are component distinctions, not unsupported connectors. No substantial unviewed reach remains; exact formal sources, name-transition vertices, braided-channel assignments and present shoreline are not claimed.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Río Maule",
+        "headward_component": "Upper Río Perquilauquén along the Maule–Ñuble boundary northeast of San Fabián de Alico; the precise formal source is not established.",
+        "main_upstream_component": "Río Perquilauquén followed by Río Loncomilla.",
+        "selected_tributary_component": "Short lower Río Colorado approach and middle Río Maule through Colbún; separate very short terminal Claro–Maule confluence-area fragment.",
+        "terminal_component": "Lower Río Maule estuary and mouth at Constitución.",
+        "excluded_inferences": [
+          "The full 307.910 km modeled mainstem is not asserted to bear the name Río Maule.",
+          "The selected system does not contain all Maule-basin tributaries, the complete Río Claro, the complete Colorado, the Melado headwaters or Laguna del Maule.",
+          "No precise river-source point, naming-transition vertex, present reservoir waterline, braided-channel allocation or surveyed ocean-outlet point is established."
+        ],
+        "model_limits": "The modeled length is not an official river measurement. Generalized cells simplify mountain turns, confluences, reservoir passage and alluvial channels."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61512854",
+      "category": "river_group",
+      "system_id": "61512854",
+      "baseline_logical_fid": 3581,
+      "geometry_fids": [
+        14451
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -66.066667,
+        -34.835417,
+        -63.90625,
+        -33.625
+      ],
+      "rendered_mainstem_length_km": 306.745,
+      "rendered_network_length_km": 306.745,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -66.066667,
+          -34.835417,
+          -63.90625,
+          -33.625
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "The readable original cartography supports a completed name-scope and feature-class hold. The selected route traverses wooded/agricultural plains, dune and low-contour country, scattered lagoon surroundings and inland marsh/depression terrain without an established continuous named natural river. Local lagoon labels are not whole-route names. This is not a claim of permanent dryness or an inventory of present-day drains.",
+      "geographic_disambiguation": "This is hydro-system:61512854, the sole selected mainstem fragment 14451, independently reviewed rather than copied from the adjacent hydro-system:61512764 assessment. Its headward beginning lies in rural country north-northeast of Alto Pelado, near the Don Celestino and Los Negros surroundings. It continues south through the country east of Travesía, then turns southeast east of Alto Pelado and well south/southwest of Nueva Escocia. Its upper and middle course is substantially southwest of the previous selection, extending across the scattered-lagoon plains and then south of Villa Valeria and Lecueder. It proceeds through inland lowlands north of Villa Huidobro and Huinca Renancó, across the country west/southwest of the Mattaldi–Santa Magdalena corridor, and into the Pincén road-and-railway setting. The modeled endpoint north-northeast of Pincén is shared with the prior selection, but this does not establish either route as a natural river or give the two distinct selections one hydronym. The selected path does not reach the separately mapped Río Quinto trunk, Bañados de la Amarga or an open-sea outlet. No exact named terminal lake is established.",
+      "source_keys": [
+        "r88-ign-sanluis-cordoba-raster-reuse",
+        "ign-sanluis-physical-2016",
+        "ign-cordoba-physical-2016"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Central-eastern and southern San Luis to southern Córdoba, Argentina: the Travesía–Alto Pelado country, the southern San Luis lagoon plains, country south of Villa Valeria and Lecueder, and inland lowlands north of Huinca Renancó and toward Pincén.",
+      "candidate_name_role": "no_whole_route_natural_river_identity_established",
+      "completion_scope": "Completed bounded geographic correspondence and name-scope/feature-class assessment of the entire sole selected mainstem fragment. The retained 1:250,000 raster mosaic covers this complete distinct extent. Retained 1:100,000 pixels additionally resolve the actual first setting, the Travesía approach and upper southeastward turn, and the southern Córdoba lower and terminal settings. Blank areas elsewhere in the finer headward mosaic are covered by the readable 1:250,000 mosaic; they do not leave a substantial unviewed section. No new acquisition was needed. The remaining hold is about identity, not access or material availability: assigning a name would require positive evidence that the long selected plains sequence is a named natural watercourse or connected receiving-river system.",
+      "naming_scope_details": {
+        "representative_receiving_identity": null,
+        "headward_component": "Rural country north-northeast of Alto Pelado, continuing south east of Travesía; no named source stream established in the inspected finer mapping.",
+        "middle_component": "Distinct southwestern modeled plains route through scattered-lagoon surroundings and country south of Villa Valeria and Lecueder; no continuous named natural channel established.",
+        "excluded_neighbor": "Río Quinto / Popopis is a separate northern and northeastern mapped river. Regional proximity and a common broad plains setting do not establish it as this selection’s identity.",
+        "terminal_component": "Inland lowland and road/railway setting north-northeast of Pincén, sharing the prior selection’s modeled endpoint without establishing a shared natural-river name.",
+        "reason_for_hold": "The actual upper, middle and lower plains sequence is not established as one natural river or a connected receiving-river system, and the endpoint is not verified as a named river or lake mouth.",
+        "excluded_inferences": [
+          "No claim that all selected points are dry or permanently disconnected.",
+          "No assertion that the path is one present-day artificial drain, named paleochannel or complete chain of specifically named lagoons.",
+          "No transfer of the prior selection’s upper and middle correspondence to the current distinct selection.",
+          "No named source, surveyed wetland boundary, exact hydronym transition, modern flow direction or named receiving mouth is assigned."
+        ],
+        "model_limits": "The 306.745 km value is the modeled display length, not an official river measurement. Generalized retained geometry and historical mapping do not establish present hydraulic continuity."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70972107",
+      "category": "river_group",
+      "system_id": "70972107",
+      "baseline_logical_fid": 3313,
+      "geometry_fids": [
+        10692,
+        10693,
+        10694,
+        10695,
+        10696,
+        10697,
+        10698,
+        10699,
+        10700,
+        10691,
+        10703,
+        10709,
+        10708,
+        10690,
+        10702,
+        10706,
+        10707,
+        10689,
+        10705,
+        10701,
+        10704
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -85.94375,
+        9.98125,
+        -83.586618,
+        12.154167
+      ],
+      "rendered_mainstem_length_km": 306.743,
+      "rendered_network_length_km": 732.11,
+      "geometry_summary": {
+        "fragment_count": 21,
+        "mainstem_fragment_count": 12,
+        "mainstem_bbox": [
+          -85.397917,
+          10.677083,
+          -83.586618,
+          11.13125
+        ]
+      },
+      "candidate_name": "Río San Juan",
+      "candidate_names": [
+        "Río San Juan",
+        "San Juan River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The selection combines Cucaracho–Pizote drainage, Lake Nicaragua routing, the San Juan receiving trunk, selected San Carlos and Sucio–Sarapiquí branches, and Colorado to the Caribbean coastal mouth setting.",
+      "geographic_disambiguation": "The modeled mainstem begins in the Cucaracho headward drainage northeast of the Rincón de la Vieja area, joins the Pizote course, and enters the southern margin of Lake Nicaragua. Its long straight eastward segment is a generalized lake passage toward San Carlos, where the San Juan leaves the lake. A separate selected northern branch starts in the northwestern Lake Nicaragua setting, runs along its western side, crosses the southern lake below Ometepe, and joins the outlet-side route. This is not a selected Lake Managua–Tipitapa headwater. The receiving trunk follows San Juan east and southeast past the El Castillo setting. Southern branches comprise middle/lower San Carlos and an Irazú-side upper feeder/Sucio route into lower Sarapiquí, with a very short selected Sarapiquí approach from the west. Downstream of the Sarapiquí junction the selection follows San Juan to the Colorado bifurcation, then takes the south-looping Colorado course toward Barra del Colorado. It does not continue along lower San Juan to San Juan del Norte and does not choose Caño Bravo.",
+      "source_keys": [
+        "r88-imn-zapote",
+        "r88-imn-sancarlos",
+        "r88-imn-sarapiqui",
+        "r88-imn-chirripo",
+        "r88-oas-sanjuan1997"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southern Nicaragua and northern Costa Rica, from the Lake Nicaragua basin and northern volcanic slopes to the Colorado outlet on the Caribbean coast.",
+      "candidate_name_role": "Representative receiving-system identity, with Cucaracho–Pizote, Lake Nicaragua, San Carlos, Sucio–Sarapiquí and Colorado retained as distinct components.",
+      "completion_scope": "Completed bounded correspondence of all selected fragments using readable original IMN basin maps and the OAS binational study's regional maps. The lake connectors agree with the mapped lake/outlet setting and do not establish an unrelated drainage connection. Exact shoreline intersections and minor initial forks are not surveyed. The representative name remains qualified by its lake, tributary and distributary components.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Río San Juan",
+        "headward_component": "Cucaracho headward drainage into Río Pizote.",
+        "lake_component": "Lago de Nicaragua / Lago Cocibolca, including two modeled lake-routing approaches to the San Carlos outlet.",
+        "selected_tributary_components": [
+          "Middle/lower Río San Carlos",
+          "Irazú-side upper feeder and Río Sucio into lower Río Sarapiquí",
+          "Short western Río Sarapiquí approach"
+        ],
+        "terminal_component": "Río Colorado distributary toward Barra del Colorado and the Caribbean mouth setting.",
+        "excluded_inferences": [
+          "No assertion that every selected reach is named San Juan.",
+          "No selected Lake Managua, Tipitapa, Arenal reservoir, complete San Carlos headwaters or complete Sarapiquí headwaters.",
+          "No extension along lower San Juan to San Juan del Norte or substitution of Caño Bravo.",
+          "No claim that straight lake connectors are navigable channels, surveyed flow lines or exact shoreline traces.",
+          "No assignment of a precise small-fork name at either coarse mountainous starting cell."
+        ],
+        "model_limits": "The modeled mainstem length is not an official river length. Coarse routing simplifies lake margins, islands, junctions and estuarine channels. Cartographic correspondence does not determine present hydraulic allocation among distributaries or international boundary rights."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70157569",
+      "category": "river_group",
+      "system_id": "70157569",
+      "baseline_logical_fid": 2969,
+      "geometry_fids": [
+        9235,
+        9234
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -84.858333,
+        51.464583,
+        -81.985829,
+        52.777083
+      ],
+      "rendered_mainstem_length_km": 306.57,
+      "rendered_network_length_km": 306.57,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -84.858333,
+          51.464583,
+          -81.985829,
+          52.777083
+        ]
+      },
+      "candidate_name": "Kapiskau River",
+      "candidate_names": [
+        "Kapiskau River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Atikameg River is repeatedly labeled along the long selected southwestern approach; after its junction with the separate western Kapiskau approach, the receiving course is repeatedly labeled Kapiskau River to the coastal setting.",
+      "geographic_disambiguation": "The selected southwestern start is north of the Albany River and runs east then northeast through the Atikameg corridor. The western upper Kapiskau and its lake-side approach are separate and are not selected as the mainstem. After the Atikameg–Kapiskau junction the route continues northeast, finally turning east into the Kapiskau coastal channel south of the Lawashi and Attawapiskat outlets. The lower model ends within the widened near-mouth river/estuary, before the full offshore tidal-flat opening. Albany, Pagashi, Poplar, Lawashi and Attawapiskat are distinguishable neighboring or incoming drainage, not whole-selection synonyms.",
+      "source_keys": [
+        "r88-nrcan-kapiskau-map"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Ontario, Canada: Hudson Bay Lowlands between the Albany and Attawapiskat systems, draining northeast to the western James Bay shore south of Attawapiskat.",
+      "candidate_name_role": "Representative receiving-river identity; the long selected southwestern upstream component is Atikameg River, not the conventional full upper Kapiskau course.",
+      "completion_scope": "Completed bounded geographical correspondence for both selected fragments using readable original official map pixels. Whole-extent coverage and enlarged southwestern and terminal views distinguish the actual Atikameg approach and Kapiskau receiving course from neighboring rivers. The unnamed finest headward cells and generalized coastal truncation do not prevent the representative identity; no substantial unviewed interval remains.",
+      "naming_scope_details": {
+        "representative_receiving_identity": "Kapiskau River",
+        "main_upstream_component": "Selected Atikameg River corridor, including a small unnamed headward approach.",
+        "terminal_component": "Kapiskau near-mouth river/estuary on western James Bay, south of Attawapiskat; selected line stops short of the full coastal opening.",
+        "excluded_inferences": [
+          "The complete 306.570 km modeled mainstem is not uniformly named Kapiskau.",
+          "Unselected upper Kapiskau, Kapiskau Lake, Lawashi and other basin branches are not added to this group.",
+          "No current discharge, exact river-source location, present shoreline or precise name-transition vertex is asserted."
+        ],
+        "model_limits": "Modeled length is not an official river-length measurement. Generalized geometry simplifies bends, small feeders, wetland channels and coastal features."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:61512854"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 295,
+    "non_pending_records": 284,
+    "source_access_pending": 3,
+    "source_material_pending": 8,
+    "source_any_pending": 11,
+    "scope_holds": 95,
+    "river_groups": 197,
+    "lakes": 98,
+    "unrecorded": 3770,
+    "unrecorded_river_groups": 3258,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r88-mop-maule-map",
+      "official_url": "https://mapasvialidad.mop.gob.cl/archivos/sites/10/2026/01/Region_del_Maule.pdf"
+    },
+    {
+      "source_key": "r88-mop-nuble-map",
+      "official_url": "https://mapasvialidad.mop.gob.cl/archivos/sites/10/2026/01/Region_de_Nuble.pdf"
+    },
+    {
+      "source_key": "r88-dga-maule-plan",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/21a43b8e-d99a-4270-a529-f0f0960c5711/content"
+    },
+    {
+      "source_key": "r88-ign-sanluis-cordoba-raster-reuse",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-sanluis-physical-2016",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/SAN-LUIS/SAN-LUIS-FISICO-WEB.jpg"
+    },
+    {
+      "source_key": "ign-cordoba-physical-2016",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/CORDOBA/CORDOBA-FISICO-WEB.jpg"
+    },
+    {
+      "source_key": "r88-imn-zapote",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioZapote.pdf"
+    },
+    {
+      "source_key": "r88-imn-sancarlos",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioSanCarlos.pdf"
+    },
+    {
+      "source_key": "r88-imn-sarapiqui",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioSarapiqui.pdf"
+    },
+    {
+      "source_key": "r88-imn-chirripo",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioChirripo.pdf"
+    },
+    {
+      "source_key": "r88-oas-sanjuan1997",
+      "official_url": "https://www.oas.org/dsd/publications/unit/oea05s/oea05s.pdf"
+    },
+    {
+      "source_key": "r88-nrcan-kapiskau-map",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "4074d204588070908c24b481db5a147de0b5281c",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      151,
+      152,
+      153,
+      154
+    ],
+    "next_unrecorded_id": "hydro-system:61570698",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

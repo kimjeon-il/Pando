@@ -1,0 +1,81 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "reviewed_at_utc": "2026-10-09T17:24:23.335942+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159108703",
+    "lakes_base:1159109993",
+    "lakes_base:1159110087"
+  ],
+  "observation_scope": "Past independent original-source observations; present public validation checks included factual linkage only.",
+  "new_external_requests": 0,
+  "distinct_acquired_publications": 3,
+  "distinct_cartographic_identity_publications": 3,
+  "independent_source_groups": 2,
+  "shoreline_overlap_measured": false,
+  "survey_registration_verified": false,
+  "observations": [
+    {
+      "source_key": "wsa_completed_watershed_plans_2014",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "title": "Map of Saskatchewan Showing Completed Watershed Plans",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "publication_date": "2014-11-25",
+      "physical_pdf_page": 1,
+      "printed_scale": "1:1,750,000 at 22 by 34 inches",
+      "retrieved_this_batch": false,
+      "role": "Whole-feature comparison and naming-scope assessment for all three selected targets",
+      "observation": "The entire map and all target regions were inspected. The first selected cluster lacks a local water label. The second lies by Royal Lake, Steephill Lake and Reindeer River but its long southern tip is not established by the broadened mapped water. The third broad west-east basin lies west of Wood Lake in the connected Churchill setting. Context labels do not resolve whole-feature naming coverage. Multiple map views count as one publication. The printed production date differs from the URL date directory."
+    },
+    {
+      "source_key": "elections_athabasca_ge30",
+      "publisher": "Elections Saskatchewan",
+      "title": "Athabasca constituency map, GE30",
+      "url": "https://cdn.elections.sk.ca/maps-ge30/Athabasca_GE30.pdf",
+      "publication_date": null,
+      "printed_creation_date": "02/10/2023",
+      "date_note": "Exact printed creation-date string; ordering unresolved, no normalized calendar date assigned.",
+      "physical_pdf_page": 1,
+      "version": "1.0",
+      "retrieved_this_batch": true,
+      "independence_group": "elections_saskatchewan_ge30_map_series",
+      "observation": "Complete first target region near Patuanak, a settlement label; no complete waterbody name established.",
+      "limit": "Electoral-map context only. Cadastral, administrative and OpenStreetMap source credits do not establish independently surveyed hydrographic names."
+    },
+    {
+      "source_key": "elections_cumberland_ge30",
+      "publisher": "Elections Saskatchewan",
+      "title": "Cumberland constituency map, GE30",
+      "url": "https://cdn.elections.sk.ca/maps-ge30/Cumberland_GE30.pdf",
+      "publication_date": null,
+      "printed_creation_date": "02/10/2023",
+      "date_note": "Exact printed creation-date string; ordering unresolved, no normalized calendar date assigned.",
+      "physical_pdf_page": 1,
+      "version": "1.0",
+      "retrieved_this_batch": true,
+      "independence_group": "elections_saskatchewan_ge30_map_series",
+      "observation": "Complete second and third regions. Steephill Lake lettering does not establish the long southern taper; Penney Lake and Lobb Lake remain context around the third unnamed central basin.",
+      "limit": "Electoral-map context only. Cadastral, administrative and OpenStreetMap source credits do not establish independently surveyed hydrographic names."
+    }
+  ],
+  "complete_geometry_observations": [
+    {
+      "aw_id": "lakes_base:1159108703",
+      "position_count": 28,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159109993",
+      "position_count": 23,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    },
+    {
+      "aw_id": "lakes_base:1159110087",
+      "position_count": 15,
+      "entire_source_and_baseline_geometry_viewed": true,
+      "whole_feature_map_scope_assessment_completed": true
+    }
+  ],
+  "included_evidence_limit": "Included files contain factual observations, bibliography and selected public-domain geometry. Original publications and inspection materials are omitted. Public validation checks only included facts and coordinates; it cannot reproduce omitted map interpretation or private original-decoder judgments, or resolve the remaining naming-scope holds."
+}

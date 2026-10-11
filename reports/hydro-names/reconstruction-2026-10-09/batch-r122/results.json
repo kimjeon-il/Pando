@@ -1,0 +1,533 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r122",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r121",
+    "commit": "fe0118e40ddf984d75bb01214d602d4693bc57ee",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r121/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:60636465",
+    "hydro-system:61246484",
+    "hydro-system:61563892",
+    "hydro-system:90025974"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:60636465",
+      "category": "river_group",
+      "system_id": "60636465",
+      "original_queue_rank": 288,
+      "baseline_logical_fid": 3436,
+      "geometry_fids": [
+        13780,
+        13781,
+        13782,
+        13783,
+        13784
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -80.503116,
+        -4.014583,
+        -79.510417,
+        -3.492829
+      ],
+      "rendered_mainstem_length_km": 226.139,
+      "rendered_network_length_km": 226.139,
+      "geometry_summary": {
+        "fragment_count": 5,
+        "mainstem_fragment_count": 5,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -80.503116,
+          -4.014583,
+          -79.510417,
+          -3.492829
+        ]
+      },
+      "candidate_name": "Río Puyango–Tumbes",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "completion_scope": "Completed bounded representative-system correspondence for all five mainstem fragments, including their actual selected coastal terminus. The review distinguishes cartographic observation from report prose and never extends a downstream hydronym over the initial feeder. Historical/current channel change is a source-date and naming-scope limitation, not an unobserved terminal. Optional unavailable publications leave no material coverage gap after the successful C32 originals.",
+      "region": "Southern Ecuador and northwestern Peru, Salvias–Sinsao–Portovelo–Puyango–Tumbes corridor to the western historical Pacific delta outlet.",
+      "candidate_name_role": "supported_representative_system_identity",
+      "candidate_names": [
+        "Río Puyango–Tumbes"
+      ],
+      "source_keys": [
+        "ingemmet-c32-report",
+        "ingemmet-c32-geomorph",
+        "ingemmet-c32-water",
+        "ingemmet-c32-cauces"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The five selected fragments correspond at ordinary generalized component/corridor scale to the Puyango–Tumbes river system: the eastern mountain feeder through the Sinsao–Portovelo setting, its junction into the Pindo/Puyango trunk, the westward valley and border reaches, the Cazaderos/Tumbes bend, the northward lower valley and the selected western Pacific outlet corridor. Original INGEMMET2006 cartography covers the full route. Crucially, Figure3 places the selected western delta terminal in the historical Tumbes-channel complex rather than proving it is the presently active main mouth. No material geographic connector or component remains uncovered at the requested scale.",
+      "supported_name_scope": "representative transboundary river-system identity, not a uniform scalar hydronym for the selected upper feeder, successive named reaches or historical delta course",
+      "naming_scope_details": {
+        "representative_system_identity": "Río Puyango–Tumbes",
+        "initial_feeder_name": null,
+        "bounded_upper_reach_context": [
+          "Río Amarillo",
+          "Río Pindo"
+        ],
+        "successive_trunk_names": [
+          "Puyango",
+          "Tumbes"
+        ],
+        "receiving_waterbody_name": "Pacific Ocean",
+        "actual_selected_terminal_scope": "Historical western Tumbes delta/outlet corridor. The original1961–2000 channel comparison and report describe a later eastern shift into Estero Tamarindo; present-day active main-mouth status is unverified.",
+        "component_scope_limits": [
+          "The selected initial mountain feeder has no independently established local hydronym at its first selected point. Its name remains null. The readable cartographic corridor is not a naming-registry record.",
+          "The Portovelo reach is identified in report prose as Río Amarillo; the map observes its geographic valley and junctions. This does not name every upstream feeder Amarillo or Puyango.",
+          "INGEMMET p.27 describes Pindo or Grande in the upper trunk, Puyango after the Yaguachi junction near Balsas, and Tumbes after receiving Quebrada Cazaderos. These are successive reach/system descriptions; no surveyed hydronym boundary is asserted.",
+          "Calera, Moro Moro, Ambocas, Yaguachi and Cazaderos occur as tributary or junction context. Their names are not transferred to the entire selected object or to unrelated tributaries.",
+          "Figure3 explicitly compares Tumbes channels in1961,1976,1986 and2000. The selected western delta/outlet corridor corresponds to the historical channel group; the figure and p.41 describe an eastward shift into Estero Tamarindo in1997/98. A current active main-mouth claim, present flow allocation and exact coastline/endpoint agreement are not established.",
+          "The receiving water is the Pacific Ocean. It is not a river-name synonym. No selected lake/reservoir passage is shown in the acquired cartography; this is a mapped-route observation, not a present-day inventory of every hydraulic structure.",
+          "Accepted, scalar whole-feature and Korean names remain null. No current formal name registry, exact named source point, modern border survey or legal river-name boundary was established.",
+          "The source report includes heterogeneous historical distance claims. None substitutes for the retained rendered226.139km metadata or establishes an official selected-river length."
+        ],
+        "whole_route_uniform_hydronym_established": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:61246484",
+      "category": "river_group",
+      "system_id": "61246484",
+      "original_queue_rank": 289,
+      "baseline_logical_fid": 3498,
+      "geometry_fids": [
+        13906
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -40.666667,
+        -17.372917,
+        -39.210329,
+        -16.727083
+      ],
+      "rendered_mainstem_length_km": 226.053,
+      "rendered_network_length_km": 226.053,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -40.666667,
+          -17.372917,
+          -39.210329,
+          -16.727083
+        ]
+      },
+      "candidate_name": "Rio Jucuruçu",
+      "candidate_names": [
+        "Rio Jucuruçu"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Representative system identity supported by continuous generalized cartographic correspondence from the selected Prata headward setting through the do Prado/Jucuruçu corridor, Palmópolis, Jucuruçu and Itamaraju to the two-arm confluence and Atlantic outlet south of Prado.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "region": "Eastern Minas Gerais and southern Bahia, Prata/do Prado headward setting through the northern Jucuruçu arm and Prado coast.",
+      "candidate_name_role": "supported_representative_system_identity",
+      "source_keys": [
+        "INEMA_RPGA_III_2014",
+        "IBGE_FELISBURGO",
+        "IBGE_RIO_DO_PRADO",
+        "IBGE_PALMOPOLIS",
+        "UFV_ATLAS_LESTE"
+      ],
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Four distinct original municipal/regional maps supply overlapping full corridor coverage, including the upper Minas Gerais source setting and the actual Bahia coastal outlet. Primary UFV prose supports the two-arm relationship. Representative Rio Jucuruçu identity is supported; no material geographic source gap remains. The optional2025 article403 and the resolved technical directory-reader issue remain detailed limitations rather than additional pending statuses.",
+      "completion_scope": "Four distinct original municipal/regional maps supply overlapping full corridor coverage, including the upper Minas Gerais source setting and the actual Bahia coastal outlet. Primary UFV prose supports the two-arm relationship. Representative Rio Jucuruçu identity is supported; no material geographic source gap remains. The optional2025 article403 and the resolved technical directory-reader issue remain detailed limitations rather than additional pending statuses.",
+      "naming_scope_details": {
+        "representative_system_identity": "Rio Jucuruçu",
+        "initial_short_reach_name": null,
+        "mapped_upper_component_names": [
+          "Córrego Prata",
+          "Córrego do Prado",
+          "Rio do Prado ou Jucuruçu"
+        ],
+        "selected_arm_name": "Rio Jucuruçu Braço Norte",
+        "distinct_joining_arm": "Jucuruçu/Jacuruçu Braço Sul",
+        "receiving_waterbody_name": "Atlantic Ocean south of Prado",
+        "component_scope_limits": "The initial Prata feeder, Córrego do Prado, Rio do Prado ou Jucuruçu, Jucuruçu Braço Norte and combined lower river are not collapsed into one accepted scalar hydronym. Exact name-transition points, formal registry standing, Korean rendering and names of unlabelled short reaches remain unverified/null. The southern arm and its hydroelectric sites are not selected mainstem components.",
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:61563892",
+      "category": "river_group",
+      "system_id": "61563892",
+      "original_queue_rank": 290,
+      "baseline_logical_fid": 3631,
+      "geometry_fids": [
+        14582
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -66.858333,
+        -41.664583,
+        -65.015493,
+        -41.422917
+      ],
+      "rendered_mainstem_length_km": 225.815,
+      "rendered_network_length_km": 225.815,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -66.858333,
+          -41.664583,
+          -65.015493,
+          -41.422917
+        ]
+      },
+      "candidate_name": "Arroyo Salado",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Somuncurá upland, Río Negro Province, Argentina; Ventana–Los Berros–Salado system to Golfo San Matías at Playas Doradas.",
+      "candidate_name_role": "supported_representative_system_identity",
+      "candidate_names": [
+        "Arroyo Salado"
+      ],
+      "source_keys": [
+        "ign-historical-250k",
+        "codema2007-plan2008",
+        "kokot2015-coastal"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Historical primary IGN mapping supports the complete selected Somuncurá headward drainage, named Ventana corridor, Los Berros junction, Salado lowland and coastal outlet at Balneario El Salado / Playas Doradas. Provincial primary prose independently identifies the Ventana–Los Berros confluence as the origin of the Salado system and limits sea discharge to hydrologically wet periods. Arroyo Salado is supported as representative system identity only.",
+      "completion_scope": "Historical primary IGN mapping supports the complete selected Somuncurá headward drainage, named Ventana corridor, Los Berros junction, Salado lowland and coastal outlet at Balneario El Salado / Playas Doradas. Provincial primary prose independently identifies the Ventana–Los Berros confluence as the origin of the Salado system and limits sea discharge to hydrologically wet periods. Arroyo Salado is supported as representative system identity only.",
+      "supported_name_scope": "Representative downstream river/system identity for the Ventana–Los Berros–Salado system; not a uniform whole-selected-feature hydronym.",
+      "naming_scope_details": {
+        "representative_system_identity": "Arroyo Salado",
+        "initial_headward_name": null,
+        "mapped_upper_reach": "Arroyo de la Ventana",
+        "distinct_joining_tributary": "Los Berros",
+        "receiving_waterbody_name": "Golfo San Matías",
+        "terminal_locality": "Balneario El Salado / Playas Doradas",
+        "separately_named_coastal_lagoon": null,
+        "flow_scope": "Provincial primary prose allows marine discharge in wet periods; current or year-round continuous surface flow is not established.",
+        "component_scope_limits": [
+          "The selected upper river is mapped as Ventana; its unnamed upland head is not assigned Salado merely by connection.",
+          "Los Berros is the materially joining tributary, not a name for the entire selected mainstem.",
+          "Salado supports the representative downstream system identity; small wet depressions and the coastal lagoon/estuarine passage are not separately renamed as river reaches.",
+          "Historical mapped connection and occasional marine discharge do not establish continuous present-day surface flow.",
+          "Arroyo Salado here is the Sierra Grande / Playas Doradas system in Río Negro Province, not the large Río Negro river or another Argentine Salado.",
+          "Accepted, whole-feature scalar and Korean names remain null; no product or automatic application is proposed."
+        ],
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:90025974",
+      "category": "river_group",
+      "system_id": "90025974",
+      "original_queue_rank": 291,
+      "baseline_logical_fid": 2827,
+      "geometry_fids": [
+        8837
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -26.579167,
+        77.781317,
+        -21.847035,
+        78.65625
+      ],
+      "rendered_mainstem_length_km": 225.441,
+      "rendered_network_length_km": 225.441,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -26.579167,
+          77.781317,
+          -21.847035,
+          78.65625
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": null,
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": false,
+      "completion_scope": "All selected portions and the actual retained ending were read using geometry only for orientation, source graticules and the source legend. The national original supplies the complete ordinary generalized corridor coverage. Sheet 9 is limited regional and coverage context, not full-route evidence.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The complete selected route is geographically accounted for across mapped Inland Ice, an exposed-rock/nunatak belt, an eastern ice corridor, coastal land and the actual coastal ending. No primary source establishes a natural-river hydronym spanning those settings. Geographic completeness is not a claim of natural river continuity.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "national_map_nunatak_context": "Bildsøe Nunatakker",
+        "sheet9_nunatak_spelling": "Bildsø Nunatakker",
+        "sheet9_other_regional_land_context": [
+          "Laub Nunatakker",
+          "Søndre Mellemland"
+        ],
+        "regional_bay_context": "Jøkelbugten",
+        "farther_south_fjord_context": "Skærfjorden",
+        "farther_south_glacier_context": "Storstrømmen",
+        "terminal_fine_scale_inlet_name": null,
+        "selected_through_lake_name": null,
+        "selected_named_tributary": null,
+        "no_uniform_scalar_assignment": true,
+        "regional_associations_are_exact_reach_names": false
+      },
+      "region": "Northeast Greenland, Inland Ice–Bildsøe Nunatakker–southern Jøkelbugten coast north of Skærfjorden.",
+      "candidate_name_role": "whole_route_name_unestablished",
+      "source_keys": [
+        "r122-geus-greenland-national-1995-retained"
+      ],
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The retained 1995 national Greenland original covers all of FID 8837 from the Inland Ice through the Bildsøe Nunatakker ice/rock belt and eastern ice corridor to the narrow coastal strip and its eastern coastal ending in the southern Jøkelbugten setting, north of Skærfjorden. These geographic observations support a completed name-scope hold. They do not support a continuously named natural river or whole-feature scalar name."
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90025974"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 431,
+    "non_pending_records": 381,
+    "source_access_pending": 3,
+    "source_material_pending": 47,
+    "source_any_pending": 50,
+    "scope_holds": 125,
+    "river_groups": 333,
+    "lakes": 98,
+    "unrecorded": 3634,
+    "unrecorded_river_groups": 3122,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "alicia-c32-catalogue",
+      "official_url": "https://alicia.concytec.gob.pe/vufind/Record/INGEMMET_55fbee6565b39ae68fbce2b053edd924/Details"
+    },
+    {
+      "source_key": "ingemmet-c32-report",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/264/1222/C032-Boletin-Estudio_geoambiental_cuenca_rio_Puyango-Tumbes.pdf"
+    },
+    {
+      "source_key": "ingemmet-c32-geomorph",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/264/4/C032-MAPA_GEOMORFOL%c3%93GICO.pdf"
+    },
+    {
+      "source_key": "ingemmet-c32-water",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/264/3/C032-MAPA_DE_MUESTREO_DE_AGUAS_SUPERFICIALES_Y_METALES_PESADOS.pdf"
+    },
+    {
+      "source_key": "ingemmet-c32-cauces",
+      "official_url": "https://repositorio.ingemmet.gob.pe/bitstream/20.500.12544/264/2/C032-MAPA_VARIACI%c3%93N_DEL_CAUCE_DEL_R%c3%8dO_TUMBES.pdf"
+    },
+    {
+      "source_key": "mora-2016",
+      "official_url": "https://www.scielo.org.mx/scielo.php?pid=S0188-49992016000400385&script=sci_abstract"
+    },
+    {
+      "source_key": "ana-tumbes-plan",
+      "official_url": "https://www.ana.gob.pe/sites/default/files/archivos/paginas/PLAN%20de%20GESTI%C3%93N%20de%20los%20RECURSOS%20H%C3%8DDRICOS%20de%20la%20CUENCA%20TUMBES.pdf"
+    },
+    {
+      "source_key": "gad-salvias-pdot",
+      "official_url": "https://gadsalvias.gob.ec/wp-content/uploads/2024/06/PDOT-SALVIAS-CON-ALINEACION.pdf"
+    },
+    {
+      "source_key": "INEMA_RPGA_III_2014",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/III-RPGA-DOS-RIOS-PERUIPE-ITANHEM-JUCURUCU.pdf"
+    },
+    {
+      "source_key": "IBGE_FELISBURGO",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MG/felisburgo/3125606_MM.pdf"
+    },
+    {
+      "source_key": "IBGE_RIO_DO_PRADO",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/mg/rio_do_prado_v2.pdf"
+    },
+    {
+      "source_key": "IBGE_PALMOPOLIS",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MG/palmopolis/3146750_MM.pdf"
+    },
+    {
+      "source_key": "UFV_ATLAS_LESTE",
+      "official_url": "https://www.atlasdasaguas.ufv.br/leste/resumo_leste.html"
+    },
+    {
+      "source_key": "ign-historical-250k",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "codema2007-plan2008",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf"
+    },
+    {
+      "source_key": "kokot2015-coastal",
+      "official_url": "https://www.repositorio.cenpat-conicet.gob.ar/server/api/core/bitstreams/0deff26a-646c-4108-8328-282b679f999b/content"
+    },
+    {
+      "source_key": "r122-geus-greenland-national-1995-retained",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r122-geus-lambert-land-sheet9-2000-retained",
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "fe0118e40ddf984d75bb01214d602d4693bc57ee",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      288,
+      289,
+      290,
+      291
+    ],
+    "next_unrecorded_id": "hydro-system:60471949",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

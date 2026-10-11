@@ -1,0 +1,225 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r03",
+  "created_at_utc": "2026-10-09T12:07:27.913634+00:00",
+  "target": {
+    "aw_id": "hydro-system:50488324",
+    "system_id": "50488324",
+    "logical_fid": 1832,
+    "geometry_fids": [
+      6748,
+      6749,
+      6750,
+      6751,
+      6752
+    ],
+    "historical_baseline_bbox": [
+      140.56875,
+      -20.852083,
+      144.76875,
+      -17.516435
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Flinders River system, with separately classified western tributary fragments",
+    "name_original": "Flinders River",
+    "name_original_language": "en",
+    "name_en": "Flinders River",
+    "name_ko": null,
+    "status": "Supported representative system/mainstem identity; uniform whole-group naming is not cleared.",
+    "identity_confidence": "High for representative identity and regional mainstem course; qualified for western tributary association, unresolved for individual source-reach name assignment.",
+    "scope": "Five-fragment source-derived river group, not an authoritative delineation of the complete basin or every river within it.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming source was acquired; no transliteration supplied.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "geometry-reference.json",
+    "fragment_facts_file": "selected-river-metadata.json",
+    "ordered_source_ids_file": "source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 5,
+    "all_line_parts_reviewed": 168,
+    "all_coordinate_positions_reviewed": 1436,
+    "distinct_source_reach_ids": 168,
+    "source_ids_sha256": "71a9d52473951e1a345bcaf16ba6b5cd2266036cdd34ffb365826675e7b63d1a",
+    "canonical_ordered_group_geometry_sha256": "c53e0cf6be8dab31cad34a09d9fdf82967adc95770b31efa16fdf8fd733746b1",
+    "geometry_and_source_id_hashes_independently_recomputed": true,
+    "complete_geometry_published": false,
+    "redistribution_rights_reference": "geometry-publication-rights.json",
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "Every decoded baseline part was included in the full-group plot and numerical checks. Ordered reach identifiers were checked against the exact retained metadata. Equal part and reach counts are not treated as independent proof of the original source coordinate-to-reach crosswalk."
+  },
+  "spatial_identity_check": {
+    "method": "Side-by-side examination of the complete five-fragment geographic plot and both complete official basin maps, including detailed views of the upper/middle mainstem, western branches and lower coastal network. Regional course/topology comparison, not a registered pixel overlay or a precise line-to-line fit.",
+    "evidence_ids": [
+      "FLINDERS-BOM-FLOOD-2026",
+      "FLINDERS-BOM-MAP-2020",
+      "FLINDERS-QLD-BASIN-MAP"
+    ],
+    "fragment_review": [
+      {
+        "fid": 6748,
+        "baseline_role": "mainstem",
+        "part_count": 76,
+        "coordinate_count": 693,
+        "source_reach_count": 76,
+        "canonical_geometry_sha256": "0733fd279564bb4ae577c3404a746457d6a788ab51671a0c4bbecac9ba656012",
+        "ordered_source_id_csv_sha256": "a896dcf7832333e9b71d0d3caa049729d18a501c5d03b5f061e18ddd756f66cd",
+        "all_parts_and_coordinates_in_full_group_review": true,
+        "ordered_source_id_list_matched": true,
+        "discontinuous_adjacent_part_joins_detected": 0,
+        "name_scope_assessment": "Upper and middle Flinders mainstem corridor",
+        "map_comparison": "The eastern headwater curve, southward reach toward Hughenden and westward course through the Richmond region match the named Flinders course on both complete official maps. A reach-by-reach official name register was not acquired.",
+        "per_reach_name_assignment_cleared": false
+      },
+      {
+        "fid": 6749,
+        "baseline_role": "mainstem",
+        "part_count": 1,
+        "coordinate_count": 5,
+        "source_reach_count": 1,
+        "canonical_geometry_sha256": "e18c68c8166b584a5191387ce07b9ad78e031b4881afeff348596e4396244825",
+        "ordered_source_id_csv_sha256": "a8317710d5907927cd42cd577e478d92e065ba0d92a02f2f8733cc4a7f559a36",
+        "all_parts_and_coordinates_in_full_group_review": true,
+        "ordered_source_id_list_matched": true,
+        "discontinuous_adjacent_part_joins_detected": 0,
+        "name_scope_assessment": "Short connector on the Flinders mainstem corridor",
+        "map_comparison": "The five-coordinate connector preserves the continuity between the eastern and lower mainstem fragments. Its identity is supported in the complete course context, not by treating its single source ID as a name record.",
+        "per_reach_name_assignment_cleared": false
+      },
+      {
+        "fid": 6750,
+        "baseline_role": "mainstem",
+        "part_count": 69,
+        "coordinate_count": 504,
+        "source_reach_count": 69,
+        "canonical_geometry_sha256": "568d9949883da4bd8e1db2100945d4a4d75a0c82ba9af215ac44be4a8368725d",
+        "ordered_source_id_csv_sha256": "422e5ffa6357e5b5049134dac133d86ed87af03d863ebaf9ddff8663175eb3e5",
+        "all_parts_and_coordinates_in_full_group_review": true,
+        "ordered_source_id_list_matched": true,
+        "discontinuous_adjacent_part_joins_detected": 0,
+        "name_scope_assessment": "Lower Flinders mainstem corridor and coastal approach",
+        "map_comparison": "The course turns northwest and north along the named lower Flinders corridor. The adjacent western tributary and delta branches are not folded into one undifferentiated river name.",
+        "per_reach_name_assignment_cleared": false
+      },
+      {
+        "fid": 6751,
+        "baseline_role": "tributary",
+        "part_count": 20,
+        "coordinate_count": 211,
+        "source_reach_count": 20,
+        "canonical_geometry_sha256": "4aa89cb970bb7f29c8350db374d370f47ac5f582ece237e924b3911113f1a4d5",
+        "ordered_source_id_csv_sha256": "56bf42ff033387cffde3ae96280a46c66368de028b0d1dfbf48e5effc6391384",
+        "all_parts_and_coordinates_in_full_group_review": true,
+        "ordered_source_id_list_matched": true,
+        "discontinuous_adjacent_part_joins_detected": 0,
+        "name_scope_assessment": "Western tributary, associated with the lower Cloncurry corridor",
+        "map_comparison": "Its westward/northward path lies west of the principal Flinders course and is regionally consistent with the separately labeled lower Cloncurry network. The southern start and adjoining minor/anabranch channels are not individually named by a verified reach crosswalk.",
+        "per_reach_name_assignment_cleared": false
+      },
+      {
+        "fid": 6752,
+        "baseline_role": "tributary",
+        "part_count": 2,
+        "coordinate_count": 23,
+        "source_reach_count": 2,
+        "canonical_geometry_sha256": "8ebb867f0008a3e2a6fd33103729265d04969b1f4e9080ac341243723a493d83",
+        "ordered_source_id_csv_sha256": "010b264c3005a471bebad5755c4ed6ec4ac3cce5772ac8746ab58392fd4015b2",
+        "all_parts_and_coordinates_in_full_group_review": true,
+        "ordered_source_id_list_matched": true,
+        "discontinuous_adjacent_part_joins_detected": 0,
+        "name_scope_assessment": "Western tributary terminal segment, associated with the lower Cloncurry confluence corridor",
+        "map_comparison": "It continues the western tributary northeast into the lower Flinders course, consistent with the Flinders-Cloncurry junction on the BOM map. This is a regional cartographic association, not a surveyed confluence or individual-reach naming determination.",
+        "per_reach_name_assignment_cleared": false
+      }
+    ],
+    "named_branch_distinctions": [
+      {
+        "name": "Cloncurry River",
+        "relation": "Separately named western tributary corridor.",
+        "selected_geometry_association": "FIDs 6751 and 6752 align regionally with its lower network; no automatic per-reach assignment.",
+        "confidence": "Moderate regional association; lower junction context is stronger than the unnamed southern start."
+      },
+      {
+        "name": "Corella River",
+        "relation": "Officially named southwest tributary, separately labeled from Cloncurry.",
+        "selected_geometry_association": "The selected western group does not encode the complete Corella course; no Corella name is applied to it."
+      },
+      {
+        "name": "Saxby River",
+        "relation": "Separately named branch east of the lower mainstem and north of the main east-west corridor.",
+        "selected_geometry_association": "Not used as a synonym for the selected western tributary or for the Flinders mainstem."
+      },
+      {
+        "name": "Dugald River",
+        "relation": "Separately named western course feeding the broader tributary network.",
+        "selected_geometry_association": "Its distinct name prevents assuming that every western upstream channel is Cloncurry or Flinders."
+      },
+      {
+        "name": "Bynoe River and Armstrong Creek",
+        "relation": "Separately labeled coastal channels.",
+        "selected_geometry_association": "Their names and the delta complexity prevent generalizing one rendered terminal into an exact outlet/channel authority."
+      }
+    ],
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false
+  },
+  "outlet_scope": {
+    "regional_receiving_water": "Gulf of Carpentaria",
+    "regional_location": "Flinders delta west of Karumba, supported by official BOM usage and both maps.",
+    "baseline_terminal_class": "sea",
+    "source_endpoint_lonlat": [
+      140.73541666666605,
+      -17.53541666666724
+    ],
+    "render_endpoint_before_quantization_lonlat": [
+      140.73261222205525,
+      -17.51643486758237
+    ],
+    "decoded_render_endpoint_lonlat": [
+      140.732612,
+      -17.516435
+    ],
+    "source_endpoint_equals_render_endpoint": false,
+    "source_to_render_offset_km": 2.131527,
+    "offset_method": "Great-circle distance using mean Earth radius 6371.0088 km; diagnostic displacement between retained metadata points.",
+    "endpoint_interpretation": "The retained source endpoint and the coastline-adjusted render endpoint are separate baseline facts. Neither is a formal surveyed river mouth or contemporary coastline observation.",
+    "coastline_adjustment_algorithm_independently_reverified": false,
+    "surveyed_outlet_verified": false,
+    "tributary_confluence": {
+      "fid": 6752,
+      "source_endpoint_lonlat": [
+        140.8229166666662,
+        -18.4812500000006
+      ],
+      "render_endpoint_before_quantization_lonlat": [
+        140.8229166666662,
+        -18.4812500000006
+      ],
+      "source_equals_render": true,
+      "scope": "Retained baseline confluence metadata only; map context supports the regional junction but not this exact coordinate."
+    }
+  },
+  "evidence_package": {
+    "source_evidence_file": "flinders-source-evidence.json",
+    "source_evidence_sha256": "ae6038d6a3e7b10c5aa09d37675f9be737a29f71fbe8e8a56e970d385f1c5c94",
+    "originals_successfully_acquired": 3,
+    "originals_with_http_401_or_403": 0,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Representative Flinders identity does not authorize a single scalar name across all five geometries.",
+    "No exhaustive named-reach or distributary inventory was obtained; regional matches do not certify every minor channel or headwater.",
+    "No original HydroRIVERS shapefile coordinates were acquired, so exact source geometry, per-reach boundaries and original topology remain unverified.",
+    "These facts concern the pinned baseline, not a checked current deployment."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false
+}

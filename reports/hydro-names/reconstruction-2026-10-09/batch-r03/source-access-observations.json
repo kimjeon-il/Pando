@@ -1,0 +1,73 @@
+{
+  "schema": "hydro-source-access-observations-v1",
+  "batch": "r03",
+  "original_acquisition_failures": [
+    {
+      "url": "https://www.kazhydromet.kz/uploads/files/1876/file_kk/67c55a509e914eds-vyp-8-nura-i-sarysu-2022-g.pdf",
+      "publication": "Kazhydromet annual river data2022, issue8 Nura and Sarysu",
+      "observed_at_utc": "2026-10-09T11:57:08.074308+00:00",
+      "result": "Tunnel connection failed:403Forbidden",
+      "http_status_context": "403 in tunnel error, no origin PDF body acquired",
+      "substantive_original_content_acquired": false,
+      "failed_response_used_as_evidence": false,
+      "publication_retried": false,
+      "alternative_route_attempted": false
+    },
+    {
+      "url": "https://data.hydrosheds.org/file/technical-documentation/HydroSHEDS_TechDoc_v1_4.pdf",
+      "publication": "HydroSHEDS Technical Documentation v1.4",
+      "observed_at_utc": "2026-10-09T11:59:27.657555+00:00",
+      "result": "HTTP403 on direct original-PDF request",
+      "original_pdf_bytes_acquired": false,
+      "earlier_successful_web_text_capture_retained": true,
+      "capture_scope": "Previously obtained tool-returned text only; no original-PDF hash.",
+      "failed_response_used_as_evidence": false,
+      "publication_retried_after_403": false,
+      "alternative_route_after_403_attempted": false
+    },
+    {
+      "url": "https://journal.kazhydromet.kz/kazgidro/article/view/194",
+      "publication": "2020 Sarysu geosystem sustainability article",
+      "observed_at_utc": "2026-10-09T11:58:49.132276+00:00",
+      "result": "web open (400) Timeout fetching",
+      "source_content_acquired": false,
+      "failed_response_used_as_evidence": false,
+      "publication_retried": false
+    },
+    {
+      "url": "https://bulchmed.enu.kz/index.php/bulchmed/article/view/492",
+      "publication": "Modelling of water balance elements in Sarysu River basin",
+      "observed_at_utc": "2026-10-09T11:58:49.132276+00:00",
+      "result": "web open (400) Timeout fetching",
+      "source_content_acquired": false,
+      "failed_response_used_as_evidence": false,
+      "publication_retried": false
+    }
+  ],
+  "partial_capture_limits": [
+    {
+      "url": "https://documents1.worldbank.org/curated/en/634331468753306920/pdf/multi0page.pdf",
+      "page_one_based": 24,
+      "attempt_count": 2,
+      "result": "Two image rendering attempts returned internal errors",
+      "visual_image_acquired": false,
+      "text_capture_separately_available": true
+    },
+    {
+      "url": "https://www.gov.kz/uploads/2022/1/27/ff71f404d29166f7b482ca244637344b_original.5201679.pdf",
+      "page_one_based": 17,
+      "attempt_count": 1,
+      "result": "Image rendering returned cache miss",
+      "visual_image_acquired": false,
+      "text_capture_separately_available": true
+    },
+    {
+      "url": "https://www.gov.kz/memleket/entities/water/press/news/details/742332?lang=ru",
+      "result": "Requested Russian-language variant was not accessible through the reading tool; HTTP status unavailable",
+      "used_as_evidence": false,
+      "earlier_kazakh_page_capture_separately_available": true
+    }
+  ],
+  "scope": "Failure details are not name evidence. Successful original response bodies and exact tool text captures are distinguished in source-evidence records.",
+  "raw_failed_or_successful_source_bodies_in_package": false
+}

@@ -1,0 +1,464 @@
+{
+  "schema": "hydro-independent-river-review-pins-v2",
+  "reviewed_at_utc": "2026-10-09T14:35:02.485745+00:00",
+  "scope_aw_ids": [
+    "hydro-system:50737565",
+    "hydro-system:50756799",
+    "hydro-system:50782475"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "package_inputs": [
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 5575,
+      "sha256": "a8a9deb652bd54d3c289d9546f6c9795bfd2ef28e8ea6f1e480a446f85459699"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 7505,
+      "sha256": "5683f44b63ba133249a420017828ba889681b919c0274b00bf20feda510cc5ff"
+    },
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1841,
+      "sha256": "dfb4ce3d626885f44992118fdf1e9d81cd5e762e98472cc1276e1a852e822fbf"
+    },
+    {
+      "file": "geometry-duplicate-check.json",
+      "bytes": 1387,
+      "sha256": "a927e4d4bde4ebf606b46fc3caf5b3450955bdb3e9a45c2598ef5c7836ff02c1"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 2319,
+      "sha256": "040ab6f3c8df946469c7215f127fdcc3f10c9c92c9d27f1ea4e55b81cf1368e6"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 15139,
+      "sha256": "fb6e226a64c4a39ab3d686a20d890d507f6b49c2a22a366eb5a1698f4795a053"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 5066,
+      "sha256": "3cad90b967e330f4c903381b89133a3012c59c5be4d07d305514069a026bbef4"
+    },
+    {
+      "file": "geometry-support.py",
+      "bytes": 2259,
+      "sha256": "5427afc9c6d1ed13947f6ca08b3fe7532dd7884717d44f691b50d0d5f479bd12"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 8589,
+      "sha256": "1fe228e91b9f0ed622599f556365d9718f235c005c253a601e45bd28156b2429"
+    },
+    {
+      "file": "research/frankland/frankland-findings.json",
+      "bytes": 6432,
+      "sha256": "f6cb197f942ba170df73a4c04ac2ebca20e80319c596029987c19f58551d9ed1"
+    },
+    {
+      "file": "research/frankland/frankland-research-manifest.json",
+      "bytes": 832,
+      "sha256": "9245c2d3f58325a0d55e8fbefde85a357b6030fbb56828ba9e170c2a1af0049c"
+    },
+    {
+      "file": "research/frankland/source-evidence.json",
+      "bytes": 10012,
+      "sha256": "aa1f56a948832356e1bcf359e5883edf44e2d83ce268bcd9b887b9c2b256720d"
+    },
+    {
+      "file": "research/moore-murray/moore-findings.json",
+      "bytes": 5608,
+      "sha256": "1f05e0024c81e8439b8a3fc8a13f9a98366b11b1513450cf7f2b5a9eaaec3e02"
+    },
+    {
+      "file": "research/moore-murray/murray-findings.json",
+      "bytes": 6956,
+      "sha256": "d5e93f84d71203092aea5f36119e6fda357d2ca9e63af2001e5469098e21cdd3"
+    },
+    {
+      "file": "research/moore-murray/research-manifest.json",
+      "bytes": 1177,
+      "sha256": "4ff1429401e51fd57be0e535801464ac47c3c35a9777006d12f9df8778fcc49d"
+    },
+    {
+      "file": "research/moore-murray/source-evidence.json",
+      "bytes": 13450,
+      "sha256": "dbbf7c3fff9b61e19ea8da77ee34c0b02683e73ea541e5ef46597195bd14490b"
+    },
+    {
+      "file": "selected-inventory-records.json",
+      "bytes": 4729,
+      "sha256": "cd3c32d3a31d60a52a3e477cad34112ea3dd508c6aded9d3956e78123f84949c"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 675,
+      "sha256": "e28d9f5e6817cf68dda28a777dd21ba2a6afa3cfea8cbd136e8ec9a281e72fed"
+    },
+    {
+      "file": "selected-river-metadata.json",
+      "bytes": 73567,
+      "sha256": "8451a5a6bee4839551fe14e204301670bb9ab9f6685f1b2fc163744240092734"
+    },
+    {
+      "file": "source-reach-manifest.json",
+      "bytes": 13575,
+      "sha256": "86145f5e4a62ee62dbb8d4fd85f6d172ed0f25870d8bb87496bccccd6afbcc9b"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 7208,
+      "sha256": "feb5a80076ac0abe13f79aab93054c77177c7d9c4ebdafcfab2c20aebdaf83ba"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 20620,
+      "sha256": "f6249d8aca3b07d23c00ff06d4b0c080b69229e3ef815fdc468ddee378a70689"
+    }
+  ],
+  "component_manifest_sha256": {
+    "geometry-component-manifest.json": "dfb4ce3d626885f44992118fdf1e9d81cd5e762e98472cc1276e1a852e822fbf",
+    "research/frankland/frankland-research-manifest.json": "9245c2d3f58325a0d55e8fbefde85a357b6030fbb56828ba9e170c2a1af0049c",
+    "research/moore-murray/research-manifest.json": "4ff1429401e51fd57be0e535801464ac47c3c35a9777006d12f9df8778fcc49d"
+  },
+  "previous_index": {
+    "bytes": 14275,
+    "sha256": "9456f5722d69d90a890bc2b77ee517c8022306b28e51d7f6e10a8f9a4634a5a5",
+    "aw_ids": [
+      "lakes_base:1159109497",
+      "lakes_base:1159106899",
+      "lakes_base:1159107065",
+      "lakes_base:1159115267",
+      "lakes_base:1159123531",
+      "lakes_base:1159107099",
+      "hydro-system:30624681",
+      "hydro-system:50488324",
+      "hydro-system:40182409",
+      "hydro-system:70152112",
+      "lakes_base:1159123163",
+      "lakes_base:1159123567",
+      "lakes_base:1159110371",
+      "lakes_base:1159109471",
+      "lakes_base:1159111751",
+      "lakes_base:1159109553",
+      "lakes_base:1159110303",
+      "lakes_base:1159108091",
+      "hydro-system:50668155",
+      "hydro-system:50611851",
+      "hydro-system:50552041",
+      "hydro-system:50538951",
+      "hydro-system:50631583",
+      "hydro-system:50691033"
+    ],
+    "distinct_targets": 24,
+    "fixed_commit": "d6a86e96d5ec746d9497ecafa7b597244e195e4b"
+  },
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "bytes": 441711,
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "original_recovery_date_utc": "2026-10-09",
+    "original_retrieved_at_utc": null,
+    "retrieval_time_limit": "Exact recovery request timestamps are not present in the retained receipts; the recovery date is known.",
+    "reuse_hash_checked_at_utc": "2026-10-09T14:27:10Z",
+    "retrieved_this_batch": false,
+    "in_publishable_package": false
+  },
+  "local_evidence_assets": [
+    {
+      "id": "BOM-AWRA2012-BODY",
+      "kind": "original_source_body",
+      "bytes": 26172797,
+      "sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 774,
+      "sha256": "4ea0da94c6a9e2007f26e93a6b6abff593338d49269b12759eb850f352849e5f",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 1390063,
+      "sha256": "ed69c9922a19c33f1527e70a2b1eba3d402e90706e2629024f74e53cc0fa3ff4",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 855747,
+      "sha256": "d6bd78338dd093fe4fc215219b8b5927f1a84c3c7324027915b3e9d354345449",
+      "published_raw": false
+    },
+    {
+      "id": "BOM-AWRA2012-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 852744,
+      "sha256": "12ee148eaaf715e4600c9f2eece56306d4f24bc9fe959d401431d3422373a9f8",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-BODY",
+      "kind": "original_source_body",
+      "bytes": 4634645,
+      "sha256": "409f638c71046d932f916c38f0c4d7940953f9a8bcdd44f450af18a21b6e1d95",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 819,
+      "sha256": "e7fd5a36ac81b1086c087233c76c6b5dc515eaad53303728ff76f8d8801b436f",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 340912,
+      "sha256": "9a1b4a42fde0aeb98e6ddb97ab9e54066e1fdd9c95e45ec25dff8b2793655c9c",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 633510,
+      "sha256": "c4b65bab6a8c9539455a23b721421007278895b03f8525e142497f17934bcf16",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1022509,
+      "sha256": "4a9f43d491413e96bf3055fff420245e5990211587a17ca03d7b5afb070b9b7e",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-VIEW-3",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1276317,
+      "sha256": "1df10da9e973eb2a5816503a6555df137340fea26be467cd1cfd108d5988a98c",
+      "published_raw": false
+    },
+    {
+      "id": "WA-SLUI38-2005-VIEW-4",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1399486,
+      "sha256": "8ec1729b02395f0638815ee24daed44d3b6b6088aac23078801e09ccc5365b46",
+      "published_raw": false
+    },
+    {
+      "id": "MOORE-DWER-HEALTHYRIVERS-BODY",
+      "kind": "original_source_body",
+      "bytes": 132186,
+      "sha256": "3a2f1ca45c5e828b068b4a1c292b27f17f0255b3c4b29cdbf99a3c27e7cb4ea8",
+      "published_raw": false
+    },
+    {
+      "id": "MOORE-DWER-HEALTHYRIVERS-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 660,
+      "sha256": "173a7895fdf34b862577da1bc3293c1142852582cf3fb2070b10b9ab66bb04d1",
+      "published_raw": false
+    },
+    {
+      "id": "MOORE-DWER-HEALTHYRIVERS-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 1437,
+      "sha256": "ec7d53f04e857d60ef2d79ce1d30303b1d5d8ce44bcdc1b69a7d3ceaa76f3c33",
+      "published_raw": false
+    },
+    {
+      "id": "MURRAY-DWER-HEALTHYRIVERS-BODY",
+      "kind": "original_source_body",
+      "bytes": 129061,
+      "sha256": "165dc761ecf60bbf0217d4bb1550a9ab2f0198af37001b0bafda6b23839a7065",
+      "published_raw": false
+    },
+    {
+      "id": "MURRAY-DWER-HEALTHYRIVERS-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 654,
+      "sha256": "4d1daf3ee2ede8ca5979e2bdd788cef1c9a33f912d426a5193a69b4dc7304fa7",
+      "published_raw": false
+    },
+    {
+      "id": "MURRAY-DWER-HEALTHYRIVERS-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 3443,
+      "sha256": "aec7e5c479e57917567b8621bd8a469414fa1a890ce3f5754cfdd4692d9f8801",
+      "published_raw": false
+    },
+    {
+      "id": "DWER-PEEL-HARVEY2021-PAGE-BODY",
+      "kind": "original_source_body",
+      "bytes": 80404,
+      "sha256": "cc5463b0f9294e06983ac6b11dde1a5f37c1c05c9eca0445eee12ab2838e8c6c",
+      "published_raw": false
+    },
+    {
+      "id": "DWER-PEEL-HARVEY2021-PAGE-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 809,
+      "sha256": "af79987690282b4a6577c288909339d1defd719088c4edde3e482ae6a2882ca2",
+      "published_raw": false
+    },
+    {
+      "id": "DWER-PEEL-HARVEY2021-PAGE-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 7650,
+      "sha256": "1a173e9bfdd008ea7473fc3ea0050b113ee0237a25bd17fcd46411c73fc50053",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-WA-WRM44-BODY",
+      "kind": "original_source_body",
+      "bytes": 26349518,
+      "sha256": "eecba47216090f5102f44fbc6a599b2eb3188f156d225533d9b9841b3475c664",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-WA-WRM44-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 834,
+      "sha256": "9c4d75a514562bb3aab60b0781897d01a16270f67fa00af3df458ccc0bea3caf",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-WA-WRM44-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 293195,
+      "sha256": "8640774b93b03c7876b9a8a95ff39d2e2d5cbd735aa6d7cc12d7222e52a0ebd0",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-WA-WRM44-VIEW-1",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 225726,
+      "sha256": "c2765a5b3d9be9b8a06cb5a653437d52505916f0c01029672e70be5d7fbc7470",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-WA-WRM44-VIEW-2",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 4220062,
+      "sha256": "2b2995fad4e92b28773ca9df82754bf61508c8f85fdbfd6370484e74571981e8",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-WA-WRM44-VIEW-3",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1715554,
+      "sha256": "89041113c775ba04aae363cbbdddba6fcf24995a23f0b71e19480772159624e0",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-WA-WRM44-VIEW-4",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1150595,
+      "sha256": "63782adab895e545b439b1587343d6008d511b0bd7d639504663fde286b189ff",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-WA-WRM44-VIEW-5",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 1202724,
+      "sha256": "824981ef1198b56f1d0f220b2ad3f9be332927af1bceb26593edaeec7d106861",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-WA-WRM44-VIEW-6",
+      "kind": "independently_viewed_map_or_text_derivative",
+      "bytes": 4094860,
+      "sha256": "e10bbbde8f8b5fd5ae73e60eb58f82fd795c7955a14abb4c403517125a0a818d",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-DBCA-MARINE-PARK-BODY",
+      "kind": "original_source_body",
+      "bytes": 846686,
+      "sha256": "7a5432720f30a5c9103d1d29434c241b1206ed0f3f76dd5f721976f68f923960",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-DBCA-MARINE-PARK-RECEIPT",
+      "kind": "acquisition_receipt",
+      "bytes": 862,
+      "sha256": "5f7f74eb083af1c0a1a90b42eb171b9a4c01c66534d2faaef9ebe160bc103513",
+      "published_raw": false
+    },
+    {
+      "id": "FRANKLAND-DBCA-MARINE-PARK-TEXT",
+      "kind": "local_text_extraction",
+      "bytes": 12799,
+      "sha256": "57e28e07b21e3ad5699dfe3c6e2fa9fba828b8e5e26aa8fbf286989ba9993854",
+      "published_raw": false
+    },
+    {
+      "id": "COMPLETE-BASELINE-PATHS",
+      "kind": "complete_path_comparison_view",
+      "bytes": 119652,
+      "sha256": "27094f029bbc7cc1275d2358bfc5f781c28a37fb41a4bbec743b51f9e499cfaf",
+      "published_raw": false
+    }
+  ],
+  "original_source_receipt_links": [
+    {
+      "source_key": "BOM-AWRA2012",
+      "body_id": "BOM-AWRA2012-BODY",
+      "receipt_id": "BOM-AWRA2012-RECEIPT",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "original_requested_at_utc": "2026-10-09T13:39:38.842251+00:00"
+    },
+    {
+      "source_key": "WA-SLUI38-2005",
+      "body_id": "WA-SLUI38-2005-BODY",
+      "receipt_id": "WA-SLUI38-2005-RECEIPT",
+      "url": "https://www.wa.gov.au/system/files/2023-03/Stream-salinity-status-and-trends-in-south-west-WA.pdf",
+      "original_requested_at_utc": "2026-10-09T14:25:45.505268+00:00"
+    },
+    {
+      "source_key": "MOORE-DWER-HEALTHYRIVERS",
+      "body_id": "MOORE-DWER-HEALTHYRIVERS-BODY",
+      "receipt_id": "MOORE-DWER-HEALTHYRIVERS-RECEIPT",
+      "url": "https://rivers.dwer.wa.gov.au/catchment/moore-river/",
+      "original_requested_at_utc": "2026-10-09T14:24:07.002341+00:00"
+    },
+    {
+      "source_key": "MURRAY-DWER-HEALTHYRIVERS",
+      "body_id": "MURRAY-DWER-HEALTHYRIVERS-BODY",
+      "receipt_id": "MURRAY-DWER-HEALTHYRIVERS-RECEIPT",
+      "url": "https://rivers.dwer.wa.gov.au/basin/murray-river/",
+      "original_requested_at_utc": "2026-10-09T14:24:16.224746+00:00"
+    },
+    {
+      "source_key": "DWER-PEEL-HARVEY2021-PAGE",
+      "body_id": "DWER-PEEL-HARVEY2021-PAGE-BODY",
+      "receipt_id": "DWER-PEEL-HARVEY2021-PAGE-RECEIPT",
+      "url": "https://www.wa.gov.au/government/publications/hydrological-and-nutrient-modelling-of-the-peel-harvey-estuary-catchment-2021",
+      "original_requested_at_utc": "2026-10-09T14:27:11.938931+00:00"
+    },
+    {
+      "source_key": "FRANKLAND-WA-WRM44",
+      "body_id": "FRANKLAND-WA-WRM44-BODY",
+      "receipt_id": "FRANKLAND-WA-WRM44-RECEIPT",
+      "url": "https://library.dbca.wa.gov.au/static/Journals/082179/082179-44.pdf",
+      "original_requested_at_utc": "2026-10-09T14:24:25.569145+00:00"
+    },
+    {
+      "source_key": "FRANKLAND-DBCA-MARINE-PARK",
+      "body_id": "FRANKLAND-DBCA-MARINE-PARK-BODY",
+      "receipt_id": "FRANKLAND-DBCA-MARINE-PARK-RECEIPT",
+      "url": "https://exploreparks.dbca.wa.gov.au/park/walpole-and-nornalup-inlets-marine-park",
+      "original_requested_at_utc": "2026-10-09T14:24:34.031293+00:00"
+    }
+  ],
+  "automatic_application": false
+}

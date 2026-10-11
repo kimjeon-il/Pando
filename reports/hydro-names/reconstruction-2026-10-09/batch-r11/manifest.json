@@ -1,0 +1,188 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r11",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r11",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "480f9db0ea893051f9de9749e4786385d7daa45e",
+  "scope": "Three bounded new actual-inventory lake investigations against complete generalized source and retained baseline polygons. Cumulative index and pinned initial inventory recover the fresh-reconstruction remainder, not the unavailable historical504 ledger.",
+  "automatic_application": false,
+  "product_changes": false,
+  "full_river_coordinates_included": false,
+  "selected_public_domain_lake_features": 3,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 42,
+  "bytes_excluding_self": 296010,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 5150,
+      "sha256": "131d748c7e61f05a16b06045d69f75f5c851913684513cae02658989e69a64e0"
+    },
+    "extract-baseline-geometries.mjs": {
+      "bytes": 5569,
+      "sha256": "fcd28c6642ca9e37f5aab7d2f3ad8781fc7121ff89ad597454aff3360695deed"
+    },
+    "geometry-README.md": {
+      "bytes": 6303,
+      "sha256": "a33088947533f99c0144c66db024e20d65751c013c3f777410e1f13e4b102e12"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1865,
+      "sha256": "67fd13c4fa401974b12e53030600f085e38d22b03bb1517e83715e62b96711a7"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 2300,
+      "sha256": "4a48ffb107df221d2e80c878412d98468ecc09ac999bacdfb9e0e8b637d2b7da"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 1499,
+      "sha256": "8635d5a3edd8e7b17e112332464f335b860b6d1a4cf42b3fb929a4fc7b18488a"
+    },
+    "geometry-reference.json": {
+      "bytes": 26340,
+      "sha256": "519f4514d37f76302ad36692a13f101f6ac473ea0961818c0e45bf86eec07802"
+    },
+    "geometry-request-receipts.json": {
+      "bytes": 5059,
+      "sha256": "3f1550d1cf1b00cef60d84c43ef8c61dd8adc674a9847a52f4f1d299b4d2fd6a"
+    },
+    "geometry-support.py": {
+      "bytes": 2400,
+      "sha256": "dd6a583181c1527cdd0646f3ce6aee207570042c14e3fa4ebc3d35a36e752d33"
+    },
+    "geometry-validation.json": {
+      "bytes": 8549,
+      "sha256": "65030b29d8bb3bc1efaf41412e2c9de9957c8f6f67c2f9c66b47f62f5c4ce15a"
+    },
+    "queue-recovery-validation.json": {
+      "bytes": 2444,
+      "sha256": "2d3598499b319e27ee241d664e7651154b16331bea0c2683a5e59e98fc234815"
+    },
+    "reconstruction-index.json": {
+      "bytes": 20258,
+      "sha256": "a50a621260c11a467ec3495a21b65ea7f2d039b59cc08edbb3f92b1aee19ed5c"
+    },
+    "recover-remaining-queue.py": {
+      "bytes": 4212,
+      "sha256": "8fe2267bf3d445898cdac7bd30fbddae302518130ca639b1158267e5f0d3b96c"
+    },
+    "research/cold-deschambault/README.md": {
+      "bytes": 1342,
+      "sha256": "ac732ca16314a754b84578a37d8952549fecf573583f550943e9dac66f927548"
+    },
+    "research/cold-deschambault/findings.json": {
+      "bytes": 4190,
+      "sha256": "c34066795edb257d226f603f3536c2cf1cfeee10d2fd324a771f87648c34f908"
+    },
+    "research/cold-deschambault/research-manifest.json": {
+      "bytes": 909,
+      "sha256": "3f48215634d9d633ad690fa86d422347fa6f006c1f21bd8e056c41f6584c7d78"
+    },
+    "research/cold-deschambault/source-evidence.json": {
+      "bytes": 7467,
+      "sha256": "06f34c20f7bbb789a01206becf79e98e8699ed1c25746b2defbb7aa714fa0d15"
+    },
+    "research/cold-deschambault/target-identity-facts.json": {
+      "bytes": 2899,
+      "sha256": "980e2c8fd2ff8d8fed738244fd38a470b625ea63e5815fd599892b95d917f5cc"
+    },
+    "research/dauphin/README.md": {
+      "bytes": 1100,
+      "sha256": "baf6e68fb36d58ca1a53ca9c801879934a0fd84e12806b97a2972e1a11ad2f70"
+    },
+    "research/dauphin/findings.json": {
+      "bytes": 2708,
+      "sha256": "d995c6b4438311534d997d7966a85bc058d4618126d449cb38e95c2b84bb6bf3"
+    },
+    "research/dauphin/map-scope-review.json": {
+      "bytes": 3314,
+      "sha256": "1e7edf220db5cb72c156b50111d00bed4389d19929d60ddb4c221265c213fb94"
+    },
+    "research/dauphin/research-manifest.json": {
+      "bytes": 1065,
+      "sha256": "1deeda059aba70616aca9b6185dd833ca32d76b89ad320ad6dcdd2edf7278f9a"
+    },
+    "research/dauphin/source-evidence.json": {
+      "bytes": 5627,
+      "sha256": "8cdafae95b93f3e5bc973638292df6ecce8848b53c1682cb2cd3700f7508f3b2"
+    },
+    "research/dauphin/target-identity-facts.json": {
+      "bytes": 3231,
+      "sha256": "f76b7379b81bc71d5ab718f0f59853f8ae06aea04a3e4b9c57536e1068095d5d"
+    },
+    "results.json": {
+      "bytes": 7651,
+      "sha256": "ca1b259f6308800e74fce39ac7f2e722498830644c2522deab7c90c6e348dcaf"
+    },
+    "review/README.md": {
+      "bytes": 5877,
+      "sha256": "f3125156575b4aff5aff6658f583a65c3aca3ff42196261d50a7b9ff75ebfd92"
+    },
+    "review/frozen-input-pins.json": {
+      "bytes": 15661,
+      "sha256": "aa37c1bcb5107ef21b5d865792bc20b8b08f3b6a61c903effacd292f5069e7a6"
+    },
+    "review/independent-review.json": {
+      "bytes": 8869,
+      "sha256": "1ea01dd80b4936341189ac25726587b9e7a5a72fb62dcae8e896a80455aadd8f"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1476,
+      "sha256": "75461781cc235f314efdf615c64d2b15791ba14839f02f19d56f8deb265bb04c"
+    },
+    "review/review-validation.json": {
+      "bytes": 11937,
+      "sha256": "140dd5df9aa2a9abf515b8c282efda3612dbb1c6992a9afd95799e6f1e405c98"
+    },
+    "review/source-observations.json": {
+      "bytes": 11354,
+      "sha256": "74a1af23dd1247cdd1e5cf7bb0904a66447a3e2950f860553b20e6c41da7d5ab"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 8898,
+      "sha256": "be06f22012279fe455d0c99e0d14725c687bc3c3e21ceb33887439b3f6a83629"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 31702,
+      "sha256": "6f92c81ade8ebcf4997756f78ee9c75d0d139239710fc1822110a12f8acf454b"
+    },
+    "selected-baseline-rendered-geometries.geojson": {
+      "bytes": 6368,
+      "sha256": "54030449272a949f8fdbd5464f421cb1918f66aa56d48333eeea204d1ad358eb"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 4406,
+      "sha256": "1e34075dfdaf492bd923706c25f285b7f125494cc09a4712bdff324bd45f86a3"
+    },
+    "selected-lake-geometries.geojson": {
+      "bytes": 10047,
+      "sha256": "b58fcbe948265de57fced4d253827a046f043139d708ad9b888a83c86662c7e4"
+    },
+    "selected-pack-receipts.json": {
+      "bytes": 667,
+      "sha256": "2e84821162033bcfbacf6be4c5bbf2be7bd0f49e89b3719ba81d651c1f647481"
+    },
+    "source-publication-rights.json": {
+      "bytes": 979,
+      "sha256": "78c7b49bc9cb2ce26246c6c10652268821e25820735015564d5b026114cf121c"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 9870,
+      "sha256": "3f042d4dafd627276f2350e68852a8ffbc392ff278f9c2cd988c2ad6192f470f"
+    },
+    "test-remaining-queue.py": {
+      "bytes": 3472,
+      "sha256": "22964a9590e30efe8e7339557e1c8aee1cea7952532143fa32d06a1f2e6c1df3"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 22411,
+      "sha256": "5ea3cf1a193b8f28321036cabfc549ad030b49b2c6e179694a0040418a31e7e4"
+    },
+    "validate-package.py": {
+      "bytes": 8565,
+      "sha256": "4a71cc0b8b59dfef4504d7ab71c8f0631d7c96edbd15bf49fb4b8c8d6ca5b4f5"
+    }
+  }
+}

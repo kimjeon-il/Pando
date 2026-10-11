@@ -1,0 +1,428 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r68",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r67",
+    "commit": "88d76aff3d4d3c9001670b0c7626762fbbd460eb",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r67/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70245716",
+    "hydro-system:80282111",
+    "hydro-system:70019706",
+    "hydro-system:60266404"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70245716",
+      "category": "river_group",
+      "system_id": "70245716",
+      "baseline_logical_fid": 3002,
+      "geometry_fids": [
+        9328,
+        9327,
+        9326,
+        9329
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -67.741667,
+        50.244068,
+        -65.947917,
+        52.914583
+      ],
+      "rendered_mainstem_length_km": 425.432,
+      "rendered_network_length_km": 475.974,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -67.741667,
+          50.244068,
+          -66.026912,
+          52.914583
+        ]
+      },
+      "candidate_name": "Rivière Moisie system (Lac de la Bouteille–aux Pékans route; lower Nipissis tributary)",
+      "candidate_names": [
+        "Rivière Moisie"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Moisie names the downstream trunk and representative receiving system. The selected upper route belongs to the Lac de la Bouteille–Rivière aux Pékans corridor, and the eastern extra fragment belongs to lower Rivière Nipissis. These names are not interchangeable scalar labels for every segment.",
+      "geographic_disambiguation": "The western initial approach, Bouteille lake passage, southeast Pékans corridor, Pékans–Moisie junction, long Moisie valley, lower Nipissis confluence and Sept-Îles coastal approach jointly identify the selected network. The model does not begin on the eastern Ménistouc–Opocopa route, and the nearby Germaine, Carheil, Sainte-Marguerite and Matamec corridors are not substituted for the selected line.",
+      "source_keys": [
+        "r65-cehq-regions0713-annual",
+        "r68-mrnf-moisie-public-land-map"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Côte-Nord, Québec, Canada: west of Fermont through the Pékans–Moisie valley to the coastal country east of Sept-Îles.",
+      "candidate_name_role": "bounded_representative_system_identity_with_distinct_upstream_route_and_tributary",
+      "completion_scope": "Completed for bounded representative-system identity after inspecting the complete selected path and readable primary map pixels. The first small feeder is left unnamed; exact lake entry/exit positions, hydronym transition vertices and the surveyed mouth or tidal boundary remain unassigned. These limits do not prevent representative identification.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rivière Moisie",
+        "distinct_selected_upstream_route": "Unnamed initial western feeder, Lac de la Bouteille passage and Rivière aux Pékans, followed downstream by Rivière Moisie.",
+        "distinct_selected_tributary_name": "Rivière Nipissis, lower portion only",
+        "upper_scope": "The entire initial selected approach was inspected rather than replacing it with a conventional Moisie source description. The Bouteille–Pékans route is supported; the first feeder and small initial waters retain no asserted hydronym. Germaine is a nearby northern contextual lake, not an assigned selected lake passage.",
+        "lake_scope": "Bouteille is the supported headwater lake corridor. Ménistouc and Opocopa identify a separate eastern approach, while Carheil is another distinct tributary corridor. No exact lake shoreline, entry/exit vertex or lake-to-river naming boundary is assigned.",
+        "tributary_scope": "The selected extra branch is lower Nipissis. Its upstream continuation, Lac Nipissis, the Nipisso branch and other mapped tributaries are not added to the selection.",
+        "terminal_scope": "Lower Moisie coastal approach east of Sept-Îles; not a certified mouth, full estuary or tidal limit.",
+        "historical_source_scope": "The MRNF map dates to the second quarter of 2005 and the CEHQ sheet to July 2011, updated December 2014. Their land-use, protected-area and low-flow content is used only as cartographic context, not as current regulatory or hydrological findings.",
+        "model_limits": "Model mainstem status and fragment boundaries do not establish official hydronym boundaries. Modeled length is not official river length. No formal naming date, historical alias sequence, Indigenous-name equivalence or Korean name is established. Gazetteer-derived naming prose is excluded.",
+        "candidate_names_scope": "The candidate-name list contains only the representative river. Lac de la Bouteille, Rivière aux Pékans and Rivière Nipissis retain their separate lake, upstream and tributary roles above; they are not aliases."
+      }
+    },
+    {
+      "aw_id": "hydro-system:80282111",
+      "category": "river_group",
+      "system_id": "80282111",
+      "baseline_logical_fid": 990,
+      "geometry_fids": [
+        2764,
+        2763,
+        2762,
+        2761,
+        2765
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -156.922585,
+        58.976068,
+        -152.76875,
+        60.970833
+      ],
+      "rendered_mainstem_length_km": 424.73,
+      "rendered_network_length_km": 475.205,
+      "geometry_summary": {
+        "fragment_count": 5,
+        "mainstem_fragment_count": 4,
+        "mainstem_bbox": [
+          -156.922585,
+          58.976068,
+          -152.76875,
+          60.970833
+        ]
+      },
+      "candidate_name": "Kvichak River system (lower Alagnak tributary)",
+      "candidate_names": [
+        "Kvichak River"
+      ],
+      "research_category": "bounded_downstream_candidate_material_pending",
+      "supported_name_scope": "Kvichak River identifies the mapped downstream trunk and supports the representative system identity; Alagnak River independently names the selected lower tributary. NPS prose explicitly connects Tlikakila River to Lake Clark, but the entire selected upper and middle route is not independently proven. No river name is assigned uniformly across lake passages or the initial glacial feeder.",
+      "geographic_disambiguation": "The actual southwestward lower selection, Iliamna outlet near Igiugig, Kvichak corridor near Levelock, and eastern Alagnak junction jointly support the representative Kvichak identity. The northeastern extension is positioned in the Lake Clark mountain and lake country. Source material inspected here does not independently prove every connection through that upper and middle extension.",
+      "source_keys": [
+        "r68-nps-glaciers-2012",
+        "r68-nps-rafting",
+        "r68-nps-lake-clark-map-text",
+        "r06-nps-katmai-map"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southwestern Alaska, from the Lake Clark mountain country through Iliamna Lake to the lower Kvichak corridor on the Bristol Bay side of the Alaska Peninsula.",
+      "candidate_name_role": "bounded_representative_system_identity_with_distinct_named_reaches_and_tributary",
+      "completion_scope": "Saved as a bounded downstream candidate, not a completed whole-selection correspondence review. Retained Katmai map pixels establish the lower Kvichak and Alagnak correspondence; acquired glacier cartography gives upper terrain context, and NPS rafting prose explicitly connects Tlikakila to Lake Clark. A substantial selected middle portion, including the Lake Clark–Sixmile–Newhalen–Iliamna connection, lacks independent source correspondence and remains material-pending. Extracted brochure labels are naming context only. No further acquisition is being pursued in this pass.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Kvichak River",
+        "distinct_selected_tributary_name": "Alagnak River",
+        "upper_scope": "Initial glacial feeder unassigned. The selected northern endpoint was inspected against glacial-terrain cartography. NPS prose directly supports the Tlikakila-to-Lake Clark connection, but the correspondence of every selected upper segment is not established. No textbook source, glacier label or Summit Lake label is automatically assigned to the endpoint.",
+        "lake_scope": "Lake Clark, Sixmile Lake and Iliamna Lake are official names present in the extracted brochure text and plausible positional context for the selected line. The label list does not establish their connectivity, their complete selected traversals, or the Newhalen linkage. Those middle connections remain independently unverified. Only the Iliamna outlet-to-Kvichak relationship is directly shown by inspected Katmai map pixels.",
+        "tributary_scope": "One selected lower Alagnak segment, not the complete Alagnak basin or its lake headwaters.",
+        "terminal_scope": "Short lower Kvichak continuation below the Alagnak junction; no complete bay or marine reach claim.",
+        "historical_source_scope": "The glacier report depicts observations from 2001–2008 and is used only for regional glacial-terrain context. It does not establish present ice limits. Park visitor and regulatory information is not used to assert current legal access or fishing rules.",
+        "model_limits": "All selected pieces were considered, but full named-reach/topology correspondence is not independently established. Model roles, apparent geographic continuity and fragment boundaries do not supply missing cartographic evidence. Modeled length is not official river length. No formal naming date, alias history, Indigenous-name equivalence or Korean form is established. Inaccessible brochure pixels are not claimed as inspected.",
+        "candidate_names_scope": "Only the representative river appears in the candidate-name list; Tlikakila, Newhalen and Alagnak retain separately described upstream and tributary roles and are not aliases.",
+        "upstream_context_names": [
+          "Tlikakila River",
+          "Newhalen River"
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70019706",
+      "category": "river_group",
+      "system_id": "70019706",
+      "baseline_logical_fid": 2912,
+      "geometry_fids": [
+        8985,
+        8984
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -78.09361,
+        57.685417,
+        -74.839583,
+        58.66875
+      ],
+      "rendered_mainstem_length_km": 422.25,
+      "rendered_network_length_km": 422.25,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "mainstem_bbox": [
+          -78.09361,
+          57.685417,
+          -74.839583,
+          58.66875
+        ]
+      },
+      "candidate_name": "Rivière Innuksuac system (Inukjuak, Hudson Bay)",
+      "candidate_names": [
+        "Rivière Innuksuac"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Innuksuac supports the representative connected river system from the southern lake-country approach northward and then west to Inukjuak. The label is not assigned uniformly to every initial feeder or lake passage.",
+      "geographic_disambiguation": "The actual selected southern approach, sustained northern leg, broad northern westward turn, long lower river and southwestward coastal ending distinguish Innuksuac from the separate Boniface, Gladel, Kongut, Kogaluk and Koktac corridors.",
+      "source_keys": [
+        "r61-cehq-region10-summer-lowflow",
+        "r68-krg-innuksuac-map-2020"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Western Nunavik, Nord-du-Québec, Canada; eastern Hudson Bay coast at Inukjuak.",
+      "candidate_name_role": "bounded_representative_system_identity_with_geographic_qualifier",
+      "completion_scope": "Completed bounded representative-system correspondence from readable retained primary maps covering both selected mainstem fragments. Exact first-feeder names, individual small-lake passages, hydronym vertices and the mouth or tidal boundary remain unassigned.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Rivière Innuksuac",
+        "upper_scope": "The complete southern approach was inspected. No neighboring lake label is promoted to the official source or name of the first selected feeder.",
+        "lake_scope": "The regional lake sequence anchors the selected northward and westward route. Small-lake identities, exact lake-entry/exit vertices and a hydronym covering whole lake surfaces are unassigned.",
+        "tributary_scope": "Both selected pieces are modeled mainstem portions. Neighboring mapped branches are not silently added to the object, and the system label does not rename them.",
+        "terminal_scope": "Inukjuak coastal approach toward Hudson Bay. No current engineered-channel, mouth or tidal-boundary claim.",
+        "dated_source_scope": "The 2011 CEHQ sheet and July 2020 ministry map are used for hydrographic correspondence. Their flow estimates, protected-area designations and hydroelectric-project descriptions are not asserted as current facts.",
+        "model_limits": "Model length and fragment boundaries are not official river length or hydronym limits. No formal registry decision, historical alias sequence, Indigenous-name equivalence or Korean form is established."
+      }
+    },
+    {
+      "aw_id": "hydro-system:60266404",
+      "category": "river_group",
+      "system_id": "60266404",
+      "baseline_logical_fid": 3396,
+      "geometry_fids": [
+        11609,
+        11614,
+        11608,
+        11613,
+        11612,
+        11607,
+        11610,
+        11611,
+        11615,
+        11616
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -78.46875,
+        1.502083,
+        -76.725,
+        2.590744
+      ],
+      "rendered_mainstem_length_km": 421.161,
+      "rendered_network_length_km": 553.118,
+      "geometry_summary": {
+        "fragment_count": 10,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -78.46875,
+          1.585417,
+          -76.725,
+          2.590744
+        ]
+      },
+      "candidate_name": "Río Patía system (selected San Jorge upper route; Sanquianga–Guascama outlet)",
+      "candidate_names": [
+        "Río Patía"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Patía identifies the representative receiving system. San Jorge is supported for the principal eastern selected corridor. Sanquianga and Guascama distinguish the lower connected and terminal distributary setting. These names are not applied uniformly to every feeder or every grouped tributary. Telembí is used below as the independently mapped hydrographic-subzone context; its name is not assigned to every part of the southwestern feeder chain.",
+      "geographic_disambiguation": "The eastern San Jorge loop, southward Patía-valley turn, westward Cordillera Occidental crossing, southwestern branch in the Telembí hydrographic setting, and northward delta route jointly identify the selection. The eastern mainstem is not replaced by the textbook Quilcacé–Timbío source route of the Patía. The endpoint is on the western Guascama side of the northern delta, not the old southern Salahonda outlet and not the entire Sanquianga mouth network.",
+      "source_keys": [
+        "r68-unicauca-sanjorge-2023",
+        "r68-upme-telembi-2024-2025",
+        "r68-pnn-sanquianga-plan"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Southwestern Colombia, from southern Cauca through the Patía valley and the Nariño Pacific plain to the northern delta coastal complex.",
+      "candidate_name_role": "bounded_representative_system_identity_with_distinct_upper_branch_and_terminal_distributary",
+      "completion_scope": "Completed for a bounded representative-system identity. All ten selected pieces were considered, including the actual eastern branch choice, grouped southwestern tributary route and terminal distributary. Exact names of initial feeders and subsidiary tributaries remain unassigned. The evidence does not raise a competing receiving-system identity; missing individual hydronyms therefore do not require a whole-system scope hold. No further source acquisition is pending.",
+      "naming_scope_details": {
+        "directly_supported_representative_name": "Río Patía",
+        "upper_scope": "The selected eastern route is San Jorge, with its initial small feeder unnamed. Guachicono appears as a hydrographic-subzone designation in the San Jorge report, not as an asserted continuous mainstem alias. No official river-source point is claimed.",
+        "northern_tributary_scope": "One selected northern contributor, separately retained; exact hydronym unassigned.",
+        "southern_tributary_scope": "One short selected southern contributor at the large south-to-west turn; no Guáitara or Juanambú name is assigned solely from proximity or the general basin narrative.",
+        "southwestern_tributary_scope": "Four consecutive pieces plus one joining side feeder in the Telembí drainage context. The selected route is not substituted with the complete textbook Telembí source route, and no unsupported Telpí, Yaguapí, Guelmambí or other tributary name is adopted.",
+        "lake_scope": "No independently named lake passage is established or required for this selection.",
+        "downstream_scope": "Modified Patía-to-Sanquianga connection and Guascama terminal approach. The label does not encompass every northern delta mouth or the former southern outlet.",
+        "model_limits": "Fragment boundaries are not hydronym boundaries. Modeled length is not official river length. No formal naming date, historical alias sequence or Korean form is established. Generalized regional maps cannot certify exact confluence vertices or contemporary delta shoreline positions.",
+        "candidate_names_scope": "Only the representative river appears in the candidate-name list. San Jorge, Sanquianga and Guascama retain the distinct upstream, connected lower-system and terminal roles described here; they are not interchangeable aliases."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:80282111"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 215,
+    "non_pending_records": 209,
+    "source_access_pending": 3,
+    "source_material_pending": 3,
+    "source_any_pending": 6,
+    "scope_holds": 68,
+    "river_groups": 117,
+    "lakes": 98,
+    "unrecorded": 3850,
+    "unrecorded_river_groups": 3338,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r65-cehq-regions0713-annual",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_07_13specifique_annuel.pdf"
+    },
+    {
+      "source_key": "r68-mrnf-moisie-public-land-map",
+      "official_url": "https://archives.bape.gouv.qc.ca/sections/mandats/moisie-et-lacs/documents/DB7a-c.pdf"
+    },
+    {
+      "source_key": "r68-nps-glaciers-2012",
+      "official_url": "https://irma.nps.gov/DataStore/DownloadFile/459297"
+    },
+    {
+      "source_key": "r68-nps-rafting",
+      "official_url": "https://home.nps.gov/lacl/planyourvisit/rafting.htm"
+    },
+    {
+      "source_key": "r68-nps-lake-clark-map-text",
+      "official_url": "https://www.adfg.alaska.gov/static/viewing/bears/pdfs/lake_clark_map.pdf"
+    },
+    {
+      "source_key": "r06-nps-katmai-map",
+      "official_url": "https://www.nps.gov/katm/learn/photosmultimedia/upload/KATM_Park-Map_for_web.pdf"
+    },
+    {
+      "source_key": "r61-cehq-region10-summer-lowflow",
+      "official_url": "https://www.cehq.gouv.qc.ca/debit-etiage/cartes/debit_etiage_10_specifique_estival.pdf"
+    },
+    {
+      "source_key": "r68-krg-innuksuac-map-2020",
+      "official_url": "https://www.krg.ca/en-CA/assets/renewable-resources/MasterPlan%28FR%29.pdf"
+    },
+    {
+      "source_key": "r68-unicauca-sanjorge-2023",
+      "official_url": "https://repositorio.unicauca.edu.co/bitstream/handle/123456789/9133/Zonificaci%C3%B3n%20y%20codificaci%C3%B3n%20de%20la%20subzona%20r%C3%ADo%20San%20Jorge%20alto%20medio.pdf?isAllowed=y&sequence=1"
+    },
+    {
+      "source_key": "r68-upme-telembi-2024-2025",
+      "official_url": "https://docs.upme.gov.co/SIMEC/SIMCO/Cifras-Sectoriales/EstudiosPublicaciones/Diagnostico_distrito_minero_especial_para_la_diversificacion_productiva_del_triangulo_de_telembi.pdf"
+    },
+    {
+      "source_key": "r68-pnn-sanquianga-plan",
+      "official_url": "https://www.parquesnacionales.gov.co/wp-content/uploads/2020/10/plan-de-manejo-pnn-sanquianga.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "88d76aff3d4d3c9001670b0c7626762fbbd460eb",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      71,
+      72,
+      73,
+      74
+    ],
+    "next_unrecorded_id": "hydro-system:60087125",
+    "progress_rule": "Keep the saved order unchanged and use later result IDs/status changes to mark progress. Prior candidate and scope-held assessments remain unresolved where stated; no lake research until all river continental phases have had their review pass."
+  }
+}

@@ -83,12 +83,13 @@ class V0126RuntimeTests(unittest.TestCase):
         main_ring = egypt["geometry"]["coordinates"][0][0]
         self.assertNotIn([35.429207, 22.97833], main_ring)
 
-    def test_data_assets_use_the_data_cache_revision(self):
-        self.assertIn("function versionedDataUrl(relativePath)", LOADER)
-        self.assertIn("url.searchParams.set('v', DATA_REVISION)", LOADER)
-        self.assertIn("createStoredAssetLoader({dataRevision: DATA_REVISION", LOADER)
-        self.assertIn("const DATA_CACHE_PREFIX = 'pandolab-data-'", STORED_ASSETS)
+    def test_world_assets_use_stable_content_cache_without_app_version(self):
+        self.assertIn("const MANIFEST_URL = versionedDataUrl('../../data/world/current.json')", LOADER)
+        self.assertIn("cachePolicy: 'immutable'", LOADER)
+        self.assertIn("worldAssetUrl(spec, worldDataRoot)", LOADER)
+        self.assertIn("const IMMUTABLE_WORLD_CACHE_NAME = 'pandolab-world-content-v1'", STORED_ASSETS)
         self.assertIn("const DATA_CACHE_NAME = DATA_CACHE_PREFIX + dataRevision", STORED_ASSETS)
+        self.assertIn("const DATA_CACHE_PREFIX = 'pandolab-data-'", STORED_ASSETS)
         self.assertNotIn("const DATA_CACHE_PREFIX", LOADER)
 
     def test_land_only_relief_and_automatic_water_colours(self):

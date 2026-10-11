@@ -1,0 +1,131 @@
+{
+  "schema": "hydro-name-reconstruction-finding-v1",
+  "batch": "r09",
+  "created_at_utc": "2026-10-09T14:30:32.951272+00:00",
+  "target": {
+    "aw_id": "hydro-system:50756799",
+    "system_id": "50756799",
+    "logical_fid": 2112,
+    "geometry_fids": [
+      7072,
+      7073
+    ],
+    "historical_baseline_bbox": [
+      115.714889,
+      -33.014583,
+      117.285417,
+      -32.524686
+    ],
+    "immutable_baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "current_live_deployment_checked": false
+  },
+  "verdict": {
+    "identity": "Murray River system; representative mainstem identity only (Western Australia)",
+    "name_original": "Murray River",
+    "name_original_language": "en",
+    "name_en": "Murray River",
+    "name_ko": null,
+    "status": "Supported representative system/mainstem identity; uniform whole-group and per-reach naming are not cleared.",
+    "identity_confidence": "High for representative regional system identity; exact headwater and estuarine transition boundaries unresolved.",
+    "scope": "The selected historical baseline group only, with explicit tributary and estuarine exclusions from uniform naming.",
+    "official_english_usage_supported": true,
+    "current_formal_naming_register_verified": false,
+    "korean_note": "No direct Korean naming evidence acquired.",
+    "automatic_application": false,
+    "scalar_product_name_application_approved": false
+  },
+  "geometry_integrity": {
+    "reference_file": "../../geometry-reference.json",
+    "fragment_facts_file": "../../selected-river-metadata.json",
+    "ordered_source_ids_file": "../../source-reach-manifest.json",
+    "all_baseline_fragments_reviewed": 2,
+    "all_line_parts_reviewed": 71,
+    "all_coordinate_positions_reviewed": 423,
+    "distinct_source_reach_ids": 71,
+    "canonical_ordered_group_geometry_sha256": "1a6991a7dabfa41a8d6ca77727c9dc95f31b937b411fb9c208fc155298baafa2",
+    "source_ids_sha256": "bec76d65a501914283622ea1116235596bff5f5825ddaedc1eed134c78ba4277",
+    "fragment_facts": [
+      {
+        "fid": 7072,
+        "stage": 3,
+        "part_count": 70,
+        "coordinate_count": 418,
+        "canonical_geometry_sha256": "2703c30d543f3f38ad12423e326fea9861d6249e6ac61a63af14ff71bb5c1c6a",
+        "ordered_source_id_csv_sha256": "f78980151f6bc611adc9aba209752aea45bfe6c0efe3d7abec3496567cdafd10"
+      },
+      {
+        "fid": 7073,
+        "stage": 2,
+        "part_count": 1,
+        "coordinate_count": 5,
+        "canonical_geometry_sha256": "11e87287b259673137893bf031e1acfce7aef162fcb626b2205c6665cc9f1ef1",
+        "ordered_source_id_csv_sha256": "7728abd5c99a8bbb303475a81319096eb09a9af12cf3d5f4c014c97469208387"
+      }
+    ],
+    "fragment_geometry_and_source_id_hashes_independently_recomputed": true,
+    "discontinuous_adjacent_part_joins_detected": 0,
+    "complete_geometry_published": false,
+    "coordinate_or_part_order_changed": false,
+    "geometry_repaired": false,
+    "original_hydrorivers_reach_geometry_acquired": false,
+    "source_reach_to_line_part_correspondence_independently_verified": false,
+    "review_note": "All decoded parts were included in the plot and numeric checks. Equal part/reach counts do not prove a reach-to-part correspondence."
+  },
+  "spatial_identity_check": {
+    "method": "Complete baseline path plotted and all parts, counts, bounds and hashes checked, followed by side-by-side visual comparison with complete official regional maps and inspected course descriptions. No georegistered overlay or exact line fit.",
+    "evidence_ids": [
+      "MOORE-MURRAY-BOM-AWRA2012",
+      "WA-SLUI38-2005",
+      "MURRAY-DWER-HEALTHYRIVERS",
+      "DWER-PEEL-HARVEY2021-PAGE"
+    ],
+    "baseline_role_sequence": [
+      "mainstem",
+      "mainstem"
+    ],
+    "baseline_role_is_not_a_name_authority": true,
+    "whole_group_is_one_uniform_named_channel": false,
+    "tributaries_inherit_representative_name": false,
+    "per_reach_name_assignment_cleared": false,
+    "regional_course_comparison": "The full inland route is consistent with the Hotham-to-Murray corridor shown in SLUI38, continuing through the Darling Range and Pinjarra area toward Peel Inlet. Its westward then northward terminal continuation extends beyond the named Murray river course.",
+    "named_transition_check": "The Hotham upstream association is a regional map inference; the source distinguishes the Hotham-Williams confluence from the downstream Murray. No source-to-rendered-part boundary or per-reach name assignment is established.",
+    "bounded_unresolved_scope": "Hotham-to-Murray, river-to-estuary and estuary-to-ocean transition boundaries are not established at source-reach resolution. Both fragments remain excluded from scalar naming clearance.",
+    "western_murray_disambiguation": "Western Australian Murray near Narrogin, Boddington, Pinjarra and Mandurah; this finding does not concern the Murray-Darling river in southeastern Australia."
+  },
+  "outlet_scope": {
+    "regional_location": "Peel Inlet / Mandurah estuary-to-ocean corridor, Western Australia",
+    "regional_receiving_water": "Murray enters Peel-Harvey Estuary; the selected network continues toward the Indian Ocean",
+    "baseline_terminal_class": "sea",
+    "source_endpoint_equals_render_endpoint": false,
+    "surveyed_outlet_verified": false,
+    "endpoint_interpretation": "The sea terminal describes the selected drainage continuation, not a claim that the named Murray River mouth lies at the ocean endpoint.",
+    "estuarine_continuation_review": {
+      "stage3_fragment_fid": 7072,
+      "stage3_reaches_estuarine_connector_region": true,
+      "stage2_fragment_fid": 7073,
+      "stage2_part_count": 1,
+      "stage2_coordinate_count": 5,
+      "fragment_join_is_exact": true,
+      "stage2_interpretation": "A short northward estuary-to-ocean connector, geographically consistent with the Mandurah Channel corridor; exact named-channel geometry is not independently verified.",
+      "stage2_murray_name_supported": false,
+      "all_estuarine_parts_named_murray": false,
+      "channel_or_estuary_name_automatically_assigned": false
+    }
+  },
+  "evidence_package": {
+    "source_evidence_file": "source-evidence.json",
+    "source_evidence_sha256": "dbbf7c3fff9b61e19ea8da77ee34c0b02683e73ea541e5ef46597195bd14490b",
+    "distinct_supporting_publications_for_this_target": 4,
+    "shared_reports_counted_once_across_targets": true,
+    "raw_originals_or_map_crops_published": false
+  },
+  "remaining_limits": [
+    "Only the pinned historical baseline was checked; current deployment and original HydroRIVERS coordinate equality are not claimed.",
+    "No exact name-boundary crosswalk or universal component name is established.",
+    "Representative identity does not authorize automatic changes."
+  ],
+  "automatic_application": false,
+  "scalar_product_name_application_approved": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

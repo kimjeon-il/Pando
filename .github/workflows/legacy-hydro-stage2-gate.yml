@@ -1,0 +1,75 @@
+name: Archived Hydro Stage 2 Snapshot Audit
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/plan-legacy-hydro-retirement.mjs'
+      - 'tests/unit/legacy-hydro-retirement.test.mjs'
+      - '.github/workflows/legacy-hydro-stage2-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  historical-snapshot:
+    name: Original pre-retirement tree and legacy classifier contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/plan-legacy-hydro-retirement.mjs
+            tests/unit/legacy-hydro-retirement.test.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test Stage2 historic dependency classifications
+        run: |
+          node --check tools/plan-legacy-hydro-retirement.mjs
+          node --test tests/unit/legacy-hydro-retirement.test.mjs
+      - name: Verify immutable before-deletion Git tree, not post-retirement branch HEADs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p reports
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          const commit='6dce59ea427e0728ef29bea31e2e51afbf27d9c8';
+          const url='https://api.github.com/repos/kimjeon-il/Pando/git/trees/'+commit+'?recursive=1';
+          const response=await fetch(url,{headers:{Authorization:'Bearer '+process.env.GITHUB_TOKEN,Accept:'application/vnd.github+json'}});
+          if(!response.ok)throw Error('GitHub snapshot HTTP '+response.status);
+          const doc=await response.json();
+          if(doc.truncated||!Array.isArray(doc.tree))throw Error('Truncated historical Git tree');
+          const expectations=[
+            ['v0.12.2',1728,41946233],
+            ['v0.12.3',13,41628073],
+            ['v0.12.4',14,45341133],
+            ['v0.12.5',7,13088876],
+            ['v0.12.6',7,11978633],
+          ];
+          const groups=expectations.map(([version,expectedCount,expectedBytes])=>{
+            const prefix='assets/data/hydro/'+version+'/';
+            const files=doc.tree.filter(e=>e.type==='blob'&&e.path.startsWith(prefix));
+            const bytes=files.reduce((sum,e)=>sum+e.size,0);
+            if(files.length!==expectedCount||bytes!==expectedBytes||
+              !files.some(e=>e.path===prefix+'manifest.json'))
+              throw Error('Pinned historical hydro drift: '+version);
+            return {version,files:files.length,bytes};
+          });
+          const summary={commit,groups,totalFiles:groups.reduce((s,x)=>s+x.files,0),
+            totalBytes:groups.reduce((s,x)=>s+x.bytes,0),schema:'pando-archived-hydro-stage2-baseline'};
+          if(summary.totalFiles!==1769||summary.totalBytes!==153982948)
+            throw Error('Legacy historical total mismatch');
+          writeFileSync('reports/legacy-hydro-stage2-original.json',JSON.stringify(summary,null,2));
+          console.log(JSON.stringify(summary));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: historical-hydro-stage2-original
+          if-no-files-found: warn
+          path: reports/legacy-hydro-stage2-original.json

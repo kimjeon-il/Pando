@@ -1,0 +1,37 @@
+{
+  "schema": "hydro-generalized-route-comparison-v1",
+  "batch": "r07",
+  "target_aw_id": "hydro-system:50552041",
+  "reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "retained_baseline_artifact": {
+    "sha256": "1b73bb5e4e109f22cee6725e821eee7644973f2044ac78dd311833ce9ad0819e",
+    "hash_scope": "Complete private three-feature retained-baseline GeoJSON file; selected target identified by awId.",
+    "selected_fid": 6834,
+    "selected_logical_fid": 1895,
+    "selected_fragment_count": 1,
+    "selected_line_part_count": 181,
+    "selected_position_count": 1029,
+    "retained_role": "mainstem",
+    "source_ids_count": 181
+  },
+  "review": {
+    "method": "All selected retained-baseline parts plotted together and visually compared with official regional Figures1/9 and lower-corridor Figure52. No source vertices copied, no formal georeferencing or numerical match claimed.",
+    "complete_retained_route_inspected": true,
+    "observations": [
+      "The selected route starts in the eastern interior, bends south and then west, traverses a long northwest-trending middle corridor, and turns north through the coastal plain.",
+      "That broad route shape corresponds to the survey main corridor through the Collier/Mount Egerton, Turee Creek, Wyloo and Onslow sheet areas.",
+      "The named lower-river map is consistent with the final northward corridor; separate northern tributary arms in the regional maps are not used as the identity of the selected main route."
+    ],
+    "whole_route_generalized_consistency": true,
+    "topology_or_exact_alignment_verified": false,
+    "all_parts_individually_named": false,
+    "coastal_connector_name_verified": false,
+    "headwater_name_boundary_verified": false
+  },
+  "limits": [
+    "The comparison establishes representative river-system identity at regional scale, not a label for every line part.",
+    "The retained endpoint is a rendering endpoint; agreement with a source endpoint or present shoreline is not established.",
+    "Original HydroRIVERS coordinates were not acquired or compared; retained geometry is not asserted coordinate-identical to original data."
+  ],
+  "geometry_redistributed": false
+}

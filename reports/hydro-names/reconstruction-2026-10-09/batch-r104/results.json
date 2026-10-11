@@ -1,0 +1,646 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r104",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r103",
+    "commit": "41c17158e2213067d8a8ed3f963519b4d8ba481c",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r103/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70895492",
+    "hydro-system:61407619",
+    "hydro-system:70898394",
+    "hydro-system:61232079"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70895492",
+      "category": "river_group",
+      "system_id": "70895492",
+      "baseline_logical_fid": 3270,
+      "geometry_fids": [
+        10442,
+        10449,
+        10445,
+        10448,
+        10453,
+        10441,
+        10444,
+        10447,
+        10451,
+        10456,
+        10440,
+        10443,
+        10446,
+        10452,
+        10455,
+        10450,
+        10454
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -97.01875,
+        17.04375,
+        -94.941667,
+        18.737331
+      ],
+      "rendered_mainstem_length_km": 263.433,
+      "rendered_network_length_km": 1269.639,
+      "geometry_summary": {
+        "fragment_count": 17,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -96.775,
+          18.13125,
+          -95.635417,
+          18.737331
+        ]
+      },
+      "candidate_name": "Río Papaloapan",
+      "candidate_names": [
+        "Río Papaloapan"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Lower Papaloapan; substantial Amapa, Tonto, Grande/Santo Domingo, Cajonos/Tesechoacán, Lalana, Trinidad and San Juan component relationships. Catemaco and the two northern Oaxaca reservoirs remain distinct waterbodies. Initial smaller feeders and submerged connectors are not promoted to uniform river names.",
+      "geographic_disambiguation": "A branched Papaloapan-associated selection rather than a single uniformly named river. The northwest modeled mainstem approaches by Amapa and lower Tonto. Separate western and southern branches enter the lower Papaloapan through Santo Domingo, Tesechoacán and San Juan; the eastern branch includes the Catemaco lake/outlet setting. The modeled terminal stops in the Papaloapan–Laguna Alvarado approach rather than at the Gulf coastal entrance.",
+      "source_keys": [
+        "r104-inegi-orizaba-hydro",
+        "r104-inegi-oaxaca-topo",
+        "r104-inegi-minatitlan-geology",
+        "r104-inegi-coatzacoalcos-hydro",
+        "r104-inegi-oaxaca-state",
+        "r104-inegi-oaxaca-hydrology-prose",
+        "r104-inegi-tierra-blanca-prose"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Oaxaca and Veracruz, Mexico: Cuicatlán and northern Oaxaca mountain tributaries, Miguel Alemán and Miguel de la Madrid Hurtado reservoir settings, Tuxtepec, the southern Veracruz plain, Catemaco and the Alvarado lagoon system.",
+      "candidate_name_role": "Supported receiving-system identity and substantial component correspondence only; not a completed representative-system finding while material headward and reservoir-feeder gaps remain.",
+      "completion_scope": "Every selected feature was included in bounded original-map viewing. Geographic coverage of the 17-feature extent is not claimed to establish full hydrological correspondence: several first-feeder/name-transition and reservoir-feeder connectors remain materially unresolved. No pointwise alignment, geometry revalidation, surveyed source/mouth, current flow condition or product-name application was performed.",
+      "material_pending_reason": "The exact initial mainstem feeder/name transition, the initial southern Cajonos/Lalana/Trinidad feeder choices and parts of the western reservoir-feeder and reservoir-to-channel connectors are not materially established by the acquired generalized/thematic sources. Clear lower Papaloapan and tributary-receiver evidence does not eliminate those gaps. This is one material-pending record, not a completed identity or scope hold.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Papaloapan, supported only as the lower receiving-system candidate pending full bounded correspondence",
+        "selected_terminal_setting": "Papaloapan–Laguna Alvarado approach",
+        "selected_terminal_is_gulf_mouth": false,
+        "distinct_selected_waterbodies": [
+          "Presa Miguel Alemán",
+          "Presa Miguel de la Madrid Hurtado (Cerro de Oro)",
+          "Laguna de Catemaco"
+        ],
+        "excluded_inferences": [
+          "No uniform Papaloapan name for all 17 features.",
+          "No Tonto label for the whole Amapa approach or every reservoir feeder.",
+          "No basin-membership-only identification of the initial southern feeders.",
+          "No Puxmetacán name transferred to the short Trinidad opening solely from upstream regional context.",
+          "No nearby lake, settlement or thematic aquifer-flow arrow used as a river name or surface-flow proof."
+        ],
+        "model_limits": "The modeled route is generalized. Its boundaries, stage breaks, lake centerlines and reservoir connectors are not official hydronym boundaries or surveyed present channels.",
+        "source_availability_limits": [
+          {
+            "publication": "CONAGUA, Acuerdo/estudio técnico de aguas superficiales RH28 Papaloapan, 12 February 2018",
+            "url": "https://www.gob.mx/cms/uploads/attachment/file/337517/12_FEBRERO_2018_ACUERDO_ESTUDIO_T_CNICO_AGUAS_SUPERFICIALES_RH_28_PAPALO....pdf",
+            "observed_limit": "The reader returned HTTP403. No source content was used; the publication and equivalents remain stopped."
+          }
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:61407619",
+      "category": "river_group",
+      "system_id": "61407619",
+      "baseline_logical_fid": 3543,
+      "geometry_fids": [
+        13988,
+        13987,
+        13990,
+        13986,
+        13989
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -50.19375,
+        -27.247917,
+        -48.626943,
+        -26.502083
+      ],
+      "rendered_mainstem_length_km": 263.429,
+      "rendered_network_length_km": 420.701,
+      "geometry_summary": {
+        "fragment_count": 5,
+        "mainstem_fragment_count": 3,
+        "mainstem_bbox": [
+          -50.172917,
+          -27.247917,
+          -48.626943,
+          -26.8125
+        ]
+      },
+      "candidate_name": "Rio Itajaí-Açu",
+      "candidate_names": [
+        "Rio Itajaí-Açu"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The complete generalized selected network corresponds to the western and northern arms of the Itajaí system and its Itajaí-Açu outlet trunk. The named trunk continues from Rio do Sul through the Ibirama confluence and the middle/lower valley to the Atlantic. The exact local naming transition within the initial upper feeder is not assigned.",
+      "geographic_disambiguation": "The western selected opening is south of the Serra do Espigão divide, distinct from the north-flowing Bonito opening on the other side. It follows a mapped headward connector into the upper western river, then turns southeast through Taió and Rio do Oeste to Rio do Sul. The trunk turns northeast through Lontras to the northern-arm junction near Ibirama, continues through Apiúna and Ascurra, receives the Benedito near Indaial, and runs through Blumenau, Gaspar and Ilhota to the Itajaí–Navegantes outlet. The separate northern selected pair follows the Bonito–Iraputã–Itajaí do Norte corridor to that Ibirama junction. Itajaí do Sul, Benedito, Luís Alves and Itajaí-Mirim are neighboring or joining rivers; their entire courses are not selected.",
+      "source_keys": [
+        "r104-itajai-synthesis2010",
+        "r104-ibge-sc2015",
+        "r104-ibge-rio-do-campo2010",
+        "r104-ibge-papanduva2010",
+        "r104-cerh69-2022",
+        "r104-itajai-region",
+        "r104-itajai-basin",
+        "r104-taio-oeste",
+        "r104-mpi-norte",
+        "r104-udesc-lapolli2013"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Santa Catarina, Brazil: the upper Rio do Campo–Taió–Rio do Oeste corridor, Rio do Sul, Lontras, Ibirama, Apiúna, Ascurra, Indaial, Blumenau, Gaspar, Ilhota and the Itajaí–Navegantes Atlantic outlet; the selected northern branch crosses Papanduva and the José Boiteux–Ibirama corridor.",
+      "candidate_name_role": "Supported representative identity of the selected Itajaí river system, not a common name for every selected reach or tributary.",
+      "completion_scope": "All five selected features were reviewed from opening through termination at generalized corridor scale. Complete basin and state originals establish the two arms, intervening trunk, dam-bearing corridors, named junctions and Atlantic terminal setting. Larger-scale municipal originals resolve the opening feeder and northern Bonito–Iraputã connection. This is source-to-corridor correspondence, not a survey, pointwise alignment, geometry revalidation or determination of present reservoir extent. Minor reach-name transition uncertainty is retained without transferring the representative name to those reaches.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Rio Itajaí-Açu",
+        "initial_headward_component_name": null,
+        "initial_headward_scope": "Mapped Arroio Tomazoni feeder and connection into the upper western river near Alto Rio Azul; precise local Rio Preto/Azul/Oeste name-change point not assigned.",
+        "western_main_component_name": "Rio Itajaí do Oeste",
+        "middle_and_lower_trunk_name": "Rio Itajaí-Açu",
+        "northern_selected_component_names": [
+          "Rio Bonito",
+          "Rio Iraputã",
+          "Rio Itajaí do Norte",
+          "Rio Hercílio"
+        ],
+        "northern_synonym_scope": "Rio Hercílio is an alternative name for Itajaí do Norte, not for Bonito, Iraputã, Itajaí do Oeste or the full selected system.",
+        "impoundment_scope": [
+          "Barragem Oeste on the western arm in Taió",
+          "Barragem Norte on the northern arm in José Boiteux"
+        ],
+        "receiving_waterbody_name": "Oceano Atlântico",
+        "excluded_inferences": [
+          "No application of one scalar river name to every selected reach.",
+          "No entire-basin geometry or inclusion of unselected tributary courses inferred from basin membership.",
+          "No official river length inferred from the rendered 263.429 km mainstem.",
+          "No present reservoir footprint, inundation, operation or flow condition inferred from historical maps.",
+          "No locality or school called Alto Rio Azul treated as decisive proof of a river hydronym."
+        ],
+        "model_limits": "Cached selected geometry was read for bounded orientation only and left unchanged. Published maps simplify channels differently. Source comparison used full corridor sequence and joining waterways, not exact vertex coincidence.",
+        "source_availability_limits": [
+          {
+            "publication": "Defesa Civil Santa Catarina, Operação de Barragens, 2024",
+            "url": "https://www.defesacivil.sc.gov.br/wp-content/uploads/2024/10/Operacao-de-Barragens.pdf",
+            "observed_limit": "Reader size limit followed by original HTTP502. No manual content used. Independent cartography and municipal/federal descriptions establish the corridor and dam settings."
+          }
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70898394",
+      "category": "river_group",
+      "system_id": "70898394",
+      "baseline_logical_fid": 3275,
+      "geometry_fids": [
+        10522,
+        10523,
+        10524,
+        10512,
+        10513,
+        10514,
+        10515,
+        10516,
+        10517,
+        10518,
+        10519,
+        10520,
+        10521
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -89.627083,
+        17.2625,
+        -88.318686,
+        18.49375
+      ],
+      "rendered_mainstem_length_km": 263.232,
+      "rendered_network_length_km": 263.232,
+      "geometry_summary": {
+        "fragment_count": 13,
+        "mainstem_fragment_count": 13,
+        "mainstem_bbox": [
+          -89.627083,
+          17.2625,
+          -88.318686,
+          18.49375
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [
+        "Río Azul",
+        "Blue Creek",
+        "Río Hondo"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Independent INEGI cartography supports the border Río Azul and downstream Río Hondo corridors, adjacent wetlands and lake separation, and the Chetumal Bay terminal context. The Belize election description supports the Blue Creek–Rio Bravo–Rio Hondo junction topology. The Guatemalan university map provides only regional named-river context.",
+      "geographic_disambiguation": "All thirteen selected mainstem features were read, including the long north/northeast Petén approach, the broad east/southeast frontier bend, the southern junction excursion, two small east-and-back features along the middle river, the lower northward valley, the Juan Sarabia turn and the eastward coastal tail. This is separate from the New River drainage, the Belize–Mopan river, and the Escondido–Tigrito–Noh-Bec–Bacalar–Guerrero selection studied in r98. Prior names were not copied as identification evidence.",
+      "source_keys": [
+        "r104-inegi-chetumal",
+        "r104-inegi-quintana-roo",
+        "r104-usac-flores",
+        "r104-belize-orange-walk-south"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northern Petén, Guatemala, the Mexico–Belize border corridor and northwestern Belize, ending in the lower Hondo–Chetumal Bay setting.",
+      "candidate_name_role": "component_name_evidence_only_whole_group_unresolved",
+      "completion_scope": "The retained geometry for all thirteen features and the complete bounded regional setting were considered. Reused original INEGI mapping was read in an overview and three overlapping original corridor views, with separate orientation overlays. The university’s original municipal map and official Belize junction description were also read. These sources establish substantial bounded components, but do not establish the full Guatemalan headward connection or the complete Belize-side junction and small side excursions. This is material pending, not completed correspondence or a completed naming-scope hold. No pointwise alignment, topology repair, geometry revalidation or product change was performed.",
+      "material_pending_reason": "Actual source-to-object correspondence is not established for the full long Guatemalan approach or all short Belize-side junction/side excursions. INEGI maps the Mexican territory and frontier but leaves the adjacent foreign interior blank; the readable Guatemalan municipal schematic is insufficient to close the selected-route gap. Receiving-river context alone cannot complete a representative identity.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_receiving_river_context": "Río Hondo, bounded downstream context only; not a completed whole-system identity.",
+        "frontier_approach_names": [
+          "Río Azul",
+          "Blue Creek"
+        ],
+        "initial_headward_component_name": null,
+        "guatemalan_regional_names_not_assigned_to_entire_head": [
+          "Río Tikal",
+          "Río Azul"
+        ],
+        "separate_side_junction_name": "Rio Bravo, identified by the Belize election description as a distinct approach to the confluence; not adopted as the upstream selected name.",
+        "adjacent_waterbodies_not_used_as_river_aliases": [
+          "Laguna Tablas",
+          "Laguna Milagros",
+          "Laguna Negra",
+          "Bahía de Chetumal"
+        ],
+        "unresolved_components": [
+          "Complete Guatemalan headward feature 10512 before the independently mapped frontier interval.",
+          "Belize-side southern excursion and precise branch relationship in feature 10516.",
+          "Complete small eastward excursions in features 10518 and 10520."
+        ],
+        "excluded_inferences": [
+          "No official initial source or mouth coordinate is established.",
+          "No unnamed status, formal naming date, Indigenous alternative or Korean name is established.",
+          "No claim of a single continuous natural channel through all modeled intervals, or that a lake, settlement, boundary or road label names the river.",
+          "The retained display length is not an official length for Río Azul, Blue Creek or Río Hondo.",
+          "The fine differences between the generalized line and mapped meanders are not used as a geometry audit."
+        ],
+        "feature_class": "Modeled river-group route with supported border and receiving-river corridors, adjacent wetland/lake settings and unresolved selected connection/branch intervals.",
+        "source_availability_limits": [
+          {
+            "publication": "Plan Maestro 2009–2013 PN Mirador–Río Azul y BP Naachtún–Dos Lagunas",
+            "url": "https://conap.gob.gt/wp-content/uploads/2019/08/PM-PN-Mirador-Rio-Azul-y-BP-Naachtun-Dos-Lagunas.pdf",
+            "observed_limit": "HTTP Error 403: Forbidden Publication excluded from substantive evidence."
+          },
+          {
+            "publication": "Programme for Belize RBCMA Management Plan 2015–2019 Volume I",
+            "url": "https://pfbelize.org/wp-content/uploads/2024/09/PFB-RBCMA-Management-Plan.pdf",
+            "observed_limit": "HTTP Error 406: Not Acceptable Publication excluded from substantive evidence."
+          },
+          {
+            "publication": "CONRED Amenaza por deslizamientos e inundaciones Melchor de Mencos, 2015",
+            "url": "https://conred.gob.gt/mapas/municipales_ameindes/PETEN/MELCHOR%20DE%20MENCOS/PETEN%201711.pdf",
+            "observed_limit": "HTTP Error 404: Not Found Original map pixels were unavailable; no substantive evidence used."
+          },
+          {
+            "publication": "Uaxactun Guatemala 2268 II, 1995",
+            "url": "https://maps.lib.utexas.edu/maps/topo/guatemala/uaxactun-guatemala-50k-2268ii-1995.pdf",
+            "observed_limit": "Printed limited-distribution restriction; no correspondence evidence used."
+          },
+          {
+            "publication": "MAGA Fisiografía technical publication",
+            "url": "https://www.maga.gob.gt/download/fisiografia.pdf",
+            "observed_limit": "Sole web reader request returned HTTP403 Forbidden. Publication excluded from substantive evidence."
+          }
+        ],
+        "separately_named_corridor_parts": [
+          "Río Azul",
+          "Blue Creek",
+          "Río Hondo"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "additional_source_name": null,
+        "completion_scope": "The retained geometry for all thirteen features and the complete bounded regional setting were considered. Reused original INEGI mapping was read in an overview and three overlapping original corridor views, with separate orientation overlays. The university’s original municipal map and official Belize junction description were also read. These sources establish substantial bounded components, but do not establish the full Guatemalan headward connection or the complete Belize-side junction and small side excursions. This is material pending, not completed correspondence or a completed naming-scope hold. No pointwise alignment, topology repair, geometry revalidation or product change was performed."
+      }
+    },
+    {
+      "aw_id": "hydro-system:61232079",
+      "category": "river_group",
+      "system_id": "61232079",
+      "baseline_logical_fid": 3496,
+      "geometry_fids": [
+        13904
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -72.428537,
+        -16.726927,
+        -71.297917,
+        -15.770833
+      ],
+      "rendered_mainstem_length_km": 262.528,
+      "rendered_network_length_km": 262.528,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "mainstem_bbox": [
+          -72.428537,
+          -16.726927,
+          -71.297917,
+          -15.770833
+        ]
+      },
+      "candidate_name": "Quilca–Vítor–Chili",
+      "candidate_names": [
+        "Quilca–Vítor–Chili"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "One complete selected generalized mainstem corridor. The headward Q. Calapusa label, Chalhuanca infrastructure setting, Sumbay reach, Chili urban/canyon reach, Vítor valley and coastal Quilca system are distinguished. The INGEMMET lower label Río Chilca is recorded as a source spelling discrepancy, not adopted as a formal alias.",
+      "geographic_disambiguation": "The selection begins on the western Calapusa-labelled drainage, bends east toward the Chalhuanca/Capillune setting and then south into the Sumbay corridor. It continues past the eastern Blanco junction, through Aguada Blanca and southwest into the Chili canyon and Arequipa. Its westward lower bend passes the Uchumayo surroundings and the Yura joining corridor north of La Joya, turns south along Vítor, continues west below the Siguas junction and ends at the Pacific near Quilca (Pueblo Nuevo). The independent Colca–Majes–Camaná outlet lies farther west; the separate Tambo outlet lies east.",
+      "source_keys": [
+        "r104-ingemmet-arequipa-critical-zones",
+        "r104-arma-arequipa-catalogue",
+        "r104-quilca-chili-padh-2016"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Arequipa, southwestern Peru: western Chalhuanca-side uplands, Sumbay, Aguada Blanca, Arequipa, Uchumayo, Vítor and the Pacific outlet near Quilca.",
+      "candidate_name_role": "bounded_representative_system_identity",
+      "completion_scope": "Complete bounded regional-scale source-to-object correspondence, including the initial feeder, upper reservoir surroundings, Sumbay and Blanco junction, Aguada Blanca, the Arequipa urban/canyon corridor, Yura and Siguas joining settings, lower valley and actual terminal coast. Small map generalization, overprinted urban symbols, exact headwater/name transitions and precise reservoir shorelines do not leave a substantial unresolved route interval. No exact point alignment, geometry revalidation, official source coordinate, surveyed mouth, current water boundary or present flow condition is asserted.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Quilca–Vítor–Chili",
+        "headward_component": "Q. Calapusa-labelled western drainage and the Chalhuanca/Capillune surroundings; no exact source designation.",
+        "upper_trunk_component": "Río Sumbay",
+        "middle_trunk_component": "Río Chili, including Charcani and the Arequipa corridor.",
+        "lower_trunk_component": "Río Vítor, followed by the coastal Quilca-system reach.",
+        "reservoir_scope": "The selected path reaches Aguada Blanca. It passes the Chalhuanca/Capillune setting, but an exact crossing of its water surface is not established. Pillones and El Frayle are separate adjacent branches, not selected reservoir passages.",
+        "joining_components": "Sumbay-side upper junctions, Río Blanco, Yura-side drainage and Siguas/Sihuas locate the main corridor. The selected inventory has no separate tributary fragment.",
+        "spelling_discrepancy": "INGEMMET prints Río Chilca along the coastal reach and Río Sihuas on its northern joining branch. The official catalogue uses Quilca-Vitor-Chili; the water plan uses Quilca-Chili/Quilca-Vítor-Chili and Siguas. Only the representative compound is proposed; no formal alias rule is inferred.",
+        "catalogue_limits": "The table’s list of other upstream denominations and its Yauca/Yura confluence wording are not transferred to the selected route. The selected geometry and actually viewed source route, not a generic list of river names, govern component scope.",
+        "urban_map_limits": "Large hazard symbols overprint short urban portions of the line. The indexed Chili/Charcani entries, regional base map and connected incoming/outgoing corridor establish the bounded route without asserting exact channel pixels beneath each symbol.",
+        "source_authority_limit": "Official regional cartography and water-management material support representative identification, not a formal hydronym adjudication.",
+        "excluded_inferences": [
+          "No whole-object name inherited from the bounding box or modeled length.",
+          "No Claim that all reaches are named Chili, Quilca or Vítor.",
+          "No selection of the eastern textbook Sumbay headwater in place of the actual western Calapusa/Chalhuanca-side limb.",
+          "No invented Korean form, exact hydronym transition, formal Chilca/Quilca alias equivalence or present reservoir level.",
+          "No interbasin canal treated as an additional selected river branch."
+        ],
+        "model_limits": "The rendered 262.528 km is a model length, not an official river length. The cached geometry was used only for bounded source orientation and was not revalidated or edited."
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70895492",
+      "hydro-system:70898394"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 2,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 2
+  },
+  "totals_after": {
+    "recorded_targets": 359,
+    "non_pending_records": 328,
+    "source_access_pending": 3,
+    "source_material_pending": 28,
+    "source_any_pending": 31,
+    "scope_holds": 112,
+    "river_groups": 261,
+    "lakes": 98,
+    "unrecorded": 3706,
+    "unrecorded_river_groups": 3194,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r104-inegi-orizaba-hydro",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/tematicas/Hidro_sub_hist/1_250_000/794551151778_geo.pdf"
+    },
+    {
+      "source_key": "r104-inegi-oaxaca-topo",
+      "official_url": "https://inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154366_geo.pdf"
+    },
+    {
+      "source_key": "r104-inegi-minatitlan-geology",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/tematicas/Geologia_hist/1_250_000/702825674731.pdf"
+    },
+    {
+      "source_key": "r104-inegi-coatzacoalcos-hydro",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/tematicas/Hidro_sub_hist/1_250_000/794551151839_geo.pdf"
+    },
+    {
+      "source_key": "r104-inegi-oaxaca-state",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/oax/889463837022.pdf"
+    },
+    {
+      "source_key": "r104-inegi-oaxaca-hydrology-prose",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/2104/702825224394/702825224394_12.pdf"
+    },
+    {
+      "source_key": "r104-inegi-tierra-blanca-prose",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30174.pdf"
+    },
+    {
+      "source_key": "r104-itajai-synthesis2010",
+      "official_url": "https://www.aguas.sc.gov.br/base-documental-rio-itajai/noticias-rio-itajai/item/download/173_162158b668453a53c5b010ac0aa1f41f"
+    },
+    {
+      "source_key": "r104-ibge-sc2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/sc_politico550k_2015.pdf"
+    },
+    {
+      "source_key": "r104-ibge-rio-do-campo2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/sc/rio_do_campo_v2.pdf"
+    },
+    {
+      "source_key": "r104-ibge-papanduva2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/sc/papanduva_v2.pdf"
+    },
+    {
+      "source_key": "r104-cerh69-2022",
+      "official_url": "https://www.aguas.sc.gov.br/jsmallfib_top/mvs/conselho/resolucao/Resolucao_CERH_n_69_2022_Aprova_enquadramento_Itajai.pdf"
+    },
+    {
+      "source_key": "r104-itajai-region",
+      "official_url": "https://www.aguas.sc.gov.br/a-bacia-rio-itajai/regiao-hidrografica-rio-itajai"
+    },
+    {
+      "source_key": "r104-itajai-basin",
+      "official_url": "https://www.aguas.sc.gov.br/a-bacia-rio-itajai/bacia-hidrografica-rio-itajai"
+    },
+    {
+      "source_key": "r104-taio-oeste",
+      "official_url": "https://turismo.taio.sc.gov.br/post-12559/"
+    },
+    {
+      "source_key": "r104-mpi-norte",
+      "official_url": "https://www.gov.br/povosindigenas/pt-br/assuntos/notas-oficiais/2023/10/audiencia-publica-garante-acoes-de-seguranca-para-povo-xokleng-diante-de-fechamento-de-barragem-em-santa-catarina"
+    },
+    {
+      "source_key": "r104-udesc-lapolli2013",
+      "official_url": "https://www.faed.udesc.br/arquivos/id_submenu/872/aderbal_vicente_lapolli.pdf"
+    },
+    {
+      "source_key": "r104-inegi-chetumal",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/imagen_cartografica/1_250_000/794551154519_geo.pdf"
+    },
+    {
+      "source_key": "r104-inegi-quintana-roo",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463913986.pdf"
+    },
+    {
+      "source_key": "r104-usac-flores",
+      "official_url": "https://biblioteca.usac.edu.gt/EPS/03/03_0945_v1.pdf"
+    },
+    {
+      "source_key": "r104-belize-orange-walk-south",
+      "official_url": "https://elections.gov.bz/wp-content/uploads/2023/12/Orange-Walk-South.pdf"
+    },
+    {
+      "source_key": "r104-ingemmet-arequipa-critical-zones",
+      "official_url": "https://portal.ingemmet.gob.pe/documents/73138/1003201/MAPA_ZONAS_CRITICAS_AREQUIPA_2014-2.pdf"
+    },
+    {
+      "source_key": "r104-arma-arequipa-catalogue",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-arequipa/archivos/public/docs/49.pdf"
+    },
+    {
+      "source_key": "r104-quilca-chili-padh-2016",
+      "official_url": "https://sinia.minam.gob.pe/sites/default/files/siar-arequipa/archivos/public/docs/plan_de_aprovechamiento_quilca_chili_2016-2017.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "41c17158e2213067d8a8ed3f963519b4d8ba481c",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      216,
+      217,
+      218,
+      219
+    ],
+    "next_unrecorded_id": "hydro-system:70894151",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

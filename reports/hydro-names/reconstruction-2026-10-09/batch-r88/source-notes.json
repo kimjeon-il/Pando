@@ -1,0 +1,385 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r88",
+  "sources": [
+    {
+      "source_key": "r88-mop-maule-map",
+      "title": "Red Vial de la Región del Maule, cartographic edition January 2024, scale 1:350,000",
+      "publisher": "Ministerio de Obras Públicas, Dirección de Vialidad, Unidad de Gestión de la Información Territorial (UGIT-DV), Chile",
+      "supports": "Regional river-name and whole-corridor correspondence, connected named upstream components, reservoir passage and Constitución mouth setting.",
+      "limits": "Official road-map cartography with named hydrography, used for geographic identification rather than current channel or reservoir surveying. No source image or source geometry is distributed with the finding.",
+      "official_url": "https://mapasvialidad.mop.gob.cl/archivos/sites/10/2026/01/Region_del_Maule.pdf"
+    },
+    {
+      "source_key": "r88-mop-nuble-map",
+      "title": "Red Vial de la Región de Ñuble",
+      "publisher": "Ministerio de Obras Públicas, Dirección de Vialidad, Unidad de Gestión de la Información Territorial (UGIT-DV), Chile",
+      "supports": "The selected southern headward bend is explicitly labeled Río Perquilauquén and remains separate from the adjacent Ñuble drainage; continuity toward the western lowland course.",
+      "limits": "Neighboring-region areas are visually subdued on the sheet, but the selected boundary course and its labels are readable. The map is not used to assert an exact formal spring or contemporary river bank.",
+      "official_url": "https://mapasvialidad.mop.gob.cl/archivos/sites/10/2026/01/Region_de_Nuble.pdf"
+    },
+    {
+      "source_key": "r88-dga-maule-plan",
+      "title": "Plan Estratégico de Gestión Hídrica en la Cuenca del Maule, Informe Final, S.I.T. 465, December 2020",
+      "publisher": "Gobierno de Chile, Ministerio de Obras Públicas, Dirección General de Aguas; prepared by UTP Everis Chile S.A. – Hidrogestión S.A.",
+      "supports": "Independent institutional basin context, Perquilauquén–Loncomilla–Maule receiving relationships, distinct tributary identities and regulated Colbún context.",
+      "limits": "The plan's small-scale maps and schematic alone are insufficient for every headward or confluence detail; the two original regional maps provide the local cartographic checks.",
+      "official_url": "https://bibliotecadigital.ciren.cl/server/api/core/bitstreams/21a43b8e-d99a-4270-a529-f0f0960c5711/content"
+    },
+    {
+      "source_key": "r88-ign-sanluis-cordoba-raster-reuse",
+      "title": "IGN topographic raster mosaics, 1:250,000 and 1:100,000: San Luis–southern Córdoba plains",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "supports": "Complete current geographic correspondence, distinct southwestern route, actual first setting, scattered-lagoon and inland wet-depression context, separation from Río Quinto, and actual Pincén endpoint.",
+      "limits": "Mosaic sheets have varying editions and styles; no common historical date is asserted. Some finer headward request area is blank but readable coarser coverage exists. No current hydraulic continuity or absence of modern drains is inferred. Original pixels and crops remain private.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-sanluis-physical-2016",
+      "title": "Provincia de San Luis — Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "year": 2016,
+      "supports": "Regional plains and lagoon context and distinct northern/northeastern Río Quinto course.",
+      "limits": "Regional scale only; does not establish small drains, individual lagoon crossings or the exact selected source.",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/SAN-LUIS/SAN-LUIS-FISICO-WEB.jpg"
+    },
+    {
+      "source_key": "ign-cordoba-physical-2016",
+      "title": "Provincia de Córdoba — Mapa Físico",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "year": 2016,
+      "supports": "Regional distinction between Río Quinto / Popopis and Bañados de la Amarga versus the selected southern plains and Pincén continuation.",
+      "limits": "Regional map cannot establish the exact local terminal feature or modern hydraulic connections.",
+      "official_url": "https://www.ign.gob.ar/images/MapasWeb/CORDOBA/CORDOBA-FISICO-WEB.jpg"
+    },
+    {
+      "source_key": "r88-imn-zapote",
+      "title": "Estudio de Cuencas Hidrográficas de Costa Rica: Cuenca río Zapote, Figure 2, printed page 317",
+      "publisher": "Instituto Meteorológico Nacional, Costa Rica",
+      "supports": "Cucaracho–Pizote correspondence and distinction from Zapote.",
+      "limits": "Map terminates near the international boundary; the Nicaragua continuation and lake connection require regional evidence. Minor first-fork name is not fixed.",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioZapote.pdf"
+    },
+    {
+      "source_key": "r88-imn-sancarlos",
+      "title": "Estudio de Cuencas Hidrográficas de Costa Rica: Cuenca río San Carlos, Figure 2, printed page 255",
+      "publisher": "Instituto Meteorológico Nacional, Costa Rica",
+      "supports": "Selected middle/lower San Carlos route and junction with San Juan.",
+      "limits": "Broader basin map includes upstream waters absent from this selection.",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioSanCarlos.pdf"
+    },
+    {
+      "source_key": "r88-imn-sarapiqui",
+      "title": "Estudio de Cuencas Hidrográficas de Costa Rica: Cuenca río Sarapiquí, Figure 2, printed page 215",
+      "publisher": "Instituto Meteorológico Nacional, Costa Rica",
+      "supports": "Sucio receiving connection, lower Sarapiquí and San Juan junction.",
+      "limits": "The whole selected southern approach is not covered by this chapter alone.",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioSarapiqui.pdf"
+    },
+    {
+      "source_key": "r88-imn-chirripo",
+      "title": "Estudio de Cuencas Hidrográficas de Costa Rica: Cuenca río Chirripó, Figure 2, printed page 709",
+      "publisher": "Instituto Meteorológico Nacional, Costa Rica; map credited to Minor Alfaro Hernández",
+      "supports": "Southern source-region context, Sucio/Chirripó separation, San Juan–Colorado split, Caño Bravo distinction and coastal Colorado course.",
+      "limits": "Regional map supports corridor-level identification rather than exact first-fork naming, modern shoreline location or current discharge partition.",
+      "official_url": "https://cglobal.imn.ac.cr/documentos/publicaciones/EstudioCuencas/EstudioCuencas-cuencaRioChirripo.pdf"
+    },
+    {
+      "source_key": "r88-oas-sanjuan1997",
+      "title": "Manejo Ambiental y Desarrollo Sostenible de la Cuenca del Río San Juan: Estudio de diagnóstico y lineamientos del plan de acción, 1997",
+      "publisher": "Governments of Costa Rica and Nicaragua, MINAE/MARENA, OAS and UNEP",
+      "supports": "Lake Nicaragua–San Juan receiving-system identity, selected lake passages, main regional river course and distinction from Lake Managua/Tipitapa.",
+      "limits": "Historical regional cartography is used for geographic correspondence, not present shoreline surveys, small-island avoidance, international boundary adjudication or current water allocation.",
+      "official_url": "https://www.oas.org/dsd/publications/unit/oea05s/oea05s.pdf"
+    },
+    {
+      "source_key": "r88-nrcan-kapiskau-map",
+      "title": "Canada Base Map, CBMT3978: Atikameg–Kapiskau corridor and western James Bay mouth setting",
+      "publisher": "Natural Resources Canada / Government of Canada",
+      "supports": "Atikameg upstream component, distinct western Kapiskau arrival, repeated lower Kapiskau labels, full selected-corridor continuity and coastal truncation; separation from Lawashi, Attawapiskat and Albany.",
+      "limits": "Composite base-map dates are not asserted. The imagery establishes bounded cartographic identity rather than exact present-day wetland connectivity, channel banks or shoreline. Original rasters, crops and private orientation material remain local.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61516431",
+      "source_keys": [
+        "r88-mop-maule-map",
+        "r88-mop-nuble-map",
+        "r88-dga-maule-plan"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14458
+          ],
+          "finding": "The southern headward selection follows the mapped Río Perquilauquén, including its distinctive southward bend and northwest return along the regional boundary northeast of San Fabián de Alico. The Ñuble sheet directly labels this headward course. It continues along the same river past the Villa Baviera and San Gregorio settings, then north toward Quella. The separate Ñiquén, Catillo/Digua and Ñuble courses are not substituted for the modeled path.",
+          "sources": [
+            "r88-mop-nuble-map",
+            "r88-mop-maule-map"
+          ]
+        },
+        {
+          "fragments": [
+            14459
+          ],
+          "finding": "The eastward lower reach is Río Perquilauquén, passing the Purapel junction and the Villa Seca/Bodega surroundings before reaching the Loncomilla formation area. Its eastward bend is distinct from the upstream Purapel valley and the separate Longaví-side approach.",
+          "sources": [
+            "r88-mop-maule-map",
+            "r88-dga-maule-plan"
+          ]
+        },
+        {
+          "fragments": [
+            14460
+          ],
+          "finding": "The northward selected course is Río Loncomilla through the Bodega, Melozal and Villa Alegre surroundings to the Maule near San Javier. The DGA plan independently distinguishes Perquilauquén, Loncomilla and the Maule receiving reach in its node map, schematic and node table.",
+          "sources": [
+            "r88-mop-maule-map",
+            "r88-dga-maule-plan"
+          ]
+        },
+        {
+          "fragments": [
+            14461
+          ],
+          "finding": "Below the Loncomilla junction the mapped receiving river is Río Maule. Its selected northwest and west course passes the Claro junction near Corinto, Curtiduría and Toconey before reaching the estuarine outlet at Constitución. The generalized final cell supports the mouth/coastal-estuary setting, not an exact surveyed outlet or extension into the open Pacific.",
+          "sources": [
+            "r88-mop-maule-map",
+            "r88-dga-maule-plan"
+          ]
+        },
+        {
+          "fragments": [
+            14462,
+            14463
+          ],
+          "finding": "The eastern selection begins with a short lower Río Colorado approach to the Maule near Las Garzas, then follows Río Maule northward past La Suiza and westward through the Armerillo and Colbún reservoir corridor to the selected Loncomilla junction. Repeated river labels, neighboring Melado and Claro valleys and the reservoir setting disambiguate this route. Neither the whole eastern selection nor its initial Colorado section is a Loncomilla tributary named Perquilauquén.",
+          "sources": [
+            "r88-mop-maule-map",
+            "r88-dga-maule-plan"
+          ]
+        },
+        {
+          "fragments": [
+            14464
+          ],
+          "finding": "The short remaining side fragment is confined to the lower Claro–Maule confluence setting near Corinto, downstream of the Talca/Colín approach. Only this terminal stub is selected. The map shows the neighboring braided river channels; the generalized fragment is not treated as an exact modern branch trace or as the entire Río Claro.",
+          "sources": [
+            "r88-mop-maule-map"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61512854",
+      "source_keys": [
+        "r88-ign-sanluis-cordoba-raster-reuse",
+        "ign-sanluis-physical-2016",
+        "ign-cordoba-physical-2016"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14451
+          ],
+          "component_scope": "Actual headward beginning and Travesía approach",
+          "finding": "The selected beginning is south of the previous selection’s start and lies in mapped rural wooded/field country north-northeast of Alto Pelado. Readable 1:100,000 mapping shows the Don Celestino and Los Negros surroundings, tracks, fields and contours without establishing a named source stream at the selected beginning. The path continues south toward the road/railway country east of Travesía, then southeast through dune/contour country east of Alto Pelado. This is not a selected Quinto headwater.",
+          "sources": [
+            "r88-ign-sanluis-cordoba-raster-reuse"
+          ]
+        },
+        {
+          "fragments": [
+            14451
+          ],
+          "component_scope": "Upper southeastward plains and southern San Luis lagoon surroundings",
+          "finding": "The upper continuation lies well south and southwest of Nueva Escocia and follows a more southwestern corridor than the prior selection. The 1:250,000 mosaic covers the intervening dune, farmland and low-contour terrain and the scattered lagoons around the Los Cisnes–El Tastús country. Local lake and rural-property labels appear in this region, but the complete selected sequence is not depicted as one continuous named stream. No individual lagoon name is extended over the modeled route.",
+          "sources": [
+            "r88-ign-sanluis-cordoba-raster-reuse",
+            "ign-sanluis-physical-2016"
+          ]
+        },
+        {
+          "fragments": [
+            14451
+          ],
+          "component_scope": "Provincial transition and country south of Villa Valeria–Lecueder",
+          "finding": "The middle route crosses the plains into Córdoba south of Villa Valeria and near/south of Lecueder, unlike the northern Villa Valeria approach of the previous selection. Readable original mapping shows fields, tracks, low contours, small water bodies and localized marsh/depression symbols. The named Río Quinto through Villa Sarmiento remains distinctly farther north; no selected confluence or receiving-trunk connection to it is established.",
+          "sources": [
+            "r88-ign-sanluis-cordoba-raster-reuse",
+            "ign-cordoba-physical-2016"
+          ]
+        },
+        {
+          "fragments": [
+            14451
+          ],
+          "component_scope": "Lowlands north of Huinca Renancó and western Pincén approach",
+          "finding": "The lower path continues east and southeast through inland agricultural and wet-depression country north of Villa Huidobro and Huinca Renancó, west/southwest of the Mattaldi–Santa Magdalena corridor. Finer retained mapping independently covers the continuation toward Pincén and shows numerous marsh/depression marks and scattered lagoons among rural properties. These mapped water features do not establish a connected named river across the full lower sequence, and no nearby lagoon label is transferred to the route.",
+          "sources": [
+            "r88-ign-sanluis-cordoba-raster-reuse"
+          ]
+        },
+        {
+          "fragments": [
+            14451
+          ],
+          "component_scope": "Actual ending and distinction from the prior selection",
+          "finding": "The final modeled dogleg approaches the road and railway corridor west and north of Pincén and ends in inland low-contour country north-northeast of the town. The selected ending coincides with the prior selection’s modeled endpoint, while the long upstream route is distinct. Detailed original map pixels do not establish a named river mouth, exact named terminal lake or a continuation to the Quinto/La Amarga receiving region. The endpoint is retained in its actual local setting.",
+          "sources": [
+            "r88-ign-sanluis-cordoba-raster-reuse"
+          ]
+        },
+        {
+          "fragments": [
+            14451
+          ],
+          "component_scope": "Whole-route identity conclusion",
+          "finding": "Independent review of the current complete selection supports withholding a whole-route natural-river or receiving-system name. The cartography differentiates this long southwestern plains route from Río Quinto and shows multiple intervening terrestrial and low-depression settings. Historical map omission alone cannot establish permanent disconnection, absence of flood flow or absence of modern artificial drains; those stronger claims are not made.",
+          "sources": [
+            "r88-ign-sanluis-cordoba-raster-reuse",
+            "ign-sanluis-physical-2016",
+            "ign-cordoba-physical-2016"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70972107",
+      "source_keys": [
+        "r88-imn-zapote",
+        "r88-imn-sancarlos",
+        "r88-imn-sarapiqui",
+        "r88-imn-chirripo",
+        "r88-oas-sanjuan1997"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10689
+          ],
+          "finding": "The selected headward corridor corresponds to Cucaracho drainage followed by Pizote. The IMN map distinguishes it from the separate Zapote course through Upala farther east. At the lakeward end, the modeled route changes to a straight passage across the southern Lake Nicaragua setting; that segment is not a named extension of Pizote or an ordinary river channel.",
+          "sources": [
+            "r88-imn-zapote",
+            "r88-oas-sanjuan1997"
+          ]
+        },
+        {
+          "fragments": [
+            10707,
+            10708,
+            10709,
+            10690
+          ],
+          "finding": "The northern selection lies in the Lake Nicaragua routing context: northwestern lake, western side, southern cross-lake passage and approach to the San Carlos outlet. The source map's graticule, Ometepe, southern shoreline and San Carlos locate these connectors within the lake system. Lake Managua and the Tipitapa connection are outside the selected route. These fragments must not be assigned an invented continuous tributary name.",
+          "sources": [
+            "r88-oas-sanjuan1997"
+          ]
+        },
+        {
+          "fragments": [
+            10691,
+            10692,
+            10693,
+            10694,
+            10695,
+            10696,
+            10697,
+            10698,
+            10699
+          ],
+          "finding": "The receiving route matches San Juan from the Lake Nicaragua outlet near San Carlos through the El Castillo reach, the San Carlos tributary junction, the Sarapiquí junction and onward to the Colorado bifurcation. The study's regional hydrographic map and narrative independently identify the lake–San Juan relationship; the eastern IMN maps locate the lower junctions and split.",
+          "sources": [
+            "r88-oas-sanjuan1997",
+            "r88-imn-sancarlos",
+            "r88-imn-sarapiqui",
+            "r88-imn-chirripo"
+          ]
+        },
+        {
+          "fragments": [
+            10705,
+            10706
+          ],
+          "finding": "These fragments follow a selected middle/lower San Carlos corridor from the Muelle-area reach through its broad lower bend to San Juan. The selection does not include the entire San Carlos headwater network or the Arenal reservoir and river shown farther upstream in the source map.",
+          "sources": [
+            "r88-imn-sancarlos"
+          ]
+        },
+        {
+          "fragments": [
+            10701,
+            10702,
+            10703,
+            10704
+          ],
+          "finding": "The long southern branch runs from the Irazú-side upper drainage through the Sucio corridor, then joins lower Sarapiquí and reaches San Juan. A short western Sarapiquí approach is also selected. The adjacent IMN basin maps are needed together: the Sarapiquí chapter alone does not cover the whole southern Sucio approach. The exact name of the first small upper fork is not asserted; the separate Chirripó route toward Colorado is not substituted for the selected northwestward Sucio connection.",
+          "sources": [
+            "r88-imn-sarapiqui",
+            "r88-imn-chirripo"
+          ]
+        },
+        {
+          "fragments": [
+            10700
+          ],
+          "finding": "After leaving San Juan, the selection takes the looping Colorado distributary southward and then northeastward into the Barra del Colorado coastal-mouth setting. The IMN map separates this route from the more northerly Caño Bravo and the continuing lower San Juan. The generalized endpoint is near the Caribbean opening; an exact present shoreline, channel bank or surveyed mouth coordinate is not claimed.",
+          "sources": [
+            "r88-imn-chirripo"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70157569",
+      "source_keys": [
+        "r88-nrcan-kapiskau-map"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9234
+          ],
+          "finding": "The selected start lies in the southwestern headward corridor north of the Albany River. Its short first cells connect into the repeatedly labeled Atikameg River course. They are not assigned a separate tiny-feeder name or a surveyed formal source. Nearby Pagashi and the more northerly Poplar drainage remain distinct.",
+          "sources": [
+            "r88-nrcan-kapiskau-map"
+          ]
+        },
+        {
+          "fragments": [
+            9234
+          ],
+          "finding": "The long eastward and then northeastward selected valley follows the Atikameg, which is explicitly labeled at several positions. It approaches a separately mapped Kapiskau course arriving from the west. The selection therefore does not begin on the conventional far-western Kapiskau or pass through Kapiskau Lake.",
+          "sources": [
+            "r88-nrcan-kapiskau-map"
+          ]
+        },
+        {
+          "fragments": [
+            9234,
+            9235
+          ],
+          "finding": "Below the Atikameg junction, the selected receiving river follows repeated Kapiskau labels northeast across the lowlands. The model-fragment junction is a data subdivision and is not used as an exact name-change point. Lawashi lies separately to the north; Albany lies farther south.",
+          "sources": [
+            "r88-nrcan-kapiskau-map"
+          ]
+        },
+        {
+          "fragments": [
+            9235
+          ],
+          "finding": "The final course bends east into the mapped Kapiskau near-mouth channel south of the Lawashi/Attawapiskat coastal openings. The selected endpoint remains within the widened river/estuary before the complete James Bay tidal-flat opening. Nearby separately mapped creeks and southern drainage channels are not substituted for this river. The exact present shoreline, tidal limit and mouth vertex are not established.",
+          "sources": [
+            "r88-nrcan-kapiskau-map"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

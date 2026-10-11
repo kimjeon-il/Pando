@@ -1,0 +1,16 @@
+{
+  "scope": "Exactly three selected Natural Earth-derived lake source features and their selected baseline lake features, with factual geometry and ID checks.",
+  "source_attribution": "Natural Earth 5.0.0 1:10m lake data, as attributed by the included feature properties. Made with Natural Earth.",
+  "official_terms_url": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "public_domain_fact": "Natural Earth states that all versions of its raster and vector map data are in the public domain.",
+  "interpretation": "The selected Natural Earth lake data may be modified and electronically disseminated. This statement does not assert rights for unrelated maps or documents.",
+  "selected_source_ids": [
+    "1159110463",
+    "1159107033",
+    "1159110475"
+  ],
+  "complete_selected_lake_coordinates_in_public_package": true,
+  "complete_upstream_assets_in_public_package": false,
+  "binary_packs_or_worker_bodies_in_public_package": false,
+  "terms_body_in_public_package": false
+}

@@ -1,0 +1,75 @@
+{
+  "schema": "hydro-independent-source-observations-v1",
+  "reviewed_at_utc": "2026-10-09T13:07:01.318453+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751"
+  ],
+  "new_external_requests": 0,
+  "original_publications_rehashed": 4,
+  "source_body_republication_permitted": false,
+  "regional_map_used_for_three_targets": true,
+  "observations": [
+    {
+      "source_key": "GNWT-CARIBOU-MAP-2018",
+      "url": "https://www.gov.nt.ca/sites/ecc/files/resources/publication_text_fsu_caribou_management_zone_messaging_dec_18_2018.pdf",
+      "checked_asset_ids": [
+        "GNWT-CARIBOU-MAP-2018-PDF",
+        "GNWT-CARIBOU-MAP-2018-TEXT",
+        "GNWT-CARIBOU-MAP-2018-RECEIPT",
+        "GNWT-CARIBOU-MAP-2018-MAP-VIEW",
+        "OVERLAY-1159110371",
+        "OVERLAY-1159109471",
+        "OVERLAY-1159111751",
+        "ARTILLERY-ORIGINAL-DETAIL",
+        "GRAS-ORIGINAL-DETAIL",
+        "YAMBA-ORIGINAL-DETAIL"
+      ],
+      "inspection": "Rehashed the original PDF and separate cached text. Viewed all of page 2, its date, scale and legend, all three full-ring overlays, and independent unoverlaid detail crops. Read embedded viewport, geographic controls and projection; recomputed every source-position transform.",
+      "finding": "The main Artillery, Lac de Gras and Yamba shapes match regional labels. The northeastern Gras and southwestern Yamba lobes overlap separately named connected waters. The Artillery southwest extension raises a qualified downstream-scope concern.",
+      "limitation": "Map labels alone are insufficient for inclusion. The Toura spelling is preserved without equivalence claims. No independently measured shoreline overlap, exact named subdivision or formal name decision follows from this regional map."
+    },
+    {
+      "source_key": "PARKS-THAIDENE-2015",
+      "url": "https://parks.canada.ca/pn-np/cnpn-cnnp/thaidene-nene/apprendre-learn/~/media/fef196045c10406992f46f1bfd49ba53.ashx",
+      "checked_asset_ids": [
+        "PARKS-THAIDENE-2015-PDF",
+        "PARKS-THAIDENE-2015-TEXT",
+        "PARKS-THAIDENE-2015-RECEIPT",
+        "PARKS-PAGE-1",
+        "PARKS-PAGE-2"
+      ],
+      "inspection": "Rehashed original PDF; independently read both pages and viewed the complete boundary-considerations flyer including its July 2015 consultation map.",
+      "finding": "Parks Canada discusses Artillery Lake and the lower Lockhart River as distinct named features in the proposed reserve context.",
+      "limitation": "This is proposal-era park context. It does not label Toura, establish T’oula equivalence, or delineate the exact name extent of the selected ring."
+    },
+    {
+      "source_key": "DIAND-GRAS-1998",
+      "url": "https://www.gov.nt.ca/ecc/sites/ecc/files/lac_de_gras_drainage_basin_study_1998.pdf",
+      "checked_asset_ids": [
+        "DIAND-GRAS-1998-PDF",
+        "DIAND-GRAS-1998-TEXT",
+        "DIAND-GRAS-1998-RECEIPT",
+        "DIAND-PAGE-6"
+      ],
+      "inspection": "Rehashed original PDF; independently read cover/date, PDF page 6 site text/caption and page 10 drainage discussion. Viewed all of page 6, including the blank Map 1 frame and actual narrows photograph.",
+      "finding": "The field investigation describes flow through the narrows from Lac du Sauvage into Lac de Gras. The two source names are distinct connected waters, not demonstrated aliases.",
+      "limitation": "Map 1 is blank in the inspected rendering and excluded. Site point and photograph provide no exact polygon subdivision; no second authoritative shoreline map was inspected here."
+    },
+    {
+      "source_key": "GNWT-TERS-2010",
+      "url": "https://www.gov.nt.ca/ecc/sites/ecc/files/209_manuscript.pdf",
+      "checked_asset_ids": [
+        "GNWT-TERS-2010-PDF",
+        "GNWT-TERS-2010-TEXT",
+        "GNWT-TERS-2010-RECEIPT",
+        "TERS-PAGE-35"
+      ],
+      "inspection": "Rehashed original PDF; checked cover showing publication year 2010 and reporting year 2008, independently read PDF pages 34-35, and viewed the complete page 35 photograph and caption.",
+      "finding": "The caption identifies narrows between Yamba Lake and Daring Lake, while the preceding discussion pairs the two lake areas.",
+      "limitation": "A landscape photograph and caption independently support the named connection, but they do not geolocate an exact split within the stored polygon."
+    }
+  ],
+  "hash_limit": "Local source hashes verify exact retained bytes; replay does not repeat human visual inspection. Raw files are optional for full-local validation and absent from durable-only mode."
+}

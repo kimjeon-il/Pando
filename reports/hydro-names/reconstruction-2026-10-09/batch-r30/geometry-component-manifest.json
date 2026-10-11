@@ -1,0 +1,25 @@
+{
+  "schema": "frozen-selected-lake-summary-component-public-v1",
+  "batch": "r30",
+  "scope_aw_ids": [
+    "lakes_base:1159110649",
+    "lakes_base:1159107913",
+    "lakes_base:1159110611"
+  ],
+  "frozen_at_utc": "2026-10-09T22:46:22.136447Z",
+  "validation_scope": "included-summary-evidence-only",
+  "complete_coordinates_in_public_package": false,
+  "per_ring_paths_in_public_package": false,
+  "omitted_input_fingerprints_in_public_package": false,
+  "new_external_requests": 0,
+  "files": {
+    "selected-inventory-records.json": "5af8b409bca84cfd175e65fcbe76ddd339b0516649fb887f62228d4ba16733c2",
+    "geometry-duplicate-check.json": "b99896d739a4431ce6cd5067a11c3ba4384c2d85f38ac9ab842f0eb29ac41fd7",
+    "geometry-publication-rights.json": "06c8de04eff1c1e2d764adee0ccff37649adf478ecc57b6337c64e7a5413438a",
+    "geometry-README.md": "c4a598ca814f728dd7c930683125d2f9d5f9d318542d7b5d3cdc4bbcc5bf237b",
+    "geometry-reference.json": "e9fb14a01ff6df76e7975d13e856c29ec289b3400faa3870c6feeacd0a35e021",
+    "validate-geometry-reference.py": "ef5e901dc3b79ee1b1785af6d2a9d1269447f8a352897b809e5c10e5230bbcca",
+    "test-geometry-reference.py": "c856ed973f9f065aa8e968480f91cc16cf409ec8f2c045978882a291d37befb3",
+    "geometry-validation.json": "e599c3ec3bc36a4a9e9c758da26a66448d3a7699606f9a310f07a73ae204cc7b"
+  }
+}

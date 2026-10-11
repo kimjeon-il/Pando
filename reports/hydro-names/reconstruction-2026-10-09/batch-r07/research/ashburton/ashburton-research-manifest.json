@@ -1,0 +1,23 @@
+{
+  "schema": "hydro-research-file-manifest-v1",
+  "frozen_at_utc": "2026-10-09T13:43:31.606738+00:00",
+  "target_aw_id": "hydro-system:50552041",
+  "files": [
+    {
+      "file": "ashburton-findings.json",
+      "bytes": 1822,
+      "sha256": "10d42b19b4d2fc964d054e01f60c6b9bd32e57177dc9c62c7641d195bc030d57"
+    },
+    {
+      "file": "ashburton-geometry-comparison.json",
+      "bytes": 2194,
+      "sha256": "85ba9d82d2a8f6ec92b467fb7ef86bedccbd5f9176ac17ed2c92d9ed3539e7ec"
+    },
+    {
+      "file": "ashburton-source-evidence.json",
+      "bytes": 5621,
+      "sha256": "ebaaa5bca277039f79a2e3009606806f7b5ec8d8a117305311b37e44a1f78c86"
+    }
+  ],
+  "original_pdfs_images_html_or_coordinate_arrays_included": false
+}

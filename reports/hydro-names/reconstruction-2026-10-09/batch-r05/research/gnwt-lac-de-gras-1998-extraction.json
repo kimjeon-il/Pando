@@ -1,0 +1,14 @@
+{
+  "source_key": "DIAND-GRAS-1998",
+  "factual_extraction": [
+    "A field report describes a ground investigation at an outlet narrows, gives its position as 64 degrees 31 minutes north and 110 degrees 02 minutes west, and observes flow from the upstream named lake into the downstream named lake.",
+    "The passage supports the interpretation that the two names denote distinct connected waters. It does not equate either name with the complete selected generalized polygon."
+  ],
+  "locator": "PDF page 6, printed page 3, Site 1 and Photo 1; cover and transmittal letter for date/publisher.",
+  "quoted_names_only": [
+    "Lac du Sauvage",
+    "Lac de Gras"
+  ],
+  "extent_limit": "The position is a survey-site point, not a lake centroid or full polygon. The local MuPDF rendering leaves the Map 1 panel blank and emits a color-profile warning; that map panel is not evidence. Text and photo caption rendered legibly. This hosted original is one source, not an additional independent GNWT study.",
+  "raw_source_republished": false
+}

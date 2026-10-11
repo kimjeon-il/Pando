@@ -1,0 +1,633 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r124",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r123",
+    "commit": "b326b5c876cb95bf822ab93ef44a90e10db1d808",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r123/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61457744",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:61070413"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61457744",
+      "category": "river_group",
+      "system_id": "61457744",
+      "original_queue_rank": 296,
+      "baseline_logical_fid": 3553,
+      "geometry_fids": [
+        14006,
+        14007,
+        14008,
+        14009
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -51.452083,
+        -30.013767,
+        -50.427083,
+        -29.247917
+      ],
+      "rendered_mainstem_length_km": 224.787,
+      "rendered_network_length_km": 237.256,
+      "geometry_summary": {
+        "fragment_count": 4,
+        "mainstem_fragment_count": 3,
+        "tributary_fragment_count": 1,
+        "mainstem_bbox": [
+          -51.452083,
+          -30.013767,
+          -50.427083,
+          -29.247917
+        ]
+      },
+      "candidate_name": "Rio Caí",
+      "candidate_names": [
+        "Rio Caí"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Caí is representative of the principal middle and lower river and its connected upper Santa Cruz corridor. The initial small headward feeder is unnamed in this finding; Rio Santa Cruz, the Blang and Salto impoundments, the separate lower Rio dos Sinos component and the Jacuí delta keep distinct geographic/name scope.",
+      "geographic_disambiguation": "This is not the upper Rio dos Sinos or its Paranhana main route. The upper Salto transfer to Paranhana is a separately described artificial connection, while the selected mainstem continues along Santa Cruz–Caí. In the terminal region, Caí, Sinos, Jacuí, Gravataí and Guaíba are separately depicted; the stored terminal class sea is retained model metadata and does not establish an open-ocean mouth.",
+      "source_keys": [
+        "r124-sema-cai-map",
+        "r124-sema-sinos-map",
+        "r124-ibge-sao-francisco-paula-2020",
+        "r124-ibge-porto-alegre-2020",
+        "r124-sgb-cai-2025",
+        "r124-fepam-cai-description"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "completion_scope": "All selected MultiLineString pieces in FIDs 14006–14009 were read against original cartography at ordinary generalized component/corridor scale, including headward opening, Blang–Salto water-body passage, tributary approaches, lower Sinos connection and actual delta terminal setting. No exact bank, vertex, dam-axis or mouth-point match is required or asserted. No geometry edits or revalidation, application-code inspection, tests, audit, full-dataset acquisition or portable package were performed.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "region": "Rio Grande do Sul, Brazil; upper Santa Cruz–Caí corridor, lower Sinos fragment and Jacuí delta upstream of Guaíba.",
+      "candidate_name_role": "supported_representative_system_identity",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "representative_system_identity": "Rio Caí",
+        "initial_minor_feeder_name": null,
+        "upper_named_river": "Rio Santa Cruz",
+        "selected_reservoir_settings": [
+          "Blang",
+          "Salto"
+        ],
+        "distinct_lateral_reservoir": "Divisa",
+        "excluded_transfer_route": "Separate transfer toward UHE Bugres / Rio Paranhana",
+        "separately_named_tributary_fragment": {
+          "fid": 14009,
+          "name": "Rio dos Sinos"
+        },
+        "actual_terminal_setting": "Northern Jacuí delta channel/island complex, upstream of broad Guaíba",
+        "individual_terminal_channel_name": null,
+        "whole_selection_uniform_name_established": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:61456098",
+      "category": "river_group",
+      "system_id": "61456098",
+      "original_queue_rank": 297,
+      "baseline_logical_fid": 3551,
+      "geometry_fids": [
+        14000,
+        14001,
+        14002
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -71.283653,
+        -30.271543,
+        -69.84023,
+        -29.839583
+      ],
+      "rendered_mainstem_length_km": 224.68,
+      "rendered_network_length_km": 224.68,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -71.283653,
+          -30.271543,
+          -69.84023,
+          -29.839583
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": {
+        "all_selected_fragments_considered": true,
+        "full_mainstem_and_tributary_corridors_inspected": false,
+        "actual_terminal_settings_inspected": [
+          "Lower Río Elqui coastal/estuarine setting at La Serena and the Pacific coast"
+        ],
+        "all_material_confluences_inspected": false,
+        "supported_material_junctions": [
+          "Lower Colorado/La Gloria–La Laguna setting",
+          "La Laguna–Toro forming Turbio",
+          "Incaguas joining Turbio",
+          "Guanta and Calvario tributary settings",
+          "Turbio–Claro forming Elqui",
+          "Marquesa and Santa Gracia receiving settings"
+        ],
+        "selected_lake_or_reservoir_passage": "La Laguna northward reservoir passage and Puclaro east-to-west reservoir passage are supported by primary hydrographic approaches, separately rendered COT waterbody polygons and operator/report prose. Neither reservoir is treated as a river hydronym or as a current shoreline observation.",
+        "unresolved_material_connections": [
+          "FID14000 initial high-Andes branch and its southeast connector",
+          "FID14001 boundary-aligned course east of the mapped Colorado valley",
+          "Initial westward part of FID14002 before the recognizable lower Colorado/La Gloria approach"
+        ],
+        "headward_mismatch_vs_gap": "The selected eastern excursion is visible in the selected orientation and lies east of the named channels in the MMA hydrographic source. The source lacks terrain detail sufficient to establish whether the whole excursion is a ridge/non-channel crossing. Réveillet et al. Figure1 adds upper-basin relief but cannot close this specific correspondence gap. Absence of a mapped channel is not converted into proof of a non-channel route.",
+        "needed_to_resume": "Independently identified, permitted primary cartography accounting for the eastern initial branch, the whole border-aligned connector and its entry to the mapped Colorado valley at ordinary generalized scale. No exact bank, vertex, perennial-flow or mouth-point proof is required."
+      },
+      "naming_scope_details": {
+        "whole_object_candidate": null,
+        "downstream_receiving_identity": "Río Elqui",
+        "receiving_identity_is_whole_route_name": false,
+        "mapped_component_identities": [
+          {
+            "name": "Río Colorado",
+            "scope": "Neighboring natural eastern valley and lower approach; not assigned to FIDs14000/14001 or the whole modeled eastern connection."
+          },
+          {
+            "name": "Río de La Gloria",
+            "scope": "Southern formative branch visible near the lower Colorado approach; not a whole-selected-route name."
+          },
+          {
+            "name": "Río de La Laguna",
+            "scope": "Reservoir/outlet corridor to Toro within the supported part of FID14002."
+          },
+          {
+            "name": "Río Turbio",
+            "scope": "From Toro–La Laguna junction to Claro near Rivadavia within FID14002."
+          },
+          {
+            "name": "Río Elqui",
+            "scope": "Receiving course after Turbio–Claro confluence to the Pacific within FID14002."
+          }
+        ],
+        "distinct_reservoir_settings": [
+          "La Laguna",
+          "Puclaro"
+        ],
+        "actual_receiving_waterbody": "Pacific Ocean near La Serena",
+        "component_scope_limits": [
+          "Do not name the eastern initial branch or border-aligned connector Colorado, El Empalme, La Laguna or Elqui from a nearby label or basin membership.",
+          "The source names Colorado, La Gloria, La Laguna, Turbio and Elqui have distinct component scopes. A downstream Elqui identity is not a scalar name for every selected reach.",
+          "Unknown and unestablished names remain null; no product or Korean naming change is proposed."
+        ]
+      },
+      "region": "High Andes and Coquimbo, Chile; unresolved eastern border-aligned approach to La Laguna–Turbio–Elqui and La Serena coast.",
+      "candidate_name_role": "bounded_component_identity_only; full_system_material_pending",
+      "source_keys": [
+        "mma-simbio-hydro",
+        "mma-simbio-cot2020",
+        "dga-elqui-2004",
+        "jvre-laguna",
+        "jvre-puclaro",
+        "mma-elqui-basin043",
+        "minvu-elqui2025",
+        "reveillet-2020",
+        "gef-elqui-news2022"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "FIDs14000/14001 and the initial westward connection of FID14002 are not sufficiently accounted for by primary cartography. Neighboring Colorado/El Empalme labels and broad relief do not establish the selected channel or a clearly mapped non-channel crossing.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The downstream selected corridor is the La Laguna–Turbio–Elqui system, with La Laguna and Puclaro reservoir settings and the Pacific terminal near La Serena supported. The eastern initial branch, border-aligned segment and their westward connection into the Colorado valley are not sufficiently accounted for by the available primary cartography. This is one material-pending record, not a completed representative identity or completed naming-scope hold.",
+      "supported_name_scope": "Downstream La Laguna–Turbio–Elqui components, La Laguna/Puclaro reservoirs and the Pacific receiver near La Serena are supported; no whole-object candidate is assigned."
+    },
+    {
+      "aw_id": "hydro-system:70290797",
+      "category": "river_group",
+      "system_id": "70290797",
+      "original_queue_rank": 298,
+      "baseline_logical_fid": 3019,
+      "geometry_fids": [
+        9405,
+        9406,
+        9407
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -57.952083,
+        48.560417,
+        -57.235417,
+        49.227083
+      ],
+      "rendered_mainstem_length_km": 224.675,
+      "rendered_network_length_km": 224.675,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -57.952083,
+          48.560417,
+          -57.235417,
+          49.227083
+        ]
+      },
+      "candidate_name": "Humber River",
+      "candidate_names": [
+        "Humber River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Humber River/lower Humber component and broader Humber basin association, with separately named lake, brook, reservoir and diversion passages.",
+      "geographic_disambiguation": "Newfoundland Humber system, not the Ontario Humber. The representative downstream river does not rename the southern feeder, Little Grand Lake, Grand Lake, Junction Brook, Humber Canal or Deer Lake. The actual ending is inner Humber Arm, Bay of Islands, near Corner Brook.",
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "completion_scope": "All three selected FIDs and their complete route were considered using retained geometry solely for orientation. The unresolved headward connector is explicitly preserved. No geometry edited or revalidated; no application code, tests, CI, audits, full HydroRIVERS/base GeoJSON, product naming changes or portable packages.",
+      "material_pending_reason": "A short initial eastern bow of FID 9405 crosses beyond the detailed Little Grand Lake provincial map into the Star Lake sheet area. Available regional cartography does not resolve the returning stream/pond connector. The intended provincial catalogue returned Cache miss and the independent exact CanMatrix Star Lake sheet returned HTTP 403; no stopped route was retried.",
+      "naming_scope_hold_reason": null,
+      "region": "Western Newfoundland; unresolved eastern feeder, Little Grand Lake–Grand Lake–Junction Brook–Deer Lake–Humber Arm.",
+      "candidate_name_role": "bounded_component_identity_only; full_system_material_pending",
+      "source_keys": [
+        "r124-nl-mag2009-30",
+        "r124-nl-batterson-report0302",
+        "r124-nl-deerlake-hydrotechnical1987",
+        "r124-nl-organ-dyke2019"
+      ],
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_system_candidate": "Humber River",
+        "initial_feeder_name": null,
+        "bounded_feeder_label": "Lewaseechjeech Brook",
+        "distinct_lake_passages": [
+          "Little Grand Lake",
+          "Grand Lake",
+          "Deer Lake"
+        ],
+        "selected_outlet_corridor": "Junction Brook main-dam/spillway route to Upper Humber",
+        "distinct_hydropower_diversion": "Humber Canal directly to Deer Lake",
+        "actual_receiving_waterbody": "Humber Arm, Bay of Islands",
+        "modern_flow_or_gate_state_established": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:61070413",
+      "category": "river_group",
+      "system_id": "61070413",
+      "original_queue_rank": 299,
+      "baseline_logical_fid": 3472,
+      "geometry_fids": [
+        13874
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -38.352083,
+        -11.564583,
+        -37.473264,
+        -10.629167
+      ],
+      "rendered_mainstem_length_km": 224.615,
+      "rendered_network_length_km": 224.615,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -38.352083,
+          -11.564583,
+          -37.473264,
+          -10.629167
+        ]
+      },
+      "candidate_name": "Rio Real",
+      "candidate_names": [
+        "Rio Real"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Real is repeatedly printed on the long middle/lower border river and its estuarine continuation; primary mapping connects the separately identified Heliópolis headward drainage to this river. The support is for the representative system.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "region": "Bahia–Sergipe border, Brazil; Heliópolis feeder/Jibóia–Cumbanzê–Real corridor to the inner Real estuary.",
+      "candidate_name_role": "supported_representative_system_identity",
+      "source_keys": [
+        "INEMA_RPGA_XIII_2014",
+        "IBGE_HELIOPOLIS_2010",
+        "IBGE_HELIOPOLIS_2020",
+        "IBGE_JANDAIRA_2020",
+        "CPRM_SB50_2013",
+        "INEMA_REAL_MONITORA_2012",
+        "SERGIPE_DEFESA_CIVIL_2021",
+        "CEMAVE_ESTUARY_CH7"
+      ],
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The entire selected FID corresponds, at ordinary generalized scale, to a Heliópolis headward feeder–Jibóia/Cumbanzê–Rio Real corridor. The long downstream river follows the Bahia–Sergipe border through the Tobias Barreto/Itapicuru setting, then southeast past Rio Real municipality and east past Jandaíra to the lower estuarine widening near Indiaroba. Original INEMA and CPRM maps, supplemented by the original IBGE Heliópolis and Jandaíra municipal sheets, cover the complete selected corridor, major tributary settings and actual modeled terminal setting. Rio Real is supported as the representative system identity; it is not imposed on the initial feeder, upper differently labeled reaches or the whole outer estuary.",
+      "completion_scope": "The entire selected FID corresponds, at ordinary generalized scale, to a Heliópolis headward feeder–Jibóia/Cumbanzê–Rio Real corridor. The long downstream river follows the Bahia–Sergipe border through the Tobias Barreto/Itapicuru setting, then southeast past Rio Real municipality and east past Jandaíra to the lower estuarine widening near Indiaroba. Original INEMA and CPRM maps, supplemented by the original IBGE Heliópolis and Jandaíra municipal sheets, cover the complete selected corridor, major tributary settings and actual modeled terminal setting. Rio Real is supported as the representative system identity; it is not imposed on the initial feeder, upper differently labeled reaches or the whole outer estuary.",
+      "naming_scope_details": {
+        "representative_system_identity": "Rio Real",
+        "initial_minor_feeder_name": null,
+        "bounded_upper_component_names": [
+          "Riacho da Jibóia",
+          "Cumbanzê"
+        ],
+        "unselected_northeastern_head_branch": "Rio do Saco/Poço Verde",
+        "actual_selected_terminal": "Widening inner Rio Real estuary near Indiaroba, upstream of the Pontal/Mangue Seco Atlantic entrance",
+        "outer_receiving_context": "Piauí–Fundo–Real estuarine complex",
+        "component_scope_limits": [
+          "The headward portion belongs to the rural Heliópolis feeder network and Riacho da Jibóia/Cumbanzê drainage. It is not renamed Rio Real merely because the downstream river has that name.",
+          "The initial minor headward reach has no securely established hydronym in the inspected source coverage; its name remains null. Map correspondence was assessed at ordinary generalized corridor scale, without a precise source-point or name-transition-vertex claim.",
+          "INEMA's regional sheet generalizes the upper junctions; IBGE's 2010 municipal sheet distinguishes Riacho da Jibóia and the receiving Cumbanzê corridor before the Rio Real border reach. These labels are retained as bounded component observations rather than reconciled into a single scalar name.",
+          "The selected downstream end lies within the widening Rio Real estuarine corridor near Indiaroba, upstream of Pontal/Mangue Seco and the open-Atlantic entrance. The retained model terminal class sea does not establish that the selected line reaches the ocean-mouth point.",
+          "The Piauí/Fundo branches and their shared outer estuary are receiving-setting context, not extra selected reaches or alternate whole-feature names.",
+          "All accepted, scalar, Korean and application fields remain null or false. No formal registry status is claimed."
+        ],
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61456098",
+      "hydro-system:70290797"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 2,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 2
+  },
+  "totals_after": {
+    "recorded_targets": 439,
+    "non_pending_records": 386,
+    "source_access_pending": 3,
+    "source_material_pending": 50,
+    "source_any_pending": 53,
+    "scope_holds": 126,
+    "river_groups": 341,
+    "lakes": 98,
+    "unrecorded": 3626,
+    "unrecorded_river_groups": 3114,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r124-sema-cai-map",
+      "official_url": "https://www.sema.rs.gov.br/g030-bh-cai"
+    },
+    {
+      "source_key": "r124-sema-sinos-map",
+      "official_url": "https://www.sema.rs.gov.br/g020-bh-sinos"
+    },
+    {
+      "source_key": "r124-ibge-sao-francisco-paula-2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/sao_francisco_de_paula/4318200_MM.pdf"
+    },
+    {
+      "source_key": "r124-ibge-porto-alegre-2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/porto_alegre/4314902_MM.pdf"
+    },
+    {
+      "source_key": "r124-sgb-cai-2025",
+      "official_url": "https://rigeo.sgb.gov.br/handle/doc/25616"
+    },
+    {
+      "source_key": "r124-fepam-cai-description",
+      "official_url": "https://ww3.fepam.rs.gov.br/qualidade/qualidade_cai/cai.asp"
+    },
+    {
+      "source_key": "mma-simbio-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "source_key": "mma-simbio-cot2020",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "source_key": "dga-elqui-2004",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Elqui.pdf"
+    },
+    {
+      "source_key": "jvre-laguna",
+      "official_url": "https://www.rioelqui.cl/embalse-la-laguna/"
+    },
+    {
+      "source_key": "jvre-puclaro",
+      "official_url": "https://www.rioelqui.cl/hidraulica-puclaro/"
+    },
+    {
+      "source_key": "mma-elqui-basin043",
+      "official_url": "https://simbio.mma.gob.cl/Cuencas/VistaImpresion/043"
+    },
+    {
+      "source_key": "minvu-elqui2025",
+      "official_url": "https://www.minvu.gob.cl/wp-content/uploads/2023/01/2.-Informe-Ambiental-Complementario-2_PRI_Elqui.pdf"
+    },
+    {
+      "source_key": "reveillet-2020",
+      "official_url": "https://tc.copernicus.org/articles/14/147/2020/"
+    },
+    {
+      "source_key": "gef-elqui-news2022",
+      "official_url": "https://gef.mma.gob.cl/humedales/rio-elqui-es-reconocido-como-primer-humedal-urbano-de-la-region-de-coquimbo/"
+    },
+    {
+      "source_key": "r124-nl-batterson-report0302",
+      "official_url": "https://www.gov.nl.ca/em/files/mines-geoscience-publications-report0302.pdf"
+    },
+    {
+      "source_key": "r124-nl-mag2009-30",
+      "official_url": "https://www.gov.nl.ca/em/files/mines-geoscience-publications-openfiles-mag12a12.pdf"
+    },
+    {
+      "source_key": "r124-nl-deerlake-hydrotechnical1987",
+      "official_url": "https://www.canal.gov.nl.ca/reports/frm/FRM_Deer%20Lake/Hydrotechnical%20Study%20of%20the%20Deer%20Lake%20Area_Vol1_Main%20Report.pdf"
+    },
+    {
+      "source_key": "r124-nl-organ-dyke2019",
+      "official_url": "https://www.gov.nl.ca/em/files/mines-geoscience-publications-currentresearch-2019-organ-2019.pdf"
+    },
+    {
+      "source_key": "r124-nl-littlegrand-reserve-brochure",
+      "official_url": "https://www.gov.nl.ca/eccc/files/natural-areas-pdf-little-grand-lake-web.pdf"
+    },
+    {
+      "source_key": "INEMA_RPGA_XIII_2014",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/XIII-RPGA-DO-RIO-REAL.pdf"
+    },
+    {
+      "source_key": "IBGE_HELIOPOLIS_2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/ba/heliopolis_v2.pdf"
+    },
+    {
+      "source_key": "IBGE_HELIOPOLIS_2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/heliopolis/2911857_MM.pdf"
+    },
+    {
+      "source_key": "IBGE_JANDAIRA_2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/jandaira/2917904_MM.pdf"
+    },
+    {
+      "source_key": "CPRM_SB50_2013",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/11562/3/mapa_rede_sb50.pdf"
+    },
+    {
+      "source_key": "INEMA_REAL_MONITORA_2012",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/Relatrio_Real_FINAL.pdf"
+    },
+    {
+      "source_key": "SERGIPE_DEFESA_CIVIL_2021",
+      "official_url": "https://defesacivil.se.gov.br/wp-content/uploads/2023/10/PLANO-DEFESA-CIVIL-2021.pdf"
+    },
+    {
+      "source_key": "CEMAVE_ESTUARY_CH7",
+      "official_url": "https://cemave-sede.github.io/relatorio_aves/cap7.html"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "b326b5c876cb95bf822ab93ef44a90e10db1d808",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      296,
+      297,
+      298,
+      299
+    ],
+    "next_unrecorded_id": "hydro-system:60441146",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "hydro-names-factual-source-extraction-v1",
+  "aw_id": "lakes_base:1159108091",
+  "extractions": [
+    {
+      "source_key": "NPS-KATM-MAPS",
+      "facts": [
+        "The NPS catalog links a classic park map from the official park brochure and a Naknek Lake boating guide."
+      ],
+      "scope": "Establishes publisher provenance and source relationship, not waterbody identity alone."
+    },
+    {
+      "source_key": "NPS-KATM-CLASSIC-MAP",
+      "pages_reviewed": [
+        1
+      ],
+      "facts": [
+        "The regional park map labels the broad western lake Naknek Lake, its long northeastern arm North Arm and its southeastern arm Iliuk Arm.",
+        "Lake Brooks is drawn southwest of the Naknek/Iliuk junction; Lake Grosvenor lies north of the eastern arm. These distinct neighboring lake shapes are outside the reviewed target polygon."
+      ],
+      "scope": "Whole-region visual context; no surveyed name boundary or digital shoreline equivalence."
+    },
+    {
+      "source_key": "NPS-NAKNEK-BOATING-GUIDE-2013",
+      "pages_reviewed": [
+        1
+      ],
+      "source_date_on_map": "February 2013",
+      "map_projection_text": "Albers Equal Area, NAD83",
+      "short_quotes": [
+        "Full Lake View",
+        "Johnny's Lake",
+        "Many of the locations labeled use local names."
+      ],
+      "facts": [
+        "The first page presents Naknek Lake navigation with latitude/longitude graticules, a western basin, North Arm/Bay of Islands and Iliuk Arm.",
+        "A connected northwest basin is labeled with a local lake name and an entrance route. The complete target ring includes that basin’s generalized lobe.",
+        "The guide describes navigation on Naknek Lake but does not define a formal naming jurisdiction or prove that each locally named basin has a distinct official lake extent."
+      ],
+      "scope": "Supports generalized full-lake association and exposes a named-sub-basin caution. A local lake label alone does not demonstrate an independently scoped second lake."
+    },
+    {
+      "source_key": "NPS-KATM-BOATING",
+      "page_updated": "2024-01-29",
+      "facts": [
+        "NPS treats Bay of Islands and Iliuk Arm as destinations on Naknek Lake and links the same boating guide.",
+        "NPS describes Naknek as its largest lake and gives an area greater than 150,000 acres."
+      ],
+      "scope": "Ordinary official usage; the rounded descriptive area is not a geometry validation target or legal extent."
+    },
+    {
+      "source_key": "NPS-KATM-WATER",
+      "short_quotes": [
+        "The Iliuk Arm of Naknek Lake"
+      ],
+      "facts": [
+        "NPS identifies Iliuk Arm as part of Naknek Lake and describes the Savonoski and Ukak rivers entering that arm.",
+        "The text states that Naknek Lake drains west through Naknek River."
+      ],
+      "scope": "Supports arm membership and outlet direction; does not decide the northwestern locally named basin’s formal status."
+    },
+    {
+      "source_key": "USGS-ILIUK-STATION",
+      "short_quotes": [
+        "ILIUK ARM NAKNEK LK NR BROOKS CAMP AK"
+      ],
+      "station_id": "USGS-583240155420000",
+      "coordinates": {
+        "longitude": -155.7021044,
+        "latitude": 58.543734,
+        "datum": "NAD83"
+      },
+      "facts": [
+        "The NWIS record is maintained by the USGS Alaska Water Science Center and uses the Naknek Lake name for a site in Iliuk Arm.",
+        "The station coordinate is inside the reviewed target ring."
+      ],
+      "scope": "Independent agency name usage at one site only. Its map-interpolated coordinate has no stated accuracy and cannot establish whole-lake extent."
+    }
+  ]
+}

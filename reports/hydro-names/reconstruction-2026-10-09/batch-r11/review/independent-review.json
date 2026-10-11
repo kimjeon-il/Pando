@@ -1,0 +1,166 @@
+{
+  "schema": "hydro-independent-lake-review-v2",
+  "reviewed_at_utc": "2026-10-09T15:15:41.336877+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159112291",
+    "lakes_base:1159112821",
+    "lakes_base:1159109155"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Independent retained-original text and map-pixel inspection, complete original/source joins, independent binary decoding, every ordered coordinate and whole-footprint comparisons where acquired maps permit. No external request or registered raster overlay.",
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "geometry_modified": false,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0,
+  "prior_distinct_targets": 30,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 33,
+  "duplicate_targets": 0,
+  "current_batch_full_feature_correspondence_reviews_completed": 2,
+  "current_batch_source_limited_targets": 1,
+  "cumulative_count_scope": "Fresh recorded research verdicts, including holds and source-limited unresolved cases; not verified names or product approvals.",
+  "findings": [
+    {
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "aw_id": "lakes_base:1159112291",
+      "source_id": "1159112291",
+      "logical_fid": 4236,
+      "geometry_fids": [
+        15611
+      ],
+      "position_count": 51,
+      "candidate_name": "Dauphin Lake",
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "manitoba_dauphin_iwmp",
+        "eccc_dauphin_reference_index"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_named_water_shapes_compared": true,
+      "review_status": "generalized_identity_supported_not_product_name_clearance",
+      "supported_name_scope": "The complete north-south polygon corresponds to the Dauphin Lake basin east of Dauphin and southwest of separately mapped Lake Winnipegosis: narrow northern end, west-bank indentation, broad southeastern body and rounded southern margin. Mossy River is a connecting outlet, not an included second lake.",
+      "multiwater_extent_assessment": "no_separate_lake_combination_demonstrated_at_generalized_scale",
+      "limits": [
+        "The two inspected figures are panels of one watershed plan, not two independent publications.",
+        "Printed publication date was not established; January 2016 creation and December 2017 modification are PDF metadata only.",
+        "Shoreline marsh margins fluctuate and the plan area is descriptive; no exact area, shoreline or formal registry equivalence is claimed. ECCC station rows are ordinary federal usage at two sites."
+      ]
+    },
+    {
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "aw_id": "lakes_base:1159112821",
+      "source_id": "1159112821",
+      "logical_fid": 4274,
+      "geometry_fids": [
+        15649
+      ],
+      "position_count": 43,
+      "candidate_name": "Cold Lake",
+      "research_category": "unresolved_full_feature_correspondence",
+      "source_research_category": "unresolved_full_feature_correspondence",
+      "source_keys": [
+        "alberta_cold_subregional2019_text"
+      ],
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "actual_named_water_shapes_compared": false,
+      "review_status": "source_access_limited_full_feature_correspondence_unresolved",
+      "supported_name_scope": "Cold Lake remains a geographic name lead supported only by limited pre-existing text capture of an official subregional planning map. The actual source and retained baseline polygon are fully checked, but no acquired official full-lake map was available for independent correspondence review.",
+      "multiwater_extent_assessment": "unresolved_without_inspectable_full_waterbody_map",
+      "source_body_acquired": false,
+      "source_body_sha256": null,
+      "map_pixels_viewed": false,
+      "limits": [
+        "The brochure, water-management overview and subregional-map original acquisitions returned 403; no original response body or body hash was obtained for them.",
+        "A retained text capture includes Cold Lake and a July 24, 2019 completion imprint. Its extraction hash cannot serve as an original PDF hash; a screenshot reference without displayed pixels is not visual inspection.",
+        "The WSA map does not supply a complete named Cold Lake view at its western edge. Location and label plausibility do not establish whole-feature correspondence.",
+        "Follow-up source coverage remains required. This bounded recorded verdict is not a completed full-source name assessment."
+      ]
+    },
+    {
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "aw_id": "lakes_base:1159109155",
+      "source_id": "1159109155",
+      "logical_fid": 4018,
+      "geometry_fids": [
+        15393
+      ],
+      "position_count": 124,
+      "candidate_name": "Deschambault Lake",
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "wsa_deschambault_map",
+        "eccc_deschambault_usage"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_named_water_shapes_compared": true,
+      "review_status": "generalized_identity_supported_not_product_name_clearance",
+      "supported_name_scope": "The full bent, lobed source polygon agrees with the WSA mapped Deschambault waterbody: southern rounded basin, narrowed middle, western arm and broad northeastern part. Neighboring Wapawekka, Wood, Jan and Mirond waters provide context; they are not established included second lakes.",
+      "multiwater_extent_assessment": "no_separate_lake_combination_demonstrated_at_generalized_scale",
+      "nearby_distinct_map_labels": [
+        "Wapawekka Lake",
+        "Wood Lake",
+        "Jan Lake",
+        "Mirond Lake"
+      ],
+      "limits": [
+        "The WSA thematic map is printed November 25, 2014 at 1:1,750,000. A 2025 URL folder and later HTTP metadata do not update its cartography.",
+        "This is ordinary provincial map usage from one publication. Full-ring regional comparison is not a datum-registered shoreline fit, surveyed name extent or current formal registry determination.",
+        "Natural Earth omits small bays, islands and other shoreline detail; surrounding waterbody labels were considered rather than transferred solely by overlap."
+      ]
+    }
+  ],
+  "shared_limits": [
+    "The original and retained baseline polygons contain 218 ordered positions matching at six-decimal quantization.",
+    "Four genuine naming-source bodies were inspected: two map publications and two HTML station indices. One unrelated redirect body is retained separately as an unused acquisition.",
+    "The Cold Lake record preserves a text-only capture and three failed acquisitions. It does not claim missing original map bytes, a map view or completed full-feature naming research.",
+    "No geometry repair, map republication, automated application or historical verdict restoration occurred."
+  ]
+}

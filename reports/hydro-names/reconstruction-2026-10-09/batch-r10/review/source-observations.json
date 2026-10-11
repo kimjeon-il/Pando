@@ -1,0 +1,222 @@
+{
+  "schema": "hydro-independent-source-observations-v2",
+  "scope_aw_ids": [
+    "hydro-system:50766256",
+    "hydro-system:50779535",
+    "hydro-system:50782443"
+  ],
+  "new_external_requests": 0,
+  "source_body_republication_permitted": false,
+  "original_naming_source_bodies_rehashed": 6,
+  "original_source_bodies_rehashed": 7,
+  "supplemental_page_count": 1,
+  "independent_registered_overlay_claimed": false,
+  "exact_source_reach_name_transitions_verified": false,
+  "observations": [
+    {
+      "source_key": "BOM-AWRA2012",
+      "research_source_aliases": [
+        "COLLIE-WARREN-BOM-AWRA2012",
+        "KALGAN-BOM-AWRA2012"
+      ],
+      "body_id": "BOM-AWRA2012-BODY",
+      "source_body_sha256": "dff18c6d4922a6b10bf180c144d8e1ead38e7a2e6c2a62a087fa760359099032",
+      "checked_asset_ids": [
+        "BOM-AWRA2012-BODY",
+        "BOM-AWRA2012-RECEIPT",
+        "BOM-AWRA2012-TEXT",
+        "BOM-AWRA2012-VIEW-1",
+        "BOM-AWRA2012-VIEW-2"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "The complete Southwest Coast figures locate the Collie drainage by Bunbury, the Warren coastal corridor farther south, and the Albany Coast drainage to the east. Collie-Preston and Albany Coast are regional labels, not individual channel names. Both figures and both research aliases are one reused publication; its resolution supports regional context only.",
+      "printed_date": "2013",
+      "assessment_year": 2012,
+      "copyright_year": 2013,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T13:39:38.842251+00:00",
+      "reused_original_from_prior_batch": true,
+      "counted_as_supporting_publication": true
+    },
+    {
+      "source_key": "WA-SLUI38-2005",
+      "research_source_aliases": [
+        "WA-SLUI38-2005"
+      ],
+      "body_id": "WA-SLUI38-2005-BODY",
+      "source_body_sha256": "409f638c71046d932f916c38f0c4d7940953f9a8bcdd44f450af18a21b6e1d95",
+      "checked_asset_ids": [
+        "WA-SLUI38-2005-BODY",
+        "WA-SLUI38-2005-RECEIPT",
+        "WA-SLUI38-2005-TEXT",
+        "WA-SLUI38-2005-VIEW-1",
+        "WA-SLUI38-2005-VIEW-2",
+        "WA-SLUI38-2005-VIEW-3",
+        "WA-SLUI38-2005-VIEW-4",
+        "WA-SLUI38-2005-VIEW-5"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "Printed page 30 describes Warren beginning as Tone, with Perup, Wilgarup and Lefroy distinct. Printed pages 41 and 42 distinguish Collie River East, South Branch, Brunswick, Harris and Bingham, with the Collie route through Wellington Reservoir into Leschenault Inlet. Figure 3.27 shows the regional drainage courses and supports the selected full westward Collie and southwestward Tone-Warren alignments. Exact headwater, reservoir and name-transition boundaries are not assigned.",
+      "printed_date": "2005-01",
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:25:45.505268+00:00",
+      "reused_original_from_prior_batch": true,
+      "counted_as_supporting_publication": true
+    },
+    {
+      "source_key": "COLLIE-DWER-HEALTHYRIVERS",
+      "research_source_aliases": [
+        "COLLIE-DWER-HEALTHYRIVERS"
+      ],
+      "body_id": "COLLIE-DWER-HEALTHYRIVERS-BODY",
+      "source_body_sha256": "5eacb62814f987ee45a75f1ad493d22e290506060d149bc03d3f82deeef87272",
+      "checked_asset_ids": [
+        "COLLIE-DWER-HEALTHYRIVERS-BODY",
+        "COLLIE-DWER-HEALTHYRIVERS-RECEIPT",
+        "COLLIE-DWER-HEALTHYRIVERS-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "The original basin profile places Collie headwaters on the Darling Plateau, through Wellington Dam and the coastal plain to Leschenault Estuary north of Bunbury. Brunswick and Harris remain distinct rivers. Interactive mapping was not inspected.",
+      "printed_date": null,
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:45:03.739301+00:00",
+      "reused_original_from_prior_batch": false,
+      "counted_as_supporting_publication": true
+    },
+    {
+      "source_key": "WARREN-DWER-HEALTHYRIVERS",
+      "research_source_aliases": [
+        "WARREN-DWER-HEALTHYRIVERS"
+      ],
+      "body_id": "WARREN-DWER-HEALTHYRIVERS-BODY",
+      "source_body_sha256": "57682837ca5ff43345dc07ed7dc8cc06440d1beca7cd20aed4d46d7c13337cbe",
+      "checked_asset_ids": [
+        "WARREN-DWER-HEALTHYRIVERS-BODY",
+        "WARREN-DWER-HEALTHYRIVERS-RECEIPT",
+        "WARREN-DWER-HEALTHYRIVERS-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "The original basin profile states that Tone and Perup join east of Manjimup to form Warren, which continues through forest to the Southern Ocean southwest of Pemberton. Yerraminup, Wilgarup, Lefroy and Dombakup are separately named tributaries. This supports the regional Tone-to-Warren corridor, without assigning an exact selected-part name boundary.",
+      "printed_date": null,
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:46:42.414026+00:00",
+      "reused_original_from_prior_batch": false,
+      "counted_as_supporting_publication": true
+    },
+    {
+      "source_key": "KALGAN-DWER-NUTRIENT2019",
+      "research_source_aliases": [
+        "KALGAN-DWER-NUTRIENT2019"
+      ],
+      "body_id": "KALGAN-DWER-NUTRIENT2019-BODY",
+      "source_body_sha256": "684550de80dcb150a7501e7b8a7993655789ac76cd9d4638c28368416f73a617",
+      "checked_asset_ids": [
+        "KALGAN-DWER-NUTRIENT2019-BODY",
+        "KALGAN-DWER-NUTRIENT2019-RECEIPT",
+        "KALGAN-DWER-NUTRIENT2019-TEXT",
+        "KALGAN-DWER-NUTRIENT2019-VIEW-1",
+        "KALGAN-DWER-NUTRIENT2019-VIEW-2"
+      ],
+      "map_pixels_viewed": true,
+      "observation": "Page 1 directly identifies Kalgan River at Stevens Farm north of South Coast Highway and its discharge into Oyster Harbour. The complete catchment map and inset agree with the broad inland eastward bend and southward lower path, but waterways are individually unnamed. The western starting extension remains unresolved. Page 10 explicitly identifies Issue 2, publication August 2023; 2019 is the reporting year. The printed permanent-flow label is not proof of continuous flow along every selected part.",
+      "printed_date": "2023-08",
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:45:51.037547+00:00",
+      "reused_original_from_prior_batch": false,
+      "counted_as_supporting_publication": true,
+      "reporting_year": 2019,
+      "issue": 2
+    },
+    {
+      "source_key": "KALGAN-DWER-RIVERHEALTH",
+      "research_source_aliases": [
+        "KALGAN-DWER-RIVERHEALTH"
+      ],
+      "body_id": "KALGAN-DWER-RIVERHEALTH-BODY",
+      "source_body_sha256": "1e9f0561d01f4df3919b918233a6674e62f8d4180b7dcbcfb478c6ac882a20dc",
+      "checked_asset_ids": [
+        "KALGAN-DWER-RIVERHEALTH-BODY",
+        "KALGAN-DWER-RIVERHEALTH-RECEIPT",
+        "KALGAN-DWER-RIVERHEALTH-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "The original article distinguishes Kalgan entering northeastern Oyster Harbour from King entering its northwestern corner. It describes the lower nine kilometres of Kalgan as tidal and separately names Young River, Napier Creek, Boonawarrup Creek, Stony Creek and Gaalgegup Creek. The tidal length is not applied as a selected geometry boundary. Embedded and interactive maps were not inspected.",
+      "printed_date": null,
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:45:57.738668+00:00",
+      "reused_original_from_prior_batch": false,
+      "counted_as_supporting_publication": true
+    },
+    {
+      "source_key": "WARREN-DWER-CATCHMENT-SUPPLEMENT",
+      "research_source_aliases": [
+        "WARREN-DWER-CATCHMENT-SUPPLEMENT"
+      ],
+      "body_id": "WARREN-DWER-CATCHMENT-SUPPLEMENT-BODY",
+      "source_body_sha256": "99bfa6333cef8b902df041e5193081bdf78cfa0ca11f8a876fb811fdd6616a6c",
+      "checked_asset_ids": [
+        "WARREN-DWER-CATCHMENT-SUPPLEMENT-BODY",
+        "WARREN-DWER-CATCHMENT-SUPPLEMENT-RECEIPT",
+        "WARREN-DWER-CATCHMENT-SUPPLEMENT-TEXT"
+      ],
+      "map_pixels_viewed": false,
+      "observation": "This supplemental original catchment page lists Warren, Perup, Wilgarup and Lefroy monitoring sites separately. It corroborates ordinary naming distinctions but is not counted as an additional independent supporting publication. Its interactive map was not inspected.",
+      "printed_date": null,
+      "assessment_year": null,
+      "copyright_year": null,
+      "last_updated": null,
+      "original_requested_at_utc": "2026-10-09T14:45:09.585351+00:00",
+      "reused_original_from_prior_batch": false,
+      "counted_as_supporting_publication": false
+    }
+  ],
+  "complete_path_observations": [
+    {
+      "aw_id": "hydro-system:50766256",
+      "geometry_canonical_sha256": "ce9d709e28f6f066883fcbc958834b107bba3eb550c94458f8fffef1a017ce8d",
+      "geometry_hash_scope": "Canonical ordered list of all fragment geometries in this group",
+      "geometry_fids": [
+        7081
+      ],
+      "part_count": 36,
+      "coordinate_count": 218,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The complete east-to-west path, eastern southern arc and central bends agree regionally with the Collie drainage through the Collie town and Wellington Reservoir corridor toward Leschenault. Collie River is supported as representative identity. Collie River East is only a provisional regional association for the eastern continuation; the initial channel, branch transition, reservoir passage and estuary connector are not individually named."
+    },
+    {
+      "aw_id": "hydro-system:50779535",
+      "geometry_canonical_sha256": "3ada56b7a427261f8f779771ac18834b19a93b55a667fa332b8b00b7298c26d3",
+      "geometry_hash_scope": "Canonical ordered list of all fragment geometries in this group",
+      "geometry_fids": [
+        7096
+      ],
+      "part_count": 53,
+      "coordinate_count": 306,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The complete northeastern inland path bends south and then west through the lower valley toward the coast southwest of Pemberton, consistent with the Tone-to-Warren drainage. Warren River is supported as representative identity. The source distinguishes upstream Tone and the Tone-Perup confluence from downstream Warren; no selected part or exact transition is assigned."
+    },
+    {
+      "aw_id": "hydro-system:50782443",
+      "geometry_canonical_sha256": "c9e4575a4a49948f5efbf1bfe17ee7c46e99ce09a51b2550fed1843f513d2c34",
+      "geometry_hash_scope": "Canonical ordered list of all fragment geometries in this group",
+      "geometry_fids": [
+        7098
+      ],
+      "part_count": 31,
+      "coordinate_count": 181,
+      "whole_path_view_asset_id": "COMPLETE-BASELINE-PATHS",
+      "independent_observation": "The complete western inland extension, eastward course and southward then southwestward bend agree at catchment scale with the Kalgan drainage toward Stevens Farm and Oyster Harbour. Kalgan River is supported as representative identity. Exact western headwater names remain unresolved; the tidal lower river, receiving harbour and terminal continuation do not receive one blanket name."
+    }
+  ],
+  "map_independence_note": "Six distinct supporting publications and one supplemental catchment page were inspected. BoM aliases and two figures count once. SLUI38 and BoM are reused originals with their original acquisition dates retained. Distinct documents and shared departmental publishers do not imply independent surveys. The supplemental Warren site-list page is not counted as additional independent support."
+}

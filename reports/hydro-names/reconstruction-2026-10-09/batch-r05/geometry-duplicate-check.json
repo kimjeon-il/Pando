@@ -1,0 +1,31 @@
+{
+  "schema": "selected-target-duplicate-check-v1",
+  "previous_index_immutable_url": "https://github.com/kimjeon-il/Pando/blob/0bc30a0477862be8249b9504e8425de781c36721/reports/hydro-names/reconstruction-2026-10-09/batch-r04/reconstruction-index.json",
+  "previous_index_receipt": {
+    "bytes": 6682,
+    "sha256": "11dc1276e7191d049d9572be0732b549ccdd99699fbd2fbf557f62605a5dafb2"
+  },
+  "previous_target_count": 12,
+  "previous_aw_ids_in_index_order": [
+    "lakes_base:1159109497",
+    "lakes_base:1159106899",
+    "lakes_base:1159107065",
+    "lakes_base:1159115267",
+    "lakes_base:1159123531",
+    "lakes_base:1159107099",
+    "hydro-system:30624681",
+    "hydro-system:50488324",
+    "hydro-system:40182409",
+    "hydro-system:70152112",
+    "lakes_base:1159123163",
+    "lakes_base:1159123567"
+  ],
+  "selected_aw_ids": [
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751"
+  ],
+  "selected_unique_count": 3,
+  "intersection_aw_ids": [],
+  "historical_names_used_as_identity_evidence": false
+}

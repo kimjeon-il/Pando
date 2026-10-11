@@ -1,0 +1,861 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r127",
+  "sources": [
+    {
+      "title": "Nejanilini Lake, NTS 64P, Bedrock Geology Compilation Map Series",
+      "publisher": "Manitoba Industry, Trade and Mines, Manitoba Geological Survey",
+      "year": 2002,
+      "scale": "1:250,000",
+      "cartographic_credits": "Synoptic geology by D.C.P. Schledewitz; compilation by D.C.P. Schledewitz and D. Lindal; digital CAD drafting by B. Lenton and M. McFarlane; GIS cartography by L. Chackowsky.",
+      "catalogue_url": "https://www.gov.mb.ca/iem/info/library/downloads/precambrian.html",
+      "source_type": "Original provincial geological map with hydrographic base",
+      "evidence_scope": "Headward and intervening Manitoba lake/stream route to the northern map edge.",
+      "use_notice": "The map carries a provincial accuracy/liability disclaimer. Source original and derived inspection images remain private; official hosting is not treated as redistribution permission.",
+      "source_key": "mb-bgcm64p-2002",
+      "official_url": "https://www.gov.mb.ca/iem/info/libmin/bgcms/bgcms64p.pdf",
+      "limits": "Geological overlay partly occupies the map, but the ordinary-scale waterbody/stream pattern used here is visible. No uniform upstream hydronym or modern registry status is supplied."
+    },
+    {
+      "title": "Edehon Lake, District of Keewatin, Northwest Territories, sheet 65A, Land Use Information Series",
+      "publisher": "Department of the Environment, Lands Directorate, Environmental Management Service; Indian and Northern Affairs Canada",
+      "year": 1979,
+      "scale": "1:250,000",
+      "cartographic_credits": "Thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada. Base by Army Survey Establishment, R.C.E.; base information current as of 1961, printed 1966. Thematic map produced and printed 1979.",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "source_type": "Original federal NLUIS thematic map with topographic/hydrographic base",
+      "evidence_scope": "Short north-of-boundary connector between Manitoba map coverage and Hyde Lake sheet.",
+      "use_notice": "Copyright 1979, Her Majesty the Queen in Right of Canada, Department of Energy, Mines and Resources. Original map and working crops remain private.",
+      "source_key": "nluis65a-1979",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65a.jpg",
+      "limits": "Historical sheet; different publication from stopped NLUIS sheets. Does not establish a river name for this small connector."
+    },
+    {
+      "title": "Hyde Lake, District of Keewatin, Northwest Territories, sheet 55D, Land Use Information Series",
+      "publisher": "Department of the Environment, Lands Directorate, Environmental Management Service; Indian and Northern Affairs Canada",
+      "year": 1979,
+      "scale": "1:250,000",
+      "cartographic_credits": "Thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada. Base by Army Survey Establishment, R.C.E.; base information current as of 1963, printed 1966. Thematic map produced and printed 1979.",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "source_type": "Original federal NLUIS thematic map with topographic/hydrographic base",
+      "evidence_scope": "Eastern stream/lake approach, Geillini Lake outlet, labeled Geillini River, coastal plain and Hudson Bay terminal.",
+      "use_notice": "Copyright 1979, Her Majesty the Queen in Right of Canada, Department of Energy, Mines and Resources. Original map and working crops remain private.",
+      "source_key": "nluis55d-1979",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55d.jpg",
+      "limits": "Thematic annotations overlay some hydrography. Historical local-place labels do not independently settle current registry or alias scope."
+    },
+    {
+      "title": "Northern Land Use Information Series (NLUIS): Northern Land Use",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "source_type": "Official series index",
+      "evidence_scope": "Identifies distinct sheets 55D Hyde Lake and 65A Edehon Lake and exact original map links; catalogue metadata only, not hydrographic correspondence.",
+      "source_key": "nluis-index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "title": "Amenaza por deslizamientos e inundaciones, departamento de Baja Verapaz, municipio de San Jerónimo, código 1507",
+      "publisher": "SE-CONRED, SIG; D. Juarros and A. Pacheco",
+      "edition": "2015; cartografía básica IGN 2010–2015",
+      "scale": "1:45,000",
+      "pages": "single original sheet",
+      "evidence_type": "original primary cartography, visually inspected",
+      "limits": "Flood-hazard colors obscure some river strokes; hydrographic lines, graticule, settlements and adjacent sheet are read together. Administrative boundaries expressly non-authoritative. Historical geography, not a current dam inventory.",
+      "source_key": "gt_conred_sanjeronimo_2015",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2025/11/BAJA-VERAPAZ-1507.pdf",
+      "supports": "Concepción headward corridor near Cerro Miranda, Chilascó settlement and northward river, Sinanjá junction and northeastern continuation to Panimá. Separate San Antonio branch is not the selected headward course."
+    },
+    {
+      "title": "Amenaza por deslizamientos e inundaciones, departamento de Alta Verapaz, municipio de Tucurú, código 1606",
+      "publisher": "SE-CONRED, SIG; D. Juarros and A. Pacheco",
+      "edition": "2015; cartografía básica IGN 2010–2015",
+      "scale": "1:50,000",
+      "pages": "single original sheet",
+      "evidence_type": "original primary cartography, visually inspected",
+      "limits": "The main feeder is partly obscured by flood-hazard shading. Names and transition are supplemented by the original Purulhá municipal plan, not by extracted nearby label lists.",
+      "source_key": "gt_conred_tucuru_2015",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2025/11/Tucuru.pdf",
+      "supports": "Panimá–Ribacó/Argelia–Matanzas corridor south of Tucurú and its northeastern approach to the Polochic near La Tinta; the western Polochic through Tucurú is a different, unselected approach."
+    },
+    {
+      "title": "Amenaza por deslizamientos e inundaciones, departamento de Alta Verapaz, municipio de San Pedro Carchá, código 1609",
+      "publisher": "SE-CONRED, SIG; D. Juarros and A. Pacheco",
+      "edition": "2015; cartografía básica IGN 2010–2015",
+      "scale": "1:100,000",
+      "pages": "single original sheet",
+      "evidence_type": "original primary cartography, visually inspected",
+      "limits": "The tiny western edge continuation is supplied by the overlapping GeoVisit original map. This is a named through-corridor, not an assertion that the selected start is the river’s natural source.",
+      "source_key": "gt_conred_carcha_2015",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2025/11/San_Pedro_Carcha.pdf",
+      "supports": "Cahabón corridor through Cobán and San Pedro Carchá and eastward/northeastward toward the Lanquín/Semuc Champey sector."
+    },
+    {
+      "title": "Amenaza por deslizamientos e inundaciones, departamento de Alta Verapaz, municipio de Cahabón, código 1612",
+      "publisher": "SE-CONRED, SIG; D. Juarros and A. Pacheco",
+      "edition": "2015; cartografía básica IGN 2010–2015",
+      "scale": "1:70,000",
+      "pages": "single original sheet",
+      "evidence_type": "original primary cartography, visually inspected",
+      "limits": "Predates completion of Oxec II; the current impoundment is distinguished using independent primary engineering/developer prose. Exact reservoir shoreline is not inferred from this sheet.",
+      "source_key": "gt_conred_cahabon_2015",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2025/11/Cahabon.pdf",
+      "supports": "Cahabón continuation south of Santa María Cahabón, eastward to the Oxec junction sector, then southeast past the Seguamó corridor toward Panzós."
+    },
+    {
+      "title": "Amenaza por deslizamientos e inundaciones, departamento de Alta Verapaz, municipio de Panzós, código 1607",
+      "publisher": "SE-CONRED, SIG; D. Juarros and A. Pacheco",
+      "edition": "2015; cartografía básica IGN 2010–2015",
+      "scale": "1:50,000",
+      "pages": "single original sheet",
+      "evidence_type": "original primary cartography, visually inspected",
+      "limits": "Flood shading is not a waterbody polygon. The clearest ordinary-scale river junction and downstream path are supplied by the overlapping unshaded GeoVisit map.",
+      "source_key": "gt_conred_panzos_2015",
+      "official_url": "https://conred.gob.gt/wp-content/uploads/2025/11/Panzos.pdf",
+      "supports": "Lower Cahabón approach near Cahaboncito and Polochic valley at Panzós; separate Mayaguá, Seococ and Seocoquito approaches are distinguished."
+    },
+    {
+      "title": "Mapa Base de Guatemala; mapabase (MapServer)",
+      "publisher": "GeoVisit Guatemala",
+      "edition": "undated live cartographic service, accessed 2026-10-11",
+      "evidence_type": "original rendered cartographic service, three bounded overlapping views visually inspected",
+      "limits": "The river layer has labels disabled; hydronyms are not attributed to this map alone. Source-native geography is used with CONRED labels and bounded SEGEPLAN prose. No full dataset or source feature geometry was fetched. The national multiscale service is a separate publication from the stopped INGUAT department brochures.",
+      "source_key": "gt_geovisit_mapabase",
+      "official_url": "https://www.geovisitguatemala.gt/arcgis/rest/services/mapabase/MapServer",
+      "supports": "Continuous west, central and eastern corridor coverage: Cobán/Carchá and southern feeder; Cahabón–Polochic junction and western lake entry; Lago de Izabal northeast outlet, El Golfete and lower gorge to Livingston."
+    },
+    {
+      "title": "Diagnóstico territorial de la Sub-Región Polochic",
+      "publisher": "Secretaría de Planificación y Programación de la Presidencia, Guatemala",
+      "edition": "2014",
+      "pages": "printed pp.42–47; PDF pp.56–61; map10 at PDF p.57",
+      "evidence_type": "original primary map and bounded planning-authority prose",
+      "limits": "Planning-map extent omits part of the western Cahabón corridor. Basin association is not used alone for line correspondence.",
+      "source_key": "gt_segeplan_diag_2014",
+      "official_url": "https://portal.segeplan.gob.gt/segeplan/wp-content/uploads/2024/10/Diagnostico_subregion_Polochic.pdf",
+      "supports": "Treats Lago de Izabal–Río Dulce as an integrated hydrographic system containing the Polochic and Cahabón subbasins. Describes Polochic entry at the lake’s west, northeast drainage through Río Dulce to the Caribbean, and El Golfete widening."
+    },
+    {
+      "title": "Plan de Desarrollo Integral de la Sub Región Polochic 2032",
+      "publisher": "SEGEPLAN",
+      "edition": "2014; map dated June2013",
+      "pages": "printed p.14, PDF p.26, map4",
+      "evidence_type": "original primary planning cartography, visually inspected",
+      "limits": "Broad regional mapping; not sole evidence for smaller headwater branches.",
+      "source_key": "gt_segeplan_pdi_2014",
+      "official_url": "https://portal.segeplan.gob.gt/segeplan/wp-content/uploads/2024/10/PDI_subregion_Polochic.pdf",
+      "supports": "Regional confirmation of differentiated Cahabón, Polochic and Lago de Izabal–Río Dulce portions and the lake/outlet setting."
+    },
+    {
+      "title": "Plan de Desarrollo de Purulhá, Baja Verapaz",
+      "publisher": "Consejo Municipal de Desarrollo de Purulhá; SEGEPLAN/DPT",
+      "edition": "2011; Serie PDM SEGEPLAN, CM1508",
+      "pages": "printed pp.45–46, PDF pp.53–54",
+      "evidence_type": "bounded primary municipal hydrography prose",
+      "use_notice": "Reproduction permitted if contents and authorship/editing credits are unchanged; source originals are nevertheless kept private in this task.",
+      "source_key": "gt_segeplan_purulha_2011",
+      "official_url": "https://portal.segeplan.gob.gt/segeplan/wp-content/uploads/2022/08/PDM_1508.pdf",
+      "supports": "Sinanjá receives San Antonio and joins Panimá; Panimá meets Ribacó near Argelia/Olimpia to form Matanzas; Matanzas turns northeast and enters Polochic south of La Tinta. A separately described La Concepción tributary of Ribacó is not conflated with the selected Concepción–Chilascó headwater."
+    },
+    {
+      "title": "Planta Hidroeléctrica Oxec II",
+      "publisher": "ERC Capital Corp, project developer",
+      "edition": "undated project profile, accessed 2026-10-11",
+      "evidence_type": "bounded primary project prose",
+      "limits": "Not a river-name registry or a map of the selected reservoir footprint.",
+      "source_key": "gt_erc_oxec2",
+      "official_url": "https://erc.com.gt/portfolio/planta-hidroelectrico-oxec-ii/",
+      "supports": "Confirms Oxec II is built on the Cahabón river channel."
+    },
+    {
+      "title": "Oxec II Hydroelectric Plant",
+      "publisher": "DLZ Carbon, project designer/reviewer",
+      "edition": "undated project profile, accessed 2026-10-11",
+      "evidence_type": "bounded primary project prose",
+      "limits": "Only geographic river/project relationship is used; no engineering specifications are needed for this identification. All rights reserved notice retained.",
+      "source_key": "gt_dlz_oxec2",
+      "official_url": "https://dlz.com/projects/oxec-ii-hydroelectric-plant/",
+      "supports": "Confirms a gravity dam on the Cahabón in Cahabón, Alta Verapaz, and the firm’s direct design role."
+    },
+    {
+      "title": "Nuevo Puente de Oxec",
+      "publisher": "Pedelta, bridge designer",
+      "edition": "undated project profile; describes hydroelectric completion in2018",
+      "evidence_type": "bounded primary project prose",
+      "limits": "Establishes impoundment context, not detailed present shoreline or a new name for Cahabón.",
+      "source_key": "gt_pedelta_oxec_bridge",
+      "official_url": "https://www.pedelta.com/nuevo-puente-de-oxec-p-30-es",
+      "supports": "Explains that a new bridge immediately upstream of Oxec II replaced a structure submerged by its reservoir."
+    },
+    {
+      "title": "Cartas topográficas 1:250.000, mosaico: Malbrán–Palo Negro–Los Porongos–eastern Laguna Mar Chiquita corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Composite historical printed sheets; constituent sheet names/dates not established from service views.",
+      "material_read": "Three overlapping original bounded map views: northern head/Palo Negro, middle Los Porongos/eastern lake approach, and southeastern lake terminal; unmarked originals and separate private orientation figures visually read.",
+      "supports": "Complete selected geographic corridor, major lagoon/wetland/intervening-ground components and actual lake-interior terminal.",
+      "limits": "The composite depicts a more expanded northern lake than the separately read febrero2026 overview. No single date for mapped water extent, exact banks, legal name scope or modern hydraulic continuity is inferred.",
+      "use_notice": "The retained IGN WMS Imágenes service notice cites Article 2 of Argentine Law 27.275. No blanket redistribution permission is inferred; source originals, crops, overlays and request details remain private.",
+      "source_key": "ign-topo250k-r127-cordoba"
+    },
+    {
+      "title": "Mosaico cartas 1:500.000, febrero 2026 service layer: southeastern Santiago del Estero and northeastern Córdoba",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Service layer febrero_2026; constituent cartographic revision and hydrological observation dates not independently established.",
+      "material_read": "One original full-corridor overview, read in original northern/middle/southern crops and with separate private selected-route orientation.",
+      "supports": "Whole head-to-terminal regional context, Laguna El Mojón Colorado, separately located Beltrán and Porongos lakes, wetland and isolated lake settings, and named Laguna Mar Chiquita/Mar de Ansenuza terminal.",
+      "limits": "Generalized map; no single named continuous river established. This is not a dated observation of present water conditions.",
+      "use_notice": "Same retained WMS Imágenes capabilities notice; source imagery and derivatives remain private.",
+      "source_key": "ign-topo500k-r127-cordoba"
+    },
+    {
+      "title": "Síntesis geográfica",
+      "authors": [
+        "Enrique H. Bucher",
+        "Gregorio Gavier Pizarro",
+        "Erio D. Curto"
+      ],
+      "year": 2006,
+      "container_title": "Bañados del río Dulce y Laguna Mar Chiquita (Córdoba, Argentina)",
+      "editor": "Enrique H. Bucher",
+      "pages": "15–27",
+      "publisher": "Academia Nacional de Ciencias, Córdoba, Argentina",
+      "official_url": "https://www.promarmarchiquita.com.ar/documentos/archivos/publicaciones/capitulo_sintesis_geografica.pdf",
+      "material_read": "Normally acquired original chapter PDF; printed first-page bibliography visually inspected, original Figure4 on printed p.17 visually inspected, and bounded geographic prose on pp.15–22 read.",
+      "supports": "Independent regional distinction between the northern wetland/saline complex and southern lake; eastern lagoon chain/ancient Salado association; variable lake extent and raised eastern margin.",
+      "limits": "Historical2006 scientific synthesis with Figure4 based on a2004 image. The regional figure supplies broad geography, not exact selected-point assignments or present flow connections. No other book chapter, secondhand reproduction or uninspected figure is used as detailed map evidence.",
+      "use_notice": "The original chapter supplies a citation instruction. No limited-distribution or officials-only notice was encountered in the inspected material; this does not infer redistribution permission. The PDF and rendered figure remain private.",
+      "source_key": "bucher-gavier-curto2006"
+    },
+    {
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrográfica Nacional, layer 0 Red Hidrografica",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Undated service; inspected 11 October 2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "type": "Primary original hydrographic cartography",
+      "actually_inspected": "Original head, middle and lower river maps, with server-rendered NOMBRE labels; all selected FIDs and major junctions.",
+      "evidence_limit": "Line-only hydrography cannot itself prove upland/border character or reservoir surface. Nauditt and COT supply those distinct observations. No full vector/base dataset acquired.",
+      "use_notice": "Retained copyright metadata blank; no redistribution permission inferred. Original views and derivatives stay private.",
+      "source_key": "mma-simbio-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "title": "Drought management on catchment scale: Indicators, tools and challenges. The Limarí Case Study, Chile; recurring header: A drought assessment and management approach for a semi-arid river basin in Central Chile",
+      "author": "Alexandra Nauditt, Institute for Technology and Resources Management, Cologne University of Applied Sciences",
+      "publisher": "CAZALAC, International expert symposium Coping with Droughts, Santiago, 19–21 November 2014",
+      "date": "Presentation footer 25 November 2014",
+      "type": "Primary research presentation and field-sampling/elevation cartography",
+      "actually_inspected": "Original slides 3, 24 and 26 visually; cover and slide41 data-source text. Slide26 is the decisive detailed river/relief/border field-sampling map.",
+      "supports": "Head tributary setting, natural Gordito–Las Cuevas–Grande transition, eastern border/upland band, and the distinction between that band and the interior river corridor.",
+      "cartographic_attribution": "Slide26 has no separate map source line. Slide41 lists USGS DEM and DGA/ULS/CEAZA GIS among available study data. This is the author’s field-study map, not an acquired standalone underlying dataset or the stopped Loa/DGA2014 figures.",
+      "evidence_limit": "Generalized terrain map, not exact boundary demarcation or a flow survey of the modeled shortcut. Study simulations and isotope results are not used to prove connectivity.",
+      "use_notice": "No unrestricted redistribution license asserted. Original presentation and private page renders remain private.",
+      "source_key": "nauditt-limari2014",
+      "official_url": "https://www.cazalac.org/mwar_lac/fileadmin/imagenes2/symposium_nov_2014/Nauditt.pdf"
+    },
+    {
+      "title": "SIMBIO_COT, layer 1 COT 2020",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Layer titled2020; inspected 11 October 2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer/layers",
+      "type": "Primary official land-cover cartography",
+      "actually_inspected": "La Paloma reservoir and lower Limarí coast, using published default USO renderer.",
+      "supports": "Reservoir waterbody and adjoining river approaches; coastal land margin and estuarine waterbody.",
+      "evidence_limit": "No hydronyms or present shoreline/water-level assertion; supports geography jointly with hydrography and primary prose.",
+      "use_notice": "No redistribution permission inferred; originals and orientation figures remain private.",
+      "source_key": "mma-simbio-cot2020",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "title": "Diagnóstico y clasificación de los cursos y cuerpos de agua según objetivos de calidad. Cuenca del río Limarí",
+      "publisher": "Dirección General de Aguas, Ministerio de Obras Públicas; hosted by Ministerio del Medio Ambiente",
+      "date": "December2004, read from cover text",
+      "type": "Primary basin-report prose and segment table",
+      "actually_inspected": "Cover text, printed pages1–4, Table2.1; bounded surrounding cartography/source description.",
+      "supports": "Grande–Hurtado/Limarí name transition; Grande/Guatulame reservoir setting; Tascadero, Mostazal, Rapel sequence; La Paloma outlet to Hurtado and Limarí to the mouth.",
+      "evidence_limit": "Used as prose/table support only. Unseen maps, figures and linked underlying datasets are not original-map evidence. Report river lengths/capacities are not substituted for retained model metadata.",
+      "distinct_publication": "Precisely identified December2004 Limarí basin report; not current MOP Vialidad, Loa/DGA2014, Codelco Pedernales or an equivalent recovery of a stopped publication.",
+      "use_notice": "Government hosting does not establish unrestricted republication.",
+      "source_key": "dga-limari2004",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Limari.pdf"
+    },
+    {
+      "title": "Cuenca Rio Limari, código BNA045",
+      "publisher": "Ministerio del Medio Ambiente, SIMBIO",
+      "date": "Undated catalogue; inspected 11 October 2026",
+      "type": "Primary basin/subbasin catalogue prose",
+      "actually_inspected": "Subbasin/subsubbasin sequence for Grande, Toscadero, Mostazal, Rapel, Ponio, Guatulame, La Paloma, Hurtado and lower Limarí.",
+      "evidence_limit": "Catalogue names provide bounded segmentation support, not proof of the head connector. No catalogue geometry acquired.",
+      "use_notice": "Page describes cartography as referential and noncommittal regarding Chile’s boundaries and states unrestricted use of that cartography; not extended to separate source publications.",
+      "source_key": "mma-limari045",
+      "official_url": "https://simbio.mma.gob.cl/Cuencas/Details/045"
+    },
+    {
+      "title": "Sitio Prioritario (Estrategia Regional de Biodiversidad): Desembocadura Río Limarí",
+      "publisher": "Ministerio del Medio Ambiente, SIMBIO",
+      "date": "Undated catalogue; inspected 11 October 2026",
+      "type": "Primary official estuary-setting prose",
+      "actually_inspected": "Description of the estuary, sandy coastal barrier, mouth and receiving sea.",
+      "supports": "Limarí coastal/estuarine terminal context.",
+      "evidence_limit": "No current year-round opening, legal designation verification, precise mouth point or live water condition asserted.",
+      "use_notice": "Only own factual geographic summary used.",
+      "source_key": "mma-mouth1455",
+      "official_url": "https://simbio.mma.gob.cl/CbaSP/VistaImpresion/1455"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80255466",
+      "source_keys": [
+        "mb-bgcm64p-2002",
+        "nluis65a-1979",
+        "nluis55d-1979"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2724
+          ],
+          "component_scope": "Headward pond-and-stream chain",
+          "finding": "The western start corresponds to small mapped waters close to the northern sheet border. The route runs east and southeast through the pond-and-stream chain adjoining the southern side of the Falloon Lake complex. The source shows these minor water connections; no individual head-stream name is established.",
+          "sources": [
+            "mb-bgcm64p-2002"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2724
+          ],
+          "component_scope": "Central Manitoba elongated-lake and southern bend",
+          "finding": "The selected chain continues through narrow, irregular lakes north of Savage Lake, bends southeast, then turns north along connected waters on the western side of the Nabel Lake complex. The intervening lake arms and stream links are visible. Nearby named lakes are distinguished rather than inherited as river names.",
+          "sources": [
+            "mb-bgcm64p-2002"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2724
+          ],
+          "component_scope": "Nabel-area eastward boundary approach",
+          "finding": "Mapped connected waters continue east from the Nabel-area complex toward the boundary. The southeastern corner of Edehon Lake sheet 65A supplies the short continuation north of the Manitoba boundary, including the small lake-and-stream connection leading east into the adjoining Hyde Lake sheet.",
+          "sources": [
+            "mb-bgcm64p-2002",
+            "nluis65a-1979"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2724
+          ],
+          "component_scope": "Southern approach to Geillini Lake",
+          "finding": "Hyde Lake sheet 55D shows the entering stream chain continuing east through low lakes, turning north and then northeast along a sequence of lakes and channels into the southern arm/outlet setting of labeled Geillini Lake. The route is not inferred merely from the nearby lake label; the intervening mapped waters were inspected.",
+          "sources": [
+            "nluis65a-1979",
+            "nluis55d-1979"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2724
+          ],
+          "component_scope": "Geillini Lake outlet and middle river",
+          "finding": "The southern Geillini Lake passage connects to the eastward river. The mapped river bends southeast through further small lakes and channels; the cartographic label Geillini extends along this downstream corridor. Geillini Lake and Geillini River remain different geographic components.",
+          "sources": [
+            "nluis55d-1979"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Geillini Lake / Geillini River"
+        },
+        {
+          "fragments": [
+            2724
+          ],
+          "component_scope": "Lower river and actual sea terminal",
+          "finding": "The river continues east across the low coastal plain to the mapped Hudson Bay shore. The lower reach, coastal marsh/pond setting, outlet channel and sea are visible on the original sheet. The inherited sea-terminal classification is consistent with the mapped setting at ordinary corridor scale; no exact mouth-point or shoreline agreement is claimed.",
+          "sources": [
+            "nluis55d-1979"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Geillini River",
+          "terminal_receiving_water": "Hudson Bay"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "source_keys": [
+        "gt_conred_sanjeronimo_2015",
+        "gt_conred_tucuru_2015",
+        "gt_conred_carcha_2015",
+        "gt_conred_cahabon_2015",
+        "gt_conred_panzos_2015",
+        "gt_geovisit_mapabase",
+        "gt_segeplan_diag_2014",
+        "gt_segeplan_pdi_2014",
+        "gt_segeplan_purulha_2011",
+        "gt_erc_oxec2",
+        "gt_dlz_oxec2",
+        "gt_pedelta_oxec_bridge"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10584
+          ],
+          "component_scope": "Selected mainstem FID 10584",
+          "finding": "The selected Sierra de las Minas headward course approaches Chilascó from the east through the Concepción valley near San José/El Ceibillal. It turns north as Chilascó, meets Sinanjá near San José El Espinero, then follows Sinanjá northeast to the Panimá corridor. Eastward below the Ribacó junction near Argelia, the route is Matanzas, joining Polochic south of La Tinta and continuing toward Telemán/Panzós. The Polochic approach from Tucurú is not the selected headwater.",
+          "sources": [
+            "gt_conred_sanjeronimo_2015",
+            "gt_conred_tucuru_2015",
+            "gt_segeplan_purulha_2011",
+            "gt_geovisit_mapabase",
+            "gt_segeplan_diag_2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "A multi-name component; the initial small source extension has no separately established name. Río La Concepción in the Ribacó prose is a different branch. No precise name-transition vertex is asserted.",
+          "mapped_component_name": null,
+          "mapped_component_names": [
+            "Río Concepción",
+            "Río Chilascó",
+            "Río Sinanjá",
+            "Río Panimá",
+            "Río Matanzas",
+            "Río Polochic"
+          ]
+        },
+        {
+          "fragments": [
+            10585
+          ],
+          "component_scope": "Selected mainstem FID 10585",
+          "finding": "Short Polochic continuation in the Panzós lowland, ending in the broad Cahabón confluence setting. Its split from10584 is rendered metadata, not a source-named river boundary.",
+          "sources": [
+            "gt_conred_panzos_2015",
+            "gt_geovisit_mapabase",
+            "gt_segeplan_diag_2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Bounded through-reach name only.",
+          "mapped_component_name": "Río Polochic"
+        },
+        {
+          "fragments": [
+            10586
+          ],
+          "component_scope": "Selected mainstem FID 10586",
+          "finding": "Below the Cahabón junction the route follows lower Polochic east through the Panzós–El Estor lowland into the western end of Lago de Izabal. The selected straight lake passage crosses toward the northeast outlet. Río Dulce continues through its upper constriction, the broad El Golfete waterbody, and the lower winding gorge to the Caribbean coast at Livingston. The actual terminal is beyond both lake passages, not at the Polochic lake mouth.",
+          "sources": [
+            "gt_geovisit_mapabase",
+            "gt_segeplan_diag_2014",
+            "gt_segeplan_pdi_2014",
+            "gt_conred_panzos_2015"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Composite river–lake–river component. Lake-crossing model lines are connectors within waterbodies, not uniformly named river reaches.",
+          "mapped_component_name": null,
+          "mapped_component_names": [
+            "Río Polochic",
+            "Lago de Izabal",
+            "Río Dulce",
+            "El Golfete"
+          ]
+        },
+        {
+          "fragments": [
+            10587
+          ],
+          "component_scope": "Selected tributary FID 10587",
+          "finding": "The western selected start is a through-reach in the Cobán setting, continuing east through San Pedro Carchá. It turns northeast toward the Lanquín/Semuc Champey corridor and then east south of Santa María Cahabón. It does not represent Cahabón’s complete natural-source route; upstream Tactic/Santa Cruz reaches lie outside the selection.",
+          "sources": [
+            "gt_conred_carcha_2015",
+            "gt_conred_cahabon_2015",
+            "gt_geovisit_mapabase",
+            "gt_segeplan_diag_2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Selected Cahabón through-corridor; the river name is not reassigned to the other mainstem feeder.",
+          "mapped_component_name": "Río Cahabón"
+        },
+        {
+          "fragments": [
+            10588
+          ],
+          "component_scope": "Selected tributary FID 10588",
+          "finding": "Continues the same Cahabón eastward through the Oxec confluence sector and then southeast via the Seguamó/Cahaboncito approach to Polochic. Independent project sources establish the Oxec II dam and reservoir on this Cahabón corridor. Río Oxec is a distinct incoming branch; the selection does not continue up it.",
+          "sources": [
+            "gt_conred_cahabon_2015",
+            "gt_conred_panzos_2015",
+            "gt_geovisit_mapabase",
+            "gt_segeplan_diag_2014",
+            "gt_erc_oxec2",
+            "gt_dlz_oxec2",
+            "gt_pedelta_oxec_bridge"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Cahabón identity persists through the impounded corridor; no exact modern reservoir footprint or dam-position fit is claimed.",
+          "mapped_component_name": "Río Cahabón"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61469490",
+      "source_keys": [
+        "ign-topo250k-r127-cordoba",
+        "ign-topo500k-r127-cordoba",
+        "bucher-gavier-curto2006"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14034
+          ],
+          "component_scope": "Initial plain northeast of Malbrán",
+          "finding": "The selected head lies northeast of Malbrán near the Route 43 setting, south of the separately mapped meandering valley near Los Chañares and El Dos del Salado. It runs generally southeast between the Malbrán railway/Route 34 corridor and the El Palmar country. The original 1:250,000 map shows fields, wooded/grassland patches and local wet ground, with no named source river or continuous channel following the selection. The intervening land is visible, so no missing connector is being supplied by a nearby river label.",
+          "sources": [
+            "ign-topo250k-r127-cordoba",
+            "ign-topo500k-r127-cordoba"
+          ],
+          "correspondence": "Full source/headward setting and initial southeast course read at ordinary corridor scale."
+        },
+        {
+          "fragments": [
+            14034
+          ],
+          "component_scope": "Argentina station, transport crossing and Laguna El Mojón Colorado",
+          "finding": "East of Argentina station the selected path turns south through the broad mapped marsh plain, then crosses the Route 34 and railway corridor north of Palo Negro and turns southwest into the elongated setting labeled Laguna El Mojón Colorado. The lake is shown with shallow/wetland hatching rather than as a single named river channel. The course then leaves its southwestern part into the surrounding wet plain.",
+          "sources": [
+            "ign-topo250k-r127-cordoba",
+            "ign-topo500k-r127-cordoba"
+          ],
+          "correspondence": "Full bend, transport crossing, named lagoon setting and southwest continuation visible in the original north panel and overview."
+        },
+        {
+          "fragments": [
+            14034
+          ],
+          "component_scope": "El Huaico, western side of Laguna Beltrán and Los Porongos country",
+          "finding": "The line continues southwest through wet ground southeast of El Huaico, turns south west of the separately labeled Laguna Beltrán, and passes the Route 15 setting. It then bends through the El Mojón/Villa Los Porongos country, staying east of the separately mapped Laguna de los Porongos. Near Los Jagüeles it crosses a small unnamed lake/wet-depression setting east of the settlement before continuing south through marshy intervening ground. Neither Beltrán nor Porongos is a hydronym for the selected full course.",
+          "sources": [
+            "ign-topo250k-r127-cordoba",
+            "ign-topo500k-r127-cordoba"
+          ],
+          "correspondence": "Overlapping north and middle panels show the complete southwest/south turn, nearby distinct lakes and the actual selected wetland passage."
+        },
+        {
+          "fragments": [
+            14034
+          ],
+          "component_scope": "Las Ramaditas and northern lake/wetland transition",
+          "finding": "South of Los Jagüeles the selected path passes east of Campo Las Ramaditas and turns east/southeast through the low country west of the Borde de los Altos and Mackinlay. The 1:250,000 mosaic depicts this lower passage within a broad northern extension of Laguna Mar Chiquita. The 1:500,000 overview instead depicts several separate lobed lakes surrounded by wetland along this same corridor. Both sources show the full selected geography; their different inundation representations are retained without imposing precise contemporaneous shorelines or inferring an undocumented hydraulic connection.",
+          "sources": [
+            "ign-topo250k-r127-cordoba",
+            "ign-topo500k-r127-cordoba",
+            "bucher-gavier-curto2006"
+          ],
+          "correspondence": "Complete mapped wetland, intervening low ground and lake passage at two original scales."
+        },
+        {
+          "fragments": [
+            14034
+          ],
+          "component_scope": "Mackinlay–Los Pioneros–Yarará eastern approach",
+          "finding": "The selected route reaches the eastern side of the wetland/lake complex west of Mackinlay and Mackinlay Sur, then turns south past the Los Pioneros and Campo Busso/Yarará settings, alongside the landform labeled Borde de los Altos or Altos de Mar Chiquita. The 1:250,000 map places the passage within continuous lake water, whereas the overview shows marsh and an isolated lake near Los Pioneros before the selected line enters the main open-water lake near Yarará. No separately named river mouth or reservoir passage is established.",
+          "sources": [
+            "ign-topo250k-r127-cordoba",
+            "ign-topo500k-r127-cordoba",
+            "bucher-gavier-curto2006"
+          ],
+          "correspondence": "The full approach and transition to the main receiving lake are visible on the overlapping middle/terminal panels and full overview."
+        },
+        {
+          "fragments": [
+            14034
+          ],
+          "component_scope": "Long lake-interior passage and actual terminal northwest of La Paquita",
+          "finding": "After the Yarará setting the selected line continues south inside eastern Laguna Mar Chiquita, roughly parallel to its eastern shore west of Morteros and Campo Grosso/El Rancho. It finally bends southwest and ends inside the southeastern lake basin northwest of La Paquita, west of the Colonia Doso/Dosolina country. The final endpoint is in the named lake, not on a mapped outlet, a river confluence or the nearby southern Arroyo del Saladillo. The lake name is established for this terminal component only.",
+          "sources": [
+            "ign-topo250k-r127-cordoba",
+            "ign-topo500k-r127-cordoba"
+          ],
+          "correspondence": "Entire long lake passage and the actual ending read directly in both original map scales."
+        },
+        {
+          "fragments": [
+            14034
+          ],
+          "component_scope": "Regional saline and historical-drainage context",
+          "finding": "Bucher, Gavier Pizarro and Curto distinguish the southern Mar Chiquita lake from the northern Bañados del Río Dulce complex of wetlands, grasslands and salares. Their original 2004 Figure 4 and pp.17–19 describe an eastern chain of lagoons/wetlands bending northeast toward the Bajo del borde oriental and an ancient Salado connection, separate from the central Dulce and western Saladillos corridors. Pages21–22 describe the raised eastern margin and the very low, variable northern shore with muddy/saline flats. These are regional explanations for the mapped plain–wetland–lake mixture, not evidence that every selected part has one river name or a present surface connection to Salado.",
+          "sources": [
+            "bucher-gavier-curto2006",
+            "ign-topo250k-r127-cordoba",
+            "ign-topo500k-r127-cordoba"
+          ],
+          "correspondence": "Original Figure4 inspected; prose read on printed pp.15–22. Figure captions or search snippets are not substituted for the detailed IGN observations."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61467935",
+      "source_keys": [
+        "mma-simbio-hydro",
+        "nauditt-limari2014",
+        "mma-simbio-cot2020",
+        "dga-limari2004",
+        "mma-limari045",
+        "mma-mouth1455"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14024
+          ],
+          "component_scope": "Selected mainstem FID 14024",
+          "finding": [
+            "The starting fragment occupies a mapped northern tributary–Gordito junction setting and turns toward the eastern head/boundary segment. The tributary is not independently named.",
+            "The natural Gordito channel is mapped separately downstream toward Las Cuevas. This fragment does not establish a name for the following eastern excursion."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "nauditt-limari2014"
+          ],
+          "correspondence": "Whole short initial fragment considered against original MMA hydrography and the field-study Gordito head setting.",
+          "name_scope": "Unknown individual head-tributary name; null.",
+          "mapped_component_name": null,
+          "geographic_correspondence": "Bounded tributary/junction setting accounted for; no whole-fragment scalar hydronym established."
+        },
+        {
+          "fragments": [
+            14025
+          ],
+          "component_scope": "Selected mainstem FID 14025",
+          "finding": [
+            "Its broad eastern bulge follows the mapped international-boundary/upland setting rather than the interior Gordito valley. The natural river instead runs toward the separately mapped Gordito–Las Cuevas junction.",
+            "The retained border-aligned flag is only model metadata. The scope decision rests on the independently visible border shape, terrain and channel separation, without asserting exact boundary or vertex agreement."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "nauditt-limari2014"
+          ],
+          "correspondence": "Entire southeast-then-southwest eastern excursion lies in the inspected headward hydrographic and field-study relief/border views.",
+          "name_scope": "No river hydronym established; null.",
+          "mapped_component_name": null,
+          "geographic_correspondence": "Completed mapped noncontinuous-river/boundary-corridor observation, not an unread connector."
+        },
+        {
+          "fragments": [
+            14026
+          ],
+          "component_scope": "Selected mainstem FID 14026",
+          "finding": [
+            "The initial northwest return cuts across the Gordito valley and adjoining upland setting to reach Grande above its westward course. It is not the natural Gordito continuation to the Las Cuevas confluence.",
+            "The field-study map identifies Grande below the natural Gordito–Las Cuevas junction. The downstream selected route passes the Colorado and Palillos settings, then the Tascadero, Mostazal and Rapel junctions.",
+            "Grande continues past Ponio into the northern/eastern La Paloma approach. The reservoir receives the Guatulame arm from the south; the selected route exits northwest and follows lower Grande to Hurtado.",
+            "At Grande–Hurtado near Ovalle the receiving course becomes Limarí. The lower corridor passes the Ingenio/La Placa and Punitaqui settings and reaches its coastal estuary. The MMA coastal waterbody/land margin supports the actual Pacific terminal at generalized scale."
+          ],
+          "sources": [
+            "mma-simbio-hydro",
+            "nauditt-limari2014",
+            "mma-simbio-cot2020",
+            "dga-limari2004",
+            "mma-limari045",
+            "mma-mouth1455"
+          ],
+          "correspondence": "Full return connector and subsequent Grande–La Paloma–Grande–Limarí course to the coast inspected.",
+          "name_scope": "Multiple component identities; no single scalar name assigned to the entire FID.",
+          "mapped_component_name": null,
+          "geographic_correspondence": "Complete bounded coverage; includes the initial noncontinuous-river connector and the supported natural downstream river/reservoir course."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "Central America 1:250,000, Series E501, Huehuetenango, sheet D-15-N-III",
+      "official_url": "https://maps.lib.utexas.edu/maps/ams/central_america/txu-pclmaps-oclc-9914485-huehuetenango-d-15-n-iii.jpg",
+      "observed_outcome": "Web image request returned Cache miss; original map was not acquired or read. No HTTP status was exposed.",
+      "outcome_layer": "web_tool_availability",
+      "restriction_scope": "Missing named publication/map acquisition and equivalent acquisition routes paused; no retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "Central America 1:250,000, Series E501, Livingston, sheet D-16-N-I",
+      "official_url": "https://maps.lib.utexas.edu/maps/ams/central_america/txu-pclmaps-oclc-9914485-livingston-d-16-n-i.jpg",
+      "observed_outcome": "Web image request returned Cache miss; original map was not acquired or read. No HTTP status was exposed.",
+      "outcome_layer": "web_tool_availability",
+      "restriction_scope": "Missing named publication/map acquisition and equivalent acquisition routes paused; no retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "INGUAT, MapasInguat download catalogue",
+      "official_url": "https://inguat.gob.gt/descargas-inguat-guatemala/156-",
+      "observed_outcome": "Web reader reported (403) Forbidden.",
+      "outcome_layer": "http_response_reported_by_web_tool",
+      "restriction_scope": "Named catalogue and equivalent catalogue routes stopped. No blanket INGUAT publisher or domain restriction is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "INGUAT, Baja Verapaz Mapa, download818",
+      "official_url": "https://inguat.gob.gt/descargas-inguat-guatemala/156-mapasinguat.html?download=818%3Abaja-verapaz-mapa",
+      "observed_outcome": "Completed original request raised HTTPError403 Forbidden; no original map acquired.",
+      "outcome_layer": "original_http",
+      "restriction_scope": "Whole named publication and equivalent copies, formats, figures, mirrors, reader/cache and acquisition routes stopped; no retry or bypass.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "INGUAT, Mapa Turístico de Izabal Marzo2026, download1170",
+      "official_url": "https://inguat.gob.gt/es/descargas-inguat-guatemala/41-mapas.html?download=1170%3Amapa-turistico-de-izabal-marzo-2026",
+      "observed_outcome": "Completed original request raised HTTPError403 Forbidden; no original map acquired.",
+      "outcome_layer": "original_http",
+      "restriction_scope": "Whole named publication and equivalent copies, formats, figures, mirrors, reader/cache and acquisition routes stopped; no retry or bypass.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "CONAP, IV Plan Maestro Reserva de Biosfera Sierra de las Minas",
+      "official_url": "https://conap.gob.gt/wp-content/uploads/2019/08/PM-RB-Sierra-de-las-Minas_Vigente.pdf",
+      "observed_outcome": "Completed original PDF request raised HTTPError403 Forbidden; no report content used.",
+      "outcome_layer": "original_http",
+      "restriction_scope": "Whole named publication and equivalent copies, formats, figures, mirrors, reader/cache and acquisition routes stopped; no retry or bypass.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "CONAP, Plan Maestro Parque Nacional Río Dulce",
+      "official_url": "https://conap.gob.gt/wp-content/uploads/2019/10/PM-PN-R%C3%ADo-Dulce.pdf",
+      "observed_outcome": "Completed original PDF request raised HTTPError403 Forbidden; no report content used.",
+      "outcome_layer": "original_http",
+      "restriction_scope": "Whole named publication and equivalent copies, formats, figures, mirrors, reader/cache and acquisition routes stopped; no retry or bypass.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "Mayan White Water, Río Panimá-Matanzas, Upper, Main, & Ribacó, Guatemala",
+      "official_url": "https://mayanwhitewater.com/rivers/guatemala/matanzas.html",
+      "observed_outcome": "Web reader returned Cache miss, without an exposed HTTP status. Page/maps not acquired or used.",
+      "outcome_layer": "web_tool_availability",
+      "restriction_scope": "Missing named publication/map acquisition and equivalent acquisition routes paused; no retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "Renace, FAQS",
+      "official_url": "https://www.renace.com.gt/renace/faqs.html",
+      "observed_outcome": "Web reader returned Internal Error with no explanatory content or HTTP status. No page-body evidence used.",
+      "outcome_layer": "web_tool_unspecified_error",
+      "restriction_scope": "Missing named publication/map acquisition and equivalent acquisition routes paused; no retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "CNEE, Renace, Ficha de presa, page686",
+      "official_url": "https://www.cnee.gob.gt/wordpress/?page_id=686",
+      "observed_outcome": "Web reader reported (500) Redirected to https://cnee.gob.gt/wordpress/?page_id=686 which is not accessible via this tool, non-retryable error. No profile-body evidence used.",
+      "outcome_layer": "web_tool_redirect_availability",
+      "restriction_scope": "Missing named publication/map acquisition and equivalent acquisition routes paused; no retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "MEM, Informe circunstanciado OXEC II, Dirección General de Energía",
+      "official_url": "https://mem.gob.gt/wp-content/uploads/2023/09/16-Informe-circunstanciado-OXEC-II-Direccion-general-de-energia.pdf",
+      "observed_outcome": "Completed original PDF request raised HTTPError403 Forbidden; no report content used.",
+      "outcome_layer": "original_http",
+      "restriction_scope": "Whole named publication and equivalent copies, formats, figures, mirrors, reader/cache and acquisition routes stopped; no retry or bypass.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70935415",
+      "publication": "PPE2018 Renace, Plan de Preparación ante Emergencias, last update10/02/2019",
+      "official_url": "https://cnee.gob.gt/estudioselectricos/presas/Docs/PPE%20Renace.pdf",
+      "observed_outcome": "Completed original PDF request raised HTTPError403 Forbidden; no report content used.",
+      "outcome_layer": "original_http",
+      "restriction_scope": "Whole named publication and equivalent copies, formats, figures, mirrors, reader/cache and acquisition routes stopped; no retry or bypass.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:61467935",
+      "publication": "Desembocadura río Limarí, Consejo de Monumentos Nacionales",
+      "official_url": "https://www.monumentos.gob.cl/monumentos/santuarios-de-la-naturaleza/desembocadura-rio-limari",
+      "observed_outcome": "Web-reader open returned exactly “Internal Error ()” and “Total lines: 1”. No page/PDF body, map pixels, HTTP status, security reason, cache-miss or timeout description was exposed.",
+      "outcome_layer": "Web-reader tool; origin HTTP outcome unknown",
+      "restriction_scope": "The failed exact web-reader route was not repeated. Additional acquisition of this selected optional publication was left unattempted because the generic error did not establish a specific technical-only fallback condition. No publication-wide HTTP/access denial, domain-wide stop, or clearance of equivalent routes is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_remaining": false,
+      "impact": "Optional terminal prose. Other acquired maps and MMA prose support the terminal."
+    },
+    {
+      "aw_id": "hydro-system:61467935",
+      "publication": "GB221 Geología de las áreas Cordillera Doña Rosa y Paso de Los Azules; front matter and exact edition not inspected",
+      "official_url": "https://www.sernageomin.cl/wp-content/uploads/2025/12/GB221_GeologiaCordilleraDonaRosa-PasoDeLo-Azules-red.pdf",
+      "observed_outcome": "Web-reader open returned exactly “Internal Error ()” and “Total lines: 1”. No page/PDF body, map pixels, HTTP status, security reason, cache-miss or timeout description was exposed.",
+      "outcome_layer": "Web-reader tool; origin HTTP outcome unknown",
+      "restriction_scope": "The failed exact web-reader route was not repeated. Additional acquisition of this selected optional publication was left unattempted because the generic error did not establish a specific technical-only fallback condition. No publication-wide HTTP/access denial, domain-wide stop, or clearance of equivalent routes is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_remaining": false,
+      "impact": "Optional geological/terrain source. Independently acquired Nauditt original supplies the required headward terrain setting."
+    },
+    {
+      "aw_id": "hydro-system:61467935",
+      "publication": "Estudio Macroinvertebrados, Junta de Vigilancia del Río Grande, Limarí y sus Afluentes",
+      "official_url": "https://www.jvriolimari.cl/proyectos/estudio-macroinvertebrados",
+      "observed_outcome": "Web-reader open returned exactly “Internal Error ()” and “Total lines: 1”. No page/PDF body, map pixels, HTTP status, security reason, cache-miss or timeout description was exposed.",
+      "outcome_layer": "Web-reader tool; origin HTTP outcome unknown",
+      "restriction_scope": "The failed exact web-reader route was not repeated. Additional acquisition of this selected optional publication was left unattempted because the generic error did not establish a specific technical-only fallback condition. No publication-wide HTTP/access denial, domain-wide stop, or clearance of equivalent routes is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_remaining": false,
+      "impact": "Optional field-study context. No substantive statement or map from this unacquired page is used."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:61469490",
+      "publication": "IGN cartas_mosaicos 1:250,000 historical composite and febrero2026 1:500,000 overview",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "Both original publications were acquired normally with HTTP200. They depict different inundation extents north of the main Mar Chiquita lake; the complete selected ground and water corridor is visible in each.",
+      "outcome_layer": "Content of successfully acquired original maps, not an HTTP/transport/tool access limitation.",
+      "restriction_scope": "No service stop or missing-source pending state is created. Distinct mapped water states are preserved; precise dates, banks and present hydraulic operation are not inferred.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "No missing geographic component or terminal. Uniform selected river identity remains unsupported."
+    }
+  ]
+}

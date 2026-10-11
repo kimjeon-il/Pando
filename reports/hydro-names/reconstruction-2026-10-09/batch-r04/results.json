@@ -1,0 +1,139 @@
+{
+  "schema": "hydro-reconstruction-reviewed-mixed-batch-v1",
+  "batch": "r04",
+  "research_completed_targets": 3,
+  "independently_reviewed_targets": 3,
+  "counting_unit": "Actual logical inventory targets: one MAIN_RIV group and two lake features, not a count of newly confirmed physical names.",
+  "counts": {
+    "candidate_representative_system_identity": 1,
+    "supported_generalized_water_identity": 1,
+    "candidate_waterbody_identity_extent_hold": 1
+  },
+  "pending_source_only_targets": 0,
+  "historical_name_lead_targets": 2,
+  "new_inventory_targets": 1,
+  "baseline_fragment_count": 5,
+  "river_line_part_count": 188,
+  "river_rendered_coordinate_count": 1279,
+  "lake_feature_count": 2,
+  "lake_source_coordinate_count_including_closures": 300,
+  "lake_baseline_coordinate_count_including_closures": 300,
+  "total_rendered_coordinate_count": 1579,
+  "current_live_deployment_checked": false,
+  "immutable_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "historical504_detailed_ledger_restored": false,
+  "historical_504_is_not_added_to_reconstruction_counts": true,
+  "automatic_application": false,
+  "product_changes": false,
+  "formal_registry_verifications": 0,
+  "whole_feature_scalar_name_approvals": 0,
+  "records": [
+    {
+      "aw_id": "hydro-system:70152112",
+      "category": "river_group",
+      "system_id": "70152112",
+      "source_id": null,
+      "baseline_logical_fid": 2966,
+      "geometry_fids": [
+        9228,
+        9229,
+        9230
+      ],
+      "candidate_name": "Attawapiskat River",
+      "research_category": "candidate_representative_system_identity",
+      "independent_review_status": "representative_candidate_hold",
+      "supported_name_scope": "Official English usage supports the representative-system lead. The acquired park sources distinguish named rivers and lake corridors; they do not establish one name for the complete selected headwater-to-sea path.",
+      "source_keys": [
+        "ATTA-ONTARIO-PARK-PLAN",
+        "PIPESTONE-ONTARIO-PARK-PLAN"
+      ],
+      "limits": [
+        "The July 2002 Pipestone zoning map supplies only upper-corridor context; no precise reach overlay was established.",
+        "Every local fragment and part was inspected, but a source-data plot is not independent naming evidence.",
+        "Otoskwin, Morris, Williams, Pipestone and lake names are distinctions, not group-wide aliases or exact assignments to the 188 reach IDs.",
+        "The retained source sea endpoint and rendered endpoint differ; neither was repaired or independently surveyed.",
+        "Original HydroRIVERS per-reach coordinate equality, Indigenous original form and formal naming status remain unverified."
+      ],
+      "selection_origin": "historical_name_lead_freshly_researched",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159123163",
+      "category": "lake",
+      "system_id": null,
+      "source_id": "1159123163",
+      "baseline_logical_fid": 4869,
+      "geometry_fids": [
+        16244
+      ],
+      "candidate_name": "Kamianske Reservoir",
+      "research_category": "supported_generalized_water_identity",
+      "independent_review_status": "reservoir_identity_supported_with_geometry_extent_limit",
+      "supported_name_scope": "The full stored ring depicts the generalized principal body of Kamianske Reservoir. Chart 3031, its scope notice and independent operator usage support that identity; the physical reservoir extends beyond the polygon’s upper cap.",
+      "source_keys": [
+        "UA-HYDRO-3031",
+        "UA-HYDRO-2021-NOTICE",
+        "UA-UHE-2019",
+        "UA-DAVR-2017-PROPOSAL",
+        "UA-RADA-2024-EN"
+      ],
+      "limits": [
+        "The charted narrow upper continuation toward Kremenchuk HPP is outside the source polygon.",
+        "Islands, channels, some tributary-mouth detail and local margins are generalized; exact point containment and hydrologic completeness are not established.",
+        "The local overlay is approximately registered to the graticule; no datum equivalence, exact dam alignment or current shoreline is claimed.",
+        "The 2017 council item is a proposal, not an enacted reservoir-name decision or effective date.",
+        "The chart release notice is provenance for the same chart, not a second independent map."
+      ],
+      "selection_origin": "historical_name_lead_freshly_researched",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    },
+    {
+      "aw_id": "lakes_base:1159123567",
+      "category": "lake",
+      "system_id": null,
+      "source_id": "1159123567",
+      "baseline_logical_fid": 4894,
+      "geometry_fids": [
+        16269
+      ],
+      "candidate_name": "Theodomiro Carneiro Santiago (Emborcação)",
+      "research_category": "candidate_waterbody_identity_extent_hold",
+      "independent_review_status": "textual_name_candidate_extent_hold",
+      "supported_name_scope": "ANA 194/2024 directly uses this Portuguese name for the reservoir, and Cemig corroborates the paired plant name. Exact Natural Earth numeric identity joins the inventory target, but no acquired primary map verifies the whole selected footprint.",
+      "source_keys": [
+        "EMB-ANA-194-2024",
+        "EMB-CEMIG-PLANT",
+        "EMB-NE-ATTRIBUTES"
+      ],
+      "limits": [
+        "Numeric ne_id 1159123567 is an exact dataset feature join, not a formal name registry or independent map.",
+        "Emborcação Dam is a discovery lead; a dam name is not a full-reservoir footprint verdict.",
+        "Natural Earth name_alt Theodomiro Sampaio is uncorroborated by the acquired primary sources and is not silently corrected or adopted as an alias.",
+        "All 208 stored positions were inspected, but the unlabelled local polygon does not verify every arm or limit against primary cartography.",
+        "The full original DBF was streamed during acquisition but only its header and selected record remain locally; this review rehashes and reparses only those retained bytes."
+      ],
+      "selection_origin": "new_inventory_investigation",
+      "historical_verified_ID_restored": false,
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "review_file": "review/independent-review.json",
+  "review_file_sha256": "4c4e8562a42f4e3f043bde0caea169c43ca192c84e114bb36d2c097a38d353fc",
+  "publication_contents": "Own factual evidence and review, exact identifier facts and hashes, two selected public-domain Natural Earth lake polygons and validators. Complete river coordinates and all raw third-party documents/maps/crops are excluded.",
+  "previous_reconstruction_commit": "ed7bdaf154563ebdce8de6b40aff463b714a7a17"
+}

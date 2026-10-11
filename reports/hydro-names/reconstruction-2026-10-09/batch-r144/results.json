@@ -1,0 +1,683 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r144",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r143",
+    "commit": "0343955ce22abeb8de644eb840ba969b632850b0",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r143/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61507976",
+      "category": "river_group",
+      "system_id": "61507976",
+      "original_queue_rank": 377,
+      "baseline_logical_fid": 3573,
+      "geometry_fids": [
+        14441
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -59.83125,
+        -34.73125,
+        -58.570424,
+        -34.18125
+      ],
+      "rendered_mainstem_length_km": 196.122,
+      "rendered_network_length_km": 196.122,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -59.83125,
+          -34.73125,
+          -58.570424,
+          -34.18125
+        ]
+      },
+      "candidate_name": "Río Luján",
+      "candidate_names": [
+        "Río Luján"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": "Bounded research read the full selected setting on the original IGN overview, detailed upper and lower views, a successful 1:50,000 opening view, and independent APN base, hydrographic and zoning maps. Two material connections remain unsupported by those originals. Unknown passage identities are not inferred from basin membership, a nearby canal name or retained model connectivity. No geometry change, validation, official length or uniform whole-route hydronym is proposed.",
+      "region": "Buenos Aires, Argentina; selected Luján middle corridor, Otamendi wetlands and Paraná de las Palmas terminal.",
+      "candidate_name_role": "Provisional candidate for the independently identified named middle-river corridor. A representative identity for the entire selected object is not established because its opening and Otamendi wetland connector remain unresolved. The later mapped Paraná de las Palmas reach is separately named.",
+      "source_keys": [
+        "r144-ign250k-lujan-parana",
+        "r144-ign50k-gouin-rivas",
+        "r144-apn2004-otamendi",
+        "r144-comilu2025-lujan-headwaters",
+        "r144-gba2018-santamaria"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The complete Gouin–Rivas headward pond/marsh connection and the selected western Otamendi reserve passage to Paraná de las Palmas at Vuelta del Tordillo remain unestablished by the acquired original maps. The separately mapped Canal Santa María is not substituted for that selected connector.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Original IGN cartography establishes the lower headwater drainage north of Suipacha, the Río Luján corridor through Mercedes, Luján and the Pilar area, and the downstream selected Paraná de las Palmas reach. The complete headward pond/marsh connection east of Gouin and northwest of Rivas remains unestablished. The selected northward passage through the Otamendi reserve is also unestablished: independent APN maps put Canal Santa María farther east, and do not establish the selected lagoon-side passage to Vuelta del Tordillo. This is material-source pending, not a completed name-scope hold.",
+      "supported_name_scope": "Provisional candidate for the independently identified named middle-river corridor. A representative identity for the entire selected object is not established because its opening and Otamendi wetland connector remain unresolved. The later mapped Paraná de las Palmas reach is separately named.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Río Luján is a provisional named middle-corridor candidate only while material correspondence remains incomplete.",
+          "Del Durazno and Los Leones are independently documented headwaters; no whole-route scalar claim follows.",
+          "The selected Otamendi passage is not assigned Canal Santa María merely because that canal links the same rivers elsewhere.",
+          "Paraná de las Palmas is the separately mapped downstream receiving-channel identity and is not renamed Luján.",
+          "Historical cartography does not establish current flow, modern works, exact banks, individual name-transition vertices or formal registry status.",
+          "Accepted, whole-feature scalar and Korean names remain null; all application flags are false."
+        ]
+      },
+      "material_pending_components": [
+        {
+          "fids": [
+            14441
+          ],
+          "component": "Gouin–Rivas headward ponds/marsh connection",
+          "needed_evidence": "Independent original mapping or equivalent primary evidence establishing the entire selected headward wetland-drainage connection to the visible lower stream. Existing cartographic marsh context alone is insufficient."
+        },
+        {
+          "fids": [
+            14441
+          ],
+          "component": "Otamendi lagoon-side interior to Vuelta del Tordillo/Paraná connector",
+          "needed_evidence": "Independent original evidence for the selected westerly northward connection. The adjacent, separately mapped Canal Santa María must not be substituted for it."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70834534",
+      "category": "river_group",
+      "system_id": "70834534",
+      "original_queue_rank": 378,
+      "baseline_logical_fid": 3207,
+      "geometry_fids": [
+        10256
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -81.998573,
+        26.957208,
+        -81.610417,
+        28.2625
+      ],
+      "rendered_mainstem_length_km": 196.059,
+      "rendered_network_length_km": 196.059,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -81.998573,
+          26.957208,
+          -81.610417,
+          28.2625
+        ]
+      },
+      "candidate_name": "Peace River",
+      "candidate_names": [
+        "Peace River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Florida, United States; northern lake/wetland corridor toward Peace Creek and lower Peace River.",
+      "candidate_name_role": "Source-supported downstream river component and provisional representative-system candidate only; the whole selected headward lake/wetland/river route remains unestablished.",
+      "source_keys": [
+        "usgstopo-peace-01",
+        "usgstopo-peace-02",
+        "usgstopo-peace-03",
+        "usgstopo-peace-04",
+        "usgstopo-peace-05",
+        "usgstopo-peace-06",
+        "usgstopo-peace-07",
+        "usgstopo-peace-08",
+        "usgstopo-peace-09",
+        "lowery-2017",
+        "swfwmd-river-begins",
+        "swfwmd-tributaries"
+      ],
+      "material_pending_components": [
+        "Northern opening through the I-4 wetland crossing and Sand Lake/Lowery approach",
+        "Selected southeast transfer from the Lake Haines side toward Lake Fannie, as distinct from the mapped western interconnected lake chain",
+        "Selected east-to-west Peace Creek wetland route into Lake Garfield and back toward the main canal corridor"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The sources do not establish all selected wetland and lake through-connections. Nearby lake names, connected-basin membership, the retained model line and an alternative mapped route through the lake chain are not substituted for the unresolved selected transfers.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Original USGSTopo cartography establishes the Peace River corridor from the Saddle Creek–Peace Creek junction near Bartow, through Fort Meade, Wauchula and Arcadia, to the estuarine Peace/Shell Creek setting by Cleveland. It also identifies the northern lake chain and Peace Creek canal network. However, the selected opening across the I-4 wetlands toward Sand Lake and Lake Lowery, and selected transfers within the upper lake/creek complex, lack full geographic correspondence. The independent Lake Lowery report supports conditional southern lake outlets but does not establish the full selected opening. One source-material-pending status is retained.",
+      "completion_scope": "Original USGSTopo cartography establishes the Peace River corridor from the Saddle Creek–Peace Creek junction near Bartow, through Fort Meade, Wauchula and Arcadia, to the estuarine Peace/Shell Creek setting by Cleveland. It also identifies the northern lake chain and Peace Creek canal network. However, the selected opening across the I-4 wetlands toward Sand Lake and Lake Lowery, and selected transfers within the upper lake/creek complex, lack full geographic correspondence. The independent Lake Lowery report supports conditional southern lake outlets but does not establish the full selected opening. One source-material-pending status is retained.",
+      "supported_name_scope": "Downstream component candidate, not completed whole-system identity.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Peace River is not extended as a uniform name to the opening, Sand Lake, Lake Lowery, the northern Chain of Lakes, Peace Creek, Peace Creek Drainage Canal or Boggy Branch.",
+          "Lake Haines, Lake Fannie, Lake Hamilton and Lake Garfield remain separately observed lake components; nearby Lake Henry, Rochelle, Conine and Smart provide connected-lake context rather than automatic renaming or proof of a selected shortcut.",
+          "The model ends in the lower estuarine Peace/Shell Creek setting by Cleveland, upstream of the broader Charlotte Harbor waterbody; no claim is made that the selected endpoint is the full river mouth.",
+          "No exact banks, vertices, official headwater point, current discharge direction throughout, Korean rendering, formal naming-registry status or official length is claimed."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80070226",
+      "category": "river_group",
+      "system_id": "80070226",
+      "original_queue_rank": 379,
+      "baseline_logical_fid": 911,
+      "geometry_fids": [
+        2521
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -101.552083,
+        66.191667,
+        -101.170833,
+        67.682387
+      ],
+      "rendered_mainstem_length_km": 195.953,
+      "rendered_network_length_km": 195.953,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -101.552083,
+          66.191667,
+          -101.170833,
+          67.682387
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": null,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": "Bounded source research was completed, but not full geographic correspondence. No acquired primary original maps establish the selected opening, full route, material lake/stream connectors, junctions or actual terminal.",
+      "region": "Nunavut mainland, Canada; Armark Lake–Ogden Bay map areas in the Queen Maud Gulf hinterland.",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r144-chs-arc403-retained",
+        "r144-hanson-jones1974-retained"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "Genuine original-map/source coverage is missing for the selected southern opening, upper and middle joining sequence, lower corridor and actual coastal branch. Regional coastal prose and the available small compilation figure cannot close these geographic gaps.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "ARC403 separately places Pitok in eastern Ogden Bay, Armark east of McTavish Point, and Simpson farther east. None of these regional identities is automatically transferred to the selected line. Joe Lake66J and McLoughlin Bay66O cover the eastern neighboring map band and do not intersect this selected corridor.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "No Pitok River candidate acceptance from regional mouth prose or discovery snippets.",
+          "No primary original-map correspondence from a small later regional compilation or directory listings.",
+          "No uniform river-name extension over unidentified feeders, lakes, wetlands or outlet branches.",
+          "No current registry, legal naming-boundary, natural-source, present flow-direction or precise mouth claim."
+        ]
+      },
+      "contextual_name_leads": [
+        {
+          "name": "Pitok River",
+          "role": "Regional primary-prose lead only; not an identified selected component or supported representative system candidate.",
+          "source_key": "r144-chs-arc403-retained"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61357020",
+      "category": "river_group",
+      "system_id": "61357020",
+      "original_queue_rank": 380,
+      "baseline_logical_fid": 3529,
+      "geometry_fids": [
+        13966
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -70.06875,
+        -24.535417,
+        -69.1625,
+        -23.739583
+      ],
+      "rendered_mainstem_length_km": 195.109,
+      "rendered_network_length_km": 195.109,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -70.06875,
+          -24.535417,
+          -69.1625,
+          -23.739583
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": {
+        "all_selected_fragments_considered": true,
+        "full_mainstem_and_tributary_corridors_inspected": false,
+        "all_material_confluences_inspected": false,
+        "actual_terminal_settings_inspected": [
+          "Western part of the Salar de Navidad setting, within the COT wetland polygon at ordinary map scale"
+        ],
+        "supported_material_junctions": [
+          "Unnamed upper drainage with eastern and southern side arms along its southwestward approach",
+          "Upper westward corridor joining the south-derived Profeta branch before the long northward continuation",
+          "Major eastern and western side-drainage settings along the mapped middle/lower Profeta corridor"
+        ],
+        "selected_lake_or_reservoir_passage": "No freshwater lake or reservoir passage established. The selected final reach approaches and enters a mapped wetland/salar setting; this is not evidence of open water or perennial flow.",
+        "unresolved_material_connections": [
+          "Eastern opening: the selected initial westward hook reaches a north-northeast-running mapped head branch from an outer tip for which no original source establishes the whole connecting corridor.",
+          "Lower westward connector: the source Profeta bends farther north before crossing the salar setting, whereas the selected route leaves that bend and reaches a southern parallel arm. The through-link and the interpretation of the intervening land remain unestablished."
+        ],
+        "terminal_limit": "Both the detailed MMA hydrography and ODEPA regional map depict drainage beyond the selected endpoint. The source observations do not prove that the natural Profeta system ends there or is fully endorheic.",
+        "coverage_vs_connectivity": "All selected settings were considered in original overview and detailed views, but viewing surrounding geography is not full through-connection correspondence. COT land-cover coverage and regional relief do not supply the missing drainage links. Map absence of a label is not the reason for this pending state.",
+        "precision_scope": "Ordinary generalized component/corridor scale. Local offsets within the depicted parallel-channel upper approach are not treated as exact-bank problems. The pending links are distinct route/connector interpretations, not demands for vertex or mouth-point identity."
+      },
+      "region": "Antofagasta, Chile; selected dry-drainage corridor in the Quebrada del Profeta region.",
+      "candidate_name_role": "No whole-object representative identity assigned while the eastern opening and lower cross-arm connection remain materially unresolved. Quebrada del Profeta is securely named on the mapped middle/lower component, not promoted to the entire selected object.",
+      "source_keys": [
+        "mma-hydro-r144",
+        "mma-cot2020-r144",
+        "odepa-antofagasta-map",
+        "aquist865-2026"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The eastern opening into the mapped head branch and the lower selected westward cross-arm connection remain unestablished. The supported Profeta corridor and Salar de Navidad wetland setting do not close those links; mapped drainage continues beyond the selected endpoint, so natural endorheic closure is not asserted.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Original MMA hydrography supports the unnamed southern upper approach, its joining setting with Quebrada del Profeta, and the long northward Profeta corridor. The selected end occupies the Salar de Navidad setting, corroborated by the official ODEPA regional map and the MMA COT wetland polygon. However, the short eastern opening lies off the depicted head line, and the lower selected westward route leaves the mapped Profeta bend to reach a southern parallel arm. The available original cartography does not establish these through-connections or an affirmative alternative non-river interpretation. One material-pending status is retained, with no whole-object candidate.",
+      "supported_name_scope": "No whole-object representative identity assigned while the eastern opening and lower cross-arm connection remain materially unresolved. Quebrada del Profeta is securely named on the mapped middle/lower component, not promoted to the entire selected object.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The initial head branch and upper southwestward approach have no independently established individual hydronym; their names remain null.",
+          "Quebrada del Profeta is a supported middle/lower component identity. Representative naming would not require all upstream reaches to share that name, but it still requires the two material connections to be resolved.",
+          "Salar de Navidad is a terminal-setting name, not a whole-object river candidate. Its broad mapped outline is not a present shoreline survey.",
+          "Quebrada Chimborazo appears on a distinct eastern drainage in the overview and is not transferred to the selected opening.",
+          "No present discharge, perennial flow, wetness, legal name registration, official river length or natural endorheic closure is inferred."
+        ],
+        "mapped_component_identities": [
+          {
+            "name": "Quebrada del Profeta",
+            "scope": "Named mapped middle/lower northward corridor and source continuation, not all selected opening/shortcut linework."
+          },
+          {
+            "name": "Salar de Navidad",
+            "scope": "Regional terminal-setting identity, not a river hydronym or proof that the natural drainage ends here."
+          }
+        ]
+      },
+      "material_pending_components": [
+        "Eastern opening: the selected initial westward hook reaches a north-northeast-running mapped head branch from an outer tip for which no original source establishes the whole connecting corridor.",
+        "Lower westward connector: the source Profeta bends farther north before crossing the salar setting, whereas the selected route leaves that bend and reaches a southern parallel arm. The through-link and the interpretation of the intervening land remain unestablished."
+      ]
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61507976",
+      "hydro-system:70834534",
+      "hydro-system:80070226",
+      "hydro-system:61357020"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 0,
+    "supported_representative_system_identities": 0,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 4
+  },
+  "totals_after": {
+    "recorded_targets": 519,
+    "non_pending_records": 436,
+    "source_access_pending": 3,
+    "source_material_pending": 80,
+    "source_any_pending": 83,
+    "scope_holds": 142,
+    "river_groups": 421,
+    "lakes": 98,
+    "unrecorded": 3546,
+    "unrecorded_river_groups": 3034,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r144-ign250k-lujan-parana",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r144-ign50k-gouin-rivas",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r144-apn2004-otamendi",
+      "official_url": "https://sib.gob.ar/archivos/Plan_de_Manejo_RNO_2005-2009.pdf"
+    },
+    {
+      "source_key": "r144-comilu2025-lujan-headwaters",
+      "official_url": "https://gba.gob.ar/comilu/noticias/nuevo_muestreo_para_evaluar_la_calidad_de_agua_en_el_r%C3%ADo_luj%C3%A1n"
+    },
+    {
+      "source_key": "r144-gba2018-santamaria",
+      "official_url": "https://www.gba.gob.ar/infraestructura/noticias/la_provincia_supervis%C3%B3_las_obras_del_canal_santa_mar%C3%ADa"
+    },
+    {
+      "source_key": "usgstopo-peace-01",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "usgstopo-peace-02",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "usgstopo-peace-03",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "usgstopo-peace-04",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "usgstopo-peace-05",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "usgstopo-peace-06",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "usgstopo-peace-07",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "usgstopo-peace-08",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "usgstopo-peace-09",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "lowery-2017",
+      "official_url": "https://www.swfwmd.state.fl.us/sites/default/files/documents-and-reports/reports/Lowery-MFL_Report_Final.pdf"
+    },
+    {
+      "source_key": "swfwmd-river-begins",
+      "official_url": "https://www.swfwmd.state.fl.us/watersheds/peace-river/where-the-river-begins"
+    },
+    {
+      "source_key": "swfwmd-tributaries",
+      "official_url": "https://www.swfwmd.state.fl.us/watersheds/peace-river/tributaries"
+    },
+    {
+      "source_key": "r144-chs-arc403-retained",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf"
+    },
+    {
+      "source_key": "r144-hanson-jones1974-retained",
+      "official_url": "https://pubs.aina.ucalgary.ca/arctic/Arctic27-2-111.pdf"
+    },
+    {
+      "source_key": "r144-canmatrix50k-066k-directory",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/066/k/"
+    },
+    {
+      "source_key": "r144-canmatrix50k-066n-directory",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/066/n/"
+    },
+    {
+      "source_key": "r144-canmatrix-066k03-unavailable",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/066/k/canmatrix_066k03_tif.zip"
+    },
+    {
+      "source_key": "r144-canmatrix-066n12-unavailable",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/066/n/canmatrix_066n12_tif.zip"
+    },
+    {
+      "source_key": "r144-nluis-66j-extent-only",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66j.jpg"
+    },
+    {
+      "source_key": "r144-nluis-66o-extent-only",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66o.jpg"
+    },
+    {
+      "source_key": "r144-nluis-66k-inherited-stop",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66k.jpg"
+    },
+    {
+      "source_key": "r144-nluis-66n-inherited-stop",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_66n.jpg"
+    },
+    {
+      "source_key": "mma-hydro-r144",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "source_key": "mma-cot2020-r144",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "source_key": "mma-wetlands-r144",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer"
+    },
+    {
+      "source_key": "odepa-antofagasta-map",
+      "official_url": "https://bibliotecadigital.odepa.gob.cl/bitstreams/7f3a9b30-8cac-4982-a214-5640b182491a/download"
+    },
+    {
+      "source_key": "aquist865-2026",
+      "official_url": "https://snifa.sma.gob.cl/General/Descargar/2061300094191"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "0343955ce22abeb8de644eb840ba969b632850b0",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      377,
+      378,
+      379,
+      380
+    ],
+    "next_unrecorded_id": "hydro-system:70846952",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      }
+    ]
+  }
+}

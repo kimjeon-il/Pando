@@ -1,0 +1,176 @@
+{
+  "schema": "hydro-reconstruction-publication-manifest-v1",
+  "batch": "r13",
+  "proposed_repository_directory": "reports/hydro-names/reconstruction-2026-10-09/batch-r13",
+  "source_reference_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "previous_reconstruction_commit": "bfaef10720f3f177a71758e928e3d9bffba98442",
+  "scope": "Three bounded new actual-inventory lake investigations against complete generalized source and retained baseline polygons. Cumulative index and pinned initial inventory recover the fresh-reconstruction remainder, not the unavailable historical504 ledger.",
+  "automatic_application": false,
+  "product_changes": false,
+  "full_river_coordinates_included": false,
+  "selected_public_domain_lake_features": 3,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "rights_locator": "source-publication-rights.json",
+  "file_count_excluding_self": 39,
+  "bytes_excluding_self": 222781,
+  "self_excluded_from_hashes": true,
+  "files": {
+    "README.md": {
+      "bytes": 5554,
+      "sha256": "1f3871032a3bcbf733f5be62c331dd5563082aa75196074c5e382ad2b224132d"
+    },
+    "geometry-README.md": {
+      "bytes": 6176,
+      "sha256": "73c50f737489e35b799b130b5572cc45e3d059d4fddc74c4900d861bdfa8efbf"
+    },
+    "geometry-component-manifest.json": {
+      "bytes": 1613,
+      "sha256": "80268d2524b5985f3fbb0919d274bf852ef80f09ef80283c06aca6e8ae659730"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 2917,
+      "sha256": "655bc77caba1db9fb9535afe97d980eae96eb78ca70780608ead7ff11b7ca9a3"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 993,
+      "sha256": "539e73f8d4bb90b53412e3d31777190a3659b9527870e35a0229ca9663c8070b"
+    },
+    "geometry-reference.json": {
+      "bytes": 18754,
+      "sha256": "50eaf7b37129ef13f557d3831013e162c7b7f5c3dfb3c47647bec063f86b3869"
+    },
+    "geometry-support.py": {
+      "bytes": 2400,
+      "sha256": "dd6a583181c1527cdd0646f3ce6aee207570042c14e3fa4ebc3d35a36e752d33"
+    },
+    "geometry-validation.json": {
+      "bytes": 8391,
+      "sha256": "0afe2a665f4b584954e5611f36acd8126bb595196818730decc6347f045d27b4"
+    },
+    "queue-recovery-validation.json": {
+      "bytes": 2506,
+      "sha256": "ec07171fbc575dd8ad92311d956ab239ec048e04f96f70c39af234fc6ba34694"
+    },
+    "reconstruction-index.json": {
+      "bytes": 25832,
+      "sha256": "b36cb41e1c06373d781d41186aa753be08c44003822c7e5c1db17e4839db5145"
+    },
+    "recover-remaining-queue.py": {
+      "bytes": 4247,
+      "sha256": "7dcf8d54e845094c3a2b5f9eab43860af6b5e7fa887a816b34904982bcb598b6"
+    },
+    "research/calcasieu/README.md": {
+      "bytes": 1323,
+      "sha256": "c0dc09fad70ab0798e9d35a1f1f1631d8d195751780a117c812a2c3fbdd2d5d7"
+    },
+    "research/calcasieu/findings.json": {
+      "bytes": 4430,
+      "sha256": "48924daca9cc632cbd3ae2f906521e59a0a768d046d4d244eee83b03d730095f"
+    },
+    "research/calcasieu/research-manifest.json": {
+      "bytes": 906,
+      "sha256": "16e88f2cce1552372d84dc57277c04dedc5060c9d9d839fab82e175f1e5d97e1"
+    },
+    "research/calcasieu/source-evidence.json": {
+      "bytes": 3115,
+      "sha256": "af7286076765d5e3af7c96aceff2841136d07f82a601b756ef65e3bef7956522"
+    },
+    "research/calcasieu/target-identity-facts.json": {
+      "bytes": 1172,
+      "sha256": "12bef3d9a8780c9b3bf751e95194a5792e0e363fb84c2973cc7e63bf4ca0039d"
+    },
+    "research/maurepas-salvador/README.md": {
+      "bytes": 1350,
+      "sha256": "dbb67f5d238a495ec2a2435ac1e655013a48d9da58279657d95b36cf1d8bc5cd"
+    },
+    "research/maurepas-salvador/findings.json": {
+      "bytes": 7300,
+      "sha256": "5a626cc93f58f51322a2869ba79de102a3893cff51be17cfd5dbd2f5fef7706f"
+    },
+    "research/maurepas-salvador/map-scope-review.json": {
+      "bytes": 3834,
+      "sha256": "d922c4eb7ea3ae482b35771ea564c35d7fcfc51516971016e131d06108e0da0a"
+    },
+    "research/maurepas-salvador/research-manifest.json": {
+      "bytes": 1062,
+      "sha256": "1b2ee17a2e04e88c8d02e5f70598a18bbd9e13eab1efb2d2007d1b44af46e7bf"
+    },
+    "research/maurepas-salvador/source-evidence.json": {
+      "bytes": 5716,
+      "sha256": "e9015a280859628cb8e04461873829f1391fb675173f4ffdd2495bfe6ebc8547"
+    },
+    "research/maurepas-salvador/target-identity-facts.json": {
+      "bytes": 2624,
+      "sha256": "19b450dc66d4cbe39f567795df45ae308c6497c628100fec74a6009777d8e401"
+    },
+    "results.json": {
+      "bytes": 8146,
+      "sha256": "18371afd86fce74587d5c0a35fe70790f4a28b20ac0cc1fa25dd0013a764197c"
+    },
+    "review/README.md": {
+      "bytes": 3290,
+      "sha256": "6e0e17e2cf8cadb3274d6ca2d3d90b138d7db8e5477ca63dc0a309fe84c639d2"
+    },
+    "review/independent-review.json": {
+      "bytes": 10269,
+      "sha256": "b4713d19e0bb7282da24a04be2a047103b06c66e1a3e7decd5fc0f9c8fdece3a"
+    },
+    "review/public-input-pins.json": {
+      "bytes": 2777,
+      "sha256": "5daca28e2f7289fcf8dd783b148ff8853d12db7347393686614e01cc09d8d262"
+    },
+    "review/review-manifest.json": {
+      "bytes": 1510,
+      "sha256": "403f17e084914c7712d4b3973a45290a748cabe89fc41f60c8a690352c100ce7"
+    },
+    "review/review-validation.json": {
+      "bytes": 5263,
+      "sha256": "efa8a5ff14a4ade8b645849d6f3323b80b5a7cdc61c0f0f5c89b47748c26c433"
+    },
+    "review/source-observations.json": {
+      "bytes": 3430,
+      "sha256": "37446743636c837f81dda804094d4400146e7a4c30287ddbc1cf8edc610d22e5"
+    },
+    "review/test-independent-review.py": {
+      "bytes": 6453,
+      "sha256": "a0315cbe4928c94035ce1586354d4f14571a15857a3628f4c961fb5c3d3b361c"
+    },
+    "review/validate-independent-review.py": {
+      "bytes": 16125,
+      "sha256": "8945b89100fdbb613a7a350716f6d52d064d78607c83ee281161aea78c747671"
+    },
+    "selected-baseline-rendered-geometries.geojson": {
+      "bytes": 3537,
+      "sha256": "22f626598f3990b7bf3046175bc713d8ca6e4b1444aa0cd3ed179d423e8c9d03"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 4393,
+      "sha256": "01f7df7d5adc69a1656f2a223f57548633ed2f5169b56fbf4606d332e393860a"
+    },
+    "selected-lake-geometries.geojson": {
+      "bytes": 5341,
+      "sha256": "5564c881b1c951f7914e74c37b2db90e00c454043e2bb553859a9059a9ce8294"
+    },
+    "source-publication-rights.json": {
+      "bytes": 996,
+      "sha256": "c6f1092cefebee754795d6c9716be15e4cb6cd1dedbc86b6180d89c80423fb81"
+    },
+    "test-geometry-reference.py": {
+      "bytes": 9648,
+      "sha256": "f9a796892a12d0038f23967bc9ed12d8c188e42298ea190e428a1d339ae40bec"
+    },
+    "test-remaining-queue.py": {
+      "bytes": 3472,
+      "sha256": "22964a9590e30efe8e7339557e1c8aee1cea7952532143fa32d06a1f2e6c1df3"
+    },
+    "validate-geometry-reference.py": {
+      "bytes": 16286,
+      "sha256": "ed77b05d00adf47fc42de1353cafbd34ac5b598d9816ddbf6a150d35332cfc2c"
+    },
+    "validate-package.py": {
+      "bytes": 9630,
+      "sha256": "abab7a58d855d99f2f51b409453a6214969c5baa00dc2f2adbd9ebffb2fd50e2"
+    }
+  }
+}

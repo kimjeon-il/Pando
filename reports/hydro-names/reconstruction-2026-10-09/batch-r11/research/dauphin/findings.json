@@ -1,0 +1,45 @@
+{
+  "schema": "hydro-bounded-lake-findings-v1",
+  "batch": "r11",
+  "frozen_at_utc": "2026-10-09T15:08:48.216804+00:00",
+  "target_count": 1,
+  "new_actual_inventory_targets": 1,
+  "compound_named_waterbody_required_by_evidence": false,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159112291",
+      "source_id": "1159112291",
+      "candidate_name": "Dauphin Lake",
+      "directly_supported_name_forms": [
+        "Dauphin Lake",
+        "DAUPHIN LAKE"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "supported_name_scope": "The complete generalized source polygon is associated with Dauphin Lake. The narrow northern basin, west-side indentation, widening southeastern body and rounded southern shore correspond to the provincial plan maps. This is a generalized waterbody identity, not a surveyed shoreline or scalar-name approval.",
+      "source_keys": [
+        "manitoba_dauphin_iwmp",
+        "eccc_dauphin_reference_index"
+      ],
+      "correspondence_observations": [
+        "Both provincial map panels show the same entire north-south lake east of Dauphin and southwest of Lake Winnipegosis. The candidate has that position and complete characteristic outline.",
+        "The source has no extension north along Mossy River into separately mapped Lake Winnipegosis; the provincial narrative describes a single river outlet between the lakes.",
+        "The plan distinguishes lakeshore marshes from the lake. These are scope/shoreline qualifications, not evidence of a compound of independently named lakes."
+      ],
+      "compound_named_waterbody_required_by_evidence": false,
+      "name_scope_limits": [
+        "The source is a generalized Natural Earth 1:10 million polygon; mapped marsh margins and detailed shoreline differences are unresolved.",
+        "The plan is a historical planning document; PDF creation and modification dates are file metadata, not verified publication or present shoreline dates.",
+        "ECCC station coordinates and names confirm regional usage at two sites, not whole-lake boundaries.",
+        "No formal naming instrument, current registry status, exact shoreline fit, Korean name or legally defined name extent was established."
+      ],
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false
+    }
+  ],
+  "publication_scope": "Own factual observations, short source labels, original URLs, response-body hashes and inspection locators; no original publication bodies, extracted full texts or map images.",
+  "automatic_application": false
+}

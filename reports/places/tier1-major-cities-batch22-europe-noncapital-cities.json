@@ -1,0 +1,2166 @@
+{
+  "schema": "pando-places-tier1-review-v6",
+  "batch": "22-europe-noncapital-cities",
+  "status": "verified-source-staging-not-runtime",
+  "checkedOn": "2026-10-11",
+  "source": "GeoNames CC BY 4.0 contemporary P-class settlement IDs/locations; city governments, municipal archives, German Rhineland historical portal, Italian Senate, Spanish BOE, Russian/St Petersburg/Kaliningrad archival agencies, Polish Gdansk/Wroclaw governments and Polish-Ukrainian historical research, each period sourceUrl.",
+  "selection": "25 major historically important European non-national-capital cities, including two PPLA3 GeoNames settlements explicitly flagged for manual candidate review; no automatic tier or historical sovereignty inference.",
+  "coordinateConvention": "GeoNames modern WGS84 EPSG:4326 representative settlement point, not polygonal historical city jurisdiction or past border.",
+  "countryCodeSemantics": "GeoNames sourceCountryCode is present-day source metadata, not historical country attribution; PPLA3 is excluded from canonical candidate filter.",
+  "historicalDisplayPolicyFile": "reports/places/historical-display-policy.json",
+  "koreanMapLabelPolicyFile": "reports/places/korean-map-label-policy.json",
+  "historicalDisplayStatus": "timeline-staged-not-runtime",
+  "historicNameScope": "Historically documented long-lived civil-name regimes and official acts change selected map name; military occupation alone does not. Modern-name retrojection to 1801 is marked provisional where historical continuity is not demonstrated.",
+  "reviewMethod": "Existing 21 batch IDs compared before write; current GeoNames city IDs and representative coordinates checked. Legal naming changes and capital status held apart; year-only naming switches kept approximate.",
+  "difficultySummary": {
+    "A": 15,
+    "B": 3,
+    "C": 7
+  },
+  "qualityNotes": [
+    "All 25 new GeoNames IDs absent from the 239 staged cities across 21 batches; prior displayTimeline entries total 446.",
+    "Frankfurt am Main ID 2925533 and Leipzig ID 2879139 have PPLA3 codes and lie outside canonical GeoNames candidate() filter. Manual stage inclusion review only, no rank or automatic promotion.",
+    "Cologne/Köln: 1801 French civil-administration Cologne from city museum, 1815 Prussian governance selects German Köln; English Cologne unchanged. These are language-of-administration map label epochs, not declaration that German was never locally used in 1801.",
+    "Valencia/València: Spanish State BOE April 12 2017 Decree 16/2017 replaced Spanish municipality's official form by Valencian València; Korean/English slot unchanged, 2023 proposed bilingual change not assumed legally complete.",
+    "Saint Petersburg exact 1914-08-31 Petrograd (Julian 18 Aug), 1924-01-26 Leningrad, 1991-09-06 historical restoration. Older Russian hard-sign orthography is normalized and not fabricated as a separate statutory renaming.",
+    "Kaliningrad: former Prussian Königsberg retained after 1945 battle; 1946-07-04 Soviet decree formally renamed city to Kaliningrad. Polish Królewiec used abroad is not a Russian-city legal rename.",
+    "Gdańsk: 1801 German Danzig -> year 1945 selected Polish Gdańsk under Polish civilian administration. Military victory 1945-03-30 not claimed exact name-effective date; Free City role separated.",
+    "Wrocław: German Breslau -> year 1945 Polish Wrocław; city government records Polish administration from 1945-05-09, not an independently authenticated city-renaming law date.",
+    "Lviv: selected 1801 Austrian German Lemberg, 1919 Polish Lwów, 1939 Ukrainian SSR native Львів with editorial English Lvov/Korean 리보프, and 1991 English Lviv/Korean 리비우 editorial exonym shift, native Ukrainian unchanged. Polish-Ukrainian multi-ethnic urban name use exists outside single preferred map slot.",
+    "Lviv 1918–1919 Polish-Ukrainian conflict and Nazi wartime occupation 1941–1944 are not automatically chosen as exact legal renaming dates.",
+    "Turin: Italian Senate documents Kingdom of Italy seat of government and 1865 transfer to Florence separately from Torino local city name.",
+    "Lyon: archive documents 1793 revolutionary Ville-Affranchie episode prior to the 1801 display-name survey; no invented within-survey period.",
+    "Naples Neapolis ancient foundation and current Napoli administrative city names are historical-geography context, not grounds to assign continuous Roman/Greek city tiers or identical polygons.",
+    "A-class cities' 1801 local-language and English/Korean selections use GeoNames contemporary labels provisionally, NOT proof of historical Korean/English use or exhaustive no-rename continuity.",
+    "No source GeoNames candidate-policy modifications, rankTimeline, city geometry/tile/runtime publication, main branch or app repository changes."
+  ],
+  "stats": {
+    "previousStagedCities": 239,
+    "previousNamePeriods": 446,
+    "addedCities": 25,
+    "addedNamePeriods": 36,
+    "additionalNameTransitionPeriods": 11,
+    "exactDatedNamePeriods": 5,
+    "yearGranularityNamePeriods": 31,
+    "cumulativeStagedCities": 264,
+    "cumulativeNamePeriods": 482,
+    "researchDifficulty": {
+      "A": 15,
+      "B": 3,
+      "C": 7
+    },
+    "manualCandidateInclusionReviews": 2
+  },
+  "records": [
+    {
+      "geonameId": 2911298,
+      "names": [
+        {
+          "text": "함부르크",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2911298/"
+        },
+        {
+          "text": "Hamburg",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2911298/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 53.55073,
+      "longitude": 9.99302,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2911298/",
+      "sourceCountryCode": "DE",
+      "defaultDisplayNameKo": "함부르크",
+      "defaultDisplayNameEn": "Hamburg",
+      "defaultDisplayNameNative": "Hamburg",
+      "defaultNativeLanguage": "de",
+      "defaultNativeNames": [
+        {
+          "text": "Hamburg",
+          "language": "de",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "한자도시·주도와 시가지 구분",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "함부르크",
+          "nameEn": "Hamburg",
+          "nameNative": "Hamburg",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Hamburg",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2911298/",
+          "note": "GeoNames에서 확인된 현재 도시명 Hambur",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Hamburg를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2867714,
+      "names": [
+        {
+          "text": "뮌헨",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2867714/"
+        },
+        {
+          "text": "Munich",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2867714/",
+          "script": "Latn"
+        },
+        {
+          "text": "München",
+          "language": "de",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2867714/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 48.13743,
+      "longitude": 11.57549,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2867714/",
+      "sourceCountryCode": "DE",
+      "defaultDisplayNameKo": "뮌헨",
+      "defaultDisplayNameEn": "Munich",
+      "defaultDisplayNameNative": "München",
+      "defaultNativeLanguage": "de",
+      "defaultNativeNames": [
+        {
+          "text": "München",
+          "language": "de",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "바이에른 수도와 현지명 구별",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "뮌헨",
+          "nameEn": "Munich",
+          "nameNative": "München",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "München",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2867714/",
+          "note": "GeoNames에서 확인된 현재 도시명 Münche",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 München를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2925533,
+      "names": [
+        {
+          "text": "프랑크푸르트",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2925533/"
+        },
+        {
+          "text": "Frankfurt am Main",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2925533/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 50.11552,
+      "longitude": 8.68417,
+      "featureClass": "P",
+      "featureCode": "PPLA3",
+      "sourceUrl": "https://www.geonames.org/2925533/",
+      "sourceCountryCode": "DE",
+      "defaultDisplayNameKo": "프랑크푸르트",
+      "defaultDisplayNameEn": "Frankfurt am Main",
+      "defaultDisplayNameNative": "Frankfurt am Main",
+      "defaultNativeLanguage": "de",
+      "defaultNativeNames": [
+        {
+          "text": "Frankfurt am Main",
+          "language": "de",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "동명 도시·PPLA3 예외 검토",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "프랑크푸르트",
+          "nameEn": "Frankfurt am Main",
+          "nameNative": "Frankfurt am Main",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Frankfurt am Main",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2925533/",
+          "note": "GeoNames에서 확인된 현재 도시명 Frankf",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Frankfurt am Main를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "B",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다.",
+        "현 GeoNames 분류 PPLA3는 canonical 후보 자동 채택 코드가 아님. Frankfurt am Main은 프랑크푸르트안데어오더와 독립된 대도시라는 근거로 별도 포함 심사만 기록한다."
+      ],
+      "candidatePolicyException": {
+        "status": "manual-inclusion-review-only",
+        "sourceUrl": "https://www.geonames.org/2925533/",
+        "reason": "GeoNames PPLA3 for Frankfurt am Main (population 650,000) is outside canonical source candidate predicate even at high population; preserve historical city staging without altering PPLA3 policy or assigning city rank.",
+        "autoPromoted": false
+      }
+    },
+    {
+      "geonameId": 2886242,
+      "names": [
+        {
+          "text": "콜로뉴",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.stadt-koeln.de/politik-und-verwaltung/presse/mitteilungen/25758/index.html"
+        },
+        {
+          "text": "Cologne",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.stadt-koeln.de/politik-und-verwaltung/presse/mitteilungen/25758/index.html",
+          "script": "Latn"
+        },
+        {
+          "text": "쾰른",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://rheinische-geschichte.lvr.de/chronicle/1815"
+        },
+        {
+          "text": "Köln",
+          "language": "de",
+          "usage": "standard",
+          "sourceUrl": "https://rheinische-geschichte.lvr.de/chronicle/1815",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 50.93333,
+      "longitude": 6.95,
+      "featureClass": "P",
+      "featureCode": "PPLA2",
+      "sourceUrl": "https://www.geonames.org/2886242/",
+      "sourceCountryCode": "DE",
+      "defaultDisplayNameKo": "쾰른",
+      "defaultDisplayNameEn": "Cologne",
+      "defaultDisplayNameNative": "Köln",
+      "defaultNativeLanguage": "de",
+      "defaultNativeNames": [
+        {
+          "text": "Köln",
+          "language": "de",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "프랑스 통치기 Cologne 표기",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "콜로뉴",
+          "nameEn": "Cologne",
+          "nameNative": "Cologne",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Cologne",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "frenchCivilAdministrativeName",
+          "sourceUrl": "https://www.stadt-koeln.de/politik-und-verwaltung/presse/mitteilungen/25758/index.html",
+          "note": "1794년 프랑스군 진입 뒤 나폴레옹 시대의 지속된",
+          "researchNote": "1794년 프랑스군 진입 뒤 나폴레옹 시대의 지속된 프랑스 민정하에서 Cologne라는 프랑스어 도시 표기를 1801년 대표 원어로 선정한다. 당시 독일어 Köln 사용 자체가 소멸했다는 뜻은 아니다."
+        },
+        {
+          "fromYear": 1815,
+          "nameKo": "쾰른",
+          "nameNative": "Köln",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Köln",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "prussianCivilAdministrationNameSelection",
+          "sourceUrl": "https://rheinische-geschichte.lvr.de/chronicle/1815",
+          "note": "1815년 빈 회의 이후 프로이센령 편입 및 독일어",
+          "researchNote": "1815년 빈 회의 이후 프로이센령 편입 및 독일어 민정 재정착을 기준으로 Köln을 원어 대표 표기로 복귀. 정확한 법정 개칭 효력일은 확인되지 않아 연도만 기록하며 영어 Cologne은 그대로 둔다."
+        }
+      ],
+      "researchDifficulty": "C",
+      "historicalDisplayCoverage": "selected-sourced-periods-partial-review",
+      "reviewStatus": "selected-historic-epochs-source-reviewed",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2934246,
+      "names": [
+        {
+          "text": "뒤셀도르프",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2934246/"
+        },
+        {
+          "text": "Düsseldorf",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2934246/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 51.22319,
+      "longitude": 6.77927,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2934246/",
+      "sourceCountryCode": "DE",
+      "defaultDisplayNameKo": "뒤셀도르프",
+      "defaultDisplayNameEn": "Düsseldorf",
+      "defaultDisplayNameNative": "Düsseldorf",
+      "defaultNativeLanguage": "de",
+      "defaultNativeNames": [
+        {
+          "text": "Düsseldorf",
+          "language": "de",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "노르트라인베스트팔렌 주도",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "뒤셀도르프",
+          "nameEn": "Düsseldorf",
+          "nameNative": "Düsseldorf",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Düsseldorf",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2934246/",
+          "note": "GeoNames에서 확인된 현재 도시명 Düssel",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Düsseldorf를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2825297,
+      "names": [
+        {
+          "text": "슈투트가르트",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2825297/"
+        },
+        {
+          "text": "Stuttgart",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2825297/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 48.78232,
+      "longitude": 9.17702,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2825297/",
+      "sourceCountryCode": "DE",
+      "defaultDisplayNameKo": "슈투트가르트",
+      "defaultDisplayNameEn": "Stuttgart",
+      "defaultDisplayNameNative": "Stuttgart",
+      "defaultNativeLanguage": "de",
+      "defaultNativeNames": [
+        {
+          "text": "Stuttgart",
+          "language": "de",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "바덴뷔르템베르크 주도",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "슈투트가르트",
+          "nameEn": "Stuttgart",
+          "nameNative": "Stuttgart",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Stuttgart",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2825297/",
+          "note": "GeoNames에서 확인된 현재 도시명 Stuttg",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Stuttgart를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2879139,
+      "names": [
+        {
+          "text": "라이프치히",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2879139/"
+        },
+        {
+          "text": "Leipzig",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2879139/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 51.33962,
+      "longitude": 12.37129,
+      "featureClass": "P",
+      "featureCode": "PPLA3",
+      "sourceUrl": "https://www.geonames.org/2879139/",
+      "sourceCountryCode": "DE",
+      "defaultDisplayNameKo": "라이프치히",
+      "defaultDisplayNameEn": "Leipzig",
+      "defaultDisplayNameNative": "Leipzig",
+      "defaultNativeLanguage": "de",
+      "defaultNativeNames": [
+        {
+          "text": "Leipzig",
+          "language": "de",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "구 동독 도시·PPLA3 예외",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "라이프치히",
+          "nameEn": "Leipzig",
+          "nameNative": "Leipzig",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Leipzig",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2879139/",
+          "note": "GeoNames에서 확인된 현재 도시명 Leipzi",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Leipzig를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "B",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다.",
+        "Leipzig GeoNames PPLA3는 인구가 많더라도 기존 candidate()의 포함 코드 밖이다. 도시 정체가 확인된 추가 검토이지 자동 후보 승인·도시 등급 승격이 아니다."
+      ],
+      "candidatePolicyException": {
+        "status": "manual-inclusion-review-only",
+        "sourceUrl": "https://www.geonames.org/2879139/",
+        "reason": "GeoNames PPLA3 for Leipzig (population 504,971) is outside canonical source candidate predicate; historical city staging is separately documented but must not alter inclusion filter or grant city-tier approval.",
+        "autoPromoted": false
+      }
+    },
+    {
+      "geonameId": 2935022,
+      "names": [
+        {
+          "text": "드레스덴",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2935022/"
+        },
+        {
+          "text": "Dresden",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2935022/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 51.05089,
+      "longitude": 13.73832,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2935022/",
+      "sourceCountryCode": "DE",
+      "defaultDisplayNameKo": "드레스덴",
+      "defaultDisplayNameEn": "Dresden",
+      "defaultDisplayNameNative": "Dresden",
+      "defaultNativeLanguage": "de",
+      "defaultNativeNames": [
+        {
+          "text": "Dresden",
+          "language": "de",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "작센 주도·전시 피해 분리",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "드레스덴",
+          "nameEn": "Dresden",
+          "nameNative": "Dresden",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Dresden",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2935022/",
+          "note": "GeoNames에서 확인된 현재 도시명 Dresde",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Dresden를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 3173435,
+      "names": [
+        {
+          "text": "밀라노",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3173435/"
+        },
+        {
+          "text": "Milan",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3173435/",
+          "script": "Latn"
+        },
+        {
+          "text": "Milano",
+          "language": "it",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3173435/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 45.46427,
+      "longitude": 9.18951,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/3173435/",
+      "sourceCountryCode": "IT",
+      "defaultDisplayNameKo": "밀라노",
+      "defaultDisplayNameEn": "Milan",
+      "defaultDisplayNameNative": "Milano",
+      "defaultNativeLanguage": "it",
+      "defaultNativeNames": [
+        {
+          "text": "Milano",
+          "language": "it",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "영어 Milan·원어 Milano 구별",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "밀라노",
+          "nameEn": "Milan",
+          "nameNative": "Milano",
+          "nativeLanguage": "it",
+          "nativeNames": [
+            {
+              "text": "Milano",
+              "language": "it",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/3173435/",
+          "note": "GeoNames에서 확인된 현재 도시명 Milano",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Milano를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 3172394,
+      "names": [
+        {
+          "text": "나폴리",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3172394/"
+        },
+        {
+          "text": "Naples",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3172394/",
+          "script": "Latn"
+        },
+        {
+          "text": "Napoli",
+          "language": "it",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3172394/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 40.85216,
+      "longitude": 14.26811,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/3172394/",
+      "sourceCountryCode": "IT",
+      "defaultDisplayNameKo": "나폴리",
+      "defaultDisplayNameEn": "Naples",
+      "defaultDisplayNameNative": "Napoli",
+      "defaultNativeLanguage": "it",
+      "defaultNativeNames": [
+        {
+          "text": "Napoli",
+          "language": "it",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "영어 Naples·원어 Napoli 구별",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "나폴리",
+          "nameEn": "Naples",
+          "nameNative": "Napoli",
+          "nativeLanguage": "it",
+          "nativeNames": [
+            {
+              "text": "Napoli",
+              "language": "it",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/3172394/",
+          "note": "GeoNames에서 확인된 현재 도시명 Napoli",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Napoli를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다.",
+        "고대 Parthenope·Neapolis 도시는 오늘날 시가지를 형성한 유적지·명칭 전신이지만 현대 행정시 경계와 같은 이름 변경 구간으로 투영하지 않는다."
+      ]
+    },
+    {
+      "geonameId": 3165524,
+      "names": [
+        {
+          "text": "토리노",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3165524/"
+        },
+        {
+          "text": "Turin",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3165524/",
+          "script": "Latn"
+        },
+        {
+          "text": "Torino",
+          "language": "it",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3165524/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 45.07049,
+      "longitude": 7.68682,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/3165524/",
+      "sourceCountryCode": "IT",
+      "defaultDisplayNameKo": "토리노",
+      "defaultDisplayNameEn": "Turin",
+      "defaultDisplayNameNative": "Torino",
+      "defaultNativeLanguage": "it",
+      "defaultNativeNames": [
+        {
+          "text": "Torino",
+          "language": "it",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1861~1865년 이탈리아 수도",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "토리노",
+          "nameEn": "Turin",
+          "nameNative": "Torino",
+          "nativeLanguage": "it",
+          "nativeNames": [
+            {
+              "text": "Torino",
+              "language": "it",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/3165524/",
+          "note": "GeoNames에서 확인된 현재 도시명 Torino",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Torino를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "B",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ],
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1861,
+            "type": "kingdomOfItalyCapitalDesignation",
+            "detail": "1861년 이탈리아 왕국 수도",
+            "researchDetail": "1861년 3월 왕국 수립 당시 Torino에 의회·중앙행정부가 소재했지만 도시 이름 Torino의 개칭은 아니다.",
+            "sourceUrl": "https://www.senato.it/relazioni-con-i-cittadini/biblioteca/pubblicazioni-testi/minervaweb/la-convenzione-di-settembre"
+          },
+          {
+            "fromYear": 1865,
+            "type": "capitalMovedToFlorence",
+            "detail": "1865년 수도 피렌체 이전",
+            "researchDetail": "1864-12-11 법에 따라 1865년 중앙행정부가 Torino에서 Firenze로 이전. 이탈리아 상원 자료는 왕의 1865-02-03 궁정 이전과 6월 관청 이주 일정 차이를 구별한다. 도시 자체는 존속한다.",
+            "sourceUrl": "https://www.senato.it/node/20/printable/print"
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2523920,
+      "names": [
+        {
+          "text": "팔레르모",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2523920/"
+        },
+        {
+          "text": "Palermo",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2523920/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 38.1166,
+      "longitude": 13.3636,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2523920/",
+      "sourceCountryCode": "IT",
+      "defaultDisplayNameKo": "팔레르모",
+      "defaultDisplayNameEn": "Palermo",
+      "defaultDisplayNameNative": "Palermo",
+      "defaultNativeLanguage": "it",
+      "defaultNativeNames": [
+        {
+          "text": "Palermo",
+          "language": "it",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "시칠리아 중심도시명 유지",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "팔레르모",
+          "nameEn": "Palermo",
+          "nameNative": "Palermo",
+          "nativeLanguage": "it",
+          "nativeNames": [
+            {
+              "text": "Palermo",
+              "language": "it",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2523920/",
+          "note": "GeoNames에서 확인된 현재 도시명 Palerm",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Palermo를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 3128760,
+      "names": [
+        {
+          "text": "바르셀로나",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3128760/"
+        },
+        {
+          "text": "Barcelona",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/3128760/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 41.38879,
+      "longitude": 2.15899,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/3128760/",
+      "sourceCountryCode": "ES",
+      "defaultDisplayNameKo": "바르셀로나",
+      "defaultDisplayNameEn": "Barcelona",
+      "defaultDisplayNameNative": "Barcelona",
+      "defaultNativeLanguage": "ca",
+      "defaultNativeNames": [
+        {
+          "text": "Barcelona",
+          "language": "ca",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "카탈루냐어 도시명 유지",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "바르셀로나",
+          "nameEn": "Barcelona",
+          "nameNative": "Barcelona",
+          "nativeLanguage": "ca",
+          "nativeNames": [
+            {
+              "text": "Barcelona",
+              "language": "ca",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/3128760/",
+          "note": "GeoNames에서 확인된 현재 도시명 Barcel",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Barcelona를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2509954,
+      "names": [
+        {
+          "text": "발렌시아",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2017-4116"
+        },
+        {
+          "text": "Valencia",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2017-4116",
+          "script": "Latn"
+        },
+        {
+          "text": "València",
+          "language": "ca",
+          "usage": "standard",
+          "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2017-4116",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 39.47391,
+      "longitude": -0.37966,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2509954/",
+      "sourceCountryCode": "ES",
+      "defaultDisplayNameKo": "발렌시아",
+      "defaultDisplayNameEn": "Valencia",
+      "defaultDisplayNameNative": "València",
+      "defaultNativeLanguage": "ca",
+      "defaultNativeNames": [
+        {
+          "text": "València",
+          "language": "ca",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "2017년 원어 공식 표기 변경",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "발렌시아",
+          "nameEn": "Valencia",
+          "nameNative": "Valencia",
+          "nativeLanguage": "es",
+          "nativeNames": [
+            {
+              "text": "Valencia",
+              "language": "es",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalSpanishMunicipalNameEditorialSelection",
+          "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2017-4116",
+          "note": "1801년 에스파냐 통치기의 카스티야어 Valenc",
+          "researchNote": "1801년 에스파냐 통치기의 카스티야어 Valencia를 당시 행정 표기로 선택한다. 발렌시아어 València라는 지역명 자체의 부재나 새로운 지명의 탄생을 주장하지 않는다."
+        },
+        {
+          "fromDate": "2017-04-12",
+          "nameNative": "València",
+          "nativeLanguage": "ca",
+          "nativeNames": [
+            {
+              "text": "València",
+              "language": "ca",
+              "script": "Latn"
+            }
+          ],
+          "kind": "officialMunicipalNamingOrthographyChange",
+          "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2017-4116",
+          "note": "발렌시아 자치정부 Decree 16/2017은 지자",
+          "researchNote": "발렌시아 자치정부 Decree 16/2017은 지자체의 공식 표기를 Valencia에서 발렌시아어 València로 바꾸고 2017-04-12 BOE 공고일부터 옛 이름 참조를 새 이름으로 처리하도록 규정했다. 영어 Valencia와 한국어 발렌시아는 동일하게 유지. 2023년 후속 양언어 표기 변경 논의의 채택을 추측해 적용하지 않는다."
+        }
+      ],
+      "researchDifficulty": "C",
+      "historicalDisplayCoverage": "selected-sourced-periods-partial-review",
+      "reviewStatus": "selected-historic-epochs-source-reviewed",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다.",
+        "València 단일 공식명은 2017년 스페인 BOE 고시 기준. 2023년 이후 Valencia/Valéncia 양언어 변경 제안은 공식 등록 효력 확인 전에는 적용하지 않는다."
+      ]
+    },
+    {
+      "geonameId": 2510911,
+      "names": [
+        {
+          "text": "세비야",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2510911/"
+        },
+        {
+          "text": "Seville",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2510911/",
+          "script": "Latn"
+        },
+        {
+          "text": "Sevilla",
+          "language": "es",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2510911/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 37.38283,
+      "longitude": -5.97317,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2510911/",
+      "sourceCountryCode": "ES",
+      "defaultDisplayNameKo": "세비야",
+      "defaultDisplayNameEn": "Seville",
+      "defaultDisplayNameNative": "Sevilla",
+      "defaultNativeLanguage": "es",
+      "defaultNativeNames": [
+        {
+          "text": "Sevilla",
+          "language": "es",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "영문 Seville·서어 Sevilla",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "세비야",
+          "nameEn": "Seville",
+          "nameNative": "Sevilla",
+          "nativeLanguage": "es",
+          "nativeNames": [
+            {
+              "text": "Sevilla",
+              "language": "es",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2510911/",
+          "note": "GeoNames에서 확인된 현재 도시명 Sevill",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Sevilla를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2995469,
+      "names": [
+        {
+          "text": "마르세유",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2995469/"
+        },
+        {
+          "text": "Marseille",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2995469/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 43.29695,
+      "longitude": 5.38107,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2995469/",
+      "sourceCountryCode": "FR",
+      "defaultDisplayNameKo": "마르세유",
+      "defaultDisplayNameEn": "Marseille",
+      "defaultDisplayNameNative": "Marseille",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Marseille",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "마르세유 항구의 프랑스어명",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "마르세유",
+          "nameEn": "Marseille",
+          "nameNative": "Marseille",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Marseille",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2995469/",
+          "note": "GeoNames에서 확인된 현재 도시명 Marsei",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Marseille를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2996944,
+      "names": [
+        {
+          "text": "리옹",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2996944/"
+        },
+        {
+          "text": "Lyon",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2996944/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 45.74906,
+      "longitude": 4.84789,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2996944/",
+      "sourceCountryCode": "FR",
+      "defaultDisplayNameKo": "리옹",
+      "defaultDisplayNameEn": "Lyon",
+      "defaultDisplayNameNative": "Lyon",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Lyon",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1793년 혁명기 명칭은 별도",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "리옹",
+          "nameEn": "Lyon",
+          "nameNative": "Lyon",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Lyon",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2996944/",
+          "note": "GeoNames에서 확인된 현재 도시명 Lyon를 ",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Lyon를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ],
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1793,
+            "type": "shortRevolutionaryCityRenamingBeforeCoverage",
+            "detail": "1793년 혁명기 일시 개칭",
+            "researchDetail": "1793-10-12 국민공회가 Lyon이라는 시명 사용을 금지하고 Ville-Affranchie로 부르는 조치를 명령했다. 1794–1795년 복원에 관한 시 기록에는 날짜 차이가 있지만 1801년 조사 시작 시점에는 이름 Lyon이 확립되어 있으므로 1801+ displayTimeline에 가공의 중복 전환을 만들지 않는다.",
+            "sourceUrl": "https://www.archives-lyon.fr/vuln%C3%A9rabilit%C3%A9s/risques-militaires/Lyon-n%27est-plus"
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 2972315,
+      "names": [
+        {
+          "text": "툴루즈",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2972315/"
+        },
+        {
+          "text": "Toulouse",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2972315/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 43.60426,
+      "longitude": 1.44367,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/2972315/",
+      "sourceCountryCode": "FR",
+      "defaultDisplayNameKo": "툴루즈",
+      "defaultDisplayNameEn": "Toulouse",
+      "defaultDisplayNameNative": "Toulouse",
+      "defaultNativeLanguage": "fr",
+      "defaultNativeNames": [
+        {
+          "text": "Toulouse",
+          "language": "fr",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "프랑스 남서부 주요 도시",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "툴루즈",
+          "nameEn": "Toulouse",
+          "nameNative": "Toulouse",
+          "nativeLanguage": "fr",
+          "nativeNames": [
+            {
+              "text": "Toulouse",
+              "language": "fr",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2972315/",
+          "note": "GeoNames에서 확인된 현재 도시명 Toulou",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Toulouse를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2643123,
+      "names": [
+        {
+          "text": "맨체스터",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2643123/"
+        },
+        {
+          "text": "Manchester",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2643123/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 53.48095,
+      "longitude": -2.23743,
+      "featureClass": "P",
+      "featureCode": "PPLA2",
+      "sourceUrl": "https://www.geonames.org/2643123/",
+      "sourceCountryCode": "GB",
+      "defaultDisplayNameKo": "맨체스터",
+      "defaultDisplayNameEn": "Manchester",
+      "defaultDisplayNameNative": "Manchester",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Manchester",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "도시 중심과 광역권 구분",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "맨체스터",
+          "nameEn": "Manchester",
+          "nameNative": "Manchester",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Manchester",
+              "language": "en",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2643123/",
+          "note": "GeoNames에서 확인된 현재 도시명 Manche",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Manchester를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 2644210,
+      "names": [
+        {
+          "text": "리버풀",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2644210/"
+        },
+        {
+          "text": "Liverpool",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.geonames.org/2644210/",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 53.41058,
+      "longitude": -2.97794,
+      "featureClass": "P",
+      "featureCode": "PPLA2",
+      "sourceUrl": "https://www.geonames.org/2644210/",
+      "sourceCountryCode": "GB",
+      "defaultDisplayNameKo": "리버풀",
+      "defaultDisplayNameEn": "Liverpool",
+      "defaultDisplayNameNative": "Liverpool",
+      "defaultNativeLanguage": "en",
+      "defaultNativeNames": [
+        {
+          "text": "Liverpool",
+          "language": "en",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "항구도시와 시구역 구분",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "리버풀",
+          "nameEn": "Liverpool",
+          "nameNative": "Liverpool",
+          "nativeLanguage": "en",
+          "nativeNames": [
+            {
+              "text": "Liverpool",
+              "language": "en",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalNameEditorialBaseline",
+          "sourceUrl": "https://www.geonames.org/2644210/",
+          "note": "GeoNames에서 확인된 현재 도시명 Liverp",
+          "researchNote": "GeoNames에서 확인된 현재 도시명 Liverpool를 1801년의 지도용 잠정 대표형으로 투영한 것이다. 1801년 한국어·영문 표기가 실제 사용됐거나 과거부터 현재까지 법정 개칭이 없었다는 뜻이 아니며 더 오래된 지명·지배권 변천은 별도 검토한다."
+        }
+      ],
+      "researchDifficulty": "A",
+      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
+      "reviewStatus": "current-name-backed-historical-baseline-provisional",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 498817,
+      "names": [
+        {
+          "text": "상트페테르부르크",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.gov.spb.ru/gov/otrasl/c_culture/culture_statistics/"
+        },
+        {
+          "text": "Saint Petersburg",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.gov.spb.ru/gov/otrasl/c_culture/culture_statistics/",
+          "script": "Latn"
+        },
+        {
+          "text": "Санкт-Петербург",
+          "language": "ru",
+          "usage": "standard",
+          "sourceUrl": "https://www.gov.spb.ru/gov/otrasl/c_culture/culture_statistics/",
+          "script": "Cyrl"
+        },
+        {
+          "text": "페트로그라드",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.cbs.aptrg.gov.spb.ru/ru/web/guest/ps-history"
+        },
+        {
+          "text": "Petrograd",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.cbs.aptrg.gov.spb.ru/ru/web/guest/ps-history",
+          "script": "Latn"
+        },
+        {
+          "text": "Петроград",
+          "language": "ru",
+          "usage": "historical",
+          "sourceUrl": "https://www.cbs.aptrg.gov.spb.ru/ru/web/guest/ps-history",
+          "script": "Cyrl"
+        },
+        {
+          "text": "레닌그라드",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.gov.spb.ru/gov/otrasl/c_culture/news/273566/"
+        },
+        {
+          "text": "Leningrad",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.gov.spb.ru/gov/otrasl/c_culture/news/273566/",
+          "script": "Latn"
+        },
+        {
+          "text": "Ленинград",
+          "language": "ru",
+          "usage": "historical",
+          "sourceUrl": "https://www.gov.spb.ru/gov/otrasl/c_culture/news/273566/",
+          "script": "Cyrl"
+        }
+      ],
+      "latitude": 59.93863,
+      "longitude": 30.31413,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/498817/",
+      "sourceCountryCode": "RU",
+      "defaultDisplayNameKo": "상트페테르부르크",
+      "defaultDisplayNameEn": "Saint Petersburg",
+      "defaultDisplayNameNative": "Санкт-Петербург",
+      "defaultNativeLanguage": "ru",
+      "defaultNativeNames": [
+        {
+          "text": "Санкт-Петербург",
+          "language": "ru",
+          "script": "Cyrl"
+        }
+      ],
+      "shortDescriptionKo": "1914·1924·1991년 공식 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "상트페테르부르크",
+          "nameEn": "Saint Petersburg",
+          "nameNative": "Санкт-Петербург",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Санкт-Петербург",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "historicalRussianNameOrthographyNormalized",
+          "sourceUrl": "https://www.gov.spb.ru/gov/otrasl/c_culture/culture_statistics/",
+          "note": "1801년 러시아 제국 도시명 Санкт-Петер",
+          "researchNote": "1801년 러시아 제국 도시명 Санкт-Петербург를 현대 철자법으로 정규화해 저장. 1918년 이전 문서의 어말 경음부호 등 서법을 별도 공식 도시명 개칭으로 만들지 않는다."
+        },
+        {
+          "fromDate": "1914-08-31",
+          "nameKo": "페트로그라드",
+          "nameEn": "Petrograd",
+          "nameNative": "Петроград",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Петроград",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "officialRenaming",
+          "sourceUrl": "https://www.cbs.aptrg.gov.spb.ru/ru/web/guest/ps-history",
+          "note": "러시아 구력 1914-08-18에 황제가 Санкт",
+          "researchNote": "러시아 구력 1914-08-18에 황제가 Санкт-Петербург를 Петроград로 개칭한 사실을 그레고리력 1914-08-31로 환산한다. 제1차 세계대전 당시 독일어식 이름 제거를 위한 법정 개칭이며 1918년 러시아 정서법 개정과 구분한다."
+        },
+        {
+          "fromDate": "1924-01-26",
+          "nameKo": "레닌그라드",
+          "nameEn": "Leningrad",
+          "nameNative": "Ленинград",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Ленинград",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "officialRenaming",
+          "sourceUrl": "https://www.gov.spb.ru/gov/otrasl/c_culture/news/273566/",
+          "note": "1924-01-26 제2차 전연방 소비에트대회의 결",
+          "researchNote": "1924-01-26 제2차 전연방 소비에트대회의 결의로 Petrograd가 Leningrad로 개칭. 레닌 사망일 1924-01-21과 구별한다."
+        },
+        {
+          "fromDate": "1991-09-06",
+          "nameKo": "상트페테르부르크",
+          "nameEn": "Saint Petersburg",
+          "nameNative": "Санкт-Петербург",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Санкт-Петербург",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "officialRenamingRestoration",
+          "sourceUrl": "https://toponimika.spb.ru/vozvrashchenie-istoricheskikh-nazvanij/vozvrashchenie-sankt-peterburga.html",
+          "note": "1991-09-06 러시아 소비에트 연방공화국 최고",
+          "researchNote": "1991-09-06 러시아 소비에트 연방공화국 최고회의 간부회 명령으로 Leningrad의 원래 Saint Petersburg 이름 복원. 1991-06-12 주민투표와 법정 복원일을 구별한다."
+        }
+      ],
+      "researchDifficulty": "C",
+      "historicalDisplayCoverage": "selected-sourced-periods-partial-review",
+      "reviewStatus": "selected-historic-epochs-source-reviewed",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ]
+    },
+    {
+      "geonameId": 554234,
+      "names": [
+        {
+          "text": "쾨니히스베르크",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.prlib.ru/node/619151"
+        },
+        {
+          "text": "Königsberg",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.prlib.ru/node/619151",
+          "script": "Latn"
+        },
+        {
+          "text": "칼리닌그라드",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.klgd.ru/city/history/almanac/a5_4.php?print=Y"
+        },
+        {
+          "text": "Kaliningrad",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.klgd.ru/city/history/almanac/a5_4.php?print=Y",
+          "script": "Latn"
+        },
+        {
+          "text": "Калининград",
+          "language": "ru",
+          "usage": "standard",
+          "sourceUrl": "https://www.klgd.ru/city/history/almanac/a5_4.php?print=Y",
+          "script": "Cyrl"
+        }
+      ],
+      "latitude": 54.70639,
+      "longitude": 20.51102,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/554234/",
+      "sourceCountryCode": "RU",
+      "defaultDisplayNameKo": "칼리닌그라드",
+      "defaultDisplayNameEn": "Kaliningrad",
+      "defaultDisplayNameNative": "Калининград",
+      "defaultNativeLanguage": "ru",
+      "defaultNativeNames": [
+        {
+          "text": "Калининград",
+          "language": "ru",
+          "script": "Cyrl"
+        }
+      ],
+      "shortDescriptionKo": "1946년 쾨니히스베르크 개칭",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "쾨니히스베르크",
+          "nameEn": "Königsberg",
+          "nameNative": "Königsberg",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Königsberg",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "historicalGermanCivilName",
+          "sourceUrl": "https://www.prlib.ru/node/619151",
+          "note": "1801년 프로이센왕국 도심의 이름 Königsbe",
+          "researchNote": "1801년 프로이센왕국 도심의 이름 Königsberg를 대표 독일어명으로 기록한다. 1945년 전투 점령만으로 즉시 칼리닌그라드로 바뀐 것은 아니다."
+        },
+        {
+          "fromDate": "1946-07-04",
+          "nameKo": "칼리닌그라드",
+          "nameEn": "Kaliningrad",
+          "nameNative": "Калининград",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Калининград",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "officialRenaming",
+          "sourceUrl": "https://www.klgd.ru/city/history/almanac/a5_4.php?print=Y",
+          "note": "1946-07-04 소련 최고회의 간부회 'О пе",
+          "researchNote": "1946-07-04 소련 최고회의 간부회 'О переименовании города Кенигсберга в город Калининград' 명령으로 Königsberg를 Kaliningrad로 법정 개칭했다. 1945년 점령과 1946년 주 설치일을 분리하며 현재 폴란드어 외국어명 Królewiec를 러시아 도시 개칭으로 혼동하지 않는다."
+        }
+      ],
+      "researchDifficulty": "C",
+      "historicalDisplayCoverage": "selected-sourced-periods-partial-review",
+      "reviewStatus": "selected-historic-epochs-source-reviewed",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다.",
+        "2023년 폴란드 정부가 외국어 지명 Królewiec를 공식 권고한 것은 러시아 원어 도시 자체의 개칭과 구분한다."
+      ],
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1945,
+            "type": "battleAndSovietOccupation",
+            "detail": "1945년 쾨니히스베르크 전투",
+            "researchDetail": "1945년 무력 점령 자체는 1946-07-04 법적 개칭일과 다르며 1946년 새로운 주 이름 결정과도 구별한다.",
+            "sourceUrl": "https://www.prlib.ru/node/619151"
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 3099434,
+      "names": [
+        {
+          "text": "단치히",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://media.gdansk.pl/komunikaty/798188/powrot-gdanska-w-granice-polski-78-rocznica-podniesienia-flagi-panstwowej-rp-na-dworze-artusa"
+        },
+        {
+          "text": "Danzig",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://media.gdansk.pl/komunikaty/798188/powrot-gdanska-w-granice-polski-78-rocznica-podniesienia-flagi-panstwowej-rp-na-dworze-artusa",
+          "script": "Latn"
+        },
+        {
+          "text": "그단스크",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.gdansk.pl/historia-gdanska/historie-gdanskie/pod-miejska-bandera%2Ca%2C207312"
+        },
+        {
+          "text": "Gdańsk",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.gdansk.pl/historia-gdanska/historie-gdanskie/pod-miejska-bandera%2Ca%2C207312",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 54.35227,
+      "longitude": 18.64912,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/3099434/",
+      "sourceCountryCode": "PL",
+      "defaultDisplayNameKo": "그단스크",
+      "defaultDisplayNameEn": "Gdańsk",
+      "defaultDisplayNameNative": "Gdańsk",
+      "defaultNativeLanguage": "pl",
+      "defaultNativeNames": [
+        {
+          "text": "Gdańsk",
+          "language": "pl",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1945년 단치히에서 표기 전환",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "단치히",
+          "nameEn": "Danzig",
+          "nameNative": "Danzig",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Danzig",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "germanMunicipalName",
+          "sourceUrl": "https://media.gdansk.pl/komunikaty/798188/powrot-gdanska-w-granice-polski-78-rocznica-podniesienia-flagi-panstwowej-rp-na-dworze-artusa",
+          "note": "1801년 단치히(Danzig)는 프로이센령에서 지",
+          "researchNote": "1801년 단치히(Danzig)는 프로이센령에서 지속적으로 사용된 독일어 행정 도시명. 폴란드어 Gdańsk가 주변 지역·주민에게 알려지지 않았다는 주장이 아니다."
+        },
+        {
+          "fromYear": 1945,
+          "nameKo": "그단스크",
+          "nameEn": "Gdańsk",
+          "nameNative": "Gdańsk",
+          "nativeLanguage": "pl",
+          "nativeNames": [
+            {
+              "text": "Gdańsk",
+              "language": "pl",
+              "script": "Latn"
+            }
+          ],
+          "kind": "polishCivilAdministrationNameSelection",
+          "sourceUrl": "https://www.gdansk.pl/historia-gdanska/historie-gdanskie/pod-miejska-bandera%2Ca%2C207312",
+          "note": "그단스크 시 자료에 따르면 1945년 4월부터 전 ",
+          "researchNote": "그단스크 시 자료에 따르면 1945년 4월부터 전 자유시·독일 행정 도시 위에 폴란드 행정기관이 형성됐다. 안정적인 민정의 Gdańsk를 그해 대표 원어로 선택하지만 1945-03-30 군사적 도시 점령일을 법정 개칭일로 사용하지 않는다."
+        }
+      ],
+      "researchDifficulty": "C",
+      "historicalDisplayCoverage": "selected-sourced-periods-partial-review",
+      "reviewStatus": "selected-historic-epochs-source-reviewed",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ],
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1920,
+            "type": "freeCityDanzigGovernmentStatus",
+            "detail": "1920년 자유시 단치히",
+            "researchDetail": "베르사유 체제의 자유시 지위는 독일어 Danzig의 도시명 변경이 아니다. 당시 폴란드어 Gdańsk도 사용되었으나 하나의 법정 원어로 전면 교체된 것은 아니다.",
+            "sourceUrl": "https://media.gdansk.pl/komunikaty/798188/powrot-gdanska-w-granice-polski-78-rocznica-podniesienia-flagi-panstwowej-rp-na-dworze-artusa"
+          },
+          {
+            "fromYear": 1945,
+            "type": "polishCivilAdministrationEstablished",
+            "detail": "1945년 폴란드 민정 성립",
+            "researchDetail": "4월부터 폴란드 민정 운영으로 국가·행정관할과 대표 원어 선택이 변했다. 포위전의 특정 날짜를 법정 개칭 시행일로 소급하지 않는다.",
+            "sourceUrl": "https://www.gdansk.pl/historia-gdanska/historie-gdanskie/pod-miejska-bandera%2Ca%2C207312"
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 3081368,
+      "names": [
+        {
+          "text": "브레슬라우",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://www.wroclaw.pl/dla-mieszkanca/historia-wroclawia-najwazniejsze-fakty"
+        },
+        {
+          "text": "Breslau",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://www.wroclaw.pl/dla-mieszkanca/historia-wroclawia-najwazniejsze-fakty",
+          "script": "Latn"
+        },
+        {
+          "text": "브로츠와프",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://www.wroclaw.pl/dla-mieszkanca/kalendarium"
+        },
+        {
+          "text": "Wrocław",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://www.wroclaw.pl/dla-mieszkanca/kalendarium",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 51.10286,
+      "longitude": 17.03006,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/3081368/",
+      "sourceCountryCode": "PL",
+      "defaultDisplayNameKo": "브로츠와프",
+      "defaultDisplayNameEn": "Wrocław",
+      "defaultDisplayNameNative": "Wrocław",
+      "defaultNativeLanguage": "pl",
+      "defaultNativeNames": [
+        {
+          "text": "Wrocław",
+          "language": "pl",
+          "script": "Latn"
+        }
+      ],
+      "shortDescriptionKo": "1945년 브레슬라우 명칭 전환",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "브레슬라우",
+          "nameEn": "Breslau",
+          "nameNative": "Breslau",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Breslau",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "prussianGermanCityName",
+          "sourceUrl": "https://www.wroclaw.pl/dla-mieszkanca/historia-wroclawia-najwazniejsze-fakty",
+          "note": "프로이센령 슐레지엔의 Breslau라는 독일어 도시",
+          "researchNote": "프로이센령 슐레지엔의 Breslau라는 독일어 도시명을 1801년 현지 민정 대표명으로 선택. 폴란드어 Wrocław의 언어적 존재 자체를 부정하지 않는다."
+        },
+        {
+          "fromYear": 1945,
+          "nameKo": "브로츠와프",
+          "nameEn": "Wrocław",
+          "nameNative": "Wrocław",
+          "nativeLanguage": "pl",
+          "nativeNames": [
+            {
+              "text": "Wrocław",
+              "language": "pl",
+              "script": "Latn"
+            }
+          ],
+          "kind": "postWarPolishCivilAdministrationNameSelection",
+          "sourceUrl": "https://www.wroclaw.pl/dla-mieszkanca/kalendarium",
+          "note": "1945-05-06 Breslau 요새 항복 후 1",
+          "researchNote": "1945-05-06 Breslau 요새 항복 후 1945-05-09 폴란드 민정 이양이 시작됨을 브로츠와프 시청 연혁이 확인한다. 정확한 법정 개칭 효력일은 미확인으로 fromYear 1945를 사용하고 폴란드 정부가 도시를 받게 된 1945-08 포츠담 회의와 구별한다."
+        }
+      ],
+      "researchDifficulty": "C",
+      "historicalDisplayCoverage": "selected-sourced-periods-partial-review",
+      "reviewStatus": "selected-historic-epochs-source-reviewed",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다."
+      ],
+      "historicalGeography": {
+        "events": [
+          {
+            "fromDate": "1945-05-09",
+            "type": "polishMunicipalAdministrationTransition",
+            "detail": "1945년 폴란드 민정 인계",
+            "researchDetail": "1945-05-06 Breslau 요새가 항복했으며 5월 9일 폴란드 행정 당국의 도시 인수가 시작됐다고 시가 기록한다. 이는 1945년 원어명 선택의 근거지만 독립된 법정 지명 개칭 효력일과 동일하지 않다.",
+            "sourceUrl": "https://www.wroclaw.pl/dla-mieszkanca/kalendarium"
+          }
+        ]
+      }
+    },
+    {
+      "geonameId": 702550,
+      "names": [
+        {
+          "text": "렘베르크",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html"
+        },
+        {
+          "text": "Lemberg",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html",
+          "script": "Latn"
+        },
+        {
+          "text": "르부프",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://ipn.gov.pl/pl/historia-z-ipn/archiwum/121156%2CPawel-Skibinski-Polsko-ukrainskie-walki-o-Lwow-19181919.html"
+        },
+        {
+          "text": "Lwów",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://ipn.gov.pl/pl/historia-z-ipn/archiwum/121156%2CPawel-Skibinski-Polsko-ukrainskie-walki-o-Lwow-19181919.html",
+          "script": "Latn"
+        },
+        {
+          "text": "리보프",
+          "language": "ko",
+          "usage": "historical",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html"
+        },
+        {
+          "text": "Lvov",
+          "language": "en",
+          "usage": "historical",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html",
+          "script": "Latn"
+        },
+        {
+          "text": "Львів",
+          "language": "uk",
+          "usage": "standard",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html",
+          "script": "Cyrl"
+        },
+        {
+          "text": "리비우",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html"
+        },
+        {
+          "text": "Lviv",
+          "language": "en",
+          "usage": "standard",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html",
+          "script": "Latn"
+        }
+      ],
+      "latitude": 49.83826,
+      "longitude": 24.02324,
+      "featureClass": "P",
+      "featureCode": "PPLA",
+      "sourceUrl": "https://www.geonames.org/702550/",
+      "sourceCountryCode": "UA",
+      "defaultDisplayNameKo": "리비우",
+      "defaultDisplayNameEn": "Lviv",
+      "defaultDisplayNameNative": "Львів",
+      "defaultNativeLanguage": "uk",
+      "defaultNativeNames": [
+        {
+          "text": "Львів",
+          "language": "uk",
+          "script": "Cyrl"
+        }
+      ],
+      "shortDescriptionKo": "렘베르크·르부프·리비우 변천",
+      "displayTimeline": [
+        {
+          "fromYear": 1801,
+          "nameKo": "렘베르크",
+          "nameEn": "Lemberg",
+          "nameNative": "Lemberg",
+          "nativeLanguage": "de",
+          "nativeNames": [
+            {
+              "text": "Lemberg",
+              "language": "de",
+              "script": "Latn"
+            }
+          ],
+          "kind": "austrianGermanAdministrativeName",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html",
+          "note": "1801년 합스부르크 제국의 갈리치아 행정에서 독일",
+          "researchNote": "1801년 합스부르크 제국의 갈리치아 행정에서 독일어 Lemberg를 원어 대표형으로 선택한다. 폴란드어 Lwów 및 동슬라브어 현지 이름·다언어 공동체의 존재를 지우지 않는다."
+        },
+        {
+          "fromYear": 1919,
+          "nameKo": "르부프",
+          "nameEn": "Lwów",
+          "nameNative": "Lwów",
+          "nativeLanguage": "pl",
+          "nativeNames": [
+            {
+              "text": "Lwów",
+              "language": "pl",
+              "script": "Latn"
+            }
+          ],
+          "kind": "polishCivilAdministrationNameSelection",
+          "sourceUrl": "https://ipn.gov.pl/pl/historia-z-ipn/archiwum/121156%2CPawel-Skibinski-Polsko-ukrainskie-walki-o-Lwow-19181919.html",
+          "note": "1918–1919년 폴란드-우크라이나 전쟁 뒤 지속",
+          "researchNote": "1918–1919년 폴란드-우크라이나 전쟁 뒤 지속된 폴란드 행정의 Lwów를 1919년 대표 원어로 선정한다. 1918-11-01 무력 충돌일을 단정적인 국제법상 영토 확정일이나 즉각 법정 개칭일로 취급하지 않는다."
+        },
+        {
+          "fromYear": 1939,
+          "nameKo": "리보프",
+          "nameEn": "Lvov",
+          "nameNative": "Львів",
+          "nativeLanguage": "uk",
+          "nativeNames": [
+            {
+              "text": "Львів",
+              "language": "uk",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "sovietUkrainianAdministrativeNameEditorialSelection",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html",
+          "note": "1939년 소련의 우크라이나 SSR 편입 이후 도시",
+          "researchNote": "1939년 소련의 우크라이나 SSR 편입 이후 도시 현지 우크라이나어 Львів을 원어 대표형으로 선택하고 영어 Lvov·한국어 리보프를 당시 지도 편집상 러시아어 유래 외래명으로 설정한다. 1941–1944년 나치 점령기에 독일어 Lemberg가 쓰였지만 군사 점령만으로 현지 대표 원어를 자동 전환하지 않는다."
+        },
+        {
+          "fromYear": 1991,
+          "nameKo": "리비우",
+          "nameEn": "Lviv",
+          "kind": "postIndependenceKoreanEnglishEditorialNameSelection",
+          "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html",
+          "note": "1991년 우크라이나 독립에 맞춰 기존 Львів과",
+          "researchNote": "1991년 우크라이나 독립에 맞춰 기존 Львів과 동일한 현지 지명의 영어 Lviv·한국어 리비우를 지도 대표형으로 편집 전환한다. 도시의 실제 법정 개칭일이 1991년인 것은 아니며 원어 Львів은 계속 유지한다."
+        }
+      ],
+      "researchDifficulty": "C",
+      "historicalDisplayCoverage": "selected-sourced-periods-partial-review",
+      "reviewStatus": "selected-historic-epochs-source-reviewed",
+      "nameSelectionNotes": [
+        "현행 GeoNames 출처의 city representative point(도시 중심 추정점)는 과거 행정 경계·지배권·역사 인구·도시 등급을 결정하지 않는다.",
+        "연혁에 실제 선택된 시기별 한국어·영어·원어 표현만 names[]에 남기고 검색용 별명이나 다른 도시의 이름은 추가하지 않는다.",
+        "정치적 소속 변경과 전쟁 중 군사 점령만으로 현지 원어가 즉시 바뀐 것으로 추정하지 않으며 법정 개칭과 지도 편집상의 언어 선택을 별도로 구분한다.",
+        "명칭 전환·도시 형성·인구·수도 지정·5등급 도시선정은 각각 별도 데이터다.",
+        "1941–1944년 나치 군사 점령에서 독일어 Lemberg가 쓰인 사실은 별도 역사연구로 남기되 영속적 현지 민정 개칭으로 자동 처리하지 않는다."
+      ],
+      "historicalGeography": {
+        "events": [
+          {
+            "fromYear": 1918,
+            "type": "polishUkrainianConflictOverLviv",
+            "detail": "1918~1919년 폴·우 전쟁",
+            "researchDetail": "1918년 갈리치아 합스부르크 해체 후 폴란드와 서우크라이나가 Lviv/Lwów 시 지배권을 다퉜으며 일시 군사 점령일로 법적 최종 정체를 판정하지 않는다.",
+            "sourceUrl": "https://ipn.gov.pl/pl/historia-z-ipn/archiwum/121156%2CPawel-Skibinski-Polsko-ukrainskie-walki-o-Lwow-19181919.html"
+          },
+          {
+            "fromYear": 1939,
+            "type": "sovietIncorporationOfWesternUkraine",
+            "detail": "1939년 소비에트 편입",
+            "researchDetail": "1939년 독소 불가침 조약·폴란드 분할로 소련이 도시를 편입하였으며 우크라이나어 Львів 현지 표기는 1991년 독립에 선행한다.",
+            "sourceUrl": "https://ipn.gov.pl/pl/aktualnosci/4990%2CWystawa-Lwow-19391941-Lwow-2-lipca-2010.html"
+          }
+        ]
+      }
+    }
+  ]
+}

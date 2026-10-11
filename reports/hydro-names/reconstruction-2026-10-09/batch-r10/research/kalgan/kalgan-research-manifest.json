@@ -1,0 +1,25 @@
+{
+  "schema": "hydro-name-reconstruction-research-manifest-v1",
+  "batch": "r10",
+  "aw_id": "hydro-system:50782443",
+  "frozen_at_utc": "2026-10-09T14:49:18.332591+00:00",
+  "status": "Frozen bounded representative-system research",
+  "files": [
+    {
+      "file": "source-evidence.json",
+      "bytes": 9467,
+      "sha256": "f5dc0d7bfc419242ee7e43b5399701bb96254ee76d32f0bb44cc81faf6e8d05f",
+      "hash_scope": "Exact UTF-8 JSON file bytes including final newline."
+    },
+    {
+      "file": "kalgan-findings.json",
+      "bytes": 6541,
+      "sha256": "dd24ce8d1cebe43fecc3daeb2b3e9c47ee60a8ac5b254ba44c82897a382f23e1",
+      "hash_scope": "Exact UTF-8 JSON file bytes including final newline."
+    }
+  ],
+  "raw_sources_and_complete_geometry_included": false,
+  "automatic_application": false,
+  "whole_group_scalar_application": false,
+  "per_reach_scalar_application": false
+}

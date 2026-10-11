@@ -1,0 +1,181 @@
+{
+  "status": "passed",
+  "validation_scope": "included-summary-evidence-only",
+  "validation_runs": [
+    {
+      "status": "passed",
+      "validation_scope": "included-summary-evidence-only",
+      "scope_aw_ids": [
+        "lakes_base:1159107747",
+        "lakes_base:1159108359",
+        "lakes_base:1159109353"
+      ],
+      "polygon_counts": [
+        1,
+        1,
+        1
+      ],
+      "ring_counts": [
+        1,
+        1,
+        1
+      ],
+      "position_counts": [
+        30,
+        33,
+        50
+      ],
+      "included_identity_name_state_counts_bounds_rechecked": true,
+      "included_inventory_summary_join_rechecked": true,
+      "included_prior102_new3_delta_rechecked": true,
+      "new_distinct_target_increment": 3,
+      "remaining_queue_count": 3960,
+      "preserved_prior_pending_access_count": 2,
+      "preserved_prior_scope_hold_count": 28,
+      "current_name_verdicts_or_new_hold_count_established": false,
+      "production_decoder_replayed": false,
+      "full_source_or_decoded_coordinate_checks_reproduced": false,
+      "source_to_decoded_quantization_check_reproduced": false,
+      "original_inventory_or_prior_index_revalidated": false,
+      "frozen_component_hashes_rechecked": false,
+      "current_live_deployment_checked": false,
+      "no_external_requests": true,
+      "validation_limit": "Only included metadata, count arithmetic and included-file hashes are validated. Omitted source bodies, complete polygon coordinates, original inventory and decoder inputs are not replayed."
+    }
+  ],
+  "corrupt_fixtures": [
+    {
+      "case": "source_identifier_changed",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "baseline_fid_changed",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "polygon_part_count_changed",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "ring_count_changed",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "ordered_ring_position_count_changed",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "bounds_changed",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "blank_source_name_filled",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "absent_detail_name_inserted",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "false_public_replay_claim",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "inventory_logical_fid_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-inventory-records.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "inventory_placeholder_display_changed",
+      "rejected": true,
+      "expected_check": "included file pin: selected-inventory-records.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "false_prior_overlap_inserted",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "prior_ID_duplicated",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "new_target_increment_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "remaining_queue_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "pending_access_ID_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "prior_hold_ID_changed",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-duplicate-check.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "false_public_coordinates_claim",
+      "rejected": true,
+      "expected_check": "included file pin: geometry-publication-rights.json",
+      "editable_artifact_receipt_rebased": true
+    },
+    {
+      "case": "lake_omitted",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "lake_order_reversed",
+      "rejected": true,
+      "expected_check": "reference metadata pin",
+      "editable_artifact_receipt_rebased": false
+    },
+    {
+      "case": "raw_coordinate_file_added",
+      "rejected": true,
+      "expected_check": "prohibited public geometry file",
+      "editable_artifact_receipt_rebased": false
+    }
+  ],
+  "corrupt_fixture_count": 21,
+  "durable_corrupt_fixture_count": 21,
+  "corruption_test_scope": "Independent fixed pins reject included metadata changes; one prohibited raw-coordinate filename is tested. No omitted-input replay.",
+  "included_input_files_unchanged": true,
+  "omitted_input_replay_interfaces_absent": true,
+  "full_coordinate_checks_reproduced": false,
+  "no_external_requests": true
+}

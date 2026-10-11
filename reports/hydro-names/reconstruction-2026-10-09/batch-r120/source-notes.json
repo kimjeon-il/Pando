@@ -1,0 +1,715 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r120",
+  "sources": [
+    {
+      "title": "Recursos Hídricos de Dulce Nombre, Departamento de Copán",
+      "author": "Secretaría de Planificación Estratégica, Sistema Nacional de Información Territorial (SINIT), Honduras",
+      "map_date": "2025-03-10",
+      "catalogue_date": "2025-04-02",
+      "catalogue_url": "https://sinit.hn/2025/04/02/0408-dulce-nombre/",
+      "evidence_type": "Original municipal cartographic publication; original JPEG pixels inspected.",
+      "source_credit": "Drainages: SERNA, 2018; village/municipal geography: SGJ, 2001, as printed in the map legend.",
+      "publication_distinction": "Separately authored municipal water-resources sheet; not an acquisition or republication of the stopped national Mapa Oficial Subcuencas Honduras V3 2017.",
+      "use_notice": "The SINIT site displays an all-rights-reserved notice. Only factual observations and citations are supplied; the original and working views are not redistributed.",
+      "source_key": "sinit-dulce-2025",
+      "official_url": "https://sinit.hn/download/283/0408-dulce-nombre/12140/mapa-de-recursos-hidricos-de-dulce-nombre.jpeg"
+    },
+    {
+      "author": "Carlos Roberto Abrego Suárez",
+      "title": "Actualización preliminar de los umbrales de alerta por inundación de río Chamelecón en ciudad La Lima, Cortés, para el período de observaciones 2010–2018",
+      "publisher": "Universidad Nacional Autónoma de Honduras, Instituto Hondureño de Ciencias de la Tierra, Maestría en Recursos Hídricos, orientación en Hidrogeología",
+      "date": "2019; cover February, authorities page April",
+      "inspected_pages": [
+        13,
+        34,
+        40,
+        42,
+        44
+      ],
+      "cartography": "Original author-attributed illustrations 1 and 3 cover the upper/middle network; illustrations 7 and 11 cover the mountain exit and La Lima approach. Illustration 8 is supplementary basin/land-cover context.",
+      "prose_scope": "Study-area description on page 13 and mountain-exit discussion on page 44; no hydraulic predictions adopted.",
+      "limits": "The study's network and relief cartography supports corridor correspondence. Its basin boundary and numerical model are not used alone to establish identity, and hydraulic simulation outputs are not treated as observations of present flow.",
+      "source_key": "abrego-2019",
+      "official_url": "https://ciencias.unah.edu.hn/assets/Ciencias/Repositorio-tesis/Fisica/MAESTRIA-EN-RECURSOS-HIDRICOS-ORIENTACION-EN-HIDROGEOLOGIA/I-promocion/ACTUALIZACION-PRELIMINAR-DE-LOS-UMBRALES-DE-ALERTA-POR-INUNDACIONES-EN-EL-RIO-CHAMELECON-EN-LA-CIUDAD-LA-LIMACORTES.pdf"
+    },
+    {
+      "author": "独立行政法人国際協力機構 (JICA), 地球環境部",
+      "title": "ホンジュラス共和国 バジェ・デ・スーラ都市圏洪水対策マスタープランプロジェクト 詳細計画策定調査報告書",
+      "date": "2023-11",
+      "report_number": "環境 JR 23-113",
+      "inspected_printed_pages": [
+        17,
+        18,
+        66,
+        73,
+        74,
+        91,
+        93,
+        98,
+        99
+      ],
+      "principal_original_maps": "Figures 3.4.1–3.4.3, printed pages 98–99 (PDF pages 118–119), authored by the JICA expert on attributed satellite/cartographic backgrounds.",
+      "bounded_prose": "Page 66 describes the mountain-to-Sula floodplain route and Caribbean drainage; pages 73–74 distinguish upper/middle settings. No current dam-completion claim is inferred from this dated report.",
+      "limits": "The report combines original survey/planning figures and clearly attributed older maps. These are kept distinct. Planning highlights are not interpreted as completed new channels; no map image is redistributed.",
+      "source_key": "jica-2023",
+      "official_url": "https://openjicareport.jica.go.jp/pdf/1000051754.pdf"
+    },
+    {
+      "author": "Comisión Ejecutiva Valle de Sula, Sistema de Información Geográfico; attributed to CEDVS in JICA",
+      "title": "Sistema Hidráulico del Valle de Sula",
+      "date": "2007-07",
+      "printed_scale": "1:85,000",
+      "location": "Figure 2.2.11, printed page 17; larger reproduction Figure 3.3.12, printed page 93 (PDF page 113). Related CEDVS network schematic Figure 2.2.12, printed page 18.",
+      "evidence_type": "Original hydraulic-agency map observed as an attributed reproduction inside the normally acquired JICA report, not a separately acquired 2007 master original.",
+      "limits": "Historical generalized hydraulic cartography; current channel activity and discharge apportionment are not established.",
+      "source_key": "cedvs-2007-in-jica",
+      "official_url": "https://openjicareport.jica.go.jp/pdf/1000051754.pdf"
+    },
+    {
+      "author": "República de Honduras, Comisión Permanente de Contingencias (COPECO)",
+      "title": "Proyecto Gestión de Riesgos de Desastres: Anexos, Marco de Gestión Socio-Ambiental",
+      "date": "2012-11; approved for publication 2012-11-23",
+      "location": "Anexo 5, PDF page 62: Distribución de Estaciones Meteorológicas en la Cuenca del Río Chamelecón.",
+      "evidence_type": "Official report's reproduction of a USGS Water Resources of the Caribbean map; original PDF pixels inspected, with source attribution preserved.",
+      "observation": "Supplementary upper-corridor and La Entrada orientation. Not promoted to an independently acquired USGS original or used alone for the terminal.",
+      "use_notice": "Cover says Public Disclosure Authorized / versión aprobada para publicación; no source-map redistribution permission inferred.",
+      "source_key": "copeco-2012",
+      "official_url": "https://documents1.worldbank.org/curated/en/328771468033712310/pdf/NonAsciiFileName0.pdf"
+    },
+    {
+      "author": "Organización de los Estados Americanos, Departamento de Desarrollo Regional y Medio Ambiente",
+      "title": "El Desarrollo de Regiones Fronterizas en Centroamérica",
+      "date": "1994",
+      "html_url": "https://www.oas.org/dsd/publications/Unit/oea13s/ch07.htm",
+      "location": "Ubicación del proyecto Golfo de Honduras, PDF page 69, linked from the project's appendix description.",
+      "evidence_type": "Original regional project map, pixels inspected.",
+      "scope": "Supplementary regional orientation only; too generalized for headward and channel-junction assessment.",
+      "use_notice": "The map's international boundaries are schematic and do not express an OAS position; no boundary interpretation is made.",
+      "source_key": "oas-1994-context",
+      "official_url": "https://www.oas.org/dsd/publications/Unit/oea13s/oea13s.pdf"
+    },
+    {
+      "source_key": "nluis46n-miertsching",
+      "title": "Northern Land Use Information Series: Miertsching Lake, sheet 46N",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Environment Canada; thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada",
+      "thematic_cartography_year": 1984,
+      "information_date": "December 1983, as stated by the series introduction",
+      "base_map": "National Topographic Series 46N, Edition 1, 1980, Energy, Mines and Resources Canada",
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46n.jpg",
+      "material_read": "Northern map portion: the selected unnamed upper lake/stream branch, its southeastward continuation and north-turning lake chain into southern Souter Lake; title, graticule, scale, marginal credits and introduction.",
+      "acquisition": "Complete original JPEG acquired normally; original pixels read locally.",
+      "limits": "Historical generalized cartography and bounded contemporary marginal prose. Does not verify present formal registry spelling, exact naming boundaries, present channels, surveyed shorelines or an official whole-system length.",
+      "use_notice": "Crown copyright identified in marginalia. The introduction calls the information interim and cautions that thematic boundaries are approximate. No reproduction permission inferred; original sheet and working crops remain private."
+    },
+    {
+      "source_key": "nluis47b-committee",
+      "title": "Northern Land Use Information Series: Committee Bay, sheet 47B",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Environment Canada; thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada",
+      "thematic_cartography_year": 1984,
+      "information_date": "December 1983, as stated by the series introduction",
+      "base_map": "National Topographic Series 47B, Edition 2, 1980, Energy, Mines and Resources Canada",
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_47b.jpg",
+      "material_read": "Southeastern map portion: Souter Lake, the separately depicted northern Ajaqutalik River inflow, other feeder arms and the eastward outlet; title, scale and marginal credits.",
+      "acquisition": "Complete original JPEG acquired normally; original pixels read locally.",
+      "limits": "Historical generalized cartography and bounded contemporary marginal prose. Does not verify present formal registry spelling, exact naming boundaries, present channels, surveyed shorelines or an official whole-system length.",
+      "use_notice": "Crown copyright identified in marginalia. The introduction calls the information interim and cautions that thematic boundaries are approximate. No reproduction permission inferred; original sheet and working crops remain private."
+    },
+    {
+      "source_key": "nluis46op-barrow",
+      "title": "Northern Land Use Information Series: Barrow River, sheet 46O,P",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Environment Canada; thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada",
+      "thematic_cartography_year": 1984,
+      "information_date": "December 1983, as stated by the series introduction",
+      "base_map": "National Topographic Series 46O,P, Edition 1, 1980, Energy, Mines and Resources Canada",
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46o_p.jpg",
+      "material_read": "Northwestern map portion: Ajaqutalik River leaving the upper-sheet boundary, its southeastward reach and major northward bend, tributary junctions; title, scale and marginal credits.",
+      "acquisition": "Complete original JPEG acquired normally; original pixels read locally.",
+      "limits": "Historical generalized cartography and bounded contemporary marginal prose. Does not verify present formal registry spelling, exact naming boundaries, present channels, surveyed shorelines or an official whole-system length.",
+      "use_notice": "Crown copyright identified in marginalia. The introduction calls the information interim and cautions that thematic boundaries are approximate. No reproduction permission inferred; original sheet and working crops remain private."
+    },
+    {
+      "source_key": "nluis47a-hall",
+      "title": "Northern Land Use Information Series: Hall Lake, sheet 47A",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Environment Canada; thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada",
+      "thematic_cartography_year": 1984,
+      "information_date": "December 1983, as stated by the series introduction",
+      "base_map": "National Topographic Series 47A, Edition 2, 1980, Energy, Mines and Resources Canada",
+      "scale": "1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_47a.jpg",
+      "material_read": "Southern map portion: cross-sheet river continuations, Sanguaq Bend, the north/northeast lower Ajaqutalik valley, lower junctions and the actual Roche Bay mouth; relevant fisheries notes M2,D3,D4, title, graticule, scale, marginal credits and introduction.",
+      "acquisition": "Complete original JPEG acquired normally; original pixels read locally.",
+      "limits": "Historical generalized cartography and bounded contemporary marginal prose. Does not verify present formal registry spelling, exact naming boundaries, present channels, surveyed shorelines or an official whole-system length.",
+      "use_notice": "Crown copyright identified in marginalia. The introduction calls the information interim and cautions that thematic boundaries are approximate. No reproduction permission inferred; original sheet and working crops remain private."
+    },
+    {
+      "source_key": "r120-usgs-topo-selawik",
+      "title": "USGS Topo, The National Map, composite topographic map service",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "accessed_utc_date": "2026-10-11",
+      "source_type": "original primary cartography",
+      "original_map_pixels_observed": true,
+      "observation_scope": "Six original views cover the selected head and all three fragments: upper and middle Selawik corridor; major southern and northern tributary junctions; lower Selawik and Throat River; Inland Lake margin; the northward small-lake/low-ground traverse; Kungsugrug River; Selawik distributary; and the actual western delta/lakeshore terminal setting.",
+      "limits": "Generalized component/corridor comparison only. Composite map compilation dates and formal hydronym boundaries are unverified. Separate lake polygons and intervening low ground are not evidence of a continuous named river or perennial through-flow. Original rasters, local crops and orientation figures remain private.",
+      "access_outcome": "All six sequential original PNG acquisitions completed HTTP 200, image/png. Each acquisition reached its terminal command response before local inspection; no outstanding acquisition remains.",
+      "use_notice": "Official hosting is not treated as a redistribution licence. Public-ready output contains only own factual observations, ordinary citations and bounded selected metadata."
+    },
+    {
+      "source_key": "r120-fws-selawik-wild-river",
+      "title": "Selawik River",
+      "publisher": "U.S. Fish and Wildlife Service / National Wild and Scenic Rivers System",
+      "official_url": "https://www.fws.gov/rivers/river/selawik",
+      "source_type": "bounded official prose",
+      "original_map_pixels_observed": false,
+      "observation_scope": "The page describes the designated upper Selawik reach ending at the Kugarak confluence and its transition from an upland gravel-bed setting to slower lowland water.",
+      "limits": "A designated river segment is not a whole-feature naming decision for this selected composite. No linked map or statutory document was acquired. The designation mileage is not substituted for model length.",
+      "access_outcome": "Official page text opened normally."
+    },
+    {
+      "source_key": "r120-fws-aftr110-2019",
+      "title": "Selawik River Inconnu Age Structure Evaluation and Spawning Population Abundance, Selawik National Wildlife Refuge",
+      "authors": [
+        "Raymond F. Hander",
+        "Randy J. Brown",
+        "William K. Carter, III"
+      ],
+      "publisher": "U.S. Fish and Wildlife Service, Fairbanks Fish and Wildlife Conservation Office",
+      "date": "2019-11",
+      "bibliographic_detail": "Alaska Fisheries Technical Report Number 110",
+      "official_url": "https://www.fws.gov/sites/default/files/documents/t_2019_110.pdf",
+      "source_type": "bounded original research prose",
+      "pages_read": "Title and bibliography; printed pages 2 and 5–6, especially Study Area",
+      "original_map_pixels_observed": false,
+      "observation_scope": "The study describes Selawik River flowing generally west to Selawik Lake, with Tagagawik joining from the south and Kugarak from the north. It places Selawik Lake within the eastern Kotzebue Sound estuarine setting.",
+      "limits": "These are regional prose statements. Unseen Figures 1–3 and parsed map-label lists are not cartographic evidence. Neither the entire selected low-ground traverse nor its exact terminal pond is named by this report.",
+      "access_outcome": "Original PDF text opened normally in the web reader.",
+      "use_notice": "The report states that findings and conclusions are those of its authors and do not necessarily represent the views of the U.S. Fish and Wildlife Service."
+    },
+    {
+      "source_key": "r120-adfg-arctic-catalog2022",
+      "title": "Catalog of Waters Important for Spawning, Rearing, or Migration of Anadromous Fishes – Arctic Region, Effective June 15, 2022",
+      "authors": [
+        "Joe Giefer",
+        "Scott Graziano"
+      ],
+      "publisher": "Alaska Department of Fish and Game, Division of Sport Fish and Habitat Section",
+      "date": "2022-06",
+      "bibliographic_detail": "Special Publication No. 22-01",
+      "official_url": "https://www.adfg.alaska.gov/static-sf/AWC/PDFs/2022arc_CATALOG.pdf",
+      "source_type": "bounded official catalogue table",
+      "pages_read": "Title, publication purpose, and Selawik/Throat/Inland entries on PDF page index 69",
+      "original_map_pixels_observed": false,
+      "observation_scope": "The catalogue separately lists Selawik River, Throat River and Inland Lake. This independently corroborates those component names without collapsing river and lake scopes.",
+      "limits": "The catalogue concerns fish-habitat listings, not an independently verified legal name registry. Table locations and identifier hierarchy are not substituted for original cartographic correspondence. No companion atlas or map was acquired.",
+      "access_outcome": "Original PDF text opened normally; relevant table entries read through the successful reader."
+    },
+    {
+      "source_key": "VIC1",
+      "institution": "Environment Canada, Lands Directorate, Environmental Conservation Service; Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "title": "Northern Land Use Information Series: Banning Lake,77C",
+      "edition": "Thematic cartography1983; information current as of December1982; base map National Topographic Series77C,Edition1",
+      "scale": "1:250,000",
+      "evidence_type": "Original primary cartography and map-margin prose, fully acquired and visually inspected",
+      "map_read": "Headward Banning Lake approach, Banning passage, eastward outlet, complete western/middle unnamed lake chain and eastern sheet-boundary connection",
+      "bounded_prose_read": "Comments on fish resources and fishing, especially D1 unnamed lake on the Paliryuak River system and M1/C1/4 system context",
+      "limits": "Historical generalized map; the introduction describes interim information including incomplete or preliminary reconnaissance information. No current formal name, current fishing rule or year-round flow is inferred. Map and crop originals remain private; copyright notice is preserved.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77c.jpg"
+    },
+    {
+      "source_key": "VIC2",
+      "institution": "Environment Canada, Lands Directorate, Environmental Conservation Service; Indian and Northern Affairs; thematic cartography by Agriculture Canada, Land Resource Research Institute",
+      "title": "Northern Land Use Information Series: Cambridge Bay,77D",
+      "edition": "Thematic cartography1983; information current as of December1982; base map National Topographic Series77D,Edition1",
+      "scale": "1:250,000",
+      "evidence_type": "Original primary cartography and map-margin prose, fully acquired and visually inspected",
+      "map_read": "Western sheet-boundary link, locally named Merkley Lake, Surrey Lake and material inflows/outlet, lower Paliryuak River and actual Wellington Bay terminal",
+      "bounded_prose_read": "Comments on fish resources and fishing M1/C1/C3/D5; introduction, title, scale and imprint",
+      "limits": "Historical map labels Paliryuak and Merkley as locally known names. Introductory interim/reconnaissance and approximate thematic-boundary caveats retained. No current formal naming status or legal fishing interpretation. Source original/crops remain private.",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77d.jpg"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70934231",
+      "source_keys": [
+        "sinit-dulce-2025",
+        "abrego-2019",
+        "copeco-2012",
+        "jica-2023",
+        "cedvs-2007-in-jica"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10583
+          ],
+          "component_scope": "headward setting and western upper leg",
+          "finding": "SINIT's Dulce Nombre map shows the northern municipal drainage around El Zapote, El Prado de la Cruz and El Limón joining and continuing north, marked Chamelecon Alta in the sub-basin-drainage legend. Abrego Suárez's original regional maps connect the western headward leg to the northeast-running Chamelecón corridor. The COPECO reproduction independently locates this western leg west of La Entrada.",
+          "sources": [
+            "sinit-dulce-2025",
+            "abrego-2019",
+            "copeco-2012"
+          ],
+          "correspondence": "observed",
+          "limits": "Ordinary headward/corridor correspondence only. The municipal drainage category is not promoted to an official headwater hydronym.",
+          "local_reach_name": null
+        },
+        {
+          "fragments": [
+            10583
+          ],
+          "component_scope": "upper and middle mountain corridor to Puente Chamelecón",
+          "finding": "The original UNAH regional river maps show the main northeastward then eastward corridor and its mountain tributary junctions. The detailed El Tablón–Puente Chamelecón map follows the selected bend and mountain exit. Its accompanying study distinguishes broad valley bottoms near El Tablón from a narrower mountain passage before entry to the Sula Valley. Tributary branches remain separately mapped and unnamed here.",
+          "sources": [
+            "abrego-2019",
+            "copeco-2012"
+          ],
+          "correspondence": "observed"
+        },
+        {
+          "fragments": [
+            10583
+          ],
+          "component_scope": "Sula Valley and La Lima connections",
+          "finding": "The selected corridor passes through the mapped Chamelecón approach to La Lima and turns north through the western Sula floodplain. The original UNAH detail shows the river separately from the Chotepe/Filopo and Maya flood-relief channels. JICA and the attributed CEDVS map continue the river north past the Choloma connection and distinguish older and engineered lower channels.",
+          "sources": [
+            "abrego-2019",
+            "jica-2023",
+            "cedvs-2007-in-jica"
+          ],
+          "correspondence": "observed"
+        },
+        {
+          "fragments": [
+            10583
+          ],
+          "component_scope": "lower older river, coastal junction and actual terminal",
+          "finding": "The hydraulic map traces the older Chamelecón route west of the straighter Chambers Canal, then its northeastward coastal reach into the shared outlet connection. The terminal opens to Mar Caribe east of Puerto Cortés and Laguna de Alvarado; the Ulúa has a distinct outlet farther east. JICA's coastal view supplies the receiving-shore setting.",
+          "sources": [
+            "cedvs-2007-in-jica",
+            "jica-2023"
+          ],
+          "correspondence": "observed",
+          "receiving_water_name": "Caribbean Sea"
+        },
+        {
+          "fragments": [
+            10583
+          ],
+          "component_scope": "material lakes, reservoirs and off-route channels",
+          "finding": "The inspected regional and lower-river maps do not require the selected mainstem to traverse Lago de Yojoa, Laguna de Alvarado or the separately mapped floodplain lakes. Flood-relief canals and the nearby Ulúa are distinguished from the selected river corridor. No unobserved lake or reservoir connector is invoked.",
+          "sources": [
+            "abrego-2019",
+            "cedvs-2007-in-jica"
+          ],
+          "correspondence": "observed at corridor scale"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80056744",
+      "source_keys": [
+        "nluis46n-miertsching",
+        "nluis47b-committee",
+        "nluis46op-barrow",
+        "nluis47a-hall"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2498
+          ],
+          "component_scope": "Unnamed headward lake-and-stream branch",
+          "finding": "The northern part of Miertsching Lake sheet depicts the selected headward setting as an upland lake-and-stream branch west/southwest of Souter Lake. The initial small lake/stream reaches join a larger irregular lake and continue southeast through connected small lakes. Nearby western drainage is separately drawn. No headwater hydronym is established.",
+          "sources": [
+            "nluis46n-miertsching"
+          ],
+          "correspondence": "Headward setting and generalized drainage correspondence read.",
+          "mapped_reach_name": null
+        },
+        {
+          "fragments": [
+            2498
+          ],
+          "component_scope": "Southeastward feeder and northward lake chain",
+          "finding": "The same sheet shows the feeder continuing southeast to an enlarged water passage, then joining the north-trending chain of elongated lakes and channels. Side streams enter this corridor; the connected waterway turns northeast and north through rapids and lake expansions toward Souter Lake. These are actual mapped water links rather than a basin-membership inference.",
+          "sources": [
+            "nluis46n-miertsching"
+          ],
+          "correspondence": "Selected feeder-to-main lake chain read.",
+          "mapped_reach_name": null
+        },
+        {
+          "fragments": [
+            2498
+          ],
+          "component_scope": "Souter Lake and material inflow junctions",
+          "finding": "Miertsching Lake and Committee Bay sheets together depict the southern and central/eastern arms of Souter Lake. The selected southwestern lake chain enters the lake from the south. The lake also receives a separate northern river arm labeled Ajaqutalik and other northern tributary/lake arms. The selected continuation crosses the connected lake arms toward its east end.",
+          "sources": [
+            "nluis46n-miertsching",
+            "nluis47b-committee"
+          ],
+          "correspondence": "Lake passages, major inflow relationships and eastward continuation read.",
+          "mapped_reach_name": null,
+          "lake_name": "Souter Lake"
+        },
+        {
+          "fragments": [
+            2498
+          ],
+          "component_scope": "Eastward lake outlet and southeastward Ajaqutalik reach",
+          "finding": "The east end of Souter Lake continues into the Ajaqutalik River at the western edge of Hall Lake sheet. The river crosses south into Barrow River sheet, where its labeled valley runs southeast and receives side streams before turning north. The adjacent-sheet waterway continuity is visible on the original maps.",
+          "sources": [
+            "nluis47b-committee",
+            "nluis46op-barrow",
+            "nluis47a-hall"
+          ],
+          "correspondence": "Souter outlet, cross-sheet southeastward river and principal turn read.",
+          "mapped_reach_name": "Ajaqutalik River"
+        },
+        {
+          "fragments": [
+            2498
+          ],
+          "component_scope": "Sanguaq Bend and lower north/northeast valley",
+          "finding": "Hall Lake sheet shows the river returning north from the southern sheet through Sanguaq Bend and continuing northeast along a broad incised valley. Tributaries entering from the west and east and locally divided river passages are visible. The downstream Ajaqutalik label follows this selected corridor toward the coastal lowland.",
+          "sources": [
+            "nluis47a-hall"
+          ],
+          "correspondence": "Middle/lower route and material tributary junctions read.",
+          "mapped_reach_name": "Ajaqutalik River",
+          "local_feature_name": "Sanguaq Bend"
+        },
+        {
+          "fragments": [
+            2498
+          ],
+          "component_scope": "Actual terminal at Roche Bay",
+          "finding": "The same original map shows the Ajaqutalik turning east across the lower coastal corridor and north into the southwestern Roche Bay shore. The river mouth is distinct from the other bay tributaries and from the Hall Lake–Ikerasak system farther north. Roche Bay is depicted within the larger Foxe Basin coastal setting.",
+          "sources": [
+            "nluis47a-hall"
+          ],
+          "correspondence": "Actual terminal waterway and receiving coast read.",
+          "mapped_reach_name": "Ajaqutalik River",
+          "receiving_water_name": "Roche Bay",
+          "regional_receiving_system": "Foxe Basin"
+        },
+        {
+          "fragments": [
+            2498
+          ],
+          "component_scope": "Bounded primary prose corroboration",
+          "finding": "Hall Lake sheet fisheries notes M2, D3 and D4 independently discuss the lower Ajaqutalik and explicitly place its mouth in Roche Bay. Their fish-movement and near-mouth fishing descriptions are historical context only; they are not used to extend the hydronym over Souter Lake or the selected unnamed headwater branch.",
+          "sources": [
+            "nluis47a-hall"
+          ],
+          "correspondence": "Primary marginal prose; separate from map correspondence.",
+          "mapped_reach_name": "Ajaqutalik River"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80092529",
+      "source_keys": [
+        "r120-usgs-topo-selawik",
+        "r120-fws-selawik-wild-river",
+        "r120-fws-aftr110-2019",
+        "r120-adfg-arctic-catalog2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2545
+          ],
+          "component_scope": "Selected headward tributary and upper Selawik junction",
+          "finding": "The selected beginning occupies a small western tributary/fork within the upper valley. That channel joins the separately labelled Selawik River, which approaches from farther south. The selection then follows the northward upper river and its turn west. The map shows the tributary, junction and surrounding valley throughout.",
+          "sources": [
+            "r120-usgs-topo-selawik"
+          ],
+          "correspondence": "Entire selected interval observed in original primary cartography at generalized corridor scale; no source or connector-view gap.",
+          "name_scope": "The small selected headward tributary remains unnamed. The selected start is not asserted to be the official source of Selawik River.",
+          "mapped_component_names": [
+            "Selawik River"
+          ]
+        },
+        {
+          "fragments": [
+            2545
+          ],
+          "component_scope": "Westward upper and middle Selawik corridor",
+          "finding": "The selection proceeds west with the repeatedly labelled Selawik River valley, from the upland reach into increasingly meandering lowland channel and adjacent lake country. Northern Kiliovilik Creek and southern tributary valleys remain separate lateral features. The full reach to the western bend is covered.",
+          "sources": [
+            "r120-usgs-topo-selawik"
+          ],
+          "correspondence": "Entire selected interval observed in original primary cartography at generalized corridor scale; no source or connector-view gap.",
+          "name_scope": "Selawik River is supported for this main-channel corridor; tributary labels are not propagated onto it.",
+          "mapped_component_names": [
+            "Selawik River"
+          ]
+        },
+        {
+          "fragments": [
+            2545
+          ],
+          "component_scope": "Tagagawik and Kugarak junction sequence",
+          "finding": "The western portion enters the Tagagawik junction setting and follows the Selawik corridor northward toward the Kugarak and Kawichiark junction area, then turns west into the lower river. The original shows the meanders, tributary arms, adjacent lakes and intervening floodplain.",
+          "sources": [
+            "r120-usgs-topo-selawik",
+            "r120-fws-aftr110-2019",
+            "r120-fws-selawik-wild-river"
+          ],
+          "correspondence": "Entire selected interval observed in original primary cartography at generalized corridor scale; no source or connector-view gap.",
+          "name_scope": "The three other river names describe observed junction context, not selected-route aliases. Generalized model chords across meanders are not treated as exact channel banks.",
+          "mapped_component_names": [
+            "Selawik River",
+            "Tagagawik River",
+            "Kugarak River",
+            "Kawichiark River"
+          ]
+        },
+        {
+          "fragments": [
+            2546
+          ],
+          "component_scope": "Lower Selawik westward corridor",
+          "finding": "The second fragment continues west in the broad labelled Selawik River corridor through the lake-rich plain. The mapped river meanders widely, while the selected line is generalized. The larger nearby lakes remain distinct waterbodies.",
+          "sources": [
+            "r120-usgs-topo-selawik"
+          ],
+          "correspondence": "Entire selected interval observed in original primary cartography at generalized corridor scale; no source or connector-view gap.",
+          "name_scope": "Supported lower-channel component identity only.",
+          "mapped_component_names": [
+            "Selawik River"
+          ]
+        },
+        {
+          "fragments": [
+            2546
+          ],
+          "component_scope": "Throat River departure and Inland Lake approach",
+          "finding": "At the downstream part of the second fragment, the selected route leaves the main Selawik corridor that continues toward Selawik village. It follows the southwesterly Throat River connector beside the Cleveland Lakes setting toward the northern/western side of Inland Lake. The original map and the independent catalogue distinguish Throat River from Selawik River.",
+          "sources": [
+            "r120-usgs-topo-selawik",
+            "r120-adfg-arctic-catalog2022"
+          ],
+          "correspondence": "Entire selected interval observed in original primary cartography at generalized corridor scale; no source or connector-view gap.",
+          "name_scope": "This named connector and lake approach are separate component scopes. Fox River is not the selected connector.",
+          "mapped_component_names": [
+            "Throat River",
+            "Inland Lake"
+          ]
+        },
+        {
+          "fragments": [
+            2547
+          ],
+          "component_scope": "Inland Lake margin and northward lake/low-ground traverse",
+          "finding": "The third fragment turns away from the Inland Lake margin and runs north across a succession of separately mapped small lakes, wet patches and intervening low ground west of the principal Selawik channel. The whole traverse is visible. Several intervals do not follow a mapped continuous channel; the selected line is not assigned a river hydronym across those lake and land passages.",
+          "sources": [
+            "r120-usgs-topo-selawik"
+          ],
+          "correspondence": "Entire selected interval observed in original primary cartography at generalized corridor scale; no source or connector-view gap.",
+          "name_scope": "Small-lake names remain null. This is observed composite geography rather than an unseen connector. No year-round surface-flow connection, disconnection under every condition, or cause of the model routing is inferred.",
+          "mapped_component_names": [
+            "Inland Lake"
+          ]
+        },
+        {
+          "fragments": [
+            2547
+          ],
+          "component_scope": "Kungsugrug and Selawik distributary return",
+          "finding": "Farther north, the selected route meets the mapped Kungsugrug River corridor and reaches a labelled Selawik River distributary. It then bends southwest through the delta branch-and-island setting. The distinct Kungsugrug channel and nearby lake passages remain distinguishable in the original source.",
+          "sources": [
+            "r120-usgs-topo-selawik"
+          ],
+          "correspondence": "Entire selected interval observed in original primary cartography at generalized corridor scale; no source or connector-view gap.",
+          "name_scope": "The names are retained at their local channels. Their presence does not establish a hydronym for the intervening lake/low-ground traverse.",
+          "mapped_component_names": [
+            "Kungsugrug River",
+            "Selawik River"
+          ]
+        },
+        {
+          "fragments": [
+            2547
+          ],
+          "component_scope": "Actual western delta and lakeshore terminal",
+          "finding": "The final portion lies at the western Selawik delta margin, beside channels opening toward Selawik Lake. The selected last extension crosses a low coastal/island strip and reaches small shore-adjacent water rather than establishing a named river mouth at that exact endpoint. The nearby lake and delta context is fully observed.",
+          "sources": [
+            "r120-usgs-topo-selawik",
+            "r120-fws-aftr110-2019"
+          ],
+          "correspondence": "Entire selected interval observed in original primary cartography at generalized corridor scale; no source or connector-view gap.",
+          "name_scope": "Selawik Lake is the broader receiving-water context, supported by the independent FWS prose. The exact terminal small-waterbody name is unknown. Retained terminal class sea is model metadata and does not prove a direct Chukchi Sea mouth.",
+          "mapped_component_names": [
+            "Selawik Lake"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80041424",
+      "source_keys": [
+        "VIC1",
+        "VIC2"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2359
+          ],
+          "component_scope": "Headward northwestern Banning Lake approach",
+          "finding": "The western selected head occupies the small unnamed lake-and-stream terrain immediately northwest of Banning Lake. The original map shows the approach to Banning Lake’s northwestern arm among low ridges and small water bodies. The corridor is read at generalized scale; no name is inferred for the first feeder from the downstream Paliryuak identity.",
+          "sources": [
+            "VIC1"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2359
+          ],
+          "component_scope": "Banning Lake passage and eastern outlet",
+          "finding": "The selected route passes southeast through the elongated Banning Lake setting and leaves its eastern end through the mapped small-lake and river outlet. It then turns northeast through the intervening channel network. Banning remains a lake component, not an alternative name assigned to the entire river system.",
+          "sources": [
+            "VIC1"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Banning Lake"
+        },
+        {
+          "fragments": [
+            2359
+          ],
+          "component_scope": "Western and central unnamed lake chain",
+          "finding": "East of Banning Lake, the selected corridor passes the smaller connected water bodies, enters the broad unnamed east–west lake marked D1 in the fish-resource annotation, and proceeds from its northeastern outlet through the connected northern and eastern lake reaches. The D1 prose explicitly places that unnamed lake on the Paliryuak River system; the observed lake shapes and inter-lake channels, rather than that basin statement alone, supply the route correspondence.",
+          "sources": [
+            "VIC1"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2359
+          ],
+          "component_scope": "Northern inflows and eastern sheet-boundary connection",
+          "finding": "The northeastern middle lakes receive separately drawn northern inflows. The selected route follows the western incoming chain, then the eastward outlet across the adjoining77C/77D sheet boundary. Both sides show the inter-lake connection into the western arm of the lake locally named Merkley on77D. No northern feeder is substituted for the selected western approach.",
+          "sources": [
+            "VIC1",
+            "VIC2"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2359
+          ],
+          "component_scope": "Merkley and Surrey lake links",
+          "finding": "The selected corridor continues through the locally named Merkley Lake setting and its eastern/southeastern water connection into Surrey Lake. The original map shows Surrey Lake’s broad main water body, northern/lateral inflows and southward outlet arm. Those connections are directly read; the lake names are retained as component identities.",
+          "sources": [
+            "VIC2"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_names": [
+            "Merkley Lake (source says locally known as)",
+            "Surrey Lake"
+          ]
+        },
+        {
+          "fragments": [
+            2359
+          ],
+          "component_scope": "Lower river and actual terminal",
+          "finding": "From the southern Surrey Lake arm the selected corridor follows the sinuous outlet river southeast and then east to its opening on the northwestern side of Wellington Bay. The original map labels this channel locally known as Paliryuak R.; its bounded fish-resource prose independently uses Paliryuak and places the fishery at the mouth. The mapped river opening and bay setting establish the terminal, rather than relying on the stored sea class. The Ekalluk outlet lies separately to the east.",
+          "sources": [
+            "VIC2"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_names": [
+            "Paliryuak River",
+            "Wellington Bay"
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70934231",
+      "publication": "Línea base Dulce Nombre, Copán; SGJD catalogue item 1407, slug dulce-nombre-de-culmi-copan",
+      "official_url": "https://www.sgjd.gob.hn/biblioteca-virtual/docspdm/linea-base/04-copan/1407-linea-base-dulce-nombre-de-culmi-copan/file",
+      "observed_outcome": "The sole original-file request completed HTTP 404, Content-Type text/html; charset=utf-8. No report or map acquired.",
+      "outcome_layer": "origin HTTP response",
+      "restriction_scope": "Missing publication and equivalent report copies, formats, maps, figures, mirrors, readers and all acquisition routes paused for availability; no retry.",
+      "earlier_lawful_prose_exception": null,
+      "evidence_used": false,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70934231",
+      "publication": "Dulce Nombre, Honduras 1:50,000, Series E752, sheet 2460 IV, edition 2-DMA, 1993",
+      "official_url": "https://maps.lib.utexas.edu/maps/topo/honduras/dulce_nombre-honduras-50k-2460iv-1993.pdf",
+      "observed_outcome": "The original PDF acquisition completed HTTP 200. Its margin displays LIMITED DISTRIBUTION, authorization to DoD and specified U.S. DoD contractors, and treatment as For Official Use Only. The sheet was excluded from substantive hydrographic evidence.",
+      "outcome_layer": "source-content distribution/access notice, not an HTTP denial",
+      "restriction_scope": "Entire sheet publication and all equivalent copies, editions offered as replacements, formats, crops and acquisition routes excluded; no further acquisition or substantive use.",
+      "earlier_lawful_prose_exception": null,
+      "evidence_used": false,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70934231",
+      "publication": "SINIT, Mapa de Recursos Hídricos San Jerónimo, Copán; municipal module 0416, posted 2024-09-10",
+      "official_url": "https://sinit.hn/download/174/0416-san-jeronimo/8385/mapa-de-recursos-hidricos-san-jeronimo.jpg",
+      "observed_outcome": "The municipal catalogue opened normally. The first linked map request returned web-reader Cache miss; no HTTP status or source pixels exposed.",
+      "outcome_layer": "web-reader availability outcome",
+      "restriction_scope": "Missing map and equivalent copies, formats, original/reader/preview/mirror and all acquisition routes paused; no fallback or retry.",
+      "earlier_lawful_prose_exception": "Catalogue title, date and size only; not geographic correspondence.",
+      "catalogue_url": "https://sinit.hn/2024/09/10/0416-san-jeronimo/",
+      "evidence_used": false,
+      "material_gap": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:70934231",
+      "publication": "SINIT, Recursos Hídricos de Dulce Nombre, Departamento de Copán, 2025-03-10",
+      "official_url": "https://sinit.hn/download/283/0408-dulce-nombre/12140/mapa-de-recursos-hidricos-de-dulce-nombre.jpeg",
+      "observed_outcome": "The first linked-map web reader returned Internal Error, with no HTTP status, security reason or authorization prohibition. One sequential normal original-file fallback then completed HTTP 200, image/jpeg, and the original pixels were inspected.",
+      "outcome_layer": "completed technical web-reader route error, followed by successful origin acquisition",
+      "restriction_scope": "The failed reader route was not repeated. This is not a publication-wide access or availability stop.",
+      "earlier_lawful_prose_exception": "The separate catalogue had opened normally before the map requests.",
+      "evidence_used": true,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:80041424",
+      "source_keys": [
+        "VIC1",
+        "VIC2"
+      ],
+      "notice": "Crown copyright: Her Majesty the Queen in Right of Canada. No map originals, crops, overlays, derivative cartography or extensive excerpts are republished.",
+      "effect": "Reading and concise own factual synthesis only; no inference of redistribution permission from official hosting."
+    },
+    {
+      "aw_id": "hydro-system:80041424",
+      "source_keys": [
+        "VIC1",
+        "VIC2"
+      ],
+      "notice": "Maps described as interim, with incomplete or preliminary/reconnaissance information; thematic boundaries generalized and approximate. Information current as of December1982.",
+      "effect": "Historical corridor-scale observation only; no exact channel/shoreline/vertex, registry-status or present-condition claims."
+    }
+  ]
+}

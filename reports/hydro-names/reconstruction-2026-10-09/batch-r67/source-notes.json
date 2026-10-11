@@ -1,0 +1,359 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r67",
+  "sources": [
+    {
+      "source_key": "r63-nhn-suriname-rivers-map-2003",
+      "title": "Index of vernacular plant names of Suriname — Figure 1, Map of Suriname and its rivers",
+      "publisher": "Nationaal Herbarium Nederland, Universiteit Leiden branch; repository hosted by Naturalis Biodiversity Center",
+      "attribution": "Charlotte I. E. A. van ’t Klooster, Jan C. Lindeman and Marion J. Jansen-Jacobs; Blumea Supplement 15. Drawing credited to Hendrik Rypkema.",
+      "year": 2003,
+      "page": "Printed p. 3, PDF p. 9, Figure 1",
+      "supports": "Saramacca trunk west of Brokopondo and Suriname, with a separate Coppename corridor to the west.",
+      "limits": "Simplified institutional illustration omits much of the headwater detail and cannot alone resolve the first feeder. Not a governmental name-registry decision.",
+      "official_url": "https://repository.naturalis.nl/pub/603310/Blumea_supplement_15.pdf"
+    },
+    {
+      "source_key": "r67-naturalis-holthuis-suriname-map",
+      "title": "The Crustacea Decapoda of Suriname (Dutch Guiana) — Map 1, Suriname",
+      "publisher": "Rijksmuseum van Natuurlijke Historie, Leiden; Zoologische Verhandelingen; repository hosted by Naturalis Biodiversity Center",
+      "attribution": "L. B. Holthuis. Historical institutional study with a national river map on the concluding foldout.",
+      "year": 1959,
+      "page": "PDF p. 311, Map 1; complete sheet and enlarged central-river detail",
+      "supports": "Southern mountain-side approach, distinction from Toekoemoetoe creek, Jan Basi Gado bend, named Saramacca trunk and Coppename confluence setting.",
+      "limits": "Historical generalized cartography; no exact first-feeder name, headwater vertex or modern estuary boundary. Not a hydrographic survey or naming adjudication.",
+      "official_url": "https://repository.naturalis.nl/pub/317569/ZV1959044001.pdf"
+    },
+    {
+      "source_key": "r67-hydromet-water-quality-2024q1",
+      "title": "Water quality technical report for surface water resources in Suriname — January–March 2024",
+      "publisher": "Suriname Ministry of Public Works, Directorate Research and Services, Sub-Directorate Research and Innovation, Hydraulic Research Division",
+      "attribution": "Goncalves Vanity, Sheonarain Kereshma and Owen Shannon; report finalized May 2024.",
+      "year": 2024,
+      "page": "Printed/PDF pp. 16–17, Figure 1 and Table 2",
+      "supports": "Official lower Saramacca name, bridge/settlement sequence, westward coastal course and estuarine setting.",
+      "limits": "Lower-course map does not cover the southern headwaters. Sampling results and operational navigation advice are outside this finding; no exact tidal limit is inferred.",
+      "official_url": "https://hydromet.sr/wp-content/uploads/2025/06/WQ-FINAL-Jan-Mar-2024_compressed.pdf"
+    },
+    {
+      "source_key": "r67-inema-vaza-barris-2014",
+      "title": "Região de Planejamento e Gestão das Águas – XIV: Rio Vaza-Barris, Estado da Bahia",
+      "publisher": "Instituto do Meio Ambiente e Recursos Hídricos (INEMA), Governo da Bahia",
+      "year": 2014,
+      "page": "Single-sheet map, PDF page 1; western/Uauá, Cocorobó–Canudos and Jeremoabo–Sergipe-boundary portions.",
+      "supports": "Upper and middle river labels, towns, reservoir and distinct tributary settings.",
+      "limits": "Bahia RPGA coverage ends at Sergipe; generalized 2014 planning cartography, not exact naming-boundary evidence.",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/XIV-RPGA-DO-RIO-VAZA-BARRIS.pdf"
+    },
+    {
+      "source_key": "r67-ibge-alagoas-sergipe-2012",
+      "title": "Mapa Físico dos Estados de Alagoas e Sergipe",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências",
+      "year": 2012,
+      "page": "Single-sheet map, PDF page 1; Bahia continuation, Sergipe river corridor, lower estuary and legend.",
+      "supports": "Cross-state Vaza-Barris continuity, tributary distinctions and Atlantic estuarine receiving setting.",
+      "limits": "Scale 1:700,000, using 2009 continuous cartographic base; generalized channels cannot determine precise terminal-channel or present shoreline boundaries.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/fisico/al_se_fisico700k_2012.pdf"
+    },
+    {
+      "source_key": "r67-yukon-east-kluane-2008",
+      "title": "Off-Road Vehicle Ban — East Kluane Area, Subzones 5-34 & 5-36–5-39",
+      "publisher": "Government of Yukon, Department of Environment, Environment Yukon Geomatics",
+      "attribution": "Map ID ENV.023.002; printed UTM Zone 8 grid, NAD83.",
+      "year": 2008,
+      "page": "Single map sheet; whole sheet and readable northern-loop/Bear Lakes/West Aishihik detail.",
+      "supports": "Bear Lakes and West Aishihik labels; neighboring Twelfth of July Creek, terrain and management boundary that limit the first modeled connection.",
+      "limits": "Does not establish a continuous named watercourse along the entire initial loop. Map date and boundary overlays limit finer channel inference; restriction status is outside this finding.",
+      "official_url": "https://open.yukon.ca/information/f025950d-4369-4f9b-bb53-5b513df237bc/resource/d07ddae8-8a99-368a-9238-db66bfc5cfa9/download/off-road_vehicle_ban_env.023.002_1.pdf"
+    },
+    {
+      "source_key": "r67-envcan-aishihik-fisheries-1973",
+      "title": "Fisheries Problems Associated with the Proposed Aishihik River Power Development — Interim Report",
+      "publisher": "Environment Canada, Fisheries Service, Northern Operations Branch, Department of the Environment",
+      "year": 1973,
+      "page": "Figure 1, printed p. 3 (PDF p. 7); stream descriptions on printed pp. 13–15 (PDF pp. 17–19).",
+      "supports": "West Aishihik versus the separate Sekulmun–Aishihik–Canyon lake/outlet chain and their downstream junction.",
+      "limits": "Historical schematic, not a present operational or exact channel-boundary map. Proposed works and possible diversions are not treated as realized geography.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/40638820.pdf"
+    },
+    {
+      "source_key": "r67-yukon-bison-context-2012",
+      "title": "Aishihik Wood Bison — Areas of Concentration, Early Winter (Nov–Dec), 2007–2012",
+      "publisher": "Government of Yukon, Environment Yukon",
+      "attribution": "Map ID ENV.246.2012.nov-dec; geographic base read independently of wildlife shading.",
+      "year": 2012,
+      "page": "Single sheet; southern Aishihik–Dezadeash–Haines Junction corridor and neighboring lake context.",
+      "supports": "Named lower Aishihik and Dezadeash corridors and separation of adjacent lakes and drainages.",
+      "limits": "Generalized thematic map, not proof of the unresolved initial connection or exact hydronym vertices. Historical wildlife distribution is not used.",
+      "official_url": "https://open.yukon.ca/information/b92ff5d9-3139-4a1b-85c3-d27d60d2d872/resource/aed93860-ba7a-36aa-9f09-15bc7d77a15a/download/bison_2012_nov-dec_env.246.pdf"
+    },
+    {
+      "source_key": "r67-eccc-alsek-station-topology",
+      "title": "Station Reference Index — Alsek River and tributary hydrometric stations",
+      "publisher": "Environment and Climate Change Canada, Water Survey of Canada",
+      "year": null,
+      "page": "Station table, Alsek section, including 08AB001, 08AA003, 08AA001, 08AA011 and 08AC002.",
+      "supports": "Independent nesting of the West Aishihik, Aishihik, Dezadeash and Alsek names; separate Tatshenshini tributary context.",
+      "limits": "Station locations and stream order do not themselves prove the complete selected route or name every model vertex. No discharge or present-flow conclusion is drawn.",
+      "official_url": "https://wateroffice.ec.gc.ca/station_metadata/reference_index_e.html?stnIndex=9193"
+    },
+    {
+      "source_key": "r67-parkscanada-kluane-map",
+      "title": "Kluane National Park and Reserve — park map",
+      "publisher": "Parks Canada",
+      "year": null,
+      "page": "Single sheet; Haines Junction, Kaskawulsh junction, Alsek–Lowell Lake and southern park-boundary corridor.",
+      "supports": "Separate Kaskawulsh arm, named Alsek trunk, Lowell Lake and glacier context, and Tatshenshini position below Dalton Post.",
+      "limits": "Visitor-scale map; no precise current glacier front, complete upper Aishihik coverage or formal hydronym-transition survey.",
+      "official_url": "https://pcweb2.azureedge.net/-/media/pn-np/yt/kluane/pdfs/website-full-Kluane-map.pdf"
+    },
+    {
+      "source_key": "r67-bcparks-tatshenshini-alsek-map",
+      "title": "Tatshenshini-Alsek Park — map and brochure",
+      "publisher": "BC Parks, Government of British Columbia; Champagne and Aishihik First Nations",
+      "year": null,
+      "page": "PDF p. 1, main river map and regional inset.",
+      "supports": "Separate Alsek and Tatshenshini corridors, their confluence, Tweedsmuir Glacier setting, borders and southwestward continuation.",
+      "limits": "Schematic visitor map does not resolve the first modeled loop, precise tributary start or modern terminal-channel boundary. Indigenous labels are not converted into unverified aliases.",
+      "official_url": "https://nrs.objectstore.gov.bc.ca/kuwyyf/tatshenshini_alsek_park_map_ef7b1eeb03.pdf"
+    },
+    {
+      "source_key": "r67-nps-drybay-glacier-2021",
+      "title": "Will Dry Bay lose its river because of glacier retreat?",
+      "publisher": "U.S. National Park Service; embedded geographic figure credited to Loso et al. (2021)",
+      "year": 2021,
+      "page": "Introduction, Grand Plateau area map and outlet discussion; project dates 2020–2021.",
+      "supports": "Alsek River through Alsek Lake to Dry Bay, distinction from East Alsek River and Grand Plateau Lake, and separation of mapped existing and prospective routes.",
+      "limits": "Study-era geography and prospective change, not a new 2026 field observation, surveyed mouth or current glacier-boundary certificate.",
+      "official_url": "https://www.nps.gov/articles/000/will-dry-bay-lose-the-alsek-river.htm"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single map sheet, PDF page 1; southeastern Inland Ice and coastal-margin context, readable graticule and Inland Ice legend.",
+      "supports": "Regional ice-sheet and marginal feature-class context, distinguishing glacier, fjord and settlement names from evidence of a named river.",
+      "limits": "Regional geological mapping, not a river gazetteer or hydrological survey. It supports the feature-class scope conclusion, not proof of natural flow, connectivity or formal river identity. The historical ice margin is not asserted to be its current position.",
+      "reuse_limit": "GEUS custom terms allow internal research but restrict redistribution and new maps based on the data. The original map and local crops remain private; only own factual notes and public bibliography are intended for publication.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Map description and pp. 64–65 Glaciology; regional map-label context.",
+      "supports": "Explains ice-contour classes and regional map context without establishing a natural river identity for this selected route.",
+      "limits": "General glaciology and a map-label register cannot establish a name for the complete modeled river group. No present-day ice dimensions, margin position or melt-rate estimate is inferred from this historical report.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60103042",
+      "source_keys": [
+        "r63-nhn-suriname-rivers-map-2003",
+        "r67-naturalis-holthuis-suriname-map",
+        "r67-hydromet-water-quality-2024q1"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11385
+          ],
+          "finding": "The southern piece approaches northeastward from the Wilhelmina–De Kock mountain setting into the upper Saramacca corridor. Holthuis's map depicts this southern approach separately from the western Toekoemoetoe creek branch. Its generalized mountain-side ending does not establish a name for the model's first small feeder.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map"
+          ]
+        },
+        {
+          "fragments": [
+            11385,
+            11386
+          ],
+          "finding": "The selected route continues north and then bends east around the Jan Basi Gado setting before resuming northward. That distinctive middle bend appears on the historical map's Saramacca River corridor; the selection does not turn west into the separately drawn Coppename drainage.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map"
+          ]
+        },
+        {
+          "fragments": [
+            11386
+          ],
+          "finding": "The northward middle trunk stays west of the Brokopondo waterbody and Suriname River. The retained 2003 institutional map labels Saramacca R. in this corridor and distinguishes the neighboring rivers; the selected route contains no Brokopondo reservoir passage.",
+          "sources": [
+            "r63-nhn-suriname-rivers-map-2003"
+          ]
+        },
+        {
+          "fragments": [
+            11386,
+            11387
+          ],
+          "finding": "The lower route matches the ministry's mapped sequence through the Pikin Saron bridge setting, Uitkijk, Groningen and the Saramacca bridge, then west across the coastal plain. The report explicitly identifies these locations with the Saramacca River and describes tidal influence in its estuary.",
+          "sources": [
+            "r67-hydromet-water-quality-2024q1"
+          ]
+        },
+        {
+          "fragments": [
+            11387
+          ],
+          "finding": "The westward final piece reaches the Saramacca–Coppename confluence setting shown on both lower-course maps. The selection ends there rather than continuing north along the common estuarine approach to the Atlantic; its endpoint is not asserted to be a surveyed mouth or exact confluence vertex.",
+          "sources": [
+            "r67-naturalis-holthuis-suriname-map",
+            "r67-hydromet-water-quality-2024q1"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61053159",
+      "source_keys": [
+        "r67-inema-vaza-barris-2014",
+        "r67-ibge-alagoas-sergipe-2012"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13872
+          ],
+          "finding": "The selected western beginning approaches Uauá from the southwest and continues east. INEMA labels this upper corridor Rio Vaza-Barris, separately mapping Riacho da Besta, Riachão and Alagoinha.",
+          "sources": [
+            "r67-inema-vaza-barris-2014"
+          ]
+        },
+        {
+          "fragments": [
+            13872
+          ],
+          "finding": "The route crosses the Cocorobó reservoir setting by Canudos. INEMA distinguishes the southern Bendengó contribution from the selected western Vaza-Barris approach.",
+          "sources": [
+            "r67-inema-vaza-barris-2014"
+          ]
+        },
+        {
+          "fragments": [
+            13872
+          ],
+          "finding": "Beyond Canudos the selection follows the eastward corridor past Jeremoabo, then bends south through the Coronel João Sá setting toward Sergipe.",
+          "sources": [
+            "r67-inema-vaza-barris-2014",
+            "r67-ibge-alagoas-sergipe-2012"
+          ]
+        },
+        {
+          "fragments": [
+            13872
+          ],
+          "finding": "IBGE labels the continuing river Vaza-Barris inside Sergipe, with Salgado, Lombada and Traíras entering the corridor; the separate Sergipe and Poxim networks lie to its northeast.",
+          "sources": [
+            "r67-ibge-alagoas-sergipe-2012"
+          ]
+        },
+        {
+          "fragments": [
+            13872
+          ],
+          "finding": "The selected southeastward ending reaches the branching lower estuarine setting near Ilha Grande. IBGE maps its Atlantic outlet context at Barra de São Cristóvão; no exact selected mouth channel is assigned.",
+          "sources": [
+            "r67-ibge-alagoas-sergipe-2012"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80279329",
+      "source_keys": [
+        "r67-yukon-east-kluane-2008",
+        "r67-envcan-aishihik-fisheries-1973",
+        "r67-yukon-bison-context-2012",
+        "r67-eccc-alsek-station-topology",
+        "r67-parkscanada-kluane-map",
+        "r67-bcparks-tatshenshini-alsek-map",
+        "r67-nps-drybay-glacier-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2743
+          ],
+          "scope": "Initial northern loop, Bear Lakes and West Aishihik approach",
+          "finding": "The detailed East Kluane sheet locates the modeled beginning near the Twelfth of July Creek terrain. Its ensuing northward and eastward loop follows the vicinity of a subzone boundary toward Bear Lakes, rather than a clearly demonstrated continuous mapped watercourse. That first connection remains unresolved. Farther east and south, the selected line corresponds to the Bear Lakes chain and the labeled West Aishihik River. The separate federal fisheries map distinguishes this western river from Sekulmun, Aishihik and Canyon Lakes; those larger lakes cannot be substituted for the actual selected upstream line.",
+          "sources": [
+            "r67-yukon-east-kluane-2008",
+            "r67-envcan-aishihik-fisheries-1973"
+          ]
+        },
+        {
+          "fragments": [
+            2743
+          ],
+          "scope": "Lower Aishihik and Dezadeash approach to Alsek",
+          "finding": "After the southeastward West Aishihik reach, the selection turns south along lower Aishihik River and then west on Dezadeash River past the Haines Junction setting. The Yukon map depicts those named receiving corridors, and the federal station index independently nests West Aishihik under Aishihik, Aishihik under Dezadeash, and Dezadeash under Alsek. The Parks Canada map separately shows the Kaskawulsh River arriving from western glacier country. Neither the Kaskawulsh arm nor the eastern Dezadeash Lake source arm is included merely because it contributes water to the selected downstream route.",
+          "sources": [
+            "r67-yukon-bison-context-2012",
+            "r67-eccc-alsek-station-topology",
+            "r67-parkscanada-kluane-map"
+          ]
+        },
+        {
+          "fragments": [
+            2744,
+            2745
+          ],
+          "scope": "Alsek trunk through the Yukon and British Columbia glacier corridor",
+          "finding": "The two middle mainstem pieces continue south along the mapped Alsek corridor, pass through the Lowell Lake setting beside Lowell Glacier, cross the Yukon–British Columbia boundary and continue beside the Tweedsmuir Glacier setting toward the Tatshenshini junction. Parks Canada and BC Parks depict the same connected valley sequence. Lowell, Dusty and other glacier-fed side drainages are distinct contributors; the selection is not a centerline through their glacier interiors. Lake passage and adjacent river reaches are kept distinct, and no exact present glacier front or hydronym-transition vertex is assigned.",
+          "sources": [
+            "r67-parkscanada-kluane-map",
+            "r67-bcparks-tatshenshini-alsek-map"
+          ]
+        },
+        {
+          "fragments": [
+            2747,
+            2748,
+            2749
+          ],
+          "scope": "Three selected pieces of the Tatshenshini branch",
+          "finding": "The three gray pieces form one connected eastern branch: southward from below the Dalton Post setting, then southwest and west into the Alsek junction. This is the corridor separately labeled Tatshenshini River on the park maps. The selected branch does not include the whole upper Tatshenshini or its source region, and its three modeled pieces are not three independently established tributary names.",
+          "sources": [
+            "r67-parkscanada-kluane-map",
+            "r67-bcparks-tatshenshini-alsek-map"
+          ]
+        },
+        {
+          "fragments": [
+            2746
+          ],
+          "scope": "Lower Alsek, Alsek Lake and Dry Bay",
+          "finding": "Below the Tatshenshini junction the selected mainstem continues southwest, turns south through the Alsek Lake setting and then west toward Dry Bay. The NPS map and accompanying description distinguish the Alsek River and lake from East Alsek River, Grand Plateau Lake and the glacier-separated possible future outlet. The modeled terminal route corresponds to the Dry Bay side, not the illustrated future Grand Plateau route. The selected endpoint is not certified as a surveyed river mouth, tidal boundary or complete coastal channel.",
+          "sources": [
+            "r67-bcparks-tatshenshini-alsek-map",
+            "r67-nps-drybay-glacier-2021"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90109405",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        "Both selected mainstem fragments were inspected. The route runs southwest from the northern interior, turns broadly east, then bends southeast and ends after a short eastward lower section. No separate tributary fragment is selected.",
+        "The long northern and middle legs lie within the mapped Inland Ice. The southeastward lower continuation approaches the glaciated southeastern margin. The source graticule, ice contours and adjoining coastal land arrangement support this regional feature-class reading, without assigning the line to a specific glacier, fjord or marginal stream.",
+        "The readable source does not establish a natural river hydronym for the whole modeled route. Regional glacier, coastal-land or fjord labels cannot be transferred onto a continuous modeled inland river line. This hold does not assert that every small marginal waterway is unnamed.",
+        "The legend distinguishes ice-surface contours, dashed ice-thickness isopachs, sub-ice bedrock contours and aeromagnetic lineaments south of 68°N. None of these cartographic lines establishes a named river or proves present-day surface or subglacial connectivity along the selected path."
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

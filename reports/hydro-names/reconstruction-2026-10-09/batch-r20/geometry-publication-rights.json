@@ -1,0 +1,16 @@
+{
+  "schema": "river-summary-publication-scope-v1",
+  "scope_aw_ids": [
+    "hydro-system:50624422",
+    "hydro-system:50663106",
+    "hydro-system:50668362"
+  ],
+  "public_geometry_content": "Own bounded identifier, name-state, role, count and bounding-box summaries only.",
+  "complete_coordinates_in_public_package": false,
+  "per_part_paths_in_public_package": false,
+  "source_reach_sequences_in_public_package": false,
+  "binary_packs_or_worker_bodies_in_public_package": false,
+  "omitted_input_fingerprints_in_public_package": false,
+  "original_hydrorivers_standalone_redistribution_clearance_established": false,
+  "new_licensing_determination_made": false
+}

@@ -1,0 +1,163 @@
+{
+  "schema": "hydro-bounded-lake-findings-v2",
+  "batch": "r17",
+  "frozen_at_utc": "2026-10-09T17:23:20.880290+00:00",
+  "target_count": 3,
+  "new_actual_inventory_targets": 3,
+  "full_feature_correspondence_review_completed_count": 3,
+  "source_limited_unresolved_count": 0,
+  "whole_feature_name_scope_hold_count": 3,
+  "compound_named_waterbody_required_by_evidence": null,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108703",
+      "source_id": "1159108703",
+      "candidate_name": null,
+      "directly_supported_name_forms": [],
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "Whole-feature naming remains unresolved for the complete north-south branching-water polygon near Patuanak. Lac Ile-a-la-Crosse and Alstead River are contextual labels, not supported identities for the selected feature.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_athabasca_ge30"
+      ],
+      "cartographic_identity_source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_athabasca_ge30"
+      ],
+      "correspondence_observations": [
+        "The complete 28-position ring was considered, including the narrow northern cap, long western side, widening southeast lobe and nearly west-east southern edge.",
+        "The WSA map provides full coverage of the branching lake and channel cluster north of the Lac Ile-a-la-Crosse label and west of the Alstead River label. It does not place an unambiguous waterbody name over the complete selected outline.",
+        "The Athabasca election map also shows the full selected region. Patuanak is a settlement label across the southern part of this water cluster, not a lake name. The mapped water is more branched than the single generalized ring.",
+        "Neither connection to adjoining water nor a nearby regional label establishes uniform name coverage. The complete selected polygon cannot be equated with an entire named lake from these maps."
+      ],
+      "name_scope_limits": [
+        "The WSA regional map and an Elections Saskatchewan constituency map provide full target-area coverage. Their labels and water outlines do not establish whole-feature naming here.",
+        "The source is a 1:10 million generalized lake polygon. The WSA map is dated 2014-11-25 at a printed scale of 1:1,750,000. Election-map labelling and electoral overprints have their own limits. No precise current shoreline or formal naming instrument was verified.",
+        "The complete bounded map assessment is finished. The naming-scope hold concerns the whole selected polygon, including possible lake fragments and adjoining channels; it is not an access-pending result."
+      ],
+      "compound_named_waterbody_required_by_evidence": null,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Obtain evidence establishing name coverage over the complete selected polygon before any whole-feature name assignment or geometry change.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true,
+      "contextual_map_labels": [
+        "Lac Ile-a-la-Crosse",
+        "Alstead River",
+        "Patuanak"
+      ],
+      "contextual_label_limits": "These labels provide geographic context only. None is promoted to a candidate identity; Patuanak, where listed, is a settlement.",
+      "compound_scope_status": "A uniform or compound whole-feature identity is not established.",
+      "exact_name_partition_established": false,
+      "whole_named_lake_extent_equivalence_claimed": false
+    },
+    {
+      "aw_id": "lakes_base:1159109993",
+      "source_id": "1159109993",
+      "candidate_name": null,
+      "directly_supported_name_forms": [],
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "Whole-feature naming remains unresolved for the complete crescent-and-southern-tip polygon in the Royal/Steephill/Reindeer water network. Adjacent labels do not establish uniform or exhaustive compound name coverage.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_cumberland_ge30"
+      ],
+      "cartographic_identity_source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_cumberland_ge30"
+      ],
+      "correspondence_observations": [
+        "The complete 23-position ring was considered, including the wide west-projecting northern crescent, inward western notch, rounded eastern side and long tapered southern tip.",
+        "The WSA map shows Royal Lake to the northwest, Steephill Lake by the eastern broadened water and the Reindeer River farther south. These labels were read with the complete selected outline and adjacent reaches.",
+        "The Cumberland election map also shows the Steephill Lake label by the northern connected water. Both maps show the selected southern tip extending beyond the mapped broadened water, so the complete generalized name scope is not established by label proximity.",
+        "The available maps do not resolve whether one name covers the selected northern and southern portions or how names partition adjoining waters. No compound name or geometry correction is inferred."
+      ],
+      "name_scope_limits": [
+        "The WSA regional map and an Elections Saskatchewan constituency map provide full target-area coverage. Their labels and water outlines do not establish whole-feature naming here.",
+        "The source is a 1:10 million generalized lake polygon. The WSA map is dated 2014-11-25 at a printed scale of 1:1,750,000. Election-map labelling and electoral overprints have their own limits. No precise current shoreline or formal naming instrument was verified.",
+        "The complete bounded map assessment is finished. The naming-scope hold concerns the whole selected polygon, including possible lake fragments and adjoining channels; it is not an access-pending result."
+      ],
+      "compound_named_waterbody_required_by_evidence": null,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Obtain evidence establishing name coverage over the complete selected polygon before any whole-feature name assignment or geometry change.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true,
+      "contextual_map_labels": [
+        "Royal Lake",
+        "Steephill Lake",
+        "Reindeer River"
+      ],
+      "contextual_label_limits": "These labels provide geographic context only. None is promoted to a candidate identity; Patuanak, where listed, is a settlement.",
+      "compound_scope_status": "A uniform or compound whole-feature identity is not established.",
+      "exact_name_partition_established": false,
+      "whole_named_lake_extent_equivalence_claimed": false
+    },
+    {
+      "aw_id": "lakes_base:1159110087",
+      "source_id": "1159110087",
+      "candidate_name": null,
+      "directly_supported_name_forms": [],
+      "research_category": "whole_polygon_scope_hold",
+      "supported_name_scope": "Whole-feature naming remains unresolved for the complete west-east basin in the Churchill River network. Wood Lake, Penney Lake and Lobb Lake are contextual labels rather than supported whole-feature identities.",
+      "source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_cumberland_ge30"
+      ],
+      "cartographic_identity_source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_cumberland_ge30"
+      ],
+      "correspondence_observations": [
+        "The complete 15-position ring was considered, including the west-end shoulder, northern central indentation, broad eastern half and shallow bowed southern edge.",
+        "The WSA map shows the full west-east basin in the Churchill River network and the Wood Lake label farther southeast. The selected basin has no unambiguous whole-feature name on that map.",
+        "The Cumberland election map provides full regional coverage, with Penney Lake to the west and Lobb Lake to the southeast. Electoral boundary lines overprint part of the central basin; neither surrounding label establishes a name for the entire selected polygon.",
+        "The source outline corresponds in broad shape to a basin within the connected water network. Its extent is not equated with the whole extent of any nearby named lake, and no precise channel-name boundary is established."
+      ],
+      "name_scope_limits": [
+        "The WSA regional map and an Elections Saskatchewan constituency map provide full target-area coverage. Their labels and water outlines do not establish whole-feature naming here.",
+        "The source is a 1:10 million generalized lake polygon. The WSA map is dated 2014-11-25 at a printed scale of 1:1,750,000. Election-map labelling and electoral overprints have their own limits. No precise current shoreline or formal naming instrument was verified.",
+        "The complete bounded map assessment is finished. The naming-scope hold concerns the whole selected polygon, including possible lake fragments and adjoining channels; it is not an access-pending result."
+      ],
+      "compound_named_waterbody_required_by_evidence": null,
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "follow_up_scope": "Obtain evidence establishing name coverage over the complete selected polygon before any whole-feature name assignment or geometry change.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true,
+      "contextual_map_labels": [
+        "Churchill River",
+        "Wood Lake",
+        "Penney Lake",
+        "Lobb Lake"
+      ],
+      "contextual_label_limits": "These labels provide geographic context only. None is promoted to a candidate identity; Patuanak, where listed, is a settlement.",
+      "compound_scope_status": "A uniform or compound whole-feature identity is not established.",
+      "exact_name_partition_established": false,
+      "whole_named_lake_extent_equivalence_claimed": false
+    }
+  ],
+  "publication_scope": "Official bibliography and own factual observations only; no source publications, map derivatives or omitted-source fingerprints.",
+  "recorded_review_scope": "Complete original and baseline outlines considered against the official WSA regional map and official Elections Saskatchewan maps. All three bounded assessments are complete; all three remain on whole-feature name-scope holds.",
+  "included_evidence_limit": "Included records retain official bibliography, own factual observations and geometry facts. Source publications and inspection materials are excluded. Public offline validation checks included records and geometry; it does not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

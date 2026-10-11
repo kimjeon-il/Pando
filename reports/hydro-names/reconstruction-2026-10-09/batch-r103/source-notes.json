@@ -1,0 +1,591 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r103",
+  "sources": [
+    {
+      "source_key": "r103-igm-chile-public-rivers",
+      "title": "SIIE_v3, Quebradas ríos, public MapServer layer40",
+      "publisher": "Instituto Geográfico Militar de Chile",
+      "supports": "Upper and lower Maichín, middle Pucón/Minetue, Toltén corridor, complete selected Allipén approach, surrounding named tributaries, river-junction sequence and separation from nearby drainage systems.",
+      "limits": "These are styled official feature renderings, not scanned cartographic sheets. Client-requested visible line weight and labels do not alter source names or geometry. No source vector geometry was fetched. The layer does not explain the selected eastern straight connector and does not provide a complete coastal basemap, formal name boundaries or current hydrologic observations.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+    },
+    {
+      "source_key": "r103-igm-chile-public-waterbodies",
+      "title": "SIIE_v3, Cuerpos de agua, public MapServer layer37",
+      "publisher": "Instituto Geográfico Militar de Chile",
+      "supports": "Lago Villarrica crossing, named eastern receiving river and western Toltén outlet, distinction from neighboring lakes, lower Toltén water corridor and nearby coastal lagoons. Shows that Lago Hualalafquén is separate from the eastern straight connector.",
+      "limits": "Styled official polygon rendering, not a scanned official sheet or a contemporary water-level survey. A blank area cannot prove that no small watercourse exists. No lake or reservoir covering the connector is established, and the source does not close that material correspondence gap. No source vector geometry was downloaded.",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Cuerpos_de_agua/MapServer"
+    },
+    {
+      "source_key": "r103-bcn-araucania-hydrography",
+      "title": "Hidrografía Región de la Araucanía, Chile Nuestro País",
+      "publisher": "Biblioteca del Congreso Nacional de Chile, SIIT",
+      "supports": "Regional relationship among Pucón, Villarrica, Toltén and Allipén, and general mouth context.",
+      "limits": "Regional prose only; no exact selected-path match, eastern connector explanation, formal source coordinate or current hydrologic state. Numerical area, flow, length and navigability claims on the page are not adopted.",
+      "official_url": "https://www.bcn.cl/siit/nuestropais/region9/hidrografia.htm"
+    },
+    {
+      "source_key": "r103-usgs-national-map-big-lost",
+      "title": "The National Map USGS Topo: Muldoon–Star Hope, Big Lost River and Mud Lake corridor",
+      "publisher": "United States Geological Survey, U.S. Department of the Interior",
+      "supports": "Bounded stream/junction, reservoir, river, sink, dry-channel, canal and terminal-lake correspondence; clear limits on the eastern flat connector.",
+      "limits": "Independent federal basemap, not a retrieval of a stopped report figure. Generalized route comparison only. Missing connector is not filled by name proximity, landform labels or irrigation channels. The Muldoon Creek trail label is not used alone as a stream-name attribution. Exact-view parameters, originals, crops and orientation materials remain private.",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r103-idfg-muldoon",
+      "title": "Muldoon Creek | Idaho Fishing Planner",
+      "publisher": "Idaho Department of Fish and Game",
+      "supports": "Muldoon Creek is a tributary of Star Hope Creek in Custer County.",
+      "limits": "Textual hydronym and receiving relationship only; precise initial channel location comes from independent federal cartography. No fishing-rule or current-flow claim used.",
+      "official_url": "https://idfg.idaho.gov/ifwis/fishingplanner/water/1139304437615"
+    },
+    {
+      "source_key": "r103-idfg-star-hope",
+      "title": "Star Hope Creek (West Fork Big Lost River) | Idaho Fishing Planner",
+      "publisher": "Idaho Department of Fish and Game",
+      "supports": "Star Hope Creek, with parenthetical West Fork Big Lost River wording, is an East Fork Big Lost River tributary.",
+      "limits": "Bounded upper component only, not a scalar name for the full modeled line.",
+      "official_url": "https://idfg.idaho.gov/ifwis/fishingplanner/water/1138984438675"
+    },
+    {
+      "source_key": "r103-deq-big-lost-subbasin",
+      "title": "Big Lost River Subbasin",
+      "publisher": "Idaho Department of Environmental Quality",
+      "supports": "Mainstem origin at the North/East Fork confluence and closed Sinks Drainage regional context.",
+      "limits": "Prose context only, not evidence of a surface connector to Mud Lake. No linked TMDL report or source-map observation is claimed.",
+      "official_url": "https://www.deq.idaho.gov/water-quality/surface-water/total-maximum-daily-loads/big-lost-river-subbasin/"
+    },
+    {
+      "source_key": "r103-usgs-inlpo-water-monitoring",
+      "title": "INLPO Water Monitoring",
+      "publisher": "U.S. Geological Survey, Idaho Water Science Center",
+      "supports": "Big Lost River reaches Big Lost River Sinks, where water infiltrates into the aquifer.",
+      "limits": "Regional river-endpoint description does not establish the selected eastern extension or exact modeled mouth. No live flow observation is claimed.",
+      "official_url": "https://www.usgs.gov/centers/idaho-water-science-center/science/inlpo-water-monitoring"
+    },
+    {
+      "source_key": "r103-inl-lake-terreton",
+      "title": "INL, Shoshone-Bannock Tribes examine remnants of long-gone Lake Terreton",
+      "author": "Paul Menser",
+      "publisher": "Idaho National Laboratory",
+      "supports": "Historical regional context for the former Lake Terreton landscape.",
+      "limits": "Ancient lake context cannot resolve a present surface-channel connector or rename the selected line.",
+      "official_url": "https://inl.gov/feature-story/inl-shoshone-bannock-tribes-examine-remnants-of-long-gone-lake-terreton/"
+    },
+    {
+      "source_key": "r50-geus-greenland-geological-map-1995",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland (GGU); official digital copy hosted by GEUS",
+      "year": 1995,
+      "page": "Single sheet, PDF page 1; southwest Greenland Inland Ice, the Paamiut/Frederikshåb coastal surroundings, and adjacent southern margin, with original graticule and Inland Ice legend.",
+      "supports": "Generalized whole-selection geographic and feature-class correspondence from the southwestern Inland Ice through its marginal setting toward fjord-cut coastal country; distinction between named regional features, mapped ice/geological symbols and evidence for a natural-river identity.",
+      "limits": "Historical regional geological mapping. It is not a river gazetteer or contemporary ice-front survey and establishes neither a full-route natural-river identity nor exact surface/subglacial flow, terminal water connection or surveyed mouth.",
+      "reuse_limit": "GEUS custom dataset terms permit bounded internal processing but restrict redistribution of originals and processed data and production or transfer of new maps. Original maps, local crops and comparison materials remain private; only independently written factual prose and ordinary public source URLs may be propagated.",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r50-geus-greenland-glaciology-2009",
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000, 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "page": "Pages 64–65, Glaciology.",
+      "supports": "Continental Inland Ice versus local ice caps and glaciers; the geological sheet’s surface, thickness and bedrock contour conventions; general glacier-margin and fjord context.",
+      "limits": "No selected-route hydronym or connectivity evidence. Figure 46 is a different locality north-northeast of Søndre Strømfjord and is not a picture of this route. Figure 47 supplies general model diagrams. Historical numerical or mass-balance statements are not asserted as current.",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r103-ign-plains-250k",
+      "title": "Cartas topográficas 1:250 000: southern Córdoba–northwestern Buenos Aires selected plains corridor",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Complete geographic setting, transport-crossing sequence, agricultural plains, water surfaces and wet-depression surroundings from the initial opening through the actual ending.",
+      "limits": "Historical mosaic with individual sheet dates not established. Does not resolve all model connectors as watercourses or a whole-route hydronym. Original-map coverage is not equivalent to completed hydrological correspondence.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r103-ign-northern-100k",
+      "title": "Cartas topográficas 1:100 000: Serrano–Santa Regina–Emilio V. Bunge–Piedritas and Las Piedras",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Larger-scale initial low-depression/parcel setting, rail crossings, scattered water features and distinction between mapped transport/parcel lines and the modeled drainage links.",
+      "limits": "Composite historical sheets of differing appearance. No surveyed modern canal trace or continuous named river established for the long intervening links. Estate and locality labels are not watercourse names.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r103-ign-terminal-100k",
+      "title": "Cartas topográficas 1:100 000: Carlos Tejedor–Timote–Curarú–Esteban de Luca and the La Eva terminal lowland",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "supports": "Lower directional sequence, transport crossings, selected unnamed terminal wet depression and disambiguation from the El Recado waterbody farther east.",
+      "limits": "Does not establish a named river mouth, present water boundary, verified downstream receiver or all intervening hydraulic connectors. Nearby names are not promoted into a full-route identity.",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "r103-gba-salado-overview",
+      "title": "Cuenca del Río Salado",
+      "publisher": "Provincia de Buenos Aires, Dirección Provincial de Hidráulica",
+      "supports": "Regional dune/depression and canal-assisted drainage context.",
+      "limits": "Regional prose only; does not map the selection or resolve its missing connectors. Its named systems are not candidate names for this object.",
+      "official_url": "https://gba.gob.ar/hidraulica/interior_bonaerense/cuenca_salado"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61547907",
+      "source_keys": [
+        "r103-igm-chile-public-rivers",
+        "r103-igm-chile-public-waterbodies",
+        "r103-bcn-araucania-hydrography"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14521
+          ],
+          "component_scope": "Northern opening and southward upper leg",
+          "finding": "The IGM rendering explicitly labels the long southward stream Río Maichín. Its north-to-south course, intermediate side-stream junctions and later southeastward bend correspond to the initial selected corridor. Western streams labeled Río Quililehe, Río Blanco and Río Llancalil remain separate. The first selected vertex is not asserted to be the official river source. The final eastward extension toward the next fragment is not established as a corresponding natural channel by this source.",
+          "sources": [
+            "r103-igm-chile-public-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14522
+          ],
+          "component_scope": "Entire eastern straight connector",
+          "finding": "This feature is a nearly straight southward connection between the initial eastern turn and the lower southwestward return. The source river rendering depicts the Maichín continuing on a different, more westerly sinuous corridor through this interval. The waterbody rendering shows no lake or reservoir spanning the selected connector. Lago Hualalafquén is visibly farther south and is not crossed by this feature. The broad Maichín setting is established, but assigning the connector itself to Maichín or inventing a lake/reservoir transit would exceed the acquired evidence. This is a material unresolved feature, not merely an unlabelled minor headward twig.",
+          "sources": [
+            "r103-igm-chile-public-rivers",
+            "r103-igm-chile-public-waterbodies"
+          ]
+        },
+        {
+          "fragments": [
+            14523
+          ],
+          "component_scope": "Southwestward return and lower Maichín junction",
+          "finding": "After the eastern connector, the selection returns southwest and west toward the stream explicitly labeled Río Maichín. The lower mapped Maichín reaches the southern incoming Río Trancura. Río Huirinlil is a separate southeastern approach. The far-eastern attachment back from the unresolved connector remains uncertain, while the downstream lower Maichín corridor and receiving junction are readable. Neither Huirinlil nor the southern Trancura headwater is the initial selected northern approach.",
+          "sources": [
+            "r103-igm-chile-public-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14523
+          ],
+          "component_scope": "Westward middle receiving corridor",
+          "finding": "West of the Maichín–Trancura junction, the selected line follows the broader winding receiving river labeled Río Pucón o Minetue. The map separates the northern Río Pangui and Río Rolicura approaches, the southern Río Palguill and Río Turbio, and the northern Río Liucura. The selected route continues through the receiving junction area and toward the eastern lake approach; these side-stream names are not assigned uniformly to the selected mainstem.",
+          "sources": [
+            "r103-igm-chile-public-rivers",
+            "r103-igm-chile-public-waterbodies"
+          ]
+        },
+        {
+          "fragments": [
+            14524
+          ],
+          "component_scope": "Eastern lake approach, full lake crossing and western outlet",
+          "finding": "The river and polygon renderings agree on the receiving Pucón/Minetue approach at the eastern end of Lago Villarrica. The long straight selected westward segment crosses the labeled lake interior, then reaches the western outlet labeled Río Toltén. This is an actual lake transit, not an exposed river throughout. Lago Huilipilun and Laguna Pichilafquen are separately mapped to the north and northwest and are not substituted for Villarrica. No reservoir operation or present water level is inferred.",
+          "sources": [
+            "r103-igm-chile-public-rivers",
+            "r103-igm-chile-public-waterbodies"
+          ]
+        },
+        {
+          "fragments": [
+            14524
+          ],
+          "component_scope": "Toltén below Villarrica and northwestern junction approach",
+          "finding": "From the western lake outlet the selected corridor turns northwest along the river explicitly labeled Río Toltén, through successive broad bends and side-stream junctions, to the Allipén confluence. The river source distinguishes Río Voipir, Río Pedregoso and the separate Río Donguil setting from the selected receiving course. Overlapping eastern and western renderings cover the connecting Toltén interval rather than leaving the lake outlet and junction linked only by prose.",
+          "sources": [
+            "r103-igm-chile-public-rivers",
+            "r103-igm-chile-public-waterbodies"
+          ]
+        },
+        {
+          "fragments": [
+            14526
+          ],
+          "component_scope": "Complete selected tributary",
+          "finding": "The short eastern tributary starts within the lower approach explicitly labeled Río Allipén and continues west through its braided corridor to join the selected Toltén. The whole selected tributary, including its western ending at the junction, is covered by the source rendering. It is only a short lower Allipén segment, not the entire river, its source, or a second name for Toltén. Nearby E. Pedregoso, E. Sollinco and E. Tumunuco labels are separate streams.",
+          "sources": [
+            "r103-igm-chile-public-rivers"
+          ]
+        },
+        {
+          "fragments": [
+            14525
+          ],
+          "component_scope": "Allipén junction, westward lower Toltén and southwestern turn",
+          "finding": "Below the junction the selected mainstem follows the broad westward braided receiving corridor, including its northern bend, long westward reach and eventual southwestward turn. The IGM source explicitly labels Río Toltén on this lower corridor. E. Huilio lies to the north and Río Quinque to the south; their names do not identify the selected trunk. Generalized corridor correspondence does not certify every modeled bend or one active channel among the mapped braids.",
+          "sources": [
+            "r103-igm-chile-public-rivers",
+            "r103-igm-chile-public-waterbodies"
+          ]
+        },
+        {
+          "fragments": [
+            14525
+          ],
+          "component_scope": "Southern terminal limb and coastal lower-river setting",
+          "finding": "The selection's final southwestward and southward limb remains in the mapped lower Toltén corridor, past the western loop and toward the broad terminal river-water polygon. Laguna Patagua, Laguna Tromen and the separate Río Boldo o Queule system are visible nearby and are not selected aliases or a continuation to be substituted. The final short modeled tip is not certified as an exact shoreline intersection or authoritative mouth coordinate. The feature layers omit a complete ocean/shoreline background, so they support the lower-estuarine corridor rather than a precise current coastal boundary.",
+          "sources": [
+            "r103-igm-chile-public-rivers",
+            "r103-igm-chile-public-waterbodies"
+          ]
+        },
+        {
+          "fragments": [
+            14524,
+            14525,
+            14526
+          ],
+          "component_scope": "Independent regional prose context",
+          "finding": "BCN independently describes Toltén as issuing from western Villarrica, identifies Allipén as its principal tributary, and places the mouth north of Punta Nilhue. This corroborates the bounded lake-outlet, tributary and terminal-system interpretation; it does not resolve the selected eastern connector.",
+          "sources": [
+            "r103-bcn-araucania-hydrography"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70463083",
+      "source_keys": [
+        "r103-usgs-national-map-big-lost",
+        "r103-idfg-muldoon",
+        "r103-idfg-star-hope",
+        "r103-deq-big-lost-subbasin",
+        "r103-usgs-inlpo-water-monitoring",
+        "r103-inl-lake-terreton"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Initial southern mountain valley and first receiving junction",
+          "finding": "The selected initial northward approach occupies the Muldoon Creek valley east of upper Star Hope Creek. The detailed federal original depicts this stream continuing north through a wet meadow and then northwest into Star Hope Creek at the Muldoon Canyon setting. Green Lake is on a small eastern side branch; the selected opening is farther south and is not a Green Lake transit. The federal view includes a Muldoon Creek trail label, which alone is not treated as a stream-name label. The separately read Idaho Fish and Game record directly identifies Muldoon Creek as a Star Hope tributary, supporting the creek identity in conjunction with the mapped valley and junction. No official headwater coordinate or name for every tiny initial thread is asserted.",
+          "sources": [
+            "r103-usgs-national-map-big-lost",
+            "r103-idfg-muldoon"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Star Hope Creek through Copper Basin",
+          "finding": "After the Muldoon junction, the selected route continues north on the explicitly mapped Star Hope Creek corridor. Lake Creek joins from the east, while Ramey Creek enters from the west farther north. The selection stays west of the separate upper East Fork Big Lost River course across Copper Basin. At the northern end it joins the receiving East Fork, then turns northwest. The Fish and Game record independently identifies Star Hope as an East Fork tributary and presents West Fork Big Lost River as a parenthetical name for Star Hope. That alternate wording is bounded to this component.",
+          "sources": [
+            "r103-usgs-national-map-big-lost",
+            "r103-idfg-star-hope"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "East Fork westward corridor and North Fork junction",
+          "finding": "The selected upper course turns northwest and west along the labeled East Fork Big Lost River, passes the Little Boone Creek, Pole Creek, Castle Creek and Willow Creek junction surroundings, and reaches the Wildhorse Creek approach from the south. It then turns northwest toward the North Fork Big Lost River junction. North Fork is a separate western approach, not the selected initial branch. Beyond the junction the source labels the northeastern receiving river Big Lost River. The state environmental agency also identifies the Big Lost mainstem origin at the North and East Fork confluence.",
+          "sources": [
+            "r103-usgs-national-map-big-lost",
+            "r103-deq-big-lost-subbasin"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Northeastern Big Lost bend and upper valley",
+          "finding": "From the fork junction the selection follows the generalized Big Lost River corridor northeast past Twin Bridges Creek and the Bartlett Creek surroundings, then turns southeast into the broad upper valley. The river, neighboring Parsons Creek wetland setting, and side streams including Lone Cedar Creek and Garden Creek are separately visible. The model simplifies and locally cuts across this wide valley, so the conclusion is corridor-level identity rather than assignment to every individual river, slough or irrigation thread.",
+          "sources": [
+            "r103-usgs-national-map-big-lost"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Mackay Reservoir and outlet",
+          "finding": "The selected route approaches and traverses the explicitly mapped Mackay Reservoir, then leaves its southeastern end on the river labeled Big Lost River. Reservoir water is a separate feature-class component and is not represented as an exposed natural-river reach. The source distinguishes the southwestern Warm Creek approach and nearby Nielsen Ditch from the selected impoundment passage. Neither present water level nor exact submerged channel position is established.",
+          "sources": [
+            "r103-usgs-national-map-big-lost"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Mackay to the lower valley near Arco",
+          "finding": "Below the reservoir the selection continues southeast through the Mackay surroundings and then south through the broad lower Big Lost valley toward Arco. The source shows Big Lost River separately from Burnett Ditch, Darlington Ditch, Blaine Canal, Moore Canal, East Side Ditch and Arco Canal. Willow Creek, Alder Creek and the Antelope Creek approaches are distinct side drainages. The selected line corresponds to the receiving valley river at generalized scale; it does not establish one precise channel thread through every irrigated or braided interval.",
+          "sources": [
+            "r103-usgs-national-map-big-lost"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Arco bend and northeastern INL river corridor",
+          "finding": "The route exits the mountain-valley setting near Arco, bends southeast and east across the plain, then turns northeast and north along the mapped Big Lost River. The original distinguishes the southern diversion/waterbody branches from the continuing northeasterly river, and shows multiple river threads approaching the sinks. The USGS monitoring page independently places the river endpoint at Big Lost River Sinks and describes infiltration there. That statement does not extend the hydronym across the later modeled eastern connector.",
+          "sources": [
+            "r103-usgs-national-map-big-lost",
+            "r103-usgs-inlpo-water-monitoring"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Big Lost River Sinks and Dry Channel Big Lost River",
+          "finding": "The selected northern turn passes the marsh-and-waterbody complex explicitly labeled Big Lost River Sinks. It then proceeds east-northeast in the corridor labeled Dry Channel Big Lost River south of the Birch Creek Sinks setting. The map depicts separate ponded areas, marsh symbols and intermittent channel branches. The broad selected approach is supported, without assigning every simplified step to an individual wetland thread or asserting present flow. Little Lost River and Birch Creek are separate incoming drainage settings and are not names for the selected upper river.",
+          "sources": [
+            "r103-usgs-national-map-big-lost"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Unresolved eastern flat connector",
+          "finding": "East of the clearly labeled Dry Channel corridor, that mapped channel continues northeast toward the road and Birch Creek Sinks vicinity, while the selected modeled line goes east, then southeast and east across the broad flat south of Circular Butte before turning northeast. The detailed original provides readable landform, road and scattered ditch context across this entire interval but does not show a continuous corresponding watercourse along the selected route. A real source-to-object connector remains unestablished. The lake-basin context or a nearby Canal Road label cannot supply that missing correspondence.",
+          "sources": [
+            "r103-usgs-national-map-big-lost"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Crystal Lake Canal surroundings and Mud Lake terminal",
+          "finding": "The northeastern modeled tail reaches the agricultural/canal setting southwest of Mud Lake, with part near the mapped Crystal Lake Canal and a later diagonal approach near the Owsley Canal system. The source distinguishes those named canals and their bends from the selected simplified course; neither canal is established as the name of the complete tail. The actual final portion enters the southern Mud Lake setting and ends inside the mapped lake area. Mud Lake is directly supported as the selected terminal lake, not as proof that a continuously connected Big Lost River reaches it along the modeled connector. Camas Creek enters on the eastern side and is not the selected approach. North Lake, Johnston Lake and the surrounding management-area wetlands are separate features.",
+          "sources": [
+            "r103-usgs-national-map-big-lost"
+          ]
+        },
+        {
+          "fragments": [
+            9722
+          ],
+          "component_scope": "Regional closed-drainage context and whole-feature limit",
+          "finding": "The state agency describes the Big Lost subbasin as a Sinks Drainage isolated from surface connection with the Snake River. The INL article describes ancient Lake Terreton and a historically wetter regional setting. Those regional facts do not demonstrate a present natural-river connection from the Dry Channel across the eastern flat to Mud Lake. All of the single selected geometry has been considered in readable source views, but full correspondence remains materially incomplete because of that connector, rather than merely an absent uniform hydronym.",
+          "sources": [
+            "r103-usgs-national-map-big-lost",
+            "r103-deq-big-lost-subbasin",
+            "r103-inl-lake-terreton"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90128555",
+      "source_keys": [
+        "r50-geus-greenland-geological-map-1995",
+        "r50-geus-greenland-glaciology-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8916
+          ],
+          "component_scope": "Northeastern opening and south-southwest to nearly southward upper interval",
+          "finding": "The actual feature begins in the northeast, descends south-southwest, and follows a long nearly southward interval before turning toward the west. The original map’s graticule and regional pixels place this upper selection on the southwestern continental Inland Ice, well inland of Paamiut. Ice surface and subsurface contours are shown there; neither their presence nor the model’s opening point establishes a named natural river or surveyed river source.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8916
+          ],
+          "component_scope": "Westward shoulder and long southwestward middle descent",
+          "finding": "After the upper descent, successive short westward steps form a shoulder before the route descends southwest through longer diagonal intervals and small shelves. Fresh interior-to-margin pixels cover this entire central scope. The source portrays Inland Ice and its approach to the irregular western margin, without a corresponding whole-route hydronym. Thick blue aeromagnetic lineaments and ice contours are not natural-river channels.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        },
+        {
+          "fragments": [
+            8916
+          ],
+          "component_scope": "Lower southerly bend and northwestward return to feature 8917",
+          "finding": "The northeastern feature continues southwest to a lower southerly bend, then turns northwest and finishes with a short westward interval. The southwestern regional and marginal pixels place this lower part in the ice-covered approach east of the Paamiut coastal country. Its reversal and actual end were considered separately rather than reducing the feature to a straight interior-to-coast line. No named glacier or natural-river component is established for the bend.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8917
+          ],
+          "component_scope": "Southwestward middle-feature descent, southernmost shelf and northwestward return",
+          "finding": "The second actual feature starts at the prior feature’s northwestern end, descends southwest through many small steps, reaches the complete selection’s southernmost westward shelf, then rises northwest to feature 8918. The original map shows the relevant southwestern ice-margin and fjord-cut exposed-rock country east of Paamiut. This lower U-shaped scope is included in the source review. The regional source does not justify assigning an exact glacier, local channel, fjord arm or contemporary ice-margin crossing to it.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8918
+          ],
+          "component_scope": "Final westward interval, northwestern lift and actual western terminal limb",
+          "finding": "The last actual feature starts with a predominantly westward interval, bends northwest, then ends along a short westward terminal limb. Fresh lower-terminal pixels distinguish exposed geological units, ice-margin surroundings and adjacent fjord water in the Paamiut coastal region. This supports the ending’s generalized marginal/coastal setting, but no exact natural-river mouth, named fjord arm or final surface-water connection is established. Paamiut and the southern regional names are not applied as a river name.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995"
+          ]
+        },
+        {
+          "fragments": [
+            8916,
+            8917,
+            8918
+          ],
+          "component_scope": "Whole three-feature mainstem and name-scope limit",
+          "finding": "All three selected geometries are mainstem features; no tributary geometry is selected. Their internal MultiLineString parts were read as parts of the pinned selection, not as independently named tributaries. The original sheet and its descriptive bulletin distinguish Inland Ice, local glaciers, marginal exposed rock and fjord settings but establish no one named natural river across the complete modeled route. The Inland Ice legend explicitly distinguishes surface contours, dashed ice-thickness isopachs, bedrock contours and aeromagnetic lineaments south of 68°N.",
+          "sources": [
+            "r50-geus-greenland-geological-map-1995",
+            "r50-geus-greenland-glaciology-2009"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61520061",
+      "source_keys": [
+        "r103-ign-plains-250k",
+        "r103-ign-northern-100k",
+        "r103-ign-terminal-100k",
+        "r103-gba-salado-overview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Initial Serrano plains",
+          "finding": "The selected opening lies northeast of Serrano in the El Caballito–La Codiciada–La Ventura surroundings. Both the full regional original and the larger-scale northern original show agricultural parcels, low relief and scattered small wet depressions. The initial southeastern line crosses this setting; neither map establishes a named river source or a continuous matching channel through the whole opening.",
+          "sources": [
+            "r103-ign-plains-250k",
+            "r103-ign-northern-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Serrano to the Santa Regina railway crossing",
+          "finding": "The model continues southeast through the Colonia Martí and Coronel Charlone surroundings and crosses the diagonal railway southwest of Santa Regina and northeast of Fernando Martí. The original 1:100,000 sheet distinguishes roads, parcel boundaries, contours and discrete wet areas. The long intervening links are not mapped as one connected river. Creamery, estate and settlement labels are not hydronyms.",
+          "sources": [
+            "r103-ign-plains-250k",
+            "r103-ign-northern-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Emilio V. Bunge–Piedritas approach",
+          "finding": "The selection continues southeast through the La Fortuna–La Concepción and El Quebracho surroundings, then crosses the east–west railway east of Emilio V. Bunge and west of Piedritas. It turns east and southeast through the La Blanca Manca–Campichuelo vicinity. The larger-scale original resolves isolated low depressions and densely parceled land, without establishing all of the modeled connecting reaches as a watercourse or named canal.",
+          "sources": [
+            "r103-ign-plains-250k",
+            "r103-ign-northern-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Las Piedras and Drabble crossing",
+          "finding": "South of Piedritas, the modeled route passes through the La Margarita and Las Piedras surroundings, crosses the diagonal railway/road corridor west of Drabble and northeast of General Villegas, and continues south through the La Cantábrica vicinity. Water surfaces and marsh symbols occur near the route, but do not provide a verified continuous link from the northern approach. The route is east of General Villegas; the city name does not name a river.",
+          "sources": [
+            "r103-ign-plains-250k",
+            "r103-ign-northern-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Middle plains northeast of Tres Algarrobos",
+          "finding": "The route continues through the La Carolina–San Pedro and La María–La Alejandrina surroundings, remaining northeast and east of Tres Algarrobos. It crosses another east–west transport corridor and bends through the San Patricio–La Sarita surroundings. The source displays alternating wet depressions and agricultural land. The selection cannot be assigned to a mapped tributary trunk solely because several local depressions lie near its modeled line.",
+          "sources": [
+            "r103-ign-plains-250k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Approach to Carlos Tejedor",
+          "finding": "The line descends through the wetland-rich La Margarita–San Antonio sector and reaches the surroundings east of Carlos Tejedor and west of Timote. It crosses the Carlos Tejedor–Timote railway before its eastward lower bend. The regional original distinguishes this route from the separate lowland chains farther west toward América and Fortín Olavarría and farther east toward Pasteur. No hydronym follows all of this selected middle corridor.",
+          "sources": [
+            "r103-ign-plains-250k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Timote–Ingeniero Beauge lower bend",
+          "finding": "After the eastward bend south of Timote, the selected line follows a predominantly southward sequence near the north–south railway, with crossings and lateral departures in the Ingeniero Beauge–La Manuela surroundings. The terminal 1:100,000 original shows the full bend, parcel pattern, contours and local depressions. These details do not establish a named natural or artificial watercourse corresponding to the entire modeled sequence.",
+          "sources": [
+            "r103-ign-plains-250k",
+            "r103-ign-terminal-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Curarú and Esteban de Luca return",
+          "finding": "The model then turns southwest through the Marucha and Curarú surroundings, continues through the Santa Elena sector and crosses the east–west railway east of Esteban de Luca. Both scales show this lower return and distinguish the neighboring transport lines from the lowland water features. The existence of roads and rail crossings cannot fill the missing hydrological connectors.",
+          "sources": [
+            "r103-ign-plains-250k",
+            "r103-ign-terminal-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Actual terminal wet depression",
+          "finding": "The final southwestward limb passes south of Esteban de Luca toward the La Eva estate surroundings, north of the Berutti–Juan José Paso railway corridor. Its last selected position falls in the mapped wet-depression/wetland setting there. No hydronym for that terminal water feature is established. The larger-scale original separately labels El Recado on a waterbody farther east near Juan José Paso; that name is not assigned to the selected endpoint or the full route. The selected end is not demonstrated to be a natural river mouth, a surveyed canal outlet or a verified connection to a named receiving river.",
+          "sources": [
+            "r103-ign-plains-250k",
+            "r103-ign-terminal-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Tributary and connector distinctions",
+          "finding": "The selected inventory contains no separate tributary fragment. The source review nevertheless included neighboring wet-depression chains, possible joining lowlands and all major directional changes. The originals do not establish a single continuous selected trunk with a verifiable series of named tributary junctions. The material gap is in the connecting hydrological route itself, rather than ordinary cartographic simplification of a clearly established river.",
+          "sources": [
+            "r103-ign-plains-250k",
+            "r103-ign-northern-100k",
+            "r103-ign-terminal-100k"
+          ]
+        },
+        {
+          "fragments": [
+            14478
+          ],
+          "component_scope": "Independent regional hydrological context",
+          "finding": "The provincial hydraulic authority describes the northwest as dune and interdunal country with limited natural surface drainage, ponding and canal-assisted evacuation. It distinguishes drainage toward Hinojo–Las Tunas, the Jauretche/Mercante/República de Italia connection and northern drainage through Cañada de Las Horquetas. This supports caution about treating a modeled plains line as one natural river, but does not establish this selected route or its individual connectors.",
+          "sources": [
+            "r103-gba-salado-overview"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

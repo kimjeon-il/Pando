@@ -1,0 +1,368 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r63",
+  "sources": [
+    {
+      "source_key": "r63-inema-itapicuru-2014-map",
+      "title": "Região de Planejamento e Gestão das Águas – XII: Rio Itapicuru, Estado da Bahia, 2014",
+      "publisher": "Instituto do Meio Ambiente e Recursos Hídricos, Governo do Estado da Bahia",
+      "attribution": "Sheet credits Plano Estadual de Recursos Hídricos (2004), CNRH Resolution 32/2003, CONERH Resolutions 43/2009 and 88/2012, and INEMA data (2014).",
+      "year": 2014,
+      "page": "Original single-sheet basin map",
+      "supports": "Upper Itapicuru-Açu label, named impoundments, confluences, successive Itapicuru bends and settlement sequence, coastal outlet and separate neighboring rivers.",
+      "limits": "Generalized historical basin-planning map; no surveyed source, exact name-transition vertices, present reservoir extents or tidal limit. RPGA XII includes both Itapicuru and Itariri basins, which does not make Itariri part of this selected river.",
+      "official_url": "https://www.ba.gov.br/inema/sites/site-inema/files/migracao_2024/arquivos/wp-content/files/XII-RPGA-DO-RIO-ITAPICURU.pdf"
+    },
+    {
+      "source_key": "r63-ibge-pindobacu-2007-map",
+      "title": "Pindobaçu-BA: Mapa Municipal Estatístico, Geocódigo 2924603",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências, Coordenação de Cartografia",
+      "edition": "Malha territorial 2007; sheet edition dated 19 May 2008; scale 1:100,000.",
+      "year": 2008,
+      "page": "Original single-sheet municipal statistical map",
+      "supports": "Western Pindobaçu drainage and Carnaíba–Marota setting; separate local tributaries; continuation to Itapicuru-Açu and the Pindobaçu impoundment setting.",
+      "limits": "Older statistical cartography with census overlays. It does not establish a unique exact hydronym for the selected initial feeder, contemporary reservoir outline or current administrative boundary.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/ba/pindobacu.pdf"
+    },
+    {
+      "source_key": "r63-inema-cbh-itapicuru",
+      "title": "CBH Itapicuru — Caracterização da Bacia",
+      "publisher": "Instituto do Meio Ambiente e Recursos Hídricos, Governo do Estado da Bahia",
+      "year": null,
+      "page": "Basin characterization and principal-rivers description",
+      "supports": "Northeastern Bahia setting and distinction among Açu, Itapicuru-Mirim, Rio do Peixe and Jacurici.",
+      "limits": "Basin-level description; numerical basin statistics, legal provisions and environmental conclusions were not used. The page does not fix selected-reach name boundaries.",
+      "official_url": "https://www.ba.gov.br/inema/gestao-2/comites-de-bacias/comites/cbh-itapicuru"
+    },
+    {
+      "source_key": "r58-qc-patp-regional-2012",
+      "title": "Plan d’affectation du territoire public de la Côte-Nord — Carte 1 : Territoire d’application",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune",
+      "attribution": "Direction générale de la Côte-Nord; © Gouvernement du Québec. Scale 1:3,500,000; BDGA 1M hydrographic base, MRNF 2003.",
+      "year": 2012,
+      "page": "Single regional sheet; upper and full Romaine corridor enlargements.",
+      "supports": "Independent older-cartography correspondence for the northern lake setting, named Romaine trunk, characteristic middle bends and west-turning coastward reach.",
+      "limits": "Generalized historical administrative map, preceding completion of the hydroelectric complex. Not current reservoir shorelines or a legal border determination.",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Cote-Nord/CA_01_territoire-application-PATP_CN_MERN.pdf?1605016518="
+    },
+    {
+      "source_key": "r63-retained-qc-patp-north",
+      "title": "Plan d’affectation du territoire public de la Côte-Nord — Carte 2 : Droits, statuts et activités usuelles — Partie nord",
+      "publisher": "Gouvernement du Québec, Ministère des Ressources naturelles et de la Faune",
+      "attribution": "Direction générale de la Côte-Nord; © Gouvernement du Québec. Scale 1:500,000; BDTA 250k base from 2004 and activity data from 2011; NAD83, Lambert conic.",
+      "year": 2012,
+      "page": "Single sheet, southeastern upper-Romaine lake-and-channel detail.",
+      "supports": "Shape and connection of the southern headward approach, east–west upper lake passage and southward lake corridor.",
+      "limits": "Northern sheet only; sparse hydronym labels in the border region. Used for channel and waterbody correspondence, not to invent names for the initial feeder or make a border ruling.",
+      "official_url": "https://mrnf.gouv.qc.ca/documents/territoire/PATP/Cote-Nord/CA_02_droits-statuts-activites-nord-PATP_CN_MERN.pdf.pdf?1592922714="
+    },
+    {
+      "source_key": "r63-romaine-bilan2018",
+      "title": "Complexe de la Romaine — Bilan des activités environnementales 2018",
+      "publisher": "Hydro-Québec, direction Environnement, Hydro-Québec Production; filed in the Québec environmental assessment registry",
+      "attribution": "September 2019. Carte 1, Situation du projet, cartography WSP; BDGA 2002, administrative data April 2016, project data May 2018; UTM zone 20, NAD83.",
+      "year": 2019,
+      "page": "Carte 1, printed p. 8, PDF p. 10; cover and introduction.",
+      "supports": "Upper feeder choice, Long and Brûlé passages, named Romaine trunk, separate contributing branches, four reservoir sectors and terminal westward coastal course.",
+      "limits": "A distinct 2019 environmental follow-up map, not the stopped 2007 EIS map volume or 2024 flood-basin map. Romaine-4 is shown under construction and its reservoir as projected. The map does not establish current operating shorelines or exact hydronym transition vertices.",
+      "official_url": "https://www.ree.environnement.gouv.qc.ca/dossiers/3211-12-086/3211-12-086-30.pdf"
+    },
+    {
+      "source_key": "r63-hq-romaine-inauguration2023",
+      "title": "The Romaine complex: clean energy for the next century",
+      "publisher": "Hydro-Québec",
+      "year": 2023,
+      "supports": "All four generating stations had been commissioned by the October 2023 inauguration, superseding the 2019 map’s incomplete-construction status.",
+      "limits": "Temporal context only. No map, reservoir shoreline or operating-water-level evidence is inferred from the release.",
+      "official_url": "https://news.hydroquebec.com/news/press-releases/all-quebec/the-romaine-complex-clean-energy-for-the-next-century.html"
+    },
+    {
+      "source_key": "r63-nhn-suriname-rivers-map-2003",
+      "title": "Index of vernacular plant names of Suriname — Figure 1, Map of Suriname and its rivers",
+      "publisher": "Nationaal Herbarium Nederland, Universiteit Leiden branch; official repository copy hosted by Naturalis Biodiversity Center",
+      "attribution": "Charlotte I. E. A. van ’t Klooster, Jan C. Lindeman and Marion J. Jansen-Jacobs; Blumea Supplement 15. Figure 1 drawing credited to Hendrik Rypkema.",
+      "year": 2003,
+      "page": "Printed p. 3, PDF p. 9, Figure 1",
+      "supports": "Gran Rio versus Pikien Rio source branches, northward connected corridor, Lake Brokopondo passage, lower Suriname toward Paramaribo and neighboring drainage distinction.",
+      "limits": "Regional institutional illustration, not a government survey or official-name decision. It does not identify all short headwater feeders or fix exact confluence, shoreline, dam or estuary boundaries. No map image is included in the public finding.",
+      "official_url": "https://repository.naturalis.nl/pub/603310/Blumea_supplement_15.pdf"
+    },
+    {
+      "source_key": "r63-mas-shipping-notice-2023-06",
+      "title": "Shipping notice 2023/06 — Nautical accessibility Suriname River",
+      "publisher": "Maritime Authority Suriname (MAS)",
+      "attribution": "Approved July 2023; issued under Director M. Amafo.",
+      "year": 2023,
+      "page": "PDF pp. 1–3, navigation corridor, tidal description, anchorage areas and Jules Wijdenbosch bridge",
+      "supports": "Official lower Suriname River usage, tidal context, bridge and Suzannasdaal anchorage sequence bracketing the selected endpoint.",
+      "limits": "Used only for geographic identity and scope. Historical navigation depths, vessel limits and operational rules are not presented as current advice. No exact tidal boundary or surveyed endpoint identity is inferred.",
+      "official_url": "https://mas.sr/wp-content/uploads/2023/07/Shipping-Notice-no.6-Nautical-accessibility-Suriname-River.pdf"
+    },
+    {
+      "source_key": "r63-mas-nautical-charts-catalog",
+      "title": "Nautical Charts",
+      "publisher": "Maritime Authority Suriname (MAS)",
+      "attribution": "Public paper-chart and ENC catalog, including SR52218A Suriname River–Paramaribo and 2765/2218 Suriname River–Entrance to Toevlucht.",
+      "year": null,
+      "page": "Public catalog entries for 2765/2218, SR402218 and SR52218A",
+      "supports": "Independent official naming of the Paramaribo lower-river chart coverage as Suriname River.",
+      "limits": "The catalog is not acquired chart imagery. No chart purchase, login, outreach or retrieval of commercial chart content occurred.",
+      "official_url": "https://mas.sr/nautical-charts/"
+    },
+    {
+      "source_key": "ssrh_santa_cruz_basins_2025",
+      "title": "Cuencas Hidrográficas: Provincia de Santa Cruz",
+      "author": "Argentina, Ministerio de Economía, Secretaría de Obras Públicas, Subsecretaría de Recursos Hídricos; Dirección Nacional de Política Hídrica y Coordinación Federal, Dirección de Sistemas de Monitoreo de los Recursos Hídricos, Área de SIG y Cartografía",
+      "year": 2025,
+      "page": "Single-sheet map, dated March 2025",
+      "supports": "Río Chico corridor from the western headwaters through Gobernador Gregores, distinct Chalía contribution, and northern approach to the shared Santa Cruz estuarine setting.",
+      "limits": "Generalized province-wide hydrographic map with planimetric information credited to IGN. It establishes representative and regional scope, not exact named headwater, lake-arm, junction or estuarine boundaries. The sheet notes that water-unit limits may change with updates. Original source pixels and all local renderings remain private.",
+      "official_url": "https://www.argentina.gob.ar/sites/default/files/santa_cruz_proy.pdf"
+    },
+    {
+      "source_key": "r63-ianigla-chico-alto-2018",
+      "title": "Informe de la subcuenca del río Chico Alto, Cuenca del río Chico, Provincia de Santa Cruz",
+      "authors": "IANIGLA–CONICET, Inventario Nacional de Glaciares",
+      "publisher": "Ministerio de Ambiente y Desarrollo Sustentable de la Nación, Argentina",
+      "year": 2018,
+      "page": "Printed pp. 9–10, PDF pp. 14–15; Figure 1; institutional page dated May 2018",
+      "supports": "Separate southern Chico Alto arm and northern Belgrano–Roble/Burmeister contribution; upper-system relationship.",
+      "limits": "Glacier-study boundary is not a hydronym boundary. The figure does not name the exact starting feeder, and does not cover the lower estuary. No present glacier, discharge or water-permanence claim is made.",
+      "official_url": "https://www.glaciaresargentinos.gob.ar/wp-content/uploads/provincias/Santa_Cruz/docs/informes/informe_final_rio_chico_APN_25-04-2018.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61081303",
+      "source_keys": [
+        "r63-inema-itapicuru-2014-map",
+        "r63-ibge-pindobacu-2007-map",
+        "r63-inema-cbh-itapicuru"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13876
+          ],
+          "scope": "Western headward approach",
+          "finding": "The short western start descends through the drainage west of Pindobaçu, approaches the Carnaíba–Marota setting and turns southeast toward the Itapicuru-Açu corridor. The IBGE sheet distinguishes several local streams here; no exact feeder hydronym or surveyed source is assigned to the modeled starting segment.",
+          "sources": [
+            "r63-ibge-pindobacu-2007-map",
+            "r63-inema-itapicuru-2014-map"
+          ]
+        },
+        {
+          "fragments": [
+            13876
+          ],
+          "scope": "Upper named course and reservoirs",
+          "finding": "The eastward continuation passes the Pindobaçu and Ponto Novo impoundment settings and follows the mapped Rio Itapicuru-Açu. The northward Aipim and southwestward Rio das Pedras approaches are separate contributions, not additional selected mainstems or aliases.",
+          "sources": [
+            "r63-inema-itapicuru-2014-map",
+            "r63-ibge-pindobacu-2007-map"
+          ]
+        },
+        {
+          "fragments": [
+            13876
+          ],
+          "scope": "Queimadas junction setting",
+          "finding": "Below Ponto Novo, the route runs southeast and east toward Queimadas, through the Barragem do Leste setting. The basin sheet separates Itapicuru-Mirim from the southwest and Jacurici from the north. Neither tributary is substituted for the selected western approach.",
+          "sources": [
+            "r63-inema-itapicuru-2014-map",
+            "r63-inema-cbh-itapicuru"
+          ]
+        },
+        {
+          "fragments": [
+            13876
+          ],
+          "scope": "Middle and lower trunk",
+          "finding": "The middle course continues east south of Tucano, makes the characteristic bends near Cipó, then turns southeast past the Nova Soure–Itapicuru setting toward Acajutiba. These successive bends and settlement relationships match the mapped Itapicuru trunk throughout.",
+          "sources": [
+            "r63-inema-itapicuru-2014-map"
+          ]
+        },
+        {
+          "fragments": [
+            13876
+          ],
+          "scope": "Terminal coastal approach",
+          "finding": "The final reach turns east past the Conde setting toward the Atlantic. The basin sheet distinguishes this channel from Piranji to the north and Itariri to the south. The modeled endpoint is treated as coastal-mouth context, without fixing a surveyed mouth or tidal boundary.",
+          "sources": [
+            "r63-inema-itapicuru-2014-map"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70244101",
+      "source_keys": [
+        "r58-qc-patp-regional-2012",
+        "r63-retained-qc-patp-north",
+        "r63-romaine-bilan2018",
+        "r63-hq-romaine-inauguration2023"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9320
+          ],
+          "finding": "The modeled beginning takes a southern lake-and-feeder approach eastward, then turns north into the eastern end of Lac Long and runs west. It does not follow the separate northern headwater branches shown on the maps; the first feeder remains unnamed.",
+          "sources": [
+            "r63-romaine-bilan2018",
+            "r63-retained-qc-patp-north"
+          ]
+        },
+        {
+          "fragments": [
+            9320
+          ],
+          "finding": "After the westward Long passage, the route bends south and southeast through the elongated Lac Brûlé corridor, then continues south along the labeled Romaine. Long and Brûlé are lake passages, not river-name aliases; the neighboring Lac Norman branch is distinct.",
+          "sources": [
+            "r63-romaine-bilan2018",
+            "r63-retained-qc-patp-north",
+            "r58-qc-patp-regional-2012"
+          ]
+        },
+        {
+          "fragments": [
+            9320,
+            9321
+          ],
+          "finding": "The long southern reach and pronounced southwest-then-east bend match the Romaine-4 sector before continuing toward Romaine-3. Rivière Touladis enters separately from the west, while the de l’Abbé-Huard contribution enters farther downstream from the east; neither branch is followed by the selected line.",
+          "sources": [
+            "r63-romaine-bilan2018",
+            "r58-qc-patp-regional-2012"
+          ]
+        },
+        {
+          "fragments": [
+            9321,
+            9322
+          ],
+          "finding": "The continuation follows the Romaine-2 and Romaine-1 sectors. The 2019 map distinguishes reservoirs from river reaches and still shows Romaine-4 under construction; Hydro-Québec reported all four stations commissioned in October 2023. Older channel geometry is therefore not interpreted as current shorelines or an entirely free-flowing river.",
+          "sources": [
+            "r63-romaine-bilan2018",
+            "r63-hq-romaine-inauguration2023",
+            "r58-qc-patp-regional-2012"
+          ]
+        },
+        {
+          "fragments": [
+            9322
+          ],
+          "finding": "The southern piece makes the distinctive westward turn parallel to the coast toward the Romaine mouth setting west of Havre-Saint-Pierre. The mapped Mingan River is separate. Regional correspondence does not fix the modeled endpoint to a surveyed mouth, tidal limit or individual estuarine channel.",
+          "sources": [
+            "r63-romaine-bilan2018",
+            "r58-qc-patp-regional-2012"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60103665",
+      "source_keys": [
+        "r63-nhn-suriname-rivers-map-2003",
+        "r63-mas-shipping-notice-2023-06",
+        "r63-mas-nautical-charts-catalog"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11388
+          ],
+          "finding": "The southwestern headward piece follows the Gran Rio approach shown beside the Eilerts de Haan mountain setting on the institutional map. Its long northeastward course matches the western of the two upper branches. The regional drawing does not name every small headmost feeder.",
+          "sources": [
+            "r63-nhn-suriname-rivers-map-2003"
+          ]
+        },
+        {
+          "fragments": [
+            11388,
+            11389
+          ],
+          "finding": "The selected approach joins the northward upper-river corridor, while the map shows Pikien Rio entering from the east. Pikien Rio is a separate source branch, not an alias of Gran Rio or an additional selected branch. The model-piece boundary is not treated as the hydronym transition.",
+          "sources": [
+            "r63-nhn-suriname-rivers-map-2003"
+          ]
+        },
+        {
+          "fragments": [
+            11389,
+            11390
+          ],
+          "finding": "The northward corridor turns northeast into the southwest side of Lake Brokopondo and continues through the waterbody toward its northern outlet. This distinct lake passage prevents interpreting the complete selected line as uninterrupted river bearing one name.",
+          "sources": [
+            "r63-nhn-suriname-rivers-map-2003"
+          ]
+        },
+        {
+          "fragments": [
+            11390
+          ],
+          "finding": "Below Brokopondo the selected trunk continues north on the mapped Suriname R. toward Paramaribo. The map separates this corridor from Saramacca R. to the west and Commewijne R. to the east.",
+          "sources": [
+            "r63-nhn-suriname-rivers-map-2003"
+          ]
+        },
+        {
+          "fragments": [
+            11390
+          ],
+          "finding": "The northern endpoint lies in the Paramaribo-area lower river, downstream of the Jules Wijdenbosch bridge but upstream of Suzannasdaal Anchorage. MAS identifies both locations on the tidal Suriname River and catalogs a Suriname River–Paramaribo chart. The selected line does not reach the open Atlantic mouth.",
+          "sources": [
+            "r63-mas-shipping-notice-2023-06",
+            "r63-mas-nautical-charts-catalog",
+            "r63-nhn-suriname-rivers-map-2003"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61603671",
+      "source_keys": [
+        "ssrh_santa_cruz_basins_2025",
+        "r63-ianigla-chico-alto-2018"
+      ],
+      "correspondence": [
+        {
+          "finding": "The western selected approach lies in the southern Chico Alto headwater arm. The glacier-inventory map separates this arm from the northern Belgrano–Roble/Lago Burmeister drainage. The initial short feeder and its precise name transition are left unassigned; the model does not traverse Lago Burmeister.",
+          "sources": [
+            "r63-ianigla-chico-alto-2018",
+            "ssrh_santa_cruz_basins_2025"
+          ]
+        },
+        {
+          "finding": "The route continues east along the mapped upper Chico valley, then turns southeast toward the Gobernador Gregores setting. The original maps distinguish the Belgrano joining corridor from the selected western approach rather than treating every source branch as one hydronym.",
+          "sources": [
+            "r63-ianigla-chico-alto-2018",
+            "ssrh_santa_cruz_basins_2025"
+          ]
+        },
+        {
+          "finding": "Around Gobernador Gregores the selected route bends south, east and south again, then takes a long southeastward course north and east of Lago Cardiel. The province map shows the same Chico corridor and keeps Cardiel in its separate drainage unit; the selection is not a through-lake Cardiel route.",
+          "sources": [
+            "ssrh_santa_cruz_basins_2025"
+          ]
+        },
+        {
+          "finding": "The lower route turns east-southeast at the Chalía junction setting and follows the corridor directly labeled R. Chico toward the RN 3 crossing. Río Chalía or Sheuen enters separately from the west; neither its upper route nor the more southerly Río Santa Cruz trunk is substituted for the selected line.",
+          "sources": [
+            "ssrh_santa_cruz_basins_2025"
+          ]
+        },
+        {
+          "finding": "The final southward leg approaches the northern estuarine arm near the Piedrabuena–Puerto Santa Cruz region. The map depicts the separate Santa Cruz river approaching from the west and the wider coastal inlet farther downstream. The selected endpoint is not assigned an exact tidal boundary or the full shared estuary to the Atlantic.",
+          "sources": [
+            "ssrh_santa_cruz_basins_2025"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "hydro-bounded-lake-findings-v2",
+  "batch": "r14",
+  "frozen_at_utc": "2026-10-09T16:24:54.921040+00:00",
+  "target_count": 1,
+  "new_actual_inventory_targets": 1,
+  "full_feature_correspondence_review_completed_count": 0,
+  "source_limited_unresolved_count": 1,
+  "whole_feature_name_scope_hold_count": 0,
+  "compound_named_waterbody_required_by_evidence": null,
+  "records": [
+    {
+      "aw_id": "lakes_base:1159108815",
+      "source_id": "1159108815",
+      "candidate_name": "Lake Timiskaming / lac Témiscamingue",
+      "candidate_name_status": "Geographic research lead; documented source usages are not a verified full-polygon identity.",
+      "directly_supported_name_forms": [
+        "Lake Timiskaming",
+        "lac Témiscamingue"
+      ],
+      "directly_supported_name_forms_scope": "The forms occur in separate English and French water-management bodies. This records their actual usage, not formal bilingual equivalence, jurisdictional naming status or complete-polygon applicability.",
+      "korean_name": null,
+      "whole_feature_scalar_name": null,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "full_geometry_inspected": true,
+      "research_category": "source_limited_unresolved",
+      "supported_name_scope": "English and French name usage is established in basin context. Insufficient detailed official cartography was acquired to connect those usages to every part of the selected inventory polygon.",
+      "source_keys": [
+        "obvt_portrait_landing",
+        "orrpb_reservoirs"
+      ],
+      "cartographic_identity_source_keys": [],
+      "correspondence_observations": [
+        "All 62 ordered source positions and all 62 baseline positions, including the closing position, were considered. The polygon has a northwestern arm, a broader northeastern lobe, an elongated central reach and a long southeastern/downstream extension.",
+        "The northern perimeter reaches approximately 47.578188°N, the western arm approximately 79.655812°W, and the downstream endpoint approximately 46.827265°N, 79.156129°W. These are generalized inventory limits, not an official lake-boundary definition.",
+        "The ORRPB map places numbered reservoir 4 on the western part of the Ottawa River basin, and its table calls that reservoir Timiskaming. This supports regional context only.",
+        "The small basin schematic does not resolve the two northern arms, detailed eastern shore or the downstream endpoint against the full polygon. No full-feature correspondence or exhaustive constituent-water assessment can be completed from it."
+      ],
+      "water_management_context": "ORRPB describes Timiskaming among the principal reservoirs of the Ottawa River basin. This contextual reservoir usage does not establish a distinct additional waterbody or a formal boundary.",
+      "name_scope_limits": [
+        "The inventory name lake-173 is generic and supplies no naming evidence.",
+        "No formal naming instrument or registry record was acquired. No official-status date, jurisdiction-specific form or unsourced alias is asserted.",
+        "The full inventory outline was inspected, but whole-feature map correspondence remains pending. The northern arms, eastern limits and downstream termination cannot be resolved on the acquired schematic.",
+        "No conclusion is reached on whether a compound named-waterbody finding would be necessary."
+      ],
+      "compound_named_waterbody_required_by_evidence": null,
+      "source_access_limited": true,
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "follow_up_scope": "Acquire a permitted independent official map detailed enough to cover the whole selected polygon, including both northern arms, eastern shore and downstream endpoint, before resolving complete named-waterbody scope."
+    }
+  ],
+  "publication_scope": "Official bibliographic references and own factual observations only; no raw publications, map derivatives or omitted-source fingerprints.",
+  "recorded_review_scope": "The complete source and baseline polygon and an acquired basin schematic were inspected. Whole-feature correspondence remains pending due to insufficient cartographic detail.",
+  "included_evidence_limit": "Included records contain official bibliographic references and own factual observations. Original publications and inspection materials are not included. Public offline checks do not reproduce visual map judgments.",
+  "automatic_application": false,
+  "product_application": false
+}

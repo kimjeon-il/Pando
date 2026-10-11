@@ -1,0 +1,151 @@
+{
+  "schema": "hydro-name-reconstruction-source-evidence-v1",
+  "batch": "r03",
+  "created_at_utc": "2026-10-09T12:00:37.365174+00:00",
+  "target_aw_id": "hydro-system:50488324",
+  "sources": [
+    {
+      "evidence_id": "FLINDERS-BOM-FLOOD-2026",
+      "title": "Flinders River Flood Warning System",
+      "visible_heading": "Flinders Rivers",
+      "agency_or_publisher": "Australian Government, Bureau of Meteorology",
+      "official_url": "https://www.bom.gov.au/qld/flood/brochures/flinders/flinders.shtml",
+      "source_date": "2026-07",
+      "date_basis": "Visible Last updated statement in the acquired page.",
+      "retrieval": {
+        "requested_url": "https://www.bom.gov.au/qld/flood/brochures/flinders/flinders.shtml",
+        "request_started_at_utc": "2026-10-09T11:57:20.692483+00:00",
+        "retrieval_completed_at_utc": "2026-10-09T11:57:26.517065+00:00",
+        "http_status": 200,
+        "final_url": "https://www.bom.gov.au/qld/flood/brochures/flinders/flinders.shtml",
+        "content_type": "text/html; charset=UTF-8",
+        "bytes": 36681,
+        "sha256": "766e194aae16a9815117c99909ea2c0a9caf35bb020832d1e7841106d49999f6"
+      },
+      "source_role": "Official English hydrological usage and regional course description.",
+      "locators": [
+        {
+          "section": "Flood Risk",
+          "paragraphs": [
+            1,
+            2
+          ]
+        }
+      ],
+      "direct_quote": "The Cloncurry and Corella Rivers, its major tributaries, enter the river from the southwest above Canobie.",
+      "quote_word_count": 16,
+      "own_factual_extraction": [
+        "BOM describes a northwest Queensland river rising northeast of Hughenden, going west toward Julia Creek, then north beyond Canobie.",
+        "Its delta reaches the Gulf of Carpentaria west of Karumba.",
+        "The southwest tributaries have their own names; catchment membership does not make every branch Flinders River."
+      ],
+      "limits": [
+        "Regional hydrology description; no legal naming register or surveyed mouth coordinate."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "rights_for_bulk_redistribution_established": false,
+        "published_material": "Own compact factual extraction, citation/retrieval metadata and short quotations only."
+      }
+    },
+    {
+      "evidence_id": "FLINDERS-BOM-MAP-2020",
+      "title": "Coastal Rivers - North: Flinders, Morning Basins, Flood Warning Network",
+      "agency_or_publisher": "Australian Government, Bureau of Meteorology, Flood Forecasting and Warning Services, Brisbane",
+      "official_url": "https://www.bom.gov.au/qld/flood/brochures/flinders/FlindersMorning_map.png",
+      "parent_page_url": "https://www.bom.gov.au/qld/flood/brochures/flinders/map.shtml",
+      "source_date": "2020-10-30",
+      "date_basis": "Map title says Flood Warning Network, as at 30/10/2020. HTTP Last-Modified is 2020-12-04 and is not the mapped network date.",
+      "retrieval": {
+        "requested_url": "https://www.bom.gov.au/qld/flood/brochures/flinders/FlindersMorning_map.png",
+        "request_started_at_utc": "2026-10-09T11:57:26.517633+00:00",
+        "retrieval_completed_at_utc": "2026-10-09T11:57:30.853566+00:00",
+        "http_status": 200,
+        "final_url": "https://www.bom.gov.au/qld/flood/brochures/flinders/FlindersMorning_map.png",
+        "content_type": "image/png",
+        "bytes": 473670,
+        "sha256": "f766614638d7c9fbd8b46aa6ba951b241e6f9c12edd4753ca405744052fa832b"
+      },
+      "source_role": "Complete original regional basin map, including separately named major rivers.",
+      "raster_dimensions_pixels": [
+        1587,
+        1123
+      ],
+      "map_number": "914, 915",
+      "map_projection_label": "Geographical Lat Lon (GDA94)",
+      "full_map_inspected": true,
+      "map_coverage": "Full Flinders and Morning basins, headwaters east of Hughenden, western tributaries and Gulf coast, with adjoining Norman and Leichhardt drainage context.",
+      "direct_quote": "FLINDERS, MORNING BASINS",
+      "quote_word_count": 3,
+      "own_factual_extraction": [
+        "The labeled east-to-west Flinders course passes Hughenden and Richmond before turning northwest and north.",
+        "Cloncurry and Corella are separately labeled southwest courses; Saxby is a separate eastern branch north of the main east-west Flinders course.",
+        "The northern lowland map also distinguishes Bynoe River and Armstrong Creek near the coastal outlet area."
+      ],
+      "limits": [
+        "Flood-warning network map uses generalized river linework and is not a complete per-reach naming gazetteer.",
+        "No surveyed outlet or certified coastline is established by this map."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "rights_for_bulk_redistribution_established": false,
+        "published_material": "Own compact factual extraction, citation/retrieval metadata and short quotations only."
+      }
+    },
+    {
+      "evidence_id": "FLINDERS-QLD-BASIN-MAP",
+      "title": "Basin map for Flinders",
+      "visible_map_title": "Flood Warning Network / Settlement Risk / Flinders Basin / Appendix I. Rev. 0.",
+      "agency_or_publisher": "State of Queensland, Department of Natural Resources and Mines; prepared by Kellogg Brown & Root Pty Ltd (KBR); official Queensland disaster website host",
+      "official_url": "https://www.disaster.qld.gov.au/__data/assets/pdf_file/0028/338077/BEW553_Basin_Priority_A1_Flinders_-_sml.pdf",
+      "source_date": null,
+      "date_basis": "No explicit map issue date established. PDF metadata records creation 2015-11-02 and modification 2017-05-22; neither is asserted as a formal publication date.",
+      "pdf_metadata_creation_date": "2015-11-02",
+      "pdf_metadata_modification_date": "2017-05-22",
+      "retrieval": {
+        "requested_url": "https://www.disaster.qld.gov.au/__data/assets/pdf_file/0028/338077/BEW553_Basin_Priority_A1_Flinders_-_sml.pdf",
+        "request_started_at_utc": "2026-10-09T11:57:30.854501+00:00",
+        "retrieval_completed_at_utc": "2026-10-09T11:57:34.526144+00:00",
+        "http_status": 200,
+        "final_url": "https://www.disaster.qld.gov.au/__data/assets/pdf_file/0028/338077/BEW553_Basin_Priority_A1_Flinders_-_sml.pdf",
+        "content_type": "application/pdf",
+        "bytes": 3491540,
+        "sha256": "b5b8fbe1f0ba77d523fb145af48aaf2f65c9fbc1e02984fcaaef0df009e26b0a"
+      },
+      "source_role": "Distinct complete official regional basin/cartographic original; finer local river-name distinctions.",
+      "pdf_page_count": 1,
+      "locators": [
+        {
+          "pdf_page_one_based": 1,
+          "printed_locator": "Appendix I. Rev. 0."
+        }
+      ],
+      "full_map_inspected": true,
+      "map_coverage": "Whole Flinders Basin from eastern and southern headwaters to the Gulf, including all geographic regions containing the five baseline fragments.",
+      "printed_scale": "Scale at A3 - 1:937,500",
+      "printed_coordinate_system": "GDA 1994 Geoscience Australia Lambert",
+      "direct_quote": "Flinders Basin",
+      "quote_word_count": 2,
+      "own_factual_extraction": [
+        "Flinders River labels recur along the Hughenden-Richmond corridor, the northwest bend and the lower northward course.",
+        "The western network separately labels Cloncurry, Corella and Dugald rivers, as well as smaller adjoining channels.",
+        "Saxby River and other eastern branches remain distinct from the principal Flinders course.",
+        "Bynoe River and Armstrong Creek are labeled separately in the coastal network."
+      ],
+      "limits": [
+        "Regional generalized cartography, not legal boundaries, an exhaustive official reach-name crosswalk or a surveyed coastline.",
+        "Named tributaries may join and branch across a complex lowland network; source-derived paths need reach-specific review."
+      ],
+      "publication_rights": {
+        "raw_original_in_publishable_package": false,
+        "map_image_or_crop_in_publishable_package": false,
+        "rights_for_bulk_redistribution_established": false,
+        "published_material": "Own compact factual extraction, citation/retrieval metadata and short quotations only."
+      }
+    }
+  ],
+  "formal_current_name_register_checked": false,
+  "automatic_application": false
+}

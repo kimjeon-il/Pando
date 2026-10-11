@@ -1,0 +1,212 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r38",
+  "scope_aw_ids": [
+    "lakes_base:1159112221",
+    "lakes_base:1159110309",
+    "lakes_base:1159112237"
+  ],
+  "new_external_requests": 0,
+  "new_external_requests_scope": "No new external source requests or original acquisitions in r38. Manitoba, WSA and Cumberland originals were retained from earlier work. Receipt statuses and timestamps describe those successful earlier acquisitions. The independent reviewer made zero external requests.",
+  "new_external_requests_by_independent_reviewer": 0,
+  "external_request_count_unit": "known_high_level_calls",
+  "backend_http_subrequest_count": 0,
+  "new_original_source_acquisitions_this_batch": 0,
+  "distinct_reviewed_publications": 3,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 3,
+  "source_group_definition": "Three official publisher organizations: Manitoba Geological Survey, Saskatchewan Water Security Agency and Elections Saskatchewan. This organization count does not establish independent underlying hydrographic datasets; only the Manitoba map supplies directly supported selected-water names.",
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": true,
+  "registration_limit": "All parts and rings were registered to the relevant retained original GeoPDFs. All 110 Manitoba positions were recomputed with the full embedded rotated affine, and all 20 Saskatchewan positions with each of the WSA and Cumberland full embedded affines. Registered display correspondence does not certify surveyed shores or exact named-water partitions.",
+  "observations": [
+    {
+      "source_key": "manitoba_bedrock_geology_of2024_4",
+      "title": "Bedrock geology of Manitoba, Open File OF2024-4",
+      "publisher": "Manitoba Economic Development, Investment, Trade and Natural Resources, Manitoba Geological Survey",
+      "url": "https://gov.mb.ca/iem/explore/files/geology_of_manitoba_map.pdf",
+      "original_acquired_at_utc": "2026-10-10T00:02:56.872607+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": "2024",
+      "publication_date_precision": "year",
+      "publication_date_verified": true,
+      "publication_date_note": "The publication imprint explicitly says published by Manitoba Geological Survey, 2024. No month or day of publication is established; PDF modification and HTTP dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": "r34",
+      "directly_read_water_labels": [
+        "Misty Lake",
+        "Lac Brochet",
+        "Kasmere Lake"
+      ],
+      "nearby_distinct_water_labels": [
+        "Kingsley Lake",
+        "Waspison Lake",
+        "Whiskey Jack Lake",
+        "Cochrane River",
+        "Tice Lake",
+        "Koona Lake",
+        "Snyder Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Direct named-water associations and surrounding cartographic context for the first two Manitoba targets only.",
+      "authority_scope": "Official provincial thematic cartographic usage supports bounded associations. The publication does not establish a formal naming-registry decision, current surveyed shoreline or exact named-water boundary.",
+      "registered_overlay_performed": true,
+      "own_observations": "Misty Lake and Lac Brochet are non-exhaustive associations within the first single ring; the corridor and southwest corner have no exact name partition established. Kingsley proximity is not a proven component. The second ring supports bounded generalized Kasmere Lake identity with detailed-shore and adjoining-water limits.",
+      "printed_scale": "1:1,000,000",
+      "cartographic_credit_observed": "The digital topographic base credits the CanVec+ data model, Natural Resources Canada for hydrographic features, and the Manitoba Land Initiative, Manitoba Environment, Climate and Parks."
+    },
+    {
+      "source_key": "wsa_completed_watershed_plans_2014",
+      "title": "Completed Watershed Plans / WSA Watershed Planning Areas",
+      "publisher": "Water Security Agency, Geomatics, Government of Saskatchewan",
+      "url": "https://wsask.ca/wp-content/uploads/2025/05/WSA_Completed_Planning_Areas_22x34-1.pdf",
+      "original_acquired_at_utc": "2026-10-09T13:17:20.296694+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": null,
+      "publication_date_precision": "unknown",
+      "publication_date_verified": false,
+      "printed_production_date": "2014-11-25",
+      "printed_production_date_precision": "day",
+      "printed_production_date_verified": true,
+      "publication_date_note": "The original imprint explicitly says Map Produced: Nov. 25, 2014. This establishes a production date only; actual release/publication date is unknown. The upload URL year and HTTP modification dates are not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": null,
+      "original_acquisition_batch_note": "Receipt timestamp verified; the original acquisition batch is not established here. An earlier retained original supplies the inspected map.",
+      "directly_read_water_labels": [],
+      "nearby_distinct_water_labels": [
+        "Bannock Lake",
+        "Kingston Lake",
+        "Bentley Lake",
+        "Charcoal Lake",
+        "Wollaston"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Surrounding named-water and shape context for the third Saskatchewan target; no selected-water name established.",
+      "authority_scope": "Official provincial thematic cartography supplies surrounding context. It does not establish a selected-water naming decision or exact named-water partition.",
+      "registered_overlay_performed": true,
+      "own_observations": "The selected triangular western lobe occupies a small part of larger branching western water. Bannock Lake is placed on the separate narrow water east/northeast of the target. Kingston, Bentley, Charcoal and Wollaston provide surrounding context only. No nearby name or apparent water connection establishes the selected lobe's identity.",
+      "printed_scale": "1:1,750,000",
+      "cartographic_credit_observed": "Map produced by Water Security Agency, Geomatics; map and all datasets credited to Government of Saskatchewan, 2014."
+    },
+    {
+      "source_key": "elections_saskatchewan_cumberland_ge30",
+      "title": "Cumberland GE30 constituency map",
+      "publisher": "Elections Saskatchewan",
+      "url": "https://cdn.elections.sk.ca/maps-ge30/Cumberland_GE30.pdf",
+      "original_acquired_at_utc": "2026-10-09T17:19:27.981345+00:00",
+      "acquisition_http_status": 200,
+      "original_acquisition_receipt_reviewed": true,
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "is_formal_naming_registry": false,
+      "publication_date": null,
+      "publication_date_precision": "unknown",
+      "publication_date_verified": false,
+      "publication_date_note": "The printed creation-date string is 02/10/2023. Its month/day order is ambiguous, and the actual publication date is unknown; PDF metadata is not substituted.",
+      "review_reused_original_acquired_earlier_this_batch": false,
+      "review_reused_original_acquired_in_prior_batch": true,
+      "original_acquisition_batch": null,
+      "original_acquisition_batch_note": "The retained receipt timestamp is verified; the original acquisition batch is not independently established.",
+      "directly_read_water_labels": [],
+      "nearby_distinct_water_labels": [
+        "Bannock Lake",
+        "Kingston Lake",
+        "Bentley Lake",
+        "Charcoal Lake",
+        "Watson Lake"
+      ],
+      "physical_pdf_pages": [
+        1
+      ],
+      "role": "Complementary surrounding shape and label context for the third Saskatchewan target; no selected-water name established.",
+      "authority_scope": "Official electoral cartography provides complementary context rather than a hydrographic naming-registry determination.",
+      "registered_overlay_performed": true,
+      "own_observations": "The complete selected triangle is west of the Bannock-labelled eastern narrow water. It follows only part of the western branched water and includes mapped land between inlets. Watson Lake is labelled farther south. Electoral grid lines do not define water-name partitions; no selected-water name is established.",
+      "printed_scale": null,
+      "cartographic_credit_observed": "The imprint credits Information Services Corporation of Saskatchewan, cadastral and administrative datasets, OpenStreetMap and ESRI software.",
+      "original_acquisition_timestamp_basis": "Receipt recorded-at time; no separately recorded response-completion timestamp.",
+      "original_requested_at_utc": "2026-10-09T17:19:23.772516+00:00",
+      "printed_creation_date_text": "02/10/2023",
+      "printed_creation_date_order": "ambiguous",
+      "printed_creation_date_normalized": null,
+      "printed_creation_date_verified": true
+    }
+  ],
+  "complete_feature_observations": [
+    {
+      "observation_id": "lakes_base:1159112221",
+      "aw_id": "lakes_base:1159112221",
+      "source_id": "1159112221",
+      "geometry_fids": [
+        15605
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 61,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original pixels and complete filled overlays support Misty Lake in the northern head and Lac Brochet in the southern basin of one 61-position ring. The middle corridor and southwest corner remain exact-name-scope gaps. Kingsley Lake lies adjacent west/southwest and is not a proven third component. Coarse margins cross mapped land and omit detailed continuations. Compound scope hold with non-exhaustive associations."
+    },
+    {
+      "observation_id": "lakes_base:1159110309",
+      "aw_id": "lakes_base:1159110309",
+      "source_id": "1159110309",
+      "geometry_fids": [
+        15481
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 49,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [
+        "manitoba_bedrock_geology_of2024_4"
+      ],
+      "context_source_keys": [],
+      "independent_observation": "Original pixels and the complete 49-position ring support Kasmere Lake as a bounded generalized identity across the principal basin, northwestern lobe, northeastern head and southern prong. Detailed eastern continuation and southwestern outlet extend outside the ring; mapped land, bays and narrow peninsulas are simplified. Nearby Tice, Koona and Snyder labels do not establish additional selected components. No exact extent or scalar product clearance."
+    },
+    {
+      "observation_id": "lakes_base:1159112237",
+      "aw_id": "lakes_base:1159112237",
+      "source_id": "1159112237",
+      "geometry_fids": [
+        15607
+      ],
+      "polygon_part_count": 1,
+      "ring_count": 1,
+      "position_count_including_closure": 20,
+      "entire_selected_source_and_rendered_polygons_viewed": true,
+      "all_selected_parts_and_rings_considered": true,
+      "source_keys": [],
+      "context_source_keys": [
+        "wsa_completed_watershed_plans_2014",
+        "elections_saskatchewan_cumberland_ge30"
+      ],
+      "independent_observation": "Both original maps and full 20-position overlays show the selected triangular footprint in a western branched water lobe. Bannock Lake is labelled on the separate eastern narrow water, outside the ring. The target includes land between inlets and omits large continuations. No direct selected-water name is established; Bannock, Kingston, Watson or Wollaston cannot be transferred to this ring by proximity or apparent connectivity. Unresolved identity/extent hold; sources are usable."
+    }
+  ],
+  "source_group_limit": "Three reviewed official publications; only one provides established selected-water naming associations. Hydrographic dataset independence is unverified, and no formal naming registry was checked.",
+  "independent_review_and_source_research_agree": true
+}

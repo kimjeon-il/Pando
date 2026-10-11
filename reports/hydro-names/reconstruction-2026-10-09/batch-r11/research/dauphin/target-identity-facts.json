@@ -1,0 +1,103 @@
+{
+  "schema": "hydro-target-identity-facts-v1",
+  "batch": "r11",
+  "aw_id": "lakes_base:1159112291",
+  "source_id": "1159112291",
+  "baseline_fid": 15611,
+  "baseline_logical_fid": 4236,
+  "source_feature_original_json_sha256": "ed08fb361cf62cb194863efeb660b123df6e7381cc475897e66f2a26bc0b2ac7",
+  "source_geometry": {
+    "type": "Polygon",
+    "polygon_part_count": 1,
+    "ring_counts_by_part": [
+      1
+    ],
+    "coordinate_counts_by_part_and_ring": [
+      [
+        51
+      ]
+    ],
+    "total_coordinates_including_closure": 51,
+    "bbox": [
+      -99.96781974680096,
+      51.10967407956244,
+      -99.54952832214686,
+      51.45820120608633
+    ],
+    "all_rings_closed": true,
+    "canonical_geometry_sha256": "ecc67c459a70c6318f77e7a0468330a86462c2d07536e528978de4cfd90e07ef",
+    "ordered_parts": [
+      {
+        "part_index": 0,
+        "ordered_rings": [
+          {
+            "ring_index": 0,
+            "coordinate_count_including_closure": 51,
+            "ordered_coordinate_sha256": "8534e3b671301d56a67796de4f9d1d11dcee36256543d76126d2aab1f10e0cf0"
+          }
+        ],
+        "canonical_part_sha256": "7c7de0705ef6a1b7ca7b31bf9a844674e4f7d838c7aef1cab2d7e359ae1ab7a5"
+      }
+    ]
+  },
+  "baseline_rendered_geometry": {
+    "type": "Polygon",
+    "polygon_part_count": 1,
+    "ring_counts_by_part": [
+      1
+    ],
+    "coordinate_counts_by_part_and_ring": [
+      [
+        51
+      ]
+    ],
+    "total_coordinates_including_closure": 51,
+    "bbox": [
+      -99.96782,
+      51.109674,
+      -99.549528,
+      51.458201
+    ],
+    "all_rings_closed": true,
+    "canonical_geometry_sha256": "09b4e9413acb08dbe21467eac43f3be57fd4ddbe74a737f28242a092b9d9f2df",
+    "ordered_parts": [
+      {
+        "part_index": 0,
+        "ordered_rings": [
+          {
+            "ring_index": 0,
+            "coordinate_count_including_closure": 51,
+            "ordered_coordinate_sha256": "f6c8850ee03ad31431e05a4b3224b20e28559abc622c9095c50013573d235e2d"
+          }
+        ],
+        "canonical_part_sha256": "eb6e3f2d99a8d0677308734f7dba3ce2c538b2ab02f9e6e832f4e4806a5ae119"
+      }
+    ]
+  },
+  "historical_rendered_area_km2": 516.338,
+  "source_to_baseline_comparison": {
+    "same_geometry_type": true,
+    "same_part_ring_and_vertex_order": true,
+    "every_coordinate_matches_source_rounded_to_6_decimals": true,
+    "maximum_absolute_coordinate_difference_degrees": 4.903911303699715e-07
+  },
+  "input_pins": {
+    "selected-lake-geometries.geojson": {
+      "sha256": "b58fcbe948265de57fced4d253827a046f043139d708ad9b888a83c86662c7e4",
+      "bytes": 10047
+    },
+    "selected-baseline-rendered-geometries.geojson": {
+      "sha256": "54030449272a949f8fdbd5464f421cb1918f66aa56d48333eeea204d1ad358eb",
+      "bytes": 6368
+    },
+    "geometry-reference.json": {
+      "sha256": "519f4514d37f76302ad36692a13f101f6ac473ea0961818c0e45bf86eec07802",
+      "bytes": 26340
+    }
+  },
+  "area_scope": "Recorded inventory area is not a survey measurement or identity threshold. The plan gives a different approximate/descriptive area; no exact-area equality is asserted.",
+  "korean_name": null,
+  "whole_feature_scalar_name": null,
+  "automatic_application": false,
+  "product_application": false
+}

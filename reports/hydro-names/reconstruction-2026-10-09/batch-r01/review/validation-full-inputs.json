@@ -1,0 +1,148 @@
+{
+  "status": "passed",
+  "frozen_input_count": 5,
+  "geometry_records": [
+    {
+      "source_id": "1159109497",
+      "fid": 15421,
+      "logical_fid": 4046,
+      "source_index": 228,
+      "positions_including_closure": 173,
+      "all_ordered_positions_match_quantized_baseline": true,
+      "maximum_absolute_coordinate_delta_degrees": 4.98178913233005e-07
+    },
+    {
+      "source_id": "1159106899",
+      "fid": 15218,
+      "logical_fid": 3843,
+      "source_index": 25,
+      "positions_including_closure": 104,
+      "all_ordered_positions_match_quantized_baseline": true,
+      "maximum_absolute_coordinate_delta_degrees": 4.957185808507347e-07
+    },
+    {
+      "source_id": "1159107065",
+      "fid": 15236,
+      "logical_fid": 3861,
+      "source_index": 43,
+      "positions_including_closure": 105,
+      "all_ordered_positions_match_quantized_baseline": true,
+      "maximum_absolute_coordinate_delta_degrees": 4.988581210341181e-07
+    }
+  ],
+  "total_positions_including_closure": 382,
+  "original_source_feature_equality_checked": true,
+  "source_input_checks": [
+    {
+      "name": "baseline-manifest.json",
+      "bytes": 52975,
+      "sha256": "c10eaffd375d5f0d90955fa253b02ec73d9daeff261fa5cfde1f73ca89d2bd80"
+    },
+    {
+      "name": "lakes_base.geojson",
+      "bytes": 7016832,
+      "sha256": "c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c"
+    },
+    {
+      "name": "metadata-core.json.gz",
+      "bytes": 729625,
+      "sha256": "700b886134bbc44fa7686f8f2c131be53a73a5c2ebaabb468b50ea3e4000cee5"
+    },
+    {
+      "name": "metadata-detail.json.gz",
+      "bytes": 1670972,
+      "sha256": "1416c6932976427e9cb8140f171f4ccb54704111bce49fb8b8260819ce54b2bd"
+    },
+    {
+      "name": "index.bin.gz",
+      "bytes": 32632,
+      "sha256": "a68aff611d2be202dbf31ef1fbce476386e1d49b1619b68e9219279be7896906"
+    },
+    {
+      "name": "shard-s0.bin",
+      "bytes": 4169624,
+      "sha256": "1ae657ac378ae4fb441425a8ce52c38348541717b363b3a8189d3bd7249702a8"
+    },
+    {
+      "name": "worker.js",
+      "bytes": 32253,
+      "sha256": "14399a8454fb980fb2adc78b7c52bcd32ea5e1b1f313dcfba301886a6b9ddfec"
+    },
+    {
+      "name": "boundary.js",
+      "bytes": 3928,
+      "sha256": "b9017382fcc828924608c8a32ddbf2831800475a725b432cad9e6445d33bc8ea"
+    },
+    {
+      "name": "earcut.js",
+      "bytes": 7131,
+      "sha256": "1444195270d4358ef8dd1a448074f555d7ac3c83c850f5648b611ea1d2090ff3"
+    }
+  ],
+  "historical_checks": [
+    {
+      "name": "summary.json",
+      "bytes": 4359,
+      "sha256": "4af18507bee586d97a113f903014019d8c8bffa7bf1f4329de0ce95c16d4f4fd"
+    },
+    {
+      "name": "priority-candidates.json",
+      "bytes": 77514,
+      "sha256": "427b74322a4878762d02be116eaade4e70789e4d00f5eecc78a3e3ee82cce0fe"
+    },
+    {
+      "name": "inventory.csv.gz",
+      "bytes": 441711,
+      "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db"
+    }
+  ],
+  "local_original_checks": [
+    {
+      "id": "BECHAROF-FWS-ABOUT",
+      "bytes": 109167,
+      "sha256": "e6e8532d29acb75be11f0565050cab232ebd21a200711120c3ff73212e9edaef"
+    },
+    {
+      "id": "BECHAROF-FWS-GUIDE-2012",
+      "bytes": 2153038,
+      "sha256": "5d37dfd13f863be39cf4d1c0de30dd14476e85c2e50536ad2f6ed7d3fb54e117"
+    },
+    {
+      "id": "BECHAROF-ALASKA-RDI-2017",
+      "bytes": 26293421,
+      "sha256": "514f82d7e0aab8ddaef4f40f2283ea214308343db7d3ddaee15317af2976a790"
+    },
+    {
+      "id": "CA-GNWT-20181218",
+      "bytes": 2521327,
+      "sha256": "5aac878c13156f298024181f73255789cf115638f1959f6989e9a11655d96f3a"
+    },
+    {
+      "id": "CA-NUNAVIK-TURSUJUQ-CURRENT",
+      "bytes": 66813,
+      "sha256": "d2c96363a0762a5b76ab6d066902ceff24c57f2792dff63497f01ab4b792c642"
+    },
+    {
+      "id": "CA-NUNAVIK-FISHING-2024",
+      "bytes": 914555,
+      "sha256": "cb5bb35b29490d15d9d0823a13822341f4559eacfdf7f3a354276770de1a0ae1"
+    },
+    {
+      "id": "CA-DFO-SEAL-2018",
+      "bytes": 128590,
+      "sha256": "03277a39ecfe7b03a3e8b70faf60bb9a413a87dfb46cf0d62e313df73c358a24"
+    },
+    {
+      "id": "BECHAROF-FWS-MEDIA-LICENSE",
+      "bytes": 86955,
+      "sha256": "ac036e6975b7120d0caf2e2a32bd55eb444242405b3de027612596c6fcda2d5b"
+    },
+    {
+      "id": "NATURALEARTH-TERMS",
+      "bytes": 38013,
+      "sha256": "9bc9cbc663b0e6298b7a8cc216a92b5b223efe87796ba5d74c99a64ed6c12db8"
+    }
+  ],
+  "complete_ogc_topology_test": false,
+  "current_live_deployment_checked": false
+}

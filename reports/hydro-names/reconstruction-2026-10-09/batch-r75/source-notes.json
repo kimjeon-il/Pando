@@ -1,0 +1,474 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "batch": "r75",
+  "sources": [
+    {
+      "source_key": "r75-nrcan-cbmt-kuujjua",
+      "title": "Canada Base Map - Transportation: labels and geometry, Lambert conformal conic projection (EPSG:3978), Kuujjua drainage views",
+      "publisher": "Natural Resources Canada",
+      "year_note": "Undated live reference-map service accessed 10 October 2026; no feature-specific survey or update date was supplied.",
+      "supports": "Direct Kuujjua River labels on the actual trunk; the distinct northern selected approach and eastern unselected named continuation; continuous main bends and lake-bearing connections; lower lake sequence and final Minto Inlet outlet; exclusion of nearby named lake settings.",
+      "limits": "Reference cartography generalizes channels and label placement. The selected model has local offsets and cannot establish exact lake passage lines, formal name limits, a definitive source, mouth coordinates or current tidal/shoreline limits. All five windows belong to one publication.",
+      "official_url": "https://maps-cartes.services.geo.ca/server2_serveur2/rest/services/BaseMaps/CBMT3978/MapServer"
+    },
+    {
+      "source_key": "r75-dfo-2234-kuujjua",
+      "title": "Community household survey on the Holman subsistence Arctic charr (Salvelinus alpinus) fishery priorities, needs and traditions",
+      "authors": "A.D. Paylor, M.H. Papst and L.A. Harwood",
+      "publisher": "Department of Fisheries and Oceans, Central and Arctic Region",
+      "year_note": "Publication date is 1998. The map is credited to a 1989 fisheries source; the later PDF digitization date is not a cartographic update.",
+      "year": 1998,
+      "page": "Printed page 8, Figure 1 (PDF page 14); printed page 1 introduction; title and citation pages",
+      "supports": "Historical Kuujjua River course on western Victoria Island to Minto Inlet, and lower Tatik Lake/Fish Lake context distinct from the separate Prince Albert Sound rivers.",
+      "limits": "The report concerns a 1997 household fishery survey, not a complete modern hydrographic or naming survey. Figure 1 credits Lewis and colleagues (1989), is small-scale, and cannot alone resolve the northern selected feeder, individual lake-basin boundaries or detailed model-to-channel registration.",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/247261.pdf"
+    },
+    {
+      "source_key": "r65-inegi-sinaloa-state",
+      "title": "Condensado Estatal Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "First edition 2020; copyright 2021",
+      "year": 2020,
+      "page": "Single state sheet, PDF p. 1; mountain approach, Bacurato reservoir, Sinaloa de Leyva, Guasave and Boca del Río coastal setting.",
+      "supports": "Regional continuity of the selected mountain-to-coast route; Gustavo Díaz Ordaz (Bacurato) reservoir identity; lower Sinaloa valley and Boca del Río–Las Glorias mouth setting; separation from neighboring drainage and coastal-waterbody systems.",
+      "limits": "Scale 1:700,000. Generalized historical cartography does not determine exact naming transitions, a surveyed mouth, current reservoir water extent or modern delta channels.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/sin/889463837077.pdf"
+    },
+    {
+      "source_key": "r75-inegi-guadalupe-calvo-2010",
+      "title": "Compendio de información geográfica municipal 2010: Guadalupe y Calvo, Chihuahua",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "The actual first western feeder, repeated Basonopita labels on the selected upper channel, continuity to the southern municipal margin and separation from Baborigame/San José and Juan de Haro.",
+      "limits": "Initial short feeder has no separate hydronym; naming-transition vertices and an official source are not established.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/08/08029.pdf"
+    },
+    {
+      "source_key": "r75-inegi-badiraguato-2010",
+      "title": "Compendio de información geográfica municipal 2010: Badiraguato, Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 7, Relieve.",
+      "supports": "Direct Río Sinaloa labels on the selected westward and northwestward northern valley; distinction from San Javier, El Potrerillos, Santiago and the southern Humaya–Adolfo López Mateos system.",
+      "limits": "Generalized regional correspondence only. An inconsistent printed latitude is not relied on for surveyed positions or exact endpoints.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25003.pdf"
+    },
+    {
+      "source_key": "r75-inegi-sinaloa-2010",
+      "title": "Compendio de información geográfica municipal 2010: Sinaloa, Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 7, Relieve.",
+      "supports": "Northern/eastern Sinaloa bend, directly labeled river above and below Lic. Gustavo Díaz Ordaz (Bacurato), selected reservoir corridor and lower valley; distinction from Ocoroni and Guillermo Blake/El Sabinal.",
+      "limits": "Reservoir arms and neighboring tributaries are not all selected. Modern water extent, operation and precise name limits are unestablished.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25017.pdf"
+    },
+    {
+      "source_key": "r75-inegi-guasave-2010",
+      "title": "Compendio de información geográfica municipal 2010: Guasave, Sinaloa",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Direct Río Sinaloa labels on the lower plain and corresponding coastal continuation; distinction from irrigation canals, Chamicari, Uyaqui and Jupabampo.",
+      "limits": "Generalized municipal map does not establish a contemporary surveyed mouth or every delta distributary.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/25/25011.pdf"
+    },
+    {
+      "source_key": "r51-inegi-sonora-state-2024-2025",
+      "title": "Condensado Estatal Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI), Dirección General de Geografía y Medio Ambiente",
+      "edition": "Fourth edition 2024, copyright 2025; planimetry from sixth-edition 2023 topographic coverage at 1:250,000.",
+      "year": 2024,
+      "page": "Single sheet, PDF p. 1; whole-route context, Ímuris/Comaquito, Magdalena/Trincheras, Pitiquito/Caborca, lower Asunción and Desemboque outlet detail.",
+      "supports": "Regional continuity of every selected route section, distinct named middle and lower channels, Comaquito setting, off-route storage and tributary separation, and coastal connection southeast of Desemboque.",
+      "limits": "Scale 1:970,000. Generalized map does not establish exact naming boundaries, source or mouth coordinates, current reservoir extent, permanent flow or a separately named estuary.",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/son/794551162958.pdf"
+    },
+    {
+      "source_key": "r75-inegi-santa-cruz-2010",
+      "title": "Compendio de información geográfica municipal 2010: Santa Cruz, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Eastern El Chivato approach and El Carrizo stream, separated from Los Alisos, El Represo Enterrado, other western feeders and the Río Santa Cruz drainage.",
+      "limits": "The very first modeled head segment has no separate assigned name or surveyed source; municipal boundary labels are not used to infer flow direction.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26059.pdf"
+    },
+    {
+      "source_key": "r75-inegi-imuris-2010",
+      "title": "Compendio de información geográfica municipal 2010: Imuris, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Direct Cocospera and Río Babasac labels on the selected eastern-to-western approach, northern Comaquito junction/edge and distinct Bambuto branch.",
+      "limits": "The Comaquito geometry supports connected proximity, not a full reservoir crossing, modern water extent or exact channel-name transition points.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26035.pdf"
+    },
+    {
+      "source_key": "r75-inegi-magdalena-2010",
+      "title": "Compendio de información geográfica municipal 2010: Magdalena, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Actual main valley continuation through Magdalena de Kino and separation from Tacicuri, La Jojoba, El Sásabe and the Ignacio R. Pesqueira (El Yeso) reservoir branch.",
+      "limits": "The river name in this valley is supported with the state sheet; this relief map alone does not print the representative lower-river name.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26036.pdf"
+    },
+    {
+      "source_key": "r75-inegi-santa-ana-2010",
+      "title": "Compendio de información geográfica municipal 2010: Santa Ana, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Actual valley continuation southwest from Magdalena into Trincheras, with El Coyotillo and other side approaches kept separate.",
+      "limits": "The regional state sheet supplies the connected Magdalena naming; the municipal page does not independently establish a precise name boundary or modern flow.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26058.pdf"
+    },
+    {
+      "source_key": "r75-inegi-trincheras-2010",
+      "title": "Compendio de información geográfica municipal 2010: Trincheras, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Direct Magdalena label on the northwestern continuation of the selected southern bend, with El Coyotillo, El Sotol, Busani, Tésota and the local El Carrizo distinguished.",
+      "limits": "Nearby Asunción labels on other municipal-margin approaches do not justify renaming every channel or fixing the Magdalena–Asunción transition.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26064.pdf"
+    },
+    {
+      "source_key": "r75-inegi-pitiquito-2010",
+      "title": "Compendio de información geográfica municipal 2010: Pitiquito, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Direct Asunción label in the selected northern corridor and clear separation of the southern San Ignacio drainage/outlet.",
+      "limits": "Generalized municipal map does not name every northern junction or establish a modern shoreline; the selected coastward terminal is in the separate Caborca coverage.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26047.pdf"
+    },
+    {
+      "source_key": "r75-inegi-caborca-2010",
+      "title": "Compendio de información geográfica municipal 2010: Caborca, Sonora",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "year": 2010,
+      "page": "PDF p. 6, Relieve.",
+      "supports": "Repeated direct Río Asunción labels along the actual lower course, southwest/northwest bends around Sierra El Álamo, separate El Coyote feeder and final coastal corridor.",
+      "limits": "Supports historical mapped outlet identity; no current open-mouth condition, tidal limits, official source, estuary name or exact surveyed endpoint is established.",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/26/26017.pdf"
+    },
+    {
+      "source_key": "r75-ibge-oiapoque-2022",
+      "title": "Mapa Municipal: Oiapoque – AP, 1600501",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial, edição 2022; copyright IBGE 2023",
+      "year": 2022,
+      "page": "Single sheet; whole river context and enlarged upper, middle, lower and tributary-junction readings",
+      "supports": "Full upper eastward then northeast border-river connection, Brazilian tributary separation, Vila Brasil, Oiapoque and lower Galibi/Jumina route, Rio Oiapoque wording and downstream bay exclusion.",
+      "limits": "Municipal statistical cartography with generalized drainage. The French interior is largely blank, so it is not used alone to name the whole Camopi tributary. Small selected feeders and precise shoreline/channel splits are not all named.",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/AP/oiapoque/A0_1600501_MM.pdf"
+    },
+    {
+      "source_key": "r75-deal-oyapock-camopi-2018",
+      "title": "Aménagement des sauts du fleuve Oyapock et de la rivière Camopi — Dossier de demande d’autorisation environnementale",
+      "author": "SAFEGE Ingénieurs Conseils",
+      "publisher": "DEAL Guyane; original retained from the official DGTM Guyane website",
+      "attribution": "SAFEGE report for DEAL Guyane. The whole-region drainage map credits Parc amazonien de Guyane; the upper-river location map identifies Scan 500, 1995. Official hosting does not make these third-party map inputs public domain.",
+      "edition": "Version 2, October 2018 on cover; interior footers and version note retain February 2018",
+      "year": 2018,
+      "page": "PDF pp. 8–9, maps 2–3 and location prose; pp. 30–31 repeat that geography; pp. 106–107, hydrology prose and maps 28–31",
+      "supports": "Oyapock border-river identity, upper Kérindioutou wording, Trois-Sauts to Camopi corridor, actual western Camopi approach and its left-bank junction, and distinction from the full Atlantic outlet.",
+      "limits": "Historical environmental-project report used only for geography and source naming. No assertion about present navigation works, permits, station operations or discharge. Broad drainage maps support the representative connection, not a label for every small tributary or exact source point.",
+      "official_url": "https://www.guyane.developpement-durable.gouv.fr/IMG/pdf/dossier_aeu_sauts_oyapock_octobre2018f-compressed.pdf"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80026392",
+      "source_keys": [
+        "r75-nrcan-cbmt-kuujjua",
+        "r75-dfo-2234-kuujjua"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2316
+          ],
+          "finding": "The actual northeastern beginning follows the minor northern/eastern stream setting into a south-southwest-running valley containing a prominent lobed lake and narrower connected waters. The closer original map shows the stream, lake and downstream valley connections. The modeled line is generalized and locally offset from the detailed channels and shorelines; it must not be read as a surveyed through-lake centreline or an exact official source. No inspected label establishes a separate name for this northern feeder or its lake components.",
+          "sources": [
+            "r75-nrcan-cbmt-kuujjua"
+          ]
+        },
+        {
+          "fragments": [
+            2316
+          ],
+          "finding": "The northern approach continues south and turns west into the repeatedly labeled Kuujjua River corridor. The official map also prints Kuujjua River on a separate continuation coming from farther east/southeast. That continuation is contextual and unselected. Consequently the mainstem model does not prove that the whole northern beginning itself bears the Kuujjua hydronym.",
+          "sources": [
+            "r75-nrcan-cbmt-kuujjua"
+          ]
+        },
+        {
+          "fragments": [
+            2316
+          ],
+          "finding": "Below this connection the selection follows the named Kuujjua south, then west around its large eastern bend, and northwest before turning west and southwest again. The characteristic bend sequence, neighboring stream junctions and lake-bearing valley agree with the official map. Burns Lake lies to the southeast on a different lake/stream setting and is not substituted for the selected beginning or treated as a selected through-passage.",
+          "sources": [
+            "r75-nrcan-cbmt-kuujjua"
+          ]
+        },
+        {
+          "fragments": [
+            2316
+          ],
+          "finding": "The overlapping middle map follows the selection along the named Kuujjua through successive westward bends, then down the prominent southwest-running valley. At the lower middle junction it makes the selected northerly hook within a lake-and-channel setting, turns south and continues west. Large northern lake bodies and southern side approaches remain contextual; their entire water areas are not included merely because they connect to the selected trunk.",
+          "sources": [
+            "r75-nrcan-cbmt-kuujjua"
+          ]
+        },
+        {
+          "fragments": [
+            2316
+          ],
+          "finding": "The western map continues the same labeled river down the west-southwest corridor, through the long east-west lower lake setting and into a succession of broader connected lake basins that turns northwest and north. The selection is a lake-and-river route here, not one continuously narrow river channel. The DFO figure independently places Tatik Lake, called Fish Lake in its text and caption, in this lower Kuujjua/Minto Inlet setting. Its small historical figure does not settle the detailed naming boundary of each basin in the chain.",
+          "sources": [
+            "r75-nrcan-cbmt-kuujjua",
+            "r75-dfo-2234-kuujjua"
+          ]
+        },
+        {
+          "fragments": [
+            2316
+          ],
+          "finding": "After the northward lower lake passage, the selected line bends west along the final outlet valley, directly labeled Kuujjua River, and ends at the southern Minto Inlet shoreline/river-mouth setting. Both the regional NRCan overview and DFO Figure 1 identify Minto Inlet as the receiving-water context. The endpoint is not extended across the inlet or into the separate Prince Albert Sound drainage. Exact present-day shoreline, tidal limit and river-to-inlet naming boundary are not assigned.",
+          "sources": [
+            "r75-nrcan-cbmt-kuujjua",
+            "r75-dfo-2234-kuujjua"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70847445",
+      "source_keys": [
+        "r65-inegi-sinaloa-state",
+        "r75-inegi-guadalupe-calvo-2010",
+        "r75-inegi-badiraguato-2010",
+        "r75-inegi-sinaloa-2010",
+        "r75-inegi-guasave-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10365
+          ],
+          "finding": "The selected beginning is a short eastward feeder south of Cerro Colorado in western Guadalupe y Calvo. It joins the south-southeastward channel labeled Basonopita, with that label repeated farther downstream near the Cerro Chinacas setting. The actual first feeder is not separately named, and the model start is not an official river source. The eastern Baborigame/San José approach is distinct from this selected upstream route.",
+          "sources": [
+            "r75-inegi-guadalupe-calvo-2010",
+            "r65-inegi-sinaloa-state"
+          ]
+        },
+        {
+          "fragments": [
+            10365
+          ],
+          "finding": "The Basonopita corridor continues toward the southern municipal margin and the receiving river in northern Badiraguato. There the selected course turns west and then northwest around the Cerro Pelón–Cerro La Ciénega setting along reaches directly labeled Río Sinaloa. The mapped San Javier, El Potrerillos and more southerly Santiago approaches remain side waterways rather than replacement selected headwaters.",
+          "sources": [
+            "r75-inegi-guadalupe-calvo-2010",
+            "r75-inegi-badiraguato-2010",
+            "r65-inegi-sinaloa-state"
+          ]
+        },
+        {
+          "fragments": [
+            10365
+          ],
+          "finding": "The selected northwestward course leaves the northern Badiraguato valley toward the eastern Sinaloa municipal margin, makes the distinctive northern bend, then proceeds southwest and south on the mapped Sinaloa trunk. The Sinaloa relief map supports this approach above Bacurato reservoir; the Juan de Haro river entering from farther north is separate from the selected eastern approach.",
+          "sources": [
+            "r75-inegi-sinaloa-2010",
+            "r75-inegi-guadalupe-calvo-2010",
+            "r65-inegi-sinaloa-state"
+          ]
+        },
+        {
+          "fragments": [
+            10365
+          ],
+          "finding": "The route enters the northward extension of the mapped reservoir labeled Lic. Gustavo Díaz Ordaz (Bacurato), passes through its principal connected river corridor and leaves toward the west. The state map labels the waterbody Presa Gustavo Díaz Ordaz (Bacurato). Reservoir arms and their tributaries are not additional selected paths. Guillermo Blake/El Sabinal to the northwest and Adolfo López Mateos to the southeast belong to different corridors.",
+          "sources": [
+            "r75-inegi-sinaloa-2010",
+            "r65-inegi-sinaloa-state",
+            "r75-inegi-badiraguato-2010"
+          ]
+        },
+        {
+          "fragments": [
+            10365
+          ],
+          "finding": "Below the reservoir, the line follows the Río Sinaloa valley through the Sinaloa de Leyva setting and southwest toward Bamoa and Guasave. The municipal and state maps distinguish this trunk from the western Ocoroni drainage and from the straight irrigation canals. On the Guasave plain, the selected course follows the directly labeled Río Sinaloa east of Laguna Chamicari and continues through the Guasave settlement setting.",
+          "sources": [
+            "r75-inegi-sinaloa-2010",
+            "r75-inegi-guasave-2010",
+            "r65-inegi-sinaloa-state"
+          ]
+        },
+        {
+          "fragments": [
+            10365
+          ],
+          "finding": "The lower selected reach continues south past the Tamazula–La Brecha–San José de la Brecha corridor, then turns toward the coastal mouth setting at Boca del Río beside Las Glorias. The state and Guasave maps place this terminal at the Gulf of California coast rather than in Laguna Uyaqui, Laguna Jupabampo or the more southerly Playa Colorada lagoon system. The model does not trace every delta distributary or establish a surveyed contemporary shoreline intersection.",
+          "sources": [
+            "r75-inegi-guasave-2010",
+            "r65-inegi-sinaloa-state"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70793312",
+      "source_keys": [
+        "r51-inegi-sonora-state-2024-2025",
+        "r75-inegi-santa-cruz-2010",
+        "r75-inegi-imuris-2010",
+        "r75-inegi-magdalena-2010",
+        "r75-inegi-santa-ana-2010",
+        "r75-inegi-trincheras-2010",
+        "r75-inegi-pitiquito-2010",
+        "r75-inegi-caborca-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9965
+          ],
+          "finding": "The northeastern beginning descends the eastern side of Sierra El Chivato through the stream labeled El Carrizo on the Santa Cruz relief map, then continues southwest. The selected approach is east of the separately mapped Los Alisos and El Represo Enterrado branches; La Mesteña and Tanque Negro are also distinct western approaches. The north-flowing Río Santa Cruz lies on the other side of the upland and is not the selected river. The first modeled vertex is not an official source point, and no separate name is assigned to its short initial headward segment.",
+          "sources": [
+            "r51-inegi-sonora-state-2024-2025",
+            "r75-inegi-santa-cruz-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9965
+          ],
+          "finding": "On entering the Ímuris coverage, the route matches the southwesterly valley directly labeled Cocospera. It follows the eastern side of Sierra El Pinito and reaches the Comaquito junction setting. El Cazadero, Los Fresnos/Cajón de la Ciéneguita and Las Palomas are separately mapped approaches, not replacement headwaters for the selected modeled line.",
+          "sources": [
+            "r51-inegi-sonora-state-2024-2025",
+            "r75-inegi-imuris-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9965
+          ],
+          "finding": "At Comaquito the model turns west along the connected northern river junction and continues across the reach explicitly labeled Río Babasac in the Ímuris relief map. P. Comaquito is mapped predominantly south of this junction; the state sheet labels the waterbody Laguna Comaquito. This supports proximity and connection to the Comaquito system, but not a full reservoir traversal or entry into its southern arms. The selected westward river joins the distinct northern Río Bambuto approach near the Ímuris valley and continues southwest toward Magdalena.",
+          "sources": [
+            "r51-inegi-sonora-state-2024-2025",
+            "r75-inegi-imuris-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9965
+          ],
+          "finding": "The selected line follows the main southwestern valley through Magdalena de Kino into Santa Ana, with the regional state sheet naming the connected river Magdalena and the municipal sheets supporting the actual course. The selected course does not turn southeast into the El Sásabe branch or Presa Ignacio R. Pesqueira (El Yeso). Tacicuri and La Jojoba are other separately mapped approaches. The Río Bambuto upstream branch north of Ímuris is not substituted for the selected Cocospera branch.",
+          "sources": [
+            "r51-inegi-sonora-state-2024-2025",
+            "r75-inegi-imuris-2010",
+            "r75-inegi-magdalena-2010",
+            "r75-inegi-santa-ana-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9965
+          ],
+          "finding": "Southwest of Santa Ana the model makes its broad southern bend in the eastern Trincheras valley and then runs northwest along the stream directly labeled Magdalena, north of Cerro Trincheras and Cerro Prieto. El Coyotillo, the locally separate El Carrizo tributary and El Sotol enter this middle setting, while the Busani and Tésota approaches remain distinct. These tributary names do not replace the selected main valley route, and the El Carrizo in this middle setting is not the distant headwater El Carrizo.",
+          "sources": [
+            "r51-inegi-sonora-state-2024-2025",
+            "r75-inegi-santa-ana-2010",
+            "r75-inegi-trincheras-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9965
+          ],
+          "finding": "The northwestward Magdalena continuation reaches the northern Pitiquito corridor and the river locally labeled Asunción, then passes through the Pitiquito–Heroica Caborca setting. State cartography separates its actual southeast approach from the more northerly approach through Altar/Oquitoa and the Sásabe branch. Basin-table occurrences of Concepción were not used to rename the channel, and these generalized maps do not fix a unique Magdalena-to-Asunción transition vertex.",
+          "sources": [
+            "r51-inegi-sonora-state-2024-2025",
+            "r75-inegi-trincheras-2010",
+            "r75-inegi-pitiquito-2010",
+            "r75-inegi-caborca-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9965
+          ],
+          "finding": "Below Caborca the selected Asunción turns southwest along the northern side of Cordón Lista Blanca, then northwest around the northern side of Sierra El Álamo. The Caborca relief map directly labels this connected river Río Asunción. At its northwestern bend the separately labeled El Coyote approaches from the northeast; the model then takes the Asunción continuation southwest, rather than selecting El Coyote as an alternative upper river. El Bamuri and San Lorenzo to the south are separate coastal approaches.",
+          "sources": [
+            "r51-inegi-sonora-state-2024-2025",
+            "r75-inegi-caborca-2010"
+          ]
+        },
+        {
+          "fragments": [
+            9965
+          ],
+          "finding": "The final selected reach follows the Asunción southwest across the coastal plain, then southward to the mapped river-mouth setting just southeast of Desemboque on the Gulf of California (Mar de Cortés). The state original shows the narrow coastal connection and Caborca relief pixels support the same outlet corridor. The modeled terminal is at this coastward mouth setting, not at the more southerly Desemboque de los Seris–San Ignacio outlet. No separate estuary name, modern tidal-channel boundary, permanent open mouth or extension across the Gulf is asserted.",
+          "sources": [
+            "r51-inegi-sonora-state-2024-2025",
+            "r75-inegi-caborca-2010",
+            "r75-inegi-pitiquito-2010"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60189196",
+      "source_keys": [
+        "r75-ibge-oiapoque-2022",
+        "r75-deal-oyapock-camopi-2018"
+      ],
+      "correspondence": [
+        {
+          "finding": "The selected western beginning follows the low southern border corridor eastward through a shallow southern bend, then turns northeast toward the Trois-Sauts setting. IBGE maps this connected drainage separately from the Brazilian Uassipein and Mutura approaches to the south/east. The French report calls the upper Oyapock Kérindioutou and its park map also shows a distinct upper name. The selection is not extended to every headwater or to a claimed official source point.",
+          "sources": [
+            "r75-ibge-oiapoque-2022",
+            "r75-deal-oyapock-camopi-2018"
+          ]
+        },
+        {
+          "finding": "The northeastward upper mainstem matches the Oyapock corridor from Trois-Sauts through the mapped sequence of rapids to Camopi. The French location map distinguishes this river from the more westerly Camopi, and the municipal map supplies the Brazilian-side drainage and settlement context. The model generalizes river islands, bends and rapids rather than representing each local channel.",
+          "sources": [
+            "r75-ibge-oiapoque-2022",
+            "r75-deal-oyapock-camopi-2018"
+          ]
+        },
+        {
+          "finding": "The two longer western tributary pieces trace the southwestern Camopi approach, its northward and then eastward lower bend, and its junction with the Oyapock at Camopi/Vila Brasil. The park drainage map shows that full connection and the report explicitly identifies Camopi as the left-bank tributary at Camopi bourg. Camopi is a component name, not an alias of the selected border-river mainstem. The initial small branch is not given a separate source name.",
+          "sources": [
+            "r75-deal-oyapock-camopi-2018",
+            "r75-ibge-oiapoque-2022"
+          ]
+        },
+        {
+          "finding": "The third tributary piece is a short Brazilian-side approach entering the upper river well south of Camopi. Its connection is visible in the municipal drainage, but a distinct hydronym is not securely printed for this short selected reach. Neither the nearby Mutura nor another more distant tributary name is transferred onto it.",
+          "sources": [
+            "r75-ibge-oiapoque-2022"
+          ]
+        },
+        {
+          "finding": "Below Camopi/Vila Brasil, the selected mainstem follows the river northeast past the middle border corridor and the Saint-Georges/Oiapoque setting, then the lower northward channel past the Galibi/Jumina vicinity. It ends in the lower estuarine approach before the complete widening into the bay and Atlantic mouth. The separate eastern Uaçá network and the entire downstream bay are not included merely because they belong to the broader drainage description.",
+          "sources": [
+            "r75-ibge-oiapoque-2022",
+            "r75-deal-oyapock-camopi-2018"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false
+}

@@ -1,0 +1,165 @@
+{
+  "schema": "hydro-river-geometry-summary-public-v1",
+  "batch": "r26",
+  "created_at_utc": "2026-10-09T21:13:11.306327Z",
+  "scope_system_ids": [
+    "50442438",
+    "50442579",
+    "50442814"
+  ],
+  "scope_aw_ids": [
+    "hydro-system:50442438",
+    "hydro-system:50442579",
+    "hydro-system:50442814"
+  ],
+  "baseline": {
+    "repository": "kimjeon-il/Pando",
+    "git_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+    "hydro_version": "0.13.1",
+    "current_live_deployment_checked": false,
+    "current_live_deployment_equality_claimed": false
+  },
+  "validation_scope": "included-summary-evidence-only",
+  "identity_domains": "MAIN_RIV systemId, awId, logical_fid and individual geometry fid are distinct. FIDs apply only to the pinned baseline.",
+  "groups": [
+    {
+      "aw_id": "hydro-system:50442438",
+      "system_id": "50442438",
+      "logical_fid": 1782,
+      "geometry_fids": [
+        6666,
+        6667
+      ],
+      "role_sequence": [
+        "mainstem",
+        "mainstem"
+      ],
+      "part_count": 50,
+      "bounds": [
+        134.464583,
+        -13.483333,
+        134.789583,
+        -12.064386
+      ],
+      "fragment_count": 2,
+      "position_count": 279,
+      "source_reach_count": 50,
+      "fragment_part_counts": [
+        48,
+        2
+      ],
+      "fragment_position_counts": [
+        263,
+        16
+      ],
+      "minimum_stage": 2
+    },
+    {
+      "aw_id": "hydro-system:50442579",
+      "system_id": "50442579",
+      "logical_fid": 1783,
+      "geometry_fids": [
+        6668,
+        6669
+      ],
+      "role_sequence": [
+        "mainstem",
+        "mainstem"
+      ],
+      "part_count": 62,
+      "bounds": [
+        133.43125,
+        -13.283333,
+        134.191072,
+        -12.078126
+      ],
+      "fragment_count": 2,
+      "position_count": 313,
+      "source_reach_count": 62,
+      "fragment_part_counts": [
+        56,
+        6
+      ],
+      "fragment_position_counts": [
+        279,
+        34
+      ],
+      "minimum_stage": 2
+    },
+    {
+      "aw_id": "hydro-system:50442814",
+      "system_id": "50442814",
+      "logical_fid": 1784,
+      "geometry_fids": [
+        6670,
+        6671
+      ],
+      "role_sequence": [
+        "mainstem",
+        "mainstem"
+      ],
+      "part_count": 60,
+      "bounds": [
+        132.757579,
+        -13.310417,
+        133.422917,
+        -12.133396
+      ],
+      "fragment_count": 2,
+      "position_count": 273,
+      "source_reach_count": 60,
+      "fragment_part_counts": [
+        42,
+        18
+      ],
+      "fragment_position_counts": [
+        182,
+        91
+      ],
+      "minimum_stage": 2
+    }
+  ],
+  "public_coordinate_policy": "Full rendered coordinates, per-part paths and omitted-input fingerprints are not published.",
+  "original_hydrorivers_geometry": {
+    "source_coordinate_equality_verified": false,
+    "reach_boundary_coordinate_mapping_verified": false
+  },
+  "name_scope": {
+    "name_verdict_established": false,
+    "representative_name_automatically_applies_to_tributaries": false,
+    "automatic_application": false,
+    "historical_names_used_as_identity_evidence": false
+  },
+  "historical_private_verification": {
+    "all_selected_fragments_decoded": true,
+    "ordered_baseline_positions_and_metadata_checked": true,
+    "original_selected_inventory_join_checked": true,
+    "public_validator_reproduces_these_omitted_input_checks": false
+  },
+  "limits": [
+    "The public validator checks only included summaries, metadata and file hashes. It cannot reproduce omitted geometry, original inventory or production-decoder checks.",
+    "Private verification decoded the complete selected baseline groups without geometry repair, simplification, reordering or reversal.",
+    "Original HydroRIVERS source-coordinate equality and exact source reach-to-rendered-part mapping remain unverified.",
+    "A group includes only the represented baseline fragments, not an independently verified complete catchment network.",
+    "Placeholder names and geometry summaries do not establish geographic names. A mainstem name does not automatically cover tributaries.",
+    "No current deployment check or maximal topology audit was performed."
+  ],
+  "artifacts": {
+    "selected-river-metadata.json": {
+      "bytes": 8481,
+      "sha256": "451d5d3dc0d173acc87730aa7231fe8da8f6ccfbb4820669ea72f5d362b7a9dc"
+    },
+    "selected-inventory-records.json": {
+      "bytes": 2074,
+      "sha256": "b3c787efbff330c0809062a5c8e1a699c24a66b6211030380d708c8fe1d250f4"
+    },
+    "geometry-duplicate-check.json": {
+      "bytes": 4454,
+      "sha256": "8c1a382d61aaa37b52417f55fd978076d329fb0b018ac3a8d7a736ff40974004"
+    },
+    "geometry-publication-rights.json": {
+      "bytes": 669,
+      "sha256": "3cf97a780d10867f47311a09d72fb24149c2715652e5ffb6cf3dea36186f8d93"
+    }
+  }
+}

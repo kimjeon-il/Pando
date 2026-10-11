@@ -1,0 +1,122 @@
+{
+  "schema": "hydro-public-source-observations-v4",
+  "batch": "r25",
+  "scope_aw_ids": [
+    "hydro-system:50442893",
+    "hydro-system:50443269",
+    "hydro-system:50443984"
+  ],
+  "new_external_requests": 0,
+  "distinct_supporting_publications": 1,
+  "distinct_cartographic_identity_publications": 1,
+  "independent_source_groups": 1,
+  "underlying_hydrographic_dataset_independence_verified": false,
+  "formal_registry_verified": false,
+  "registered_overlay_performed": false,
+  "exact_surveyed_mouth_verified": false,
+  "observations": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "title": "Australian Water Resources Assessment 2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "assessment_year": 2012,
+      "publication_year": 2013,
+      "publication_date_precision": "year",
+      "original_acquired_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "reused_original": true,
+      "original_map_pixels_viewed": true,
+      "figures": [
+        {
+          "figure": "13.1",
+          "physical_pdf_page": 600,
+          "printed_chapter_page": 5,
+          "scope": "Major-river and Darwin/Palmerston regional setting and blue river legend; no extra direct target name certified from this view."
+        },
+        {
+          "figure": "13.22",
+          "physical_pdf_page": 622,
+          "printed_chapter_page": 27,
+          "scope": "Adelaide River, Mary River and South Alligator River grey basin callouts provide regional context; basin wording is not whole-river naming evidence."
+        },
+        {
+          "figure": "13.23",
+          "physical_pdf_page": 624,
+          "printed_chapter_page": 29,
+          "scope": "Direct blue Adelaide and Mary river-line wording; numerical flow circles partly overlap Adelaide. Blue East Alligator names the neighboring eastern river, not South Alligator. No usable named-station string is certified."
+        },
+        {
+          "figure": "13.24",
+          "physical_pdf_page": 625,
+          "printed_chapter_page": 30,
+          "scope": "Regional flood-class symbols and same northern river corridors; no additional target name or named station is certified from the smaller lettering."
+        },
+        {
+          "figure": "13.26",
+          "physical_pdf_page": 628,
+          "printed_chapter_page": 33,
+          "scope": "Mary Floodplain System and Kakadu National Park label wetland context. They do not establish exact selected channel names, a complete water boundary, or South Alligator identity."
+        },
+        {
+          "figure": "13.31",
+          "physical_pdf_page": 635,
+          "printed_chapter_page": 40,
+          "scope": "Darwin River urban storage context is separate from the selected Adelaide, Mary and South Alligator candidates; no extra target-name evidence."
+        }
+      ],
+      "observation": "Direct short blue Adelaide and Mary line labels support bounded river identities in the Northern Territory with complete regional path comparison. The South Alligator basin callout remains candidate context without a certified direct label or named station. Mary Floodplain System and Kakadu National Park are wetland context, not selected-reach naming authority. Numeric monitoring and flood symbols are not named stations. All views remain one publication and one source group.",
+      "is_formal_naming_registry": false,
+      "supporting_text_physical_pdf_pages": [
+        599,
+        621,
+        623,
+        626,
+        633
+      ],
+      "tables": []
+    }
+  ],
+  "complete_group_observations": [
+    {
+      "aw_id": "hydro-system:50442893",
+      "geometry_fids": [
+        6672,
+        6673
+      ],
+      "fragment_count": 2,
+      "part_count": 64,
+      "position_count": 321,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete two-fragment selected path starts in the south, runs northwest and north through a narrow inland corridor, bends west in its middle portion, then east and north before a northwestward coastal ending east of Darwin. Direct blue Adelaide river-line wording in Figure 13.23, together with the regional path and coastline, supports Adelaide River in the Northern Territory as a bounded representative system identity. The flow-symbol overlay partly obscures the label; the Adelaide River basin callout supplies context rather than whole-path naming authority. The southern headwater, exact feeder/name transitions, lower floodplain or tidal portions and the generalized coastal ending remain unassigned at reach level."
+    },
+    {
+      "aw_id": "hydro-system:50443269",
+      "geometry_fids": [
+        6676,
+        6677
+      ],
+      "fragment_count": 2,
+      "part_count": 64,
+      "position_count": 391,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete two-fragment selected path begins in the southeast, hooks southwest around its southern end, runs northwest through the long upper and middle corridor, and continues north and northeast through the lower floodplain to the coast. Direct blue Mary river-line wording in Figure 13.23 supports Mary River in the Northern Territory as a bounded representative system identity when compared with the complete regional path. The Mary River basin callout and Mary Floodplain System wetland label are contextual evidence only. The southern headwater, precise river-to-floodplain or distributary name transitions and the modeled coastal continuation remain unassigned; the map does not establish that every selected lower channel is named Mary. This identity is geographically distinct from the previously reviewed Mary River in Queensland."
+    },
+    {
+      "aw_id": "hydro-system:50443984",
+      "geometry_fids": [
+        6678,
+        6679
+      ],
+      "fragment_count": 2,
+      "part_count": 61,
+      "position_count": 311,
+      "entire_selected_baseline_group_viewed": true,
+      "all_selected_branches_considered": true,
+      "independent_observation": "The complete two-fragment selected path begins in the southeast, runs northwest to its western middle bend, turns north and northeast, and then follows a northward lower corridor with a northwestward coastal ending. Its position between the Mary and East Alligator corridors in the Northern Territory is compatible with the South Alligator River geographic candidate. Figure 13.22 supplies a South Alligator River basin callout, but no legible direct South Alligator river-line label or named station was established in the inspected regional maps. The blue East Alligator wording names a different river, and the Kakadu National Park wetland label does not name this selected group. The available-source and complete-path review is complete, but representative naming remains on hold; headwater, floodplain and coastal reach names remain unassigned."
+    }
+  ],
+  "source_limit": "Regional map evidence supports two bounded representative identities and one completed naming-scope hold. Exact headwater names, river/floodplain/distributary transitions and coastal name coverage remain unresolved. Original maps and full paths are omitted, so public validation cannot replay visual interpretation. No usable named-station identity is certified."
+}

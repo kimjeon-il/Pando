@@ -1,0 +1,223 @@
+{
+  "schema": "hydro-independent-review-input-pins-v1",
+  "batch": "r02",
+  "checked_at_utc": "2026-10-09T11:45:06.418951+00:00",
+  "source_ids": [
+    "1159115267",
+    "1159123531",
+    "1159107099"
+  ],
+  "package_inputs": [
+    {
+      "file": "geometry-component-manifest.json",
+      "bytes": 1474,
+      "sha256": "cc2a43c37e543b780e8d326a7ce4fc8d7aa439eb47c9beb6afc4ebe00f6c73bd"
+    },
+    {
+      "file": "zhari-findings.json",
+      "bytes": 10494,
+      "sha256": "2fafa6b0b8552cbd70b61a3f26be661b68063a223141a0eafb1e08018f61f3cd"
+    },
+    {
+      "file": "zhari-source-evidence.json",
+      "bytes": 13600,
+      "sha256": "9942e99e728592a374a3581a53073348afd36bd299a04e47727fade78e224af8"
+    },
+    {
+      "file": "northern-lake-findings.json",
+      "bytes": 8467,
+      "sha256": "887908d1f7771f96b113e4992f7ed4c82674f1367eb1c6edf2c0d11f5a8c232a"
+    },
+    {
+      "file": "northern-lake-source-evidence.json",
+      "bytes": 8540,
+      "sha256": "fe95965cb59868d723773ba882063f4a3bdf95b766298771c8e8fc727b0547a8"
+    },
+    {
+      "file": "tres-irmaos-findings.json",
+      "bytes": 9218,
+      "sha256": "9d1ac02d619e65b488efb2019bd12afdfa239e9469ed79de3dd5e5fd72db55d0"
+    },
+    {
+      "file": "tres-irmaos-source-evidence.json",
+      "bytes": 11554,
+      "sha256": "bab9ff409131b0c35b759e63116631cb17943ea21daa05113b5287d33f806836"
+    },
+    {
+      "file": "selected-lake-geometries.geojson",
+      "bytes": 16031,
+      "sha256": "8ea152040c35d213855c96e2b07d1bd61b3be66eda3157d894f05901929adedb"
+    },
+    {
+      "file": "selected-baseline-rendered-geometries.geojson",
+      "bytes": 9839,
+      "sha256": "778cb5fab315b001992400910c4ce3d50684fe1549eae2b12a78287a14c9ced2"
+    },
+    {
+      "file": "geometry-reference.json",
+      "bytes": 23713,
+      "sha256": "d24e7ea22531cf9aa53537905845b858340aeb7e8bafe28052cfd8c41bfb034e"
+    },
+    {
+      "file": "selected-pack-receipts.json",
+      "bytes": 543,
+      "sha256": "4cc36339dbecbb245a4c4fdc0277a69157b4a52c27a1812cf1feecd0b9944657"
+    },
+    {
+      "file": "geometry-request-receipts.json",
+      "bytes": 10608,
+      "sha256": "316a614a399ad3b21eefcc2fb46272147e56cc51946bf3e06fb4d624a084cc84"
+    },
+    {
+      "file": "geometry-publication-rights.json",
+      "bytes": 1217,
+      "sha256": "a1a6736036b71f03669abcd5133bad8226e9eb806768529ff5016ea4da85d75a"
+    },
+    {
+      "file": "geometry-validation.json",
+      "bytes": 2404,
+      "sha256": "1070a7ca9ae138971b603f2632f445704fee8a13d184574e0b606f9aa9247b3d"
+    },
+    {
+      "file": "geometry-README.md",
+      "bytes": 6076,
+      "sha256": "6cc27ccc430bf152f05d4cc06eb552250be29fae48dc6ac5be5ad719cd15143e"
+    },
+    {
+      "file": "validate-geometry-reference.py",
+      "bytes": 12263,
+      "sha256": "8ff03ec1a64c798ce566ce1aadc96b5676d2619349c58f6a723f11e0ec264399"
+    },
+    {
+      "file": "test-geometry-reference.py",
+      "bytes": 5873,
+      "sha256": "22387d3b384052ba6f8403560fe5a03022666dcd44c7d1e908b62ca2d23a9395"
+    },
+    {
+      "file": "extract-baseline-geometries.mjs",
+      "bytes": 4030,
+      "sha256": "020a337934da59aabb7ead301fc0c40ad32471209e0f8eb23b932f03c01bb6a5"
+    }
+  ],
+  "original_sources": [
+    {
+      "original_id": "ZHARI-ALI-WATER-2018",
+      "url": "https://sl.al.gov.cn/info/1903/2872.htm",
+      "bytes": 51769,
+      "sha256": "70cd65fdbd30efde2f3e3c5c914c2036560821c0d9e2cae534b668616a413695",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:33:17.874447+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "ZHARI-ALI-2023",
+      "url": "https://www.al.gov.cn/info/1610/63386.htm",
+      "bytes": 50425,
+      "sha256": "1cc467663015d2b6c30d0164abee651b558fd481ef9bd30e7e46f993c0ee3130",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:32:50.903191+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "ZHARI-NIGLAS-2021",
+      "url": "https://niglas.cas.cn/xwdt_1_1/yjjz/202112/t20211224_6326926.html",
+      "bytes": 29419,
+      "sha256": "62d97cb07613f0161404581252f1eae0c9d3351f959ab1c3789306a4f710e96f",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:32:45.325023+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "ZHARI-NIGLAS-2021-FIG2",
+      "url": "https://niglas.cas.cn/xwdt_1_1/yjjz/202112/W020211224311928164670.png",
+      "bytes": 191385,
+      "sha256": "68fe99e5fc8ab1a8d6a106477d6f5cd67a50f4b94f6c506859ab3acc09d98a5c",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:33:11.941552+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "ZHARI-SUN-2021",
+      "url": "https://www.frontiersin.org/journals/earth-science/articles/10.3389/feart.2021.640553/full",
+      "bytes": 919589,
+      "sha256": "922d6b2672226bcd15945f9dbc1b05da85f11b4a3fe6a4107933ff284f8eec97",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:34:10.081241+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "ZHARI-SUN-2021-FIG1",
+      "url": "https://www.frontiersin.org/files/Articles/640553/xml-images/feart-09-640553-g001.webp",
+      "bytes": 1789392,
+      "sha256": "cc55e4f15df34a7f9bde327c8e9da1e7dedcdbeefb7a3997ce8f0525549e664d",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:34:36.179842+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "ZHARI-SUN-2021-FIG11",
+      "url": "https://www.frontiersin.org/files/Articles/640553/xml-images/feart-09-640553-g011.webp",
+      "bytes": 224252,
+      "sha256": "f44602bc9a97f94f75d110c0e56459035a80b48050b74bc4ae881aed3e4b6cfe",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:36:10.916596+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "TRES-IRMAOS-TIJOA-RSA-2022",
+      "url": "https://www.tijoa.com/assets/pdf/relatorios/RSA_TIJOA_2022.pdf",
+      "bytes": 2057438,
+      "sha256": "cb2db62c60d2e0a9d367367adbc9ab083acc5654f4284859001fbc833e008e23",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:34:27.761514+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "TRES-IRMAOS-ONS-TIETE-2022",
+      "url": "https://www.ons.org.br/Paginas/Noticias/20221229-Nota-de-Esclarecimento---Opera%C3%A7%C3%A3o-Rio-Tiet%C3%AA.aspx",
+      "bytes": 156287,
+      "sha256": "23280e15df42ec872a6c83ab89ef1f7f75c707ed7378c63ed6629043f71e078b",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:33:07.621029+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "NLUIS-85B-1975",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_85b.jpg",
+      "bytes": 12504648,
+      "sha256": "58bf7697ea15924badb0f3c573e96ad82ef6d51e181ee483459be8a7d414ed49",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:35:56.108022+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "NLUIS-85B-1975-INDEX",
+      "url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "bytes": 143186,
+      "sha256": "85aa748f994da291132c7dc7142db356a770af60625250cf993affee7ca6acdc",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:35:32.468939+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "GNWT-OILGAS-2023-F5",
+      "url": "https://www.iti.gov.nt.ca/sites/iti/files/1432-0-GNWT-ITI-OilGas-AR2023_ENGLISH.pdf",
+      "bytes": 12475738,
+      "sha256": "c62b3e161093fb0bcbf51b4eadb2a6a0b8ab1073660c46b556077989afb9b070",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:33:38.096819+00:00",
+      "published_raw": false
+    },
+    {
+      "original_id": "GNWT-BISON-216-2012-F2",
+      "url": "https://www.gov.nt.ca/ecc/sites/ecc/files/216_manuscript.pdf",
+      "bytes": 7726804,
+      "sha256": "e29c78eb7dff2d7c26c116b384885f8afbcb02efc9835b77c4c306d2e414ba26",
+      "status": 200,
+      "retrieved_at_utc": "2026-10-09T11:33:45.742611+00:00",
+      "published_raw": false
+    }
+  ],
+  "geometry_originals": "Original geometry, immutable decoder inputs, selected binary packs and historical inventory inputs are separately pinned by geometry-reference.json.",
+  "scope": "Only these three new IDs; no live-deployment verification. Original map and article bodies remain outside the public package."
+}

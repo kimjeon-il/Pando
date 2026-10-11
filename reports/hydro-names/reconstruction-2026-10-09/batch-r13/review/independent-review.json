@@ -1,0 +1,196 @@
+{
+  "schema": "hydro-independent-lake-review-v4",
+  "reviewed_at_utc": "2026-10-09T16:10:43.964138+00:00",
+  "scope_aw_ids": [
+    "lakes_base:1159110463",
+    "lakes_base:1159107033",
+    "lakes_base:1159110475"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Historical independent review inspected the acquired NOAA overview and CPRA regional maps, read relevant state-plan body text, viewed every complete source and baseline outline and assessed their regional correspondence. Current public validation checks the included records and geometries only.",
+  "current_live_deployment_checked": false,
+  "historical_verdicts_restored": false,
+  "geometry_modified": false,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0,
+  "prior_distinct_targets": 36,
+  "current_batch_increment": 3,
+  "cumulative_distinct_targets": 39,
+  "duplicate_targets": 0,
+  "current_batch_full_feature_correspondence_reviews_completed": 3,
+  "current_batch_source_limited_targets": 0,
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821"
+  ],
+  "pending_access_reassessment_performed": false,
+  "preserved_scope_hold_ids": [
+    "lakes_base:1159109497",
+    "lakes_base:1159123531",
+    "lakes_base:1159123567",
+    "lakes_base:1159110371",
+    "lakes_base:1159109471",
+    "lakes_base:1159111751",
+    "lakes_base:1159112207"
+  ],
+  "new_scope_hold_ids": [
+    "lakes_base:1159110475"
+  ],
+  "cumulative_count_scope": "Recorded fresh research findings including scope holds and carried-forward access gaps, not verified scalar names. Prior36 membership and follow-up flags were carried forward without source or geometry reaudit.",
+  "findings": [
+    {
+      "aw_id": "lakes_base:1159110463",
+      "source_id": "1159110463",
+      "logical_fid": 4114,
+      "geometry_fids": [
+        15489
+      ],
+      "position_count": 34,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Calcasieu Lake",
+      "directly_supported_name_forms": [
+        "Calcasieu Lake"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "noaa_calcasieu_overview",
+        "louisiana_celcp2011"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_named_water_shapes_compared": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "freshwater_classification_verified": false,
+      "measured_salinity_verified": false,
+      "compound_named_waterbody_required_by_evidence": false,
+      "supported_name_scope": "The full narrow northern reach, widening eastern basin, southern end and western lower lobe broadly correspond to the NOAA Calcasieu Lake overview. The northern cap crosses finer upstream detail; the long western boundary generalizes ship-channel and marsh margins. The blue project outline is not the lake boundary.",
+      "coastal_context": "Tidally influenced estuarine lower Calcasieu River system; the 2011 plan describes the lower river from Lake Charles to the gulf as an estuary subject to tides.",
+      "limits": [
+        "The NOAA overview supplies cartographic identity; the independent May 2011 state plan supports the name and tidal-estuarine context.",
+        "May 2022 is the NOAA compilation/final-review month, not a verified publication date.",
+        "The complete generalized footprint was inspected. Exact northern, channel and marsh naming partitions, survey shoreline and formal registry status remain unverified."
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159107033",
+      "source_id": "1159107033",
+      "logical_fid": 3858,
+      "geometry_fids": [
+        15233
+      ],
+      "position_count": 26,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Lake Maurepas",
+      "directly_supported_name_forms": [
+        "Lake Maurepas"
+      ],
+      "research_category": "supported_generalized_water_identity",
+      "source_research_category": "supported_generalized_water_identity",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "actual_named_water_shapes_compared": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "freshwater_classification_verified": false,
+      "measured_salinity_verified": false,
+      "compound_named_waterbody_required_by_evidence": false,
+      "supported_name_scope": "The complete rounded ring corresponds to the mapped Lake Maurepas immediately west of Lake Pontchartrain. Its broad southern curve, western side and narrower north/northeast extent were considered. Fine west-bank indentation and channels are unresolved at this scale; the target does not reach the separate Pontchartrain basin.",
+      "coastal_context": "Coastal receiving-basin setting with freshwater inflow and marine-water pathways, as described for Maurepas, Pontchartrain and Borgne in the 2011 plan.",
+      "limits": [
+        "The CPRA FY 2024 plan supplies one cartographic publication; repeated map panels are not independent sources.",
+        "The URL date is not a verified printed publication date. The May 2011 state plan supplies basin context, not exact boundary confirmation.",
+        "This is generalized regional correspondence. Fine shoreline, channel boundaries and measured salinity are unverified."
+      ]
+    },
+    {
+      "aw_id": "lakes_base:1159110475",
+      "source_id": "1159110475",
+      "logical_fid": 4115,
+      "geometry_fids": [
+        15490
+      ],
+      "position_count": 41,
+      "polygon_count": 1,
+      "ring_count": 1,
+      "candidate_name": "Lake Salvador",
+      "directly_supported_name_forms": [
+        "Lake Salvador"
+      ],
+      "research_category": "whole_polygon_scope_hold",
+      "source_research_category": "whole_polygon_scope_hold",
+      "source_keys": [
+        "cpra_fy2024_plan",
+        "louisiana_celcp2011"
+      ],
+      "source_access_limited": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": true,
+      "actual_named_water_shapes_compared": true,
+      "source_and_rendered_ordered_coordinates_verified": true,
+      "whole_feature_scalar_name": null,
+      "scalar_product_name": null,
+      "name_ko": null,
+      "name_en": null,
+      "name_original": null,
+      "automatic_application": false,
+      "scalar_product_name_approved": false,
+      "whole_polygon_name_application_cleared": false,
+      "formal_registry_verified": false,
+      "exact_shoreline_verified": false,
+      "label_overlap_alone_used_as_identity": false,
+      "freshwater_classification_verified": false,
+      "measured_salinity_verified": false,
+      "compound_named_waterbody_required_by_evidence": null,
+      "supported_name_scope": "The whole silhouette is visible on the acquired CPRA map: a northern lobe, narrowed connection, broad southern basin and southwestern extension. Lake Salvador is readable over the southern basin. The unlabelled northern lobe and fine connections prevent applying that name uniformly to the whole polygon. This is a completed bounded scope assessment with follow-up, not a demonstrated multi-name union.",
+      "coastal_context": "Coastal Barataria-basin context. The 2011 plan describes marsh habitats spanning fresh to saline conditions; it does not measure salinity across this polygon.",
+      "limits": [
+        "The acquired CPRA map covers the entire outline, including the northern lobe; compressed resolution and project overlays limit naming detail.",
+        "Six unavailable auxiliary publications were not used as evidence. Their failure does not erase the complete footprint visible in the acquired source.",
+        "No second named constituent, exhaustive union or precise name-boundary partition was established. Unassigned means unresolved in this assessment, not unnamed in the world."
+      ],
+      "constituent_list_exhaustive": false,
+      "exact_name_partition_established": false,
+      "second_named_constituent_established": false,
+      "candidate_name_role": "main_southern_basin_association_not_whole_polygon_name",
+      "unassigned_region": "Northern lobe, central connection and fine southwestern/coastal extensions.",
+      "follow_up_scope": "Resolve the unassigned naming extents before any whole-feature name application or geometry change."
+    }
+  ],
+  "historical_review": {
+    "performed_at_utc": "2026-10-09T16:10:43.964138+00:00",
+    "full_source_review_completed": true,
+    "original_source_material_included": false,
+    "historical_results_recomputed_by_public_validator": false,
+    "scope": "Completed bounded whole-feature assessments include a Salvador naming-scope hold. Completion does not assert a resolved scalar name or exhaustive constituent partition."
+  },
+  "included_evidence_limit": "The included files retain factual observations, bibliographic references and selected public-domain lake geometry. Original publications and inspection materials are not included. Current offline validation checks only included facts and geometry; it cannot reproduce omitted source inspection or visual name-scope judgments."
+}

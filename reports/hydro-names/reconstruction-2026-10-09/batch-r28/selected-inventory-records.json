@@ -1,0 +1,62 @@
+{
+  "schema": "selected-river-inventory-summary-public-v1",
+  "scope_aw_ids": [
+    "hydro-system:50691388",
+    "hydro-system:50738894"
+  ],
+  "scope_system_ids": [
+    "50691388",
+    "50738894"
+  ],
+  "records": [
+    {
+      "aw_id": "hydro-system:50691388",
+      "category": "river",
+      "system_id": "50691388",
+      "logical_fid": 2023,
+      "geometry_fids": [
+        6979
+      ],
+      "geometry_count": 1,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50691388"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        152.691667,
+        -29.06875,
+        153.592891,
+        -28.354167
+      ],
+      "minimum_stage": 3,
+      "source_reach_count": 30
+    },
+    {
+      "aw_id": "hydro-system:50738894",
+      "category": "river",
+      "system_id": "50738894",
+      "logical_fid": 2085,
+      "geometry_fids": [
+        7043
+      ],
+      "geometry_count": 1,
+      "classification": "no_meaningful_name_in_deployed_data",
+      "display_names": [
+        "미명명 수계 50738894"
+      ],
+      "has_korean_display": false,
+      "bbox": [
+        152.20625,
+        -31.48125,
+        152.916629,
+        -31.139583
+      ],
+      "minimum_stage": 3,
+      "source_reach_count": 29
+    }
+  ],
+  "selected_inventory_summary_only": true,
+  "original_inventory_rows_included": false,
+  "historical_names_used_as_identity_evidence": false
+}

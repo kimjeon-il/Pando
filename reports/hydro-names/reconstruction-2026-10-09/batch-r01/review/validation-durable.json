@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "frozen_input_count": 5,
+  "geometry_records": [
+    {
+      "source_id": "1159109497",
+      "fid": 15421,
+      "logical_fid": 4046,
+      "source_index": 228,
+      "positions_including_closure": 173,
+      "all_ordered_positions_match_quantized_baseline": true,
+      "maximum_absolute_coordinate_delta_degrees": 4.98178913233005e-07
+    },
+    {
+      "source_id": "1159106899",
+      "fid": 15218,
+      "logical_fid": 3843,
+      "source_index": 25,
+      "positions_including_closure": 104,
+      "all_ordered_positions_match_quantized_baseline": true,
+      "maximum_absolute_coordinate_delta_degrees": 4.957185808507347e-07
+    },
+    {
+      "source_id": "1159107065",
+      "fid": 15236,
+      "logical_fid": 3861,
+      "source_index": 43,
+      "positions_including_closure": 105,
+      "all_ordered_positions_match_quantized_baseline": true,
+      "maximum_absolute_coordinate_delta_degrees": 4.988581210341181e-07
+    }
+  ],
+  "total_positions_including_closure": 382,
+  "original_source_feature_equality_checked": false,
+  "source_input_checks": [],
+  "historical_checks": [],
+  "local_original_checks": [],
+  "complete_ogc_topology_test": false,
+  "current_live_deployment_checked": false
+}

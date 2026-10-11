@@ -1,0 +1,167 @@
+{
+  "schema": "hydro-own-source-evidence-v1",
+  "target_aw_id": "lakes_base:1159106899",
+  "created_at_utc": "2026-10-09T10:59:38.698990+00:00",
+  "content_type": "Our factual extraction and source-acquisition receipts. Paraphrases are not raw original documents.",
+  "sources": [
+    {
+      "id": "BECHAROF-FWS-ABOUT",
+      "url": "https://www.fws.gov/refuge/becharof/about-us",
+      "title": "Becharof National Wildlife Refuge: About Us",
+      "agency": "U.S. Fish and Wildlife Service",
+      "source_date": null,
+      "source_date_note": "No publication or revision date displayed in the inspected page.",
+      "acquisition": {
+        "url": "https://www.fws.gov/refuge/becharof/about-us",
+        "status": 200,
+        "final_url": "https://www.fws.gov/refuge/becharof/about-us",
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 109167,
+        "sha256": "e6e8532d29acb75be11f0565050cab232ebd21a200711120c3ff73212e9edaef",
+        "retrieved_at_utc": "2026-10-09T10:52:07.484702+00:00"
+      },
+      "read_location": "Original page sections Becharof Lake, Becharof Wilderness, and Kanatak National Recreation Trail.",
+      "own_factual_extraction": "The refuge describes Becharof Lake as approximately 300,000 acres. It places Severson Peninsula between Island Arm and the main open water. Ruth Lake and its river are discussed separately along the Kanatak route. This supports the lake name and arm relationship, not a surveyed shoreline.",
+      "direct_quote": null,
+      "original_cached_locally": true,
+      "raw_original_in_publishable_package": false
+    },
+    {
+      "id": "BECHAROF-FWS-GUIDE-2012",
+      "url": "https://www.fws.gov/sites/default/files/documents/2024-04/3.pdf",
+      "title": "Guide Use Areas within Alaska Peninsula and Becharof NWRs",
+      "agency": "U.S. Fish and Wildlife Service, Region 7, Division of Realty and Natural Resources",
+      "author": "Scott McGee (official media record)",
+      "source_date": "2012-03-07",
+      "acquisition": {
+        "url": "https://www.fws.gov/sites/default/files/documents/2024-04/3.pdf",
+        "status": 200,
+        "final_url": "https://www.fws.gov/sites/default/files/documents/2024-04/3.pdf",
+        "content_type": "application/pdf",
+        "bytes": 2153038,
+        "sha256": "5d37dfd13f863be39cf4d1c0de30dd14476e85c2e50536ad2f6ed7d3fb54e117",
+        "request_started_at_utc": "2026-10-09T10:55:03.636828+00:00",
+        "retrieved_at_utc": "2026-10-09T10:55:08.791821+00:00"
+      },
+      "rights": {
+        "official_media_url": "https://www.fws.gov/media/guide-use-areas-within-alaska-peninsula-and-becharof-nwrs",
+        "license_field": "Media Usage Rights/License",
+        "short_exact_excerpt": "Public Domain",
+        "license_page_acquisition": {
+          "url": "https://www.fws.gov/media/guide-use-areas-within-alaska-peninsula-and-becharof-nwrs",
+          "status": 200,
+          "final_url": "https://www.fws.gov/media/guide-use-areas-within-alaska-peninsula-and-becharof-nwrs",
+          "content_type": "text/html; charset=utf-8",
+          "bytes": 86955,
+          "sha256": "ac036e6975b7120d0caf2e2a32bd55eb444242405b3de027612596c6fcda2d5b",
+          "request_started_at_utc": "2026-10-09T10:55:08.792029+00:00",
+          "retrieved_at_utc": "2026-10-09T10:55:14.477298+00:00"
+        },
+        "scope": "The linked 3.pdf guide-use-area map, not any other FWS publication."
+      },
+      "read_location": {
+        "pdf_page_1_based": 1,
+        "map_panel": "Northeastern end of peninsula: BCH 02 main basin and BCH 04 southeast arm.",
+        "full_lake_crop_on_1400_by_1050_overview_pixels": [
+          835,
+          270,
+          1090,
+          475
+        ],
+        "crop_coordinates_note": "Pixel crop locator is reproducibility guidance, not geographic registration."
+      },
+      "own_factual_extraction": "The map labels Becharof Lake across its broad basin, with a connected southeast arm beyond Severson Peninsula. Islands are visible in the arm and near the southern main shore. Upper and Lower Ugashik lakes lie separately southwest; smaller lakes and Pacific bays remain distinct. Map scale is 1:450,000; projection is Albers Equal Area, NAD83, central meridian 154 W, standard parallels 55 N/65 N, origin 50 N. The basemap is USGS 1:250,000 topographic mapping. Peripheral graticule and the Naknek comparison sheet support regional placement. No numerical shoreline registration was performed.",
+      "independence_from_stopped_publications": "2012 guide-area map has its own title, compiler, purpose, date and original asset. It predates the stopped 2016 WRIA map and is not USGS OFR 97-127.",
+      "rights_cleared_publishable_candidate": {
+        "bytes": 2153038,
+        "sha256": "5d37dfd13f863be39cf4d1c0de30dd14476e85c2e50536ad2f6ed7d3fb54e117",
+        "suggested_package_relative_path": "sources/becharof-fws-guide-use-areas-2012.pdf"
+      },
+      "raw_original_in_publishable_package": false
+    },
+    {
+      "id": "BECHAROF-ALASKA-RDI-2017",
+      "url": "https://www.blm.gov/sites/default/files/docs/2025-08/AK_Egegik%20Becharof%20Ruth_App_12-28-17.pdf",
+      "title": "Egegik River & Becharof Lake System: RDI application",
+      "agency": "State of Alaska Department of Natural Resources; official original hosted by U.S. Bureau of Land Management",
+      "source_date": "2017-12-28",
+      "case_identifier": "FF-94269 / AA094269",
+      "acquisition": {
+        "url": "https://www.blm.gov/sites/default/files/docs/2025-08/AK_Egegik%20Becharof%20Ruth_App_12-28-17.pdf",
+        "status": 200,
+        "final_url": "https://www.blm.gov/sites/default/files/docs/2025-08/AK_Egegik%20Becharof%20Ruth_App_12-28-17.pdf",
+        "content_type": "application/pdf",
+        "bytes": 26293421,
+        "sha256": "514f82d7e0aab8ddaef4f40f2283ea214308343db7d3ddaee15317af2976a790",
+        "request_started_at_utc": "2026-10-09T10:53:10.171376+00:00",
+        "retrieved_at_utc": "2026-10-09T10:53:14.515043+00:00"
+      },
+      "read_location": {
+        "pdf_pages_1_based": [
+          1,
+          2,
+          8,
+          11,
+          17,
+          25,
+          26
+        ],
+        "map_locators": "Page 26: Naknek, Alaska, 1952 sheet excerpt, scale 1:250,000; bottom edge 58 N, longitudes 157 W to 156 W. Page 25: Ugashik, Alaska, 1963, minor revisions 1975, cropped excerpt."
+      },
+      "own_factual_extraction": "The application lists Becharof Lake, Egegik River, Ruth Lake, and Ruth Lake outlet separately. Its discussion treats Island Arm within Becharof Lake. The Naknek excerpt labels the lake along 58 N and shows its northern shore between 157 W and 156 W. The Ugashik excerpt is cropped and cannot alone establish the whole perimeter. The application seeks a survey waiver; it is not used as precise shoreline geometry or proof of a present legal determination.",
+      "independence_from_stopped_publications": "Read material is the State application and older USGS sheet excerpts attached to a 1984 BLM memorandum. Neither is the stopped 1997 gas-seep report or 2016 WRIA map.",
+      "direct_quote": null,
+      "raw_original_in_publishable_package": false,
+      "copyright_note": "The 53-page compilation includes third-party historical attachments; raw compilation and extracts remain outside the publishable folder."
+    }
+  ],
+  "access_events": [
+    {
+      "url": "https://www.fws.gov/r7/nwr/Realty/data/Maps/WaterResources/Becharof.pdf",
+      "first_tool_result": "Web open: 400 Content length is too large (21,544,967). This was a tool size limit, not authorization denial.",
+      "terminal_receipt": {
+        "url": "https://www.fws.gov/r7/nwr/Realty/data/Maps/WaterResources/Becharof.pdf",
+        "request_method": "GET via Python urllib.request.urlopen",
+        "result": "HTTP Error 403: Forbidden",
+        "observed_at_utc": "2026-10-09T10:52:11Z",
+        "observed_at_basis": "response-observation time; HTTP request did not preserve an individual event timestamp",
+        "prior_attempt": "web open returned 400 content length too large, not permission denial",
+        "action": "Stop underlying publication and all equivalents; no alternate route retrieval attempted after 403",
+        "body_acquired": false
+      },
+      "resource_scope": "Becharof WRIA map, all equivalent figures, formats, hosts, tools and mirrors.",
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://pubs.usgs.gov/publication/ofr97127",
+      "first_tool_result": "Web open: Cache miss.",
+      "terminal_receipt": {
+        "url": "https://pubs.usgs.gov/publication/ofr97127",
+        "request_method": "GET via Python urllib.request.urlopen",
+        "result": "HTTP Error 403: Forbidden",
+        "observed_at_utc": "2026-10-09T10:52:33Z",
+        "observed_at_basis": "response-observation time; HTTP request did not preserve an individual event timestamp",
+        "prior_attempt": "web open returned Cache miss, not permission denial",
+        "action": "Stop underlying publication and all equivalents; no alternate route retrieval attempted after 403",
+        "body_acquired": false
+      },
+      "resource_scope": "USGS Open-File Report 97-127, its PDF, figures, and all equivalents.",
+      "used_as_evidence": false
+    },
+    {
+      "url": "https://www.blm.gov/sites/default/files/docs/2025-08/AK_Egegik%20Becharof%20Ruth_App_12-28-17.pdf",
+      "first_tool_result": "Web open: 400 Content length is too large (26,293,421).",
+      "resolution": "Exact URL acquired directly with HTTP 200; no prior denial applied to this publication."
+    }
+  ],
+  "access_policy": {
+    "file": "access-policy-at-reconstruction.json",
+    "original_95_restrictions_fully_recovered": false,
+    "known_exact_and_resource_family_stops_preserved": true,
+    "post_403_retrieval_of_stopped_resource_or_equivalent": false,
+    "login_gate_or_captcha_used": false,
+    "search_snippets_used_as_final_evidence": false
+  },
+  "quote_policy": "No long quotations. Only the two-word license value is intentionally quoted. Official titles, proper names and source identifiers serve attribution.",
+  "no_application": true
+}

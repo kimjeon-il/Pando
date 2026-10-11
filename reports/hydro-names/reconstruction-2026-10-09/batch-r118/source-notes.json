@@ -1,0 +1,714 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r118",
+  "sources": [
+    {
+      "source_key": "ign250k-r118-61543259",
+      "title": "Cartas topográficas 1:250.000, mosaico: Chillar–Benito Juárez–El Chapar–Juan N. Fernández–Lobería–Necochea corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Composite historical sheets; individual sheet dates not established.",
+      "material_read": "Three overlapping original bounded map views: head, middle and lower corridor.",
+      "limits": "White missing-content patches affect part of the lower river and the actual terminal; these are covered by the separately acquired 1:500,000 original. Complete surrounding-landscape coverage does not itself establish the northern headward hydrological connection.",
+      "use_notice": "Retained original service capabilities state public access and reuse under Article 2 of Argentine Law 27.275. Source rasters and all working derivatives remain private under this research boundary."
+    },
+    {
+      "source_key": "ign100k-r118-61543259",
+      "title": "Cartas topográficas 1:100.000, mosaico: Pampa de Juárez headward drainage west of Benito Juárez",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; individual sheet dates not established.",
+      "material_read": "One original bounded headward map covering the northern selected head, La Gogita–La Filomena and the southern marsh/channel transition to Route 3.",
+      "limits": "Shows depressions and short or discontinuous drainage marks in the northern plain, without establishing the complete selected receiving link. This is not a current hydraulic-operation survey."
+    },
+    {
+      "source_key": "ign500k-r118-61543259",
+      "title": "Mosaico cartas 1:500.000, febrero 2026 service layer: Pampa de Juárez–Quequén Grande–Puerto Quequén",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Service layer named febrero_2026; constituent survey and revision dates not established.",
+      "material_read": "One continuous original bounded overview covering the whole selected route and coast; lower junctions and actual river-mouth setting read at original image resolution.",
+      "limits": "Generalized map supports river corridor, principal junctions and terminal. It does not resolve the unnamed northern connection through diffuse-drainage country."
+    },
+    {
+      "source_key": "munguia-campo2003",
+      "title": "Características hidro-geomorfológicas de la cuenca del arroyo Pescado Castigado, Buenos Aires, Argentina",
+      "authors": [
+        "Silvia I. Munguía",
+        "Alicia M. Campo de Ferreras"
+      ],
+      "publisher": "Universidad de Murcia, Papeles de Geografía 38 (2003), pp.137–150; authors affiliated with Universidad Nacional del Sur",
+      "year": 2003,
+      "official_url": "https://revistas.um.es/geografia/article/view/46021",
+      "original_pdf_url": "https://revistas.um.es/geografia/article/download/46021/44061/198581",
+      "material_read": "Publisher landing page and PDF prose, especially pp.138–140 and 147–149; no figure pixels obtained.",
+      "supports": "The authors used IGM cartography and field checks. Their prose distinguishes diffuse/seasonal headward drainage, a locally unintegrated drainage area and the defined Pescado Castigado channel joining Quequén Grande.",
+      "limits": "Historical catchment study, not proof of the selected northern receiving link. Figure 2 could not be visually acquired and is not cartographic evidence.",
+      "use_notice": "Publisher page states copyright retained by Universidad de Murcia and electronic publication under CC BY-NC 4.0. No original or derivative figure is redistributed."
+    },
+    {
+      "source_key": "r118-sgc-agc2020-5-08",
+      "title": "Plancha 5–08 del Atlas Geológico de Colombia 2020",
+      "authors": "Gómez, Jorge, and Montes, Nohora Emma, compilers",
+      "publisher": "Servicio Geológico Colombiano, Bogotá",
+      "year": 2020,
+      "edition": "Third atlas edition",
+      "scale": "1:500,000",
+      "evidence_type": "Original cartography visually inspected",
+      "reading_scope": "Complete relevant northern headward corridor, four selected mainstem fragments, all three selected tributary fragments, material junctions, and Pacific coastal terminal on the single sheet. Detail views were read from the same complete original.",
+      "evidence_role": "Principal geographic correspondence and reach-label evidence",
+      "cartographic_provenance": "The original credits IGAC 2006 Base cartográfica 500K, scale1:500,000. No independent acquisition of that underlying publication is claimed.",
+      "source_use_notice": "The sheet bears © 2020 Servicio Geológico Colombiano. Original map and working derivatives are not redistributed.",
+      "scope_limit": "Generalized regional cartography. It supports component/corridor relationships, not exact model vertices, channel banks, all small-stream names, current registry status or an official river length.",
+      "acquisition_outcome": "Sole original acquisition returned HTTP 200 application/pdf and completed; original map pixels were inspected.",
+      "official_url": "https://www2.sgc.gov.co/MGC/Documents/Atlas_2020/PDF/Plancha%205-08%20AGC%202020.pdf"
+    },
+    {
+      "source_key": "r118-iiap-pacific-plan2013",
+      "title": "Plan Estratégico de la Macrocuenca del Pacífico: Informe Final",
+      "authors": "Instituto de Investigaciones Ambientales del Pacífico (IIAP)",
+      "publisher": "IIAP; Ministry-hosted original",
+      "year": 2013,
+      "date": "June 2013",
+      "pages": "Printed 45–46 / PDF pages 45–46; section 3.1.2.3, Table 7 and Figure 6",
+      "evidence_type": "Original institutional prose and original basin-figure pixels inspected",
+      "reading_scope": "Section3.1.2.3 describes the Alto del Buey headward setting, the distinct Dubaza, Nauca and Pepé subbasins, and Catrú within Dubaza. Figure 6 delineates named subbasins.",
+      "evidence_role": "Bounded headward/subbasin context and independent confirmation that tributary names are distinct",
+      "scope_limit": "Figure 6 is a basin-polygon overview, not a channel map. It is not used to establish individual selected connectors or to convert basin association into a reach name. Printed area/elevation figures are not adopted.",
+      "source_use_notice": "Institutional attribution preserved; no redistribution permission is inferred from official hosting.",
+      "acquisition_outcome": "Reader prose and the sequential original PDF both opened normally; original-file HTTP 200. Figure 6 was rendered locally from the completed PDF.",
+      "official_url": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/01-02-Linea-Base-y-Diagnostico-1.pdf"
+    },
+    {
+      "source_key": "r118-sina-state2011-tomo2",
+      "title": "Informe del Estado del Medio Ambiente y los Recursos Naturales Renovables 2011. Tomo 2: Estado de la Biodiversidad, de los ecosistemas continentales, marinos, costeros y avances en el conocimiento",
+      "authors": "IDEAM, IAvH, Invemar, SINCHI and IIAP",
+      "publisher": "IDEAM, Bogotá",
+      "year": 2013,
+      "report_year": 2011,
+      "pages": "Printed 179 / PDF page 180, Río Baudó paragraph; use notice at PDF page 4",
+      "evidence_type": "Bounded original institutional prose",
+      "reading_scope": "Describes the Alto del Buey origin, north–south course, westward turn at the Pepé confluence and Pacific outlet through the Alto/Bajo Baudó setting. Lists distinct tributaries.",
+      "evidence_role": "Independent bounded prose support for the principal course and terminal relationship",
+      "scope_limit": "Prose is not a substitute for the cartographic review. Published river lengths, basin areas and elevation estimates are not treated as retained model metadata or independently reconciled official measurements.",
+      "source_use_notice": "Free distribution; all rights reserved. Text use requires source attribution, and total/partial reproduction requires IDEAM authorization. This is a reproduction notice, not a reading prohibition. No original pages or figures are redistributed.",
+      "acquisition_outcome": "Web reader reported 400 Content length is too large: 33489397. One sequential normal original request then completed HTTP 200 application/pdf. The reader technical limit did not become a publication-wide stop.",
+      "official_url": "https://www.ideam.gov.co/sites/default/files/prensa/boletines/2024-08-16/informe_recursos_naturales_2011_tomo_2.pdf"
+    },
+    {
+      "source_key": "ign-topo250k-r118-61550005",
+      "title": "Cartas topográficas 1:250.000, mosaico: Darwin–Choele Choel–meseta interfluvial–Estancia San Juan/La Dora sector",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; individual constituent sheet revision dates not established.",
+      "material_read": "One completed original bounded map view covering the complete selected corridor and inland endpoint; source pixels and private orientation crops inspected.",
+      "supports": "All headward, middle, lower and terminal settings; named local lagoons and nearby depressions are distinguishable from the active Río Negro and Colorado valleys.",
+      "limits": "Map labels for lakes, estancias and surrounding depressions do not name the whole modeled feature. The maps do not establish perennial flow or hydraulic continuity between every local depression.",
+      "use_notice": "Previously lawfully acquired IGN service capabilities state public access/reuse under Argentine Law 27.275. Source rasters, crops and orientation overlays remain private under this research boundary."
+    },
+    {
+      "source_key": "ign-topo100k-r118-61550005",
+      "title": "Cartas topográficas 1:100.000, mosaico: Darwin–San Bernardo–La Reforma–El Recado–Estancia San Juan corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite with differing sheet appearance; constituent dates not established.",
+      "material_read": "One completed original bounded view covering the entire selected corridor and terminal. Four overlapping private crops, with original source pixels and orientation overlays, were read at ordinary corridor scale.",
+      "supports": "Detailed terrain, local lagoons, dry/inter-basin areas and actual inland endpoint setting. No blank coverage affects the selected route.",
+      "limits": "No uniform channel hydronym follows the selected line. Representation of local depressions and terrain does not justify turning the modeled line into an independently verified continuous natural river. No exact bank or vertex match is claimed.",
+      "use_notice": "Same retained service notice as the 1:250,000 mosaic. Originals and derivatives remain private."
+    },
+    {
+      "source_key": "bertani-ferrari-valle-medio",
+      "title": "Atlas del Valle Medio: mapa geomorfológico y de calidad de las tierras",
+      "authors": [
+        "Luis Alberto Bertani",
+        "Luis Eduardo Ferrari"
+      ],
+      "publisher_or_affiliation": "Universidad Nacional del Comahue; Consejo de Educación de la Provincia de Río Negro; DIFOCAPEA",
+      "official_url": "https://www.observatoriogeograficoamericalatina.org.mx/assets/pdf/050336006.pdf",
+      "date": null,
+      "material_read": "Eight-page original publication read in the PDF text reader; especially pages 4–5, section III.1 and subsections III.1.1–III.1.4.",
+      "supports": "Regional meseta comprises subhorizontal surfaces, hydro-eolian depressions and west–east paleochannels; local water erosion and deflation are distinguished from the active Río Negro valley.",
+      "limits": "Regional supporting prose only. The complete atlas maps are not present as usable corridor evidence in the read paper; no unseen map or selected-route connector is inferred. Historical climate/discharge data are not used as current facts.",
+      "use_notice": "No explicit distribution restriction observed in the read text; no redistribution permission inferred."
+    },
+    {
+      "source_key": "segemar-choele2011-catalogue",
+      "title": "Hoja Geológica 3966-IV, Choele Choel. Provincia de Río Negro",
+      "authors": [
+        "Leonardo Darío Escosteguy",
+        "Mariela P. Etcheverría",
+        "Alicia Folguera",
+        "Mario Franchi",
+        "Abel J. Faroux",
+        "Pablo R. Getino"
+      ],
+      "publisher": "Instituto de Geología y Recursos Minerales, Servicio Geológico Minero Argentino",
+      "date": "2011",
+      "series": "Boletín 398, 38 pages",
+      "official_url": "https://repositorio.segemar.gob.ar/handle/308849217/104",
+      "material_read": "Successfully opened catalogue abstract and bibliographic text only, before the original-catalogue HTTP502.",
+      "supports": "Bibliography and bounded regional geological setting only.",
+      "limits": "No original geological map or report acquired; not used for selected-route geographic correspondence.",
+      "use_notice": "Catalogue footer displays SEGEMAR copyright ©2019."
+    },
+    {
+      "source_key": "ign-historical-250k",
+      "title": "Cartas topográficas 1:250.000, historical cartas_mosaicos mosaic, Somuncurá–Arroyo Verde–Golfo San Matías corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; constituent sheet dates not established from the inspected views.",
+      "material_read": "Four completed original bounded map views: overview, headward, middle, lower-terminal. Every source image was visually read, with retained-geometry orientation used only to locate the corridor.",
+      "supports": "Full selected headward-to-coastal correspondence and the representative Arroyo Verde label.",
+      "limits": "Generalized historical cartography; no uniform hydronym or present-flow claim. Small white mosaic patches occur away from the material selected corridor and do not leave a selected-route gap.",
+      "use_notice": "No redistribution permission inferred from official hosting. Original images, crops and overlays remain private."
+    },
+    {
+      "source_key": "codema2007-plan2008",
+      "title": "Plan de Manejo del Área Natural Protegida Meseta de Somuncurá,19 October 2007; Decreto 465,30 May 2008, published in Boletín Oficial de Río Negro 4634 supplement,3 July 2008",
+      "publisher": "Consejo de Ecología y Medio Ambiente, Gobierno de Río Negro",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf",
+      "material_read": "Complete original PDF acquired normally after reader-size limitation. Relevant prose on printed/PDF page 36, cover/date and hydrological references read; page 36 map and annex-map overview visually inspected.",
+      "supports": "Primary provincial regional basin classification and separate Salado/Verde drainage context.",
+      "limits": "Plan map is regional and does not establish the whole selected route; detailed correspondence comes from IGN. No source figures are reproduced.",
+      "use_notice": "No explicit redistribution permission established; original remains private."
+    },
+    {
+      "source_key": "kokot2015-coastal",
+      "title": "Kokot, Roberto R. (2015), Capítulo 4: Erosión Costera, pp.167–230, in H. E. Zaixso and A. L. Boraso (eds.), La Zona Costera Patagónica Argentina, Volumen II: Comunidades Biológicas y Geología",
+      "publisher": "Editorial Universitaria de la Patagonia, Instituto de Desarrollo Costero, UNPSJB; CENPAT-CONICET repository",
+      "isbn": "978-987-1937-47-9",
+      "official_url": "https://www.repositorio.cenpat-conicet.gob.ar/server/api/core/bitstreams/0deff26a-646c-4108-8328-282b679f999b/content",
+      "material_read": "Complete original PDF acquired after reader-size limitation; title/credits, chapter bibliographic note, printed pp.174–175 (PDF 186–187) prose and figure 2 on printed 171 inspected.",
+      "supports": "Arroyo Verde mouth/coastal setting relative to Puerto Lobos.",
+      "limits": "Chapter accepted in 2008 with data/references through 2005. Figure2 is broad coastal geology and does not map the full selected stream.",
+      "use_notice": "No redistribution permission inferred; original and figure remain private."
+    },
+    {
+      "source_key": "segemar-conaniyeu-catalogue",
+      "title": "Franchi, M.; Ardolino, A.; Remesal, M.; Caba, R.; Dalponte, M.; Lizuaín, A. (2001), Hoja Geológica 4166-III, Cona Niyeu, Boletín 262",
+      "publisher": "SEGEMAR, Instituto de Geología y Recursos Minerales",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/108?locale-attribute=pt",
+      "material_read": "Successful catalogue text only, before the linked map timeout.",
+      "limits": "Regional abstract and bibliography only. No original map or companion-report content was acquired or used.",
+      "use_notice": "Repository footer copyright 2019; original maps not redistributed."
+    },
+    {
+      "source_key": "segemar-sierragrande-catalogue",
+      "title": "Busteros, A.; Giacosa, R.; Lema, H.; Zubia, M. (1998), Hoja Geológica 4166-IV, Sierra Grande, Boletín 241",
+      "publisher": "SEGEMAR, Instituto de Geología y Recursos Minerales",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/2844",
+      "material_read": "Successful catalogue text only, before the linked map timeout.",
+      "limits": "Bibliographic and broad geological setting only; no original map or companion report acquired.",
+      "use_notice": "Repository footer copyright 2019; original maps not redistributed."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61543259",
+      "source_keys": [
+        "ign250k-r118-61543259",
+        "ign100k-r118-61543259",
+        "ign500k-r118-61543259",
+        "munguia-campo2003"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14509
+          ],
+          "component_scope": "Head south of Chillar to El Diamante and La Paloma",
+          "finding": "The selected head is in the plain south of Chillar, west of the Route 3 corridor, and continues south through the El Diamante/La Paloma country. Both detailed maps cover the intervening land and isolated depressions. No named source stream or continuous receiving connection from this northern head to La Gogita–La Filomena is established.",
+          "sources": [
+            "ign250k-r118-61543259",
+            "ign100k-r118-61543259",
+            "ign500k-r118-61543259"
+          ],
+          "correspondence": "Original geographic coverage read; hydrological connector remains materially unresolved.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14509
+          ],
+          "component_scope": "La Gogita–La Filomena–El Pucho and Route 3",
+          "finding": "Farther south, mapped drainage and marshes lead through the La Filomena/El Pucho country, across Route 86 west of Benito Juárez, into the El Cisne/San Eloy wetland setting. The valley then bends southeast through the Route 3 crossing near El Pescado and the Tres Claveles country toward the railway northeast of Alzaga. That southern wetland-to-defined-channel receiving passage is shown. Laguna Oromí, Laguna del Hunco and Laguna San Antonio lie separately to the east of the selected route.",
+          "sources": [
+            "ign100k-r118-61543259",
+            "ign250k-r118-61543259",
+            "ign500k-r118-61543259"
+          ],
+          "correspondence": "Original seasonal-wetland and channel correspondence; no perennial-flow requirement or exact bank assignment."
+        },
+        {
+          "fragments": [
+            14509
+          ],
+          "component_scope": "Arroyo Pescado Castigado through El Ombú and El Chapar",
+          "finding": "The southeastward selected valley is explicitly labeled Pescado Castigado on the original sheets. It passes the El Ombú and La Colina country, Colonia Juan de Garay and El Chapar, then turns east through the San Cala/18 de Marzo setting. Its continuation is again labeled Arroyo El Pescado Castigado south of the separate Arroyo Quequén Grande approach. The two channels are distinguishable on the map.",
+          "sources": [
+            "ign250k-r118-61543259",
+            "ign500k-r118-61543259"
+          ],
+          "correspondence": "Original connected channel and hydronym correspondence.",
+          "mapped_component_name": "Arroyo Pescado Castigado"
+        },
+        {
+          "fragments": [
+            14509
+          ],
+          "component_scope": "Pescado Castigado–Quequén Grande junction and Juan N. Fernández",
+          "finding": "The selected Pescado Castigado valley approaches from the west and joins the mapped Arroyo Quequén Grande continuation in the San Ernesto setting southwest of Juan N. Fernández. The northern approach has the separate Calangueyú and Quequén Grande labels. Downstream the selected course turns south/east past Los Tres Leones, crosses the road setting south of Juan N. Fernández and receives the separately mapped Arroyo Dulce approach. No upstream branch is renamed after the downstream representative candidate.",
+          "sources": [
+            "ign250k-r118-61543259",
+            "ign500k-r118-61543259",
+            "munguia-campo2003"
+          ],
+          "correspondence": "Original junction cartography; article prose independently supports the Pescado Castigado to Quequén Grande relationship."
+        },
+        {
+          "fragments": [
+            14509
+          ],
+          "component_scope": "La Dulce–Lobería lower river and tributary junctions",
+          "finding": "The selected river bends east north of Nicanor Olivera/La Dulce, passing north of Laguna La Salada and Laguna La Dulce Grande rather than traversing those lakes. It continues through the Malal-Tuel/La Gloria setting into the labeled Río Quequén Grande valley. Quequén Chico enters from the north/west side of Lobería, and the Tamangueyú approach joins farther downstream near El Ventarrón. The 1:500,000 original bridges the white missing-content patch in the 1:250,000 mosaic over part of this lower connection.",
+          "sources": [
+            "ign250k-r118-61543259",
+            "ign500k-r118-61543259"
+          ],
+          "correspondence": "Connected lower river and material junctions observed on original maps; smaller map's blank patch resolved by the independent scale layer."
+        },
+        {
+          "fragments": [
+            14509
+          ],
+          "component_scope": "Lower Quequén Grande and actual coastal terminal",
+          "finding": "The river turns south through the La Claudina/El Dominó and La Reserva country, west of Pieres, and continues through the San Lorenzo/Quequén transport crossings. The original 1:500,000 map shows its continuation between Necochea and Quequén into Puerto Quequén and the open coast. The selected terminal is this river-mouth setting, not a nearby coastal lagoon. The 1:250,000 mosaic's terminal blank area is not used as evidence.",
+          "sources": [
+            "ign250k-r118-61543259",
+            "ign500k-r118-61543259"
+          ],
+          "correspondence": "Actual coastal receiving connection observed on the original continuous overview.",
+          "mapped_component_name": "Río Quequén Grande"
+        },
+        {
+          "fragments": [
+            14509
+          ],
+          "component_scope": "Branches, lakes and drainage character",
+          "finding": "Only one selected mainstem FID is retained. No reservoir passage is shown. Primary field-based research describes a low-gradient Pescado Castigado catchment with seasonal courses, diffuse runoff, ditches and lakes; its defined principal channel discharges into Quequén Grande. This supports reading the upper wetland setting without requiring permanent flow, but does not supply the unresolved northern selected link.",
+          "sources": [
+            "ign100k-r118-61543259",
+            "ign250k-r118-61543259",
+            "ign500k-r118-61543259",
+            "munguia-campo2003"
+          ],
+          "correspondence": "Original maps plus bounded primary prose; basin association is not substituted for the missing connector."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60147654",
+      "source_keys": [
+        "r118-sgc-agc2020-5-08",
+        "r118-iiap-pacific-plan2013",
+        "r118-sina-state2011-tomo2"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11506
+          ],
+          "component_scope": "Selected mainstem fragment 11506",
+          "finding": "Headward streams east of the Utría coastal ridge turn southeast, then south into the upper Baudó valley. The selected headward approach and its continuation are visible; no separate headwater label is assigned.",
+          "sources": [
+            "r118-sgc-agc2020-5-08",
+            "r118-iiap-pacific-plan2013"
+          ],
+          "name_scope": "The representative Baudó identity is not propagated to every small headward stream.",
+          "mapped_component_name": null,
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            11507
+          ],
+          "component_scope": "Selected mainstem fragment 11507",
+          "finding": "The upper valley continues south into a widening alluvial corridor, reaching the Nauca junction area north of Pie de Pato. The transition into the next selected fragment is visible.",
+          "sources": [
+            "r118-sgc-agc2020-5-08"
+          ],
+          "name_scope": "Bounded upper-valley correspondence; no independent scalar hydronym established for this entire fragment.",
+          "mapped_component_name": null,
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            11508
+          ],
+          "component_scope": "Selected mainstem fragment 11508",
+          "finding": "The labelled Baudó corridor passes Pie de Pato, receives lateral Apartadó and Urudó drainage, and continues to the western Dubasa–Catrú lower tributary junction.",
+          "sources": [
+            "r118-sgc-agc2020-5-08"
+          ],
+          "name_scope": "Baudó label supports the main valley. Names of lateral tributaries remain distinct.",
+          "mapped_component_name": "Río Baudó",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            11509
+          ],
+          "component_scope": "Selected mainstem fragment 11509",
+          "finding": "The main valley passes Torreidó and Querá drainage, receives Pepé near Boca de Pepe, turns west, receives Misará, and reaches Bahía Baudó beside Pizarro.",
+          "sources": [
+            "r118-sgc-agc2020-5-08",
+            "r118-sina-state2011-tomo2"
+          ],
+          "name_scope": "The main river and coastal terminal support the representative system name. Estuarine branches and adjoining independent coastal rivers are not uniformly named Baudó.",
+          "mapped_component_name": "Río Baudó",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            11510
+          ],
+          "component_scope": "Selected tributary fragment 11510",
+          "finding": "This short selected lower Pepé reach runs west to its actual Baudó confluence near Boca de Pepe.",
+          "sources": [
+            "r118-sgc-agc2020-5-08",
+            "r118-iiap-pacific-plan2013",
+            "r118-sina-state2011-tomo2"
+          ],
+          "name_scope": "Only the selected lower tributary fragment is reviewed; neither its entire upstream basin nor the name Baudó is assigned to it.",
+          "mapped_component_name": "Río Pepé",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            11511
+          ],
+          "component_scope": "Selected tributary fragment 11511",
+          "finding": "A western headward feeder turns north and then southeast into the labelled Dubasa corridor, continuing to the Catrú junction.",
+          "sources": [
+            "r118-sgc-agc2020-5-08",
+            "r118-iiap-pacific-plan2013"
+          ],
+          "name_scope": "Río Dubasa is directly mapped on the continuing corridor; the initial feeder is not separately named. IIAP uses the spelling Dubaza.",
+          "mapped_component_name": null,
+          "mapped_reach_name": "Río Dubasa",
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        },
+        {
+          "fragments": [
+            11512
+          ],
+          "component_scope": "Selected tributary fragment 11512",
+          "finding": "Below the Dubasa–Catrú junction, the combined channel bends southeast and east, receives the Ancosó approach, and joins Baudó.",
+          "sources": [
+            "r118-sgc-agc2020-5-08",
+            "r118-iiap-pacific-plan2013"
+          ],
+          "name_scope": "The separate Catrú approach is labelled on the map; IIAP identifies Catrú within the Dubaza subbasin. No new compound hydronym or uniform scalar name is assigned to this combined reach.",
+          "mapped_component_name": null,
+          "correspondence": "complete at ordinary generalized component/corridor scale"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61550005",
+      "source_keys": [
+        "ign-topo250k-r118-61550005",
+        "ign-topo100k-r118-61550005",
+        "bertani-ferrari-valle-medio"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14527
+          ],
+          "component_scope": "headward meseta north of Darwin, Ruca Malén and San Bernardo sector",
+          "finding": "The headward portion is mapped on the meseta north of Darwin and the active Río Negro valley. Several small local depressions and waterbody symbols occur around Ruca Malén and the Laguna San Bernardo vicinity. The selected route is not the mapped Río Negro or its valley channels.",
+          "sources": [
+            "ign-topo250k-r118-61550005",
+            "ign-topo100k-r118-61550005"
+          ],
+          "correspondence": "Original cartography reviewed throughout; dry and non-channel stretches retained as such.",
+          "name_scope": "San Bernardo is a local lagoon label; neither it nor nearby estancia labels supply a river name for this component or the entire feature."
+        },
+        {
+          "fragments": [
+            14527
+          ],
+          "component_scope": "middle meseta, Las Mercedes–La Reforma–José García and La Larga/La Fortuna/El Mate vicinity",
+          "finding": "The middle route extends east-southeast through mapped meseta relief, crosses the RN22 corridor, and continues past Las Mercedes and La Reforma. Its broad southward and then northward bend lies among local depressions near José García and the separately depicted lagoons La Larga, La Fortuna and El Mate. The source terrain and these waterbodies are readable across the whole interval; no common channel name joins them.",
+          "sources": [
+            "ign-topo250k-r118-61550005",
+            "ign-topo100k-r118-61550005",
+            "bertani-ferrari-valle-medio"
+          ],
+          "correspondence": "Whole middle corridor observed in both scales; absence of a continuous named watercourse is an observed naming/feature-scope limitation, not missing map coverage.",
+          "name_scope": "These lagoon labels describe separate local features. No through-flow, successive lake passage or shared river name is assigned to the modeled route."
+        },
+        {
+          "fragments": [
+            14527
+          ],
+          "component_scope": "lower corridor, El Recado–El Rezongo–El Rosario–La Elba/Lote24 sector",
+          "finding": "The lower selected portion crosses dry relief and local low areas, with a small separately mapped waterbody in the El Rosario/La Argentina vicinity. Terrain continues east-southeast through the La Elba and Lote24 district. A sequence of estancia labels and nearby pans cannot be treated as the name or proof of a single continuous river.",
+          "sources": [
+            "ign-topo250k-r118-61550005",
+            "ign-topo100k-r118-61550005"
+          ],
+          "correspondence": "Complete selected lower interval and intervening terrain observed on the original mosaics.",
+          "name_scope": "Orientation labels only; no whole-route hydronym established."
+        },
+        {
+          "fragments": [
+            14527
+          ],
+          "component_scope": "actual retained inland terminal, Estancia San Juan/La Dora sector",
+          "finding": "The actual selected endpoint is within inland meseta low terrain in the Estancia San Juan/La Dora sector. Its surrounding relief and small local depressions are visible in the originals; no named receiving waterbody is labeled at the selected endpoint. The mapped Bajo de la Calandria lies separately to the north, and neither the active Río Negro nor Río Colorado is the depicted terminal.",
+          "sources": [
+            "ign-topo250k-r118-61550005",
+            "ign-topo100k-r118-61550005"
+          ],
+          "correspondence": "Actual terminal setting reviewed; no missing terminal map or unresolved unseen recipient is used as a reason for this scope hold.",
+          "name_scope": "No terminal hydronym assigned. The retained endorheic classification remains model metadata; the maps establish inland terrain context without supplying a whole-system name or confirming a modern perennial drainage."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61565384",
+      "source_keys": [
+        "ign-historical-250k",
+        "codema2007-plan2008",
+        "kokot2015-coastal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14589
+          ],
+          "component_scope": "Headward Somuncurá drainage",
+          "finding": "The original map shows an intermittent headward drainage south of Laguna Blanca, between the Corona/Media Luna and Los Cuatro Cerros sector of the Sierra de Somuncurá, continuing south and then southeast past the Mimbre area. Its connected upper valley continues through the Quiñeluf, Liempe and Loma Alta sector. Small mapped hollows and seasonal drainage remain part of the headward setting; no source-lake name is substituted for the unnamed upper reach.",
+          "sources": [
+            "ign-historical-250k"
+          ],
+          "correspondence": "supported at generalized corridor scale",
+          "mapped_reach_name": null
+        },
+        {
+          "fragments": [
+            14589
+          ],
+          "component_scope": "Upper-valley tributary junction and transition to Arroyo Verde",
+          "finding": "The valley reaches the Manga Mocha–Luján sector. The mapped Arroyo de las Pinturas comes from the west, in the Laguna Honda sector, into this upper drainage. The selected southeastward continuation reaches the corridor labeled Arroyo Verde near La Chuchu and La Magdalena. This is a tributary/valley relationship, not permission to name the whole upper route after either downstream label.",
+          "sources": [
+            "ign-historical-250k"
+          ],
+          "mapped_reach_name": "Arroyo Verde in the mapped middle continuation; upper reach unnamed"
+        },
+        {
+          "fragments": [
+            14589
+          ],
+          "component_scope": "Middle Arroyo Verde corridor",
+          "finding": "The named Arroyo Verde valley continues southeast past La Escondida and Las Merceditas, then east across the route58 corridor and south around the Cerro Ibáñez sector. Tributary channels join from the north and west. The original channel and valley depiction establishes this continuation independently of the retained model connectivity.",
+          "sources": [
+            "ign-historical-250k"
+          ],
+          "mapped_reach_name": "Arroyo Verde"
+        },
+        {
+          "fragments": [
+            14589
+          ],
+          "component_scope": "Laguna del Medio drainage relationship",
+          "finding": "East of Cerro Ibáñez, the Arroyo Verde corridor bends into the southern junction of the Laguna del Medio depression near El Águila, then leaves southeast toward Los Límites. The long northern lake/depression and its incoming drainage are separately visible. This reading supports a material basin-side junction, not a claim that the selected route crosses the entire northern lake or that the lake is named Arroyo Verde.",
+          "sources": [
+            "ign-historical-250k"
+          ],
+          "mapped_reach_name": "Arroyo Verde; Laguna del Medio remains a separate mapped feature"
+        },
+        {
+          "fragments": [
+            14589
+          ],
+          "component_scope": "Lower border corridor and RN 3 crossing",
+          "finding": "The original map carries Arroyo Verde east through Los Límites, Aguada La Piedra, El Bagual and San Francisco to the RN 3 crossing at the Arroyo Verde locality. It then turns northeast through the Antorena sector. The flowline has repeated mapped Arroyo Verde labels on the actual corridor; the locality label alone is not the identification basis.",
+          "sources": [
+            "ign-historical-250k"
+          ],
+          "mapped_reach_name": "Arroyo Verde"
+        },
+        {
+          "fragments": [
+            14589
+          ],
+          "component_scope": "Actual coastal terminal",
+          "finding": "East of the highway crossing the mapped Arroyo Verde channel trends northeast past El Miramar, crosses the coastal route and reaches the western shore of the Golfo San Matías north of Puerto Lobos. The coast, outlet channel and northward turn were read directly from the original map. Kokot’s coastal account independently distinguishes this mouth from Puerto Lobos and describes nearby coastal ridges among volcanic-rock exposures.",
+          "sources": [
+            "ign-historical-250k",
+            "kokot2015-coastal"
+          ],
+          "mapped_reach_name": "Arroyo Verde",
+          "receiving_water_name": "Golfo San Matías, Atlantic coast"
+        }
+      ],
+      "bounded_primary_prose": [
+        {
+          "source_key": "codema2007-plan2008",
+          "observation": "The provincial Somuncurá management plan explicitly lists Arroyo Verde as an Atlantic-draining basin and distinguishes it from the separate Ventana–Los Berros–Salado system. This supports regional system context, not the exact selected connectors."
+        },
+        {
+          "source_key": "kokot2015-coastal",
+          "observation": "The coastal chapter describes the Arroyo Verde mouth and coastal-ridge deposits, placing Puerto Lobos farther south. Its editorial note states that the chapter’s references/data extend to2005; it is historical coastal context, not proof of present hydrological operation."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61543259",
+      "publication": "Atlas Cuencas – Etapa I, Autoridad del Agua, Provincia de Buenos Aires; PDF identified by its official link",
+      "official_url": "https://www.ada.gba.gov.ar/web_doc/gis/Atlas%20Cuencas%20-%20Etapa%20I.pdf",
+      "observed_outcome": "Web reader returned Internal Error: (400) Timeout fetching. No source body or original map pixels were acquired.",
+      "outcome_layer": "Web-reader/tool acquisition outcome; no origin HTTP status established.",
+      "restriction_scope": "Missing atlas and equivalent copies, maps, formats and acquisition routes paused for availability. No retry, original fallback or alternate-host recovery. The separately discovered minfra.gba.gov.ar Atlas.pdf was not requested as a replacement.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Optional whole-basin corroboration unavailable. Search excerpts were excluded; the remaining northern connector gap is stated independently from the original IGN observations."
+    },
+    {
+      "aw_id": "hydro-system:61543259",
+      "publication": "Munguía and Campo de Ferreras (2003), Características hidro-geomorfológicas de la cuenca del arroyo Pescado Castigado, Buenos Aires, Argentina, Figure 2",
+      "official_url": "https://revistas.um.es/geografia/article/download/46021/44061/198581",
+      "observed_outcome": "Publisher landing page and PDF text opened normally. The first screenshot request, Figure 2 at PDF page index 4, returned Cache miss. No figure pixels were obtained.",
+      "outcome_layer": "Web screenshot/reader availability outcome; no HTTP status or access-denial reason reported.",
+      "restriction_scope": "Further visual acquisition of the article and equivalent missing figures paused. No original-file, alternate screenshot, mirror or equivalent figure recovery.",
+      "earlier_lawful_prose_exception": "Only actually read PDF prose remains usable for the bounded drainage-character and receiving-river statements. Parsed figure labels and the unseen Figure 2 are excluded as map evidence.",
+      "material_effect": "The hydro-morphological figure could not be used to establish the northern selected connection; independently acquired IGN maps cover the landscape."
+    },
+    {
+      "aw_id": "hydro-system:61543259",
+      "publication": "Se reabrió el puente que une Necochea con Quequén, Dirección de Vialidad, Provincia de Buenos Aires, 4 February 2013",
+      "official_url": "https://www.vialidad.gba.gob.ar/noticiadvba.php?id_noticia=240&pagina=link_noticia",
+      "observed_outcome": "Direct web-reader open returned Cache miss; no page body or HTTP status was exposed.",
+      "outcome_layer": "Web-reader/tool availability outcome.",
+      "restriction_scope": "Missing article and equivalent copies or acquisition routes paused. No retry or alternate original request.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Optional bridge context unavailable. Discovery excerpts were excluded. Independent IGN original mapping establishes the lower corridor and terminal."
+    },
+    {
+      "aw_id": "hydro-system:61550005",
+      "publication": "Hojas Geológicas 3963-III y IV, Colonia Juliá y Echarren y Pedro Luro (2009), SEGEMAR Boletín 382",
+      "official_url": "https://repositorio.segemar.gob.ar/handle/308849217/106?show=full",
+      "observed_outcome": "The web-reader catalogue request returned Internal Error: Cache miss. No HTTP status, catalogue body or original map was exposed.",
+      "outcome_layer": "Web-reader/cache availability; no observed HTTP denial.",
+      "restriction_scope": "Missing publication/cartographic content and equivalent copies, formats, catalogue/original/reader and other acquisition routes paused. No retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Optional geological corroboration unavailable. Complete geographic terrain and terminal coverage was subsequently obtained from the distinct IGN historical topographic mosaics."
+    },
+    {
+      "aw_id": "hydro-system:61550005",
+      "publication": "Hoja Geológica 3966-IV, Choele Choel (2011), SEGEMAR Boletín 398",
+      "official_url": "https://repositorio.segemar.gob.ar/handle/308849217/104",
+      "observed_outcome": "The web catalogue opened normally. The subsequent single original HTML request completed with HTTP 502, Content-Type text/html, 150 bytes. No map PDF or original map pixels were acquired.",
+      "outcome_layer": "HTTP 502 response to original catalogue acquisition; availability failure, not an access denial.",
+      "restriction_scope": "Missing original publication/map content and equivalent copies, formats, figures and acquisition routes paused without retry.",
+      "earlier_lawful_prose_exception": "Only the earlier successfully read web-catalogue abstract and bibliography: regional sedimentary/geological setting and the distinction between a gravel-covered plateau and the active Río Negro alluvial plain. No full report prose, map labels or geographic connections are attributed to this catalogue.",
+      "material_effect": "Optional geological source unavailable. Distinct IGN original topography supplies full selected-corridor and endpoint geographic coverage."
+    },
+    {
+      "aw_id": "hydro-system:61565384",
+      "publication": "Hoja Geológica 4166-III Cona Niyeu, 2001, Boletín 262",
+      "official_url": "https://repositorio.segemar.gov.ar/bitstream/handle/308849217/108/HG%204166-III%20Cona%20Niyeu.pdf?isAllowed=y&sequence=14",
+      "observed_outcome": "Web reader (400) Timeout fetching.",
+      "outcome_layer": "web-reader acquisition timeout; no origin HTTP status exposed",
+      "restriction_scope": "Missing map/publication content and equivalent copies, formats, original, reader, cache, mirror and acquisition routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": "Catalogue opened successfully before timeout. It identifies regional Somún Curá setting and lists Cona, Verde, Tambelén, Ventana regional drainage; no unseen map correspondence inferred."
+    },
+    {
+      "aw_id": "hydro-system:61565384",
+      "publication": "Hoja Geológica 4166-IV Sierra Grande, 1998, Boletín 241",
+      "official_url": "https://repositorio.segemar.gov.ar/bitstream/handle/308849217/2844/HG%204166-IV%20Sierra%20Grande_1998.pdf?isAllowed=y&sequence=4",
+      "observed_outcome": "Web reader (400) Timeout fetching.",
+      "outcome_layer": "web-reader acquisition timeout; no origin HTTP status exposed",
+      "restriction_scope": "Missing map/publication content and equivalent copies, formats, original, reader, cache, mirror and acquisition routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": "Catalogue opened successfully before timeout. Bibliographic and broad geological-setting text only; no selected-route cartographic correspondence."
+    },
+    {
+      "aw_id": "hydro-system:61565384",
+      "publication": "Piche S.A., Informe de Impacto Ambiental Arroyo Verde y Marifil II,rev07, official 2023 posting",
+      "official_url": "https://ambiente.chubut.gov.ar/wp-content/uploads/2023/05/Piche-SA-IIA-Arroyo-Verde-y-Marifil-II-rev07.pdf",
+      "observed_outcome": "Web reader (404) Not Found.",
+      "outcome_layer": "web-reader reports HTTP 404",
+      "restriction_scope": "Missing publication/map content and equivalent copies, formats and routes paused. No retry or fallback.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61565384",
+      "publication": "IGN Argenmap base-map WMS publication",
+      "official_url": "https://wms.ign.gob.ar/geoserver/wms",
+      "observed_outcome": "Inherited r112 GetMap HTTP 403; no request made in this batch.",
+      "outcome_layer": "inherited recorded HTTP denial",
+      "restriction_scope": "Entire Argenmap publication and equivalent tile, WMTS, viewer and acquisition routes remain stopped. Distinct historical cartas_mosaicos publication was separately allowed and acquired normally.",
+      "earlier_lawful_prose_exception": "Earlier lawfully acquired historical-mosaic observations are distinct source evidence; no stopped Argenmap content used."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60147654",
+      "publication": "Informe del Estado del Medio Ambiente y los Recursos Naturales Renovables 2011. Tomo 2: Estado de la Biodiversidad, de los ecosistemas continentales, marinos, costeros y avances en el conocimiento",
+      "official_url": "https://www.ideam.gov.co/sites/default/files/prensa/boletines/2024-08-16/informe_recursos_naturales_2011_tomo_2.pdf",
+      "observed_outcome": "Web reader reported (400) Content length is too large: 33489397; no HTTP access denial or authorization reason. A single sequential normal acquisition of the exact official original completed HTTP 200 application/pdf.",
+      "outcome_layer": "Reader/tool size limit; subsequent origin acquisition successful",
+      "restriction_scope": "Failed reader route not repeated. No publication-wide or equivalent-content access stop applies.",
+      "earlier_lawful_prose_exception": "Search text was discovery only. Substantive prose was read from the subsequently completed original.",
+      "material_effect": "None after successful original acquisition.",
+      "state": "resolved_technical_reader_limit"
+    },
+    {
+      "aw_id": "hydro-system:60147654",
+      "publication": "Informe del Estado del Medio Ambiente y los Recursos Naturales Renovables 2011. Tomo 2: Estado de la Biodiversidad, de los ecosistemas continentales, marinos, costeros y avances en el conocimiento",
+      "official_url": "https://www.ideam.gov.co/sites/default/files/prensa/boletines/2024-08-16/informe_recursos_naturales_2011_tomo_2.pdf",
+      "observed_outcome": "Original publication notice allows attributed text use but requires IDEAM authorization for reproduction, while marking free distribution and all rights reserved.",
+      "outcome_layer": "Publisher source-use notice",
+      "restriction_scope": "Reproduction/redistribution; not factual reading. Applies to original and derivative source content.",
+      "earlier_lawful_prose_exception": "Bounded original prose remains usable with attribution.",
+      "material_effect": "Source pages/maps and derivatives remain private.",
+      "state": "publisher_reproduction_notice"
+    },
+    {
+      "aw_id": "hydro-system:61565384",
+      "publication": "Carta de Minerales Industriales, Rocas y Gemas Hoja 4166-IV Sierra Grande, 2007, Boletín 371",
+      "official_url": "https://repositorio.segemar.gob.ar/handle/308849217/2426",
+      "observed_outcome": "Web reader Internal Error; no HTTP status or body reported.",
+      "outcome_layer": "web-reader technical",
+      "restriction_scope": "Failed catalogue reader route not repeated. No source body or map used; no alternate acquisition attempted. No publication-wide access denial inferred.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61565384",
+      "publication": "Río Negro 4634 supplement,Plan de Manejo ANP Meseta de Somuncurá",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf",
+      "observed_outcome": "Reader 400 Content length is too large: 12865400. One sequential normal original request completed HTTP 200 application/pdf with 12865400 bytes.",
+      "outcome_layer": "reader-size technical limit followed by successful origin original",
+      "restriction_scope": "Failed reader route not repeated; no publication-wide denial or remaining material availability gap.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61565384",
+      "publication": "La Zona Costera Patagónica Argentina,Volumen II,2015",
+      "official_url": "https://www.repositorio.cenpat-conicet.gob.ar/server/api/core/bitstreams/0deff26a-646c-4108-8328-282b679f999b/content",
+      "observed_outcome": "Reader 400 Content length is too large: 22880195. One sequential normal original request completed HTTP 200 application/pdf with 22880195 bytes.",
+      "outcome_layer": "reader-size technical limit followed by successful origin original",
+      "restriction_scope": "Failed reader route not repeated; no publication-wide denial or remaining material availability gap.",
+      "earlier_lawful_prose_exception": null
+    }
+  ]
+}

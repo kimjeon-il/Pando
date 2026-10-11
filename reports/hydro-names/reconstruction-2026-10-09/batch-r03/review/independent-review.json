@@ -1,0 +1,202 @@
+{
+  "schema": "hydro-independent-review-v1",
+  "scope_system_ids": [
+    "30624681",
+    "50488324",
+    "40182409"
+  ],
+  "baseline_commit": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "review_method": "Frozen inputs only. Independent retained-source reading and full-map inspection, full-path comparison, separate Python binary decoding, production decoder replay, and bounded selected-record joins. No new network requests.",
+  "current_live_deployment_checked": false,
+  "original_hydrorivers_coordinate_equality_verified": false,
+  "geometry_modified": false,
+  "automatic_application": false,
+  "scalar_product_name_approvals": 0,
+  "whole_group_scalar_application_approved": false,
+  "source_reach_name_assignments_approved": 0,
+  "findings": [
+    {
+      "system_id": "30624681",
+      "candidate_name": "Nura River",
+      "verdict": "retain_provisional_representative_candidate",
+      "review_status": "Provisional representative-system candidate retained; whole-reach naming held.",
+      "supported_name_scope": "Direct Kazakh Нұра, Russian Нура and English Nura River usage in the regional river and terminal-lake system; complete group is textually compatible but no external map was visually verified.",
+      "identity_confidence": "Moderate, provisional",
+      "source_keys": [
+        "world-bank-e591",
+        "gov-nura-2021-design",
+        "ministry-nura-kk",
+        "nasa-terminal-lakes"
+      ],
+      "name_ko": null,
+      "whole_reach_name_application_cleared": false,
+      "whole_group_scalar_application_approved": false,
+      "formal_registry_verified": false,
+      "visually_verified_external_map_count": 0,
+      "terminal_class_applies_to_every_reach": false,
+      "whole_group_observation": "The 244-part first fragment and 11-part lower continuation join exactly. The complete path runs from southeastern headwaters through a northern loop into the western terminal-lake region. Without an independently viewable source map, regional textual compatibility remains a candidate rather than a verified full-course visual match.",
+      "limits": [
+        "E591 ends its named river at Korgalzhino (899 km); the 2021 design extends its account to Tengiz (978 km). Neither length resolves the name boundary.",
+        "The final fragment has terminal.class=lake only at its endpoint; no eleven-reach lake classification or connector naming is inferred.",
+        "No source proves the name or physical river/lake class of every selected part.",
+        "Nura evidence hashes describe tool-returned text captures, not original PDF bytes."
+      ],
+      "logical_fid": 3798,
+      "geometry_fids": [
+        15165,
+        15166
+      ],
+      "source_reach_count": 255,
+      "line_part_count": 255,
+      "coordinate_count": 1378,
+      "source_ids_sha256": "9b00d659a476313d724aadf3026ed084dec18398bbc6ce4a69e96aa15c2d7a27",
+      "canonical_ordered_group_geometry_sha256": "54ad8ac757f7ab3c7aec9cea425f620090f0dc06abb802b748a4e0ceacca8b53",
+      "fragment_roles": [
+        {
+          "fid": 15165,
+          "role": "mainstem",
+          "part_count": 244,
+          "coordinate_count": 1286
+        },
+        {
+          "fid": 15166,
+          "role": "mainstem",
+          "part_count": 11,
+          "coordinate_count": 92
+        }
+      ],
+      "research_category": "candidate_representative_system_identity"
+    },
+    {
+      "system_id": "50488324",
+      "candidate_name": "Flinders River system",
+      "verdict": "support_qualified_representative_system_identity",
+      "review_status": "Representative Flinders system/mainstem identity supported; whole-group scalar naming held.",
+      "supported_name_scope": "The three mainstem fragments follow the regionally mapped Flinders course. The two western tributary fragments remain separately scoped, with a qualified lower Cloncurry-corridor association.",
+      "identity_confidence": "High for regional representative system/mainstem; moderate for the western branch corridor",
+      "source_keys": [
+        "FLINDERS-BOM-FLOOD-2026",
+        "FLINDERS-BOM-MAP-2020",
+        "FLINDERS-QLD-BASIN-MAP"
+      ],
+      "name_ko": null,
+      "whole_reach_name_application_cleared": false,
+      "whole_group_scalar_application_approved": false,
+      "formal_registry_verified": false,
+      "visually_verified_external_map_count": 2,
+      "tributaries_inherit_representative_name": false,
+      "whole_group_observation": "All five fragments were compared with both complete basin maps. The eastern curved headwater and westward corridor, short mainstem connector, northward lower course, and separate western tributary jointly fit the mapped regional network. The western path is not uniformly renamed Cloncurry or Flinders.",
+      "limits": [
+        "Regional generalized maps do not certify every headwater, anabranch, tributary reach or exact confluence.",
+        "Cloncurry, Corella, Dugald, Saxby, Bynoe and Armstrong names are distinctions, not aliases for the entire selected group.",
+        "The retained source and render sea endpoints differ by about 2.131527 km; neither is a surveyed mouth or contemporary coastline."
+      ],
+      "logical_fid": 1832,
+      "geometry_fids": [
+        6748,
+        6749,
+        6750,
+        6751,
+        6752
+      ],
+      "source_reach_count": 168,
+      "line_part_count": 168,
+      "coordinate_count": 1436,
+      "source_ids_sha256": "71a9d52473951e1a345bcaf16ba6b5cd2266036cdd34ffb365826675e7b63d1a",
+      "canonical_ordered_group_geometry_sha256": "c53e0cf6be8dab31cad34a09d9fdf82967adc95770b31efa16fdf8fd733746b1",
+      "fragment_roles": [
+        {
+          "fid": 6748,
+          "role": "mainstem",
+          "part_count": 76,
+          "coordinate_count": 693
+        },
+        {
+          "fid": 6749,
+          "role": "mainstem",
+          "part_count": 1,
+          "coordinate_count": 5
+        },
+        {
+          "fid": 6750,
+          "role": "mainstem",
+          "part_count": 69,
+          "coordinate_count": 504
+        },
+        {
+          "fid": 6751,
+          "role": "tributary",
+          "part_count": 20,
+          "coordinate_count": 211
+        },
+        {
+          "fid": 6752,
+          "role": "tributary",
+          "part_count": 2,
+          "coordinate_count": 23
+        }
+      ],
+      "research_category": "supported_representative_system_identity"
+    },
+    {
+      "system_id": "40182409",
+      "candidate_name": "Сарысу / Sarysu system",
+      "verdict": "support_qualified_representative_system_identity",
+      "review_status": "Qualified representative Sarysu system identity supported; exact reach-name application held.",
+      "supported_name_scope": "Regional east–west upper course, southwest bend and long southern lower valley agree with acquired full-basin thematic maps and written descriptions; separately named upstream components remain unresolved.",
+      "identity_confidence": "Moderate-to-high at representative-system scale",
+      "source_keys": [
+        "SARYSU-GEOSYSTEMS-2017",
+        "SARYSU-GEOECOLOGY-2013",
+        "SARYSU-PM-FLOOD-2024"
+      ],
+      "name_ko": null,
+      "whole_reach_name_application_cleared": false,
+      "whole_group_scalar_application_approved": false,
+      "formal_registry_verified": false,
+      "visually_verified_external_map_count": 2,
+      "distinct_map_publications": 1,
+      "exact_terminal_lake_membership_verified": false,
+      "perennial_terminal_connection_verified": false,
+      "whole_group_observation": "Both full fragments were compared with the complete 2013 basin figures. The eastern upper path, west/southwest middle course and southward terminal reach fit the regional valley pattern. The thematic basin extent is broader than the selected line group and does not label each reach.",
+      "limits": [
+        "The 761 km named-river convention begins at a confluence; a longer hydrological path can include Kairakty and Zhaman-Sarysu. Selected upstream name transitions are not established.",
+        "Floodwater reaches the Telekol/Telikol region episodically. The selected endorheic endpoint is not independently proven inside the named lake.",
+        "The 2017 page 158 is blank; only the 2013 publication provides usable full-basin map figures.",
+        "The two studies share authors and are not wholly independent naming authorities."
+      ],
+      "logical_fid": 1070,
+      "geometry_fids": [
+        3103,
+        3104
+      ],
+      "source_reach_count": 255,
+      "line_part_count": 255,
+      "coordinate_count": 1406,
+      "source_ids_sha256": "4ded058ac025b4e65a0c6f1d3ecffdcf369373790a542507abea72ff09b9ee1e",
+      "canonical_ordered_group_geometry_sha256": "566cb65669c73251b58d8adb9a4cf58c1466dc3a219636a2884fc7c9923961d0",
+      "fragment_roles": [
+        {
+          "fid": 3103,
+          "role": "mainstem",
+          "part_count": 176,
+          "coordinate_count": 934
+        },
+        {
+          "fid": 3104,
+          "role": "mainstem",
+          "part_count": 79,
+          "coordinate_count": 472
+        }
+      ],
+      "research_category": "supported_representative_system_identity"
+    }
+  ],
+  "shared_limits": [
+    "MAIN_RIV system identity, logical FID, geometry FID and source reach IDs are separate identifier domains.",
+    "Equal part and source-ID counts do not independently prove the original HydroRIVERS source reach-to-coordinate mapping.",
+    "Terminal classes describe retained endpoint metadata, not every constituent reach.",
+    "The baseline is immutable but the current live deployment is unchecked.",
+    "Complete geometry and source/map bodies are not cleared for public redistribution and remain absent from this review package."
+  ]
+}

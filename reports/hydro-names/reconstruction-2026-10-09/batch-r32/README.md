@@ -1,0 +1,19 @@
+# Lake-name reconstruction r32
+
+Three new Alaska lake inventory features were assessed against the Alaska DNR-hosted Wood-Tikchik State Park map and complete immutable baseline polygons. The map uses third-party TOPO! cartography; official hosting does not establish a formal naming-registry decision. The geometry reference remains Pando v0.13.1 at fd6744f5e72a0c1a107452dbde6d416ab57237db. The previously published [compact correspondence note](https://github.com/kimjeon-il/Pando/blob/1a3b4b3437000b4bcf3913a287316d1ab5f65897/reports/hydro-names/reconstruction-2026-10-09/batch-r30/packed-payload-correspondence.json) records v0.13.2 manifest/hash preservation and the three r29 IDs. No current live binary or renderer equivalence is asserted. No historical verdict is restored.
+
+## Findings
+
+- **1159107927: Lake Nerka.** The complete selected generalized footprint supports Lake Nerka as a bounded water identity in the Aleknagik-region Wood River lakes, southwestern Alaska, south of Lake Beverly and north of Lake Aleknagik. Fine northwest arm and bay tips, island holes, irregular shore margins and the River Bay/connecting-river boundary are generalized or omitted; the entire detailed named lake is not certified. Exact extent and product-name application are not approved. Category: `supported_generalized_water_identity`.
+- **1159110635: Lake Aleknagik.** The complete selected generalized footprint supports Lake Aleknagik as a bounded water identity in the Aleknagik region, southwestern Alaska, north and northwest of the Aleknagik settlement, south of Lake Nerka and northeast of Nunavaugaluk Lake. Narrow northern connecting waters, shoreline indentations, island holes and the southeast outlet and settlement-side shoreline are generalized or omitted; the entire detailed named lake and precise river boundaries are not certified. Exact extent and product-name application are not approved. Category: `supported_generalized_water_identity`.
+- **1159107889: Nunavaugaluk Lake.** The complete selected generalized footprint supports Nunavaugaluk Lake as a bounded water identity in the Aleknagik region, southwestern Alaska, southwest of Lake Aleknagik and northeast of Amanka Lake. Fine northwestern inlet and arm-tip detail, irregular shore margins, island holes and the southern outlet boundary are generalized or omitted; the entire detailed named lake is not certified. Exact extent and product-name application are not approved. Category: `supported_generalized_water_identity`.
+
+## Scope and continuity
+
+Generalized identity does not establish surveyed shoreline agreement, exact name partitions, formal registry status or product-ready scalar names. Korean names and whole-feature scalar names remain null; automatic and product application are false.
+The index contains 93 distinct targets: 43 river groups and 50 lake features. It preserves 91 non-access-pending records, 2 access-pending records and 26 scope holds. Non-access-pending is an accounting category, not a count of confirmed names. Earlier records and the Richmond/Hastings assessment histories are preserved; the unavailable historical 504-target ledger is not added.
+The exact original inventory and cumulative index recover 3,972 unrecorded targets: 3,412 river groups and 560 lakes. Pending IDs and scope holds remain separately recoverable.
+
+## Public verification
+
+Run `python validate-package.py` for included-file integrity, current-result consistency and cumulative accounting. `recover-remaining-queue.py` uses the exact initial inventory. Public validators do not replay omitted source maps, complete polygons, compressed component bytes or original decoder inputs. Only own factual findings, bibliography, bounded metadata are included; the earlier public payload-correspondence note is linked without duplicating it; original map bodies, crops, full lake coordinates and private-input fingerprints are omitted.

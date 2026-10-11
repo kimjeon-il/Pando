@@ -1,0 +1,14 @@
+{
+  "schema": "hydro-river-publication-rights-v1",
+  "batch": "r08",
+  "included": "Own factual observations, compact quotations, source URLs and response hashes, identifier/role/order/count/coordinate-digest facts, few whole-fragment bounds/endpoints and original validation/recovery code.",
+  "raw_third_party_sources_included": false,
+  "full_river_coordinates_included": false,
+  "river_geojson_or_binary_packs_included": false,
+  "per_part_endpoint_path_reconstruction_included": false,
+  "raw_third_party_pdf_count": 0,
+  "raw_maps_images_html_count": 0,
+  "stand_alone_geometry_redistribution_cleared": false,
+  "rights_scope": "HydroRIVERS standalone geometry redistribution has not been cleared. Official publisher provenance is not blanket permission to reproduce reports, maps, HTML or derivative images. No Natural Earth lake geometry is included in this all-river batch.",
+  "automatic_application": false
+}

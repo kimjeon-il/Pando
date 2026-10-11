@@ -1,0 +1,125 @@
+{
+  "schema": "hydro-public-source-evidence-v2",
+  "batch": "r19",
+  "created_at_utc": "2026-10-09T18:39:12.606078+00:00",
+  "sources": [
+    {
+      "source_key": "bom_australian_water_resources_assessment_2012",
+      "publisher": "Bureau of Meteorology, Commonwealth of Australia",
+      "title": "Australian Water Resources Assessment 2012",
+      "publication_year": 2013,
+      "publication_date_note": "The imprint states Commonwealth of Australia 2013; 2012 is the assessment title, not the publication year.",
+      "assessment_period": "2011-12",
+      "kind": "official_government_regional_water_resources_assessment",
+      "publisher_authority_scope": "Official Australian national water assessment with named river maps; not used as a legal naming register or per-reach gazetteer.",
+      "url": "https://www.bom.gov.au/water/awra/2012/documents/assessment-lr.pdf",
+      "retrieved_at_utc": "2026-10-09T13:39:46.198340+00:00",
+      "retrieved_this_batch": false,
+      "original_availability": "Retained original available and reused locally; no new source acquisition in this batch.",
+      "original_map_visually_inspected": true,
+      "map_locations": [
+        {
+          "physical_pdf_page": 48,
+          "chapter": "3 North East Coast",
+          "printed_page": 5,
+          "figure": "3.1",
+          "title": "The North East Coast region",
+          "scope": "Regional channel labels and entire selected Burdekin-area network context."
+        },
+        {
+          "physical_pdf_page": 69,
+          "chapter": "3 North East Coast",
+          "printed_page": 26,
+          "figure": "3.22",
+          "title": "Rivers and catchments in the North East Coast region",
+          "scope": "Direct channel labels separated from basin titles and catchment colouring."
+        },
+        {
+          "physical_pdf_page": 108,
+          "chapter": "3 North East Coast",
+          "printed_page": 65,
+          "figure": "3.61",
+          "title": "The Burdekin River Irrigation Area showing the location of groundwater bore sites, river gauge and rain gauge",
+          "scope": "Lower Burdekin R. channel label and delta context; irrigation shading is not a named river extent."
+        },
+        {
+          "physical_pdf_page": 681,
+          "chapter": "15 Carpentaria Coast",
+          "printed_page": 5,
+          "figure": "15.1",
+          "title": "Major rivers and urban centres in the Carpentaria Coast region",
+          "scope": "Complete Gilbert-area and Mitchell-area group context and direct river-channel labels."
+        },
+        {
+          "physical_pdf_page": 703,
+          "chapter": "15 Carpentaria Coast",
+          "printed_page": 27,
+          "figure": "15.22",
+          "title": "Rivers and catchments in the Carpentaria Coast region",
+          "scope": "River labels and multiple branches distinguished from the Mitchell-Coleman catchment title."
+        }
+      ],
+      "supporting_text_locations": [
+        {
+          "physical_pdf_page": 68,
+          "printed_page": 25,
+          "section": "3.5.1",
+          "own_summary": "Describes the Burdekin river course and regional flow behaviour."
+        },
+        {
+          "physical_pdf_page": 105,
+          "printed_page": 62,
+          "section": "3.7.4",
+          "own_summary": "Identifies Burdekin Falls as storage on the Burdekin River and distinguishes lower-river irrigation schemes."
+        },
+        {
+          "physical_pdf_page": 106,
+          "printed_page": 63,
+          "section": "3.7.4",
+          "own_summary": "Names Suttor, Cape and Burdekin gauges upstream of the storage, without identifying the selected southern feeder geometry."
+        },
+        {
+          "physical_pdf_page": 702,
+          "printed_page": 26,
+          "section": "15.5.1",
+          "own_summary": "Separately describes the region, basins and rivers, including Gilbert and Mitchell, and their seasonal and braided character."
+        },
+        {
+          "physical_pdf_page": 707,
+          "printed_page": 31,
+          "section": "15.5.4-15.5.6",
+          "own_summary": "Separately names Gilbert and Einasleigh in flood discussion and describes regional estuarine wetlands; this is contextual evidence, not reach-boundary mapping."
+        }
+      ],
+      "short_direct_channel_labels": [
+        "Burdekin",
+        "Burdekin R.",
+        "Gilbert",
+        "Einasleigh",
+        "Mitchell",
+        "Palmer",
+        "Walsh"
+      ],
+      "short_label_scope": "Observed channel labels support only the generalized mapped corridor associations explained in findings.json. They are not assigned across every selected graph fragment.",
+      "contextual_labels_not_assigned_to_targets": [
+        "Cape",
+        "Belyando",
+        "Bowen",
+        "Mitchell-Coleman Rivers (Qld)"
+      ],
+      "legend_interpretation": "River lines, lake/storage water, catchment/region boundaries, roads, settlement points and irrigation/conservation shading are distinct map layers.",
+      "independence_group": "bom_australian_water_resources_assessment_2012",
+      "source_limit": "One coarse-scale official assessment. Repeated figures and supporting prose do not independently corroborate names or establish current exact naming boundaries."
+    }
+  ],
+  "distinct_publication_count": 1,
+  "independent_source_count": 1,
+  "independent_cartographic_identity_source_count": 1,
+  "formal_government_naming_registry_count": 0,
+  "new_external_request_count": 0,
+  "search_snippets_used_as_identity_evidence": false,
+  "availability_scope_note": "Complete target regions have usable retained map coverage. All three bounded assessments are complete. Per-reach naming limits are explicit and outside the completed representative-system scope; none is described as access-pending.",
+  "included_evidence_limit": "The included files contain bibliography, bounded identity facts and own observations. The complete baseline coordinate paths, original publication, inspection images and private verification are excluded. Public offline checks cannot reproduce the omitted whole-path or map-pixel comparisons.",
+  "automatic_application": false,
+  "product_application": false
+}
