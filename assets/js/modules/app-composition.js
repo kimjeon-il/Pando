@@ -270,6 +270,7 @@ export async function composeApplication({ revision }) {
             revision, workspaceSurfaces,
             getGeneration: () => domainAssembly.projectDomain.getGeneration(),
             isBlocked: () => projectSession.state.projectReplacing || projectSession.state.modeProcessing,
+            searchPlaces: query => territorialLabels.builtinPlaces.search(query),
             confirm: options => new Promise(resolve => {
               projectRestore.openConfirmModal({ ...options, onConfirm: () => resolve(true), onCancel: () => resolve(false) });
             }),
