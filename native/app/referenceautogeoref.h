@@ -15,6 +15,7 @@ struct ReferenceAutoGeorefResult {
     int inlierCount=0;
     int rejectedCount=0;
     double rmsMeters=0.0;
+    double hardMaxMeters=0.0;
     QVariantList controlPoints;
     QVariantList matches;
     QVariantList rejectedIds;
