@@ -43,7 +43,7 @@ private:
     // Render-thread-only handoff: retain the previous complete world stroke
     // resource set when a new mesh uses different batch identities.
     std::shared_ptr<const WorldBaseFrame> boundaryFallbackBase_;
-    std::uint64_t boundaryFallbackGeometryRevision_=0;
+    std::uint64_t boundaryFallbackDocumentRevision_=0;
     std::uint64_t boundaryFallbackPresentationRevision_=0;
     std::vector<double> lastOffsets_;
     ProjectionMode lastMode_=ProjectionMode::Flat;
