@@ -1,0 +1,632 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r133",
+  "sources": [
+    {
+      "title": "Cartas topográficas 1:250.000, historical cartas_mosaicos mosaic, El Cuy–Soledad–El Salado–Menucos–Trapalcó corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; constituent sheet editions and dates unestablished from bounded views.",
+      "material_read": "Three original bounded views completed HTTP200: full selected corridor, southern El Cuy headwater detail, and lower Salado–Menucos–Trapalcó detail. Original-resolution local views of the source images were inspected for every selected component and material connection.",
+      "supports": "Complete selected drainage correspondence, named component-canyon corridors, tributary and wetland settings, explicit Menucos-to-Trapalcó connection and actual inland terminal.",
+      "limits": "Historical map depiction does not establish current flow. A white band in the detailed terminal image and small black overprint bars in the head detail do not create gaps because the same material places are visible in the original overview. Canyon labels are not automatically river hydronyms.",
+      "use_notice": "No redistribution permission inferred from official hosting. Source images, crops and orientation overlays remain private.",
+      "source_key": "r133-ign250k-elcuy-trapalco"
+    },
+    {
+      "title": "Cartas topográficas 1:100.000, historical cartas_mosaicos mosaic, El Cuy headward extent",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "material_read": "One original bounded view completed HTTP200. Northern cartography around El Cuy is visible; the southern part of the requested extent is white.",
+      "supports": "Supplementary northern El Cuy topographic context only.",
+      "limits": "The missing southern 100k content supplies no evidence and was not requested again. All material selected geography is supplied by separately successful 250k content.",
+      "use_notice": "No source image redistributed.",
+      "source_key": "r133-ign100k-elcuy-head"
+    },
+    {
+      "title": "Béguelin, Marien; Vázquez, Romina Clara (2021). Diversidad y distribución del registro arqueológico y bioarqueológico en la meseta del Cuy, cañadón Santa Victoria y cañadón el Salado (centro de la provincia de Río Negro). Institutional repository abstract.",
+      "publisher": "Universidad Nacional de La Plata, SEDICI",
+      "official_url": "https://sedici.unlp.edu.ar/handle/10915/185193",
+      "material_read": "Repository abstract and item bibliography opened normally and were read. Full conference paper and any figures were not requested.",
+      "supports": "Independent primary field-research use of the name Cañadón El Salado in the western central Río Negro lowlands.",
+      "limits": "Prose-only component-name corroboration. No channel connector, map observation, representative hydronym or modern hydrological claim is taken from this abstract. The repository's conference-book metadata was not independently checked.",
+      "use_notice": "Repository item displays CC BY-NC-SA4.0, except where otherwise noted; only own short factual description is included.",
+      "source_key": "r133-beguelin-vazquez2021-abstract"
+    },
+    {
+      "title": "Hugo, C. A.; Leanza, H. A. (2001). Hoja Geológica 3969-IV, General Roca. Provincias de Río Negro y Neuquén. SEGEMAR Boletín308, 65pp. Catalogue record.",
+      "publisher": "SEGEMAR, Instituto de Geología y Recursos Minerales",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/126?locale-attribute=en",
+      "material_read": "Catalogue bibliography and abstract opened normally. The subsequently requested linked report timed out; no report body or original geological map was acquired.",
+      "supports": "Bibliographic identification only; no selected-channel correspondence is assigned to the catalogue's geological abstract.",
+      "limits": "The missing publication and equivalent cartographic/report content remain paused after the timeout. Search excerpts and unseen maps are excluded.",
+      "use_notice": "Catalogue displays SEGEMAR copyright2019. Original report notice was not inspected.",
+      "source_key": "r133-segemar-generalroca2001-catalogue"
+    },
+    {
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "year": 1995,
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "acquired_scope": "The normally acquired r121 original PDF was reused locally, without external reacquisition. Full-sheet overview, southern Greenland regional pixels including the graticule, and original Inland Ice symbol legend were rendered and visually read for this specific selection.",
+      "supports": "The northern opening and upper southward connector across the southern Inland Ice interior, including the actual interval north of the 2007 detailed sheet's boundary and the overlap into it.",
+      "limits": "National-scale historical geological cartography establishes broad ice-interior setting rather than a named river, subglacial route, contemporary hydrology or current ice front. Prior northern-selection observations were not used as observations of this target.",
+      "reuse_limit": "GEUS Custom Dataset Terms restrict redistribution and creation or transfer of new maps based on processed data. Original, crops and any derived cartographic material remain private. Only independently written factual observations and ordinary bibliography may be consolidated.",
+      "source_key": "r133-geus-greenland-national-1995-retained"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sydgrønland, Sheet 1. Second edition",
+      "author": "Adam A. Garde",
+      "publisher": "Geological Survey of Denmark and Greenland",
+      "year": 2007,
+      "official_url": "https://doi.org/10.22008/FK2/L4LGK6",
+      "acquired_scope": "The normally acquired r111 official TIFF was reused locally, without external reacquisition. The full-sheet overview, overlapping upper and lower corridor windows, latitude/longitude grid, ice/nunatak/terminal detail, imprint and retained official Custom Dataset Terms were actually read for this selected object.",
+      "supports": "The complete selected southern continuation within the detailed sheet, including interior bends, mixed ice/rock lower approach, Eqalorutsit Kangillit Sermiat tongue and inner Nordre Sermilik ending west of Johan Dahl Land.",
+      "limits": "This map begins at 62°30′N and does not alone cover the northern opening. The national original supplies that actual interval. Geological/topographic setting and a local glacier label do not establish a whole-route natural-river identity. The imprint uses UTM zone 23 and WGS84 and records a historical topographic base; no current-position assertion is made.",
+      "reuse_limit": "Custom Dataset Terms allow internal use/processing but restrict redistribution and creation or transfer of new maps. Original and all local working crops remain private; own factual observations and ordinary bibliography only.",
+      "source_key": "r133-geus-sydgronland-sheet1-2007-retained"
+    },
+    {
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000. 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf",
+      "pages": "Printed page 4 editorial note and printed pages 64–65 Glaciology prose.",
+      "acquired_scope": "Bounded prose read directly from the retained r111 original PDF, without a new request.",
+      "supports": "Supporting distinction between continental Inland Ice and local glaciers, interpretation of the national map's different ice-related contour symbols, and the general fact that calving fronts occur at inner fjord heads.",
+      "limits": "Prose is supporting context only. The two actually inspected original map sheets supply geographic correspondence. No unseen figure, text-extracted label list, historical numerical climate statistic or earlier target observation stands in for this selected route.",
+      "reuse_limit": "Copyright GEUS 2009. Original and working material remain private; independently written factual paraphrase only.",
+      "source_key": "r133-geus-bulletin18-2009-retained-context"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 2, Frederikshåbs Isblink–Søndre Strømfjord",
+      "author": "Jan H. Allaart",
+      "publisher": "Geological Survey of Greenland",
+      "year": 1982,
+      "official_url": "https://doi.org/10.22008/FK2/F77JXT",
+      "acquired_scope": "The retained original full-sheet pixels and graticule were inspected locally without another acquisition.",
+      "supports": "Negative coverage finding only: the sheet is a western coastal corridor and does not include this selected longitude corridor or its southern ending. It is not used as positive correspondence.",
+      "limits": "A retained Greenland sheet or a partly similar latitude range is insufficient to establish this object's geography.",
+      "reuse_limit": "GEUS Custom Dataset Terms restrict redistribution and new-map transfer. Original and local derivatives remain private.",
+      "source_key": "r133-geus-sheet2-1982-retained-extent-check",
+      "evidence_role": "Negative coverage context only; not selected-route geographic support."
+    },
+    {
+      "title": "Instituto Geográfico Nacional, historical topographic cartas_mosaicos, 1:250,000, Valle Fértil–Mascasín selected corridor",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "source_kind": "Original official cartographic raster",
+      "actually_read": "Original map pixels across the selected headward, middle, lower and terminal components; locally prepared orientation overlays were only reading aids.",
+      "edition_limits": "Historical mosaic. Individual printed sheet dates/editions are not established from these bounded views. It is distinct from the denied Argenmap current basemap.",
+      "use_notice": "No source-use notice was legible in these bounded map views. No redistribution permission is inferred. Originals, crops and overlays remain private.",
+      "source_key": "r133-ign-historical250k-valle-fertil",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "title": "Instituto Geográfico Nacional, historical topographic cartas_mosaicos, 1:100,000, selected Sierra de Valle Fértil–San Agustín–Salinas de Mascasín corridor",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "source_kind": "Original official detailed cartographic raster",
+      "actually_read": "Original detailed channels and contours in the initial feeder, upper intermittent drainage, northern approach to San Agustín, reservoir branch and Río del Valle; original Barreal de Chucuma/depression chain and labelled Salinas de Mascasín.",
+      "edition_limits": "Historical mosaic; exact constituent sheet editions not visible in the bounded views.",
+      "use_notice": "No legible distribution restriction observed in the bounded views. Original imagery and working figures are not included in public-ready content.",
+      "source_key": "r133-ign-historical100k-valle-fertil",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "title": "Plan Estratégico de Desarrollo Local Valle Fértil; VAF DG Ver001, Documento General",
+      "publisher": "Gobierno de San Juan / CoPESJ, with Unión Iberoamericana de Municipalistas and Municipalidad de Valle Fértil",
+      "edition": "Official file issued in the 2018 publication collection; departmental diagnostic section dated July2017.",
+      "source_kind": "Original official departmental-plan PDF",
+      "actually_read": "Printed/PDF pp62–69: reservoir, name usage, surface-water infiltration and exceptional east/south flood course to Salinas de Mascasín. Printed/PDF p300: Baldes del Norte Usno–Valle Fértil junction in project text. The p72 reproduced soil map was viewed but supplies no selected-route hydrographic topology.",
+      "evidence_boundary": "Prose supports hydrological behavior and regional river/terminal relationship. Detailed cartographic correspondence comes from actually read IGN maps, not the plan's soil map or discovery snippets.",
+      "use_notice": "No limited-distribution/officials-only notice observed in the inspected material. The original PDF is retained privately and not redistributed.",
+      "source_key": "r133-valle-fertil-plan2018",
+      "official_url": "https://planestrategico.sanjuan.gob.ar/wp-content/uploads/2018/06/Plan-Estrategico-de-Desarrollo-Local-Valle-Fertil.pdf"
+    },
+    {
+      "title": "Old Wives Lake Watershed Plan",
+      "publisher": "Water Security Agency, Government of Saskatchewan",
+      "date": "November 2014",
+      "pages_read": "Figure 1, printed page 6; drainage and reservoirs, page 7; terminal hydrology and Table 4, pages 20–21; Thomson Lake account, page 42",
+      "evidence_role": "Primary original watershed cartography and explicit hydrological/reservoir prose.",
+      "limits": "Figure 1 is a generalized watershed map. Detailed reservoir shores and present water levels are not established. No source map or excerpt is redistributed.",
+      "source_key": "r133-wsa-old-wives-plan-2014",
+      "official_url": "https://wsask.ca/wp-content/uploads/2025/05/OldWivesLakeWatershedPlan.pdf"
+    },
+    {
+      "title": "The Water Quality of the Wood River and the Effects of Land Use",
+      "author": "Jennifer Karen Holm",
+      "publisher": "University of Saskatchewan, MSc thesis, Division of Environmental Engineering",
+      "date": "March 2004",
+      "pages_read": "Title and permission pages; chapter 3, printed pages 19–21 and 27–29; Figure 3.1 on page 21, PDF page 32",
+      "evidence_role": "Primary field-study account and original publication's Figure 3.1, which visibly traces the entire ordinary selected corridor and distinguishes the terminal branch choice.",
+      "limits": "Map credits Saskatchewan Land Resource Centre. It is a generalized study/watershed map rather than a surveyed channel plan. Figure 3.2 is credited to Tourism Saskatchewan 2004 and is not used as independent map evidence. No source-vector data acquired.",
+      "use_notice": "Copyright Jennifer K. Holm, March 2004; all rights reserved. The author authorizes the university libraries to make the thesis freely available for inspection; the notice does not require physical or on-site inspection. Permission for scholarly copying in whole or part may be granted by the supervising professors or, in their absence, the division head or college dean. Copying, publication or use for financial gain requires the author's written permission. Scholarly use requires recognition of the author and the university. Only factual synthesis and ordinary bibliography are supplied.",
+      "source_key": "r133-holm-wood-river-2004",
+      "official_url": "https://harvest.usask.ca/bitstreams/6dde6862-c149-4b78-8a3c-7fbd25f3fb3c/download"
+    },
+    {
+      "title": "Old Wives Lake Migratory Bird Sanctuary",
+      "publisher": "Environment and Climate Change Canada / Canadian Wildlife Service",
+      "date": "Page dated 2024-04-03",
+      "evidence_role": "Successfully read primary landscape prose confirming closed terminal-lake conditions and variable mudflats; not map evidence.",
+      "limits": "The subsequent map-image reader returned Cache miss. That missing image is not used; earlier actually read prose remains usable.",
+      "source_key": "r133-eccc-old-wives-sanctuary",
+      "official_url": "https://www.canada.ca/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/old-wives-lake.html"
+    },
+    {
+      "title": "MapServices/Basemap_Layers; Watercourses layer 5 and Waterbodies layer 8",
+      "publisher": "Water Security Agency",
+      "related_urls": [
+        "https://gis.wsask.ca/arcgiswa/rest/services/MapServices/Basemap_Layers/MapServer/5",
+        "https://gis.wsask.ca/arcgiswa/rest/services/MapServices/Basemap_Layers/MapServer/8"
+      ],
+      "evidence_role": "Source-identification metadata only; no cartographic correspondence evidence.",
+      "limits": "Metadata identifies CanVec cartographic layers credited to NRCan. No CGN or Sask Names Database layer was requested. The original bounded export returned HTTP502; no pixels obtained.",
+      "source_key": "r133-wsa-basemap-metadata-only",
+      "official_url": "https://gis.wsask.ca/arcgiswa/rest/services/MapServices/Basemap_Layers/MapServer"
+    },
+    {
+      "title": "CanMatrix NTS072G, Wood Mountain, 1:250,000; edition not inspected",
+      "publisher": "Natural Resources Canada",
+      "evidence_role": "Successful directory metadata only; no map evidence.",
+      "limits": "Linked original archive returned HTTP403; whole sheet and equivalents stopped.",
+      "source_key": "r133-canmatrix072g-directory-only",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/072/g/"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61550900",
+      "source_keys": [
+        "r133-ign250k-elcuy-trapalco",
+        "r133-ign100k-elcuy-head",
+        "r133-beguelin-vazquez2021-abstract",
+        "r133-segemar-generalroca2001-catalogue"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14528
+          ],
+          "component_scope": "Southern El Cuy headward feeder",
+          "finding": "The selected headward route corresponds to the dashed blue drainage south of Cerro Encayapau, continuing east through the San Antonio del Cuy setting before turning north at the eastern margin of the plateau. The map shows several side feeders entering the same corridor. The correspondence is between drainage corridors, not the nearby road or administrative line.",
+          "sources": [
+            "r133-ign250k-elcuy-trapalco"
+          ],
+          "correspondence": "Supported at ordinary headwater-corridor scale.",
+          "mapped_component_name": null,
+          "name_scope": "No headwater hydronym established; Cerro Encayapau and San Antonio del Cuy are orientation features."
+        },
+        {
+          "fragments": [
+            14528
+          ],
+          "component_scope": "Barda Anocibar–El Cuy–La Punta corridor",
+          "finding": "The route follows mapped north-running drainage along the plateau escarpment and eastern side of Barda Anocibar to El Cuy, then northeast beside the main road toward La Punta. The named Cañadón San Salvador approaches from the west/southwest and is distinguished from the selected southern eastern-foot feeder. Cañadón Chico de El Cuy and Cañadón Grande de El Cuy are also separately depicted to the west. Nearby Laguna Chilena, Laguna Menuco and Laguna Verde are not treated as lakes traversed by the selected route.",
+          "sources": [
+            "r133-ign250k-elcuy-trapalco",
+            "r133-ign100k-elcuy-head"
+          ],
+          "correspondence": "Mapped headward-to-middle connection and distinct neighboring branches supported.",
+          "mapped_component_name": null,
+          "name_scope": "No nearby canyon or lagoon name is extended over the whole selected upper feeder."
+        },
+        {
+          "fragments": [
+            14528
+          ],
+          "component_scope": "Bajo de la Mora–Currumil–Cañadón Soledad",
+          "finding": "The selected course turns east through Bajo de la Mora and the Currumil/Pozo de Currumil setting, then northeast along the mapped Cañadón Soledad drainage and low wetland belt south of Laguna Arancibia and Loma La Estrechura. Separate channels, lagoon features and southern tributary valleys are visible; the model is not interpreted as crossing every nearby open-water patch.",
+          "sources": [
+            "r133-ign250k-elcuy-trapalco"
+          ],
+          "correspondence": "Middle course, lowland links and branch setting supported.",
+          "mapped_component_name": "Cañadón Soledad",
+          "name_scope": "Original canyon-corridor label; not established as the hydronym of the entire selected river system."
+        },
+        {
+          "fragments": [
+            14528
+          ],
+          "component_scope": "Curacó–Cañadón El Salado lower canyon corridor",
+          "finding": "The mapped drainage continues northeast into the Curacó setting and then east through the repeatedly labeled Cañadón El Salado corridor, past Loma Angostura and Loma La Jarancha. Original cartography provides the channel connection. The independently read field-research abstract confirms use of Cañadón El Salado as a named locality/canyon, but supplies no whole-route hydrographic identity.",
+          "sources": [
+            "r133-ign250k-elcuy-trapalco",
+            "r133-beguelin-vazquez2021-abstract"
+          ],
+          "correspondence": "Lower canyon route and its label supported.",
+          "mapped_component_name": "Cañadón El Salado",
+          "name_scope": "Supported canyon name on a substantial selected component. It is not silently promoted to an officially registered river name or representative river-system hydronym."
+        },
+        {
+          "fragments": [
+            14528
+          ],
+          "component_scope": "Caita Co convergence and Salitral Bajo de Menucos",
+          "finding": "The El Salado drainage meets the separately labeled Caita Co corridor from the southwest and continues through the low channel belt into Salitral Bajo de Menucos. The selected generalized course is read within this convergence and northern saline-basin margin, not as an exact bank/vertex trace. The original overview explicitly shows the junction and eastward channel where the later high-resolution view contains a white rendering band.",
+          "sources": [
+            "r133-ign250k-elcuy-trapalco"
+          ],
+          "correspondence": "Material tributary convergence and saline-basin entry supported.",
+          "mapped_component_name": null,
+          "name_scope": "Caita Co is a separate tributary-canyon label; Salitral Bajo de Menucos is a receiving saline feature, not a replacement river name."
+        },
+        {
+          "fragments": [
+            14528
+          ],
+          "component_scope": "Menucos–Puesto Las Salinas connector and actual Trapalcó terminal",
+          "finding": "A mapped dashed channel leaves the eastern/southeastern Menucos saline setting, continues southeast below the Puesto Trapalcó uplands, receives small side drainage and enters Salinas de Trapalcó near Puesto Las Salinas. The selected continuation follows this channel and finishes within the salina interior. Laguna del León, Laguna del Pozo and other southern basins are outside the selected terminal continuation.",
+          "sources": [
+            "r133-ign250k-elcuy-trapalco"
+          ],
+          "correspondence": "Explicit basin connector and inland terminal supported.",
+          "mapped_component_name": "Salinas de Trapalcó",
+          "name_scope": "Terminal salt-basin identity only; no river hydronym applied to the salina interior."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90132525",
+      "source_keys": [
+        "r133-geus-greenland-national-1995-retained",
+        "r133-geus-sydgronland-sheet1-2007-retained",
+        "r133-geus-bulletin18-2009-retained-context"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8920
+          ],
+          "component_scope": "Northern opening and upper near-southward connector",
+          "finding": "The actually read southern portion of the 1995 national original, with its latitude and longitude graticule, places the northern opening and long near-southward connector within the broad southern Inland Ice interior, well between the exposed western and eastern coastal belts. That interior continues into the detailed southern sheet's northern overlap.",
+          "sources": [
+            "r133-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete at bounded generalized regional/component scale.",
+          "mapped_component_name": null,
+          "limits": "National-scale cartography resolves the interior-ice setting; it does not supply a selected river trace or a local hydronym. Its surface contours, dashed ice-thickness isopachs, bedrock contours and aeromagnetic lineaments are distinct symbols, none treated as a river."
+        },
+        {
+          "fragments": [
+            8920
+          ],
+          "component_scope": "Long southward middle course into the southern ice-sheet interior",
+          "finding": "South of the 62°30′N sheet boundary, the graticule and ice-surface contours on the 2007 original place the selected southward steps in the continuous light-blue ice interior. Exposed terrain remains peripheral to this middle corridor. The national map supplies an overlapping regional view.",
+          "sources": [
+            "r133-geus-sydgronland-sheet1-2007-retained",
+            "r133-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "Complete bounded geographic setting read from original cartography.",
+          "mapped_component_name": null,
+          "limits": "Elevation contours are not channel traces, and the sheet does not establish a continuous natural-river name across the interior."
+        },
+        {
+          "fragments": [
+            8920
+          ],
+          "component_scope": "Southeastward interior bend and approach to the lower ice-margin belt",
+          "finding": "The small eastward and southeastward steps remain in the mapped ice interior and lead toward the more dissected southern ice-and-rock margin north of Johan Dahl Land. The original overlapping middle and southern windows cover the whole connection, rather than relying on an assumed connection between endpoint labels.",
+          "sources": [
+            "r133-geus-sydgronland-sheet1-2007-retained"
+          ],
+          "correspondence": "Complete bounded corridor context.",
+          "mapped_component_name": null,
+          "limits": "No selected lake chain, reservoir link or named river junction is established. This is not an assertion of current ice drainage or glacier-catchment membership."
+        },
+        {
+          "fragments": [
+            8920
+          ],
+          "component_scope": "Lower approach through the glacier-and-nunatak belt",
+          "finding": "The original southern map distinguishes ice from exposed bedrock islands and headlands north of Johan Dahl Land. The selected southward approach, short eastward steps and ensuing westward turn enter this mixed glacier/nunatak corridor near the headward side of Eqalorutsit Kangillit Sermiat. The lower setting is therefore not treated as uniform featureless ice, nor as an independently established through-river.",
+          "sources": [
+            "r133-geus-sydgronland-sheet1-2007-retained"
+          ],
+          "correspondence": "Complete ordinary component-scale ice/land correspondence.",
+          "mapped_component_name": null,
+          "limits": "No exact intersection with an individual rock boundary or bank is asserted. The map's local glacier name is not extended across the modeled route."
+        },
+        {
+          "fragments": [
+            8920
+          ],
+          "component_scope": "Southwestward glacier-tongue corridor and actual inner-fjord ending",
+          "finding": "The final westward and southwestward sequence approaches the mapped Eqalorutsit Kangillit Sermiat tongue, with exposed rock to either side and Johan Dahl Land on its eastern side. The actual ending is in that glacier-front/inner-head setting of Nordre Sermilik. The detailed map differentiates this inner fjord from the separate Qooqqup Sermia–Qooroq corridor east of Johan Dahl Land.",
+          "sources": [
+            "r133-geus-sydgronland-sheet1-2007-retained"
+          ],
+          "correspondence": "Actual terminal setting read at generalized corridor scale.",
+          "mapped_component_name": null,
+          "limits": "This is a historical mapped terminal setting, not a surveyed river mouth, exact present ice front or current shoreline intersection. Neither the glacier nor receiving fjord name is accepted as the river group's name."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61478315",
+      "source_keys": [
+        "r133-ign-historical250k-valle-fertil",
+        "r133-ign-historical100k-valle-fertil",
+        "r133-valle-fertil-plan2018"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14039
+          ],
+          "component_scope": "Initial Sierra de Valle Fértil mountain feeder and northern piedmont turn",
+          "finding": "The selected head lies in the narrow north-draining valley on the east side of the mountain divide, in the Campo Grande–Agua de la Laguna setting. Detailed contours and blue channel symbols show its northward course and the eastward bend below Mogote de Arriba. It joins the southeast-directed intermittent piedmont drainage south of the Los Baldecitos road sector. The nearby Quebrada del Rincón Grande and other ravine labels are not used as names for every selected headward part.",
+          "sources": [
+            "r133-ign-historical100k-valle-fertil",
+            "r133-ign-historical250k-valle-fertil"
+          ],
+          "correspondence": "Complete generalized headward land/channel correspondence supported by actually read 100k cartography.",
+          "mapped_component_name": null,
+          "name_scope": "No separate hydronym for the initial selected feeder is established."
+        },
+        {
+          "fragments": [
+            14039
+          ],
+          "component_scope": "Balde del Rosario–Loma Negra alluvial route",
+          "finding": "The route continues southeast across the intermittent alluvial belt east of Balde del Rosario and south of Loma del Puesto, then alongside the Loma Negra/Portillo de Anguango setting. The San Antonio-side and Las Guardias-side drainages are visible in relation to the selected corridor. Their labels identify neighboring or incoming reaches and are not spread over the entire selected line.",
+          "sources": [
+            "r133-ign-historical100k-valle-fertil",
+            "r133-ign-historical250k-valle-fertil"
+          ],
+          "correspondence": "Alluvial channel corridor and material neighboring/receiving drainage setting supported.",
+          "mapped_component_name": null,
+          "name_scope": "Upper reach names remain bounded to their labelled reaches."
+        },
+        {
+          "fragments": [
+            14039
+          ],
+          "component_scope": "Médano Colorado–Barreal Atravesado–Usno-side passage",
+          "finding": "South of Médano Colorado the selected route follows the low intermittent/barreal corridor east of Usno and continues through the Colonia Los Valencianos/Baldes del Norte setting toward San Agustín. The maps distinguish Río Usno and the northern barreal approach. The plan's project text identifies Baldes del Norte as the place where Usno and Valle Fértil join; this is supporting prose, not a substitute for the inspected junction cartography.",
+          "sources": [
+            "r133-ign-historical100k-valle-fertil",
+            "r133-ign-historical250k-valle-fertil",
+            "r133-valle-fertil-plan2018"
+          ],
+          "correspondence": "Northern lowland approach and Usno–Valle Fértil junction setting supported at corridor scale.",
+          "mapped_component_name": null,
+          "name_scope": "Do not call every northern feeder or Barreal Atravesado passage Río Usno or Río del Valle."
+        },
+        {
+          "fragments": [
+            14039
+          ],
+          "component_scope": "San Agustín receiving junction, reservoir distinction and named Río del Valle corridor",
+          "finding": "Original maps label Río del Valle on the branch entering from the western mountain valley and on the channel continuing east of San Agustín. The selected northern route joins the downstream valley rather than traversing the blue reservoir by the town. The river then bends southeast across the plain toward the El Naranjito setting. The plan uses Río del Valle and Río Valle Fértil and describes infiltration and only exceptional continuation to the salinas.",
+          "sources": [
+            "r133-ign-historical100k-valle-fertil",
+            "r133-ign-historical250k-valle-fertil",
+            "r133-valle-fertil-plan2018"
+          ],
+          "correspondence": "Named receiving river, selected junction and downstream bend supported; reservoir is on the other upstream branch.",
+          "mapped_component_name": "Río del Valle",
+          "name_scope": "Supports the representative downstream river identity, not a uniform name for all selected land/channel components."
+        },
+        {
+          "fragments": [
+            14039
+          ],
+          "component_scope": "Las Tumanas–Astica lower valley and fan junctions",
+          "finding": "The southeast-running named valley passes the El Naranjito setting and the mapped Las Tumanas distributary/fan corridor, then turns south alongside the Barreal Colorado/La Piconina–El Chacón lowland. Astica, Río Verde and Chucuma-side drainage approaches are depicted from the western mountain front. They are intermittent/distributary systems and not all shown as permanent single-channel confluences.",
+          "sources": [
+            "r133-ign-historical100k-valle-fertil",
+            "r133-ign-historical250k-valle-fertil"
+          ],
+          "correspondence": "Lower trunk, alluvial fans and adjoining depression corridor supported.",
+          "name_scope": "Retain distinctions among tributary names, alluvial fans and the receiving lower valley."
+        },
+        {
+          "fragments": [
+            14039
+          ],
+          "component_scope": "Barreal de Chucuma and southern dry-depression connector",
+          "finding": "The detailed lower map shows a long chain of narrow bare/depressed surfaces through Campo Blanco, Barreal de Chucuma, La Morena and the Barreal de Mascasín establishment setting. The selected route continues south along that chain and turns southwest into the northern salina margin. The 250k map has no continuous blue stream for this entire lower interval. Its generalized seasonal connection is supported by the actually inspected 100k depression corridor together with the plan's exceptional-flood course statement.",
+          "sources": [
+            "r133-ign-historical100k-valle-fertil",
+            "r133-ign-historical250k-valle-fertil",
+            "r133-valle-fertil-plan2018"
+          ],
+          "correspondence": "Seasonal land/barreal continuation supported; continuous permanent surface flow is not asserted.",
+          "mapped_component_name": null,
+          "name_scope": "Barreal de Chucuma is a component landform label, not a whole-system hydronym."
+        },
+        {
+          "fragments": [
+            14039
+          ],
+          "component_scope": "Actual terminal inside Salinas de Mascasín",
+          "finding": "The selected route enters the cross-hatched salina depression, passes south of the Marayes–Mascasín transport corridor and terminates inside it. The 100k map explicitly labels Salinas de Mascasín. Pampa del Gigantillo lies to the west/southwest and Mascasín station/town to the northeast. No downstream sea connection is depicted or inferred.",
+          "sources": [
+            "r133-ign-historical100k-valle-fertil",
+            "r133-ign-historical250k-valle-fertil",
+            "r133-valle-fertil-plan2018"
+          ],
+          "correspondence": "Actual endorheic terminal setting supported.",
+          "mapped_component_name": "Salinas de Mascasín",
+          "name_scope": "Receiving terminal salina identity only; not a river name or an official length claim."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70251102",
+      "source_keys": [
+        "r133-wsa-old-wives-plan-2014",
+        "r133-holm-wood-river-2004",
+        "r133-eccc-old-wives-sanctuary"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9344
+          ],
+          "component_scope": "Southern headward corridor and Summercove setting",
+          "finding": "Holm's mapped Wood River starts near the southern watershed edge west/southwest of Mankota, runs east south of that community, and bends north. This distinctive route corresponds to the selected upper corridor. WSA places Summercove Dam on Wood River south of Mankota.",
+          "sources": [
+            "r133-holm-wood-river-2004",
+            "r133-wsa-old-wives-plan-2014"
+          ],
+          "correspondence": "Continuous mapped headward corridor plus explicit primary prose identifying the on-river impoundment; no precise impoundment outline claimed."
+        },
+        {
+          "fragments": [
+            9344
+          ],
+          "component_scope": "Northward trunk and Thomson Lake",
+          "finding": "The source maps follow the northward trunk into the elongated Thomson Lake setting south of Gravelbourg. WSA identifies Thomson Lake as the reservoir created by Lafleche Dam on Wood River; its southern tributaries remain separate streams.",
+          "sources": [
+            "r133-holm-wood-river-2004",
+            "r133-wsa-old-wives-plan-2014"
+          ],
+          "correspondence": "Upper-river approach, through-reservoir passage and downstream continuation covered at corridor scale."
+        },
+        {
+          "fragments": [
+            9344
+          ],
+          "component_scope": "Gravelbourg, western tributary arrivals and northeastern lower route",
+          "finding": "Holm Figure 3.1 follows the river beyond Thomson Lake through the Gravelbourg study sites toward Shamrock Park, then northeast. WSA Figure 1 and prose distinguish Notukeu and Wiwa creeks arriving from the west. Their names are not used for the selected trunk.",
+          "sources": [
+            "r133-holm-wood-river-2004",
+            "r133-wsa-old-wives-plan-2014"
+          ],
+          "correspondence": "Lower main corridor and material western tributary setting observed; separate tributaries are contextual, not selected branch FIDs."
+        },
+        {
+          "fragments": [
+            9344
+          ],
+          "component_scope": "Chaplin diversion choice and Old Wives terminal",
+          "finding": "Holm's map shows a northward connection toward Chaplin Lake and the eastward channel entering Old Wives Lake. WSA describes the Chaplin connection as an engineered diversion. The selected continuation takes the Old Wives route and extends into the terminal lake setting. ECCC prose describes Old Wives as a closed terminal waterbody with no outlet streams and variable mudflats.",
+          "sources": [
+            "r133-holm-wood-river-2004",
+            "r133-wsa-old-wives-plan-2014",
+            "r133-eccc-old-wives-sanctuary"
+          ],
+          "correspondence": "Terminal channel choice and receiving lake established. The selected interior lake line is not evidence of a separately named river channel or an outlet. ECCC's unavailable map image supplies no visual evidence."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61550900",
+      "publication": "Hoja Geológica 3969-IV General Roca (2001), SEGEMAR Boletín308; linked report 33hoja Roca.pdf",
+      "official_url": "https://repositorio.segemar.gov.ar/bitstream/handle/308849217/126/33hoja%20Roca.pdf?isAllowed=y&sequence=12",
+      "observed_outcome": "The sole linked-report web-reader request returned (400) Timeout fetching. No report body or original map acquired.",
+      "outcome_layer": "Web-reader fetch/transport response; origin HTTP status unestablished.",
+      "restriction_scope": "Missing publication/report/map content and equivalent copies, formats, figures, catalogue/original/reader/cache/mirror and acquisition routes paused. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": "Previously read catalogue bibliography and geological abstract remain bounded catalogue material. They do not establish selected-route channel connections, and no unseen report or map is used.",
+      "limitation_kind": "availability_timeout",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61550900",
+      "publication": "Estudio de Impacto Ambiental y Social, Obra de Repavimentación de la RP Nº6 y la RP Nº8, Empalme RN Nº22–La Esperanza (Río Negro), October2019; title/date identified in discovery, printed front matter uninspected",
+      "official_url": "https://www.fffir.gob.ar/images/NewFinan/EIA/R-2301-19/R2301-19%20EsIAS%20-PGAS%20y%20ANEXOS.pdf",
+      "observed_outcome": "The sole web-reader open returned (502) Bad Gateway. No report body or maps acquired.",
+      "outcome_layer": "Web-reader fetch response reporting502; no independently observed origin response or body.",
+      "restriction_scope": "Missing report, maps and equivalent copies, formats, figures, catalogue/original/reader/cache/mirror and acquisition routes paused. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false,
+      "evidence_boundary": "Discovery excerpts are excluded from substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:61550900",
+      "publication": "IGN historical cartas_mosaicos 1:100.000, selected El Cuy headward extent",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "The original bounded view completed HTTP200, image/png. Northern El Cuy cartography is present, while the southern requested extent is white.",
+      "outcome_layer": "Successful original HTTP response with partial cartographic coverage absence in the inspected image.",
+      "restriction_scope": "Missing southern100k content provides no evidence and was not repeated. This is not a publication-wide denial or a restriction on the separately successful250k content.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_cartographic_coverage_absence",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61550900",
+      "publication": "IGN historical cartas_mosaicos 1:250.000, detailed Salado–Menucos–Trapalcó bounded view",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "The original detailed view completed HTTP200, image/png, with narrow white rendering bands. The previously acquired original overview depicts the same material connector locations without those gaps.",
+      "outcome_layer": "Successful original HTTP response with limited image-rendering omissions, covered by an already retained original view.",
+      "restriction_scope": "The missing portions of this detailed rendering are not evidence and were not retried. The earlier original overview supplies the affected channel and junction observations; no publication-wide stop is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_image_rendering_limit_with_retained_original_coverage",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61478315",
+      "publication": "Hoja Geológica 3166-III Chepes (2007), SEGEMAR Boletín251",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/103",
+      "observed_outcome": "Sole web-reader catalogue open returned (400) Timeout fetching. No catalogue body or original report/map acquired.",
+      "outcome_layer": "Web-reader fetch/transport outcome; origin HTTP status unestablished.",
+      "restriction_scope": "Missing publication, report/maps and all equivalent copies, formats, figures, catalogue/original/reader/cache/mirror and other acquisition routes paused for availability. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_timeout",
+      "material_gap": false,
+      "evidence_boundary": "Discovery bibliography only; discovery excerpts and unseen original maps are not substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:61478315",
+      "publication": "Hoja Geológica 3166-I Chamical (2008), SEGEMAR",
+      "official_url": "https://repositorio.segemar.gov.ar/bitstream/handle/308849217/102/Chamical.pdf",
+      "observed_outcome": "Sole direct original-file acquisition completed HTTP502, text/html. No original PDF/report/maps acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel or authorization failure reported.",
+      "restriction_scope": "Missing publication, report/maps and all equivalent copies, formats, figures, catalogue/original/reader/cache/mirror and other acquisition routes paused for availability. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false,
+      "evidence_boundary": "Discovery snippets and unseen maps excluded."
+    },
+    {
+      "aw_id": "hydro-system:70251102",
+      "publication": "Federal publication M26-502-5-eng.pdf; discovery result caption: Figure 6. Physiographic divisions, Old Wives Lake drainage basin; full publication title unestablished",
+      "official_url": "https://publications.gc.ca/collections/collection_2019/eccc/M26-502-5-eng.pdf",
+      "observed_outcome": "Sole original request completed HTTP200, text/html; charset=utf-8, redirected to an archived-information HTML page rather than a PDF. No original map acquired.",
+      "outcome_layer": "Original HTTP-client response and returned content",
+      "restriction_scope": "Missing publication/map content and equivalent copies, formats, figures, viewers, mirrors and acquisition routes paused for availability; no retry or alternate route.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:70251102",
+      "publication": "Water Security Agency MapServices/Basemap_Layers map publication",
+      "official_url": "https://gis.wsask.ca/arcgiswa/rest/services/MapServices/Basemap_Layers/MapServer/export",
+      "observed_outcome": "The single original bounded watercourse/waterbody export completed HTTP502, text/html. No original map pixels obtained.",
+      "outcome_layer": "HTTP-client response; no authorization denial reported",
+      "restriction_scope": "Missing map content and equivalent copies, formats, tiles, exports, viewers, mirrors and acquisition routes paused for availability. Dynamic export parameters are not published. No retry.",
+      "earlier_lawful_prose_exception": "Previously successful service/layer metadata remains bibliographic only. The independently issued and previously acquired 2014 watershed-plan PDF remains usable."
+    },
+    {
+      "aw_id": "hydro-system:70251102",
+      "publication": "Wood Mountain, NTS072G, CanMatrix1:250,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/072/g/canmatrix_072g_tif.zip",
+      "observed_outcome": "Official directory completed HTTP200 and supplied the archive link. The sole original archive request completed HTTP403, text/html. No archive/map body acquired.",
+      "outcome_layer": "HTTP-client response; no separate transport/tunnel error reported",
+      "restriction_scope": "Whole NTS072G CanMatrix publication and equivalent copies, formats, editions offered as the same source, viewers, mirrors and all acquisition routes stopped; no retry or equivalent recovery.",
+      "earlier_lawful_prose_exception": "Directory metadata only. Previously read independent WSA2014 plan remains usable."
+    },
+    {
+      "aw_id": "hydro-system:70251102",
+      "publication": "ECCC Old Wives Lake Migratory Bird Sanctuary map image",
+      "official_url": "https://www.canada.ca/content/canadasite/en/environment-climate-change/services/migratory-bird-sanctuaries/locations/old-wives-lake/_jcr_content/par/mwsadaptiveimage_1323024649/image.img.jpg/1539290712849.jpg",
+      "observed_outcome": "First map-image request returned web-reader Cache miss. No HTTP status, authorization reason or original pixels were exposed.",
+      "outcome_layer": "Web reader availability outcome; HTTP status unknown",
+      "restriction_scope": "Missing sanctuary-map content and equivalent copies, formats, screenshots, original-image and other acquisition routes paused; no retry or fallback.",
+      "earlier_lawful_prose_exception": "Earlier successfully read sanctuary landscape prose remains usable only for the terminal-lake setting. The image's textual long description is not treated as visual evidence."
+    }
+  ],
+  "additional_source_use_notices": []
+}
