@@ -179,7 +179,7 @@ private slots:
             QTRY_VERIFY(button->isVisible());
             QCOMPARE(editor.timelineMonth(),QStringLiteral("1915-10"));
             QCOMPARE(editor.revision(),revision);QCOMPARE(editor.dirty(),dirty);
-            QVERIFY2(warnings.isEmpty(),qPrintable(warnings.join('\\n')));
+            QVERIFY2(warnings.isEmpty(),qPrintable(warnings.join('\n')));
             window->setProperty("allowClose",true);window->close();
         }
         } catch(const std::exception& error) {
