@@ -19,6 +19,7 @@ import { createReferenceImageInteraction } from './reference-image-interaction.j
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
 import { referenceImageKeyBlocked, registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
+import { resolveReferenceImagePlaceAutoGeoref } from './reference-image-place-match.js';
 import { installReferenceImageSurface } from './reference-image-surface.js';
 import {
   listStoredReferenceImages,
@@ -75,7 +76,7 @@ function createImageFromBlob(blob) {
   });
 }
 
-export function installReferenceImageController({ workspaceSurfaces, confirm, getGeneration = () => 0, isBlocked = () => false, cancelTools = () => {} } = {}) {
+export function installReferenceImageController({ workspaceSurfaces, confirm, getGeneration = () => 0, isBlocked = () => false, cancelTools = () => {}, searchPlaces = null } = {}) {
   if (document.documentElement.dataset.referenceImageController === 'installed') return globalThis.__PANDOLAB_REFERENCE_IMAGES__ || null;
   const mapElement = document.getElementById('map');
   const launcher = document.getElementById('referenceImageBtn');
@@ -639,7 +640,81 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   }
   void restoreStoredImages();
 
+
+  async function autoGeorefPlaces({
+    id = selectedId,
+    detections = [],
+    mapDate = null,
+    mode = null,
+    matching = {},
+    georef = {},
+    apply = false,
+  } = {}) {
+    const record = records.find(item => item.id === id) || null;
+    if (!record) return Object.freeze({ ok: false, reason: 'reference-image-not-found' });
+    if (typeof searchPlaces !== 'function') return Object.freeze({ ok: false, reason: 'place-search-unavailable' });
+    if (apply && (record.locked || isBlocked() || storageState !== 'ready')) {
+      return Object.freeze({ ok: false, reason: 'reference-image-not-editable' });
+    }
+
+    const coarseMode = mode
+      || (record.warpMode === REFERENCE_IMAGE_WARP_MODES.TPS
+        ? REFERENCE_IMAGE_WARP_MODES.AUTO
+        : record.warpMode);
+    const token = currentToken();
+    const result = await resolveReferenceImagePlaceAutoGeoref(detections, {
+      search: searchPlaces,
+      anchor: record.anchor,
+      mapDate,
+      mode: coarseMode,
+      matching,
+      georef,
+    });
+    if (!apply || !result.ok) return result;
+    if (!validToken(token) || !records.includes(record) || record.locked || isBlocked()) {
+      return Object.freeze({ ...result, ok: false, reason: 'reference-image-session-changed', applied: false });
+    }
+
+    const acceptedIds = new Set(result.georef.inlierIds || []);
+    const autoPoints = result.matching.matches
+      .filter(match => acceptedIds.has(match.id))
+      .map(match => ({
+        id: match.id,
+        image: [...match.image],
+        coordinate: [...match.coordinate],
+      }));
+    if (!autoPoints.length) {
+      return Object.freeze({ ...result, ok: false, reason: 'no-auto-georef-inliers', applied: false });
+    }
+
+    const before = copyReferenceImageRecords(records);
+    const fallbackQuad = referenceImageWarpQuad(record.warp);
+    const manualPoints = record.controlPoints.filter(point => !String(point.id || '').startsWith('auto-place:'));
+    record.controlPoints = [...manualPoints, ...autoPoints];
+    rebuildWarp(record);
+    if (!record.warp.ok) {
+      record.controlPoints = before.find(item => item.id === record.id)?.controlPoints || manualPoints;
+      rebuildWarp(record);
+      if (fallbackQuad) record.mapQuad = fallbackQuad;
+      return Object.freeze({ ...result, ok: false, reason: record.warp.reason || 'auto-georef-apply-failed', applied: false });
+    }
+
+    history.push(before);
+    cancelInteraction();
+    await persist(record);
+    refreshUi();
+    return Object.freeze({
+      ...result,
+      applied: true,
+      appliedControlPointCount: autoPoints.length,
+      totalControlPointCount: record.controlPoints.length,
+      finalMode: record.warp.mode,
+      finalDiagnostics: record.warp.diagnostics,
+    });
+  }
+
   const api = Object.freeze({
+    autoGeorefPlaces,
     list: () => {
       const state = interactionState();
       return records.map((record, order) => ({
