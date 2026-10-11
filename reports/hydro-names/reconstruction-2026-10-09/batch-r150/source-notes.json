@@ -1,0 +1,836 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r150",
+  "sources": [
+    {
+      "title": "Henik Lakes, District of Keewatin, Northwest Territories, sheet65H, Land Use Information Series",
+      "publisher": "Department of the Environment; Indian and Northern Affairs Canada",
+      "year": 1979,
+      "scale": "1:250,000",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "cartographic_credits": "Base produced by Army Survey Establishment, R.C.E.; base information current as of1963, printed1965. Thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada; thematic map produced and printed1979.",
+      "source_type": "Original federal NLUIS thematic map with topographic/hydrographic base",
+      "evidence_scope": "Selected western headward pond/lake setting, first larger lake and its outlet, upper labeled McConnell River, eastward river and western side of the sheet-edge lake complex.",
+      "use_notice": "Copyright1979, Her Majesty the Queen in Right of Canada, Department of Energy, Mines and Resources. Original and derived reading images remain private.",
+      "source_key": "r150-nluis-65h",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65h.jpg",
+      "limits": "The short western pond-to-lake-inlet transfer remains ambiguous. The map covers the setting but does not establish that material connector. Historical component names and local labels do not establish modern registry status."
+    },
+    {
+      "title": "Eskimo Point, District of Keewatin, Northwest Territories, sheet55E, Land Use Information Series",
+      "publisher": "Department of the Environment; Indian and Northern Affairs Canada",
+      "year": 1979,
+      "scale": "1:250,000",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "cartographic_credits": "Base produced by Army Survey Establishment, R.C.E.; base information current as of1963, printed1966. Thematic cartography by Maritime Resource Management Service, Amherst, Nova Scotia,1979.",
+      "source_type": "Original federal NLUIS thematic map with topographic/hydrographic base and accompanying primary prose",
+      "evidence_scope": "Sheet-edge lake connection, upper lake bends, middle river, lower southeast turn and the Hyde Lake sheet seam. McConnell River label and bounded supporting prose.",
+      "supporting_prose_observation": "The hunting/trapping note describes lake-studded lowlands along McConnell River. The fish-resource M1 note treats McConnell River as an anadromous-char migration/spawning system and explicitly refers readers to adjacent Hyde Lake55D and Henik Lakes65H sheets. This supports regional river context only; it does not prove the unresolved western connector.",
+      "use_notice": "Original map and derived reading images remain private. Official hosting does not itself establish redistribution permission.",
+      "source_key": "r150-nluis-55e",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55e.jpg",
+      "limits": "Historical thematic overlays cross parts of the hydrographic base. Local brown place labels are not promoted to modern aliases or a whole-route name. Fish information is historical context, not a present ecological assessment."
+    },
+    {
+      "title": "Hyde Lake, District of Keewatin, Northwest Territories, sheet55D, Land Use Information Series",
+      "publisher": "Department of the Environment, Lands Directorate, Environmental Management Service; Indian and Northern Affairs Canada",
+      "year": 1979,
+      "scale": "1:250,000",
+      "catalogue_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "cartographic_credits": "Base by Army Survey Establishment, R.C.E.; base information current as of1963, printed1966. Thematic cartography by Land Resource Research Institute, Research Branch, Agriculture Canada; thematic map produced and printed1979.",
+      "source_type": "Lawfully retained original federal NLUIS thematic map with topographic/hydrographic base",
+      "evidence_scope": "Continuation from Eskimo Point sheet, lower McConnell River, coastal wetland channels, actual Hudson Bay outlet and receiving sea.",
+      "use_notice": "Copyright1979, Her Majesty the Queen in Right of Canada, Department of Energy, Mines and Resources. Original map and derived reading images remain private.",
+      "source_key": "r150-nluis-55d",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_55d.jpg",
+      "limits": "Historical shoreline and channel depiction; no exact present tidal boundary, bank alignment or surveyed endpoint is asserted."
+    },
+    {
+      "title": "Northern Land Use Information Series (NLUIS): Northern Land Use",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "source_type": "Retained official catalogue/index",
+      "evidence_scope": "Bibliographic identification and exact original links for Henik Lakes65H, Eskimo Point55E and Hyde Lake55D. Catalogue metadata alone is not route evidence.",
+      "source_key": "r150-nluis-index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "title": "CanMatrix, NTS065H, 1:50,000 raster sheet directory; targeted NTS065H/07",
+      "publisher": "Natural Resources Canada",
+      "source_type": "Official directory metadata only",
+      "evidence_scope": "Original archive identification only. No map pixels or hydrographic evidence obtained.",
+      "source_key": "r150-canmatrix-065h07-directory",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/065/h/"
+    },
+    {
+      "institution": "U.S. Geological Survey",
+      "title": "USGSTopo, The National Map multiscale topographic reference map",
+      "source_type": "primary original composite cartography",
+      "edition_or_refresh": "Retained service metadata reports data refreshed September 4, 2026-v1.2",
+      "accessed_utc": "2026-10-11",
+      "map_views": [
+        {
+          "view": "01-headward",
+          "coverage": "Unnamed headwater branch, North Fork Thornton, Piney confluence, Sperryville/Thornton junction, Rock Mills and upper Thornton"
+        },
+        {
+          "view": "02-thornton-hazel",
+          "coverage": "Thornton through Laurel Mills and Homeland to Monumental Mills/Hazel junction, lower Hazel and Oakshade approach"
+        },
+        {
+          "view": "03-hazel-rappahannock",
+          "coverage": "Lower Hazel, Rappahannock junction, Remington, Kellys Ford and Rappahannock to Richardsville approach"
+        },
+        {
+          "view": "04-rapidan-junction",
+          "coverage": "Rappahannock and Rapidan confluence, Hunting Run/Lake Mooney/Motts Run side-reservoir distinctions and Fredericksburg approach"
+        },
+        {
+          "view": "05-fredericksburg",
+          "coverage": "Interstate 95, Falmouth, Fredericksburg, tributary junctions, Little Falls and upper tidal bends"
+        },
+        {
+          "view": "06-port-royal",
+          "coverage": "Upper tidal bends, Hopyard, Dogue Creek, Port Conway/Port Royal and US 301 crossing"
+        },
+        {
+          "view": "07-terminal",
+          "coverage": "Nanzatico/Portobago, Wilmont bends, Leedstown–Otterburn Marsh terminal and visible downstream continuation"
+        }
+      ],
+      "use_notice": "Service attribution credits USGS The National Map national datasets, USGS Global Ecosystems, U.S. Census Bureau TIGER/Line, USFS Road data, Natural Earth Data, U.S. Department of State HIU and NOAA National Centers for Environmental Information. Original maps, crops and orientation overlays remain private.",
+      "evidence_scope": "Direct headwater, entire corridor, junction, waterbody distinction and terminal correspondence. Printed names do not independently verify formal registry status.",
+      "source_key": "r150-usgs-topo-rappahannock",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "institution": "Virginia Department of Wildlife Resources",
+      "title": "Rappahannock River – Upper",
+      "source_type": "bounded primary prose",
+      "accessed_utc": "2026-10-11",
+      "actually_read_scope": "Overview and relevant route descriptions: Hazel/Rapidan tributaries; Kellys Ford, Rapidan confluence and Motts/Fredericksburg route; fall-line/Route 1 tidal transition; overview states Embrey Dam removed.",
+      "evidence_scope": "Corroborates downstream names, junction and tidal context, not headward correspondence. Chester Gap headwater statement concerns a different upstream branch. Older portage directions on the same page are inconsistent with its removal statement and are not used as current dam-status evidence.",
+      "use_notice": "Page footer displays © 2026 Virginia Department of Wildlife Resources.",
+      "source_key": "r150-virginia-dwr-rappahannock-upper",
+      "official_url": "https://dwr.virginia.gov/waterbody/rappahannock-river-upper/"
+    },
+    {
+      "institution": "Virginia Department of Wildlife Resources",
+      "title": "Rappahannock River – Tidal",
+      "source_type": "bounded primary prose",
+      "accessed_utc": "2026-10-11",
+      "actually_read_scope": "Opening geographic paragraph: tidal Rappahannock from Fredericksburg toward Leedstown and broad tidal marshes below Route 301.",
+      "evidence_scope": "Corroborates tidal terminal context without substituting for selected map correspondence.",
+      "use_notice": "Page footer displays © 2026 Virginia Department of Wildlife Resources.",
+      "source_key": "r150-virginia-dwr-rappahannock-tidal",
+      "official_url": "https://dwr.virginia.gov/waterbody/rappahannock-river-tidal/"
+    },
+    {
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "year": 1995,
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "scale": "1:2 500 000",
+      "evidence_kind": "Retained complete original cartography, visually read afresh.",
+      "acquired_scope": "Reused the lawfully retained original with completed earlier HTTP 200 response. No new request. Full-sheet overview, geographic graticule, central-eastern regional setting, complete selected corridor, Inland Ice legend and imprint read.",
+      "supports": "Opening beyond Sheet 12’s western boundary, southeastward interior ice, overlapping eastern ice/rock region and national inner-Scoresby setting.",
+      "limits": "National-scale geological cartography does not establish a natural river trace, modern ice fronts or subglacial/surface flow continuity. UTM zone 24, WGS 84, is stated in its imprint.",
+      "reuse_limit": "GEUS Custom Dataset Terms permit internal use and processing but restrict redistribution of original and processed data and production or transfer of new maps. Originals, source crops and comparison materials remain private. Only independently written factual observations and ordinary bibliography are public-ready.",
+      "source_key": "r150-geus-greenland-national-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 12, Scoresby Sund",
+      "authors": "Niels Henriksen",
+      "publisher": "Geological Survey of Greenland (Grønlands Geologiske Undersøgelse), Copenhagen",
+      "year": 1984,
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi%3A10.22008%2FFK2%2FGO6TAW",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16802",
+      "scale": "1:500 000",
+      "evidence_kind": "Newly acquired complete official original cartography; visual primary evidence.",
+      "acquired_scope": "The catalogue and its exact linked PDF were acquired in separate sequential requests, both completed HTTP 200. Full-sheet overview, western edge and latitude/longitude graticule, overlapping upper/middle/lower corridor views, actual terminal sector, legend, compilation/topographic-source note and print date read.",
+      "supports": "Full regional corridor east of the western sheet edge; mixed ice/nunatak transitions north of Paul Stern Land; Rolige Bræ context; final ice/rock margin west of Rødefjord; separation from the Vestfjord and Vestfjord Gletscher routes.",
+      "limits": "A small initial portion is outside the western sheet edge and is covered by the national original. Historical geological/topographic mapping establishes terrain, not a surveyed river or exact contemporary glacier front. The imprint states International ellipsoid, UTM zone 26; compilation by H. J. Bengaard and N. Henriksen, 1982; printed by Geodætisk Institut, 1984. Topographic-source note distinguishes Geodætisk Institut mapping from Landsat-based outline areas.",
+      "reuse_limit": "GEUS Custom Dataset Terms permit internal use and processing but restrict redistribution of original and processed data and production or transfer of new maps. Originals, source crops and comparison materials remain private. Only independently written factual observations and ordinary bibliography are public-ready.",
+      "source_key": "r150-geus-scoresby-sund-sheet12-1984",
+      "official_url": "https://doi.org/10.22008/FK2/GO6TAW"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 11, Kong Oscar Fjord",
+      "authors": "Jan C. Escher",
+      "publisher": "Geological Survey of Denmark and Greenland (GEUS), Copenhagen",
+      "year": 2001,
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16521",
+      "scale": "1:500 000",
+      "evidence_kind": "Retained original inspected only to establish coverage exclusion.",
+      "acquired_scope": "Overview and explicit 72°N southwestern/southern graticule read locally. No new acquisition.",
+      "supports": "Only the finding that this sheet is north of the entire selected target.",
+      "limits": "No selected-route cartographic correspondence is attributed to this publication.",
+      "reuse_limit": "GEUS Custom Dataset Terms permit internal use and processing but restrict redistribution of original and processed data and production or transfer of new maps. Originals, source crops and comparison materials remain private. Only independently written factual observations and ordinary bibliography are public-ready.",
+      "source_key": "r150-geus-kong-oscar-fjord-sheet11-2001-coverage-only",
+      "official_url": "https://doi.org/10.22008/FK2/NKHZZN"
+    },
+    {
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "edition": "Undated active cartographic service; read 11 October 2026",
+      "evidence_type": "Primary original official hydrographic cartography",
+      "actually_inspected": "Five sequential bounded originals: whole corridor, headward Rocín–Tambillos course, Putaendo–Aconcagua junction/middle valley, lower Aconcagua, and the initial Tambillos/Las Majadas junction detail. Each completed HTTP 200 image/png before inspection or the next request.",
+      "cartographic_method": "Published line renderer and server labels from the source NOMBRE field; retained layer metadata read locally. Selected geometry used only for private orientation. No source vector or full dataset acquired.",
+      "supports": "Entire selected river corridor, north-flowing Tambillos approach and upper Rocín junction, west/south Rocín loop, Hidalgo junction, westward Rocín to Chalaco, Putaendo to Aconcagua, lower tributary convergence and coastal approach.",
+      "use_notice": "Description/copyright fields blank in retained metadata. No redistribution permission inferred; originals and private derivatives remain private.",
+      "source_key": "r150-mma-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "limits": "Line-only source does not depict a current Chacrillas water surface. Adjacent channels, tributaries and nearby labels are kept separate. No current flow, precise bank, spring location or formal registry claim."
+    },
+    {
+      "title": "SIMBIO_HUMEDALES — Inventario Nacional de Humedales, layer 0",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer/0",
+      "edition": "Undated active inventory service; read 11 October 2026",
+      "evidence_type": "Primary original official wetland cartography",
+      "actually_inspected": "Three sequential original headward, middle and lower/coastal maps completed HTTP 200 image/png. Published ORDEN_1 legend and field descriptions read from retained successful metadata.",
+      "supports": "Small continental wetlands on and near the initial Tambillos channel and upper Rocín corridor; fluvial wetland strips along Putaendo and Aconcagua; distinct nearby artificial polygons; fluvial-to-marine/coastal wetland transition at Desembocadura Rio Aconcagua.",
+      "use_notice": "Retained description/copyright fields blank; no redistribution permission inferred.",
+      "source_key": "r150-mma-wetlands",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer",
+      "limits": "Sin Información is a missing-name value. The broad Sist. Rio Aconcagua y trib label groups geographically different tributary polygons and is not a local reach-name assignment. No clear Chacrillas reservoir polygon is supplied by this view. Wetland shapes are not current wetted boundaries. Side impoundment polygons are not treated as selected reservoir traversals."
+    },
+    {
+      "title": "SIMBIO_COT — COT 2020, layer 1",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer/1",
+      "edition": "Layer titled COT 2020; read 11 October 2026",
+      "evidence_type": "Primary original categorical land-cover cartography",
+      "actually_inspected": "Two sequential original Chacrillas-corridor and coastal-mouth exports completed HTTP 200 image/png; retained published renderer inspected.",
+      "supports": "General terrain/land-cover setting and the Aconcagua coastal water-body opening beside the open coast.",
+      "use_notice": "No redistribution permission inferred.",
+      "source_key": "r150-mma-cot",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer",
+      "limits": "The Chacrillas view does not provide a distinct reservoir water-surface polygon and is not used to establish that reservoir connection. The published renderer distinguishes agricultural land from water bodies; agricultural fill is not water. No hydronyms, present shoreline or current reservoir level are inferred."
+    },
+    {
+      "title": "Memoria Explicativa, Modificación Plan Regulador Metropolitano de Valparaíso: Satélite Alto Aconcagua; provincias de Los Andes y San Felipe de Aconcagua, Región de Valparaíso",
+      "publisher": "Regional metropolitan planning document, official Ministerio del Medio Ambiente EAE dossier hosting",
+      "date": "October 2014",
+      "evidence_type": "Primary original planning cartography and explanatory prose",
+      "actually_inspected": "Original PDF completed HTTP 200 application/pdf. Cover and printed page 128, Figure 92 Zona Rural Normada 3, visually read; the upper Embalse Chacrillas inset was inspected at readable scale.",
+      "supports": "The Chacrillas project zone lies along the east–west Rocín valley between the eastern Hidalgo/Rocín junction and the western Chalaco/Putaendo joining setting. The inset depicts the channel continuing through the zone and downstream.",
+      "use_notice": "No restricted-distribution notice observed in the inspected material. No source page or inset redistribution.",
+      "source_key": "r150-prm2014-chacrillas",
+      "official_url": "https://eae.mma.gob.cl/storage/documents/04_Anteproyecto_PRM_Valparaiso-Alto_Aconcagua_2.pdf.pdf",
+      "limits": "The highlighted zone is reserved/projected reservoir land, not a surveyed as-built or current wetted surface. It supplies the reservoir-reach location and approach/outlet geography; independent DOH filling/outlet prose establishes the built reservoir relationship. The second inset, Puntilla del Viento, is a separate off-selected project and is not assigned to this route."
+    },
+    {
+      "title": "Ministro Undurraga inspecciona llenado de nuevo embalse Chacrillas en Putaendo",
+      "publisher": "Dirección de Obras Hidráulicas, Ministerio de Obras Públicas, Chile",
+      "date": "Historical construction-era report; visible page date Monday, June 22, without year in the read date line",
+      "evidence_type": "Primary infrastructure-agency prose",
+      "actually_inspected": "Successful HTML reader, main article paragraphs.",
+      "supports": "Reports closure of the gate and commencement of filling Chacrillas with Río Rocín water, in Putaendo.",
+      "source_key": "r150-doh-chacrillas-fill",
+      "official_url": "https://doh.mop.gob.cl/ministro-undurraga-inspecciona-llenado-de-nuevo-embalse-chacrillas-en-putaendo/",
+      "limits": "Historical event evidence only. No present storage, release rate or precise water boundary inferred. The article is an independently identified DOH project-event report, not the stopped Vialidad portal or DGA/Loa figures."
+    },
+    {
+      "title": "MOP inició desvío del río Rocin por obras de construcción de embalse Chacrillas",
+      "publisher": "Dirección de Obras Hidráulicas, Ministerio de Obras Públicas, Chile",
+      "date": "Historical construction-era report; visible page date Wednesday, October 24, without year in the read date line",
+      "evidence_type": "Primary infrastructure-agency prose",
+      "actually_inspected": "Successful HTML reader, main article paragraphs.",
+      "supports": "Describes Rocín diversion through the reservoir works tunnel and installation of water-delivery valves in that same tunnel for downstream supply.",
+      "source_key": "r150-doh-chacrillas-outlet",
+      "official_url": "https://doh.mop.gob.cl/mop-inicio-desvio-del-rio-rocin-por-obras-de-construccion-de-embalse-chacrillas/",
+      "limits": "Historical construction and designed outlet relationship only; no present flow operation inferred. Distinct DOH construction-event publication, not the current Vialidad portal."
+    },
+    {
+      "title": "Estudio Actualización Plan Regulador Comunal de Putaendo — Memoria Explicativa",
+      "author": "SURPLAN",
+      "publisher": "Official Ministerio del Medio Ambiente EAE dossier hosting",
+      "date": "Draft document; exact issue date not independently established",
+      "evidence_type": "Supporting primary communal-planning prose",
+      "actually_inspected": "Successful PDF reader; cover contents and printed pages II-19–II-20 (PDF pages 29–30).",
+      "supports": "Identifies Putaendo, Rocín, Hidalgo and de Los Tambillos in the local hydrographic network and describes the widening fluvial valley at the Aconcagua confluence.",
+      "source_key": "r150-prc-putaendo",
+      "official_url": "https://eae.mma.gob.cl/storage/documents/04_Anteproyecto_Memoria_Explicativa_PRC_Putaendo.pdf.pdf",
+      "limits": "Read prose only; Figure II-3 was not visually acquired and is not map evidence. Draft editorial comments remain visible; unrelated environmental allegations and contemporary condition claims are not adopted."
+    },
+    {
+      "title": "Informe Consolidado de Observaciones y Respuestas, Anteproyecto Norma Secundaria de Calidad Ambiental para la Cuenca del Río Aconcagua",
+      "publisher": "Ministerio del Medio Ambiente; includes Dirección General de Aguas, Región de Valparaíso observation 62",
+      "date": "Consultation 12 June–6 September 2017; responses refer to 18 January 2019 coordination",
+      "evidence_type": "Supporting primary consultation record and agency response prose",
+      "actually_inspected": "Successful PDF reader; PDF pages 92–93, observation 62 and response.",
+      "supports": "DGA observation explicitly distinguishes Rocín upstream of its Chalaco confluence but downstream of Chacrillas, the Chalaco–Rocín formation of Putaendo, and the Putaendo/Aconcagua junction.",
+      "source_key": "r150-mma-consultation",
+      "official_url": "https://consultasciudadanas.mma.gob.cl/storage/consulta/respuestas/Respuesta_Aconcagua.pdf",
+      "limits": "The passage disputes proposed monitoring-area coordinates; none of those disputed coordinates or legal boundaries is adopted. Used only for the bounded named river/reservoir sequence, alongside independently read map geography. No present legal status claim."
+    },
+    {
+      "title": "Detalle solicitud Desembocadura del Río Aconcagua, solicitud 30, expediente HU-0075",
+      "publisher": "Ministerio del Medio Ambiente, Portal Humedales",
+      "date": "Undated active record, read 11 October 2026",
+      "evidence_type": "Supporting primary wetland-description prose",
+      "actually_inspected": "Successful HTML reader; wetland description and landscape characterization.",
+      "supports": "Concón–Quintero estuarine setting, sandy coastal bars at La Boca/Concón, tidal influence and La Isla with main-channel and northern-arm surroundings.",
+      "source_key": "r150-mma-mouth",
+      "official_url": "https://sistemahumedales.mma.gob.cl/OficioHU/DetailsPublico/30",
+      "limits": "Description provides ordinary estuarine context, not exact present mouth position or a legal-name registry finding. Listed but unrequested attachments are not map evidence."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:80234498",
+      "source_keys": [
+        "r150-nluis-65h",
+        "r150-nluis-55e",
+        "r150-nluis-55d"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2695
+          ],
+          "component_scope": "Eastern Henik Lakes sheet, west of the first larger lake",
+          "finding": "The original depicts the selected western headward setting as small lakes and ponds, with short channels leading toward the larger lake whose historical base elevation is marked 687 feet. The intervening western pond chain and the west-side lake inlet are visible, but the short transfer between them is not unambiguously continuous in the readable 1:250,000 cartography. This is a material connector question, not a claim that an actual connection is absent. Modeled continuity is not substituted for geographic evidence.",
+          "sources": [
+            "r150-nluis-65h"
+          ],
+          "correspondence": "material_pending",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2695
+          ],
+          "component_scope": "First larger lake and upper McConnell River, south of Corbett Lake",
+          "finding": "The larger lake has a southern arm and an outlet marked with rapids. The outlet continues southeast as a mapped channel labeled McConnell River. Separate northern and lateral feeder waters enter the lake and channel. Nearby Corbett Lake and the lake-and-pond group to the north are distinct waters, not names for the selected western feeder. The larger lake passage and its outlet are readable independently of the unresolved western entrance.",
+          "sources": [
+            "r150-nluis-65h"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2695
+          ],
+          "component_scope": "Southern Henik Lakes sheet to western Eskimo Point sheet",
+          "finding": "The river turns east through low lake country, receives shorter tributary channels, and enters the elongated lake complex straddling the sheet edge. Rapids and the connected larger waterbody are shown on the adjoining originals. The McConnell River label lies along the river approaching this complex.",
+          "sources": [
+            "r150-nluis-65h",
+            "r150-nluis-55e"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": "McConnell River"
+        },
+        {
+          "fragments": [
+            2695
+          ],
+          "component_scope": "Western Eskimo Point sheet, northward bend and southern lake transfer",
+          "finding": "The selected sector bends through the connected arms and small channels of the western lake complex, then turns south through short lake-and-river links into the larger waterbody along the McConnell corridor. The map distinguishes nearby parallel elongated lakes and side feeders. These lake passages are not given the downstream river name as individual lake names.",
+          "sources": [
+            "r150-nluis-55e"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2695
+          ],
+          "component_scope": "Southern Eskimo Point sheet",
+          "finding": "The eastward river leaves the larger lake through a narrow channel, passes mapped rapids and short widened reaches, and receives lateral lake/stream feeders. The cartographic McConnell River label follows this middle corridor. The northern elongated lakes and southern lowland lake complex remain distinct tributary settings.",
+          "sources": [
+            "r150-nluis-55e"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": "McConnell River"
+        },
+        {
+          "fragments": [
+            2695
+          ],
+          "component_scope": "Southeastern turn in Eskimo Point sheet to northern Hyde Lake sheet",
+          "finding": "The river turns south and southeast through rapids, then east and southeast again across a pond-dotted lowland. It receives several small lake-draining channels before continuing across the shared sheet edge. The sequence of bends, junctions and lake widenings is visible on the two original sheets.",
+          "sources": [
+            "r150-nluis-55e",
+            "r150-nluis-55d"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": "McConnell River"
+        },
+        {
+          "fragments": [
+            2695
+          ],
+          "component_scope": "Northern Hyde Lake sheet and Hudson Bay shore",
+          "finding": "The lower channel labeled McConnell River continues southeast across the coastal wetland plain, with small side channels and irregular widened waters, to its outlet on Hudson Bay. The river approach, immediate coastal mouth setting and receiving sea are read directly from the original map. The selected model sea terminal is consistent at ordinary corridor scale; no surveyed mouth point, exact shore position or present tidal limit is inferred.",
+          "sources": [
+            "r150-nluis-55d"
+          ],
+          "correspondence": "bounded_component_correspondence",
+          "mapped_component_name": "McConnell River"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70616720",
+      "source_keys": [
+        "r150-usgs-topo-rappahannock",
+        "r150-virginia-dwr-rappahannock-upper",
+        "r150-virginia-dwr-rappahannock-tidal"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9827
+          ],
+          "component_scope": "Headwater branch and North Fork Thornton to Sperryville",
+          "finding": [
+            "The selected opening corresponds at ordinary corridor scale to a short mapped, unnamed headwater branch northwest of Fork Mountain in the Shenandoah Wilderness area. Its downstream connection to North Fork Thornton River is visible on original cartography; no name is assigned to this initial branch.",
+            "The mapped North Fork Thornton corridor continues southeast through Thornton Hollow, receives Piney River, and reaches the Thornton River junction at Sperryville. The western Thornton approach from Thornton Gap is a distinct branch rather than the selected opening.",
+            "The headward branch, junction and entire upper corridor were read on original map pixels. General prose describing the Rappahannock origin at Chester Gap applies to a different upstream branch and is not used to name or establish this selected headwater."
+          ],
+          "sources": [
+            "r150-usgs-topo-rappahannock"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9827
+          ],
+          "component_scope": "Thornton River through Rock Mills and Laurel Mills to Hazel River",
+          "finding": [
+            "Below Sperryville, the selected corridor follows the separately labeled Thornton River eastward past Fletcher Mill, around the bend toward Rock Mills, and through Laurel Mills.",
+            "Covington River is a separate north-side tributary joining in the Rock Mills setting. The selected route stays on Thornton and continues southeast past the Viewtown/Estes and Homeland settings.",
+            "Thornton joins the Hazel River near Monumental Mills. The upstream Hazel approaches from the southwest through the Eggbornsville setting; the selected route enters from the Thornton branch and then follows Hazel eastward. This junction and the name change were read directly."
+          ],
+          "sources": [
+            "r150-usgs-topo-rappahannock"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9827
+          ],
+          "component_scope": "Lower Hazel, Rappahannock junction, Remington and Kellys Ford",
+          "finding": [
+            "The named Hazel corridor proceeds past Monumental Mills, the Rixeyville/Oakshade crossing setting and Crooks Farm, then east toward its junction with Rappahannock River upstream of Remington.",
+            "The Rappahannock approaches the Hazel junction as a distinct northern branch. Downstream of their meeting, the selected route follows the repeatedly labeled Rappahannock past Remington, the US 29 crossing, and Kellys Ford.",
+            "Original cartography covers the lower Hazel bends, the full joining channel and the downstream county-boundary corridor. Basin association or a neighboring Rappahannock label is not the basis of correspondence."
+          ],
+          "sources": [
+            "r150-usgs-topo-rappahannock"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9827
+          ],
+          "component_scope": "Rappahannock to the Rapidan confluence and Fredericksburg approach",
+          "finding": [
+            "Below Kellys Ford, the selected Rappahannock continues south and then east along the Culpeper–Fauquier/Stafford boundary corridor, passing the Richardsville and Richards Ferry setting.",
+            "The Rapidan approaches from the southwest and joins the selected Rappahannock. The selected opening is not on Rapidan; the original map covers both sides of this material confluence and the continuing Rappahannock.",
+            "Downstream bends lead toward Rivergate and Old Banks, past the separate Lake Mooney and Motts Run Reservoir settings, and into the Fredericksburg approach. Hunting Run Reservoir lies on a separate southern tributary below the Rapidan-junction area. None of these reservoirs is a selected main-route passage."
+          ],
+          "sources": [
+            "r150-usgs-topo-rappahannock"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9827
+          ],
+          "component_scope": "Fredericksburg fall-line corridor and upper tidal Rappahannock",
+          "finding": [
+            "The original map follows the selected river past Motts Run, across the Interstate 95 crossing, around the Falmouth/Fredericksburg bends, and downstream past Chatham and Mayfield toward Little Falls.",
+            "Distinct side-water connections, including Motts Run and Hazel Run, meet the main river. Hazel Run here is separate from the upstream Hazel River selected earlier.",
+            "The selected corridor stays on the Rappahannock past Little Falls, Massaponax Creek and the eastward meanders below Fredericksburg. Virginia DWR identifies Fredericksburg/Route 1 as the fall-line and tidal transition and its overview reports Embrey Dam removed. No present-day impoundment crossing is inferred from old dam-related references."
+          ],
+          "sources": [
+            "r150-usgs-topo-rappahannock",
+            "r150-virginia-dwr-rappahannock-upper"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9827
+          ],
+          "component_scope": "Hopyard and Port Royal/Port Conway tidal bends",
+          "finding": [
+            "The original map traces the same Rappahannock channel through the large bends below Fredericksburg, past the Hopyard Landing and Dogue Creek junction setting, and around the wetland bends toward Port Royal.",
+            "The selected corridor crosses the US 301 bridge setting between Port Conway and Port Royal and continues downstream into the broader tidal river and marsh landscape. Lateral ponds, marsh channels and tidal tributary arms remain distinct from the selected main corridor.",
+            "Virginia DWR independently describes tidal Rappahannock from Fredericksburg to Leedstown and the broad marshes below Route 301. This prose corroborates the tidal setting; the original maps establish the selected route."
+          ],
+          "sources": [
+            "r150-usgs-topo-rappahannock",
+            "r150-virginia-dwr-rappahannock-tidal"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            9827
+          ],
+          "component_scope": "Nanzatico/Wilmont corridor and actual terminal at Leedstown",
+          "finding": [
+            "The broad, labeled Rappahannock continues below Port Royal past the Nanzatico/Portobago setting, through the Wilmont bends and along the river corridor toward Leedstown. Tributary mouths and extensive adjoining marshes are visibly separate from the main channel.",
+            "The selected terminal belongs to the Leedstown–Otterburn Marsh bend of the tidal Rappahannock, downstream of the Mount Pleasant/Luce Creek setting. It is an inland tidal-river terminal setting, not a confluence forming a new named river and not the Chesapeake Bay or open-ocean mouth.",
+            "The mapped Rappahannock continues downstream beyond the selected terminal. No exact bank or mouth-point match is claimed, and the retained sea class is not used to extend the selected feature to Chesapeake Bay."
+          ],
+          "sources": [
+            "r150-usgs-topo-rappahannock",
+            "r150-virginia-dwr-rappahannock-tidal"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90074577",
+      "source_keys": [
+        "r150-geus-greenland-national-1995",
+        "r150-geus-scoresby-sund-sheet12-1984"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8857
+          ],
+          "component_scope": "Headward opening and first southeastward Inland Ice section",
+          "finding": "The selected opening and initial southeastward portion occupy the Inland Ice west of the regional sheet’s western neatline. The national original provides unobscured coverage there and overlaps the detailed sheet farther southeast. Both maps distinguish this ice setting from the exposed-rock belt to the east.",
+          "sources": [
+            "r150-geus-greenland-national-1995",
+            "r150-geus-scoresby-sund-sheet12-1984"
+          ],
+          "correspondence": "complete at ordinary generalized terrain/corridor scale",
+          "mapped_component_name": null,
+          "limits": "National Inland Ice contours describe surface elevation, ice thickness or underlying bedrock as specified by the legend; they are not river traces. No surface or subglacial through-flow is inferred."
+        },
+        {
+          "fragments": [
+            8857
+          ],
+          "component_scope": "Southeastward continuation and first eastward turn",
+          "finding": "The route continues southeast through the broad ice field, then turns east toward the isolated nunataks west and north of Paul Stern Land. Sheet 12 shows the continuous mapped terrain extent, contouring on ice and the separate small exposed-rock bodies throughout this transition.",
+          "sources": [
+            "r150-geus-greenland-national-1995",
+            "r150-geus-scoresby-sund-sheet12-1984"
+          ],
+          "correspondence": "complete at ordinary generalized terrain/corridor scale",
+          "mapped_component_name": null,
+          "limits": "Ice coverage and proximity to nunataks do not make this a named river headwater. The selected line is used only to locate the terrain."
+        },
+        {
+          "fragments": [
+            8857
+          ],
+          "component_scope": "Middle eastward reach, northward excursion and renewed southeastward turn",
+          "finding": "The middle route passes through the mixed ice and isolated rock-ridge belt north of Paul Stern Land, including its short northeastward excursion and subsequent southeastward return. The detailed original distinguishes the northern ridge and adjoining ice passages from the larger rock bodies farther south and east. No intervening unmapped component or unknown geographic connector remains.",
+          "sources": [
+            "r150-geus-scoresby-sund-sheet12-1984"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null,
+          "limits": "The modeled bends traverse a mixed ice/rock setting. They are not asserted to be one surveyed channel, and no name of a ridge, nunatak or nearby glacier is transferred to the whole line."
+        },
+        {
+          "fragments": [
+            8857
+          ],
+          "component_scope": "Southern bend and eastward lower glacier corridor",
+          "finding": "After the southeastward descent, the selected route turns east and then northeast around the western side of the larger exposed-rock mass into the ice corridor labelled Rolige Bræ. Paul Stern Land and the Døde Bræ area are to the south/southwest. The separate Vestfjord Gletscher corridor lies farther south and is not the selected continuation.",
+          "sources": [
+            "r150-geus-scoresby-sund-sheet12-1984"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null,
+          "limits": "Rolige Bræ is contextual glacier nomenclature, not an accepted river name or a name assigned to every selected segment. The model is not used to establish hydraulic continuity across the intervening ice or rock margins."
+        },
+        {
+          "fragments": [
+            8857
+          ],
+          "component_scope": "Final eastward section and actual selected terminal setting",
+          "finding": "The final section follows the northern margin of the lower Rolige Bræ ice corridor toward the west side of Rødefjord. The selected ending occupies the historical mapped glacier/rock-margin sector west of the fjord. Rødefjord, the exposed northern promontory, the southern intervening ridge and the separate Vestfjord inlet are visibly distinguished on Sheet 12. The ending is not assigned to the separate Vestfjord Gletscher–Vestfjord route.",
+          "sources": [
+            "r150-geus-greenland-national-1995",
+            "r150-geus-scoresby-sund-sheet12-1984"
+          ],
+          "correspondence": "complete at ordinary generalized terminal-corridor scale",
+          "mapped_component_name": null,
+          "limits": "The retained model terminal class sea does not demonstrate an ordinary river mouth. Historical ice and rock boundaries are not a present-day glacier-front survey. Precise bank, vertex, ice-front or mouth agreement is not claimed."
+        },
+        {
+          "fragments": [
+            8857
+          ],
+          "component_scope": "Selected branch, lake and reservoir scope",
+          "finding": "The supplied selection contains one mainstem feature and no separate tributary feature. Original mapping shows adjacent glaciers, rock valleys and fjord arms, but establishes no named through-lake or reservoir passage that should be carried over to this selection.",
+          "sources": [
+            "r150-geus-scoresby-sund-sheet12-1984"
+          ],
+          "correspondence": "complete for the supplied feature scope",
+          "mapped_component_name": null,
+          "limits": "Internal multiline pieces are not counted as independent tributary features, and adjacent glacier or fjord connections are not silently included in a river name."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61493851",
+      "source_keys": [
+        "r150-mma-hydro",
+        "r150-mma-wetlands",
+        "r150-mma-cot",
+        "r150-prm2014-chacrillas",
+        "r150-doh-chacrillas-fill",
+        "r150-doh-chacrillas-outlet",
+        "r150-prc-putaendo",
+        "r150-mma-consultation",
+        "r150-mma-mouth"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14064
+          ],
+          "component_scope": "Actual southern opening and northward Tambillos reach",
+          "finding": "The selected opening is on the southern continuation of the channel labeled Río de Los Tambillos, near and immediately south of the separate Quebrada Las Majadas joining setting. The original detail distinguishes that southeast side feeder from the selected northward course. The route continues past the Quebrada Seca, Piedra de Fuego, Las Polcuras and del Tábano joining settings to the east–west upper Rocín corridor. No distant spring, portezuelo or glacier is assigned as the selected start.",
+          "sources": [
+            "r150-mma-hydro",
+            "r150-mma-wetlands"
+          ],
+          "correspondence": "Established at ordinary generalized component/corridor scale; not exact bank or vertex agreement.",
+          "lakes_wetlands_reservoirs": "Small continental-wetland patches occur along and beside the initial mountain channel; nearby patches remain unnamed where the inventory says Sin Información. No selected natural lake passage is depicted.",
+          "mapped_component_names": [
+            "Río de Los Tambillos"
+          ]
+        },
+        {
+          "fragments": [
+            14064
+          ],
+          "component_scope": "Upper Rocín junction, westward loop and southward valley",
+          "finding": "The northward Tambillos approach joins the upper east–west stream near the Quebrada del Chilón joining area. The selected route turns west past northern side feeders, then southwest and south along the continuous Rocín valley. It reaches the separate Río Hidalgo contribution from the southeast/east; it does not follow that tributary upstream.",
+          "sources": [
+            "r150-mma-hydro",
+            "r150-mma-wetlands",
+            "r150-prc-putaendo"
+          ],
+          "correspondence": "Established at ordinary generalized component/corridor scale; not exact bank or vertex agreement.",
+          "lakes_wetlands_reservoirs": "The original hydrography and wetland inventory depict a stream/valley corridor and limited continental-wetland patches, not travel through a named lake.",
+          "mapped_component_names": [
+            "Río Rocín"
+          ]
+        },
+        {
+          "fragments": [
+            14064
+          ],
+          "component_scope": "Hidalgo junction and Chacrillas reservoir reach",
+          "finding": "After Hidalgo joins, the selected Rocín course runs west toward Chalaco. Figure 92 of the October 2014 metropolitan plan places the Chacrillas reserved/projected reservoir zone directly along this valley and maps its upstream and downstream approaches. DOH separately reports filling the built reservoir with Rocín water and describes its tunnel/valve water-delivery connection. Together these establish the in-line impoundment relation at corridor scale.",
+          "sources": [
+            "r150-mma-hydro",
+            "r150-prm2014-chacrillas",
+            "r150-doh-chacrillas-fill",
+            "r150-doh-chacrillas-outlet",
+            "r150-mma-consultation"
+          ],
+          "correspondence": "Established at ordinary generalized component/corridor scale; not exact bank or vertex agreement.",
+          "lakes_wetlands_reservoirs": "Chacrillas is the selected in-line reservoir reach. The planning footprint is not a current shoreline. MMA wetland/COT views do not independently resolve a reservoir surface here, and their land-cover colors are not used to manufacture one. No present storage or releases claimed.",
+          "mapped_component_names": [
+            "Río Rocín",
+            "Río Hidalgo",
+            "Embalse Chacrillas"
+          ]
+        },
+        {
+          "fragments": [
+            14064
+          ],
+          "component_scope": "Chalaco confluence and Putaendo to Aconcagua",
+          "finding": "The mapped northern Chalaco branch meets the westward Rocín below the reservoir reach. Downstream labels identify Putaendo, which follows the southwest then south valley and joins Aconcagua near the San Felipe valley. Both the junction and the selected turn onto the larger westward Aconcagua channel are directly read, rather than inferred from basin membership.",
+          "sources": [
+            "r150-mma-hydro",
+            "r150-mma-wetlands",
+            "r150-prc-putaendo",
+            "r150-mma-consultation"
+          ],
+          "correspondence": "Established at ordinary generalized component/corridor scale; not exact bank or vertex agreement.",
+          "lakes_wetlands_reservoirs": "Continental fluvial-wetland strips accompany the Putaendo and its downstream junction. Small adjacent artificial polygons are distinct from the selected main channel; no additional selected reservoir crossing is inferred.",
+          "mapped_component_names": [
+            "Estero Chalaco",
+            "Río Putaendo",
+            "Río Aconcagua"
+          ]
+        },
+        {
+          "fragments": [
+            14064
+          ],
+          "component_scope": "Middle/lower Aconcagua and tributary convergence",
+          "finding": "The selected river continues west/southwest through the broader multichannel valley, passing the mapped Catemu and Los Loros joining settings, turns northwest and west toward the El Melón confluence, then south and southwest through the lower valley before turning west toward the coast. Limache enters from the south in the final lower reach. These side streams retain their own identities.",
+          "sources": [
+            "r150-mma-hydro",
+            "r150-mma-wetlands"
+          ],
+          "correspondence": "Established at ordinary generalized component/corridor scale; not exact bank or vertex agreement.",
+          "lakes_wetlands_reservoirs": "Fluvial wetland polygons widen along the main valley. The Limache side system contains separately mapped artificial-waterbody polygons south of the retained mainstem; they are not selected passages. Their exact reservoir names remain unestablished here.",
+          "mapped_component_names": [
+            "Río Aconcagua",
+            "Estero de Catemu",
+            "Estero Los Loros",
+            "Estero El Melón",
+            "Estero Limache"
+          ]
+        },
+        {
+          "fragments": [
+            14064
+          ],
+          "component_scope": "Actual Concón estuary and Pacific terminal",
+          "finding": "The lower westward Aconcagua reaches the mapped continental-to-marine/coastal wetland transition at Concón–Quintero and the Pacific coastal opening. The land-cover original distinguishes the mouth water body from the adjacent shore and open coast. The retained terminal is a generalized coastal/outlet setting; the final model extension is not a surveyed riverbank or precise contemporary mouth channel.",
+          "sources": [
+            "r150-mma-hydro",
+            "r150-mma-wetlands",
+            "r150-mma-cot",
+            "r150-mma-mouth"
+          ],
+          "correspondence": "Established at ordinary generalized component/corridor scale; not exact bank or vertex agreement.",
+          "lakes_wetlands_reservoirs": "Estuarine/coastal wetland, sandy barrier and tidal setting, with La Isla and a northern side arm described in the primary wetland record. Nearby Mantagua drainage is distinct and not part of the selected Aconcagua terminal.",
+          "mapped_component_names": [
+            "Río Aconcagua",
+            "Desembocadura Rio Aconcagua"
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:80234498",
+      "publication": "Canadian National Topographic System, NTS065H/07, CanMatrix1:50,000 topographic sheet; printed title and edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/065/h/canmatrix_065h07_tif.zip",
+      "observed_outcome": "The official directory completed HTTP200. The sole targeted original archive request completed HTTPError403 Forbidden. No archive body or original map pixels were acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel or transport failure was reported.",
+      "restriction_scope": "Entire NTS065H/07 sheet publication and equivalent copies, editions offered as this same source, formats, catalogue, original, reader, cache, screenshot, viewer, mirror and all acquisition routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "Only the earlier successful official directory metadata. The independently issued NLUIS65H,55E and55D originals were already acquired and read before this denial; they are not recovery copies of the denied1:50,000 sheet.",
+      "limitation_kind": "http_403_denial",
+      "material_gap": true,
+      "material_effect": "Potential detailed cartographic evidence for the western headward pond-to-lake-inlet connection is unavailable.",
+      "related_urls": [
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/065/h/"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80234498",
+      "publication": "Land Use Information Series, Henik Lakes65H(1979),1:250,000",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_65h.jpg",
+      "observed_outcome": "Original image acquired normally and read. The selected western headward pond chain and larger-lake inlet are visible, but their short intervening transfer is not unambiguously continuous at the available scale.",
+      "outcome_layer": "Substantive geographic correspondence limitation, not a pixel-coverage, HTTP, transport or source-access failure.",
+      "restriction_scope": "Only the unresolved selected western headward connector. No acquisition stop on this independently issued NLUIS publication is inferred. Other actually read component observations remain usable.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_selected_headward_connector_gap",
+      "material_gap": true,
+      "material_effect": "Prevents completed representative-system identity and completed naming-scope hold."
+    },
+    {
+      "aw_id": "hydro-system:90074577",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 12, Scoresby Sund, Niels Henriksen, 1984",
+      "official_url": "https://doi.org/10.22008/FK2/GO6TAW",
+      "observed_outcome": "The official catalogue and original map completed HTTP 200 and were read. The sheet’s western neatline excludes a small initial Inland Ice section; the retained national original supplies that section and overlaps the regional ice corridor.",
+      "outcome_layer": "Cartographic footprint in a successfully acquired original; no HTTP or transport failure.",
+      "restriction_scope": "Only the small area west of the regional neatline is outside this sheet. It is covered by the retained national original, so no material source gap or acquisition stop results.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "nonmaterial_regional_map_edge",
+      "material_gap": false,
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16802"
+    },
+    {
+      "aw_id": "hydro-system:90074577",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 11, Kong Oscar Fjord, Jan C. Escher, 2001",
+      "official_url": "https://doi.org/10.22008/FK2/NKHZZN",
+      "observed_outcome": "The retained original’s southern border is explicitly 72°N. The entire selected object is south of that border; this sheet supplies no local target coverage.",
+      "outcome_layer": "Cartographic coverage exclusion in a retained successful original; no access failure.",
+      "restriction_scope": "Sheet 11 is excluded as geographic evidence for this target. National and Sheet 12 originals supply the target coverage; no acquisition stop is imposed.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "outside_selected_extent",
+      "material_gap": false,
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16521"
+    },
+    {
+      "aw_id": "hydro-system:90074577",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 12, Scoresby Sund, and retained Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/GO6TAW",
+      "observed_outcome": "Original mapping accounts for the opening, entire ice/nunatak/rock-margin corridor and Rolige Bræ–Rødefjord terminal setting, but supplies no representative natural-river hydronym or surveyed river continuity. The selected ending is in the historical mapped ice–rock margin west of Rødefjord, not established as an ordinary river mouth.",
+      "outcome_layer": "Substantive feature-type and naming-scope limitation, not an acquisition failure.",
+      "restriction_scope": "Whole-route natural-river identity, contemporary hydrological continuity and scalar naming remain unestablished. This is a completed terrain-correspondence review rather than missing source coverage.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "naming_scope_limitation_only",
+      "material_gap": false,
+      "related_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "aw_id": "hydro-system:90074577",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 12, Scoresby Sund, GEUS Custom Dataset Terms",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi%3A10.22008%2FFK2%2FGO6TAW",
+      "observed_outcome": "GEUS Custom Dataset Terms permit internal use and processing but restrict redistribution of original and processed data and production or transfer of new maps. Originals, source crops and comparison materials remain private. Only independently written factual observations and ordinary bibliography are public-ready.",
+      "outcome_layer": "Published data-use terms on the successfully acquired official catalogue.",
+      "restriction_scope": "No original map, processed data, crop or comparison/derived map redistribution. Internal research use remains within the stated terms; factual prose and ordinary citations only.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "dataset_use_terms",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61493851",
+      "publication": "SEA Documento 06/2f/f989ddecc1c4f35156893d5cb771039ade03, Embalse Chacrillas environmental-assessment content; original full document title uninspected",
+      "official_url": "https://infofirma.sea.gob.cl/DocumentosSEA/MostrarDocumento?docId=06%2F2f%2Ff989ddecc1c4f35156893d5cb771039ade03",
+      "observed_outcome": "Sole web-reader open returned Internal Error: (400) Unicode decoding error. No document body or original figure pixels obtained.",
+      "outcome_layer": "Explicit web-reader decoding error; no origin HTTP status or authorization denial established.",
+      "restriction_scope": "Missing publication content and equivalent acquisition routes remain paused; no repeat, original fallback, alternate reader, mirror or equivalent acquisition was made.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_unicode_decoding_failure",
+      "material_gap": false,
+      "material_effect": "Optional additional prose unavailable. Discovery snippets excluded. Independently read official cartography and successful agency prose establish the relevant corridor and reservoir relation."
+    },
+    {
+      "aw_id": "hydro-system:61493851",
+      "publication": "Presidente Piñera visita embalse Los Aromos el cual asegurará agua potable a 1 millón de personas de la Región de Valparaíso",
+      "official_url": "https://www.gob.cl/noticias/presidente-pinera-visita-embalse-los-aromos-el-cual-asegurara-agua-potable-1-millon-de-personas-de-la-region-de-valparaiso/",
+      "observed_outcome": "Sole web-reader open returned (403) Forbidden. No article body or original image acquired.",
+      "outcome_layer": "HTTP 403 reported by the web reader; no separate client/origin receipt acquired.",
+      "restriction_scope": "Whole article, equivalent copies, formats, images, original/reader/cache/mirror and other acquisition routes stopped. No retry or alternate recovery.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_403_denial",
+      "material_gap": false,
+      "material_effect": "Optional naming corroboration for an off-selected impoundment unavailable. Its discovery prose is excluded; the name Los Aromos is not adopted for any mapped polygon or selected passage."
+    },
+    {
+      "aw_id": "hydro-system:61493851",
+      "publication": "SIMBIO_HUMEDALES Inventario Nacional de Humedales and SIMBIO_COT COT 2020, bounded Chacrillas valley views",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer",
+      "observed_outcome": "Original views completed HTTP 200 image/png but did not supply a clear Chacrillas reservoir water-surface polygon.",
+      "outcome_layer": "Cartographic content/temporal-detail limitation on successful originals; not an availability or access stop.",
+      "restriction_scope": "These views are not used as present reservoir-surface evidence. No service-wide pause is inferred. The independent 2014 original planning inset and successful DOH project prose supply the reservoir-reach and inlet/outlet relationship.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_reservoir_surface_coverage_limit",
+      "material_gap": false,
+      "material_effect": "No remaining geographic connection gap at ordinary corridor scale; present inundation extent is expressly unestablished.",
+      "related_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    }
+  ],
+  "additional_source_use_notices": []
+}
