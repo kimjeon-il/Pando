@@ -1,0 +1,859 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r135",
+  "sources": [
+    {
+      "title": "Barrocas — mapa municipal com descritivo, municipal code 2903276, 2010 collection",
+      "author": "Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "2010 collection; boundary compilation 2009",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Whole sheet, legend/margin and enlarged southeastern headward corridor, including Caroá and the Dois Irmãos/Inhambupe boundary annotation.",
+      "source_notes": "Source sheets credited to SUDENE1977; WGS84/UTM24S. Legal-boundary inaccuracies/omissions are explicitly noted. These historical boundaries are not used as present-day legal determinations.",
+      "use_notice": "No limited-distribution or officials-only notice observed. Original and local working views are not redistributed; official hosting does not imply reuse permission.",
+      "source_key": "SEI_BARROCAS_2010",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/2010/mapa_com_descritivo_2010_2903276.pdf"
+    },
+    {
+      "title": "Teofilândia-BA, Mapa Municipal Estatístico, geocódigo 2931509",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências",
+      "publication_date": "Malha territorial2007; edition14-03-2008",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Whole sheet, southern selected corridor and enlarged Caroá–Açude Cabeça da Vaca–Cabeça da Vaca connector; legend and compilation notice.",
+      "source_notes": "SAD69/UTM. Semi-automatic integration of systematic mapping and municipal digital boundaries, with updates from varied sources and incomplete integration/completeness. GPS/image and approximate unverified updates are distinguished in the margin.",
+      "use_notice": "©IBGE, reproduction rights reserved. Historical municipal statistical map, not a current hydrological survey. Source map and crops remain private.",
+      "source_key": "IBGE_TEOFILANDIA_2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/ba/teofilandia.pdf"
+    },
+    {
+      "title": "Biritinga — mapa municipal com descritivo, municipal code 2903607, 2010 collection",
+      "author": "Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "2010 collection; boundary compilation2009",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Whole sheet and margin, upper Cabeça da Vaca/Dois Irmãos setting, Biritinga river turn, Paracatu and Pedras confluences, and overlap with Inhambupe.",
+      "source_notes": "Credits IBGE/SEI2007 planimetric mapping; WGS84/UTM24. Notes incomplete/imprecise municipal legal description and satellite updating of urban areas.",
+      "use_notice": "No limited-distribution notice observed. Source attribution retained; no original or crop redistributed.",
+      "source_key": "SEI_BIRITINGA_2010",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/2010/mapa_com_descritivo_2010_2903607.pdf"
+    },
+    {
+      "title": "Inhambupe — mapa municipal com descritivo, municipal code 2913705, 2010 collection",
+      "author": "Superintendência de Estudos Econômicos e Sociais da Bahia (SEI), Diretoria de Informações Geoambientais",
+      "publication_date": "2010 collection; boundary compilation2009",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Whole sheet and margin; selected western approach, Vitória and Una-side connections, river past Inhambupe town, Ribeiro junction, Ibatui floodplain and eastern continuation.",
+      "source_notes": "Credits IBGE1967 topographic sheets and IBGE/SEI2007 planimetric sheets; WGS84/UTM24S. Historical administrative compilation with express legal-description imprecision/omission caveat. Flood-prone terrain is distinguished in the legend.",
+      "use_notice": "No limited-distribution notice observed. Official source credit retained; original sheet and working views remain private.",
+      "source_key": "SEI_INHAMBUPE_2010",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/2010/mapa_com_descritivo_2010_2913705.pdf"
+    },
+    {
+      "title": "Esplanada-BA, Mapa Municipal Estatístico, geocódigo2910602, two-sheet map",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE), Diretoria de Geociências",
+      "publication_date": "Malha territorial2007; edition05-06-2008",
+      "scale": "1:100,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Both original sheets, with local rotation for reading; overlapping middle/lower floodplain, Cardeal da Silva corridor, lower tributaries, Palame, Bu and Baixio/Barra do Rio Inhambupe terminal; legend and margins.",
+      "source_notes": "SAD69/UTM. Semi-automatic municipal compilation from systematic mapping and varied updates; explicitly not fully integrated/complete. Historical channel and shoreline depiction is used only at generalized corridor scale.",
+      "use_notice": "©IBGE, reproduction rights reserved. Attribution and compilation caveat retained. Neither source sheet nor crops are redistributed.",
+      "source_key": "IBGE_ESPLANADA_2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/ba/esplanada.pdf"
+    },
+    {
+      "title": "Esplanada - BA, Mapa Municipal, código2910602",
+      "author": "Instituto Brasileiro de Geografia e Estatística (IBGE), Coordenação de Estruturas Territoriais",
+      "publication_date": "2020 collection; edition04/2021",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Whole municipal sheet and enlarged lower corridor/mouth; named Rio Inhambupe, tributary and boundary settings, Corte Grande–Palame–Baixio continuation and full intended-use notice.",
+      "source_notes": "Geographic coordinates/SIRGAS2000; scale bar0–4000m. Selective municipal-reference drainage, supplemented by the 2007 detailed sheets for floodplain and smaller branch context.",
+      "use_notice": "Printed notice specifies development for exclusive IBGE statistical collection/tabulation, warns against other uses and disclaims responsibility; ©IBGE reproduction rights reserved. Retained as an intended-use and redistribution caveat, not inferred to prohibit factual reading. No originals/crops redistributed.",
+      "source_key": "IBGE_ESPLANADA_2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/esplanada/2910602_MM.pdf"
+    },
+    {
+      "title": "Mapa da Rede Hidrometeorológica da Sub-bacia50 adaptado do Projeto Rede Hidrometeorológica Básica; Regionalização da Vazão de95% de Permanência (Q95%), Bacias Hidrográficas do Atlântico Sul – Trecho Leste – Sub-bacia50",
+      "author": "Companhia de Pesquisa de Recursos Minerais, Serviço Geológico do Brasil; technical execution Múcio Valença Virães",
+      "publication_date": "2013",
+      "final_original_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/86c71445-40fa-4b17-85eb-f392a0865949/content",
+      "scale": "1:1,000,000",
+      "evidence_kind": "primary_original_cartography",
+      "cartographic_reading": true,
+      "actually_read": "Retained original sheet reused locally; full Inhambupe corridor enlarged, with Biritinga, Sátiro Dias, Inhambupe, Paracatu, Vitória, Una, Cardeal da Silva and Corte Grande/coast context. Credits and map limits retained from the original's prior reading.",
+      "source_notes": "Simplified IBGE1-million base; ANA hydrometric stations; drainage-area compilation from250,000 terrain data. Regional corroboration, not sufficient alone for minor headward names or exact shoreline correspondence.",
+      "use_notice": "No special limited-distribution notice observed. Attribution preserved and original/local working views remain private.",
+      "source_key": "CPRM_SB50_2013",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/11562/3/mapa_rede_sb50.pdf"
+    },
+    {
+      "author": "B. Ryan, compiler",
+      "title": "Preliminary geological map of the Nain Plutonic Suite and surrounding rocks (Nain–Nutak, NTS14 S.W.)",
+      "publisher": "Geological Survey Branch, Department of Mines and Energy, Government of Newfoundland and Labrador",
+      "year": 1990,
+      "compilation_year": 1989,
+      "map_number": "90-44",
+      "scale": "1:500,000",
+      "catalogue_url": "https://www.gov.nl.ca/em/mines/maps/14d-nw/",
+      "evidence_type": "Original map acquired with completed HTTP200 application/pdf; whole sheet, selected headward and southern connector details, middle/lower corridor, terminal and margins visually read.",
+      "supports": "Continuous selected northern headward setting and linked-lake route, entry to the named Kogaluk valley, Mistastin tributary junction, Cabot Lake and lower river to Voisey Bay.",
+      "limits": "Historical regional geological compilation. Used for visible drainage and ordinary corridor correspondence, not exact small-channel boundaries or current naming-registry status.",
+      "use_notice": "Map identifies its compiler, publication date and recommended citation, and explains its combination of drainage and geological overlays. No distribution permission is inferred. Original and working views remain private.",
+      "source_key": "ryan-1990-90-44",
+      "official_url": "https://www.gov.nl.ca/em/files/90-044.pdf"
+    },
+    {
+      "author": "B. Ryan, D. Lee and D. Dunphy",
+      "title": "Geology of the unnamed map sheet (NTS14D/5) and the eastern part of the Lac Dihourse map sheet (NTS24A/8), Newfoundland-Labrador",
+      "publisher": "Geological Survey, Department of Mines and Energy, Government of Newfoundland and Labrador",
+      "year": 2003,
+      "map_number": "2003-09",
+      "open_file": "LAB/1376",
+      "scale": "1:50,000",
+      "catalogue_url": "https://www.gov.nl.ca/em/mines/maps/14d-sw/",
+      "evidence_type": "Original PDF acquired HTTP200 after its single running acquisition was awaited to terminal completion; full sheet, relevant drainage corridor and source-use/base-map notes visually read.",
+      "supports": "Detailed original coverage of the selected intermediate northern lake complex and adjoining southward lake/stream connectors.",
+      "limits": "The sheet does not cover the northernmost selected opening or the river-to-bay terminal. The map credits digital NTS14D/5 and24A/8 bases and NAD1927; precise modern coordinate agreement is not asserted. Geological-unit text extraction is imperfect and is not used to substitute for map pixels.",
+      "use_notice": "The printed notice prohibits providing a digital reproduction or copy of the product to a third party and requires source acknowledgment for derivative products. Factual reading is distinguished from redistribution. No original map, crop or overlay is delivered publicly.",
+      "source_key": "ryan-lee-dunphy-2003-09",
+      "official_url": "https://www.gov.nl.ca/em/files/2003-09.pdf"
+    },
+    {
+      "author": "E. P. Wheeler II",
+      "title": "Tasisuak Lake",
+      "publisher": "Mineral Development Division, Department of Mines and Energy, Government of Newfoundland and Labrador",
+      "year": 1980,
+      "year_basis": "Official catalogue identifies1980; map credits Wheeler field geology1926–1973.",
+      "map_number": "80-013",
+      "open_file": "014D/0014",
+      "scale": "1:200,000",
+      "catalogue_url": "https://www.gov.nl.ca/em/mines/maps/14d-nw/",
+      "evidence_type": "Original map acquired HTTP200 application/pdf; whole sheet, western coverage, named river/Cabot Lake corridor and margins visually read.",
+      "supports": "Separately mapped Fraser and adjacent drainage geography; named Kogaluk valley, incoming southern branch, Cabot Lake passage and eastward continuation.",
+      "limits": "Western in-map legend and inset obscure part of the selected headward route, and the sheet ends west of the coastal mouth. Ryan1990 and the detailed2003 original provide complementary coverage; this map alone is not a full-route source.",
+      "use_notice": "Map states it may be subject to revision and correction. Its boundary note says the provincial divide was not surveyed or monumented at publication. No source pixels or derivatives are redistributed.",
+      "source_key": "wheeler-1980-80-013",
+      "official_url": "https://www.gov.nl.ca/em/files/014D-0014-TASISUAK-LAKE.pdf"
+    },
+    {
+      "author": "T. C. Anderson",
+      "title": "The Rivers of Labrador",
+      "publisher": "Department of Fisheries and Oceans, Ottawa",
+      "year": 1985,
+      "series": "Canadian Special Publication of Fisheries and Aquatic Sciences81",
+      "locator": "Kogaluk River account, printed p303; Figure108; Table380, printed p304",
+      "evidence_type": "Previously retained lawful original PDF reused locally; original Figure108 and account were visually read, with accompanying original text.",
+      "supports": "Whole-system branched geography, Cabot Lake main-route relationship, separately fed Mistastin tributary and the mouth on southern Voisey Bay.",
+      "limits": "Historical generalized fisheries map and prose. Account/source distances, alternate forms and survey mainstem are not transferred into official length, exact name-scope or current registry claims.",
+      "use_notice": "Copyright Minister of Supply and Services Canada1985; original and working map views remain private. This Special Publication is distinct from restricted DFO research documents already excluded elsewhere.",
+      "source_key": "anderson-1985-kogaluk",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    },
+    {
+      "title": "Northern Land Use Information Series, Washburn Lake, sheet 77E, 1:250,000",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "year": 1983,
+      "scale": "1:250,000",
+      "edition_or_basis": "Original marginalia give thematic cartography 1983. Base map: National Topographic Series 77E, Edition 1.",
+      "information_date": "December 1982",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77e.jpg",
+      "acquired_scope": "Sole exact original request completed HTTP200, image/jpeg. Original map pixels, graticule, relevant hydrographic connections and publication marginalia were visually inspected.",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "The full unnamed southeastern feeder: initial small lakes and partly intermittent-stream setting, the northward elongate-lake corridor, its material stream junction and the westward lower approach toward Namaycush Lake.",
+      "limits": "Historical generalized cartography. No current legal naming boundary, every small branch hydronym, modern channel position, exact mouth vertex or year-round through-flow is established. Thematic polygons and fish/wildlife marks are not river geometry.",
+      "use_notice": "The original introduction describes the maps as interim, with incomplete or reconnaissance information and approximate thematic boundaries. Original cartography is read only at ordinary river/lake corridor scale. Government hosting does not establish public-domain status or permission to redistribute the map. Copyright Her Majesty the Queen in Right of Canada is printed.",
+      "source_key": "r135-nluis-77e"
+    },
+    {
+      "title": "Northern Land Use Information Series, Kagloryuak River, sheet 77F, 1:250,000",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "year": 1983,
+      "scale": "1:250,000",
+      "edition_or_basis": "Original marginalia give thematic cartography 1983. Base map: National Topographic Series 77F, Edition 1.",
+      "information_date": "December 1982",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77f.jpg",
+      "acquired_scope": "Sole exact original request completed HTTP200, image/jpeg. Original map pixels, graticule, relevant hydrographic connections and publication marginalia were visually inspected.",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "Namaycush Lake, the selected southeastern inlet, the separate western incoming river, and the north/northeast lake outlet explicitly labelled Nanook River.",
+      "limits": "Historical generalized cartography. No current legal naming boundary, every small branch hydronym, modern channel position, exact mouth vertex or year-round through-flow is established. Thematic polygons and fish/wildlife marks are not river geometry.",
+      "use_notice": "The original introduction describes the maps as interim, with incomplete or reconnaissance information and approximate thematic boundaries. Original cartography is read only at ordinary river/lake corridor scale. Government hosting does not establish public-domain status or permission to redistribute the map. Copyright Her Majesty the Queen in Right of Canada is printed.",
+      "source_key": "r135-nluis-77f"
+    },
+    {
+      "title": "Northern Land Use Information Series, Burns Lake, sheet 77G, 1:250,000",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "year": 1982,
+      "scale": "1:250,000",
+      "edition_or_basis": "Original marginalia give thematic cartography 1982. Base map and printing credited to the Map Reproduction Centre, Energy, Mines and Resources Canada.",
+      "information_date": "December 1981",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77g.jpg",
+      "acquired_scope": "Sole exact original request completed HTTP200, image/jpeg. Original map pixels, graticule, relevant hydrographic connections and publication marginalia were visually inspected.",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "The Nanook River corridor immediately north of Namaycush Lake, including intervening elongate waterbodies, channels, side-lake connections and the eastern sheet-edge continuation.",
+      "limits": "Historical generalized cartography. No current legal naming boundary, every small branch hydronym, modern channel position, exact mouth vertex or year-round through-flow is established. Thematic polygons and fish/wildlife marks are not river geometry.",
+      "use_notice": "The original introduction describes the maps as interim, with incomplete or reconnaissance information and approximate thematic boundaries. Original cartography is read only at ordinary river/lake corridor scale. Government hosting does not establish public-domain status or permission to redistribute the map.",
+      "source_key": "r135-nluis-77g"
+    },
+    {
+      "title": "Northern Land Use Information Series, Cape Stang, sheet 77H, 1:250,000",
+      "publisher": "Government of Canada; Lands Directorate, Environmental Conservation Service, Department of the Environment; thematic cartography by Agriculture Canada; hosted by Agriculture and Agri-Food Canada",
+      "year": 1982,
+      "scale": "1:250,000",
+      "edition_or_basis": "Original marginalia give thematic cartography 1982. Base map and printing credited to the Map Reproduction Centre, Energy, Mines and Resources Canada.",
+      "information_date": "December 1981",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77h.jpg",
+      "acquired_scope": "Sole exact original request completed HTTP200, image/jpeg. Original map pixels, graticule, relevant hydrographic connections and publication marginalia were visually inspected.",
+      "evidence_kind": "primary_original_cartography",
+      "supports": "The north/northeast lower Nanook corridor, southern and eastern tributary/lake arrivals, broad lower lake, its northeast outlet and the final channel into the southern head of Hadley Bay.",
+      "limits": "Historical generalized cartography. No current legal naming boundary, every small branch hydronym, modern channel position, exact mouth vertex or year-round through-flow is established. Thematic polygons and fish/wildlife marks are not river geometry.",
+      "use_notice": "The original introduction describes the maps as interim, with incomplete or reconnaissance information and approximate thematic boundaries. Original cartography is read only at ordinary river/lake corridor scale. Government hosting does not establish public-domain status or permission to redistribute the map.",
+      "source_key": "r135-nluis-77h"
+    },
+    {
+      "title": "Canadian Sailing Directions, ARC403: Western Arctic",
+      "publisher": "Canadian Hydrographic Service, Fisheries and Oceans Canada",
+      "year": 2024,
+      "edition": "2024/03",
+      "bibliography": "Chapter 10, printed page 10-3, paragraphs 32–40; front-matter reproduction notice",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf",
+      "acquired_scope": "Previously lawfully acquired original retained from r134, read locally; no new acquisition. Relevant Hadley Bay prose read.",
+      "evidence_kind": "primary_coastal_prose",
+      "supports": "Hadley Bay is the long south-leading inlet on the north coast of Victoria Island, between Storkerson and Natkusiak peninsulas, in the western Parry Channel/Viscount Melville Sound setting. This contextualizes the mapped receiving bay.",
+      "limits": "No chart original or inland hydrographic route is claimed from this prose. The four NLUIS originals establish the actual selected outlet. ARC403 is distinct from the historical ARC401-specific stop. Not current navigation advice or registry evidence.",
+      "use_notice": "Front matter permits noncommercial personal reproduction and requires prior written permission for commercial reproduction. No pages, maps, excerpts or derivatives are republished.",
+      "source_key": "r135-chs-arc403-2024-retained"
+    },
+    {
+      "title": "Nanook and Kuujjua Rivers, Canadian Canoe Routes",
+      "official_url": "https://www.myccr.com/canoeroutes/nanook-and-kuujjua-rivers",
+      "acquired_scope": "Sole web-reader open returned Cache miss. No article body, original map pixels or HTTP status was supplied.",
+      "evidence_kind": "failed_acquisition_only",
+      "supports": null,
+      "limits": "Missing article/report and all equivalent copies, maps, figures, formats, original/reader/cache/mirror and acquisition routes paused for availability. No retry or alternate acquisition. Discovery snippets are not used as substantive evidence. Independent original NLUIS cartography supplies full bounded correspondence.",
+      "source_key": "r135-myccr-nanook-kuujjua-unavailable"
+    },
+    {
+      "title": "Mosaico cartas 1:250.000: Laprida–Coronel Rodolfo Bunge–Juan E. Barra–Quequén Salado–Balneario Oriente corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Composite topographic sheets; individual sheet survey and revision dates not established.",
+      "material_read": "One original bounded continuous map covering the complete selected extent, read at original image resolution in headward, middle and coastal portions.",
+      "supports": "Entire geographic corridor, upper receiving channel, adjacent lakes, main river and tributary junctions, explicit Quequén Salado labels and actual Atlantic terminal.",
+      "limits": "The northern landscape is depicted but its scattered drainage marks do not establish the full selected receiving connection. Historical cartography does not establish present flow permanence or legal naming status.",
+      "use_notice": "The retained IGN service notice cites Article 2 of Argentine Law 27.275. No blanket redistribution permission is inferred; original maps, crops and overlays remain private.",
+      "source_key": "ign250k-r135-61545841"
+    },
+    {
+      "title": "Mosaico cartas 1:100.000: La Angélica–Coleu Huincul–Juan E. Barra headward country and Los Tres Reyes–La Josefina middle corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical topographic composite; constituent edition dates not established.",
+      "material_read": "Two original bounded views. The headward view was read throughout; the middle view's present northern and southern sheet portions were read, with its central white content gap excluded.",
+      "supports": "Detailed headward depressions and short drainage marks; geographical distinction between selected northern extension and named receiving drainage; upper channel entry and lower valley detail where sheets are present.",
+      "limits": "Does not establish the complete northern link. The large middle missing-sheet patch supplies no evidence but is already covered by the original 1:250,000 map.",
+      "source_key": "ign100k-r135-61545841"
+    },
+    {
+      "title": "Mosaico cartas 1:500.000, febrero 2026 layer: Laprida–Juan E. Barra–Los Tres Reyes upper corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Service layer febrero_2026; underlying survey dates not established.",
+      "material_read": "One original bounded upper-corridor view.",
+      "supports": "Separate lakes, the Brazo del Arroyo Quequén receiving branch and continuation into the straight southern channel.",
+      "limits": "Generalized cartography confirms the broad upper setting but does not supply the missing northern selected connection. It is not substituted for detailed evidence of that connection.",
+      "source_key": "ign500k-r135-61545841"
+    },
+    {
+      "title": "Hidrogeomorfología de la cuenca del río Quequén Salado, Argentina",
+      "authors": [
+        "Mario Fabián Marini",
+        "María Cintia Piccolo"
+      ],
+      "publisher": "Investigaciones Geográficas, Universidad de Alicante",
+      "year": 2005,
+      "bibliography": "Investigaciones Geográficas 37, 59–71; DOI 10.14198/INGEO2005.37.04",
+      "official_url": "https://www.investigacionesgeograficas.com/article/view/2005-n37-hidrogeomorfologia-de-la-cuenca-del-rio-quequen-salado-",
+      "original_pdf_url": "https://rua.ua.es/dspace/bitstream/10045/270/4/Fabian%20Marini-Hidrogeomorfologia.pdf",
+      "material_read": "Successfully opened publisher landing-page abstract and bibliography only, before the unsuccessful original PDF acquisition.",
+      "supports": "Bounded broad context: low-relief catchment, differing drainage patterns and flooding related to low upper-basin slope and shallow channels.",
+      "limits": "No article body or figure/map pixels acquired. Abstract and discovery excerpts do not establish any specific selected connection.",
+      "use_notice": "The publisher page lists copyright in the authors' names, an article-specific CC BY 4.0 notice and a general CC BY-NC-SA 4.0 policy. No source reproduction is distributed.",
+      "source_key": "marini-piccolo2005-abstract"
+    },
+    {
+      "title": "Carta hidrogeomorfológica de la cuenca superior de los arroyos Pillahuincó Grande y Pillahuincó Chico, Buenos Aires, Argentina",
+      "authors": [
+        "Mario Fabián Marini",
+        "Roberto Schillizi",
+        "María Cintia Piccolo"
+      ],
+      "publisher": "Revista de Geografía Norte Grande",
+      "year": 2009,
+      "bibliography": "Revista de Geografía Norte Grande 42, 71–80; DOI 10.4067/S0718-34022009000100005",
+      "official_url": "https://revistanortegrande.uc.cl/index.php/RGNG/article/download/40415/32401/102887",
+      "material_read": "Successful PDF web-text reading before the original-file HTTP403; particularly printed pages 74 and 77.",
+      "supports": "Primary field-study prose identifies Pillahuincó Grande and Indio Rico as tributary systems feeding Quequén Salado. Their headward mountain routes are distinct from the selected northern lowland extension.",
+      "limits": "No original figure pixels acquired. Figure 1 and parsed figure labels are excluded as map evidence; neither the prose nor the unseen figures close the selected northern connection. The publication and equivalent acquisition routes remain stopped after HTTP403.",
+      "source_key": "marini-schillizi-piccolo2009-prose"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61092401",
+      "source_keys": [
+        "SEI_BARROCAS_2010",
+        "IBGE_TEOFILANDIA_2007",
+        "SEI_BIRITINGA_2010",
+        "SEI_INHAMBUPE_2010",
+        "IBGE_ESPLANADA_2007",
+        "IBGE_ESPLANADA_2020",
+        "CPRM_SB50_2013"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13878
+          ],
+          "component_scope": "Selected opening southeast of Barrocas into the Teofilândia headward corridor",
+          "finding": "The first eastward selected section follows the mapped intermittent Riacho Caroá drainage south/east of Barrocas, around the Milho Verde–Boi Preto–Ipueira rural setting. SEI Barrocas and the overlapping IBGE Teofilândia sheet depict its passage east of the Barrocas boundary and continuation toward Cabeça da Vaca. The latter sheet closes the municipal-sheet seam, rather than relying on the regional basin outline.",
+          "sources": [
+            "SEI_BARROCAS_2010",
+            "IBGE_TEOFILANDIA_2007"
+          ],
+          "correspondence": "complete at ordinary generalized headward-component scale",
+          "mapped_component_names": [
+            "Riacho Caroá"
+          ],
+          "name_scope": "Upper mapped corridor only; no exact source-point or name-transition vertex asserted."
+        },
+        {
+          "fragments": [
+            13878
+          ],
+          "component_scope": "Cabeça da Vaca water-body connection and upper turn toward Biritinga",
+          "finding": "IBGE Teofilândia depicts the connected Açude Cabeça da Vaca setting and river continuing east through Cabeça da Vaca, Lagoa do Ramo and Vargem de Baixo. The river then takes the southward turn shown along the western Biritinga setting, continuing past Morro da Onça, Ajudante and Mato Grosso toward Biritinga. SEI Biritinga labels the upper river Rio Cabeça da Vaca and its Cajueiro junction with Rio Dois Irmãos; SEI Barrocas independently supplies the upper Dois Irmãos/Inhambupe alternate boundary wording. The mapped connection is continuous even though the labels differ.",
+          "sources": [
+            "IBGE_TEOFILANDIA_2007",
+            "SEI_BARROCAS_2010",
+            "SEI_BIRITINGA_2010"
+          ],
+          "correspondence": "complete at generalized water-body and connector scale",
+          "mapped_component_names": [
+            "Rio Cabeça da Vaca",
+            "Açude Cabeça da Vaca",
+            "Rio Dois Irmãos",
+            "Rio Dois Irmãos ou Inhambupe"
+          ],
+          "name_scope": "Source-specific upper names and reservoir name retained separately; no whole-route synonym declaration.",
+          "lake_reservoir_setting": "The small Cabeça da Vaca impoundment is explicitly read in the connected upper corridor. The downstream Biritinga sheet also shows a small river widening south of the town; no additional reservoir name is assigned."
+        },
+        {
+          "fragments": [
+            13878
+          ],
+          "component_scope": "Biritinga to the upper Inhambupe municipal corridor",
+          "finding": "SEI Biritinga shows the selected southeast/east continuation south of Biritinga through Poço Grande, Bebedouro and Vila Nova. The Paracatu enters from the Patabia/Vila do Alto side; the selected line stays on the Inhambupe receiving corridor. It continues through Curral de Fora/Maracanã and the Pedras junction, then southeast toward Terra Vermelha, Terra Dura and Monte Alegre II. SEI Inhambupe depicts the Vitória junction and onward bend toward the Inhambupe town setting. CPRM independently supplies the same generalized river and side-tributary arrangement.",
+          "sources": [
+            "SEI_BIRITINGA_2010",
+            "SEI_INHAMBUPE_2010",
+            "CPRM_SB50_2013"
+          ],
+          "correspondence": "complete",
+          "mapped_component_name": "Rio Inhambupe",
+          "mapped_component_names": [
+            "Rio Paracatu",
+            "Riacho das Pedras",
+            "Riacho da Vitória"
+          ],
+          "name_scope": "Main receiving river only; tributary names remain bounded to their own branches."
+        },
+        {
+          "fragments": [
+            13878
+          ],
+          "component_scope": "Inhambupe town, Una-side junction and lower municipal floodplain",
+          "finding": "The selected line bends east/northeast and then southeast past Inhambupe, where the northward Una/Mulungu drainage joins the receiving river. SEI Inhambupe separates this from the selected western branch and depicts the downstream Ribeiro junction. Farther southeast the line enters the broad flood-prone river corridor around Ibatui and continues east toward Entre Rios. The original Esplanada 2007 northern sheet overlaps the eastern floodplain and its continuation toward Cardeal da Silva.",
+          "sources": [
+            "SEI_INHAMBUPE_2010",
+            "IBGE_ESPLANADA_2007",
+            "CPRM_SB50_2013"
+          ],
+          "correspondence": "complete at ordinary river/floodplain-component scale",
+          "mapped_component_name": "Rio Inhambupe",
+          "lake_reservoir_setting": "Floodplain and wet-ground symbols accompany the downstream river. Nearby small lakes, including the named group southwest of Inhambupe town, are not a selected through-lake chain; their presence is not used to reroute or rename the selected line."
+        },
+        {
+          "fragments": [
+            13878
+          ],
+          "component_scope": "Entre Rios–Cardeal da Silva–Esplanada lower river",
+          "finding": "The two original Esplanada 2007 sheets and the 2020 municipal map depict the selected east/southeast lower river through the Entre Rios/Cardeal da Silva setting, then past Gameleira, Boa Vista, Cachoeira, Água Boa/Água Branca and the Corte Grande–Palame setting. The mapped north-side tributaries remain separate, and the lower Bu junction is explicitly depicted before the terminal coastal reach. CPRM's Corte Grande hydrometric locality corroborates the lower corridor at regional scale.",
+          "sources": [
+            "IBGE_ESPLANADA_2007",
+            "IBGE_ESPLANADA_2020",
+            "CPRM_SB50_2013"
+          ],
+          "correspondence": "complete",
+          "mapped_component_name": "Rio Inhambupe",
+          "lake_reservoir_setting": "A river/floodplain passage rather than a large reservoir or lake chain. Side channels and smaller tributaries are retained as context without exact bank matching."
+        },
+        {
+          "fragments": [
+            13878
+          ],
+          "component_scope": "Actual selected terminal at Baixio",
+          "finding": "Both Esplanada editions follow the named river from the Palame/Bu-side setting through the final coastal meanders to Baixio. The historical 2007 sheet expressly marks Barra do Rio Inhambupe and shows the adjacent coastal strip, river-mouth continuation and coastal drainage; the 2020 map shows the same terminal corridor against the Atlantic coastline. This agrees with the actual selected downstream end at ordinary corridor scale, independently of the model's sea terminal class.",
+          "sources": [
+            "IBGE_ESPLANADA_2007",
+            "IBGE_ESPLANADA_2020",
+            "CPRM_SB50_2013"
+          ],
+          "correspondence": "complete at generalized terminal-component scale",
+          "mapped_component_name": "Rio Inhambupe",
+          "terminal_setting": "Atlantic coastal-mouth corridor at Baixio/Barra do Rio Inhambupe, Esplanada; no present-day precise opening-position claim."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70061705",
+      "source_keys": [
+        "ryan-1990-90-44",
+        "ryan-lee-dunphy-2003-09",
+        "wheeler-1980-80-013",
+        "anderson-1985-kogaluk"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9106
+          ],
+          "component_scope": "northern headward pond-stream opening and westward-to-southward bend",
+          "finding": "Ryan1990 depicts the small-waterbody country south of the separately mapped Fraser valley, including the selected westward and then southward drainage sequence beside the divide. The selected opening is followed through that northern lake-and-stream setting into the south-southeast-running arm. The map distinguishes this arm from the Fraser corridor to its north and from adjoining western drainage.",
+          "sources": [
+            "ryan-1990-90-44",
+            "anderson-1985-kogaluk"
+          ],
+          "correspondence": "observed at ordinary generalized headward/corridor scale",
+          "mapped_component_name": null,
+          "lake_names": null,
+          "limits": "Regional cartography establishes the opening corridor and its downstream continuation, not an exact surveyed source pond or a name for the small feeder."
+        },
+        {
+          "fragments": [
+            9106
+          ],
+          "component_scope": "northern lake complex and southward inter-lake connectors",
+          "finding": "The detailed2003 original depicts the north-entering watercourse and the large irregular lake-and-channel complex in the eastern part of its sheet, followed by the southward chain of lakes and short river links. These correspond to the selected southeastward leg, its eastward lake crossing and subsequent southward sequence. Ryan1990 overlaps both ends and continues the chain beyond the detailed sheet's southern boundary.",
+          "sources": [
+            "ryan-lee-dunphy-2003-09",
+            "ryan-1990-90-44"
+          ],
+          "correspondence": "observed",
+          "mapped_component_name": null,
+          "lake_names": null,
+          "limits": "No individual northern lake hydronyms are established. The detailed sheet covers an intermediate part of the selected route, not its northernmost source or coastal terminal."
+        },
+        {
+          "fragments": [
+            9106
+          ],
+          "component_scope": "southern continuation of the northern feeder and junction with the eastward valley",
+          "finding": "Ryan1990 carries the connected southern lake sequence down to the eastward valley and labels the continuing Kogaluk River. Anderson Figure108 separately draws the long northern arm entering the upper system and the western upper branches. The selected path then stays on the long eastward corridor rather than taking the southern Mistastin drainage.",
+          "sources": [
+            "ryan-1990-90-44",
+            "anderson-1985-kogaluk"
+          ],
+          "correspondence": "observed at ordinary corridor scale",
+          "mapped_component_name": null,
+          "limits": "The Kogaluk label on the continuing valley is not extended backward as an established local name for every feeder segment. No exact tributary-number boundary is assigned."
+        },
+        {
+          "fragments": [
+            9106
+          ],
+          "component_scope": "named Kogaluk valley, incoming Mistastin River and Cabot Lake passage",
+          "finding": "Ryan1990 and Wheeler1980 show the eastward Kogaluk river corridor, a substantial tributary arriving from the south just upstream of the long narrow Cabot Lake, and the main route through that lake and out its eastern end. Ryan labels the southern tributary Mistastin River; Anderson Figure108 and its account independently link that tributary to Mistastin Lake. The selected route continues from the west through Cabot Lake and does not enter the southern tributary.",
+          "sources": [
+            "ryan-1990-90-44",
+            "wheeler-1980-80-013",
+            "anderson-1985-kogaluk"
+          ],
+          "correspondence": "observed",
+          "mapped_component_name": "Kogaluk River",
+          "lake_names": [
+            "Cabot Lake"
+          ],
+          "incoming_tributaries_observed": [
+            "Mistastin River"
+          ]
+        },
+        {
+          "fragments": [
+            9106
+          ],
+          "component_scope": "lower eastward river and actual coastal terminal",
+          "finding": "Ryan1990 follows the lower river eastward beyond Cabot Lake, through the lower valley, and then northward past a mapped falls to the southern shore of Voisey Bay. It separately depicts the neighboring parallel valley and coastal inlets. Anderson's original Figure108 also carries the river to its labeled Voisey Bay mouth, and its prose describes the river's southern-bay outlet. These observations cover the selected actual receiving-water setting beyond the river's long eastward reach.",
+          "sources": [
+            "ryan-1990-90-44",
+            "anderson-1985-kogaluk"
+          ],
+          "correspondence": "observed",
+          "mapped_component_name": "Kogaluk River",
+          "receiving_water": "Voisey Bay",
+          "limits": "The findings do not equate the retained model endpoint with an exact modern mouth or shoreline vertex."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80024690",
+      "source_keys": [
+        "r135-nluis-77e",
+        "r135-nluis-77f",
+        "r135-nluis-77g",
+        "r135-nluis-77h",
+        "r135-chs-arc403-2024-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2314
+          ],
+          "component_scope": "Initial southeastern small-lake and stream headward setting",
+          "finding": "The selected headward end lies in the small-lake landscape north of Washburn Lake. The original shows the associated west/northwest stream corridor, small contributing lakes and some intermittent-stream symbols. The selected route then turns north. No hydronym was established for this initial feeder.",
+          "sources": [
+            "r135-nluis-77e"
+          ],
+          "correspondence": "Small-lake/stream component correspondence at ordinary generalized scale; not a claim that every short modeled line is a mapped perennial channel.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2314
+          ],
+          "component_scope": "Northward elongate-lake corridor and material western turn",
+          "finding": "The original maps the distinctive northward chain of narrow elongate waterbodies and connecting channels. At its northern end the route joins the larger west-flowing corridor with a separate eastern arrival, then turns west/northwest through the lowland stream setting.",
+          "sources": [
+            "r135-nluis-77e"
+          ],
+          "correspondence": "The lake-chain connection and material junction were read on original pixels, rather than inferred only from model connectivity.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2314
+          ],
+          "component_scope": "Western lower feeder and southeastern Namaycush inlet",
+          "finding": "The selected lower feeder bends west across the sheet boundary and reaches the southeastern part of Namaycush Lake through the mapped broad, locally divided inlet corridor. It is distinct from the separate incoming river at the lake’s western side.",
+          "sources": [
+            "r135-nluis-77e",
+            "r135-nluis-77f"
+          ],
+          "correspondence": "Ordinary corridor continuity across the two original sheets established; precise braided-channel selection is outside scope.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2314
+          ],
+          "component_scope": "Namaycush Lake passage and Nanook outlet",
+          "finding": "The selected route crosses Namaycush Lake and follows its northward/northeast outlet. Nanook River is explicitly printed along that outlet. The separate western river approach is visible but is not the selected headward arm.",
+          "sources": [
+            "r135-nluis-77f"
+          ],
+          "correspondence": "The actual receiving lake and downstream outlet are established. The lake retains its own name and is not assigned the river hydronym.",
+          "mapped_component_name": "Namaycush Lake",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2314
+          ],
+          "component_scope": "Nanook middle corridor across the northern sheet boundary",
+          "finding": "The Nanook-labelled route continues north/northeast through elongate waterbodies and intervening channels. The southern Burns Lake sheet and western Cape Stang sheet jointly show the continuation, nearby side-lake arrivals and the eastward sheet-edge transition.",
+          "sources": [
+            "r135-nluis-77f",
+            "r135-nluis-77g",
+            "r135-nluis-77h"
+          ],
+          "correspondence": "Named river-system continuation and material connectors established at corridor scale; no transfer of the name to every waterbody.",
+          "mapped_component_name": "Nanook River",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2314
+          ],
+          "component_scope": "Lower junctions and broad terminal lake approach",
+          "finding": "The main mapped channel bends north through the lower lake chain, with separate southeastern tributary/lake connections and an eastern incoming lake branch, and reaches the broad unnamed lower lake. The selected route takes this main lower-lake passage rather than any of the eastward tributary routes.",
+          "sources": [
+            "r135-nluis-77h"
+          ],
+          "correspondence": "Major incoming branches and the selected lower-lake continuation distinguished. Individual side-branch names are not required or assigned.",
+          "mapped_component_name": "Nanook River",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2314
+          ],
+          "component_scope": "Northeast lake outlet and actual coastal terminal",
+          "finding": "The broad lower lake discharges through its northeast outlet into the final north-leading river channel, which reaches the southern head of Hadley Bay. The eastern lake arrivals and nearby separate coastal stream mouths remain distinct. The selected terminal corresponds to this Nanook-system outlet into the bay.",
+          "sources": [
+            "r135-nluis-77h",
+            "r135-chs-arc403-2024-retained"
+          ],
+          "correspondence": "Actual terminal waterbody and final channel established from original cartography; coastal prose supplies only broader bay context.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61545841",
+      "source_keys": [
+        "ign250k-r135-61545841",
+        "ign100k-r135-61545841",
+        "ign500k-r135-61545841",
+        "marini-piccolo2005-abstract",
+        "marini-schillizi-piccolo2009-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14519
+          ],
+          "component_scope": "Far-northern head near La Angélica and the Laprida–Coronel Rodolfo Bunge corridor",
+          "finding": "The selected head lies among mapped small depressions and marshes in the La Angélica–La Eladia country. It proceeds south through the La Elena setting and across the principal transport corridor west of Coronel Rodolfo Bunge. The original detailed map shows local drainage marks and separate waterlogged depressions, but does not establish an integrated named or unnamed waterway carrying this entire selected northern chain southward.",
+          "sources": [
+            "ign100k-r135-61545841",
+            "ign250k-r135-61545841",
+            "ign500k-r135-61545841"
+          ],
+          "correspondence": "Original landscape and local drainage coverage; complete selected receiving connection unresolved.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14519
+          ],
+          "component_scope": "El Rosario–La Choza–Coleu Huincul and Juan E. Barra headward transition",
+          "finding": "The selected route bends southwest past El Rosario, El Sol Argentino and La Choza, through the Coleu Huincul setting northwest of Mariano Roldán, and then toward the country west of Juan E. Barra. The maps distinguish this lowland from Laguna La Salada, La Golondrina, El Vigilante and El Balde farther east. A separately depicted Quequén headward branch approaches through the western lowland, with the labels Arroyo Quequén and Brazo del Arroyo Quequén visible on the national maps. Its proximity and eventual receiving setting do not establish the full selected northern connector.",
+          "sources": [
+            "ign100k-r135-61545841",
+            "ign250k-r135-61545841",
+            "ign500k-r135-61545841"
+          ],
+          "correspondence": "Original geographic coverage read; upstream integration remains the primary material gap.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14519
+          ],
+          "component_scope": "El Recuerdo–La Libertad–Los Tres Reyes and the straightened upper receiving reach",
+          "finding": "At El Recuerdo–La Libertad the selected route reaches the mapped upper receiving valley and continues south along the narrow, conspicuously straightened channel past San Pedro and west of La Araucarita/La Sortija. Laguna Los Tres Reyes lies to the east of this selected passage; the route is not a traversal of the lake's principal mapped basin. Western drains and short feeders enter the receiving corridor. The original 1:250,000 map supplies continuous coverage across the missing central sheet area in the detailed 1:100,000 mosaic.",
+          "sources": [
+            "ign100k-r135-61545841",
+            "ign250k-r135-61545841",
+            "ign500k-r135-61545841"
+          ],
+          "correspondence": "Original channel, drainage and adjacent-lake correspondence. No date, construction history or present hydraulic operating condition of the straightening is inferred."
+        },
+        {
+          "fragments": [
+            14519
+          ],
+          "component_scope": "Middle receiving junctions near El Quemún and the southward valley",
+          "finding": "The straight upper corridor bends southwest into the junction country near El Charabón, Santa María and Almacén El Quemún, where the original map depicts several western tributary approaches entering the river. The selected valley then continues south through Los Toldos and El Campito, west of the separate La Ida lakes, and crosses the principal east–west road. The field-based 2009 article's already-read prose independently identifies Pillahuincó Grande as a tributary of Quequén Salado; it does not by itself assign that name to an exact map junction or to the selected mainstem.",
+          "sources": [
+            "ign250k-r135-61545841",
+            "marini-schillizi-piccolo2009-prose"
+          ],
+          "correspondence": "Original connected main valley and material tributary junctions; detailed tributary names remain unassigned where not legible on the bounded original."
+        },
+        {
+          "fragments": [
+            14519
+          ],
+          "component_scope": "La Josefina–San Graciano–Micaela Cascallares receiving river",
+          "finding": "South of the road crossing, the original river winds through La Providencia and La Josefina and bends southeast past San Graciano and La Pampa de las Avestruces toward the rail corridor west of Micaela Cascallares. The Quequén Salado name is printed along this connected river. Lateral drainage and wetland areas are visible, while the selected course stays in the principal incised valley rather than entering the separate surrounding lakes.",
+          "sources": [
+            "ign250k-r135-61545841",
+            "ign100k-r135-61545841"
+          ],
+          "correspondence": "Original named-river corridor, valley bends and crossings; map-boundary details covered by the continuous 1:250,000 original.",
+          "mapped_component_name": "Río Quequén Salado"
+        },
+        {
+          "fragments": [
+            14519
+          ],
+          "component_scope": "Irene–Route 3–Indio Rico junction and Oriente–Copetonas",
+          "finding": "The river crosses the railway east of Irene, passes La Paquita and the La Paloma/La Rosa crossing of Route 3, and continues south. Arroyo Indio Rico is separately labeled on the western approach and joins the selected receiving valley downstream of that highway. The main river then passes the San Pedro setting between Oriente and Copetonas and crosses their connecting transport corridor. Indio Rico remains a tributary identity, not a name for this selected mainstem.",
+          "sources": [
+            "ign250k-r135-61545841",
+            "marini-schillizi-piccolo2009-prose"
+          ],
+          "correspondence": "Original lower-river and actual tributary receiving-junction correspondence; article prose supplies limited independent tributary context.",
+          "mapped_component_name": "Río Quequén Salado"
+        },
+        {
+          "fragments": [
+            14519
+          ],
+          "component_scope": "Lower Quequén Salado through the coastal dunes to the actual terminal",
+          "finding": "Below Oriente–Copetonas, the selected main valley continues south past El Chajá, Arúa, Santa María and El Rincón de San Pedro, through the coastal dune belt. The original 1:250,000 map shows the river widening and curving beside Balneario Oriente before opening into Mar Argentino/Océano Atlántico Sur. The actual terminal is this river mouth. It is separate from the coastal La Blanca/La Salada lake country to the west and from the Arroyo Claromecó system to the east.",
+          "sources": [
+            "ign250k-r135-61545841"
+          ],
+          "correspondence": "Continuous original lower-river, dune crossing and ocean receiving connection; no exact contemporary mouth position inferred.",
+          "mapped_component_name": "Río Quequén Salado"
+        },
+        {
+          "fragments": [
+            14519
+          ],
+          "component_scope": "Selected component scope, wetland and storage limits",
+          "finding": "The retained object comprises one selected mainstem FID. The original maps show a low-gradient depression-rich upper landscape, a straightened receiving reach, tributary junctions and a confined lower river. No large in-stream lake or reservoir traversal is depicted along the established downstream selected corridor. Nearby named lakes and off-route wetland basins are not treated as through-flow components merely because they lie in the surrounding catchment.",
+          "sources": [
+            "ign100k-r135-61545841",
+            "ign250k-r135-61545841",
+            "ign500k-r135-61545841",
+            "marini-piccolo2005-abstract"
+          ],
+          "correspondence": "Original cartographic component reading; publisher abstract supplies only broad low-gradient and flooding context."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70061705",
+      "publication": "Wheeler1980, Tasisuak Lake, Map80-013 / Open File014D/0014",
+      "official_url": "https://www.gov.nl.ca/em/files/014D-0014-TASISUAK-LAKE.pdf",
+      "observed_outcome": "Original acquisition completed HTTP200 application/pdf. The sheet's western legend/inset obscures part of the selected headward route, and its eastern neatline is west of the actual river mouth.",
+      "outcome_layer": "Bounded cartographic layout and sheet-extent limitation, not an acquisition failure or access denial.",
+      "restriction_scope": "Only this map's missing geographic coverage is limited. No acquisition pause or publication-wide stop. Ryan1990 and the detailed2003 map cover the affected components.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_cartographic_coverage_limit_with_complementary_original_coverage",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:80024690",
+      "publication": "Nanook and Kuujjua Rivers, Canadian Canoe Routes",
+      "official_url": "https://www.myccr.com/canoeroutes/nanook-and-kuujjua-rivers",
+      "observed_outcome": "Sole web-reader open returned Cache miss. No article body, original map pixels or HTTP status was supplied.",
+      "outcome_layer": "Web-reader availability outcome; origin HTTP status unknown",
+      "restriction_scope": "Missing article/report and all equivalent copies, maps, figures, formats, original/reader/cache/mirror and acquisition routes paused for availability. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false,
+      "evidence_boundary": "Discovery snippets are not used as substantive evidence. Independent original NLUIS cartography supplies full bounded correspondence."
+    },
+    {
+      "aw_id": "hydro-system:61545841",
+      "publication": "Marini and Piccolo (2005), Hidrogeomorfología de la cuenca del río Quequén Salado, Argentina, Investigaciones Geográficas 37:59–71",
+      "official_url": "https://rua.ua.es/dspace/bitstream/10045/270/4/Fabian%20Marini-Hidrogeomorfologia.pdf",
+      "observed_outcome": "Sole original PDF request completed HTTP200 with Content-Type text/html; charset=UTF-8 and a RUA application shell rather than a PDF. No original article body or map pixels acquired.",
+      "outcome_layer": "Completed HTTP-client response and returned wrong-content availability outcome.",
+      "restriction_scope": "Missing article, maps and all equivalent copies, formats, figures, repository/publisher/original/reader/cache/mirror and other acquisition routes paused for availability. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": "Only the previously read publisher landing-page abstract and bibliography remain usable within their broad contextual scope.",
+      "limitation_kind": "wrong_content_availability_stop",
+      "material_effect": "Unavailable potential upper-drainage corroboration. Search excerpts and unseen article figures are excluded; the primary geographic gap is stated from the original IGN map readings."
+    },
+    {
+      "aw_id": "hydro-system:61545841",
+      "publication": "Marini, Schillizi and Piccolo (2009), Carta hidrogeomorfológica de la cuenca superior de los arroyos Pillahuincó Grande y Pillahuincó Chico, Buenos Aires, Argentina",
+      "official_url": "https://revistanortegrande.uc.cl/index.php/RGNG/article/download/40415/32401/102887",
+      "observed_outcome": "PDF web-text reader opened normally. The subsequent sole original-file request completed HTTPError403 Forbidden. No original report file or map pixels were acquired.",
+      "outcome_layer": "Completed original HTTP-client denial; no separate tunnel or authorization failure reported.",
+      "restriction_scope": "Entire article and all equivalent copies, maps, figures, formats, publisher/catalogue/original/reader/cache/mirror and acquisition routes stopped. No screenshot, retry or alternate retrieval after the denial.",
+      "earlier_lawful_prose_exception": "Only actually read pre-denial PDF prose remains usable for the bounded Pillahuincó and Indio Rico tributary relationship statements. No figure pixels, parsed map labels or post-denial retrieval are used.",
+      "limitation_kind": "http_403_denial",
+      "material_effect": "No visual corroboration from this article; national original mapping supplies the established downstream geography."
+    },
+    {
+      "aw_id": "hydro-system:61545841",
+      "publication": "Marini and Piccolo (1997), La cuenca hidrográfica del río Quequén Salado, Revista Geofísica 47:23–39",
+      "official_url": "https://bibliotecadigital.inah.gob.mx/janium/Documentos/IPGH/REGEOF_00_0047_1997_P023.pdf",
+      "observed_outcome": "Sole original-file request completed HTTPError502 Bad Gateway. No article body or original map acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no access-denial reason reported.",
+      "restriction_scope": "Missing article, maps and all equivalent copies, formats, figures, catalogue/original/reader/cache/mirror and other acquisition routes paused for availability. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_effect": "Potential headward corroboration unavailable. Discovery bibliography identifies the publication only; excerpts are not substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:61545841",
+      "publication": "IGN Mosaico cartas 1:100.000, selected Los Tres Reyes–La Josefina middle-corridor view",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "Original bounded view completed HTTP200, image/png, with a large white missing-sheet area between the northern Tres Reyes and southern La Josefina sheet coverage. The previously acquired continuous 1:250,000 original depicts this intervening main-river corridor.",
+      "outcome_layer": "Successful original HTTP response with cartographic content absence in the inspected image.",
+      "restriction_scope": "The absent 1:100,000 middle content is not evidence and was not repeated. This is not a service-wide denial or a restriction on the separately successful scale layers and extents.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_cartographic_coverage_absence_with_retained_original_coverage",
+      "material_gap": false,
+      "material_effect": "No additional pending component: the original 1:250,000 map already covers the affected channel and junctions."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:61092401",
+      "publication": "Esplanada - BA, Mapa Municipal, código2910602, edição04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/esplanada/2910602_MM.pdf",
+      "observed_outcome": "Original request completed HTTP200 and the map was read. Its printed notice limits intended use to IBGE statistical collection/tabulation, warns against other purposes, disclaims responsibility and reserves reproduction rights.",
+      "outcome_layer": "Publication source-use notice; not an access or availability failure",
+      "restriction_scope": "Intended-use/redistribution caveat for the publication and equivalent reproductions. No original, crop or derivative map is included in public output. No acquisition stop is inferred from this ordinary notice.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:61092401",
+      "publication": "Teofilândia-BA, Mapa Municipal Estatístico, geocódigo2931509, malha2007, edição14-03-2008",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/ba/teofilandia.pdf",
+      "observed_outcome": "Original request completed HTTP200 and map pixels were read. Margin states semi-automatic compilation with incomplete integration/completeness and reserves reproduction rights.",
+      "outcome_layer": "Publication compilation and reproduction notice; not HTTP/transport failure",
+      "restriction_scope": "Historical/generalized cartographic and redistribution limits on this publication and its reproductions. No source map or crop redistributed; no access stop.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:61092401",
+      "publication": "Esplanada-BA, Mapa Municipal Estatístico, geocódigo2910602, malha2007, edição05-06-2008",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/ba/esplanada.pdf",
+      "observed_outcome": "Original request completed HTTP200 and both map pages were read. Margin states semi-automatic compilation with incomplete integration/completeness and reserves reproduction rights.",
+      "outcome_layer": "Publication compilation and reproduction notice; not HTTP/transport failure",
+      "restriction_scope": "Historical/generalized map and redistribution limits on the two-sheet publication and equivalents. No source map or crop redistributed; no access stop.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:70061705",
+      "publication": "Ryan, Lee and Dunphy2003, Geology of unnamed map sheet14D/5 and eastern Lac Dihourse24A/8, Map2003-09 / LAB/1376",
+      "official_url": "https://www.gov.nl.ca/em/files/2003-09.pdf",
+      "observed_outcome": "Original acquisition completed HTTP200. Printed source-use notice restricts digital reproduction/copy transmission to third parties and requires source acknowledgment for derivative products.",
+      "outcome_layer": "Printed publication-use notice, not an HTTP or authorization denial.",
+      "restriction_scope": "No public original, crop, overlay or digital map derivative is distributed. Own factual observations and ordinary source citation are used; the notice is not treated as a prohibition on reading.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_use_notice",
+      "material_gap": false
+    }
+  ]
+}

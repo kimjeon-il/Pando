@@ -1,0 +1,551 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r135",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r134",
+    "commit": "6b048180f74edb91f79296531d808dd245f4f52b",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r134/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61092401",
+    "hydro-system:70061705",
+    "hydro-system:80024690",
+    "hydro-system:61545841"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61092401",
+      "category": "river_group",
+      "system_id": "61092401",
+      "original_queue_rank": 340,
+      "baseline_logical_fid": 3476,
+      "geometry_fids": [
+        13878
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -39.066667,
+        -12.081026,
+        -37.677392,
+        -11.522917
+      ],
+      "rendered_mainstem_length_km": 210.282,
+      "rendered_network_length_km": 210.282,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -39.066667,
+          -12.081026,
+          -37.677392,
+          -11.522917
+        ]
+      },
+      "candidate_name": "Rio Inhambupe",
+      "candidate_names": [
+        "Rio Inhambupe"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Rio Inhambupe is repeatedly printed on the middle and lower receiving river, including the coastal continuation at Baixio. Original municipal sheets connect the selected differently labeled upper drainage to that river, and cover its impoundment, tributary and floodplain settings.",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Bahia, Brazil; Caroá–Cabeça da Vaca/Dois Irmãos–Inhambupe corridor to Baixio and the Atlantic.",
+      "candidate_name_role": "representative_system_identity",
+      "source_keys": [
+        "SEI_BARROCAS_2010",
+        "IBGE_TEOFILANDIA_2007",
+        "SEI_BIRITINGA_2010",
+        "SEI_INHAMBUPE_2010",
+        "IBGE_ESPLANADA_2007",
+        "IBGE_ESPLANADA_2020",
+        "CPRM_SB50_2013"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The full selected FID has original-map correspondence to the Caroá–Cabeça da Vaca/Dois Irmãos–Inhambupe corridor. The opening southeast of Barrocas runs east through the Cabeça da Vaca impoundment setting, bends toward Biritinga, and joins the repeatedly labeled Rio Inhambupe corridor. The river continues through the Inhambupe town setting and its broad downstream floodplain, passes the Entre Rios/Cardeal da Silva and rural Esplanada settings, and reaches the Baixio Atlantic-mouth corridor. The representative system candidate is Rio Inhambupe; differing upper labels and the named impoundment remain component-specific. No material geographic connector remains unresolved.",
+      "completion_scope": "The full selected FID has original-map correspondence to the Caroá–Cabeça da Vaca/Dois Irmãos–Inhambupe corridor. The opening southeast of Barrocas runs east through the Cabeça da Vaca impoundment setting, bends toward Biritinga, and joins the repeatedly labeled Rio Inhambupe corridor. The river continues through the Inhambupe town setting and its broad downstream floodplain, passes the Entre Rios/Cardeal da Silva and rural Esplanada settings, and reaches the Baixio Atlantic-mouth corridor. The representative system candidate is Rio Inhambupe; differing upper labels and the named impoundment remain component-specific. No material geographic connector remains unresolved.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The selected headward corridor has Riacho Caroá and Rio Cabeça da Vaca labels. SEI boundary annotations also use Rio Dois Irmãos and Rio Dois Irmãos ou Inhambupe in the upper system. These are bounded source observations, not a claim that all names apply uniformly to the complete selected line.",
+          "Açude Cabeça da Vaca is a mapped upper water-body setting. Its connection is read geographically without relabeling the reservoir or every upper feeder Rio Inhambupe.",
+          "The Paracatu, Pedras, Vitória, Una/Mulungu, Ribeiro and Bu-side tributaries are distinct connections, not extra selected tributaries renamed after the main river.",
+          "The mouth is established at ordinary Baixio/Barra do Rio Inhambupe coastal-corridor scale. Historical generalized maps do not establish a present-day precise bank, sandbar opening or mouth-point position.",
+          "Accepted, scalar and Korean names remain null, and all product/automatic-application fields remain false. No formal naming-registry status is established."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70061705",
+      "category": "river_group",
+      "system_id": "70061705",
+      "original_queue_rank": 341,
+      "baseline_logical_fid": 2933,
+      "geometry_fids": [
+        9106
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -63.885417,
+        56.135417,
+        -61.727083,
+        56.616667
+      ],
+      "rendered_mainstem_length_km": 209.897,
+      "rendered_network_length_km": 209.897,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -63.885417,
+          56.135417,
+          -61.727083,
+          56.616667
+        ]
+      },
+      "candidate_name": "Kogaluk River",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "completion_scope": "Completed bounded correspondence for the single selected FID9106, encompassing all its selected headward, lake, river and terminal components. Exact pond-source points, lake centerlines, small-channel vertices, tidal boundary and bank agreement are not asserted. Local names of the northern feeder and unnamed lake passages remain unresolved without preventing representative-system identification.",
+      "candidate_names": [
+        "Kogaluk River"
+      ],
+      "region": "Labrador, Canada; northern feeder and lake chain, Kogaluk valley, Cabot Lake and southern Voisey Bay.",
+      "candidate_name_role": "representative river-system identity; not a uniform hydronym for the selected northern feeder, every lake passage or all incoming tributaries",
+      "source_keys": [
+        "ryan-1990-90-44",
+        "ryan-lee-dunphy-2003-09",
+        "wheeler-1980-80-013",
+        "anderson-1985-kogaluk"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected northern pond-and-lake feeder, its southward linked-lake route, the turn into the eastward Kogaluk valley, the incoming Mistastin River junction, Cabot Lake and the lower river's final northward turn into southern Voisey Bay correspond to the Kogaluk River system at ordinary generalized component/corridor scale. Ryan1990 supplies continuous regional cartography including the northern opening and coastal terminal. Ryan, Lee and Dunphy2003 supply detailed cartography of the intervening northern lake corridor. Wheeler1980 and the retained Anderson1985 original independently support the named eastward river, lake and branch relationships. No material connector or selected component remains without original-map coverage at this scale.",
+      "supported_name_scope": "representative river-system identity; not a uniform hydronym for the selected northern feeder, every lake passage or all incoming tributaries",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The selected opening is a northern feeder and connected lake chain south of the Fraser drainage. Neither the Fraser label nor the nearby String Bog label is used as its hydronym.",
+          "The selected feeder reaches the eastward Kogaluk corridor; the fisheries account's historically described mainstem/source route is not automatically identical to this model-selected northern route.",
+          "Kogaluk River is supported as the representative system identity. Wheeler and Ryan cartography print the spelling Kogaluk along the eastward river; the candidate does not rename its individual lakes or tributaries.",
+          "Cabot Lake is a selected main-route lake passage. Mistastin River is a separately depicted incoming southern tributary; Mistastin Lake is outside the selected route and is not a selected lake passage.",
+          "Anderson1985 lists Koraluk River and Frank's Brook in the account heading. These are source-reported historical alternate forms, not independently verified current official aliases.",
+          "Voisey Bay is the coastal receiving water and remains distinct from the river name. The precise modern river-to-bay transition is not determined.",
+          "No current registry status, Korean form or uniform whole-feature scalar name is established."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80024690",
+      "category": "river_group",
+      "system_id": "80024690",
+      "original_queue_rank": 342,
+      "baseline_logical_fid": 833,
+      "geometry_fids": [
+        2314
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -108.385417,
+        70.3625,
+        -106.933333,
+        71.616333
+      ],
+      "rendered_mainstem_length_km": 209.805,
+      "rendered_network_length_km": 209.805,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -108.385417,
+          70.3625,
+          -106.933333,
+          71.616333
+        ]
+      },
+      "candidate_name": "Nanook River",
+      "candidate_names": [
+        "Nanook River"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Nanook River is directly labelled on the connected northward outlet of Namaycush Lake and its downstream corridor. Original sheets trace the selected southeastern feeder into that lake and follow the connected lower system to Hadley Bay. Unknown feeder and lower-lake names remain null. The separate western headward Nanook approach is not substituted for the selected southeastern arm.",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "completion_scope": {
+        "full_selected_extent_inspected_in_original_cartography": true,
+        "full_bounded_geographic_correspondence_established": true,
+        "material_unread_components": [],
+        "material_junctions_inspected": [
+          "Initial small lakes and west/northwest stream setting",
+          "Northward elongate-lake chain and its junction with the west-flowing stream",
+          "Southeastern Namaycush inlet, distinct western incoming river, lake passage and northern outlet",
+          "Nanook middle lake/channel transitions and cross-sheet continuation",
+          "Lower southeastern/eastern tributary and lake arrivals",
+          "Broad lower lake northeast outlet and final river into Hadley Bay"
+        ],
+        "precision_limit": "Historical generalized component/corridor correspondence only. Exact banks, every headwater rivulet, individual braid, modern water levels, perennial flow, naming boundaries and mouth-point agreement are not claimed. The optional unavailable canoe article leaves no material map gap."
+      },
+      "region": "Victoria Island, Nunavut, Canada; southeastern feeder, Namaycush Lake, Nanook River and Hadley Bay.",
+      "candidate_name_role": "Representative downstream river-system identity for the selected southeastern feeder–Namaycush Lake–Nanook–Hadley Bay route; not a uniform name for its headward feeder and lake passages.",
+      "source_keys": [
+        "r135-nluis-77e",
+        "r135-nluis-77f",
+        "r135-nluis-77g",
+        "r135-nluis-77h",
+        "r135-chs-arc403-2024-retained"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Four original NLUIS sheets establish full ordinary-corridor correspondence and support Nanook River as the representative system identity. The route begins on a distinct southeastern feeder, enters Namaycush Lake, and follows the Nanook outlet and lower lake chain into the southern head of Hadley Bay.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Nanook River is directly labelled on the connected northward outlet of Namaycush Lake and its downstream corridor. Original sheets trace the selected southeastern feeder into that lake and follow the connected lower system to Hadley Bay. Unknown feeder and lower-lake names remain null. The separate western headward Nanook approach is not substituted for the selected southeastern arm."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:61545841",
+      "category": "river_group",
+      "system_id": "61545841",
+      "original_queue_rank": 343,
+      "baseline_logical_fid": 3611,
+      "geometry_fids": [
+        14519
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -60.747917,
+        -38.929067,
+        -60.20625,
+        -37.4625
+      ],
+      "rendered_mainstem_length_km": 209.6,
+      "rendered_network_length_km": 209.6,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -60.747917,
+          -38.929067,
+          -60.20625,
+          -37.4625
+        ]
+      },
+      "candidate_name": "Río Quequén Salado",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": "The whole selected geographic extent was inspected at ordinary corridor scale on original national cartography, including detailed headward mapping. Downstream channel, canalized-reach, tributary and coastal correspondence is supported. Geographic landscape coverage is distinguished from unresolved hydrological connection evidence for the selected northern depression chain.",
+      "candidate_names": [
+        "Río Quequén Salado"
+      ],
+      "region": "Buenos Aires, Argentina; unresolved northern depression-chain connection to the upper Quequén drainage, with the Quequén Salado receiving river and Balneario Oriente ocean mouth established.",
+      "candidate_name_role": "Cartographically supported receiving-river identity and provisional representative-system candidate; the selected northern wetland-to-river connection remains unresolved.",
+      "source_keys": [
+        "ign250k-r135-61545841",
+        "ign100k-r135-61545841",
+        "ign500k-r135-61545841",
+        "marini-piccolo2005-abstract",
+        "marini-schillizi-piccolo2009-prose"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected La Angélica–El Rosario–El Sol Argentino–La Choza route continues southwest past Coleu Huincul and west of Juan E. Barra toward El Recuerdo. Original 1:100,000, 1:250,000 and 1:500,000 maps depict scattered small lakes, marshes, short drainage marks and the distinct mapped Quequén headward branch, but do not establish the complete chosen northern receiving link into that branch and the downstream canalized river. The genuine gap concerns ordinary landscape-scale integration of the northern drainage, not an exact bank position, every minor channel name or proof of perennial water.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Original IGN maps establish the selected receiving corridor from the El Recuerdo–La Libertad country, west of Laguna Los Tres Reyes, through the straightened upper river, the principal middle valley, the Indio Rico receiving junction, the Irene–Oriente–Copetonas area and the actual ocean mouth at Balneario Oriente. The lower river is explicitly named Quequén Salado. The selected far-northern route starts in separate depressions near La Angélica, crosses the Laprida–Coronel Rodolfo Bunge transport corridor, and continues through El Rosario–El Sol Argentino–La Choza toward Coleu Huincul and the country west of Juan E. Barra. The original maps cover this entire landscape but do not establish that particular integrated receiving connection into the mapped Arroyo Quequén/Brazo del Arroyo Quequén and the downstream river. This is one material headward-connection gap, rather than a completed naming-scope hold.",
+      "supported_name_scope": "Cartographically supported receiving-river identity and provisional representative-system candidate; the selected northern wetland-to-river connection remains unresolved.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Río Quequén Salado is a supported downstream receiving-river candidate. Its name is not extended to every northern depression, minor feeder, canal or wetland passage.",
+          "The originals separately label Arroyo Quequén or Brazo del Arroyo Quequén in the headward receiving country. The selected northern extension is not established as a uniformly named continuation of that branch.",
+          "Laguna Los Tres Reyes, El Balde, La Salada and the other surrounding depressions retain separate geographic identities. Nearby waterbody names do not name the selected route.",
+          "No exact spring, whole-feature scalar name, Korean form or formal registry status is established. Perennial flow, exact banks and individual model vertices are not required or inferred.",
+          "The terminal connection is read from the original cartography and is not inferred from the model's sea classification."
+        ]
+      },
+      "material_pending_components": [
+        {
+          "fid": 14519,
+          "component": "Northern depression chain to the upper Quequén receiving drainage",
+          "gap": "The selected La Angélica–El Rosario–El Sol Argentino–La Choza route continues southwest past Coleu Huincul and west of Juan E. Barra toward El Recuerdo. Original 1:100,000, 1:250,000 and 1:500,000 maps depict scattered small lakes, marshes, short drainage marks and the distinct mapped Quequén headward branch, but do not establish the complete chosen northern receiving link into that branch and the downstream canalized river. The genuine gap concerns ordinary landscape-scale integration of the northern drainage, not an exact bank position, every minor channel name or proof of perennial water."
+        }
+      ]
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61545841"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 483,
+    "non_pending_records": 419,
+    "source_access_pending": 3,
+    "source_material_pending": 61,
+    "source_any_pending": 64,
+    "scope_holds": 138,
+    "river_groups": 385,
+    "lakes": 98,
+    "unrecorded": 3582,
+    "unrecorded_river_groups": 3070,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "SEI_BARROCAS_2010",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/2010/mapa_com_descritivo_2010_2903276.pdf"
+    },
+    {
+      "source_key": "IBGE_TEOFILANDIA_2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/ba/teofilandia.pdf"
+    },
+    {
+      "source_key": "SEI_BIRITINGA_2010",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/2010/mapa_com_descritivo_2010_2903607.pdf"
+    },
+    {
+      "source_key": "SEI_INHAMBUPE_2010",
+      "official_url": "https://ftp.sei.ba.gov.br/Geoinformacao/mapas/munic/2010/mapa_com_descritivo_2010_2913705.pdf"
+    },
+    {
+      "source_key": "IBGE_ESPLANADA_2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/ba/esplanada.pdf"
+    },
+    {
+      "source_key": "IBGE_ESPLANADA_2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/BA/esplanada/2910602_MM.pdf"
+    },
+    {
+      "source_key": "CPRM_SB50_2013",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/11562/3/mapa_rede_sb50.pdf"
+    },
+    {
+      "source_key": "ryan-1990-90-44",
+      "official_url": "https://www.gov.nl.ca/em/files/90-044.pdf"
+    },
+    {
+      "source_key": "ryan-lee-dunphy-2003-09",
+      "official_url": "https://www.gov.nl.ca/em/files/2003-09.pdf"
+    },
+    {
+      "source_key": "wheeler-1980-80-013",
+      "official_url": "https://www.gov.nl.ca/em/files/014D-0014-TASISUAK-LAKE.pdf"
+    },
+    {
+      "source_key": "anderson-1985-kogaluk",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    },
+    {
+      "source_key": "r135-nluis-77e",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77e.jpg"
+    },
+    {
+      "source_key": "r135-nluis-77f",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77f.jpg"
+    },
+    {
+      "source_key": "r135-nluis-77g",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77g.jpg"
+    },
+    {
+      "source_key": "r135-nluis-77h",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77h.jpg"
+    },
+    {
+      "source_key": "r135-chs-arc403-2024-retained",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/chs-shc-ARC403-eng-202403-41232306.pdf"
+    },
+    {
+      "source_key": "r135-myccr-nanook-kuujjua-unavailable",
+      "official_url": "https://www.myccr.com/canoeroutes/nanook-and-kuujjua-rivers"
+    },
+    {
+      "source_key": "ign250k-r135-61545841",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign100k-r135-61545841",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign500k-r135-61545841",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "marini-piccolo2005-abstract",
+      "official_url": "https://www.investigacionesgeograficas.com/article/view/2005-n37-hidrogeomorfologia-de-la-cuenca-del-rio-quequen-salado-"
+    },
+    {
+      "source_key": "marini-schillizi-piccolo2009-prose",
+      "official_url": "https://revistanortegrande.uc.cl/index.php/RGNG/article/download/40415/32401/102887"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "6b048180f74edb91f79296531d808dd245f4f52b",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      340,
+      341,
+      342,
+      343
+    ],
+    "next_unrecorded_id": "hydro-system:61350841",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}
