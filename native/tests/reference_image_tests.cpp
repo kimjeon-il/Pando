@@ -3,6 +3,7 @@
 #include "referencetracing.h"
 
 #include <QImage>
+#include <QPainter>
 #include <QAbstractItemModel>
 #include <QAbstractItemModelTester>
 #include <QPersistentModelIndex>
