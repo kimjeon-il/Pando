@@ -1,10 +1,10 @@
 {
   "repository": "kimjeon-il/Pando",
-  "commit": "bdc44a6cb81207e279bb8b1b775508498714d671",
+  "commit": "a275b93b71260c296337b5a3f140fe1c524a2592",
   "files": [
     {
       "path": "assets/js/modules/reference-image-georef.js",
-      "sha256": "2a0071f7460cc4ba6109b88c19d72d07935d100c49742957c47857b2cefcc5a0"
+      "sha256": "2f38e1374cbb20014b1af61220e2f681726951847a7e8e84044d26d96e9c7fe1"
     },
     {
       "path": "assets/js/modules/reference-image-transform.js",
