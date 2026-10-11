@@ -181,7 +181,26 @@ void MapSceneNode::sync(const std::shared_ptr<const RenderScene>& scene,
     // Entry identities own the actual source buffers. Also retain the previous
     // preparation until reconciliation finishes, including entries retired here.
     const auto previousScene=lastScene_;
-    (void)previousScene;
+    const bool compatibleWorld = scene && scene->worldBase && scene->worldBase->mesh;
+    if (!compatibleWorld || (boundaryFallbackBase_ &&
+        (boundaryFallbackBase_->ranges != scene->worldBase->ranges ||
+         boundaryFallbackDocumentRevision_ != scene->revisions.document ||
+         boundaryFallbackPresentationRevision_ != scene->revisions.presentation)))
+        boundaryFallbackBase_.reset();
+    if (!boundaryFallbackBase_ && compatibleWorld && previousScene &&
+        previousScene->worldBase && previousScene->worldBase->mesh &&
+        previousScene->worldBase != scene->worldBase &&
+        previousScene->worldBase->ranges == scene->worldBase->ranges &&
+        previousScene->revisions.document == scene->revisions.document &&
+        previousScene->revisions.presentation == scene->revisions.presentation) {
+        boundaryFallbackBase_ = previousScene->worldBase;
+        boundaryFallbackDocumentRevision_ = scene->revisions.document;
+        boundaryFallbackPresentationRevision_ = scene->revisions.presentation;
+    }
+    bool pendingWorldBoundaries = false;
+    const auto isWorldBoundary = [](const std::string& id) {
+        return id.rfind("world/",0)==0 || id.rfind("base-batch/",0)==0;
+    };
     for(auto* child=firstChild();child;child=child->nextSibling()) {
         auto* entry=static_cast<Entry*>(child);
         old.emplace(entry->key,entry);
@@ -230,6 +249,7 @@ void MapSceneNode::sync(const std::shared_ptr<const RenderScene>& scene,
         if(!node) {
             if(!scheduler_.reserve(estimatedBytes,protectedGeometry)) {
                 pending_=true;
+                if(kind==MapPrimitive::Stroke && isWorldBoundary(id)) pendingWorldBoundaries=true;
                 if(!predecessor)return;
                 node=predecessor;predecessor=nullptr;
             }else {
@@ -595,6 +615,24 @@ void MapSceneNode::sync(const std::shared_ptr<const RenderScene>& scene,
         if(scene->interaction.editTarget)
             outline(*scene->interaction.editTarget,world,"edit-target",mapstyle::InteractionRole::EditTarget,true);
     }
+    // Different preview/canonical batching keys cannot find a same-key
+    // predecessor. Keep their last presented border nodes until every
+    // successor border upload is admitted; do not expose a borderless frame.
+    // Never carry old-project or geometry/presentation-changed borders across.
+    if(pendingWorldBoundaries && boundaryFallbackBase_) {
+        for(auto it=old.begin();it!=old.end();) {
+            auto* node=it->second;
+            if(node->kind!=MapPrimitive::Stroke || !isWorldBoundary(node->key) ||
+               node->resource.buffers[0].get()!=boundaryFallbackBase_->mesh.get()) {
+                ++it;continue;
+            }
+            ordered.push_back(node);
+            stats.geometryBytes+=node->bytes;
+            stats.strokeBytes+=node->bytes;
+            ++stats.drawNodes;
+            it=old.erase(it);
+        }
+    } else if(!pendingWorldBoundaries) boundaryFallbackBase_.reset();
     // Removing/re-adding unchanged nodes invalidates Qt's RHI batches, even
     // when our QSGGeometry allocations were retained. Reconcile only actual
     // additions/order changes so camera culling and hover preserve GPU buffers.
