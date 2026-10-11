@@ -1,5 +1,5 @@
 import { normalizeTimelineRecords } from './timeline-records.js';
-import { compareTemporal, normalizeTemporalInterval, parseTemporal } from './temporal.js';
+import { compareTemporal, normalizeTemporalInterval, parseTemporal, temporalMonthEnd } from './temporal.js';
 
 function freeze(value) {
   if (value && typeof value === 'object') {
@@ -35,8 +35,9 @@ function active(row, point) {
 
 /** Read-only territorial view at the last day of a calendar month. */
 export function resolveWorld(identities, records, geometries, month) {
-  const point = parseTemporal(month, { nullable: false });
-  if (point.precision !== 'month') throw Object.assign(new Error('Timeline cursor requires month precision.'), { code: 'INVALID_TIMELINE_CURSOR' });
+  const cursor = parseTemporal(month, { nullable: false });
+  if (cursor.precision !== 'month') throw Object.assign(new Error('Timeline cursor requires month precision.'), { code: 'INVALID_TIMELINE_CURSOR' });
+  const point = temporalMonthEnd(cursor);
   const normalized = normalizeTimelineRecords(records, { entities: identities.map(identity => ({
     id: identity.id, entityKind: identity.properties.entityKind })), geometryExists: ref => geometries.get(ref) != null });
   const rowFor = (name, id) => normalized[name].find(row => row.entityId === id && active(row, point));
@@ -60,7 +61,7 @@ export function resolveWorld(identities, records, geometries, month) {
     row.rootId = ancestors.at(-1) ?? row.id;
     Object.freeze(row);
   }
-  return Object.freeze({ month: point.canonical, entities: Object.freeze(rows),
+  return Object.freeze({ month: cursor.canonical, entities: Object.freeze(rows),
     byId: Object.freeze({ get: id => byId.get(id) }) });
 }
 
