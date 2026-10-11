@@ -5,6 +5,7 @@ import {
   buildReferenceImagePlaceSeeds,
   buildReferenceImagePlaceSymbolCandidates,
   findReferenceImagePointSymbol,
+  findReferenceImagePointSymbolNearTextBox,
 } from '../../assets/js/modules/reference-image-auto-georef.js';
 
 function makeRaster(width = 120, height = 100, background = 236) {
@@ -83,4 +84,20 @@ test('place seed builder ranks supported city kinds and converts map positions i
   });
   assert.deepEqual(seeds.map(seed => seed.id), ['berlin', 'leipzig']);
   assert.ok(seeds.every(seed => seed.expectedUv.every(value => value > 0 && value < 1)));
+});
+
+
+test('OCR text-box refinement finds an adjacent city symbol rather than a glyph inside the label', () => {
+  const raster = makeRaster(180, 100, 240);
+  // Fake text strokes inside the OCR box.
+  for (let x = 70; x <= 110; x += 4) {
+    for (let y = 42; y <= 55; y += 1) raster.luma[y * raster.width + x] = 30;
+  }
+  // Actual city dot just left of the label.
+  fillDisk(raster, 61, 49, 3, 20);
+  const box = [68 / 179, 40 / 99, 46 / 179, 18 / 99];
+  const result = findReferenceImagePointSymbolNearTextBox(raster, box, { searchRadiusPx: 18 });
+  assert.ok(result);
+  assert.ok(Math.abs(result.pixel[0] - 61) < 0.3);
+  assert.ok(Math.abs(result.pixel[1] - 49) < 0.3);
 });
