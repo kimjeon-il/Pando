@@ -175,6 +175,108 @@ bool better(const Score& a,const Score& b)
     if(std::abs(a.confidence-b.confidence)>1e-12)return a.confidence>b.confidence;
     return a.rms<b.rms;
 }
+
+QString normalizedName(QString value)
+{
+    value=value.normalized(QString::NormalizationForm_D).toLower();
+    value.replace(QChar(0x00df),QStringLiteral("ss"));
+    QString result;result.reserve(value.size());
+    for(const QChar ch:value) {
+        if(ch.category()==QChar::Mark_NonSpacing)continue;
+        if(ch.isLetterOrNumber())result.append(ch);
+    }
+    return result;
+}
+
+int levenshtein(const QString& left,const QString& right)
+{
+    QVector<int> previous(right.size()+1),current(right.size()+1);
+    for(int j=0;j<=right.size();++j)previous[j]=j;
+    for(int i=1;i<=left.size();++i){
+        current[0]=i;
+        for(int j=1;j<=right.size();++j){
+            const int cost=left[i-1]==right[j-1]?0:1;
+            current[j]=std::min({previous[j]+1,current[j-1]+1,previous[j-1]+cost});
+        }
+        previous.swap(current);
+    }
+    return previous[right.size()];
+}
+
+double nameSimilarity(const QString& left,const QString& right)
+{
+    const auto a=normalizedName(left),b=normalizedName(right);if(a.isEmpty()||b.isEmpty())return 0;
+    if(a==b)return 1;
+    const int longest=std::max(a.size(),b.size());if(longest<=3)return 0;
+    const int distance=levenshtein(a,b);
+    double score=1.-double(distance)/longest;
+    const int shortest=std::min(a.size(),b.size());
+    if(shortest>=4&&(a.startsWith(b)||b.startsWith(a)))score=std::max(score,.86+.12*double(shortest)/longest);
+    return clamp(score,0,1);
+}
+
+ReferenceAutoGeorefResult solveCandidates(const QVector<Candidate>& candidates,int seedCount,
+                                          const QVariantMap& anchor,const QString& requestedMode,
+                                          const QString& source)
+{
+    ReferenceAutoGeorefResult output;output.seedCount=seedCount;output.candidateCount=candidates.size();output.source=source;
+    if(candidates.size()<2){output.reason=source=="place-ocr"?QStringLiteral("insufficient-ocr-symbol-candidates"):QStringLiteral("insufficient-symbol-candidates");return output;}
+    const int candidateCount=int(candidates.size());const auto mode=resolvedMode(requestedMode,candidateCount);const int required=minimum(mode);output.mode=modeName(mode);
+    if(candidateCount<required){output.reason=QStringLiteral("insufficient-auto-georef-candidates");return output;}
+    const double threshold=25000.;const int requiredInliers=std::min(candidateCount,std::max(required,int(std::ceil(candidateCount*.35))));
+    Score best;bool hasBest=false;quint32 random=0x6d2b79f5u;QSet<QString> seen;
+    for(int trial=0;trial<512;++trial){
+        const auto indices=sampleIndices(candidateCount,required,random);QString key;for(int index:indices)key+=QString::number(index)+",";
+        if(seen.contains(key)){if(seen.size()>=candidateCount*32)break;continue;}seen.insert(key);
+        const auto warp=solveReferenceWarp(mode,controls(candidates,indices));if(!warp.valid)continue;const auto current=score(warp,candidates,threshold,anchor);
+        if(current.inliers.size()<requiredInliers)continue;if(!hasBest||better(current,best)){best=current;hasBest=true;}
+        if(current.inliers.size()==candidateCount)break;
+    }
+    if(!hasBest){output.reason=QStringLiteral("no-auto-georef-consensus");return output;}
+
+    QVector<Candidate> accepted;for(int index:best.inliers)accepted.push_back(candidates[index]);
+    auto finalWarp=solveReferenceWarp(mode,controls(accepted));if(!finalWarp.valid){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
+    const auto finalScore=score(finalWarp,candidates,threshold,anchor);if(finalScore.inliers.size()<requiredInliers){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
+    accepted.clear();for(int index:finalScore.inliers)accepted.push_back(candidates[index]);finalWarp=solveReferenceWarp(mode,controls(accepted));
+    if(!finalWarp.valid){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
+
+    double squared=0;QSet<int> inlierSet;for(int index:finalScore.inliers)inlierSet.insert(index);
+    for(int i=0;i<candidates.size();++i){
+        const double meters=haversine(finalWarp.map(candidates[i].image),candidates[i].coordinate);
+        const bool inlier=inlierSet.contains(i)&&meters<=threshold;
+        QVariantMap match{{"id",candidates[i].id},{"name",candidates[i].name},{"image",QVariantList{candidates[i].image.x(),candidates[i].image.y()}},
+            {"coordinate",QVariantList{candidates[i].coordinate.x(),candidates[i].coordinate.y()}},{"confidence",candidates[i].confidence},{"residualMeters",meters},{"inlier",inlier}};
+        output.matches.push_back(match);
+        if(inlier){output.controlPoints.push_back(QVariantMap{{"id",candidates[i].id},{"image",match["image"]},{"coordinate",match["coordinate"]}});squared+=meters*meters;}
+        else output.rejectedIds.push_back(candidates[i].id);
+    }
+    output.inlierCount=output.controlPoints.size();output.rejectedCount=output.rejectedIds.size();
+    output.rmsMeters=output.inlierCount?std::sqrt(squared/output.inlierCount):0.;output.ok=output.inlierCount>=requiredInliers;
+    if(!output.ok)output.reason=QStringLiteral("no-auto-georef-consensus");return output;
+}
+
+std::optional<Candidate> detectNearTextBox(const QImage& image,const QVariantMap& seed,const QVariantMap& detection,int searchRadius)
+{
+    const auto box=detection.value("box").toList();if(box.size()!=4)return {};
+    bool ok[4]{};double v[4];for(int i=0;i<4;++i){v[i]=box[i].toDouble(&ok[i]);if(!ok[i]||!std::isfinite(v[i]))return {};}
+    const double width=std::max(1,image.width()-1),height=std::max(1,image.height()-1);
+    const double left=clamp(v[0],0,1)*width,top=clamp(v[1],0,1)*height;
+    const double right=clamp(v[0]+v[2],0,1)*width,bottom=clamp(v[1]+v[3],0,1)*height;
+    if(right<=left||bottom<=top)return {};
+    const QRectF exclusion(QPointF(left-2,top-2),QPointF(right+2,bottom+2));
+    const double cx=(left+right)/2,cy=(top+bottom)/2;
+    const double offset=std::max(5.,std::min(searchRadius*.5,std::max(7.,std::min(right-left,bottom-top)*.55)));
+    const QVector<QPointF> probes{{left-offset,cy},{right+offset,cy},{cx,top-offset},{cx,bottom+offset},
+        {left-offset*.7,top-offset*.7},{right+offset*.7,top-offset*.7},{left-offset*.7,bottom+offset*.7},{right+offset*.7,bottom+offset*.7}};
+    std::optional<Candidate> best;
+    for(const auto& probe:probes){
+        auto value=seed;value["expectedUv"]=QVariantList{clamp(probe.x()/width,0,1),clamp(probe.y()/height,0,1)};
+        auto candidate=detect(image,value,searchRadius,exclusion);if(!candidate)continue;
+        if(!best||candidate->confidence>best->confidence)best=candidate;
+    }
+    if(best)best->id=QStringLiteral("auto-place:ocr-symbol:")+detection.value("id").toString()+":"+seed.value("id").toString();
+    return best;
+}
 }
 
 QVariantMap ReferenceAutoGeorefResult::toVariant() const
