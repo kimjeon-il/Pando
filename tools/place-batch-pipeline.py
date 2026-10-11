@@ -240,11 +240,23 @@ def validate_reviewed(data, known):
                     raise ValueError(f"{context} period {index}: nativeNames must contain 1-3 entries")
                 if "nameNative" not in period or options[0].get("text") != period["nameNative"] or options[0].get("language") != (period.get("nativeLanguage") or last.get("nativeLanguage")):
                     raise ValueError(f"{context} period {index}: nativeNames primary mismatch")
-                if len({(n.get("language"), n.get("text")) for n in options}) != len(options):
+                for option in options:
+                    require_text(option.get("language"), f"{context} nativeNames.language")
+                    require_text(option.get("text"), f"{context} nativeNames.text")
+                if len({(n["language"], n["text"]) for n in options}) != len(options):
                     raise ValueError(f"{context} period {index}: duplicated nativeNames")
             for key in changed:
                 language = "ko" if key == "nameKo" else "en" if key == "nameEn" else period.get("nativeLanguage", last.get("nativeLanguage"))
-                if (language, period[key]) not in choices:
+                chosen = (language, period[key]) in choices
+                if not chosen and key in ("nameEn", "nameNative"):
+                    # The name policy intentionally deduplicates identical English/native
+                    # strings in names[]; one explicitly selected form is sufficient.
+                    english = period.get("nameEn", last.get("nameEn"))
+                    native = period.get("nameNative", last.get("nameNative"))
+                    native_lang = period.get("nativeLanguage", last.get("nativeLanguage"))
+                    chosen = (english == native == period[key] and
+                              (("en", period[key]) in choices or (native_lang, period[key]) in choices))
+                if not chosen:
                     raise ValueError(f"{context} period {index}: {key} not listed in names[]")
                 last[key] = period[key]
             if "nativeLanguage" in period:
