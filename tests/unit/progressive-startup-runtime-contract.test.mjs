@@ -11,6 +11,7 @@ import { createTerritorialEntityStore } from '../../assets/js/modules/territoria
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
+import { smallHistoricalWorld } from '../helpers/historical-world.mjs';
 
 const source = readFileSync(new URL('../../assets/js/modules/app-progressive-startup.js', import.meta.url), 'utf8');
 
@@ -43,7 +44,7 @@ test('progressive and canonical startup share one ordered runtime initializer', 
 
   const progressive = applicationFunctionSource(source, 'initProgressive');
   const canonical = applicationFunctionSource(source, 'init');
-  assert.match(progressive, /\{ gpuInitializeMs \}\s*=\s*await initializeStartupRuntime\(\{ allowPreview: !hasStoredCountryGeometry,[\s\S]*preview:/);
+  assert.match(progressive, /\{ gpuInitializeMs \}\s*=\s*await initializeStartupRuntime\(\{ allowPreview,[\s\S]*preview:/);
   assert.match(canonical, /\{ gpuReady \}\s*=\s*await initializeStartupRuntime\(\{[\s\S]*afterInitialMapSetup:[\s\S]*mapEditClient\.rebase/);
   for (const entrypoint of [progressive, canonical]) {
     assert.doesNotMatch(entrypoint, /applyLayoutMode|bindUI|beginHydration|initializeMapHost|gpuMapRenderer\.initialize|startMapResizeObserver/);
@@ -55,7 +56,7 @@ test('saved geometry is classified before any first-map source is chosen', () =>
   assert.ok(progressive.indexOf('restoreAutosave()') < progressive.indexOf('entityStore.replaceEntities'));
   assert.ok(progressive.indexOf('restorePreview(savedProject)') < progressive.indexOf('initializeStartupRuntime'));
   assert.match(progressive, /previewSource\.kind === 'restore'/);
-  assert.match(progressive, /if \(!hasStoredCountryGeometry\) \{[\s\S]*PREVIEW_READY/);
+  assert.match(progressive, /if \(allowPreview\) \{[\s\S]*PREVIEW_READY/);
 });
 
 test('canonical promotion discards a worker initialized from preview geometry before editing resumes', () => {
@@ -142,7 +143,11 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
     },
     countryServices: { normalizeCountryCollection },
     applicationServicesA: { classifyBuiltinCountries: countries => ({ countries, subunits: [] }) },
-    builtinBaseline: { prepareProjectBaseline: async () => ({}) },
+    builtinBaseline: { prepareProjectBaseline: async () => {
+      const project = smallHistoricalWorld({ currentId: 'B', currentGeometry: { type: 'Polygon', coordinates: [[[2,0],[2,1],[3,1],[3,0],[2,0]]] } });
+      project.territorialEntities.find(row => row.id === 'B').properties.name = 'Detailed B';
+      return { project, sourceMonth: '2026-10' };
+    } },
     builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop, materializePristineCountriesSync: () => normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES) },
     countryRecords: { applyPristineLabelAnchors: noop },
     layerTree: { pruneLayerItemVisibility: noop }, countries: { scheduleCountryLabelAnchors: noop },
