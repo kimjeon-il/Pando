@@ -1,0 +1,55 @@
+name: Real historical map georef probe
+
+on:
+  push:
+    branches: [work/auto-georef]
+    paths:
+      - 'tests/reference_real_map_probe.cpp'
+      - 'app/referenceautogeoref.*'
+      - 'app/referenceocr.*'
+      - 'app/referencewarp.*'
+      - 'app/CMakeLists.txt'
+      - '.github/workflows/real-map-georef-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: real-map-georef-probe
+  cancel-in-progress: true
+
+jobs:
+  windows-real-map:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          modules: qtshadertools qtimageformats
+          cache: true
+      - name: Install zlib
+        shell: pwsh
+        run: vcpkg install zlib:x64-windows
+      - name: Configure
+        shell: pwsh
+        run: cmake -S . -B build -A x64 -DBUILD_TESTING=ON "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+      - name: Build real-map probe
+        run: cmake --build build --config Release --target reference_real_map_probe
+      - name: Download 1914 historical map
+        shell: pwsh
+        run: |
+          curl.exe -L --fail --retry 3 "https://upload.wikimedia.org/wikipedia/commons/7/7b/Karta_%C3%B6ver_Tyska_riket_1914%2C_f%C3%B6re_f%C3%B6rsta_v%C3%A4rldskriget_%28ur_Nordisk_familjebok%29.jpg" -o german-empire-1914.jpg
+          Get-Item german-empire-1914.jpg | Format-List Name,Length
+      - name: Run OCR/georeferencing probe
+        shell: pwsh
+        run: |
+          & .\build\Release\reference_real_map_probe.exe .\german-empire-1914.jpg | Tee-Object -FilePath real-map-report.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: real-map-georef-report
+          path: real-map-report.json
