@@ -4,6 +4,7 @@
 #include "referenceimagemodel.h"
 #include "referenceautogeoref.h"
 #include <QJsonObject>
+#include <QByteArray>
 #include <QObject>
 #include <QUrl>
 #include <QVariantList>
