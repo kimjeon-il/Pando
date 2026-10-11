@@ -161,6 +161,7 @@ export function installReferenceImageController({
     record.warp = buildReferenceImageCalibrationWarp({
       controlPoints: record.controlPoints,
       anchor: record.anchor,
+      linearConstraints: record.linearConstraints,
       cornerPinEnabled: record.cornerPinEnabled,
       mapQuad: record.mapQuad,
       mode: record.warpMode,
