@@ -1,5 +1,7 @@
 #include "referenceimagelibrary.h"
 #include "referencetracing.h"
+#include "referenceautogeoref.h"
+#include "referenceocr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -196,6 +198,63 @@ bool ReferenceImageLibrary::setCalibration(const QString &id,const QVariantList 
     return setState(std::move(next),true);
 }
 
+bool ReferenceImageLibrary::previewAutoGeoref(const QVariantList &seeds)
+{
+    const auto item=find(calibrationId_);
+    if(!item||item->locked||gestureBefore_)return false;
+    QImageReader reader(directory()+"/"+item->fileName);reader.setAutoTransform(true);const QImage image=reader.read();
+    auto result=solveReferenceAutoGeoref(image,seeds,item->anchor,item->warpMode);
+    ReferenceOcrResult ocr;
+    // OCR is worth the extra cost when symbol-only matching fails or produces
+    // a weak consensus. Prefer the OCR-assisted result only when it actually
+    // improves consensus quality.
+    const bool strongSymbolResult=result.ok&&(
+        (result.inlierCount>=8&&result.rmsMeters<=15000.)
+        ||(result.inlierCount>=6&&result.rmsMeters<=10000.)
+    );
+    const bool weakSymbolResult=!strongSymbolResult;
+    if(weakSymbolResult) {
+        ocr=detectReferenceImageTextNative(image);
+        if(ocr.ok) {
+            const auto assisted=solveReferenceAutoGeorefFromOcr(image,seeds,ocr.detections,item->anchor,item->warpMode);
+            const bool better=assisted.ok&&(
+                !result.ok
+                ||assisted.inlierCount>result.inlierCount
+                ||(assisted.inlierCount==result.inlierCount&&assisted.rmsMeters+1e-6<result.rmsMeters)
+            );
+            if(better)result=assisted;
+        }
+    }
+    autoGeoref_=result.toVariant();autoGeoref_["active"]=true;autoGeoref_["applied"]=false;
+    if(!ocr.provider.isEmpty()||!ocr.reason.isEmpty())autoGeoref_["ocr"]=ocr.toVariant();
+    autoGeorefSignature_=QJsonDocument(json(*item)).toJson(QJsonDocument::Compact);
+    emit autoGeorefSessionChanged();
+    if(!result.ok)fail(result.reason);else fail({});
+    return result.ok;
+}
+bool ReferenceImageLibrary::applyAutoGeoref()
+{
+    const auto item=find(calibrationId_);
+    if(!item||item->locked||gestureBefore_||!autoGeoref_.value("ok").toBool())return false;
+    if(autoGeorefSignature_!=QJsonDocument(json(*item)).toJson(QJsonDocument::Compact)){
+        fail(QStringLiteral("자동 맞춤 미리보기 뒤에 참조 이미지가 변경되었습니다. 다시 분석하세요."));return false;
+    }
+    QVariantList points;
+    for(const auto &value:item->geographicPoints){
+        const auto id=value.toMap().value("id").toString();
+        if(!id.startsWith("auto-place:"))points.push_back(value);
+    }
+    for(const auto &value:autoGeoref_.value("controlPoints").toList())points.push_back(value);
+    const QString mode=normalizedWarp(autoGeoref_.value("mode").toString());
+    if(!setCalibration(item->id,points,mode))return false;
+    autoGeoref_.clear();autoGeorefSignature_.clear();emit autoGeorefSessionChanged();fail({});return true;
+}
+void ReferenceImageLibrary::cancelAutoGeoref()
+{
+    if(autoGeoref_.isEmpty()&&autoGeorefSignature_.isEmpty())return;
+    autoGeoref_.clear();autoGeorefSignature_.clear();emit autoGeorefSessionChanged();
+}
+
 QVariantMap ReferenceImageLibrary::calibrationSession() const
 {
     const auto item=find(calibrationId_);if(!item)return {};
@@ -207,10 +266,10 @@ QVariantMap ReferenceImageLibrary::calibrationSession() const
 bool ReferenceImageLibrary::beginCalibration(const QString &id)
 {
     const auto item=find(id);if(!item||item->locked||gestureBefore_)return false;
-    cancelTrace();calibrationId_=id;editingImagePoint_=false;anchorPicking_=false;freeTransformEditing_=false;editingPointId_.clear();pendingUv_.reset();emit calibrationSessionChanged();return true;
+    cancelTrace();cancelAutoGeoref();calibrationId_=id;editingImagePoint_=false;anchorPicking_=false;freeTransformEditing_=false;editingPointId_.clear();pendingUv_.reset();emit calibrationSessionChanged();return true;
 }
 void ReferenceImageLibrary::cancelCalibration()
-{cancelTrace();cancelGesture();calibrationId_.clear();editingImagePoint_=false;anchorPicking_=false;freeTransformEditing_=false;editingPointId_.clear();pendingUv_.reset();emit calibrationSessionChanged();}
+{cancelTrace();cancelAutoGeoref();cancelGesture();calibrationId_.clear();editingImagePoint_=false;anchorPicking_=false;freeTransformEditing_=false;editingPointId_.clear();pendingUv_.reset();emit calibrationSessionChanged();}
 bool ReferenceImageLibrary::pickImagePoint(double u,double v)
 {
     const auto item=find(calibrationId_);

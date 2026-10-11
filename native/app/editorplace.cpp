@@ -46,6 +46,21 @@ void EditorController::requestPlaceResources() {
     PlaceViewport view;view.view=sceneBridge_.viewState();view.zoom=camera_.display().zoom;
     view.safeBottom=mobileMode_?96.:32.;placeRuntime_.requestViewport(view);
 }
+
+QVariantList EditorController::referencePlaceSnapshot() const {
+    QVariantList result;const auto snapshot=placeRuntime_.snapshot();if(!snapshot)return result;
+    result.reserve(int(snapshot->records.size()));
+    for(const auto& record:snapshot->records) {
+        if(record.kind!="capital"&&record.kind!="city"&&record.kind!="town")continue;
+        result.push_back(QVariantMap{{"id",record.id},{"name",record.name},{"kind",record.kind},
+            {"coordinates",QVariantList{record.coordinates.x,record.coordinates.y}},
+            {"priority",record.priority},{"population",record.population},{"countryCode",record.countryCode},
+            {"featureCode",record.featureCode}});
+    }
+    return result;
+}
+void EditorController::requestReferencePlaces() { requestPlaceResources(); }
+
 void EditorController::refreshBuiltinPlaceLabels() {
     std::vector<PlaceRecord> records;records.reserve(PlaceRuntimeLimits::Candidates);
     std::set<QString> seen;

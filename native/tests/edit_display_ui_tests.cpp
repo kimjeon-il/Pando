@@ -351,6 +351,8 @@ private slots:
     void displayAdaptersAreInvokable()
     {
         const auto& meta=EditorController::staticMetaObject;
+        QVERIFY2(EditorController::staticMetaObject.indexOfMethod("referencePlaceSnapshot()")>=0,"referencePlaceSnapshot()");
+        QVERIFY2(EditorController::staticMetaObject.indexOfMethod("requestReferencePlaces()")>=0,"requestReferencePlaces()");
         for(const char* signature:{"editMapPointToScreen(double,double,QVariantMap)",
             "editPixelLengthToMap(double,QVariantMap)",
             "editLabelDragToMap(double,double,double,double,QVariantMap)",

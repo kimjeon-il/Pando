@@ -156,6 +156,37 @@ Rectangle {
         }
         return cornerPin ? referenceImages.setCornerQuad(quad,referenceScreenQuad(quad)) : referenceImages.setPlacementQuad(quad,referenceScreenQuad(quad))
     }
+    property bool referenceAutoGeorefWaiting: false
+    function referenceAutoGeorefMessage(reason) {
+        if(reason==="insufficient-symbol-candidates")return "도시 주변에서 지도 기호를 충분히 찾지 못했습니다. 대략 배치나 고정점을 조정한 뒤 다시 시도하세요."
+        if(reason==="insufficient-auto-georef-candidates")return "자동 보정에 필요한 기준점 수가 부족합니다."
+        if(reason==="no-auto-georef-consensus")return "도시 기호 후보들의 위치가 서로 일치하지 않아 자동 정렬을 확정하지 못했습니다."
+        if(reason==="invalid-image")return "참조 이미지 픽셀을 읽지 못했습니다."
+        return reason ? "자동 맞춤 실패: "+reason : ""
+    }
+    function runReferenceAutoGeoref() {
+        if(!calibrationPanel.visible || calibrationPanel.record.locked)return false
+        if(!ensureReferenceQuad(false))return false
+        const places=editor.referencePlaceSnapshot()
+        if(!places || places.length<2) {
+            referenceAutoGeorefWaiting=true
+            editor.requestReferencePlaces()
+            return false
+        }
+        let seeds=[]
+        for(const place of places) {
+            const coordinate=place.coordinates || []
+            if(coordinate.length!==2)continue
+            const screen=editor.referenceScreenAtCoordinate(coordinate[0],coordinate[1])
+            if(!screen.visible)continue
+            const uv=referenceUvAtScreen(screen.x,screen.y)
+            if(uv.length!==2 || uv[0]<.015 || uv[0]>.985 || uv[1]<.015 || uv[1]>.985)continue
+            seeds.push({id:place.id,name:place.name,kind:place.kind,coordinate:coordinate,expectedUv:uv,priority:place.priority,population:place.population})
+            if(seeds.length>=120)break
+        }
+        referenceAutoGeorefWaiting=false
+        return referenceImages.previewAutoGeoref(seeds)
+    }
     function dismissPopup() {
         if (calibrationPanel.visible) { calibrationPanel.close(); return true }
         if (objectChooser.visible) { objectChooser.close(); return true }
@@ -184,6 +215,9 @@ Rectangle {
         function onObjectChooserChanged() {
             if (editor.objectChooserOpen) objectChooser.openAt(view.chooserPoint)
             else objectChooser.close()
+        }
+        function onPlaceDataChanged() {
+            if(view.referenceAutoGeorefWaiting)Qt.callLater(view.runReferenceAutoGeoref)
         }
     }
     ObjectChooser { id: objectChooser; mapView: view }
@@ -278,11 +312,32 @@ Rectangle {
                 }
                 Row {
                     spacing: 4
+                    UiButton { objectName: "referenceAutoGeorefButton"; text: "자동 맞춤"; enabled: !calibrationPanel.record.locked && !referenceImages.traceSession.active; onClicked: view.runReferenceAutoGeoref() }
                     UiButton { objectName: "referenceFreeTransformButton"; text: "자유 변형"; enabled: !calibrationPanel.record.locked; onClicked: {
                         if(view.ensureReferenceQuad(true))referenceImages.setFreeTransformEditing(!calibrationPanel.session.freeTransformEditing)
                     } }
                     UiButton { objectName: "referenceAnchorButton"; text: "고정점 지정"; enabled: !calibrationPanel.record.locked; onClicked: { if(view.ensureReferenceQuad(false))referenceImages.beginAnchor() } }
                     UiButton { text: "고정 해제"; visible: !!calibrationPanel.record.anchor && Object.keys(calibrationPanel.record.anchor).length>0; onClicked: referenceImages.clearAnchor() }
+                }
+                Column {
+                    width: parent.width; spacing: 4
+                    visible: !!referenceImages.autoGeorefSession.active
+                    readonly property var autoResult: referenceImages.autoGeorefSession || ({})
+                    Label {
+                        width: parent.width; wrapMode: Text.Wrap
+                        text: autoResult.ok
+                            ? "자동 맞춤"+(autoResult.source === "place-ocr" ? " · OCR 보조" : "")
+                                +" · 후보 "+(autoResult.candidateCount||0)
+                                +" · 채택 "+(autoResult.inlierCount||0)
+                                +" · 제외 "+(autoResult.rejectedCount||0)
+                                +" · RMS "+Number(autoResult.rmsMeters||0).toFixed(1)+" m"
+                            : view.referenceAutoGeorefMessage(autoResult.reason)
+                    }
+                    Row {
+                        spacing: 4; visible: !!autoResult.ok
+                        UiButton { objectName: "referenceAutoGeorefApply"; text: "결과 적용"; onClicked: referenceImages.applyAutoGeoref() }
+                        UiButton { objectName: "referenceAutoGeorefCancel"; text: "취소"; onClicked: referenceImages.cancelAutoGeoref() }
+                    }
                 }
                 Row {
                     spacing: 4
