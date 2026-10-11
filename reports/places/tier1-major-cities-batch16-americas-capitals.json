@@ -267,13 +267,6 @@
         },
         {
           "text": "Santo Domingo",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
-          "sourceUrl": "https://censoarchivos.cultura.gob.es/CensoGuia/archivodetail.htm?id=1443732"
-        },
-        {
-          "text": "Santo Domingo",
           "language": "es",
           "usage": "standard",
           "script": "Latn",
@@ -283,13 +276,6 @@
           "text": "시우다드트루히요",
           "language": "ko",
           "usage": "historical",
-          "sourceUrl": "https://censoarchivos.cultura.gob.es/CensoGuia/archivodetail.htm?id=1443732"
-        },
-        {
-          "text": "Ciudad Trujillo",
-          "language": "en",
-          "usage": "historical",
-          "script": "Latn",
           "sourceUrl": "https://censoarchivos.cultura.gob.es/CensoGuia/archivodetail.htm?id=1443732"
         },
         {
@@ -454,13 +440,6 @@
         },
         {
           "text": "Port-Républicain",
-          "language": "en",
-          "usage": "historical",
-          "script": "Latn",
-          "sourceUrl": "https://fr.wikisource.org/wiki/Page:Ardouin_-_%C3%89tude_sur_l%E2%80%99histoire_d%E2%80%99Ha%C3%AFti,_tome_2.djvu/264"
-        },
-        {
-          "text": "Port-Républicain",
           "language": "fr",
           "usage": "historical",
           "script": "Latn",
@@ -470,13 +449,6 @@
           "text": "포르토프랭스",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://fr.wikisource.org/wiki/Page:Ardouin_-_%C3%89tude_sur_l%E2%80%99histoire_d%E2%80%99Ha%C3%AFti,_tome_2.djvu/264"
-        },
-        {
-          "text": "Port-au-Prince",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://fr.wikisource.org/wiki/Page:Ardouin_-_%C3%89tude_sur_l%E2%80%99histoire_d%E2%80%99Ha%C3%AFti,_tome_2.djvu/264"
         },
         {
@@ -737,13 +709,6 @@
         },
         {
           "text": "San Salvador",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
-          "sourceUrl": "https://www.geonames.org/3583361/"
-        },
-        {
-          "text": "San Salvador",
           "language": "es",
           "usage": "standard",
           "script": "Latn",
@@ -802,13 +767,6 @@
           "text": "테구시갈파",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://www.geonames.org/3600949/"
-        },
-        {
-          "text": "Tegucigalpa",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://www.geonames.org/3600949/"
         },
         {
@@ -875,13 +833,6 @@
         },
         {
           "text": "Managua",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
-          "sourceUrl": "https://www.geonames.org/3617763/"
-        },
-        {
-          "text": "Managua",
           "language": "es",
           "usage": "standard",
           "script": "Latn",
@@ -940,13 +891,6 @@
           "text": "산호세",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://www.geonames.org/3621849/"
-        },
-        {
-          "text": "San José",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://www.geonames.org/3621849/"
         },
         {
@@ -1092,13 +1036,6 @@
         },
         {
           "text": "Santa Fe de Bogotá",
-          "language": "en",
-          "usage": "historical",
-          "script": "Latn",
-          "sourceUrl": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?dt=S&i=13688"
-        },
-        {
-          "text": "Santa Fe de Bogotá",
           "language": "es",
           "usage": "historical",
           "script": "Latn",
@@ -1108,13 +1045,6 @@
           "text": "보고타",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?dt=S&i=13688"
-        },
-        {
-          "text": "Bogotá",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?dt=S&i=13688"
         },
         {
@@ -1235,13 +1165,6 @@
         },
         {
           "text": "Caracas",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
-          "sourceUrl": "https://www.geonames.org/3646738/"
-        },
-        {
-          "text": "Caracas",
           "language": "es",
           "usage": "standard",
           "script": "Latn",
@@ -1300,13 +1223,6 @@
           "text": "키토",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://whc.unesco.org/en/list/2/"
-        },
-        {
-          "text": "Quito",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://whc.unesco.org/en/list/2/"
         },
         {
@@ -1373,13 +1289,6 @@
         },
         {
           "text": "Lima",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
-          "sourceUrl": "https://whc.unesco.org/en/list/500/"
-        },
-        {
-          "text": "Lima",
           "language": "es",
           "usage": "standard",
           "script": "Latn",
@@ -1438,13 +1347,6 @@
           "text": "라파스",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://www.geonames.org/3911925/"
-        },
-        {
-          "text": "La Paz",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://www.geonames.org/3911925/"
         },
         {
@@ -1512,13 +1414,6 @@
         },
         {
           "text": "Chuquisaca",
-          "language": "en",
-          "usage": "historical",
-          "script": "Latn",
-          "sourceUrl": "https://sucre.bo/el-12-de-julio-de-1839-chuquisaca-cambio-de-nombre-por-el-de-sucre/"
-        },
-        {
-          "text": "Chuquisaca",
           "language": "es",
           "usage": "historical",
           "script": "Latn",
@@ -1528,13 +1423,6 @@
           "text": "수크레",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://sucre.bo/el-12-de-julio-de-1839-chuquisaca-cambio-de-nombre-por-el-de-sucre/"
-        },
-        {
-          "text": "Sucre",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://sucre.bo/el-12-de-julio-de-1839-chuquisaca-cambio-de-nombre-por-el-de-sucre/"
         },
         {
@@ -1619,13 +1507,6 @@
         },
         {
           "text": "Santiago",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
-          "sourceUrl": "https://www.geonames.org/3871336/"
-        },
-        {
-          "text": "Santiago",
           "language": "es",
           "usage": "standard",
           "script": "Latn",
@@ -1684,13 +1565,6 @@
           "text": "아순시온",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://www.geonames.org/3439389/"
-        },
-        {
-          "text": "Asunción",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://www.geonames.org/3439389/"
         },
         {
@@ -1757,13 +1631,6 @@
         },
         {
           "text": "Montevideo",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
-          "sourceUrl": "https://www.geonames.org/3441575/"
-        },
-        {
-          "text": "Montevideo",
           "language": "es",
           "usage": "standard",
           "script": "Latn",
@@ -1822,13 +1689,6 @@
           "text": "브라질리아",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://www.gov.br/iphan/pt-br/superintendencias/distrito-federal/patrimonio-mundial"
-        },
-        {
-          "text": "Brasília",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://www.gov.br/iphan/pt-br/superintendencias/distrito-federal/patrimonio-mundial"
         },
         {
@@ -1991,13 +1851,6 @@
           "text": "파라마리보",
           "language": "ko",
           "usage": "standard",
-          "sourceUrl": "https://whc.unesco.org/en/list/940/"
-        },
-        {
-          "text": "Paramaribo",
-          "language": "en",
-          "usage": "standard",
-          "script": "Latn",
           "sourceUrl": "https://whc.unesco.org/en/list/940/"
         },
         {
