@@ -25,6 +25,7 @@ qt_add_executable(pandoeditor main.cpp)
 
 add_library(pandoeditor_editor STATIC
     referencewarp.cpp referencewarp.h
+    referenceautogeoref.cpp referenceautogeoref.h
     referencetracing.cpp referencetracing.h
     referenceimagelibrary.cpp referenceimagelibrary.h referenceimagemodel.h
     defaultflagresolver.cpp defaultflagresolver.h
