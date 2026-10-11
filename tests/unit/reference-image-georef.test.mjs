@@ -4,6 +4,8 @@ import test from 'node:test';
 import {
   buildReferenceImageAutoGeoref,
   buildReferenceImageCalibrationWarp,
+  buildReferenceImageLinearConstraintPoints,
+  buildReferenceImageLinearRefinement,
   buildReferenceImageMesh,
   buildReferenceImageProjectiveWarpFromQuad,
   buildReferenceImageWarp,
@@ -219,6 +221,61 @@ test('TPS warp interpolates its control points and auto selects TPS with six poi
     const projected = warp.project(controlPoint.image);
     assert.ok(Math.abs(projected[0] - controlPoint.coordinate[0]) < 1e-6);
     assert.ok(Math.abs(projected[1] - controlPoint.coordinate[1]) < 1e-6);
+  }
+});
+
+test('linear constraints are sparsely resampled and auto-reversed against the base warp', () => {
+  const baseWarp = buildReferenceImageWarp([
+    point('a', [0, 0], [10, 50]),
+    point('b', [1, 0], [20, 50]),
+    point('c', [0, 1], [10, 40]),
+  ], { mode: REFERENCE_IMAGE_WARP_MODES.AFFINE });
+  assert.equal(baseWarp.ok, true);
+  const sampled = buildReferenceImageLinearConstraintPoints([
+    {
+      id: 'coast',
+      kind: 'coastline',
+      image: [[0.2, 0.2], [0.5, 0.25], [0.8, 0.2]],
+      coordinates: [[18, 48], [15, 47.5], [12, 48]],
+      weight: 1,
+    },
+  ], { baseWarp, samplesPerConstraint: 4 });
+  assert.equal(sampled.length, 4);
+  assert.ok(sampled.every(item => item.linearConstraintId === 'coast'));
+  assert.ok(sampled[0].coordinate[0] < sampled.at(-1).coordinate[0]);
+});
+
+test('linear refinement keeps anchor exact and bends the warp through sparse line constraints', () => {
+  const controlPoints = [
+    point('a', [0, 0], [10, 50]),
+    point('b', [1, 0], [20, 50]),
+    point('c', [0, 1], [10, 40]),
+    point('d', [1, 1], [20, 40]),
+  ];
+  const anchor = { image: [0.5, 0.5], coordinate: [15, 45] };
+  const result = buildReferenceImageLinearRefinement({
+    controlPoints,
+    anchor,
+    baseMode: REFERENCE_IMAGE_WARP_MODES.AFFINE,
+    linearConstraints: [{
+      id: 'river',
+      kind: 'river',
+      image: [[0.2, 0.55], [0.5, 0.62], [0.8, 0.55]],
+      coordinates: [[12, 44.8], [15, 43.8], [18, 44.8]],
+      weight: 1,
+    }],
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.mode, REFERENCE_IMAGE_WARP_MODES.TPS);
+  assert.equal(result.linePointCount, 4);
+  assert.ok(result.diagnostics.hardMaxMeters < 0.01);
+  const pinned = result.project(anchor.image);
+  assert.ok(Math.abs(pinned[0] - anchor.coordinate[0]) < 1e-7);
+  assert.ok(Math.abs(pinned[1] - anchor.coordinate[1]) < 1e-7);
+  for (const sample of result.linePoints) {
+    const actual = result.project(sample.image);
+    assert.ok(Math.abs(actual[0] - sample.coordinate[0]) < 1e-6);
+    assert.ok(Math.abs(actual[1] - sample.coordinate[1]) < 1e-6);
   }
 });
 
