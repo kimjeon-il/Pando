@@ -360,7 +360,16 @@ PlaceQueryResult PlaceRuntimeStore::search(const QString& value,const Cancellati
     checkpoint(cancelled);std::lock_guard<std::mutex> lock(data_->mutex);Data::PublishOnExit publish{*data_};checkpoint(cancelled);++data_->stats.searchCount;const auto query=normalizeQuery(value);const auto codepoints=query.toUcs4();if(codepoints.size()<2)return {};
     const auto prefix=QString::fromUcs4(codepoints.constData(),2);std::vector<Data::Tile> rows;bool truncated=false;
     for(const auto& page:data_->search.value(prefix))if(page.last>=query&&page.first<=query+QChar(0xffff)){if(rows.size()<PlaceRuntimeLimits::QueryTiles)rows.push_back(page);else truncated=true;}
-    auto result=data_->rows(rows,cancelled,[&](const auto& r){return normalizeQuery(r.name).startsWith(query);},PlaceRuntimeLimits::SearchResults);result.truncated|=truncated;return result;
+    auto result=data_->rows(rows,cancelled,[&](const auto& r){
+        const matches=[&](const QString& text){return normalizeQuery(text).startsWith(query);};
+        if(matches(r.name)||matches(r.nameEn)||matches(r.nameNative))return true;
+        for(const auto& name:r.nameNativeExtras)if(matches(name))return true;
+        for(const auto& period:r.nameTimeline){
+            if(matches(period.ko)||matches(period.en)||matches(period.native))return true;
+            if(period.nativeExtras)for(const auto& name:*period.nativeExtras)if(matches(name))return true;
+        }
+        return false;
+    },PlaceRuntimeLimits::SearchResults);result.truncated|=truncated;return result;
 }
 PlaceStoreStats PlaceRuntimeStore::stats() const {std::lock_guard<std::mutex> lock(data_->metricsMutex);return data_->publishedStats;}
 QString PlaceRuntimeStore::revision() const {return data_->revision;}
