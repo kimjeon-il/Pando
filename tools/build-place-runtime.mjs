@@ -39,6 +39,27 @@ export function projectReviewedPlace(record, reviewFile, batchStatus) {
       throw new Error('Historical name period has no selected names: ' + title(record));
     return converted;
   });
+  // PLAC v3 serializes names, not temporalEligibility. Shift the first name
+  // coverage boundary forward for a source-verified modern city foundation;
+  // otherwise the historic map falsely displays a city before it existed.
+  // The original staged name-era decision remains unchanged in the review JSON.
+  const eligibility = record.temporalEligibility;
+  if (eligibility?.beforeCityEstablished === 'suppress-city-label' && timeline.length) {
+    const first = timeline[0], start = eligibility.cityEstablishedFromDate
+      || (eligibility.cityEstablishedFromYear != null
+        ? String(eligibility.cityEstablishedFromYear).padStart(4, '0') + '-01-01' : null);
+    const firstDate = first.fromDate
+      || String(first.fromYear).padStart(4, '0') + '-01-01';
+    if (start && firstDate < start) {
+      if (eligibility.cityEstablishedFromDate) {
+        delete first.fromYear;
+        first.fromDate = eligibility.cityEstablishedFromDate;
+      } else {
+        delete first.fromDate;
+        first.fromYear = eligibility.cityEstablishedFromYear;
+      }
+    }
+  }
   if (timeline.length > PLACE_LIMITS.tileRecords)
     throw new Error('Invalid name timeline size for ' + id);
   const kind = record.urbanIdentityReview?.autoTierApproved === false
@@ -69,6 +90,8 @@ export function validateRuntimeApproval(record, batchNumber) {
   if (record.urbanIdentityReview?.autoTierApproved === false
     || record.candidatePolicyException?.autoPromoted === false)
     throw new Error('Unresolved city identity/candidate review cannot enter runtime: ' + record.geonameId);
+  if (record.temporalEligibility?.activeIntervals?.length)
+    throw new Error('Multi-episode urban eligibility not supported by PLAC v3: ' + record.geonameId);
   if (batchNumber <= 15) {
     // First 15 batches were individually researched before A/B/C triage was introduced.
     // Historical Pest has a verified 1873 end date but the current PLAC v3 codec does
