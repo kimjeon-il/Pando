@@ -202,6 +202,23 @@ private slots:
         QVERIFY(editor.countryVisuals().contains(QStringLiteral("B")));
         QVERIFY(hasPacket("B"));
         QVERIFY(errors.isEmpty());
+        // Year navigation is one state transition, preserving the month and skipping year zero.
+        QVERIFY(editor.shiftTimelineMonth(12));
+        QCOMPARE(editor.timelineMonth(),QStringLiteral("1921-03"));
+        QVERIFY(editor.shiftTimelineMonth(-12));
+        QCOMPARE(editor.timelineMonth(),QStringLiteral("1920-03"));
+        QVERIFY(editor.setTimelineMonth(QStringLiteral("-0001-05")));
+        QVERIFY(editor.shiftTimelineMonth(12));
+        QCOMPARE(editor.timelineMonth(),QStringLiteral("0001-05"));
+        QVERIFY(editor.shiftTimelineMonth(-12));
+        QCOMPARE(editor.timelineMonth(),QStringLiteral("-0001-05"));
+        QVERIFY(editor.setTimelineMonth(QStringLiteral("+10000-01")));
+        QVERIFY(editor.shiftTimelineMonth(-12));
+        QCOMPARE(editor.timelineMonth(),QStringLiteral("9999-01"));
+        QVERIFY(!editor.shiftTimelineMonth(13));
+        QVERIFY(editor.setTimelineMonth(QStringLiteral("1920-03")));
+        QCOMPARE(editor.revision(),initialRevision);
+        QVERIFY(!editor.dirty());
         QVERIFY(!editor.setTimelineMonth(QStringLiteral("invalid")));
         QCOMPARE(editor.timelineMonth(),QStringLiteral("1920-03"));
         QCOMPARE(editor.revision(),initialRevision);
