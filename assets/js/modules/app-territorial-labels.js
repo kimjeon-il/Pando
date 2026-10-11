@@ -40,9 +40,9 @@ export function createTerritorialLabels() {
       scale: frame.cssScale, flatCenter: state.view.flatCenter, rotation: state.view.globeRotation, projectionFrame };
   }
 
-  function preparePlaces() {
+  function preparePlaces({ force = false } = {}) {
     if (dependencies.projectState.state.mapMoving) { builtinPlaces.beginInteraction(); return Promise.resolve(false); }
-    if (dependencies.projectState.state.layerVisibility.labels === false) { builtinPlaces.cancelViewport(); return builtinPlaces.settle(null); }
+    if (!force && dependencies.projectState.state.layerVisibility.labels === false) { builtinPlaces.cancelViewport(); return builtinPlaces.settle(null); }
     return builtinPlaces.settle(placeView());
   }
 
