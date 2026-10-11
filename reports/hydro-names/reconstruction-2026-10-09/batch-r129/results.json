@@ -1,0 +1,504 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r129",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r128",
+    "commit": "a6aa69607b89afa880931a849d092e5159635416",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r128/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70208286",
+    "hydro-system:70214162"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70110341",
+      "category": "river_group",
+      "system_id": "70110341",
+      "original_queue_rank": 316,
+      "baseline_logical_fid": 2952,
+      "geometry_fids": [
+        9168
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -84.49375,
+        53.910417,
+        -82.423843,
+        54.227083
+      ],
+      "rendered_mainstem_length_km": 217.822,
+      "rendered_network_length_km": 217.822,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -84.49375,
+          53.910417,
+          -82.423843,
+          54.227083
+        ]
+      },
+      "candidate_name": "Opinnagau River",
+      "candidate_names": [
+        "Opinnagau River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "completion_scope": {
+        "full_mainstem_and_tributary_corridors_inspected": false,
+        "full_selected_extent_visible_on_source": true,
+        "full_selected_route_correspondence_established": false,
+        "all_material_confluences_inspected": false,
+        "actual_terminal_settings_inspected": [
+          "Named Opinnagau River reaches the western James Bay coast north of the separately mapped Patchepawapoka River and Nowashe Creek."
+        ],
+        "material_gaps": [
+          "Connection from the selected initial small northern lake toward the southwest-flowing creek that enters Opinnagau Lake. The original map instead depicts an eastern connection at the initial lake and a separate creek tip to its southwest.",
+          "Western leg of the central southward detour: the selected route leaves the mapped Opinnagau River corridor and returns through a mapped southern tributary; the source does not depict the connecting western side of that detour."
+        ],
+        "pending_reason": "A generalized original map supplies regional and downstream identity but does not resolve two material component connections. No failed or unread map is counted as correspondence; no scope-hold completion is claimed."
+      },
+      "region": "Ontario, Canada; Opinnagau Lake and Opinnagau River toward western James Bay.",
+      "candidate_name_role": "Supported named downstream river component and provisional representative-system candidate only. Two actual selected connections remain unestablished, so no completed whole-system representative identity is claimed.",
+      "source_keys": [
+        "r129-ogs-bedrock-index-northern-2021"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "A generalized original map supplies regional and downstream identity but does not resolve two material component connections. No failed or unread map is counted as correspondence; no scope-hold completion is claimed.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The acquired original Ontario Geological Survey northern index map establishes Opinnagau Lake, its connected eastern lake sections, the long east-to-northeast Opinnagau River corridor and its James Bay mouth. It does not establish the selected southwest connection from the initial northern small lake to the lake-entering creek, or the western side of the selected central southward detour between the mapped river and a southern tributary. These are actual source-correspondence gaps, not merely unnamed reaches. The downstream candidate is Opinnagau River; full representative identity remains material-pending.",
+      "supported_name_scope": "Supported named downstream river component and provisional representative-system candidate only. Two actual selected connections remain unestablished, so no completed whole-system representative identity is claimed.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Opinnagau River is established for the mapped river downstream of the lake corridor; it is not assigned to the initial lake, its uncertain connector, every feeder or the southern tributary.",
+          "Opinnagau Lake is a separately labelled lake component. The connected eastern lake sections are visible, but no additional scalar lake or feeder names are invented.",
+          "The initial small lake, headwater creek, central southern tributary and uncertain connectors have null component names.",
+          "The 2021 geological-map index is generalized cartography, not a current hydrographic survey or legal naming register. Its source data independence from other mapping datasets is unestablished.",
+          "Formal current registry status, exact bank positions, present flow direction through the two gaps and surveyed terminal vertices remain unverified."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:80067260",
+      "category": "river_group",
+      "system_id": "80067260",
+      "original_queue_rank": 317,
+      "baseline_logical_fid": 906,
+      "geometry_fids": [
+        2516
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -101.24375,
+        66.3875,
+        -100.702083,
+        67.749056
+      ],
+      "rendered_mainstem_length_km": 217.798,
+      "rendered_network_length_km": 217.798,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -101.24375,
+          66.3875,
+          -100.702083,
+          67.749056
+        ]
+      },
+      "candidate_name": "Armark River",
+      "candidate_names": [
+        "Armark River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "The expedition report uses Armark Lake and Armark River for its travelled route to Queen Maud Gulf. These names are not assigned to all selected tributary, lake or coastal components.",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "material_pending_reason": "Original-map evidence is missing for the initial feeder, possible Armark Lake passage and both connectors, complete upper/middle/lower route, material junctions, and actual selected coastal outlet. This is an evidence-coverage gap, not a completed unnamed-composite review.",
+      "region": "Nunavut, Canada; possible Armark Lake–Armark River corridor toward Queen Maud Gulf, with selected-route correspondence incomplete.",
+      "candidate_name_role": "First-person primary-prose geographic lead only. Neither a primary-map-supported selected component nor a representative identity for the whole selected route has been established.",
+      "source_keys": [
+        "r129-spri-tri-province-expedition"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Armark River is a plausible prose-supported research lead, but full selected-route geographic correspondence remains material-pending.",
+      "completion_scope": "Incomplete: no primary original cartographic coverage of the selected route was read and established as usable evidence.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The expedition report uses Armark Lake and Armark River for its travelled route to Queen Maud Gulf. These names are not assigned to all selected tributary, lake or coastal components."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:70208286",
+      "category": "river_group",
+      "system_id": "70208286",
+      "original_queue_rank": 318,
+      "baseline_logical_fid": 2984,
+      "geometry_fids": [
+        9281,
+        9282
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -59.4875,
+        51.257148,
+        -58.652083,
+        52.604167
+      ],
+      "rendered_mainstem_length_km": 216.851,
+      "rendered_network_length_km": 216.851,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -59.4875,
+          51.257148,
+          -58.652083,
+          52.604167
+        ]
+      },
+      "candidate_name": "Rivière Saint-Augustin",
+      "candidate_names": [
+        "Rivière Saint-Augustin"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "completion_scope": {
+        "full_mainstem_and_tributary_corridors_inspected": true,
+        "all_material_confluences_inspected": true,
+        "actual_terminal_settings_inspected": [
+          "Lower Rivière Saint-Augustin in the vicinity of the western tributary junction, upstream of the Pakuashipi–Saint-Augustin settlement reach.",
+          "The independent downstream context is the sandbar-and-island estuary and Baie de Saint-Augustin; that continuation is not silently added to the selected object."
+        ],
+        "selected_lake_or_reservoir_passage": "Small unnamed headwater lakes and their connecting channel are mapped near the Route510 approach. No substantial named lake or reservoir is traversed by the selected trunk farther downstream. Nearby lakes on either side are separate features.",
+        "headward_scope": "Map1 covers the northwestern feeder/small-lake setting, the eastward head corridor and its elbow into the south-running trunk. The selected initial position is not equated with the expedition put-in, a formally named source or an exact surveyed source point. Ordinary corridor correspondence, not exact bank/vertex agreement, is the finding.",
+        "unresolved_material_connections": []
+      },
+      "region": "Labrador and Québec, Canada; Saint-Augustin corridor from the Route 510 headwater setting to the lower river upstream of Pakuashipi and Saint-Augustin.",
+      "candidate_name_role": "Representative identity of the connected Saint-Augustin river system followed by both retained mainstem fragments; not a scalar label for the initial small lakes, every tributary, all lake passages or the receiving bay.",
+      "source_keys": [
+        "hudon2015-2016",
+        "ctq55693"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected route follows the Saint-Augustin system from a small-lake feeder setting beside the Trans-Labrador road, through the south-running Labrador trunk and canyon, into the broad southeastward Québec valley and lower Saint-Augustin river. The complete retained Hudon expedition map supplies 17 overlapping corridor sheets and first-hand survey annotations. The selected rendered endpoint lies in the lower river near the large western-branch junction north of Pakuashipi and Saint-Augustin; the river continues beyond the selected endpoint into Baie de Saint-Augustin. It is not a selected open-Gulf mouth.",
+      "supported_name_scope": "Rivière Saint-Augustin is the supported representative system identity across the selected connected corridor; unnamed headwater lakes and separately named tributaries retain their own scopes.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The representative candidate is supported by continuous corridor cartography, repeated river labels and the first-hand route survey. It does not assert that every selected headwater connector, lake interior or feeder bears the same name.",
+          "Pakuashipi appears in the expedition title; the Commission record separately uses Pukutshipu Shipu and notes that Natuakameu Shipu identifies a segment. These are not imposed as uniform whole-model aliases or Korean names.",
+          "Michaels River, Rivière Aux Saumons as printed in the expedition map, Rivière à la Mouche and Rivière Saint-Augustin Nord-Ouest remain distinct tributaries. Unnamed side inflows are not assigned their downstream river name.",
+          "The named river continues through the estuarine settlement reach to its bay beyond the selected rendered endpoint. The inherited sea class is not evidence that the endpoint is open water or a precise mouth.",
+          "Commission record55693 is a bounded official account of the named Québec river. It is not treated as formal registration of this model group or its exact component boundaries.",
+          "The map is based on 2015 field observations and historical federal topographic sheets; it does not establish present navigation safety, exact current banks, current water levels, or official river length."
+        ],
+        "representative_system_identity": "Rivière Saint-Augustin",
+        "initial_small_lake_and_feeder_names": null,
+        "actual_terminal": "Lower Saint-Augustin river near the large western tributary junction, upstream of Pakuashipi and Saint-Augustin; the mapped bay continuation is outside the selection.",
+        "indigenous_name_scope_note": "Pakuashipi in the expedition title, Pukutshipu Shipu in the Commission account, and segment name Natuakameu Shipu are not adopted as uniform model aliases."
+      }
+    },
+    {
+      "aw_id": "hydro-system:70214162",
+      "category": "river_group",
+      "system_id": "70214162",
+      "original_queue_rank": 319,
+      "baseline_logical_fid": 2988,
+      "geometry_fids": [
+        9301
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -80.41875,
+        49.65,
+        -79.710417,
+        51.143329
+      ],
+      "rendered_mainstem_length_km": 216.85,
+      "rendered_network_length_km": 216.85,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -80.41875,
+          49.65,
+          -79.710417,
+          51.143329
+        ]
+      },
+      "candidate_name": "Kesagami River",
+      "candidate_names": [
+        "Kesagami River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Kesagami River is directly mapped on the southern lakeward approach and long lower corridor. Upper Kesagami Lake, Newnham Bay, Kesagami Lake and separately mapped adjacent waterbodies retain their own identities. The terminal continuation is in the receiving Haarricanaw estuarine waterway. No uniform scalar name or registry status is inferred.",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "material_pending_reason": "Actual primary-map reading remains incomplete for the upper outlet/connector chain between the selected Upper Kesagami Lake start and the southern coverage of P.3757, including the regional Cooks Pond/Lower Severn Lake setting. P.3599-Revised labels and overprinted hydrography identify the region but do not establish every material intermediate connection. This is a genuine material gap, not an optional-source denial count and not a completed naming-scope hold.",
+      "region": "Ontario, Canada; Upper Kesagami and Kesagami Lake corridor, lower Kesagami and the receiving southern James Bay estuary.",
+      "candidate_name_role": "Strong bounded river-system candidate supported on the lakeward and lower river corridor; not promoted to a completed whole-selected-route representative identity while actual upper connector reading remains incomplete. The shared lower receiver is separately identified in primary prose as Haarricanaw River.",
+      "source_keys": [
+        "r129-ontario-kesagami-statement-1998",
+        "r129-ogs-p3757-2011",
+        "r117-ogs-p3599-revised-2009"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The retained selection is oriented to the Upper Kesagami–Kesagami Lake–lower Kesagami corridor and then the lower Haarricanaw receiving estuary at southern James Bay, rather than the Abitibi River. Independent original maps support the lakeward channel, Newnham Bay, main Kesagami Lake passage, northeastern outlet, lower river, junction and terminal setting. The selected southern upper lake/channel connectors remain materially unread in dense geological overprinting; candidate Kesagami River is therefore held as a partial candidate only.",
+      "completion_scope": "Material pending after bounded original-map research and source-specific acquisition stops; no completed representative identity or completed scope hold is claimed.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "Kesagami River is directly mapped on the southern lakeward approach and long lower corridor. Upper Kesagami Lake, Newnham Bay, Kesagami Lake and separately mapped adjacent waterbodies retain their own identities. The terminal continuation is in the receiving Haarricanaw estuarine waterway. No uniform scalar name or registry status is inferred."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:70110341",
+      "hydro-system:80067260",
+      "hydro-system:70214162"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 1,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 0,
+    "access_pending": 0,
+    "material_pending": 3
+  },
+  "totals_after": {
+    "recorded_targets": 459,
+    "non_pending_records": 401,
+    "source_access_pending": 3,
+    "source_material_pending": 55,
+    "source_any_pending": 58,
+    "scope_holds": 134,
+    "river_groups": 361,
+    "lakes": 98,
+    "unrecorded": 3606,
+    "unrecorded_river_groups": 3094,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r129-ogs-bedrock-index-northern-2021",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf"
+    },
+    {
+      "source_key": "r129-spri-tri-province-expedition",
+      "official_url": "https://www.spri.cam.ac.uk/about/funding/ginowatkins/grants/2013/triprovince.pdf"
+    },
+    {
+      "source_key": "r129-nluis-index-retained",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "source_key": "r129-cgm274-unavailable",
+      "official_url": "https://publications.gc.ca/site/eng/9.810711/publication.html"
+    },
+    {
+      "source_key": "r129-canmatrix066-directory-unavailable",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/066/"
+    },
+    {
+      "source_key": "r129-gsc7272-unconfirmed",
+      "official_url": "https://publications.gc.ca/collections/collection_2025/rncan-nrcan/m183-2/M183-2-7272.pdf"
+    },
+    {
+      "source_key": "r129-ryder1965-unconfirmed",
+      "official_url": "https://publications.gc.ca/collections/collection_2024/eccc/cw66/CW66-1128-1965-eng.pdf"
+    },
+    {
+      "source_key": "r129-nwt-muskox-1982-unavailable",
+      "official_url": "https://www.gov.nt.ca/ecc/fr/content/numbers-and-distribution-muskoxen-queen-maud-gulf-july-1982"
+    },
+    {
+      "source_key": "r129-flint2010-attachment-excluded",
+      "official_url": "https://www.myccr.com/phpbbforum/viewtopic.php?f=126&t=36568"
+    },
+    {
+      "source_key": "hudon2015-2016",
+      "official_url": "https://assets.cartespleinair.org/maps/riviere-saint-augustin-pakuashipi-christian-hudon-2015-1c415a6b17c0.pdf"
+    },
+    {
+      "source_key": "ctq55693",
+      "official_url": "https://toponymie.gouv.qc.ca/ct/ToposWeb/fiche.aspx?no_seq=55693"
+    },
+    {
+      "source_key": "r129-ontario-kesagami-statement-1998",
+      "official_url": "https://files.ontario.ca/environment-and-energy/parks-and-protected-areas/mnr_bpp0221.pdf"
+    },
+    {
+      "source_key": "r129-ogs-p3757-2011",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3757/P3757.pdf"
+    },
+    {
+      "source_key": "r117-ogs-p3599-revised-2009",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3599-REV/P3599-REV.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "a6aa69607b89afa880931a849d092e5159635416",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      316,
+      317,
+      318,
+      319
+    ],
+    "next_unrecorded_id": "hydro-system:70895412",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

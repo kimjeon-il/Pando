@@ -1,0 +1,804 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r129",
+  "sources": [
+    {
+      "bibliography": "Ontario Geological Survey. 2021. Index to maps, bedrock geology 1991–2020, northern sheet. Ontario Geological Survey, Index Maps, scale 1:1,000,000.",
+      "title": "Index to Maps, Bedrock Geology, 1991–2020, Northern Sheet",
+      "publisher": "Ontario Geological Survey",
+      "year": 2021,
+      "scale": "1:1,000,000",
+      "source_type": "Primary original provincial geological-index cartography with a labelled hydrographic base",
+      "original_map_pixels_inspected": true,
+      "source_key": "r129-ogs-bedrock-index-northern-2021",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf",
+      "supports": "Partial headward context; Opinnagau Lake and eastern lake connection; mapped river and side-tributary arrangement; downstream Opinnagau River and James Bay terminal.",
+      "limits": "Nominal geographic coverage of all selected extent does not resolve the two actual selected connections. No inference that an absent line proves the physical connection absent. No current registry status, modern flow or exact shores established.",
+      "use_notice": "Queen’s Printer for Ontario copyright2021. Published with permission of the Director of the Ontario Geological Survey. Map notes allow parts to be quoted with credit; limited editorial review and positional discrepancies are disclosed. Index compilation/editing by OGS Publication Services Unit, map outlines and cartographic production by J. Rose. No source map, crop, overlay or derivative is offered for republication."
+    },
+    {
+      "title": "The Tri-Province Arctic Canoe Expedition",
+      "publisher": "Expedition team; report hosted by Scott Polar Research Institute, University of Cambridge, Gino Watkins Memorial Fund",
+      "authors": [
+        "Henry Cordeal",
+        "Jess Hernandez",
+        "Andrew Hubb",
+        "Chris Martella",
+        "Kyle Terry",
+        "Ben Woods"
+      ],
+      "official_url": "https://www.spri.cam.ac.uk/about/funding/ginowatkins/grants/2013/triprovince.pdf",
+      "year": null,
+      "edition": "Report heading states expedition dates 10 June–6 August 2012; host path is grants/2013; exact publication year not established.",
+      "pages": "PDF pages1–3, especially2–3",
+      "acquired_scope": "Original four-page PDF prose opened normally in the web reader. No figure or map is claimed to have been observed.",
+      "supports": "The first-person account distinguishes Armark Lake from the subsequent Armark River, describes a sequence of long flatwater reaches and rocky rapids, and places the expedition’s river terminus at Queen Maud Gulf/Arctic Ocean.",
+      "limits": "Prose-only candidate lead. It does not map the selected southwest initial feeder, particular through-lakes, intervening connectors, northward route bends, or the selected coastal outlet branch. Report distances are not used as official river lengths. Its inconsistent heading/end dates are left unresolved because they do not affect the bounded geographic lead.",
+      "source_key": "r129-spri-tri-province-expedition"
+    },
+    {
+      "title": "Northern Land Use Information Series: Northern Land Use map index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html",
+      "acquired_scope": "Previously successful retained index HTML was read locally; no repeat index request.",
+      "supports": "Catalogue identification of distinct sheets66K Armark Lake and66N Ogden Bay, and their exact original JPG URLs.",
+      "limits": "Catalogue metadata is not original map observation. Both relevant sheet originals remain under inherited availability stops.",
+      "source_key": "r129-nluis-index-retained",
+      "evidence_role": "bibliographic or access-state context only; no selected-route geographic evidence"
+    },
+    {
+      "title": "Reconnaissance surficial geology, Armark Lake, Nunavut, NTS 66-K south; Canadian Geoscience Map 274, preliminary version, 2016; catalogue 9.810711",
+      "publisher": "Natural Resources Canada, Geological Survey of Canada",
+      "official_url": "https://publications.gc.ca/site/eng/9.810711/publication.html",
+      "acquired_scope": "Failed catalogue request only; indexed bibliography is discovery metadata, not evidence.",
+      "supports": null,
+      "limits": "Missing catalogue/publication map content and equivalent copies, formats, figures, readers, mirrors and acquisition routes paused for availability; no retry or alternate recovery.",
+      "source_key": "r129-cgm274-unavailable",
+      "evidence_role": "bibliographic or access-state context only; no selected-route geographic evidence"
+    },
+    {
+      "title": "CanMatrix 1:250,000 raster archive, NTS066 regional directory",
+      "publisher": "Natural Resources Canada",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/066/",
+      "acquired_scope": "No directory body or original sheet acquired.",
+      "supports": null,
+      "limits": "Exact failed directory route not repeated. No separate technical-only fallback condition was established, so no map archive or alternative directory route was acquired through it. No Canada-wide service denial or individual-sheet HTTP denial is inferred.",
+      "source_key": "r129-canmatrix066-directory-unavailable",
+      "evidence_role": "bibliographic or access-state context only; no selected-route geographic evidence"
+    },
+    {
+      "title": "Geological Survey of Canada Open File7272, residual total magnetic field map,2013; catalogue M183-2/7272; printed map title/edition not inspected",
+      "publisher": "Natural Resources Canada, Geological Survey of Canada",
+      "official_url": "https://publications.gc.ca/collections/collection_2025/rncan-nrcan/m183-2/M183-2-7272.pdf",
+      "acquired_scope": "Sole original acquisition not terminally confirmed; local original content not inspected.",
+      "supports": null,
+      "limits": "Further acquisition of this original publication and equivalent map copies, formats, figures, readers, mirrors and acquisition routes stopped. An unconfirmed acquisition is not evidence.",
+      "source_key": "r129-gsc7272-unconfirmed",
+      "evidence_role": "bibliographic or access-state context only; no selected-route geographic evidence"
+    },
+    {
+      "title": "Ryder, The breeding biology of Ross’s goose in the Perry River region of the Northwest Territories,1965; CW66-1128-1965-eng.pdf; printed front matter not inspected",
+      "publisher": "Canadian Wildlife Service; Government of Canada Publications host",
+      "official_url": "https://publications.gc.ca/collections/collection_2024/eccc/cw66/CW66-1128-1965-eng.pdf",
+      "acquired_scope": "Sole original acquisition not terminally confirmed; local report content not inspected.",
+      "supports": null,
+      "limits": "Further acquisition of this original publication and equivalent copies, formats, figures, readers, mirrors and acquisition routes stopped. No report prose or maps are used.",
+      "source_key": "r129-ryder1965-unconfirmed",
+      "evidence_role": "bibliographic or access-state context only; no selected-route geographic evidence"
+    },
+    {
+      "title": "Numbers and distribution of muskoxen in Queen Maud Gulf, July1982; Northwest Territories regional report; printed author/edition not inspected",
+      "publisher": "Government of the Northwest Territories",
+      "official_url": "https://www.gov.nt.ca/ecc/fr/content/numbers-and-distribution-muskoxen-queen-maud-gulf-july-1982",
+      "acquired_scope": "PDF reader page count only, followed by failed first screenshot. No substantive body evidence.",
+      "supports": null,
+      "limits": "Missing original visual/publication content and equivalent copies, formats, figures, reader/original/mirror acquisition routes paused. No retry or alternative retrieval.",
+      "source_key": "r129-nwt-muskox-1982-unavailable",
+      "evidence_role": "bibliographic or access-state context only; no selected-route geographic evidence"
+    },
+    {
+      "title": "Doug Flint, Morse & Armark rivers2010 Trip Report; attachment2010 morse & Armark.pdf,7September2010",
+      "publisher": "Doug Flint, Canadian Canoe Routes",
+      "official_url": "https://www.myccr.com/phpbbforum/viewtopic.php?f=126&t=36568",
+      "acquired_scope": "Discovery access notice only; no page or attachment acquisition.",
+      "supports": null,
+      "limits": "The identified permission-restricted attachment and equivalent map content are excluded from acquisition and substantive correspondence. The public forum prose was not acquired and its snippets were not used as evidence.",
+      "source_key": "r129-flint2010-attachment-excluded",
+      "evidence_role": "bibliographic or access-state context only; no selected-route geographic evidence"
+    },
+    {
+      "title": "Rivière Saint-Augustin (Pakuashipi), édition2015",
+      "authors": "Christian Hudon (cartography and layout,2016); field river/portage survey by Christian Hudon, Guy Garand and André Béland, July2015; canyon survey by Vincent Seguin, August2015",
+      "publisher_or_host": "Cartes Plein Air, author-produced expedition cartography",
+      "edition": "2015 edition; cartography/layout credited2016",
+      "extent": "20PDFpages including17 numbered corridor maps",
+      "source_type": "Original primary expedition cartography with first-hand field annotations and bounded field prose; underlying federal topographic base reproduced with attribution.",
+      "map_basis": "Source bibliography lists13B/11 Newfoundland,13B/06 Newfoundland,13B/03 Halfway Pond,12O/14 Lac Aticonipi,12O/15 Lac Méry,12O/10 Lac de l’Île au Castor,12O/07 Lac Noyrot and12O/02 Saint-Augustin-Saguenay. The expedition maps are distinct authored survey material, not a claimed new acquisition of any underlying sheet.",
+      "use_notice": "Topographic-base copyright to the Crown/Ministère des Ressources Naturelles is printed; distribution notice permits unchanged free distribution of the expedition map. It includes a volunteer-map accuracy and liability warning. Originals, crops and orientation material are not being redistributed.",
+      "evidence_scope": "Maps1–17 supply connected route, small-lake setting, material junctions and downstream estuary context. Prose supports the main-canyon versus Michaels-tributary distinction.",
+      "source_key": "hudon2015-2016",
+      "official_url": "https://assets.cartespleinair.org/maps/riviere-saint-augustin-pakuashipi-christian-hudon-2015-1c415a6b17c0.pdf"
+    },
+    {
+      "title": "Rivière Saint-Augustin — Saint-Augustin (Municipalité), record55693",
+      "publisher_or_host": "Commission de toponymie du Québec",
+      "source_type": "Original primary descriptive naming account, used as bounded supporting prose, not as cartographic correspondence.",
+      "evidence_scope": "Labrador headwater setting, southern course into the same-named bay by Pakuashipi, lower Saint-Augustin Nord-Ouest tributary and explicitly differentiated Indigenous name scopes.",
+      "limits": "The record names the river and reports its officialization; it does not register this modeled composite group, establish every component name or replace map correspondence. Its published river length is not adopted as model length.",
+      "source_key": "ctq55693",
+      "official_url": "https://toponymie.gouv.qc.ca/ct/ToposWeb/fiche.aspx?no_seq=55693"
+    },
+    {
+      "title": "Kesagami Provincial Park Interim Management Statement",
+      "publisher": "Ontario Ministry of Natural Resources, Ontario Parks",
+      "year": 1998,
+      "date": "1998-04-15",
+      "official_url": "https://files.ontario.ca/environment-and-energy/parks-and-protected-areas/mnr_bpp0221.pdf",
+      "map_scope": "Figure1 Regional Setting, printed p7; Figure2 Park Area, printed p8, nominal scale1:250,000. Prose printed pp5–6 and9.",
+      "acquired_scope": "Complete original PDF acquired with HTTP200; original map pages7–8 rendered and visually inspected locally. Original prose was read locally.",
+      "supports": "Kesagami Lake and its southern river entrance, lake outlet and lower Kesagami corridor; receiver junction and southern James Bay/Hannah Bay setting; peat-bog, muskeg and fen-meadow landscape; separate Newnham Bay connection.",
+      "limits": "Figure1 is a schematic regional overview and Figure2 breaks/repositions the long lower river. Neither alone resolves the entire selected upper course south of the park. The published112-km figure is bounded park/canoe-route context.",
+      "source_key": "r129-ontario-kesagami-statement-1998",
+      "use_notice": "Original government map/PDF retained privately; no unrestricted redistribution permission inferred from hosting. Only factual observations and bibliography are publishable in this result."
+    },
+    {
+      "title": "Surficial geology of the Moose River area southeast, northern Ontario; Ontario Geological Survey, Preliminary Map P.3757",
+      "authors": [
+        "P.J. Barnett",
+        "K.H. Yeung",
+        "J.D. McCallum"
+      ],
+      "publisher": "Ontario Geological Survey",
+      "year": 2011,
+      "scale": "1:100,000",
+      "nts_references": [
+        "42I/1",
+        "42I/8"
+      ],
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3757/P3757.pdf",
+      "acquired_scope": "Complete2-page original PDF acquired HTTP200; map, legend, bibliography and credits visually inspected.",
+      "supports": "South-to-north Newnham Bay/Kesagami Lake passage, surrounding wetlands, separate Patawagamau Lake, northeastern outlet and southern mapped approach.",
+      "limits": "The map does not extend south of50°N and therefore cannot resolve the selected starting lake and entire upper connector chain. Thematic boundaries are geological units, not river-name boundaries.",
+      "cartographic_attribution": "Geology by Barnett, Yeung and McCallum,2009; GIS by Yeung and McCallum; cartography by R.Corcoran. Digital base credited to Ontario Land Information Warehouse/Land Information Ontario, Ministry of Natural Resources,1:50,000, current January2011, modified by the map-producing ministry. This independently issued2011 geological publication is distinct from the stopped contemporary LIO Topographic/Vector Topographic Data Cache service.",
+      "source_key": "r129-ogs-p3757-2011",
+      "use_notice": "© Queen’s Printer for Ontario,2011. Opening/viewing notice and copyright/use conditions are printed on page1; noncommercial unsubstantial excerpts with attribution allowed, substantial/map or commercial/value-added reproduction requires permission. Source originals and all private views remain unredistributed."
+    },
+    {
+      "title": "Precambrian geology of the Hudson Bay and James Bay lowlands region interpreted from aeromagnetic data—south sheet; Ontario Geological Survey, Preliminary Map P.3599–Revised",
+      "authors": [
+        "G.M. Stott"
+      ],
+      "publisher": "Ontario Geological Survey",
+      "year": 2009,
+      "scale": "1:500,000",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3599-REV/P3599-REV.pdf",
+      "acquired_scope": "Previously lawfully acquired complete original reused locally, without another network acquisition. Eastern head/lake/lower-river and coastal portions plus source/use notices visually inspected in this batch.",
+      "supports": "Upper Kesagami Lake headward setting, regional upper river corridor, Kesagami Lake and lower Kesagami route, receiving-river/coastal estuarine setting.",
+      "limits": "Dense geology and geophysical overprinting leaves the exact sequence of upper waterbody outlets/connectors south of the P.3757 map frame insufficiently readable. Adjacent labels cannot fill this gap.",
+      "cartographic_attribution": "Digital base credited to Ontario Land Information Warehouse/Land Information Ontario1:20,000 and modified1:50,000 NTS maps; base map and digital cartography by S.Josey. Independently compiled2009 geological publication, not the stopped CanMatrix042H scan or current LIO service.",
+      "source_key": "r117-ogs-p3599-revised-2009",
+      "use_notice": "Crown copyright and first-page electronic-product use terms. Noncommercial unsubstantial excerpts with attribution permitted; substantial reproductions including maps/figures and commercial/value-added uses require written permission. Only own factual observations and bibliography leave private working material."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70110341",
+      "source_keys": [
+        "r129-ogs-bedrock-index-northern-2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9168
+          ],
+          "component_scope": "Initial northern small lake and proposed southwest connector",
+          "finding": "The source depicts a small lake in the selected headward setting and a channel leaving its eastern side. A separate north-trending creek tip occurs to the southwest. The selected route crosses the intervening area toward that creek, but this connecting reach is not drawn. The map does not establish the selected lake-to-creek connection or its flow direction.",
+          "sources": [
+            "r129-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "material_connection_unresolved",
+          "mapped_component_name": null,
+          "name_scope": "Headward component; unresolved connector"
+        },
+        {
+          "fragments": [
+            9168
+          ],
+          "component_scope": "North-side creek entering Opinnagau Lake",
+          "finding": "Below the unresolved headward interval, a mapped creek trends generally south and southwest into the northwestern Opinnagau Lake setting. A neighbouring western feeder is separately drawn. Neither is labelled Opinnagau River.",
+          "sources": [
+            "r129-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "bounded_component_supported_below_head_gap",
+          "mapped_component_name": null,
+          "name_scope": "Unnamed feeder"
+        },
+        {
+          "fragments": [
+            9168
+          ],
+          "component_scope": "Opinnagau Lake and eastern connected lake sections",
+          "finding": "The source labels the broad western lake Opinnagau Lake and shows its eastern narrowing, connected elongated eastern water sections and outlet into the east-going river corridor. This corresponds to the selected long eastward lake passage at ordinary component scale. Exact through-lake centreline placement and separate names for the eastern water sections are not established.",
+          "sources": [
+            "r129-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "bounded_lake_and_outlet_supported",
+          "mapped_component_name": "Opinnagau Lake",
+          "name_scope": "Intervening named lake component"
+        },
+        {
+          "fragments": [
+            9168
+          ],
+          "component_scope": "Upper Opinnagau River and central southward detour",
+          "finding": "The named river runs east and northeast from the lake. At a central junction the original map shows the western river reach and a southern tributary joining it. The selected model makes a pronounced southward detour between these mapped branches, but the western connection of that detour is absent from the generalized map. The visible northern/western route is not treated as proof of the different selected connector.",
+          "sources": [
+            "r129-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "river_candidate_supported_connector_material_pending",
+          "mapped_component_name": "Opinnagau River",
+          "name_scope": "Named river corridor with unresolved selected detour",
+          "southern_tributary_name": null
+        },
+        {
+          "fragments": [
+            9168
+          ],
+          "component_scope": "Downstream Opinnagau River corridor",
+          "finding": "East of the central junction, the source shows the long northeast-then-east river corridor corresponding to the selected lower route. Several separate side tributaries join it, and nearby coastal streams are drawn separately. The source label Opinnagau and its River continuation apply to this downstream corridor.",
+          "sources": [
+            "r129-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "bounded_downstream_component_supported",
+          "mapped_component_name": "Opinnagau River",
+          "name_scope": "Supported downstream river candidate"
+        },
+        {
+          "fragments": [
+            9168
+          ],
+          "component_scope": "James Bay terminal",
+          "finding": "The mapped Opinnagau River reaches the western James Bay coast. The terminal is geographically distinct from the neighbouring Patchepawapoka River and Nowashe Creek outlets farther south. Exact shoreline vertex and individual tidal channels are not assigned.",
+          "sources": [
+            "r129-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "bounded_terminal_supported",
+          "mapped_component_name": "James Bay",
+          "name_scope": "Receiving sea setting"
+        },
+        {
+          "fragments": [
+            9168
+          ],
+          "component_scope": "Wetland and minor pool detail",
+          "finding": "The geological-index hydrographic base is too generalized to characterize every intervening wetland, small pool or headwater surface connection. No continuous wetland connector is inferred from regional lowland location alone.",
+          "sources": [
+            "r129-ogs-bedrock-index-northern-2021"
+          ],
+          "correspondence": "insufficient_detail_for_material_head_connection",
+          "mapped_component_name": null,
+          "name_scope": "Unresolved local surface-water setting"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80067260",
+      "source_keys": [
+        "r129-spri-tri-province-expedition"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2516
+          ],
+          "component_scope": "Initial southwest feeder and eastward return",
+          "finding": "The selected model starts in a southwest interior feeder, turns north, then east and southeast before joining the more northerly corridor. No original cartography establishes its stream/lake identity or connection into Armark Lake.",
+          "sources": [],
+          "correspondence": "Material original-map coverage gap; model orientation is not source correspondence.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2516
+          ],
+          "component_scope": "Southern lake/stream transition and possible Armark Lake passage",
+          "finding": "The selected model then runs north through the southern lake-rich corridor. First-person prose confirms an Armark Lake to Armark River relationship in the region, but no acquired original map establishes which selected internal passages are within that lake, its selected inlet, or its outlet.",
+          "sources": [
+            "r129-spri-tri-province-expedition"
+          ],
+          "correspondence": "Material original-map coverage gap; model orientation is not source correspondence.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2516
+          ],
+          "component_scope": "Upper northward reach and broad westward bend",
+          "finding": "The selected corridor advances north and northeast, then turns west before resuming northwest/north. The intervening waterbodies, stream connections and tributary junctions are unread in original cartography.",
+          "sources": [],
+          "correspondence": "Material original-map coverage gap; model orientation is not source correspondence.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2516
+          ],
+          "component_scope": "Middle northward and northeastward river corridor",
+          "finding": "The model continues north, then northeast, through several bends before returning northwest. No original map identifies the material connectors, major tributary junctions or bounded river-name placement.",
+          "sources": [],
+          "correspondence": "Material original-map coverage gap; model orientation is not source correspondence.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2516
+          ],
+          "component_scope": "Lower corridor and northeast coastal approach",
+          "finding": "The model follows the lower north/northwest corridor and then a northeastward approach near the coast. Prose about descending Armark River does not establish correspondence of these particular bends or branch selection.",
+          "sources": [
+            "r129-spri-tri-province-expedition"
+          ],
+          "correspondence": "Material original-map coverage gap; model orientation is not source correspondence.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            2516
+          ],
+          "component_scope": "Actual selected coastal terminal",
+          "finding": "The selected model ends on the coastal plain north of its northeast approach. The expedition report reaches Queen Maud Gulf, but the exact selected outlet setting and its relationship to any western river mouth or distributary were not established by original cartography. A nearby river-name location is not treated as proof.",
+          "sources": [
+            "r129-spri-tri-province-expedition"
+          ],
+          "correspondence": "Material original-map coverage gap; model orientation is not source correspondence.",
+          "mapped_component_name": null,
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70208286",
+      "source_keys": [
+        "hudon2015-2016",
+        "ctq55693"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9281
+          ],
+          "component_scope": "Selected mainstem FID 9281",
+          "finding": "Full ordinary corridor from the northwestern small-lake feeder setting to the southeastward mainstem fragment break, read in Hudon maps1–11 and their overlaps.",
+          "sources": [
+            "hudon2015-2016"
+          ],
+          "correspondence": "Full ordinary corridor from the northwestern small-lake feeder setting to the southeastward mainstem fragment break, read in Hudon maps1–11 and their overlaps.",
+          "mapped_component_name": null,
+          "subcomponents": [
+            {
+              "part": "Northwestern feeder and initial lake connectors",
+              "supported_name": null,
+              "observations": [
+                "Map1 shows small headwater lakes linked by a narrow channel in the Route510 setting, followed by a longer lake and an eastward river corridor. The branch draining a larger lake north of the road is distinguished from the selected west-to-east route.",
+                "The selected headward course corresponds at generalized corridor scale to the northwestern feeder setting, the chain of small lake/channel transitions, the eastward bend, and then the southward elbow. The lakes are not given separate readable hydronyms; their names remain null."
+              ],
+              "source_keys": [
+                "hudon2015-2016"
+              ],
+              "map_locator": "Map1 of17, PDFpage20"
+            },
+            {
+              "part": "Upper south-running river",
+              "supported_name": "Rivière Saint-Augustin",
+              "observations": [
+                "Maps1–4 follow the same trunk through the eastward elbow into a long south-running valley, with short rapids, island splits and tributary entrances. Repeated Saint-Augustin labels occur on this connected corridor.",
+                "Side rivers and off-channel lakes remain separate, including tributaries entering the meandering reach and the larger west-side drainage toward the canyon. No disconnection or large selected reservoir passage is shown."
+              ],
+              "source_keys": [
+                "hudon2015-2016"
+              ],
+              "map_locator": "Maps1–4, PDFpages20–17"
+            },
+            {
+              "part": "Canyon and Michaels River junction",
+              "supported_name": "Rivière Saint-Augustin",
+              "observations": [
+                "Map5 shows the main river turning through a steep canyon and receiving Michaels River from the western side at its lower end. Maps6–7 provide overlapping first-hand canyon annotations, while map8 carries the joined main river onward.",
+                "The field account distinguishes the main canyon from the portage to, and separate descent along, Michaels River. The selected mainstem follows the canyon and downstream joined trunk, rather than treating the portage as a water connector or renaming Michaels River."
+              ],
+              "source_keys": [
+                "hudon2015-2016"
+              ],
+              "map_locator": "Maps5–8, PDFpages16–13; supporting prose PDFpage2"
+            },
+            {
+              "part": "Long southeastern valley and fragment transition",
+              "supported_name": "Rivière Saint-Augustin",
+              "observations": [
+                "Maps8–11 show the lower-canyon river widening, bending and then following the long southeastward valley with bars, islands and rapids. Map10 marks a distinct tributary Rivière Aux Saumons entering the main valley.",
+                "The selected route continues on Saint-Augustin through these tributary junctions and into the mapped bend system leading to the FID9282 continuation; the inventory fragment division is not a hydronym boundary."
+              ],
+              "source_keys": [
+                "hudon2015-2016"
+              ],
+              "map_locator": "Maps8–11, PDFpages13–10"
+            }
+          ]
+        },
+        {
+          "fragments": [
+            9282
+          ],
+          "component_scope": "Selected mainstem FID 9282",
+          "finding": "Full ordinary corridor from the inherited fragment break, through the southeast and south lower valley, to the selected rendered endpoint, read in maps11–17.",
+          "sources": [
+            "hudon2015-2016",
+            "ctq55693"
+          ],
+          "correspondence": "Full ordinary corridor from the inherited fragment break, through the southeast and south lower valley, to the selected rendered endpoint, read in maps11–17.",
+          "mapped_component_name": "Rivière Saint-Augustin",
+          "subcomponents": [
+            {
+              "part": "Southeastern bend and Rivière à la Mouche junction",
+              "supported_name": "Rivière Saint-Augustin",
+              "observations": [
+                "Maps11–12 show the main river changing from its long southeastward valley into the local eastward bend and south-running lower corridor. Islanded and rapid-bearing sections remain on the same mapped river.",
+                "Map13 explicitly shows Rivière à la Mouche joining Saint-Augustin as a distinct tributary. The selected line stays on the main river below that confluence."
+              ],
+              "source_keys": [
+                "hudon2015-2016"
+              ],
+              "map_locator": "Maps11–13, PDFpages10–8"
+            },
+            {
+              "part": "Lower river with bends and bars",
+              "supported_name": "Rivière Saint-Augustin",
+              "observations": [
+                "Maps14–16 continue the trunk through the lower rapids, broad meander bends and then the wide sandy/barred south-flowing valley. Side lakes and short tributaries are mapped outside the main corridor.",
+                "The map depicts a wide lower river, not a chain of named lake interiors or a reservoir. The selected generalized line corresponds to this continuous main-valley setting."
+              ],
+              "source_keys": [
+                "hudon2015-2016"
+              ],
+              "map_locator": "Maps14–16, PDFpages7–5"
+            },
+            {
+              "part": "Actual selected endpoint and downstream receiving setting",
+              "supported_name": "Rivière Saint-Augustin",
+              "observations": [
+                "Map17 and its printed grid place the selected rendered endpoint in the lower Saint-Augustin channel near the approach to the large western-branch junction, north of the Pakuashipi–Saint-Augustin settlement reach. The source-endpoint and rendered-endpoint metadata are distinct; neither is adopted as an exact open-sea mouth.",
+                "The same map continues downstream past the settlements through bars and islands into Baie de Saint-Augustin. Commission record55693 independently identifies Saint-Augustin Nord-Ouest as a lower tributary and places the named river outlet in the bay.",
+                "This downstream source context identifies the receiving system without extending the selected geometry into the bay or assuming uniform names for the bay and its channels."
+              ],
+              "source_keys": [
+                "hudon2015-2016",
+                "ctq55693"
+              ],
+              "map_locator": "Map17, PDFpage4; CTQ Origine et signification"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70214162",
+      "source_keys": [
+        "r129-ontario-kesagami-statement-1998",
+        "r129-ogs-p3757-2011",
+        "r117-ogs-p3599-revised-2009"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9301
+          ],
+          "component_scope": "Selected southern start in the Upper Kesagami Lake setting",
+          "finding": "The retained P.3599-Revised original depicts and labels Upper Kesagami Lake in the selected southern headward setting. This is the beginning of the retained selection, not a claim to have identified the ultimate source of the named river. Several nearby small waterbodies, including separately labelled Little Kesagami Lake, are present.",
+          "sources": [
+            "r117-ogs-p3599-revised-2009"
+          ],
+          "correspondence": "Headward setting identified, but the complete exit and subsequent lake/channel chain are not confidently resolved in the overprinted original.",
+          "mapped_component_name": null,
+          "lake_component_name": "Upper Kesagami Lake",
+          "name_observation": "Upper Kesagami Lake is a map label for the headward waterbody. It does not label the subsequent entire channel. Little Kesagami Lake is kept as an adjacent/contextual label; traversal by the selection is not established.",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9301
+          ],
+          "component_scope": "Northwest-bending upper corridor and intermediate waterbody connectors south of the P.3757 map frame",
+          "finding": "The selected route bends northwest from the Upper Kesagami setting, then turns north/northeast toward the lakeward corridor. P.3599-Revised shows hydrographic linework, small lakes and the Cooks Pond and Lower Severn Lake labels in this regional corridor. Dense geological and geophysical overprinting prevents an adequately confident read of every selected lake entry, outlet and intermediate connection. The labels alone are not substituted for tracing those connections.",
+          "sources": [
+            "r117-ogs-p3599-revised-2009"
+          ],
+          "correspondence": "Material source-reading gap remains in the upper connector chain. This is not merely a naming-scope hold or an exact-bank/vertex discrepancy.",
+          "mapped_component_name": null,
+          "lake_component_name": null,
+          "name_observation": "The selected channel and intermediate lake names remain null. Cooks Pond, Lower Severn Lake and Little Kesagami Lake are not assigned as a confirmed traversed sequence.",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9301
+          ],
+          "component_scope": "Southern lakeward channel and Newnham Bay",
+          "finding": "The P.3757 original covers the southern approach from its southern frame, showing the northward channel through a low-relief wetland landscape into the southern elongated Newnham Bay waterbody. The 1998 park map separately labels the incoming southern river Kesagami River. The inlet, elongated bay and northward water connection into the larger lake are visible at ordinary corridor scale.",
+          "sources": [
+            "r129-ontario-kesagami-statement-1998",
+            "r129-ogs-p3757-2011"
+          ],
+          "correspondence": "Supported within the inspected P.3757 coverage; does not backfill the unresolved upper chain farther south.",
+          "mapped_component_name": "Kesagami River",
+          "lake_component_name": "Newnham Bay",
+          "name_observation": "Newnham Bay remains a separate named part of the lake passage. The park statement text spells this bay Newham in one passage; the inspected map/P.3757 spelling Newnham is retained.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9301
+          ],
+          "component_scope": "Kesagami Lake passage, eastern basin and northeastern outlet",
+          "finding": "P.3757 and the 1998 park map show the elongated southern Newnham Bay connecting into Kesagami Lake. The selected generalized passage continues on the eastern side of the main lake, east of the Big Island setting, then toward the northeastern bay/outlet and the northbound river. Patawagamau Lake is a separately labelled narrow waterbody farther east in P.3757; its name is not transferred to the selected main-lake passage. The lake has islands, bays and adjacent smaller waterbodies rather than a uniformly named river reach.",
+          "sources": [
+            "r129-ontario-kesagami-statement-1998",
+            "r129-ogs-p3757-2011"
+          ],
+          "correspondence": "Lake inlet, main-lake passage and northeastern river outlet supported at ordinary generalized corridor scale. No precise model-vertex/bank agreement or hydronym polygon boundary is asserted.",
+          "mapped_component_name": null,
+          "lake_component_name": "Kesagami Lake",
+          "name_observation": "Kesagami Lake, Newnham Bay, and the separate adjacent Patawagamau Lake label are distinguished. No reservoir name or dam is established for this passage.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9301
+          ],
+          "component_scope": "Northward and northeastward Kesagami River below the lake",
+          "finding": "The 1998 1:250,000 park-area map and retained P.3599-Revised original show the river leaving the northeastern lake outlet, following the northward corridor, then bending northeast/east toward the receiving-river junction. Tributaries enter from both sides; they are separate features, not a uniform extension of the representative name.",
+          "sources": [
+            "r129-ontario-kesagami-statement-1998",
+            "r117-ogs-p3599-revised-2009"
+          ],
+          "correspondence": "Supported for the mapped lower Kesagami corridor and receiving junction.",
+          "mapped_component_name": "Kesagami River",
+          "lake_component_name": null,
+          "name_observation": "Kesagami River is directly labelled on the original park map and P.3599-Revised. The park statement describes the lake outlet to the Haarricanaw confluence; its published 112-kilometre figure describes that park/canoe-route scope and is not substituted for the inherited 216.850-kilometre model length.",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9301
+          ],
+          "component_scope": "Receiving-river junction and actual southern James Bay estuarine terminal setting",
+          "finding": "The selected route continues beyond the Kesagami receiving junction along the northward shared lower estuarine waterway to the southern James Bay inlet setting. The original 1998 park maps depict the junction and receiving outlet; page6 identifies the receiver as Haarricanaw River and places the confluence just south of Hannah Bay on James Bay. P.3599-Revised shows the broad receiving channel and coastal/inlet setting. The terminal is therefore accounted for as a shared estuarine receiver, not represented as a separately verified Kesagami-only sea mouth.",
+          "sources": [
+            "r129-ontario-kesagami-statement-1998",
+            "r117-ogs-p3599-revised-2009"
+          ],
+          "correspondence": "Supported at broad component/corridor and actual terminal-setting scale; no precise legal mouth point or coastline vertex is claimed.",
+          "mapped_component_name": "Haarricanaw River",
+          "lake_component_name": null,
+          "name_observation": "Haarricanaw River is the literal spelling in the inspected primary prose. The commonly used Harricana form is not relied on here as a newly verified registry name. Hannah Bay and James Bay are the supporting primary-prose terminal setting.",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70110341",
+      "publication": "CanMatrix 1:250,000 topographic sheet NTS043J (Lakitusaki River); edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/043/j/canmatrix_043j_tif.zip",
+      "observed_outcome": "The official directory supplied the exact archive link. The original archive request returned HTTP 403; no archive or map pixels were acquired.",
+      "outcome_layer": "HTTP response of the original archive request",
+      "restriction_scope": "Whole NTS043J CanMatrix publication and equivalent copies, editions offered as the same sheet, formats, viewers, mirrors and all acquisition routes stopped. No retry or alternative acquisition.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no substantive cartographic or hydrographic evidence.",
+      "related_source_urls": [
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/043/j/",
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/043/j/canmatrix_043j_tif.zip"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70110341",
+      "publication": "CanMatrix 1:250,000 topographic sheet NTS043K (Sutton Lake); edition uninspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/043/k/canmatrix_043k_tif.zip",
+      "observed_outcome": "The official directory supplied the exact archive link. The original archive request returned HTTP 403; no archive or map pixels were acquired.",
+      "outcome_layer": "HTTP response of the original archive request",
+      "restriction_scope": "Whole NTS043K CanMatrix publication and equivalent copies, editions offered as the same sheet, formats, viewers, mirrors and all acquisition routes stopped. No retry or alternative acquisition.",
+      "earlier_lawful_prose_exception": "Directory metadata only; no substantive cartographic or hydrographic evidence.",
+      "related_source_urls": [
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/043/k/",
+        "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/043/k/canmatrix_043k_tif.zip"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70110341",
+      "publication": "Polar Bear Provincial Park Management Plan, Government of Ontario",
+      "official_url": "https://www.ontario.ca/page/polar-bear-provincial-park-management-plan",
+      "observed_outcome": "Direct web-reader open reported (403) Forbidden. No page body or original map pixels acquired.",
+      "outcome_layer": "Web-reader HTTP403 report; underlying origin headers were not exposed.",
+      "restriction_scope": "Whole management-plan publication and equivalent copies, figures, formats, catalogues, originals, readers, caches, mirrors and all acquisition routes stopped. No retry.",
+      "earlier_lawful_prose_exception": null,
+      "evidence_exclusion": "Discovery search excerpt is excluded from substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:70110341",
+      "publication": "Ontario Vector Topographic Data Cache / LIO Cartographic LIO_Topographic, Government of Ontario",
+      "official_url": "https://open.canada.ca/data/en/dataset/25123211-880c-4dfb-9ca9-fbfea096afab",
+      "observed_outcome": "The official catalogue returned HTTP 403. An already-started service-metadata request subsequently returned HTTP 200. No map export or original map pixels were acquired, and the post-denial metadata was not used as substantive correspondence evidence.",
+      "outcome_layer": "Catalogue HTTP 403 reported by the web reader; service metadata HTTP 200 reported by its original request.",
+      "restriction_scope": "Whole LIO Topographic / Ontario Vector Topographic Data Cache publication and equivalent copies, formats, tiles, exports, service layers, catalogues, viewers, mirrors and all acquisition routes stopped. Independently issued and already retained historical geological publications remain distinct.",
+      "earlier_lawful_prose_exception": null,
+      "evidence_exclusion": "Discovery text and post-denial metadata are excluded from substantive source correspondence.",
+      "related_source_urls": [
+        "https://open.canada.ca/data/en/dataset/25123211-880c-4dfb-9ca9-fbfea096afab",
+        "https://ws.lioservices.lrc.gov.on.ca/arcgis1/rest/services/LIO_Cartographic/LIO_Topographic/MapServer"
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80067260",
+      "publication": "Reconnaissance surficial geology, Armark Lake, Nunavut, NTS 66-K south; Canadian Geoscience Map 274, preliminary version, 2016; catalogue 9.810711",
+      "official_url": "https://publications.gc.ca/site/eng/9.810711/publication.html",
+      "observed_outcome": "Catalogue open returned (502) Bad Gateway; no catalogue body or map pixels acquired.",
+      "outcome_layer": "Web-reader acquisition, reported HTTP outcome",
+      "restriction_scope": "Missing catalogue/publication map content and equivalent copies, formats, figures, readers, mirrors and acquisition routes paused for availability; no retry or alternate recovery.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:80067260",
+      "publication": "CanMatrix 1:250,000 raster archive, NTS066 regional directory",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/066/",
+      "observed_outcome": "The reader reported that the exact URL is not accessible via this tool. No directory body or map content was acquired; no HTTP status, security reason, cache-miss or timeout explanation was provided.",
+      "outcome_layer": "Web reader; HTTP and reason not exposed",
+      "restriction_scope": "Exact failed directory route not repeated. No separate technical-only fallback condition was established, so no map archive or alternative directory route was acquired through it. No Canada-wide service denial or individual-sheet HTTP denial is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unexplained_reader_unavailability"
+    },
+    {
+      "aw_id": "hydro-system:80067260",
+      "publication": "Geological Survey of Canada Open File7272, residual total magnetic field map,2013; catalogue M183-2/7272; printed map title/edition not inspected",
+      "official_url": "https://publications.gc.ca/collections/collection_2025/rncan-nrcan/m183-2/M183-2-7272.pdf",
+      "observed_outcome": "The final completion response of the sole original acquisition could not be recovered. No original content was inspected or used, and no HTTP outcome is established.",
+      "outcome_layer": "Original acquisition completion/transport response",
+      "restriction_scope": "Further acquisition of this original publication and equivalent map copies, formats, figures, readers, mirrors and acquisition routes stopped. An unconfirmed acquisition is not evidence.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unconfirmed_original_acquisition"
+    },
+    {
+      "aw_id": "hydro-system:80067260",
+      "publication": "Ryder, The breeding biology of Ross’s goose in the Perry River region of the Northwest Territories,1965; CW66-1128-1965-eng.pdf; printed front matter not inspected",
+      "official_url": "https://publications.gc.ca/collections/collection_2024/eccc/cw66/CW66-1128-1965-eng.pdf",
+      "observed_outcome": "The final completion response of the sole original acquisition could not be recovered. No original content was inspected or used, and no HTTP outcome is established.",
+      "outcome_layer": "Original acquisition completion/transport response",
+      "restriction_scope": "Further acquisition of this original publication and equivalent copies, formats, figures, readers, mirrors and acquisition routes stopped. No report prose or maps are used.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "unconfirmed_original_acquisition"
+    },
+    {
+      "aw_id": "hydro-system:80067260",
+      "publication": "Numbers and distribution of muskoxen in Queen Maud Gulf, July1982; Northwest Territories regional report; printed author/edition not inspected",
+      "official_url": "https://www.gov.nt.ca/ecc/fr/content/numbers-and-distribution-muskoxen-queen-maud-gulf-july-1982",
+      "observed_outcome": "The PDF reader opened normally as a66-page PDF but exposed no prose lines. The first screenshot request, page0, returned Cache miss. No map or cover pixels and no HTTP status were returned.",
+      "outcome_layer": "Web screenshot acquisition",
+      "restriction_scope": "Missing original visual/publication content and equivalent copies, formats, figures, reader/original/mirror acquisition routes paused. No retry or alternative retrieval.",
+      "earlier_lawful_prose_exception": "Reader identified the PDF and page count only; no substantive prose was exposed.",
+      "limitation_kind": "visual_availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:80067260",
+      "publication": "Doug Flint, Morse & Armark rivers2010 Trip Report; attachment2010 morse & Armark.pdf,7September2010",
+      "official_url": "https://www.myccr.com/phpbbforum/viewtopic.php?f=126&t=36568",
+      "observed_outcome": "Discovery text explicitly stated that the attached file requires permissions. The attachment and forum page were not opened, and no equivalent attachment was sought.",
+      "outcome_layer": "Search-discovery access notice; no original request",
+      "restriction_scope": "The identified permission-restricted attachment and equivalent map content are excluded from acquisition and substantive correspondence. The public forum prose was not acquired and its snippets were not used as evidence.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "explicit_attachment_permission_requirement"
+    },
+    {
+      "aw_id": "hydro-system:70208286",
+      "publication": "St. Augustin River, NTS 013B, CanMatrix 1:250,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/013/b/canmatrix_013b_tif.zip",
+      "observed_outcome": "The official sheet directory completed HTTP200 and supplied the exact archive link. The sole original archive acquisition completed with HTTPError403 Forbidden. No archive or map body acquired.",
+      "outcome_layer": "HTTP-client response; no separate transport/tunnel failure reported.",
+      "restriction_scope": "Whole NTS013B 1:250,000 publication and equivalent copies, formats, editions offered as that same source, viewers, mirrors, reader/cache and all acquisition routes stopped. No retry or equivalent retrieval. The independently issued 1:50,000 sub-sheet is distinguished by its separate directory, sheet number and scale.",
+      "earlier_lawful_prose_exception": "Directory metadata only. The independent Hudon expedition-map original had already completed HTTP200 and had been visually read before this denial; its retained observations remain usable. No previously read prose from this denied sheet.",
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70208286",
+      "publication": "Hydrology of the Transboundary Rivers of Southern Labrador, Government of Newfoundland & Labrador, Department of Environment and Conservation, Water Resources Management Division, April2013",
+      "official_url": "https://www.gov.nl.ca/ecc/files/waterres-reports-hydrology-transboundary-rivers-southern-labrador.pdf",
+      "observed_outcome": "The sole original PDF acquisition completed with HTTPError500 Internal Server Error. No PDF or report body acquired.",
+      "outcome_layer": "HTTP-client response; no separate transport/tunnel failure reported.",
+      "restriction_scope": "Missing report, maps and all equivalent copies, formats, figures, other department paths, mirrors, reader/cache and acquisition routes paused for availability. No retry or alternate mca/eccc path used.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70208286",
+      "publication": "Newfoundland, NTS013B/11, CanMatrix 1:50,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/50k_300dpi/013/b/canmatrix_013b11_tif.zip",
+      "observed_outcome": "The official 1:50,000 sheet directory completed HTTP200 and supplied the exact archive link. The sole original archive acquisition completed with HTTPError403 Forbidden. No archive or map body acquired.",
+      "outcome_layer": "HTTP-client response; no separate transport/tunnel failure reported.",
+      "restriction_scope": "Whole NTS013B/11 1:50,000 publication and equivalent copies, formats, editions offered as that same source, viewers, mirrors, reader/cache and all acquisition routes stopped. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": "Directory metadata only. Before this denial, the complete independently authored Hudon expedition-map PDF had already been lawfully acquired and read; its map1 identifies 13B/11 as a base source. Those retained earlier map observations remain usable, with no reacquisition of base-map content.",
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70214162",
+      "publication": "Kesagami River Outwash Plain Conservation Reserve Management Statement; Statement of Conservation Interest, January2004",
+      "official_url": "https://www.ontario.ca/page/kesagami-river-outwash-plain-conservation-reserve-management-statement",
+      "observed_outcome": "Sole direct web-reader open reported (403) Forbidden. No original statement/map body was acquired through that open.",
+      "outcome_layer": "HTTP403 as reported by web reader",
+      "restriction_scope": "Whole named statement, maps, equivalent PDF/HTML copies/formats and all acquisition routes stopped; no retry or alternate original acquisition. Discovery snippets are excluded.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70214162",
+      "publication": "Geological Compilation of the Burntbush–Detour Lakes Area, Abitibi Greenstone Belt; Ayer, Chartrand, Duguet, Rainsford and Trowell2009, OGS P3609",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mndmaccess/mndm_dir.asp?id=P3609&type=pub",
+      "observed_outcome": "The catalogue opened normally. Its linked publication acquisition returned web-reader Cache miss, without HTTP status. No original map acquired.",
+      "outcome_layer": "Web-reader availability",
+      "restriction_scope": "Missing map/publication content and equivalent copies, originals, formats, catalogue/download and acquisition routes paused; no retry or replacement MRD245 map acquisition.",
+      "earlier_lawful_prose_exception": "Only earlier catalogue bibliography at https://www.geologyontario.mndm.gov.on.ca/mndmfiles/pub/data/records/P3609.html was actually read; not hydrographic correspondence.",
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70214162",
+      "publication": "NTS042H, CanMatrix1:250,000 topographic sheet; printed title/edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/042/h/canmatrix_042h_tif.zip",
+      "observed_outcome": "The official directory supplied the exact archive link. The original archive request returned HTTP 403; no original map was acquired.",
+      "outcome_layer": "HTTP response reported by original client",
+      "restriction_scope": "Whole042H CanMatrix sheet publication and equivalent map copies, editions offered as the same source, formats, viewers and every acquisition route stopped.",
+      "earlier_lawful_prose_exception": "Earlier successful directory metadata only; no cartographic evidence. Earlier retained independent P3599-Revised original remains usable in its bounded observed scope.",
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70214162",
+      "publication": "Burntbush–Detour lakes, Cochrane District; G.W.Johns1982, Ontario Geological Survey Map2453, university-hosted original",
+      "official_url": "https://instruct.uwo.ca/earth-sci/fieldlog/Canadapdfs/Ontario/Kirkland%20Lake/ogs_Kirkland_Lake_%20maps/Map%202453%20Burntbush-Detour.pdf",
+      "observed_outcome": "The original request returned HTTP 200 with unrelated decommissioning HTML at https://wts.uwo.ca/instruct/decommissioning-instruct.html instead of the map PDF. No map body or pixels were acquired.",
+      "outcome_layer": "Successful HTTP response with unrelated decommissioning HTML",
+      "restriction_scope": "Missing Map2453 content and equivalent originals, copies, formats, hosts, readers and acquisition routes paused; no alternate official original or retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "wrong_content_availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70214162",
+      "publication": "Quaternary geology, Burntbush area, northeastern Ontario; C.Gao2013, OGS P3770, catalogue route",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mndmfiles/pub/data/records/P3770.html",
+      "observed_outcome": "Sole web-reader open returned Internal Error with URL not accessible via this tool. No HTTP status, security reason, catalogue body or original map was exposed.",
+      "outcome_layer": "Web-reader route error; no observed HTTP denial",
+      "restriction_scope": "Failed exact route not repeated. No exact original was acquired and no alternative acquisition was made. This response does not establish a publication-wide HTTP denial or clearance of other routes.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "technical_route_limitation"
+    },
+    {
+      "aw_id": "hydro-system:70214162",
+      "publication": "Ontario Vector Topographic Data Cache / LIO Cartographic LIO_Topographic, Government of Ontario",
+      "official_url": "https://open.canada.ca/data/en/dataset/25123211-880c-4dfb-9ca9-fbfea096afab",
+      "observed_outcome": "The official catalogue returned HTTP 403. An already-started service-metadata request subsequently returned HTTP 200. No map export or original map pixels were acquired, and the post-denial metadata was not used as substantive correspondence evidence.",
+      "outcome_layer": "Catalogue HTTP 403 reported by the web reader; service metadata HTTP 200 reported by its original request.",
+      "restriction_scope": "Whole LIO Topographic / Ontario Vector Topographic Data Cache publication and equivalent copies, formats, tiles, exports, service layers, catalogues, viewers, mirrors and all acquisition routes stopped. Independently issued and already retained historical geological publications remain distinct.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "shared_http_403_denial",
+      "related_source_urls": [
+        "https://open.canada.ca/data/en/dataset/25123211-880c-4dfb-9ca9-fbfea096afab",
+        "https://ws.lioservices.lrc.gov.on.ca/arcgis1/rest/services/LIO_Cartographic/LIO_Topographic/MapServer"
+      ]
+    }
+  ],
+  "additional_source_use_notices": []
+}
