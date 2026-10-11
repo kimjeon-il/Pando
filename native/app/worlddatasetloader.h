@@ -24,5 +24,5 @@ public:
     static WorldCanonicalResult canonical(const QString& root);
     static std::shared_ptr<const CountryBaseMesh> canonicalMesh(const QString& root);
     static std::shared_ptr<const WorldBaseFrame> matchingBaseFrame(
-        const pandoeditor::ProjectDocument& document,const QString& root);
+        const pandoeditor::ProjectDocument& document,const QString& root,const std::string& month);
 };
