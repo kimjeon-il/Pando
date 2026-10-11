@@ -3,6 +3,7 @@
 #include <pandoeditor/document.h>
 #include <QByteArray>
 #include <QString>
+#include <QStringList>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -10,15 +11,24 @@
 #include <stdexcept>
 #include <vector>
 
-// Fixed Web ebcfae4d27b29cbbea6416a7045a4806930204be place-contract/codec/store.
-// Builtin records are source values, never project objects or history entries.
+// PLAC v3: native primary plus up to two additional official names. Existing
+// v1/v2 frozen test fixtures remain readable; only v3 is written by current Web.
+// contracts/places/v3.json is the new shared contract.
 struct PlaceRuntimeLimits {
     static constexpr std::size_t Candidates=1500,LayoutCandidates=2048,TileRecords=512,
         QueryTiles=96,ShardBytes=512*1024,CacheBytes=24*1024*1024,
         SearchResults=50,RetainedRecords=256,ManifestBytes=8*1024*1024;
 };
+struct PlaceNameTransition {
+    QString fromDate;
+    int fromYear=0;  // exactly one of fromYear/fromDate is present
+    QString ko,en,native;
+    std::optional<QStringList> nativeExtras; // absent: retain existing names unless native changes
+};
 struct PlaceRecord {
-    QString id,source,sourceId,name,kind,countryCode,featureCode;
+    QString id,source,sourceId,name,nameEn,nameNative,kind,countryCode,featureCode;
+    QStringList nameNativeExtras; // additional distinct official native names (max 2)
+    std::vector<PlaceNameTransition> nameTimeline;
     pandoeditor::Point coordinates;
     double population=0,priority=40,minZoom=0;
 };
