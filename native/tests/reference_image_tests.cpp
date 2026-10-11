@@ -327,6 +327,38 @@ private slots:
         for(const auto& point:refined)QVERIFY(point.x()>=14&&point.x()<=16);
     }
 
+    void nativeAutoGeorefTreatsAnchorAsHardConstraint()
+    {
+        QTemporaryDir dir;const auto path=dir.filePath("auto-georef-anchor.png");
+        QImage image(240,160,QImage::Format_RGB32);image.fill(Qt::white);
+        QPainter painter(&image);painter.setPen(Qt::NoPen);painter.setBrush(Qt::black);
+        const QPointF dot(.78,.22);painter.drawEllipse(QPointF(dot.x()*(image.width()-1),dot.y()*(image.height()-1)),4,4);
+        painter.end();QVERIFY(image.save(path));
+
+        ReferenceImageLibrary library;QVERIFY(library.importImage(QUrl::fromLocalFile(path)));
+        const auto id=library.images().back().toMap()["id"].toString();QVERIFY(library.beginCalibration(id));
+        QVERIFY(library.beginAnchor());QVERIFY(library.pickImagePoint(.2,.75));QVERIFY(library.pickMapCoordinate(10.,50.));
+
+        const QVariantList seeds{
+            QVariantMap{{"id","city"},{"name","City"},{"kind","city"},
+                {"expectedUv",QVariantList{.76,.24}},
+                {"coordinate",QVariantList{14.,50.}},
+                {"priority",90}}
+        };
+        QVERIFY2(library.previewAutoGeoref(seeds),qPrintable(library.lastError()));
+        const auto preview=library.autoGeorefSession();
+        QVERIFY(preview["ok"].toBool());
+        QCOMPARE(preview["mode"].toString(),QString("similarity"));
+        QCOMPARE(preview["inlierCount"].toInt(),1);
+        QVERIFY(preview["hardMaxMeters"].toDouble()<=.01);
+        QVERIFY(library.applyAutoGeoref());
+        const auto record=library.images().back().toMap();
+        QCOMPARE(record["geographicPoints"].toList().size(),1);
+        const auto calibrated=library.calibration({{"warpMode",record["warpMode"]},{"controlPoints",record["geographicPoints"]},{"anchor",record["anchor"]}});
+        QVERIFY(calibrated["ok"].toBool());
+        QVERIFY(calibrated["diagnostics"].toMap()["hardMaxMeters"].toDouble()<=.01);
+    }
+
     void nativeAutoGeorefPreviewAppliesGeneratedControlPoints()
     {
         QTemporaryDir dir;const auto path=dir.filePath("auto-georef.png");
