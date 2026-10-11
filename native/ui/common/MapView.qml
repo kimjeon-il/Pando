@@ -326,7 +326,11 @@ Rectangle {
                     Label {
                         width: parent.width; wrapMode: Text.Wrap
                         text: autoResult.ok
-                            ? "자동 맞춤 · 후보 "+(autoResult.candidateCount||0)+" · 채택 "+(autoResult.inlierCount||0)+" · 제외 "+(autoResult.rejectedCount||0)+" · RMS "+Number(autoResult.rmsMeters||0).toFixed(1)+" m"
+                            ? "자동 맞춤"+(autoResult.source === "place-ocr" ? " · OCR 보조" : "")
+                                +" · 후보 "+(autoResult.candidateCount||0)
+                                +" · 채택 "+(autoResult.inlierCount||0)
+                                +" · 제외 "+(autoResult.rejectedCount||0)
+                                +" · RMS "+Number(autoResult.rmsMeters||0).toFixed(1)+" m"
                             : view.referenceAutoGeorefMessage(autoResult.reason)
                     }
                     Row {
