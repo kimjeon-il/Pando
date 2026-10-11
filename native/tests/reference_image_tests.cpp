@@ -337,6 +337,9 @@ private slots:
 
         ReferenceImageLibrary library;QVERIFY(library.importImage(QUrl::fromLocalFile(path)));
         const auto id=library.images().back().toMap()["id"].toString();QVERIFY(library.beginCalibration(id));
+        const QVariantList quad{QVariantList{8.,54.},QVariantList{16.,54.},QVariantList{16.,46.},QVariantList{8.,46.}};
+        const QVariantList screen{QVariantList{0.,0.},QVariantList{240.,0.},QVariantList{240.,160.},QVariantList{0.,160.}};
+        QVERIFY(library.setPlacementQuad(quad,screen));
         QVERIFY(library.beginAnchor());QVERIFY(library.pickImagePoint(.2,.75));QVERIFY(library.pickMapCoordinate(10.,50.));
 
         const QVariantList seeds{
