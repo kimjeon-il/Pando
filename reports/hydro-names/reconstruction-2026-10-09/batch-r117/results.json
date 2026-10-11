@@ -1,0 +1,495 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r117",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r116",
+    "commit": "1bdfb292fc1ae3696e7c745fa4ac612bf2149be1",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r116/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:90018331",
+    "hydro-system:70153937",
+    "hydro-system:80060230",
+    "hydro-system:70889692"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:90018331",
+      "category": "river_group",
+      "system_id": "90018331",
+      "original_queue_rank": 268,
+      "baseline_logical_fid": 2826,
+      "geometry_fids": [
+        8836
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -23.439583,
+        78.997917,
+        -19.910553,
+        79.84375
+      ],
+      "rendered_mainstem_length_km": 233.376,
+      "rendered_network_length_km": 233.376,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -23.439583,
+          78.997917,
+          -19.910553,
+          79.84375
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "candidate_name_role": "whole_route_name_unestablished",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": null,
+      "geographic_disambiguation": "The actual ending belongs to the southern Lambert Land/Kap Zachariae–Zachariae Isstrøm setting on the historical sheet. The northern Nioghalvfjerdsfjorden corridor is a separate part of the selected route. Neither Nioghalvfjerdsfjorden nor the nearby farther-south Jøkelbugten is invented as a terminal-river or whole-feature name.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "All 63 internal parts of FID 8836, including the opening, upper bend, complete middle connectors and actual ending, were considered using the retained geometry only for orientation and the original map graticule. No pointwise geometry validation or edit was performed.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The selected route traverses distinct ice, exposed-land, valley and ice-covered fjord/glacier-margin settings. The complete original sheet establishes their geographic correspondence but does not establish a representative natural-river name spanning this route.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "contextual_land_names": [
+          "Kronprins Christian Land",
+          "Skallingen",
+          "Lambert Land"
+        ],
+        "contextual_lake_name": "Blåsø",
+        "intermediate_fjord_context": "Nioghalvfjerdsfjorden",
+        "terminal_cape_context": "Kap Zachariae",
+        "terminal_glacier_context": "Zachariae Isstrøm",
+        "terminal_fjord_name": null,
+        "unassigned_farther_south_bay": "Jøkelbugten",
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0
+      },
+      "source_keys": [
+        "r117-geus-lambert-land-sheet9-2000",
+        "r111-geus-bulletin18-2009-retained"
+      ],
+      "region": "Northeast Greenland, western ice setting through southern Kronprins Christian Land, Nioghalvfjerdsfjorden and Lambert Land to the historical Kap Zachariae–Zachariae Isstrøm setting."
+    },
+    {
+      "aw_id": "hydro-system:70153937",
+      "category": "river_group",
+      "system_id": "70153937",
+      "original_queue_rank": 269,
+      "baseline_logical_fid": 2967,
+      "geometry_fids": [
+        9231
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -84.541667,
+        52.21875,
+        -82.170631,
+        52.89933
+      ],
+      "rendered_mainstem_length_km": 232.605,
+      "rendered_network_length_km": 232.605,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -84.541667,
+          52.21875,
+          -82.170631,
+          52.89933
+        ]
+      },
+      "candidate_name": "Lawashi River",
+      "candidate_names": [
+        "Lawashi River"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Lawashi River is printed along the river system into which the selected southern headward feeder joins, continuing through the central and lower corridor to James Bay. The selected initial feeder and northern connecting channel remain unnamed in this review.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Lawashi River",
+        "observed_component_names": [
+          "Lawashi River"
+        ],
+        "selected_initial_feeder_name": null,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0,
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true,
+        "map_coverage_distinguished_from_prose": true,
+        "material_geographic_gap": false
+      },
+      "source_keys": [
+        "r117-ogs-bedrock-index-northern-2021"
+      ],
+      "region": "Northern Ontario, western headward branch east of Missisa Lake through the Lawashi corridor to James Bay southeast of the Attawapiskat mouth.",
+      "completion_scope": "Full bounded geographic correspondence completed at ordinary generalized corridor scale. Representative downstream-system identity supported; uniform scalar naming unestablished.",
+      "geographic_disambiguation": "The selected mainstem corresponds to the Lawashi River system at generalized scale. The OGS2021 northern-sheet hydrographic base supports the western unlabelled headward branch, its junction with the Lawashi corridor, the northeastward central run, the east/southeast lower bend, the northern coastal-channel connection and the actual James Bay outlet. The representative identity is supported without a uniform scalar or Korean-name assignment."
+    },
+    {
+      "aw_id": "hydro-system:80060230",
+      "category": "river_group",
+      "system_id": "80060230",
+      "original_queue_rank": 270,
+      "baseline_logical_fid": 896,
+      "geometry_fids": [
+        2501
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -105.61875,
+        66.620833,
+        -104.937739,
+        68.262223
+      ],
+      "rendered_mainstem_length_km": 232.003,
+      "rendered_network_length_km": 232.003,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -105.61875,
+          66.620833,
+          -104.937739,
+          68.262223
+        ]
+      },
+      "candidate_name": "Tingmeak River",
+      "candidate_names": [
+        "Tingmeak River"
+      ],
+      "candidate_name_role": "limited_middle_and_lower_component_identity_with_unresolved_western_lake_connector",
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Observed named eastern headwater context, downstream corridor and terminal only. The selected western headward feeder, unnamed lakes and unresolved connector are not assigned Tingmeak River. No present official status or modern rename is established.",
+      "full_feature_correspondence_review_completed": false,
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": "The material link from the selected western lake/stream sequence into the northeastward continuation toward the lower Tingmeak River is not established as an unambiguous mapped hydrographic connection. The NLUIS sanctuary overprint obstructs this area; CGM449 produced archived-information HTML and the independent CanMatrix076P archive returned HTTP403. This is not merely uncertainty about a whole-route name.",
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "observed_component_names": [
+          "Tingmeak River"
+        ],
+        "selected_initial_feeder_name": null,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0,
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true
+      },
+      "source_keys": [
+        "r117-nluis-76i",
+        "r117-nluis-76p",
+        "r117-nluis-77a"
+      ],
+      "region": "Mainland Nunavut, western unnamed lake chain toward the lower Tingmeak River and Queen Maud Gulf east of Dease Point.",
+      "completion_scope": "Incomplete geographic correspondence: all three sheet areas were read, but a material western lake-chain connection into the middle/lower river remains unresolved.",
+      "geographic_disambiguation": "Partial lower Tingmeak River correspondence with a Queen Maud Gulf terminal; material western connector pending."
+    },
+    {
+      "aw_id": "hydro-system:70889692",
+      "category": "river_group",
+      "system_id": "70889692",
+      "original_queue_rank": 271,
+      "baseline_logical_fid": 3262,
+      "geometry_fids": [
+        10429
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -90.731565,
+        18.3625,
+        -89.577083,
+        19.371985
+      ],
+      "rendered_mainstem_length_km": 231.754,
+      "rendered_network_length_km": 231.754,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -90.731565,
+          18.3625,
+          -89.577083,
+          19.371985
+        ]
+      },
+      "candidate_name": "Río Champotón",
+      "candidate_names": [
+        "Río Champotón"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Río Champotón is directly supported for the lower river and coastal terminal and as the representative system identity. Los Pavos, Las Pozas, Desempeño, Arrigueña and the valley drains retain their own limited mapped roles. No exact name-transition boundary or whole-route hydronym is established.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Champotón",
+        "observed_component_names": [
+          "Arroyo Los Pavos",
+          "Arroyo Las Pozas",
+          "Arroyo Desempeño",
+          "Arroyo Arrigueña",
+          "Río Champotón"
+        ],
+        "selected_initial_feeder_name": null,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0,
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true,
+        "exact_name_transition_vertices_established": false
+      },
+      "source_keys": [
+        "r117-inegi-champoton-study-2016",
+        "r117-inegi-calakmul-2010",
+        "r117-inegi-champoton-2010"
+      ],
+      "region": "Campeche, Mexico, southern seasonal tributaries and Yohaltún–Edzná drainage channels to lower Río Champotón and the Gulf of Mexico.",
+      "completion_scope": "Full bounded geographic correspondence completed from the southern seasonal tributary corridor, through the material valley/drain connections, to the actual coastal terminal. Representative-system identity only.",
+      "geographic_disambiguation": "The selected mainstem belongs to the Río Champotón drainage system. Original cartography supplies the southern seasonal arm, its material tributary and valley-drain connections, the lower named river and the Gulf outlet. No genuine source or connector gap remains at the required corridor scale."
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90018331"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:80060230"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 411,
+    "non_pending_records": 363,
+    "source_access_pending": 3,
+    "source_material_pending": 45,
+    "source_any_pending": 48,
+    "scope_holds": 119,
+    "river_groups": 313,
+    "lakes": 98,
+    "unrecorded": 3654,
+    "unrecorded_river_groups": 3142,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r117-geus-lambert-land-sheet9-2000",
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS"
+    },
+    {
+      "source_key": "r111-geus-bulletin18-2009-retained",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r117-ogs-bedrock-index-northern-2021",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/indexes/pdfs/INDEX-Bedrock-Northern.pdf"
+    },
+    {
+      "source_key": "r117-ogs-p3599-revised-2009",
+      "official_url": "https://prd-0420-geoontario-0000-blob-cge0eud7azhvfsf7.z01.azurefd.net/lrc-geology-documents/publication/P3599-REV/P3599-REV.pdf"
+    },
+    {
+      "source_key": "r117-ogs-kapiskau-listing",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mndmfiles/dl/data/records/OGSDataListing_KAPISKAU_RIVER_AREA.html"
+    },
+    {
+      "source_key": "r117-ogs-preliminary-errata",
+      "official_url": "https://www.geologyontario.mndm.gov.on.ca/mines/ogs/errata/pmap_e.html"
+    },
+    {
+      "source_key": "r117-nluis-76i",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76i.jpg"
+    },
+    {
+      "source_key": "r117-nluis-76p",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_76p.jpg"
+    },
+    {
+      "source_key": "r117-nluis-77a",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77a.jpg"
+    },
+    {
+      "source_key": "r117-nluis-index-retained",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "source_key": "r117-gsc-cgm449",
+      "official_url": "https://publications.gc.ca/collections/collection_2023/rncan-nrcan/m183-1/M183-1-449-2022-eng.pdf"
+    },
+    {
+      "source_key": "r117-canmatrix-076p",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/076/p/canmatrix_076p_tif.zip"
+    },
+    {
+      "source_key": "r117-inegi-champoton-study-2016",
+      "official_url": "https://www.inegi.org.mx/contenido/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/702825086909_1.pdf"
+    },
+    {
+      "source_key": "r117-inegi-calakmul-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/04/04010.pdf"
+    },
+    {
+      "source_key": "r117-inegi-champoton-2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/04/04004.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "1bdfb292fc1ae3696e7c745fa4ac612bf2149be1",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      268,
+      269,
+      270,
+      271
+    ],
+    "next_unrecorded_id": "hydro-system:61543259",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}
