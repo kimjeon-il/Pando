@@ -49,6 +49,7 @@ add_library(pandoeditor_editor STATIC
     worlddatasetloader.cpp worlddatasetloader.h
     terrainimageprovider.cpp terrainimageprovider.h
     placeruntimestore.cpp placeruntimestore.h
+    placenamedisplay.cpp placenamedisplay.h
     placeruntimeprovider.cpp placeruntimeprovider.h
     editorplace.cpp
     resourcecachecoordinator.cpp resourcecachecoordinator.h
@@ -120,7 +121,8 @@ qt_add_resources(pandoeditor_editor terrain_dem_metadata
           "${PROJECT_SOURCE_DIR}/assets/world/physical-inventory-terrain-dem-c3c18d1.json"
           "${PROJECT_SOURCE_DIR}/assets/world/terrain-dem-provenance-c3c18d1.json")
 qt_add_resources(pandoeditor_editor place_runtime PREFIX "/place" BASE "${PROJECT_SOURCE_DIR}/assets/place"
-    FILES "${PROJECT_SOURCE_DIR}/assets/place/manifest.json")
+    FILES "${PROJECT_SOURCE_DIR}/assets/place/manifest.json"
+          "${PROJECT_SOURCE_DIR}/assets/place/places-v1.bin")
 qt_add_resources(pandoeditor_editor m4_geometry
     PREFIX "/geometry" BASE "${PROJECT_SOURCE_DIR}/assets/geometry"
     FILES "${PROJECT_SOURCE_DIR}/assets/geometry/polygon-clipping-0.15.7.js"
@@ -266,6 +268,17 @@ if(BUILD_TESTING)
     target_link_libraries(place_runtime_store_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(place_runtime_store_tests PRIVATE PLACE_RUNTIME_FIXTURE="${PROJECT_SOURCE_DIR}/tests/fixtures/web-place-runtime-source")
     add_test(NAME place_runtime_store_tests COMMAND place_runtime_store_tests)
+    add_executable(place_sync_contract_tests ../tests/place_sync_contract_tests.cpp)
+    target_link_libraries(place_sync_contract_tests PRIVATE pandoeditor_editor Qt6::Test)
+    qt_add_resources(place_sync_contract_tests sample PREFIX "/assets"
+        BASE "${PROJECT_SOURCE_DIR}/assets"
+        FILES "${PROJECT_SOURCE_DIR}/assets/sample.pando.json")
+    target_compile_definitions(place_sync_contract_tests PRIVATE
+        PLACE_SYNC_CONTRACT_PATH="${PROJECT_SOURCE_DIR}/contracts/places/v2.json"
+        PLACE_SYNC_REPOSITORY_ROOT="${PROJECT_SOURCE_DIR}")
+    add_test(NAME place_sync_contract_tests COMMAND place_sync_contract_tests)
+    set_tests_properties(place_sync_contract_tests PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(place_runtime_provider_tests ../tests/place_runtime_provider_tests.cpp)
     target_link_libraries(place_runtime_provider_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(place_runtime_provider_tests PRIVATE PLACE_RUNTIME_FIXTURE="${PROJECT_SOURCE_DIR}/tests/fixtures/web-place-runtime-source")
