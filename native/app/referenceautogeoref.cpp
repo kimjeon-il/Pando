@@ -277,7 +277,7 @@ ReferenceAutoGeorefResult solveCandidates(const QVector<Candidate>& candidates,i
     QVector<Candidate> accepted;for(int index:best.inliers)accepted.push_back(candidates[index]);
     auto finalWarp=solveReferenceWarp(mode,controls(accepted,anchor));if(!finalWarp.valid||!enforceAnchor(finalWarp,anchor)){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
     const auto finalScore=score(finalWarp,candidates,threshold,anchor);if(finalScore.inliers.size()<requiredInliers){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
-    accepted.clear();for(int index:finalScore.inliers)accepted.push_back(candidates[index]);finalWarp=solveReferenceWarp(mode,controls(accepted));
+    accepted.clear();for(int index:finalScore.inliers)accepted.push_back(candidates[index]);finalWarp=solveReferenceWarp(mode,controls(accepted,anchor));
     if(!finalWarp.valid||!enforceAnchor(finalWarp,anchor)){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
 
     double squared=0;QSet<int> inlierSet;for(int index:finalScore.inliers)inlierSet.insert(index);
