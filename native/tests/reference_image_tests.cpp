@@ -327,6 +327,52 @@ private slots:
         for(const auto& point:refined)QVERIFY(point.x()>=14&&point.x()<=16);
     }
 
+    void linearConstraintsPersistAndDriveTpsCalibration()
+    {
+        QTemporaryDir dir;const auto path=dir.filePath("linear.png");
+        QImage image(120,80,QImage::Format_RGB32);image.fill(Qt::white);QVERIFY(image.save(path));
+
+        ReferenceImageLibrary library;QVERIFY(library.importImage(QUrl::fromLocalFile(path)));
+        const auto id=library.images().back().toMap()["id"].toString();
+        const QVariantList constraints{
+            QVariantMap{{"id","elbe"},{"kind","river"},{"weight",1.},
+                {"image",QVariantList{QVariantList{.2,.55},QVariantList{.5,.62},QVariantList{.8,.55}}},
+                {"coordinates",QVariantList{QVariantList{12.,44.8},QVariantList{15.,43.8},QVariantList{18.,44.8}}}}
+        };
+        QVERIFY(library.setLinearConstraints(id,constraints));
+        auto stored=library.images().back().toMap();
+        QCOMPARE(stored["linearConstraints"].toList().size(),1);
+
+        QVariantMap record{
+            {"warpMode","affine"},
+            {"controlPoints",QVariantList{
+                QVariantMap{{"id","a"},{"image",QVariantList{0.,0.}},{"coordinate",QVariantList{10.,50.}}},
+                QVariantMap{{"id","b"},{"image",QVariantList{1.,0.}},{"coordinate",QVariantList{20.,50.}}},
+                QVariantMap{{"id","c"},{"image",QVariantList{0.,1.}},{"coordinate",QVariantList{10.,40.}}},
+                QVariantMap{{"id","d"},{"image",QVariantList{1.,1.}},{"coordinate",QVariantList{20.,40.}}}}},
+            {"anchor",QVariantMap{{"image",QVariantList{.5,.5}},{"coordinate",QVariantList{15.,45.}}}},
+            {"linearConstraints",constraints}
+        };
+        const auto result=library.calibration(record);
+        QVERIFY2(result["ok"].toBool(),qPrintable(result["reason"].toString()));
+        QCOMPARE(result["mode"].toString(),QString("tps"));
+        const auto diagnostics=result["diagnostics"].toMap();
+        QCOMPARE(diagnostics["linearConstraintCount"].toInt(),1);
+        QCOMPARE(diagnostics["linearConstraintPointCount"].toInt(),4);
+        QVERIFY(diagnostics["hardMaxMeters"].toDouble()<=.01);
+
+        QVERIFY(library.addLinearConstraint(id,QVariantMap{{"id","coast"},{"kind","coastline"},
+            {"image",QVariantList{QVariantList{.1,.1},QVariantList{.9,.1}}},
+            {"coordinates",QVariantList{QVariantList{11.,49.},QVariantList{19.,49.}}}}));
+        QCOMPARE(library.images().back().toMap()["linearConstraints"].toList().size(),2);
+        QVERIFY(library.removeLinearConstraint(id,"coast"));
+        QCOMPARE(library.images().back().toMap()["linearConstraints"].toList().size(),1);
+        QVERIFY(library.undo());
+        QCOMPARE(library.images().back().toMap()["linearConstraints"].toList().size(),2);
+        QVERIFY(library.redo());
+        QCOMPARE(library.images().back().toMap()["linearConstraints"].toList().size(),1);
+    }
+
     void nativeAutoGeorefTreatsAnchorAsHardConstraint()
     {
         QTemporaryDir dir;const auto path=dir.filePath("auto-georef-anchor.png");
