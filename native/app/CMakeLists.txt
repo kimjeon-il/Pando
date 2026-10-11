@@ -121,7 +121,8 @@ qt_add_resources(pandoeditor_editor terrain_dem_metadata
           "${PROJECT_SOURCE_DIR}/assets/world/physical-inventory-terrain-dem-c3c18d1.json"
           "${PROJECT_SOURCE_DIR}/assets/world/terrain-dem-provenance-c3c18d1.json")
 qt_add_resources(pandoeditor_editor place_runtime PREFIX "/place" BASE "${PROJECT_SOURCE_DIR}/assets/place"
-    FILES "${PROJECT_SOURCE_DIR}/assets/place/manifest.json")
+    FILES "${PROJECT_SOURCE_DIR}/assets/place/manifest.json"
+          "${PROJECT_SOURCE_DIR}/assets/place/places-v1.bin")
 qt_add_resources(pandoeditor_editor m4_geometry
     PREFIX "/geometry" BASE "${PROJECT_SOURCE_DIR}/assets/geometry"
     FILES "${PROJECT_SOURCE_DIR}/assets/geometry/polygon-clipping-0.15.7.js"
