@@ -613,6 +613,37 @@ private slots:
         material=static_cast<MapMaterial*>(static_cast<QSGGeometryNode*>(node.firstChild())->material());
         QCOMPARE(material->color,QVector4D(0,0,1,1));
     }
+    void countryBordersStayPresentedDuringDeferredMeshDetailUploads() {
+        // Preview slot strokes and canonical globe batches have different node
+        // identities. Low mobile upload budgets must not erase the last border
+        // while the replacement fill consumes this frame's allowance.
+        auto preview=readyPreviewScene();
+        preview->drawSequence={{PrimitiveKind::WorldFill,0,{},-1},
+                               {PrimitiveKind::WorldStroke,0,{},-1}};
+        auto view=viewFor(48,48);view.mode=ProjectionMode::Globe;
+        MapSceneNode node;MapGpuStats stats;MapFlatViewport flat;
+        node.sync(preview,view,flat,stats,1024*1024);
+        const strokeCount=[&] {
+            int count=0;
+            for(auto* child=node.firstChild();child;child=child->nextSibling())
+                if(static_cast<MapMaterial*>(static_cast<QSGGeometryNode*>(child)->material())->primitive==MapPrimitive::Stroke)
+                    ++count;
+            return count;
+        };
+        QVERIFY(strokeCount()>0);
+        QVERIFY(!stats.uploadsPending);
+        auto canonical=std::make_shared<RenderScene>(*preview);++canonical->revision;
+        canonical->revisions.dataset++;
+        auto upgraded=std::make_shared<WorldBaseFrame>(*preview->worldBase);
+        auto mesh=std::make_shared<CountryBaseMesh>(*upgraded->mesh);
+        mesh->preview=false;upgraded->mesh=mesh;canonical->worldBase=upgraded;
+        node.sync(canonical,view,flat,stats,1);
+        QVERIFY(stats.uploadsPending);
+        QVERIFY2(strokeCount()>0,"pending canonical upload removed previous country borders");
+        node.sync(canonical,view,flat,stats,1024*1024);
+        QVERIFY(!stats.uploadsPending);
+        QVERIFY(strokeCount()>0);
+    }
     void worldMeshSlotsWithOneOwnerNeverAliasOrUploadForever() {
         auto mesh=std::make_shared<CountryBaseMesh>();
         mesh->positionsMicrodegrees={0,0,1000000,0,0,1000000,10000000,0,11000000,0,10000000,1000000};
