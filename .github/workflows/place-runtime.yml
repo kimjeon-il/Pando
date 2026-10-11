@@ -111,6 +111,8 @@ jobs:
           tests/browser/place-runtime.spec.mjs
       - name: Check portable Web/native place contract
         run: pnpm check:place-sync
+      - name: Check 264 reviewed place publication
+        run: node tools/build-place-runtime.mjs --check && node --test tests/unit/place-publication.test.mjs
       - name: Run focused unit regressions
         run: >-
           node --test
