@@ -27,14 +27,14 @@ function finitePair(value, { geographic = false } = {}) {
 
 function foldSpecialLatin(value) {
   return value
-    .replace(/ß/g, 'ss')
-    .replace(/æ/g, 'ae')
-    .replace(/œ/g, 'oe')
-    .replace(/ø/g, 'o')
-    .replace(/ł/g, 'l')
-    .replace(/đ/g, 'd')
-    .replace(/ð/g, 'd')
-    .replace(/þ/g, 'th');
+    .replace(/\u00df/g, 'ss')
+    .replace(/\u00e6/g, 'ae')
+    .replace(/\u0153/g, 'oe')
+    .replace(/\u00f8/g, 'o')
+    .replace(/\u0142/g, 'l')
+    .replace(/\u0111/g, 'd')
+    .replace(/\u00f0/g, 'd')
+    .replace(/\u00fe/g, 'th');
 }
 
 export function normalizeReferenceImagePlaceText(value) {
