@@ -26,3 +26,10 @@ ReferenceAutoGeorefResult solveReferenceAutoGeoref(
     const QVariantList& seeds,
     const QVariantMap& anchor={},
     const QString& requestedMode=QStringLiteral("auto"));
+
+ReferenceAutoGeorefResult solveReferenceAutoGeorefFromOcr(
+    const QImage& source,
+    const QVariantList& seeds,
+    const QVariantList& detections,
+    const QVariantMap& anchor={},
+    const QString& requestedMode=QStringLiteral("auto"));
