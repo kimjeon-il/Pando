@@ -14,6 +14,7 @@ test('month-end resolution selects exact geometry versions and parent graph', ()
   const june = resolve('1914-06');
   const july = resolve('1914-07');
   const later = resolve('1916-01');
+  assert.equal(july.month, '1914-07');
   assert.deepEqual(june.entities.map(row => row.id), ['A', 'B', 'C', 'R']);
   assert.deepEqual(june.byId.get('A').geometryRef, { id: 'shape', version: 1 });
   assert.deepEqual(july.byId.get('A').geometryRef, { id: 'shape', version: 2 });
@@ -31,6 +32,21 @@ test('month-end resolution respects disjoint lifetimes and exact days', () => {
   assert.deepEqual(resolve('1910-01').entities.map(row => row.id), ['A', 'B', 'C', 'R']);
   assert.deepEqual(resolve('1920-04').entities.map(row => row.id), ['A', 'C', 'R']);
   assert.throws(() => resolve('1914-07-31'), /month/i);
+});
+
+test('month-end resolution includes exact starts and excludes exact mid-month ends', () => {
+  assert.ok(resolve('1910-01').byId.get('B'));
+
+  const ended = structuredClone(project.timelineRecords);
+  ended.lifetimes.find(row => row.id === 'B:modern').validTo = '1910-01-15';
+  ended.geometryBindings.find(row => row.id === 'B:modern-shape').validTo = '1910-01-15';
+  ended.parentRelations.find(row => row.id === 'B:old-parent').validTo = '1910-01-15';
+  // A shortened lifetime cannot retain a later parent record outside that lifetime.
+  ended.parentRelations = ended.parentRelations.filter(row => row.id !== 'B:new-parent');
+  const endedStorage = restoreTimelineStorage({ schemaVersion: 1, records: ended,
+    geometries: project.geometries }, catalog);
+  const january = resolveWorld(project.territorialEntities, endedStorage.records, endedStorage.geometries, '1910-01');
+  assert.equal(january.byId.get('B'), undefined);
 });
 
 test('initial month uses the latest explicit record start and static fallback', () => {
