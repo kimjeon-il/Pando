@@ -17,6 +17,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSaveFile>
+#include <QSet>
 #include <QStandardPaths>
 #include <QUuid>
 
