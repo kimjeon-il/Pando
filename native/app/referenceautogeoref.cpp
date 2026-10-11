@@ -291,6 +291,7 @@ ReferenceAutoGeorefResult solveCandidates(const QVector<Candidate>& candidates,i
         else output.rejectedIds.push_back(candidates[i].id);
     }
     output.inlierCount=output.controlPoints.size();output.rejectedCount=output.rejectedIds.size();
+    if(hasAnchor)output.hardMaxMeters=haversine(finalWarp.map(anchorImage),anchorCoordinate);
     output.rmsMeters=output.inlierCount?std::sqrt(squared/output.inlierCount):0.;output.ok=output.inlierCount>=requiredInliers;
     if(!output.ok)output.reason=QStringLiteral("no-auto-georef-consensus");return output;
 }
@@ -322,7 +323,7 @@ std::optional<Candidate> detectNearTextBox(const QImage& image,const QVariantMap
 QVariantMap ReferenceAutoGeorefResult::toVariant() const
 {
     return {{"ok",ok},{"reason",reason},{"mode",mode},{"source",source},{"seedCount",seedCount},{"candidateCount",candidateCount},
-        {"inlierCount",inlierCount},{"rejectedCount",rejectedCount},{"rmsMeters",rmsMeters},
+        {"inlierCount",inlierCount},{"rejectedCount",rejectedCount},{"rmsMeters",rmsMeters},{"hardMaxMeters",hardMaxMeters},
         {"controlPoints",controlPoints},{"matches",matches},{"rejectedIds",rejectedIds}};
 }
 
