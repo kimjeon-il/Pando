@@ -1,0 +1,759 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r137",
+  "sources": [
+    {
+      "bibliography": "U.S. Geological Survey, The National Map, USGSTopo composite topographic reference map service; bounded Louisiana Whisky Chitto–Calcasieu corridor views acquired and read 11 October 2026.",
+      "source_type": "Primary original federal composite cartography",
+      "publication_identity": "USGSTopo live composite MapServer, separately operated from stopped USGS reports and state publications",
+      "map_reading": {
+        "original_pixels_seen": true,
+        "views": [
+          {
+            "view": "upper",
+            "scope": "Selected Fort Polk/Vernon headward reach, Whisky Chitto corridor and eastern Sixmile/Tenmile tributary setting",
+            "acquisition": "Completed original HTTP 200, image/png"
+          },
+          {
+            "view": "middle",
+            "scope": "Whisky Chitto/Bundick junction, Whisky Chitto–Calcasieu confluence and lower wooded Calcasieu floodplain",
+            "acquisition": "Completed original HTTP 200, image/png"
+          },
+          {
+            "view": "lower",
+            "scope": "All of FIDs 9990 and 9991, lower-river lake/ship-channel complexes and coastal terminal, with upstream overlap",
+            "acquisition": "Completed original HTTP 200, image/png"
+          },
+          {
+            "view": "upper-estuary detail",
+            "scope": "Calcasieu meanders, West Fork junction, I-10 and Lake Charles/Clooney Island connector detail",
+            "acquisition": "Completed original HTTP 200, image/png"
+          }
+        ]
+      },
+      "evidence_scope": "Own observations of original channel continuity, junctions, waterbody shapes, labels and terrain/wetland setting at ordinary component/corridor scale. Nearby labels alone and modeled connectivity are not substituted for map correspondence.",
+      "limits": "Composite live cartography, not a single historical sheet edition or a formal naming-registry determination. No exact bank, minor-channel or vertex correspondence is asserted. Source originals, crops, orientation overlays and dynamic request parameters remain private.",
+      "source_key": "r137-usgs-topo-calcasieu",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "use_notice": "Service attribution identifies USGS The National Map and contributing datasets. No redistribution permission is inferred; only factual observations and ordinary citations are for public consolidation."
+    },
+    {
+      "bibliography": "Tetra Tech, Inc., prepared for Louisiana Department of Environmental Quality, Water Quality Assessment Division, Total Maximum Daily Load Program. Whiskey Chitto Creek (Subsegment 030501), Louisiana, Final TMDL for Fecal Coliform. October 2010; origination date 5 October 2010. Executive summary and section 2.1, printed pages iii and 3 (PDF pages 3 and 6).",
+      "source_type": "Primary commissioned state environmental report, bounded supporting prose",
+      "observations": "The report describes Whiskey Chitto Creek starting within the Fort Polk headwater setting and continuing beyond the reservation into Calcasieu River. It describes the Calcasieu basin progressing from pine-forested hills to brackish and salt marshes and the river reaching the Gulf of Mexico.",
+      "map_reading": {
+        "original_pixels_seen": false,
+        "scope": "No figure or map from this report was acquired or used. Parsed figure captions and label lists do not establish geographic correspondence."
+      },
+      "limits": "General supporting prose and historical report spelling only. Source-stated stream mileages are not substituted for the retained rendered length; no contemporary environmental condition or legal status is asserted.",
+      "source_key": "r137-ldeq-whiskey-chitto-2010",
+      "official_url": "https://deq.louisiana.gov/assets/docs/Water/TMDL/Final_LDEQ_Fecal_030501_093010.pdf",
+      "use_notice": "No special use notice was observed in the bounded reader material. The absence of one is not treated as redistribution permission; original report content is not redistributed."
+    },
+    {
+      "title": "Compendio de información geográfica municipal 2010. Mazapil, Zacatecas",
+      "publisher": "INEGI",
+      "date": "2010",
+      "actually_read": "Original hydrography table, PDF page 4; original Relieve map, PDF page 7, inspected at full-page and private corridor scale, including its legend and source attribution.",
+      "cartographic_basis": "The map credits INEGI 1:250,000 series II and III topography and INEGI-CONAGUA 2007 Red Hidrográfica Digital de México 1:250,000, plus physiography and municipal framework sources.",
+      "limits": "Municipal map ends at its boundary. Generalized channel and terrain correspondence only; no uniform naming or present-day flow claim.",
+      "source_key": "mx137_mazapil_2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/32/32026.pdf"
+    },
+    {
+      "title": "Condensado Estatal Zacatecas, fourth edition 2024, 1:625,000",
+      "publisher": "INEGI",
+      "date": "2024; printed copyright 2025",
+      "actually_read": "Original single map sheet: entire selected headward-to-terminal corridor at overview and private enlarged views; hydrographic symbology, technical information, edition and copyright margin.",
+      "cartographic_basis": "Printed note derives planimetry from INEGI 1:250,000 sixth edition 2023 coverage; state limits use Marco Geoestadístico 2018.",
+      "limits": "The map is generalized. Several ephemeral channels end in the plains; no unseen through-going connection is inferred. Printed copyright is retained; source images and derivatives remain private.",
+      "source_key": "mx137_zacatecas_2024",
+      "official_url": "https://en.www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/zac/794551163016.pdf"
+    },
+    {
+      "title": "Compendio de información geográfica municipal 2010. San Juan de Guadalupe, Durango",
+      "publisher": "INEGI",
+      "date": "2010",
+      "actually_read": "Original hydrography table, PDF page 3, and original Relieve map, PDF page 6, including La Mancha, eastern plain, adjacent drainages, legend and map-source statement.",
+      "cartographic_basis": "Credits INEGI 1:250,000 series II and III topography, INEGI-CONAGUA 2007 hydrographic map and municipal / physiographic sources.",
+      "limits": "Supports intermittent lake and regional terminal setting; does not close the selected east-to-west connector across the plain.",
+      "source_key": "mx137_sanjuan_2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/10/10027.pdf"
+    },
+    {
+      "title": "Carta Geológico-Minera Estación Symon G13-D68, Durango y Zacatecas, 1:50,000, first edition March 2020",
+      "authors": [
+        "Luis Miguel Bahena Pita",
+        "Francisco Landa González"
+      ],
+      "publisher": "Servicio Geológico Mexicano",
+      "date": "2020-03",
+      "actually_read": "Original map sheet, lower selected entry and full terminal plain / Laguna La Mancha corridor; original topographic legend, scale, edition, authorship, source-base and copyright margin. Map pixels, not extracted label lists, were used for the connector assessment.",
+      "cartographic_basis": "Printed cartographic-base statement: INEGI, second edition 2002.",
+      "limits": "A geological sheet with original mapped topographic content. Its isolated stream ends and mapped lake establish local geography, but not the selected uninterrupted connector across the plain. Printed © 2020 Derechos Reservados SGM remains applicable; no source map or derivative is redistributed.",
+      "source_key": "mx137_symon_2020",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1205_G13-D68_GM.pdf"
+    },
+    {
+      "title": "San Juan de Guadalupe mineral-resource inventory, report segment T1004GUAJ0001_05, section IV.10.c Yacimientos Minerales Laguna La Mancha",
+      "publisher": "Consejo de Recursos Minerales / Servicio Geológico Mexicano repository",
+      "date": null,
+      "actually_read": "Printed page 96 / segment PDF page 2, section IV.10.c, describing the location and lacustrine materials of Laguna La Mancha. Full publication front matter not inspected; year and exact full-report title are therefore not asserted.",
+      "limits": "Prose only. No photograph, inventory map or figure from this report was acquired or treated as observed cartography; no upstream river connector is implied.",
+      "source_key": "mx137_sgm_inventory_segment",
+      "official_url": "https://mapserver.sgm.gob.mx/InformesTecnicos/InventariosMinerosWeb/T1004GUAJ0001_05.pdf"
+    },
+    {
+      "title": "Estudio hidrológico del estado de San Luis Potosí",
+      "publisher": "INEGI",
+      "date": "2002",
+      "actually_read": "Bounded chapter 5 prose, printed pages 13–15 / PDF pages 27–29: El Salado's closed-basin setting, intermittent runoff, and section 5.2.3 on the San Luis Potosí portion of Camacho-Gruñidora.",
+      "limits": "Regional prose context only. Its San Luis Potosí discussion does not establish an individual stream identity or the Durango terminal connector. No original figure pixels were acquired.",
+      "source_key": "mx137_slp_hydrology_2002",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/2104/702825224097/702825224097.pdf"
+    },
+    {
+      "title": "Compendio de información geográfica municipal 2010. Santo Domingo, San Luis Potosí",
+      "publisher": "INEGI",
+      "date": "2010",
+      "actually_read": "Original Relieve map, PDF page 5, including northern municipal extent and surrounding hydrography.",
+      "limits": "Boundary-context inspection only: this map does not add the missing selected connector. Its Santa Clara, Illescas and Sandoval systems are not substituted for the selected northern object.",
+      "source_key": "mx137_santodomingo_2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/24/24033.pdf"
+    },
+    {
+      "title": "Cartas topográficas 1:250.000, historical cartas_mosaicos mosaic, Somuncurá–Yaminué–Nahuel Niyeu–Tres Picos corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; constituent sheet dates and editions unestablished from the bounded views.",
+      "material_read": "Two original bounded images acquired to terminal HTTP200/image/png responses: full corridor overview and detailed extreme-headward view. Both originals and source-only full-resolution local crops were visually read, including headwater branches, the canyon, Yaminué bends, El Toro convergence, lower Nahuel Niyeu wetlands and Tres Picos terminal. Retained geometry was used only for orientation.",
+      "supports": "Complete bounded geographic correspondence and the representative lower Arroyo Nahuel Niyeu label.",
+      "limits": "The shortest headmost source-tip extension is generalized relative to the printed intermittent-channel tip; no exact spring is established. Historical wetland and lagoon depictions do not establish present water levels or uniform flow.",
+      "use_notice": "No redistribution permission inferred from official hosting. Original maps, crops, overlays and dynamic bounded-view requests remain private.",
+      "source_key": "r137-ign250k-yaminue-nahuelniyeu"
+    },
+    {
+      "title": "Plan de Manejo del Área Natural Protegida Meseta de Somuncurá, 19 October 2007; Decreto 465, 30 May 2008, published in Boletín Oficial de Río Negro 4634 supplement, 3 July 2008",
+      "publisher": "Consejo de Ecología y Medio Ambiente, Gobierno de Río Negro",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf",
+      "material_read": "Previously acquired complete original reused locally, without reacquisition. Cover/date and section 3.2.4.1–3.2.4.2 on printed/PDF page36 read; page36 Map1 visually inspected. Relevant Yaminué flow paragraph and station caption on page37 and station header on page41 read, with limited regional geomorphology context on pages18,29 and45.",
+      "supports": "Independent provincial basin classification, Yaminué identity and historical station context, and distinction between endorheic Indio Muerto-basin streams and neighboring Curicó/Salado/Verde systems.",
+      "limits": "The regional map is too broad to independently establish the selected small headward connector. Historical flow measurements apply to the named station and record period, not the whole model or current conditions. Basin naming does not override the directly mapped Tres Picos endpoint.",
+      "use_notice": "No explicit redistribution permission established; original and rendered page remain private.",
+      "source_key": "r137-codema2007-plan2008"
+    },
+    {
+      "title": "Mapa Político dos Estados de Rio Grande do Norte e Paraíba",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2015,
+      "scale": "1:500,000",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/pb_rn_politico500k_2015.pdf",
+      "actual_reading": "Complete original PDF acquired HTTP200; original map pixels, corridor enlargement, downstream enlargement and legend inspected.",
+      "supports": "Whole Curimataú receiving-river corridor, Caiçara and Nova Cruz bend, Calabouço junction, eastward route to Pedro Velho and distinction from Pequiri/Piquiri, Espinho, Pirari, Outeiro, Catu, Guaju, Camaratuba and Mamanguape drainages.",
+      "limits": "BCIM2014-based generalized state cartography. Detailed headward and reservoir correspondence comes from the separate municipal and CPRM originals. No surveyed mouth point, current shoreline or formal naming-register status is established.",
+      "use_notice": "Official cartographic authorship and generalization retained; original and working crops remain private.",
+      "source_key": "r137-ibge-rn-pb-2015"
+    },
+    {
+      "title": "Pocinhos - PB, Mapa Municipal Estatístico, geocódigo2512002",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2022,
+      "edition": "Malha Territorial2022",
+      "scale": null,
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2022/mapas_municipais_estatisticos/PB/pocinhos_2512002/pocinhos_2512002_mme_a0.pdf",
+      "actual_reading": "Complete original PDF acquired HTTP200; raster map pixels, northern headward corridor, northeastern municipal margin, graticule and printed legend/notice inspected. No source label was taken solely from an extracted list.",
+      "supports": "Actual unnamed opening north of Pocinhos, its small impoundment connection with the Riacho do Peba approach, selected Riacho Catolé continuation, and northeast-to-north connection to the directly labeled Rio Curimataú at the Pocinhos/Esperança/Remígio-side boundary.",
+      "limits": "Generalized geographic correspondence only. The opening feeder and initial impoundment have no securely established separate names. Nearby Peba is a joining southwestern approach, not the actual selected beginning. Satellite-backed cartography does not establish current reservoir levels or flow.",
+      "use_notice": "Printed standard notice identifies exclusive intended use for IBGE statistical collection/tabulation, warns against other purposes and disclaims responsibility. IBGE reserves reproduction rights; imagery credits Rede MAIS/MJSP and ©2022 Planet Labs Inc., all rights reserved. This standard fitness/intended-purpose notice is preserved as a caveat, not interpreted as officials-only access or an inspection prohibition. Source and crops remain private.",
+      "source_key": "r137-ibge-pocinhos-2022"
+    },
+    {
+      "title": "Projeto PROALUV: Mapa das Aluviões, Folha Solânea SB.25-Y-A-IV",
+      "author": "Sara Maria Pinotti Benvenutti",
+      "publisher": "CPRM - Serviço Geológico do Brasil, Ministério de Minas e Energia",
+      "year": 2009,
+      "scale": "1:100,000",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/a95b8f37-7f26-4d82-b236-b1406a2d1e45/content",
+      "actual_reading": "Complete original PDF acquired HTTP200; whole map, southwestern Sapo/Jacinto approach, upper trunk, middle stream corridor, reservoir and margin credits inspected.",
+      "supports": "Connected southern Sapo/Jacinto/Poço do Novilho approach, small waterbody at the southern sheet edge, selected northward route through the Passagem and Barra do Urubu setting, separate western Urubu/Bola/Cantinho/da Cruz/Caraibeira approaches, eastward trunk, Açude Cacimba da Várzea inlet/body/outlet and onward Dona Inês–Bananeiras/Campo de Santana–Tapera corridor.",
+      "limits": "Historical thematic mapping of alluvial potential, with a blue hydrographic network separate from pale alluvial deposits. Alluvium is not read as water surface. Nearby water bodies such as Açude do Algodão, Ilha da Fantasia and Barragem do Tauá are separate from the selected main corridor. Reservoir operation and present storage are unestablished.",
+      "base_cartography": "Printed credit: SUDENE Solânea1999 printed sheet, updated/adjusted to GeoCover2000; DER2003/2007/2008 and DNIT2002 roads; IBGE2005 municipal boundaries.",
+      "publication_distinction": "Independently issued PROALUV2009 alluvial map; it is not the unavailable Solânea2008 geological-map publication.",
+      "source_key": "r137-cprm-solanea-proaluv-2009"
+    },
+    {
+      "title": "Mapa geológico: folha Guarabira SB.25-Y-A-V",
+      "authors": [
+        "Ignez de Pinho Guimarães",
+        "Sheila Maria Bretas Bittar"
+      ],
+      "publisher": "CPRM - Serviço Geológico do Brasil, with Universidade Federal de Pernambuco",
+      "year": 2014,
+      "scale": "1:100,000",
+      "official_url": "https://rigeo.sgb.gov.br/handle/doc/18299",
+      "original_url": "https://rigeo.sgb.gov.br/bitstreams/ba8faf71-f4f5-4feb-81a7-4b9b9a614898/download",
+      "resolved_original_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/ba8faf71-f4f5-4feb-81a7-4b9b9a614898/content",
+      "actual_reading": "Catalogue and PDF reader succeeded; subsequent sequential original download completed HTTP200. Whole original map and northwestern Caiçara-to-northern-edge corridor inspected as pixels.",
+      "supports": "Rio Curimataú directly labeled at Caiçara and on its connected northbound continuation; source distinguishes permanent river channel, intermittent tributaries and separate small water bodies.",
+      "limits": "Hydrography is the historical planimetric base of a geological publication. It does not establish exact contemporary banks, legal naming, or a reservoir name for the widened river symbol.",
+      "base_cartography": "The printed base credit names the IBGE Sapé1970 sheet, adjusted to GeoCover2000 and edited by CPRM DICART; the actual sheet title and mapped graticule are Guarabira SB.25-Y-A-V. This credit is reported as printed, without silently correcting it.",
+      "source_key": "r137-cprm-guarabira-2014"
+    },
+    {
+      "title": "Canguaretama-RN, Mapa Municipal Estatístico, geocódigo2402204",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "year": 2010,
+      "edition": "Malha Territorial2010, edição19 July2011",
+      "scale": "1:100,000",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/rn/canguaretama_v2.pdf",
+      "actual_reading": "Complete original PDF acquired HTTP200; whole original sheet, Pedro Velho–Pequiri approach, lower Curimataú, estuarine channels, coastal opening, graticule and legend inspected.",
+      "supports": "Selected lower Curimataú approach, Pequiri-side junction setting, distinct southern Outeiro tributary, lower estuarine water and connected Atlantic opening by Barra do Cunhaú; separate Rio Catu coastal outlet to the north and Guaju system to the south.",
+      "limits": "Historical composite map with thematic overlays. Generalized terminal correspondence is to the Curimataú estuarine/coastal setting; the final rendered eastward coastal extension is not asserted to reproduce the actual north-northeast estuarine exit or a surveyed mouth coordinate.",
+      "use_notice": "Semi-automatic compilation from systematic mapping and municipal digital boundaries; margin warns of incomplete cartographic integration/completeness and distinguishes unsupported approximate updates. IBGE reproduction rights reserved. Source and crops remain private.",
+      "source_key": "r137-ibge-canguaretama-2010"
+    },
+    {
+      "title": "2.1 - Caracterização das Bacias Hidrográficas, PE_02.pdf",
+      "publisher": "Agência Executiva de Gestão das Águas do Estado da Paraíba (AESA), Governo do Estado da Paraíba",
+      "year": null,
+      "official_url": "https://www.aesa.pb.gov.br/assets/uploads/2024/10/PE_02.pdf",
+      "actual_reading": "Original two-page PDF opened in web text reader. Only page1 prose and table are used; page2 original figure pixels were not inspected.",
+      "supports": "Supporting prose explicitly distinguishes Rio Curimataú basin from the neighboring Rio Jacu, Guaju, Camaratuba and Mamanguape basins.",
+      "limits": "Regional basin context only. No route, tributary junction, reservoir name, official river length or exact source/mouth is inferred from the table or uninspected map-label extraction. Exact publication year was not established from the inspected chapter.",
+      "source_key": "r137-aesa-bacias-pe02"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70805944",
+      "source_keys": [
+        "r137-usgs-topo-calcasieu",
+        "r137-ldeq-whiskey-chitto-2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9989
+          ],
+          "component_scope": "Selected mainstem FID 9989",
+          "finding": "The creek trends south and southeast through the Fort Polk/Vernon wooded uplands, receives the mapped Birds Creek connection, continues through the LA 399 and LA 112 corridor and bends southeast toward the LA 377/LA 26 area. It receives Sixmile Creek and then Tenmile Creek from the eastern side, and Bundick Creek from the west farther downstream. It remains the Whisky Chitto corridor until joining the separate Calcasieu River branch just north of US 190 west of Kinder. The selected continuation then follows Calcasieu River southwest and south through its broad wooded floodplain, with Barnes Creek and the lower bayou connections, to the River Road/Goss vicinity.",
+          "sources": [
+            "r137-usgs-topo-calcasieu",
+            "r137-ldeq-whiskey-chitto-2010"
+          ],
+          "correspondence": "complete at generalized corridor scale",
+          "headward_setting": "The selected opening lies on the mapped upper Whisky Chitto Creek corridor in the Vernon Parish/Fort Polk setting. The map shows the stream continuing headward beyond the selected opening, so that opening is not asserted to be the official river source.",
+          "junctions_and_waterbodies": "The original upper and middle maps distinguish the lateral Bundick Lake–Bundick Creek system from the selected route: the selection does not traverse Bundick Lake. No large intervening on-route reservoir is depicted. The lower Calcasieu floodplain is mapped with many sloughs, ponds, meanders and wetland symbols; not every side channel is named here.",
+          "prose_scope": "LDEQ supplies the bounded Fort Polk-to-Calcasieu tributary relationship and general basin setting; cartography establishes selected-route correspondence and junction placement."
+        },
+        {
+          "fragments": [
+            9990
+          ],
+          "component_scope": "Selected mainstem FID 9990",
+          "finding": "The selected segment continues along the mapped Calcasieu River meanders between the Goss/River Road area and Moss Bluff, then turns south past the US 171 crossing toward the upper Lake Charles estuary. Floodplain wetlands and adjoining abandoned/meandering channels remain distinct from the selected generalized river corridor.",
+          "sources": [
+            "r137-usgs-topo-calcasieu"
+          ],
+          "correspondence": "complete at generalized corridor scale",
+          "junctions_and_waterbodies": "The maps continuously connect this segment with FID 9989 upstream and FID 9991 downstream; there is no intervening lake or source-coverage break. West Fork Calcasieu River approaches the downstream estuarine reach from the west.",
+          "prose_scope": null
+        },
+        {
+          "fragments": [
+            9991
+          ],
+          "component_scope": "Selected mainstem FID 9991",
+          "finding": "The selected continuation is the Calcasieu River through the West Fork Calcasieu River junction and the broad meandering reach north of I-10. It follows the connected western Lake Charles passage and then the river/navigation-channel corridor beside the Clooney Island/Coon Island complex, Prien Lake and Moss Lake. Farther south it continues into the long, nearly north–south Calcasieu Ship Channel along the western side of the Calcasieu Lake complex, through the Long Point/West Cove and lower Calcasieu Pass setting, to the open Gulf coast.",
+          "sources": [
+            "r137-usgs-topo-calcasieu",
+            "r137-ldeq-whiskey-chitto-2010"
+          ],
+          "correspondence": "complete at generalized corridor scale",
+          "junctions_and_waterbodies": "The original lower map shows the West Fork connection, Lake Charles, Prien Lake, Moss Lake, the Calcasieu Lock/Intracoastal Waterway connection east of the selected channel, Calcasieu Lake and West Cove, and the East Fork/West Fork Calcasieu Pass connections beside the selected ship channel. These are connected settings, not an assertion that the selected line crosses the center of every named lake or follows every natural side loop. No reservoir is inferred from these estuarine lakes.",
+          "actual_terminal": "Open Gulf coast at the Calcasieu Pass/Calcasieu Ship Channel entrance south of Cameron. Calcasieu Lake is an intervening connected estuarine waterbody, not the terminal. The retained model sea-terminal classification is compatible at this generalized scale; the exact shore/mouth vertex is not assessed.",
+          "prose_scope": "LDEQ supports the general Calcasieu-to-Gulf terminal relationship; the original lower cartography independently depicts the selected ship-channel/coastal connection."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70851521",
+      "source_keys": [
+        "mx137_mazapil_2010",
+        "mx137_zacatecas_2024",
+        "mx137_sanjuan_2010",
+        "mx137_symon_2020",
+        "mx137_sgm_inventory_segment",
+        "mx137_slp_hydrology_2002",
+        "mx137_santodomingo_2010"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10370
+          ],
+          "component_scope": "Southeastern mountain-foot headward approach",
+          "finding": "The southeastern selected opening lies in the mountain-foot and bajada setting around Cerro El Gringo, Cerro Las Vírgenes and Cerro El Cabrero. The Mazapil relief original depicts small drainage there and a westward approach toward the Salitrillo corridor; the statewide original adds the local mountain, settlement and intermittent-channel context. No single hydronym is assigned to this entire opening or its westward turn.",
+          "sources": [
+            "mx137_mazapil_2010",
+            "mx137_zacatecas_2024"
+          ],
+          "correspondence": "Component geography supported; full route remains pending at the lower connector.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10370
+          ],
+          "component_scope": "Salitrillo–El Paisanito upper and middle corridor",
+          "finding": "The Mazapil relief map shows the northwest-trending Arroyo Salitrillo valley, the Tanque El Ranchito setting, and the continuation labeled El Paisanito toward the wider lowland. Its independently drawn Los Hacheros approach joins from the east; the western Arroyo Seco system and Tanque La Calavera are separate branches or nearby features, not alternate names for every selected segment. The modern state map distinguishes San Benito (El Salitrillo), Majoma, the La Fortuna / Noria del Junco area, and several shortened intermittent streams. These sources establish ordinary corridor correspondence, not permanent water continuity or exact name-transition vertices.",
+          "sources": [
+            "mx137_mazapil_2010",
+            "mx137_zacatecas_2024"
+          ],
+          "correspondence": "Component geography supported; full route remains pending at the lower connector.",
+          "mapped_component_names": [
+            "Arroyo Salitrillo",
+            "El Paisanito"
+          ]
+        },
+        {
+          "fragments": [
+            10370
+          ],
+          "component_scope": "Las Playas lower middle corridor and junctions",
+          "finding": "The Mazapil relief original maps the selected northwest passage along the Las Playas corridor west of the elongated mountain belt. It separately shows the Santa Rosa and Tanquecillos approaches from the eastern hills before the lowland reaches the Durango boundary. The state sheet distinguishes the Gruñidora flood-prone flats, Las Playas, the Nuevo Mercurio / San Marcos setting, Estación Camacho and the farther-north plain. This does not establish that every small tank or nearby flood polygon is crossed by the selected channel.",
+          "sources": [
+            "mx137_mazapil_2010",
+            "mx137_zacatecas_2024"
+          ],
+          "correspondence": "Component geography supported; full route remains pending at the lower connector.",
+          "mapped_component_names": [
+            "Las Playas"
+          ]
+        },
+        {
+          "fragments": [
+            10370
+          ],
+          "component_scope": "Bajío El Barreal / Cuenca El Pajonal lower connector",
+          "finding": "The final northwest-to-west selected approach traverses the broad flat country east of Laguna La Mancha. San Juan de Guadalupe's municipal original maps the lake and eastern plain but does not provide a continuous eastern feeder for this approach. The more detailed Estación Symon G13-D68 original labels Bajío El Barreal, Llanos El Barreal and Cuenca El Pajonal and depicts isolated intermittent channels, numerous small tanks and the lake. It does not establish the selected through-going surface connector across that plain. Roads, tracks, geological contacts, a common plain and modeled connectivity are not used as substitute channel evidence.",
+          "sources": [
+            "mx137_sanjuan_2010",
+            "mx137_symon_2020",
+            "mx137_zacatecas_2024"
+          ],
+          "correspondence": "material_connector_unresolved",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10370
+          ],
+          "component_scope": "Actual Laguna La Mancha terminal setting",
+          "finding": "The actual selected endpoint setting is the mapped La Mancha waterbody beside San Antonio de la Laguna, northeast of San Juan de Guadalupe. INEGI's municipal hydrography table classifies La Mancha as intermittent; the state map uses intermittent-waterbody symbology. The original 1:50,000 SGM sheet prints Laguna La Mancha and shows the lake with small tanks along its southern side, distinct from surrounding ephemeral stream ends. The SGM inventory prose describes lacustrine silts, clays and fine sands there. This establishes the endpoint's geographic setting, without proving a continuous hydrologic link from all upstream selected components.",
+          "sources": [
+            "mx137_sanjuan_2010",
+            "mx137_zacatecas_2024",
+            "mx137_symon_2020",
+            "mx137_sgm_inventory_segment"
+          ],
+          "correspondence": "Component geography supported; full route remains pending at the lower connector.",
+          "mapped_component_name": "Laguna La Mancha"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61555575",
+      "source_keys": [
+        "r137-ign250k-yaminue-nahuelniyeu",
+        "r137-codema2007-plan2008"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14558
+          ],
+          "component_scope": "Extreme headward upland feeder and its junction with the Yaminué canyon drainage",
+          "finding": "The southern selected setting is on the Somuncurá upland northwest of Puesto Buñuelo. The readable detailed original depicts an unnamed dashed/intermittent southeast feeder running northwest on the southwest side of Cerro León, passing south of Laguna Mata Niyeu and joining the drainage in Cañadón de Yaminué. A separate southerly headwater arm approaches from the Cerro La Chara area. This is the selected southeast approach, not the separate southerly arm or a traversal of Laguna Mata Niyeu.",
+          "sources": [
+            "r137-ign250k-yaminue-nahuelniyeu"
+          ],
+          "correspondence": "Established at generalized headwater-corridor and junction scale. The selected start extends a short distance southeast of the printed dashed-channel tip within the same upper corridor; an exact spring, headmost channel tip and bank alignment are not assigned. No intervening material connector is missing.",
+          "lakes_wetlands_reservoirs": "Laguna Mata Niyeu is adjacent to the headward junction area; the selected route is not assigned the lagoon name. No reservoir is depicted.",
+          "mapped_component_names": [
+            null,
+            "Cañadón de Yaminué"
+          ]
+        },
+        {
+          "fragments": [
+            14558
+          ],
+          "component_scope": "Cañadón de Yaminué, Rincón de Yaminué and village reach",
+          "finding": "The original map follows the narrow canyon north out of the upland, through Rincón de Yaminué and the Yaminué settlement, then through the northward channel labeled A° Seco Yaminué. Short side ravines and localized vegetated valley-floor features enter the trunk. The regional plan independently identifies Arroyo Yaminué and a historical hydrometric station at El Rincón Yaminué.",
+          "sources": [
+            "r137-ign250k-yaminue-nahuelniyeu",
+            "r137-codema2007-plan2008"
+          ],
+          "correspondence": "Established through the canyon and settlement corridor. The canyon label and stream label are separately recorded rather than treating every canyon label as a hydronym.",
+          "lakes_wetlands_reservoirs": "Laguna Blanca and Laguna de Méndez are nearby upland context, not selected lake passages. No impoundment or dam is depicted. Historical map dryness and historical station base flow are not equated with present flow along all reaches.",
+          "mapped_component_names": [
+            "Cañadón de Yaminué",
+            "Arroyo Seco Yaminué"
+          ]
+        },
+        {
+          "fragments": [
+            14558
+          ],
+          "component_scope": "Middle Yaminué turn through La Angostura and Cabeza de Vaca",
+          "finding": "The selected mapped stream bends east near the La Angostura southern estancia, then proceeds northeast and north past Cabeza de Vaca. The original labels the continuing northern channel A° Yaminué. Tributary ravines join from the surrounding plateau; the larger Treneta valley lies to the southeast and is not renamed Yaminué.",
+          "sources": [
+            "r137-ign250k-yaminue-nahuelniyeu"
+          ],
+          "correspondence": "Established for the north/east bends and continuous channel corridor.",
+          "lakes_wetlands_reservoirs": "Small wet depressions and valley vegetation occur near the route. No material reservoir or lake crossing interrupts this middle stream.",
+          "mapped_component_names": [
+            "Arroyo Yaminué"
+          ]
+        },
+        {
+          "fragments": [
+            14558
+          ],
+          "component_scope": "RN23 crossing and El Toro wetland-belt connection toward Nahuel Niyeu",
+          "finding": "The Yaminué channel crosses the RN23/rail corridor near La Angostura and Estación Teniente Maza, turns east into the elongated El Toro wetland belt north of the transport corridor, and continues toward the wet hollow at Nahuel Niyeu. The mapped eastward drainage and converging southern channels are visible across this interval; the selected trace is a generalized wetland passage, not a uniformly single open-channel river.",
+          "sources": [
+            "r137-ign250k-yaminue-nahuelniyeu"
+          ],
+          "correspondence": "Established through the wetland/channel complex and the material southern-tributary junction area near Nahuel Niyeu.",
+          "lakes_wetlands_reservoirs": "Laguna El Toro and its elongated wetland belt are material components. No dam or reservoir is shown.",
+          "mapped_component_names": [
+            "Arroyo Yaminué",
+            "Laguna El Toro"
+          ]
+        },
+        {
+          "fragments": [
+            14558
+          ],
+          "component_scope": "Lower Arroyo Nahuel Niyeu through Bajo de Valcheta",
+          "finding": "East of the Nahuel Niyeu settlement and its tributary convergence, the original explicitly labels the east/northeast-running drainage A° Nahuel Niyeu. It follows broad wetland tracts through Bajo de Valcheta and past Estancia La Pampa toward the saline-lagoon area. The printed hydronym belongs to this lower receiving drainage and supports the representative candidate.",
+          "sources": [
+            "r137-ign250k-yaminue-nahuelniyeu"
+          ],
+          "correspondence": "Established for the complete lower wetland/channel corridor.",
+          "lakes_wetlands_reservoirs": "Broad marsh-like/wetland symbols, divided flow traces and small saline depressions characterize the lower route. No reservoir is depicted.",
+          "mapped_component_names": [
+            "Arroyo Nahuel Niyeu"
+          ]
+        },
+        {
+          "fragments": [
+            14558
+          ],
+          "component_scope": "Actual inland terminal in Laguna Tres Picos",
+          "finding": "The selected lower passage approaches the southern side of the crosshatched saline lagoon labeled Lag. Tres Picos and turns north into that lagoon, where the retained endpoint lies. The original also depicts the neighboring Laguna Indio Muerto to the east and the intervening eastward wetland belt. Tres Picos is the selected terminal waterbody; the broader provincial plan groups Yaminué, Treneta and Comicó under the endorheic Laguna Indio Muerto basin, which is basin context and does not relocate the actual selected endpoint to the neighboring lake.",
+          "sources": [
+            "r137-ign250k-yaminue-nahuelniyeu",
+            "r137-codema2007-plan2008"
+          ],
+          "correspondence": "Established at saline-lagoon complex scale. No sea outlet, downstream river continuation, exact lake shoreline or permanently wetted condition is asserted.",
+          "lakes_wetlands_reservoirs": "Natural saline-lagoon/wetland terminal setting, not a reservoir. The river hydronym is not propagated into the lagoon interior.",
+          "mapped_component_names": [
+            "Laguna Tres Picos"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60807451",
+      "source_keys": [
+        "r137-ibge-rn-pb-2015",
+        "r137-ibge-pocinhos-2022",
+        "r137-cprm-solanea-proaluv-2009",
+        "r137-cprm-guarabira-2014",
+        "r137-ibge-canguaretama-2010",
+        "r137-aesa-bacias-pe02"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13809
+          ],
+          "component_scope": "actual selected headward approach",
+          "finding": "The selected southwestern beginning lies north of Pocinhos and follows an unnamed small feeder east and southeast into a mapped impounded-water junction. The Peba-labeled approach arrives separately from the southwest. The selected exit continues east/northeast along the Riacho Catolé corridor and then turns north into the receiving drainage directly labeled Rio Curimataú near the northeastern municipal boundary. The initial feeder and impoundment remain unnamed; neither Peba nor Curimataú is assigned uniformly to the opening.",
+          "sources": [
+            "r137-ibge-pocinhos-2022"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            13809
+          ],
+          "component_scope": "southern sheet-edge waterbody and upper northward continuation",
+          "finding": "The northern continuation is geographically continuous across the Pocinhos and Solânea originals. It enters and leaves the small mapped waterbody immediately south of Sapo, then runs north/northeast past the Sítio Novo, Jacinto and Poço do Novilho settings toward Passagem. The selected course takes the connected northward trunk rather than the separate Remígio/Covão drainage to the east. The small waterbody name is unestablished.",
+          "sources": [
+            "r137-ibge-pocinhos-2022",
+            "r137-cprm-solanea-proaluv-2009"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            13809
+          ],
+          "component_scope": "upper Curimataú and western tributary distinctions",
+          "finding": "The selected route continues north through the Passagem/Mocó and Barra do Urubu setting, past the separately joining Urubu and Bola-side approaches, then follows the northward-to-eastward bend toward São Lourenço. The map distinguishes the Cantinho, da Cruz and Caraibeira approaches on the west and the northern tributary network. These are separate joining components, not interchangeable headwater names for the selected line.",
+          "sources": [
+            "r137-cprm-solanea-proaluv-2009",
+            "r137-ibge-rn-pb-2015"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            13809
+          ],
+          "component_scope": "Cacimba da Várzea reservoir connection",
+          "finding": "After the eastward turn, the selected trunk follows the Cacimba de Dentro–Casserengue boundary corridor into the western arm of the directly labeled Açude Cacimba da Várzea, crosses its connected elongated water body and exits east along the Rio Curimataú. The reservoir name is retained only as a reservoir-component observation. The map also shows numerous separate off-route açudes; their names are not transferred to the selected trunk.",
+          "sources": [
+            "r137-cprm-solanea-proaluv-2009"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            13809
+          ],
+          "component_scope": "middle loop toward Caiçara",
+          "finding": "Downstream of the reservoir the selected connected river corridor continues through the Raposa/Umari and Dona Inês–Bananeiras margin, takes its distinctive northward then southward/eastward loop toward Tapera, and joins the Caiçara approach. Solânea depicts the actual blue stream connectors, separate from its highlighted alluvial deposits, and keeps the Salgado, Dantas and other joining approaches distinct. Guarabira directly labels the receiving channel Rio Curimataú at Caiçara and northward beyond it.",
+          "sources": [
+            "r137-cprm-solanea-proaluv-2009",
+            "r137-cprm-guarabira-2014",
+            "r137-ibge-rn-pb-2015"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            13809
+          ],
+          "component_scope": "Caiçara–Nova Cruz–Pedro Velho receiving trunk",
+          "finding": "The selection follows the named river north beside Caiçara/Logradouro, reaches the Nova Cruz setting and the separate western Calabouço approach, then bends east through the lower valley north of Montanhas toward Pedro Velho. The state original distinguishes this trunk from Pequiri/Piquiri arriving from the northwest and the separate southern Pirari/Espinho-side network. The Canguaretama original supplies the connected lower junction and estuarine approach.",
+          "sources": [
+            "r137-cprm-guarabira-2014",
+            "r137-ibge-rn-pb-2015",
+            "r137-ibge-canguaretama-2010"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            13809
+          ],
+          "component_scope": "actual terminal receiving setting",
+          "finding": "The final selected corridor is the lower Curimataú approaching Canguaretama, turning northeast past the separately joining Outeiro toward broad tidal channels and the Barra do Cunhaú coastal outlet. The original map directly labels Rio Curimataú in this estuarine reach and depicts its connected Atlantic opening. The model’s final eastward render extension ends in the coastal setting south of the mapped opening; it is not asserted to trace every tidal branch, the contemporary sandbar passage or an exact surveyed mouth point. The nearby northern Rio Catu outlet and southern Rio Guaju are distinct waters, not alternate names for this selected terminal.",
+          "sources": [
+            "r137-ibge-rn-pb-2015",
+            "r137-ibge-canguaretama-2010"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            13809
+          ],
+          "component_scope": "supporting regional prose",
+          "finding": "AESA’s actually read basin-characterization prose distinguishes the Curimataú basin from neighboring Jacu, Guaju, Camaratuba and Mamanguape. This is supporting regional context only; the primary original maps supply the selected component and connector correspondence.",
+          "sources": [
+            "r137-aesa-bacias-pe02"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70805944",
+      "publication": "Louisiana Department of Transportation and Development, Calcasieu basin report; full printed title, authorship and edition uninspected",
+      "official_url": "https://www.dotd.louisiana.gov/media/pf2opu2r/calcasieu-basin-report-final-4.pdf",
+      "observed_outcome": "The sole original-PDF web-reader open returned Failed to fetch: (400) OK. No report body or map pixels were acquired.",
+      "outcome_layer": "Web-reader fetch/transport response; independent origin HTTP status and cause unestablished.",
+      "restriction_scope": "Missing report, maps and equivalent copies, figures, formats, catalogue/original/reader/cache/mirror and all acquisition routes paused. No fallback or retry.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional corroboration unavailable; the independently acquired original cartographic views cover every selected component.",
+      "evidence_exclusion": "Search-discovery excerpts and unseen maps are excluded."
+    },
+    {
+      "aw_id": "hydro-system:70805944",
+      "publication": "Louisiana Department of Wildlife and Fisheries, Scenic Rivers Descriptions and Map",
+      "official_url": "https://www.wlf.louisiana.gov/page/scenic-rivers-descriptions-and-map",
+      "observed_outcome": "The sole web-reader open returned (405) Method Not Allowed. No page body or original linked map was acquired.",
+      "outcome_layer": "Web-reader response reporting HTTP 405; independent origin status unestablished.",
+      "restriction_scope": "Missing page/publication, linked map and equivalent copies, formats, catalogue/original/reader/cache/mirror and all acquisition routes paused. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false,
+      "material_effect": "Optional corroboration unavailable; no naming designation or legal status is derived from the failed page.",
+      "evidence_exclusion": "Search-discovery excerpts are excluded."
+    },
+    {
+      "aw_id": "hydro-system:70805944",
+      "publication": "U.S. Army Corps of Engineers, New Orleans District, Calcasieu River & Pass, LA Operations and Maintenance, project page",
+      "official_url": "https://www.mvn.usace.army.mil/About/Projects/Calcasieu-River-Pass-LA/",
+      "observed_outcome": "The sole web-reader open returned (403) Forbidden. No project-page body or original map was acquired.",
+      "outcome_layer": "Web-reader fetch response reporting HTTP 403; direct origin response not independently observed.",
+      "restriction_scope": "Whole project-page publication and linked/equivalent views, figures, formats, catalogue/original/reader/cache/mirror and all acquisition routes stopped. No retry or alternate recovery. This is not an agency-wide exclusion.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_403_denial",
+      "material_gap": false,
+      "material_effect": "Optional supporting prose unavailable; primary cartography independently establishes the lake, river, ship-channel and coastal passage.",
+      "evidence_exclusion": "Discovery excerpts are excluded from substantive evidence. No channel dimensions, project operational facts or saltwater-barrier claim is taken from this failed page."
+    },
+    {
+      "aw_id": "hydro-system:70851521",
+      "publication": "INEGI, Síntesis geográfica de Zacatecas (1981), part 1",
+      "official_url": "https://internet.contenidos.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/historicos/2104/702825220686/702825220686_1.pdf",
+      "observed_outcome": "The sole web-reader open reported (502) Bad Gateway. No source body or original map pixels were acquired.",
+      "outcome_layer": "Web-reader fetch/transport result; independent origin-server HTTP status unestablished.",
+      "restriction_scope": "Missing publication and equivalent copies, chapters, maps, figures, formats, original/reader/cache/catalogue/mirror and other acquisition routes paused. No retry or alternate recovery.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_effect": "Optional regional synthesis unavailable. Search bibliography is discovery only. The primary pending status is caused by the independently observed connector-evidence gap, not by converting this optional availability stop into an access-pending count."
+    },
+    {
+      "aw_id": "hydro-system:70851521",
+      "publication": "Carta Geológico-Minera Estación Symon G13-D68, Durango y Zacatecas, 1:50,000, first edition March 2020",
+      "official_url": "https://mapserver.sgm.gob.mx/Cartas_Online/geologia/1205_G13-D68_GM.pdf",
+      "observed_outcome": "Original HTTP 200 map read successfully. The inspected map does not establish the selected through-going lower connector across Bajío El Barreal / Cuenca El Pajonal into Laguna La Mancha.",
+      "outcome_layer": "Cartographic content limitation, not HTTP or transport failure.",
+      "restriction_scope": "Only the unestablished selected connector. Mapped terrain, local stream ends, tanks and lake remain usable. No publication-wide access restriction is inferred.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "material_component_coverage_limit",
+      "material_effect": "Actual unresolved connector prevents completed representative identity or completed naming-scope hold."
+    },
+    {
+      "aw_id": "hydro-system:61555575",
+      "publication": "Hoja Geológica 4166-I Valcheta (2001), SEGEMAR Boletín 310; catalogue identity from discovery, original front matter uninspected",
+      "official_url": "https://repositorio.segemar.gob.ar/handle/308849217/190",
+      "observed_outcome": "The sole catalogue web-reader open returned (400) Timeout fetching. No catalogue body, original report or map was acquired.",
+      "outcome_layer": "Web-reader fetch/transport outcome; origin HTTP status unestablished.",
+      "restriction_scope": "Missing publication, report/maps and all equivalent copies, formats, figures, catalogue/original/reader/cache/mirror and other acquisition routes paused for availability. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_timeout",
+      "material_gap": false,
+      "material_effect": "Optional northern-corridor corroboration unavailable; independently acquired IGN mapping supplies the material corridor.",
+      "evidence_boundary": "Discovery bibliography only. Search snippets and unseen maps excluded."
+    },
+    {
+      "aw_id": "hydro-system:61555575",
+      "publication": "IGN historical Mosaico cartas 1:100.000, selected extreme Yaminué headward extent",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "The sole original bounded view completed HTTP200, image/png. Visual inspection found an entirely white image without cartography.",
+      "outcome_layer": "Successful original HTTP response with absent cartographic content in the inspected extent.",
+      "restriction_scope": "The absent 1:100,000 headward content supplies no evidence and was not repeated. This is not a publication-wide denial or a restriction on the separately successful 1:250,000 content.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_cartographic_coverage_absence",
+      "material_gap": false,
+      "material_effect": "No detailed 100k evidence was added. The readable 250k original depicts the same upper intermittent feeder and its junction at ordinary corridor scale."
+    },
+    {
+      "aw_id": "hydro-system:61555575",
+      "publication": "Bueno, J. L., INTA repository item 20.500.12123/5081; work identified by original filename INTA_CRPatagoniaNorte_EEAValleInferior_Bueno_JL_gestion_asociada_análisis_algunas_características_trabajo; full title/date unestablished",
+      "official_url": "https://repositorio.inta.gob.ar/xmlui/bitstream/handle/20.500.12123/5081/INTA_CRPatagoniaNorte_EEAValleInferior_Bueno_JL_gestion_asociada_an%C3%A1lisis_algunas_caracter%C3%ADsticas_trabajo?isAllowed=y&sequence=1",
+      "observed_outcome": "The sole original-file web-reader open returned (400) Timeout fetching. No report body or original figures were acquired.",
+      "outcome_layer": "Web-reader fetch/transport outcome; origin HTTP status unestablished.",
+      "restriction_scope": "Missing publication, report/maps and all equivalent copies, formats, figures, catalogue/original/reader/cache/mirror and other acquisition routes paused for availability. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_timeout",
+      "material_gap": false,
+      "material_effect": "Optional prose corroboration unavailable; no geographic gap is created in independently read original cartography.",
+      "evidence_boundary": "Discovery excerpts excluded from substantive evidence."
+    },
+    {
+      "aw_id": "hydro-system:60807451",
+      "publication": "IBGE2020 Pocinhos municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PB/pocinhos/",
+      "observed_outcome": "Sole web-reader open returned Internal Error with “URL ... is not accessible via this tool.” No directory body or origin HTTP status was exposed.",
+      "outcome_layer": "Web-reader availability response; origin HTTP status unestablished.",
+      "restriction_scope": "Exact directory and equivalent directory-acquisition routes paused; no retry. This is not an access denial of independently issued municipal maps.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60807451",
+      "publication": "Carta Geológica São José do Mipibu SB.25-Y-A-II,2014",
+      "official_url": "https://rigeo.sgb.gov.br/jspui/bitstream/doc/17627/8/carta_geologica_sjose_mipibu.pdf",
+      "observed_outcome": "The sole original-file request completed HTTP200, content-type text/html, instead of a PDF. No original map pixels were acquired.",
+      "outcome_layer": "Observed origin HTTP200 response with wrong body format; availability failure, not HTTP401/403.",
+      "restriction_scope": "Missing map publication and equivalent map/copy/format/catalogue/reader/cache/mirror acquisitions remain paused. No retry or alternate route.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60807451",
+      "publication": "Geologia da folha Solânea SB.25-Y-A-IV,2008, named carta_geologica_solanea.pdf map download",
+      "official_url": "https://rigeo.sgb.gov.br/items/9635005c-84bf-4dc3-bbf3-49a54cec9215",
+      "observed_outcome": "Catalogue opened normally. The sole click of its named map-download link returned Internal Error without an exposed HTTP status, failure reason or map body.",
+      "outcome_layer": "Web-reader/click availability failure; origin HTTP status unknown.",
+      "restriction_scope": "Missing geological-map publication and equivalent routes paused; no retry or alternate. Independently issued Solânea PROALUV2009 was separately discovered and acquired normally.",
+      "earlier_lawful_prose_exception": "Catalogue bibliographic metadata was read before failure; no geological-report body or map geography from this2008 publication is used.",
+      "material_gap": false,
+      "requested_resource": "Catalogue link labeled Mapa: carta_geologica_solanea.pdf; the failed response did not expose its resolved target URL."
+    },
+    {
+      "aw_id": "hydro-system:60807451",
+      "publication": "IBGE2020 Canguaretama municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RN/canguaretama/",
+      "observed_outcome": "Sole web-reader open returned Internal Error. No directory body, HTTP status or security/authorization reason was exposed.",
+      "outcome_layer": "Web-reader availability response; origin HTTP status unknown.",
+      "restriction_scope": "Exact directory and equivalent directory-acquisition routes paused, without retry. The separately issued Canguaretama2010 map was independently discovered and acquired normally.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60807451",
+      "publication": "Projeto cadastro de fontes de abastecimento por água subterrânea, estado de Paraíba: diagnóstico do município de Pocinhos,CPRM2005",
+      "official_url": "https://rigeo.sgb.gov.br/items/7a31bac6-61df-43b1-9387-6d76d97ce16f",
+      "observed_outcome": "Sole web-reader catalogue open returned Cache miss. No report body, original figure pixels or HTTP status acquired.",
+      "outcome_layer": "Web-reader availability failure; origin HTTP status unknown.",
+      "restriction_scope": "Report publication and equivalent catalogue/body/figure/reader/original/cache/mirror acquisitions paused; no retry or alternate route.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60807451",
+      "publication": "Pocinhos-PB, Mapa Municipal Estatístico,2512002,Malha Territorial2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2022/mapas_municipais_estatisticos/PB/pocinhos_2512002/pocinhos_2512002_mme_a0.pdf",
+      "observed_outcome": "Original PDF acquired HTTP200 and visually read. Printed notice states exclusive intended use for IBGE statistical collection/tabulation, warns against other purposes, disclaims responsibility and reserves reproduction rights; image credit includes Planet Labs2022 all rights reserved.",
+      "outcome_layer": "Printed source-use/fitness and reproduction notice, not access or availability failure.",
+      "restriction_scope": "Intended-use and redistribution caveat for publication/equivalent reproductions. Bounded factual reading retained; no officials-only or inspection-access ban inferred. No originals, crops or derivative map are redistributed.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "publication_use_notice"
+    },
+    {
+      "aw_id": "hydro-system:60807451",
+      "publication": "Canguaretama-RN,Mapa Municipal Estatístico,2402204,Malha2010,edição19 July2011",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/rn/canguaretama_v2.pdf",
+      "observed_outcome": "Original PDF acquired HTTP200 and visually read. Margin identifies semi-automatic composition with incomplete integration/completeness and reserves IBGE reproduction rights.",
+      "outcome_layer": "Printed cartographic-quality and reproduction notice, not access or availability failure.",
+      "restriction_scope": "Historical/generalized use and redistribution caveat for publication and equivalents. No map/crop redistribution and no access stop.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap": false,
+      "limitation_kind": "publication_use_notice"
+    }
+  ]
+}
