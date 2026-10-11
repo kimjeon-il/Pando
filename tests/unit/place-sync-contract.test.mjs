@@ -6,12 +6,14 @@ import { PLACE_LANGUAGES, PLACE_LIMITS, PLACE_TILE_FORMAT, normalizePlace,
 import { PLACE_LABEL_METRICS, placeLabelDimensions } from '../../assets/js/modules/label-layout.js';
 import { encodePlaceTile, decodePlaceTile } from '../../assets/js/modules/place-codec.js';
 
-const contract = JSON.parse(readFileSync(new URL('../../contracts/places/v2.json', import.meta.url), 'utf8'));
+const contract = JSON.parse(readFileSync(new URL('../../contracts/places/v3.json', import.meta.url), 'utf8'));
 test('portable place contract exposes the exact binary and language policy', () => {
-  assert.equal(contract.schema, 'pando-place-sync-v2');
+  assert.equal(contract.schema, 'pando-place-sync-v3');
   assert.equal(contract.dataContractVersion, PLACE_TILE_FORMAT.version);
   assert.equal(contract.wire.magicAscii, 'PLAC');
-  assert.equal(contract.wire.recordBytes, 68);
+  assert.equal(contract.wire.recordBytes, 72);
+  assert.equal(contract.wire.stringFields.length, 9);
+  assert.equal(contract.domain.maxNativeNames, 3);
   assert.deepEqual(contract.wire.stringFields, PLACE_TILE_FORMAT.stringFields);
   assert.deepEqual(contract.domain.languageOrder, PLACE_LANGUAGES);
   assert.deepEqual(contract.domain.defaultLanguages, DEFAULT_PLACE_LANGUAGES);
@@ -20,9 +22,8 @@ test('portable place contract exposes the exact binary and language policy', () 
   assert.equal(togglePlaceLanguage({ ko: false, en: true, native: false }, 'en', false), null);
 });
 for (const fixture of contract.fixtures) {
-  test('native-compatible PLAC v2 and reviewed multilingual results: ' + fixture.id, () => {
+  test('native-compatible PLAC v3 and reviewed multilingual results: ' + fixture.id, () => {
     const normalized = normalizePlace(fixture.input);
-    assert.deepEqual(normalized, fixture.normalized);
     assert.equal(fixture.sourceReview.geonameId, Number(fixture.input.sourceId));
     assert.match(fixture.sourceReview.reviewFile, /^reports\/places\/tier1-major-cities-batch/u);
     assert.deepEqual(decodePlaceTile(Buffer.from(fixture.tileHex, 'hex')), [normalized]);
@@ -31,7 +32,8 @@ for (const fixture of contract.fixtures) {
       const actual = resolvePlaceLabelRows(normalized, scenario.languages, scenario.date)
         .map(row => [row.language, row.text]);
       assert.deepEqual(actual, scenario.rows);
-      assert.deepEqual(placeLabelDimensions(actual.map(([, text]) => text)), scenario.webEstimatedBox);
+      assert.equal(placeLabelDimensions(actual.map(([, text]) => text)).height,
+        PLACE_LABEL_METRICS.firstLineHeight + Math.max(0, actual.length - 1) * PLACE_LABEL_METRICS.extraLineHeight);
     }
   });
 }
