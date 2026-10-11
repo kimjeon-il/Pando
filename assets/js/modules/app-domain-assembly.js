@@ -5,7 +5,6 @@ import { freezeEditingGeometry } from './editing-render-packet.js';
 import { boundaryTouchesGeometry } from './territorial-interaction-policy.js';
 import { resolveTerritorialColor } from './color-adapter.js';
 import { prepareProjectForActivation } from './project-state.js';
-import { createStaticTerritorialSnapshot } from './territorial-entity-store.js';
 /** DomainAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -100,11 +99,11 @@ export function createDomainAssembly() {
       saveState: dependencies.projectSession.saveState,
       prepareEmpty: async () => {
         const countryIds = dependencies.builtinCountries.canonicalCountryStore?.ids?.() || [];
-        const [countries] = await Promise.all([
-          (0, dependencies.builtinCountries.materializePristineCountries)(),
+        const [baseline] = await Promise.all([
+          dependencies.builtinBaseline.prepareProjectBaseline(),
           dependencies.rendering.gpuMapRenderer.ensureBuiltinMeshBaseline(countryIds),
         ]);
-        return { countries, territorial: createStaticTerritorialSnapshot(countries.features), builtinMeshReady: true };
+        return { project: baseline.project, builtinMeshReady: true };
       },
       prepareRestore: async project => prepareProjectForActivation(project,
         project.format === 'pandolab-autosave-delta' ? await dependencies.builtinBaseline.prepareProjectBaseline() : {}),
@@ -1177,6 +1176,7 @@ export function createDomainAssembly() {
     }
     const changed = territorialEntityStore.setTimelineCursor(month);
     if (!changed) return false;
+    dependencies.rendering.gpuMapRenderer.invalidateCountryPreview();
     selectionDomain?.prune(null, { reason: 'timeline-cursor' });
     renderingDomain?.invalidateProject?.('timeline-cursor');
     return true;

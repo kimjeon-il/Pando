@@ -20,6 +20,10 @@ export function createProjectSnapshots() {
     geometrySnapshots.clear();
     const state = dependencies.projectState.state;
     state.autosaveMode = project?.territorialEntities && project.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET ? 'full' : 'delta';
+    if (state.autosaveMode === 'full') {
+      state.historyDirtyEntityIds = new Set();
+      return;
+    }
     const base = (0, dependencies.builtinCountries.materializePristineCountriesSync)().features;
     const byId = new Map(dependencies.builtinBaseline.projectBaseline.baseEntities.map(feature => [String(feature.id), feature]));
     const current = dependencies.territorialModel.entityRepository.list();
