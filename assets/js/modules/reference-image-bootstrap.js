@@ -39,13 +39,13 @@ function moveControlsToMapUi() {
   if (panel) overlayLayer.appendChild(panel);
 }
 
-export async function installReferenceImageFeature({ revision = '', workspaceSurfaces, confirm, getGeneration, isBlocked } = {}) {
+export async function installReferenceImageFeature({ revision = '', workspaceSurfaces, confirm, getGeneration, isBlocked, searchPlaces = null } = {}) {
   for (const path of STYLE_PATHS) ensureStylesheet(path, revision);
   const controllerUrl = new URL('./reference-image-controller.js', import.meta.url);
   if (revision) controllerUrl.searchParams.set('v', revision);
   const { installReferenceImageController } = await import(controllerUrl.href);
   let lineRefiner, liveWire;
-  const controller = installReferenceImageController({ workspaceSurfaces, confirm, getGeneration, isBlocked,
+  const controller = installReferenceImageController({ workspaceSurfaces, confirm, getGeneration, isBlocked, searchPlaces,
     cancelTools: () => { if (lineRefiner?.active()) lineRefiner.cancel(); if (liveWire?.active()) liveWire.cancel(); },
   });
   moveControlsToMapUi();
