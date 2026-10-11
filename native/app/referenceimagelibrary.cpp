@@ -61,6 +61,44 @@ ReferenceWarpMode warpMode(const QString &mode)
     if (mode == "tps") return ReferenceWarpMode::ThinPlateSpline;
     return ReferenceWarpMode::Auto;
 }
+
+QVariantList normalizedLinearConstraints(const QVariantList &values)
+{
+    QVariantList result;QSet<QString> ids;
+    const QSet<QString> kinds{QStringLiteral("coastline"),QStringLiteral("river"),QStringLiteral("border"),QStringLiteral("other")};
+    for(const auto &value:values) {
+        const auto input=value.toMap();const auto id=input.value("id").toString().trimmed();
+        if(id.isEmpty()||ids.contains(id))continue;
+        const auto normalizePolyline=[](const QVariant &raw,bool geographic)->QVariantList {
+            QVariantList points;
+            for(const auto &pointValue:raw.toList()) {
+                const auto pair=pointValue.toList();if(pair.size()<2)continue;
+                bool xok=false,yok=false;const double x=pair[0].toDouble(&xok),y=pair[1].toDouble(&yok);
+                if(!xok||!yok||!std::isfinite(x)||!std::isfinite(y))continue;
+                if(geographic) {
+                    if(x< -180||x>180||y< -90||y>90)continue;
+                } else if(x<0||x>1||y<0||y>1)continue;
+                points.push_back(QVariantList{x,y});
+            }
+            return points.size()>=2?points:QVariantList{};
+        };
+        const auto image=normalizePolyline(input.value("image"),false);
+        const auto coordinates=normalizePolyline(input.contains("coordinates")?input.value("coordinates"):input.value("coordinate"),true);
+        if(image.size()<2||coordinates.size()<2)continue;
+        bool weightOk=false;double weight=input.value("weight",1.).toDouble(&weightOk);
+        if(!weightOk||!std::isfinite(weight))weight=1.;
+        QVariantMap normalized{
+            {"id",id},
+            {"kind",kinds.contains(input.value("kind").toString())?input.value("kind").toString():QStringLiteral("other")},
+            {"image",image},
+            {"coordinates",coordinates},
+            {"weight",std::clamp(weight,.25,3.)},
+            {"enabled",input.value("enabled",true).toBool()}
+        };
+        ids.insert(id);result.push_back(normalized);
+    }
+    return result;
+}
 }
 
 ReferenceImageLibrary::ReferenceImageLibrary(QObject *parent) : QObject(parent), imageModel_(this)
@@ -84,7 +122,7 @@ QVariantMap ReferenceImageLibrary::variant(const Record &r, const QString &root)
     return {{"id",r.id},{"name",r.name},{"source",QUrl::fromLocalFile(root+"/"+r.fileName)},
         {"visible",r.visible},{"locked",r.locked},{"opacity",r.opacity},{"x",r.x},{"y",r.y},
         {"width",r.width},{"height",r.height},{"rotation",r.rotation},{"flipX",r.flipX},{"flipY",r.flipY},
-        {"blend",r.blend},{"warpMode",r.warpMode},{"controlPoints",r.controlPoints},{"geographicPoints",r.geographicPoints},{"mapQuad",r.mapQuad},{"anchor",r.anchor.isEmpty()?QVariant{}:QVariant(r.anchor)},{"cornerPinEnabled",r.cornerPinEnabled}};
+        {"blend",r.blend},{"warpMode",r.warpMode},{"controlPoints",r.controlPoints},{"geographicPoints",r.geographicPoints},{"mapQuad",r.mapQuad},{"linearConstraints",r.linearConstraints},{"anchor",r.anchor.isEmpty()?QVariant{}:QVariant(r.anchor)},{"cornerPinEnabled",r.cornerPinEnabled}};
 }
 QVariantList ReferenceImageLibrary::images() const
 {
@@ -105,7 +143,7 @@ QJsonObject ReferenceImageLibrary::json(const Record &r)
     return {{"id",r.id},{"name",r.name},{"fileName",r.fileName},{"visible",r.visible},{"locked",r.locked},
         {"opacity",r.opacity},{"x",r.x},{"y",r.y},{"width",r.width},{"height",r.height},{"rotation",r.rotation},
         {"flipX",r.flipX},{"flipY",r.flipY},{"blend",r.blend},{"warpMode",r.warpMode},
-        {"controlPoints",QJsonArray::fromVariantList(r.controlPoints)},{"geographicPoints",QJsonArray::fromVariantList(r.geographicPoints)},{"mapQuad",QJsonArray::fromVariantList(r.mapQuad)},{"anchor",QJsonObject::fromVariantMap(r.anchor)},{"cornerPinEnabled",r.cornerPinEnabled}};
+        {"controlPoints",QJsonArray::fromVariantList(r.controlPoints)},{"geographicPoints",QJsonArray::fromVariantList(r.geographicPoints)},{"mapQuad",QJsonArray::fromVariantList(r.mapQuad)},{"linearConstraints",QJsonArray::fromVariantList(r.linearConstraints)},{"anchor",QJsonObject::fromVariantMap(r.anchor)},{"cornerPinEnabled",r.cornerPinEnabled}};
 }
 std::optional<ReferenceImageLibrary::Record> ReferenceImageLibrary::record(const QJsonObject &value)
 {
@@ -113,7 +151,7 @@ std::optional<ReferenceImageLibrary::Record> ReferenceImageLibrary::record(const
     if(r.id.isEmpty()||r.fileName.isEmpty()||QFileInfo(r.fileName).fileName()!=r.fileName)return std::nullopt;
     r.visible=value["visible"].toBool(true);r.locked=value["locked"].toBool();r.opacity=std::clamp(value["opacity"].toDouble(1),0.,1.);
     r.x=value["x"].toDouble();r.y=value["y"].toDouble();r.width=value["width"].toDouble();r.height=value["height"].toDouble();r.rotation=value["rotation"].toDouble();
-    r.flipX=value["flipX"].toBool();r.flipY=value["flipY"].toBool();r.blend=normalizedBlend(value["blend"].toString());r.warpMode=normalizedWarp(value["warpMode"].toString());r.controlPoints=value["controlPoints"].toArray().toVariantList();r.geographicPoints=value["geographicPoints"].toArray().toVariantList();r.mapQuad=value["mapQuad"].toArray().toVariantList();r.anchor=value["anchor"].toObject().toVariantMap();r.cornerPinEnabled=value["cornerPinEnabled"].toBool();return r;
+    r.flipX=value["flipX"].toBool();r.flipY=value["flipY"].toBool();r.blend=normalizedBlend(value["blend"].toString());r.warpMode=normalizedWarp(value["warpMode"].toString());r.controlPoints=value["controlPoints"].toArray().toVariantList();r.geographicPoints=value["geographicPoints"].toArray().toVariantList();r.mapQuad=value["mapQuad"].toArray().toVariantList();r.linearConstraints=normalizedLinearConstraints(value["linearConstraints"].toArray().toVariantList());r.anchor=value["anchor"].toObject().toVariantMap();r.cornerPinEnabled=value["cornerPinEnabled"].toBool();return r;
 }
 
 void ReferenceImageLibrary::fail(const QString &message) { if(lastError_==message)return;lastError_=message;emit lastErrorChanged(); }
@@ -196,6 +234,30 @@ bool ReferenceImageLibrary::setCalibration(const QString &id,const QVariantList 
     item->geographicPoints=points;item->warpMode=normalizedWarp(mode);
     if(removing){auto after=variant(*item,directory());after["controlPoints"]=points;const auto result=referenceWeb("constraintRemoval",{{"before",before},{"after",after}});if(!result["ok"].toBool())return false;item->mapQuad=result["mapQuad"].toList();}
     return setState(std::move(next),true);
+}
+
+bool ReferenceImageLibrary::setLinearConstraints(const QString &id,const QVariantList &constraints)
+{
+    auto next=state_;auto item=std::find_if(next.begin(),next.end(),[&](const auto &r){return r.id==id;});
+    if(item==next.end()||item->locked||gestureBefore_)return false;
+    item->linearConstraints=normalizedLinearConstraints(constraints);
+    return setState(std::move(next),true);
+}
+bool ReferenceImageLibrary::addLinearConstraint(const QString &id,const QVariantMap &constraint)
+{
+    const auto item=find(id);if(!item||item->locked||gestureBefore_)return false;
+    auto values=item->linearConstraints;values.push_back(constraint);
+    const auto normalized=normalizedLinearConstraints(values);
+    if(normalized.size()!=values.size())return false;
+    return setLinearConstraints(id,normalized);
+}
+bool ReferenceImageLibrary::removeLinearConstraint(const QString &id,const QString &constraintId)
+{
+    const auto item=find(id);if(!item||item->locked||gestureBefore_)return false;
+    auto values=item->linearConstraints;
+    const auto before=values.size();
+    values.erase(std::remove_if(values.begin(),values.end(),[&](const auto &value){return value.toMap().value("id").toString()==constraintId;}),values.end());
+    return values.size()!=before&&setLinearConstraints(id,values);
 }
 
 bool ReferenceImageLibrary::previewAutoGeoref(const QVariantList &seeds)
