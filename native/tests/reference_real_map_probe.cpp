@@ -38,7 +38,9 @@ static QVariantMap leaveOneOut(const QVariantList& values,ReferenceWarpMode mode
     QVector<ReferenceControlPoint> points;
     QStringList names;
     for(const auto& value:values){
-        const auto map=value.toMap(),image=map.value("image").toList(),coordinate=map.value("coordinate").toList();
+        const auto map=value.toMap();
+        const auto image=map.value("image").toList();
+        const auto coordinate=map.value("coordinate").toList();
         if(image.size()!=2||coordinate.size()!=2)continue;
         points.push_back({QPointF(image[0].toDouble(),image[1].toDouble()),
                           QPointF(coordinate[0].toDouble(),coordinate[1].toDouble())});
