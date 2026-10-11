@@ -210,3 +210,28 @@ test('automatic georeferencing action is disabled while analysis is running or t
   });
   assert.match(locked, /data-ref-action="auto-georef" disabled>자동 맞춤<\/button>/);
 });
+
+
+test('OCR automatic georeferencing preview identifies the method and place matching counts', () => {
+  const markup = referenceImageEditorMarkup({
+    ...options,
+    record: record({
+      autoGeorefPreview: {
+        ok: true,
+        source: 'place-ocr',
+        ocr: { detections: [{ text: 'Berlin' }, { text: 'Prag' }, { text: 'Wien' }] },
+        matching: { matchCount: 2 },
+        georef: {
+          inlierCount: 2,
+          rejectedCount: 0,
+          diagnostics: { rmsMeters: 1800 },
+        },
+      },
+    }),
+  });
+  assert.match(markup, /방식<\/small><strong>OCR 도시명<\/strong>/);
+  assert.match(markup, /인식 문자<\/small><strong>3<\/strong>/);
+  assert.match(markup, /지명 매칭<\/small><strong>2<\/strong>/);
+  assert.match(markup, /RMS<\/small><strong>1\.8 km<\/strong>/);
+  assert.match(markup, /data-ref-action="apply-auto-georef"/);
+});
