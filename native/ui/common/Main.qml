@@ -68,7 +68,7 @@ ApplicationWindow {
                     if (!timelineControls.editing) return
                     timelineMonthInput.forceActiveFocus()
                     timelineMonthInput.selectAll()
-                    if (editor.mobileMode) Qt.inputMethod.show()
+                    if (editor.mobileMode && Qt.platform.os === "android") Qt.inputMethod.show()
                 })
             }
             function cancelEdit(restoreFocus) {
