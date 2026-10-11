@@ -184,17 +184,17 @@ void MapSceneNode::sync(const std::shared_ptr<const RenderScene>& scene,
     const bool compatibleWorld = scene && scene->worldBase && scene->worldBase->mesh;
     if (!compatibleWorld || (boundaryFallbackBase_ &&
         (boundaryFallbackBase_->ranges != scene->worldBase->ranges ||
-         boundaryFallbackGeometryRevision_ != scene->revisions.geometry ||
+         boundaryFallbackDocumentRevision_ != scene->revisions.document ||
          boundaryFallbackPresentationRevision_ != scene->revisions.presentation)))
         boundaryFallbackBase_.reset();
     if (!boundaryFallbackBase_ && compatibleWorld && previousScene &&
         previousScene->worldBase && previousScene->worldBase->mesh &&
         previousScene->worldBase != scene->worldBase &&
         previousScene->worldBase->ranges == scene->worldBase->ranges &&
-        previousScene->revisions.geometry == scene->revisions.geometry &&
+        previousScene->revisions.document == scene->revisions.document &&
         previousScene->revisions.presentation == scene->revisions.presentation) {
         boundaryFallbackBase_ = previousScene->worldBase;
-        boundaryFallbackGeometryRevision_ = scene->revisions.geometry;
+        boundaryFallbackDocumentRevision_ = scene->revisions.document;
         boundaryFallbackPresentationRevision_ = scene->revisions.presentation;
     }
     bool pendingWorldBoundaries = false;
