@@ -7,6 +7,7 @@
 #include <limits>
 #include <optional>
 #include <QLineF>
+#include <QPoint>
 #include <QSet>
 #include <QVector>
 
@@ -190,7 +191,7 @@ ReferenceAutoGeorefResult solveReferenceAutoGeoref(const QImage& source,const QV
         Qt::KeepAspectRatio,Qt::SmoothTransformation).convertToFormat(QImage::Format_Grayscale8);
     const int searchRadius=std::clamp(int(std::round(std::max(image.width(),image.height())*.018)),12,48);
 
-    QVector<Candidate> detected;detected.reserve(std::min(96,seeds.size()));
+    QVector<Candidate> detected;detected.reserve(std::min(96,int(seeds.size())));
     for(const auto& value:seeds){if(auto candidate=detect(image,value.toMap(),searchRadius))detected.push_back(*candidate);}
     std::sort(detected.begin(),detected.end(),[](const auto& a,const auto& b){return a.confidence>b.confidence||(a.confidence==b.confidence&&a.id<b.id);});
     QVector<Candidate> candidates;for(const auto& item:detected){
@@ -199,9 +200,9 @@ ReferenceAutoGeorefResult solveReferenceAutoGeoref(const QImage& source,const QV
     }
     output.candidateCount=candidates.size();if(candidates.size()<2){output.reason="insufficient-symbol-candidates";return output;}
 
-    const auto mode=resolvedMode(requestedMode,candidates.size());const int required=minimum(mode);output.mode=modeName(mode);
+    const int candidateCount=int(candidates.size());const auto mode=resolvedMode(requestedMode,candidateCount);const int required=minimum(mode);output.mode=modeName(mode);
     if(candidates.size()<required){output.reason="insufficient-auto-georef-candidates";return output;}
-    const double threshold=25000.;const int requiredInliers=std::min(candidates.size(),std::max(required,int(std::ceil(candidates.size()*.35))));
+    const double threshold=25000.;const int requiredInliers=std::min(candidateCount,std::max(required,int(std::ceil(candidateCount*.35))));
     Score best;bool hasBest=false;quint32 random=0x6d2b79f5u;QSet<QString> seen;
     for(int trial=0;trial<512;++trial){
         const auto indices=sampleIndices(candidates.size(),required,random);QString key;for(int index:indices)key+=QString::number(index)+",";
