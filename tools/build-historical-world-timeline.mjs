@@ -55,7 +55,7 @@ export function buildHistoricalWorldPublication({ policyFile = fileURLToPath(new
   const spec = (file, decodedBytes = files.get(file).length) => ({ url: `assets/data/historical-world/generated/v1/${file}`,
     encoding: file.endsWith('.gz') ? 'gzip' : 'identity', compressedBytes: files.get(file).length, decodedBytes, sha256: sha(files.get(file)) });
   files.set('manifest.json', bytes({ schemaVersion: 1, sourceMonth: coverageReport.sourceMonth,
-    inputHashes: { entities: sha(bytes(entities)), currentWorld: sha(bytes(currentWorld)), snapshot: sha(snapshotBytes), policy: sha(policyBytes) },
+    inputHashes: { entities: sha(bytes(entities)), currentWorld: sha(bytes(currentWorld)), snapshot: sha(bytes(currentSnapshot)), policy: sha(bytes(policy)) },
     sourceIdentities, project: spec('world-project.json.gz', projectBytes.length), coverageReport: spec('coverage-report.json'), expectedTrace: spec('expected-trace.json') }));
   return files;
 }
