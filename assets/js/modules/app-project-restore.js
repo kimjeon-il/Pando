@@ -164,9 +164,8 @@ export function createProjectRestore() {
   }
 
   async function resetProjectInPlace({ projectGeneration = null, skipRenderReset = false, prepared = null } = {}) {
-    const preparedCountries = prepared?.countries || prepared;
-    if (!preparedCountries?.features || !prepared.territorial) throw new Error('내장 기본 프로젝트 자료가 준비되지 않았습니다.');
-    dependencies.territorialModel.entityStore.restoreProject(prepared.territorial);
+    if (!prepared?.project) throw new Error('내장 기본 프로젝트 자료가 준비되지 않았습니다.');
+    dependencies.territorialModel.entityStore.restoreProject(prepared.project);
     closeConfirmModal();
     (0, dependencies.workspaceUiA.closeMobileSheets)();
     const nextProjectGeneration = skipRenderReset && Number.isFinite(projectGeneration)
@@ -220,19 +219,11 @@ export function createProjectRestore() {
 
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     dependencies.projectState.state.countryIndex.clear();
-    const restoredExactly = dependencies.builtinCountries.canonicalCountryStore
-      ? dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).length === dependencies.builtinCountries.canonicalCountryStore.ids().length
-        && dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }).every(feature => dependencies.builtinCountries.canonicalCountryStore.geometryEquals(String(feature.id), feature.geometry))
-      : true;
-    if (!restoredExactly) {
-      throw new Error('내장 원본 국경 복원 검증에 실패했습니다.');
-    }
-    (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
     (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) }));
     dependencies.projectState.state.auditPreviewCountries = null;
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.layers.markLayerTreeDirty)();
-    (0, dependencies.projectSnapshots.configureDatasetSession)(null);
+    (0, dependencies.projectSnapshots.configureDatasetSession)(prepared.project);
     (0, dependencies.countryValidation.refreshCountryCentroids)();
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
