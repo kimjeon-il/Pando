@@ -1,0 +1,570 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r125",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r124",
+    "commit": "bf76b2fdddd18e1b08e0c17cf796d97b83f477c0",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r124/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:60441146",
+    "hydro-system:80040607",
+    "hydro-system:90099199",
+    "hydro-system:61518032"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:60441146",
+      "category": "river_group",
+      "system_id": "60441146",
+      "original_queue_rank": 300,
+      "baseline_logical_fid": 3410,
+      "geometry_fids": [
+        11674,
+        11675,
+        11676,
+        11677,
+        11678
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -50.960417,
+        -1.39375,
+        -49.752083,
+        -0.640641
+      ],
+      "rendered_mainstem_length_km": 223.302,
+      "rendered_network_length_km": 277.272,
+      "geometry_summary": {
+        "fragment_count": 5,
+        "mainstem_fragment_count": 3,
+        "tributary_fragment_count": 2,
+        "mainstem_bbox": [
+          -50.810417,
+          -1.252083,
+          -49.752083,
+          -0.640641
+        ]
+      },
+      "candidate_name": "Rio Jacaré Grande",
+      "candidate_names": [
+        "Rio Jacaré Grande"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "supported_name_scope": "Rio Jacaré Grande is directly mapped on the broad northern channel. Mapuá and Aramã cover distinct portions of the middle route; lakes, small feeders and southern channel approaches retain their separate or unknown scopes. No uniform name for all five FIDs is established.",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "material_pending_reason": "FID11674’s eastern marsh feeder and continuous connection into the Fundo–Mapuá/Socó lake corridor remain unestablished in acquired primary mapping. Broad wetland location or modeled connectivity does not close that material gap. All other components, their material joining setting and selected terminal have been read.",
+      "naming_scope_hold_reason": null,
+      "region": "Marajó, Pará, Brazil; eastern wetland feeder, Mapuá–Aramã island-channel corridor and Rio Jacaré Grande.",
+      "candidate_name_role": "bounded_component_identity_only; full_system_material_pending",
+      "source_keys": [
+        "IBGE-ANAJAS-2020",
+        "IBGE-BREVES-2020",
+        "IBGE-ANAJAS-2010",
+        "IBGE-BREVES-2007",
+        "IBGE-AFUA-2007",
+        "MAPUA-CREATION-2005"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The object combines an incompletely established eastern wetland/lake feeder with the Mapuá–Aramã corridor, southern island-channel approaches and a northward Rio Jacaré Grande passage. Its modeled sea endpoint is inside the broad river-channel complex beside Ilha das Guaribas. The primary result remains material pending solely for the initial feeder/connector evidence, not for minor geometric offsets or optional source access.",
+      "completion_scope": "All five selected components were considered. Four components and the actual selected terminal have mapped correspondence; the eastern feeder and its continuous connection into the Fundo–Mapuá/Socó lake corridor remain material pending.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_downstream_candidate": "Rio Jacaré Grande",
+        "initial_feeder_name": null,
+        "distinct_middle_components": [
+          "Mapuá",
+          "Aramã"
+        ],
+        "lake_context": [
+          "Lagoa dos Patos",
+          "Lagoa do Socó",
+          "Braço do Socó"
+        ],
+        "southern_channel_context": [
+          "Igarapé Anaticu",
+          "Rio Companhia",
+          "Furo Grande"
+        ],
+        "actual_terminal": "Broad Rio Jacaré Grande channel beside Ilha das Guaribas",
+        "tidal_flow_hierarchy_established": false,
+        "whole_selection_uniform_name_established": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:80040607",
+      "category": "river_group",
+      "system_id": "80040607",
+      "original_queue_rank": 301,
+      "baseline_logical_fid": 868,
+      "geometry_fids": [
+        2357
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -133.410417,
+        68.427083,
+        -130.988356,
+        69.54375
+      ],
+      "rendered_mainstem_length_km": 223.12,
+      "rendered_network_length_km": 223.12,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -133.410417,
+          68.427083,
+          -130.988356,
+          69.54375
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "selected_initial_feeder_name": null,
+        "supported_estuarine_component": "Husky Lakes",
+        "separate_freshwater_lake": "Sitidgi Lake",
+        "separate_outlet_creek": "Sitidgi Creek",
+        "terminal_receiving_context": "Liverpool Bay, connected onward to the Beaufort Sea",
+        "historical_estuarine_component_labels": [
+          "Eskimo Lakes",
+          "Eskimo (Husky) Lakes"
+        ],
+        "study_identifiers_not_hydronyms": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "IF",
+          "OF"
+        ],
+        "nearby_nonselected_river_mouths": [
+          "Miner River",
+          "Kugaluk River",
+          "Anderson River"
+        ],
+        "no_uniform_scalar_assignment": true,
+        "component_scope_limits": [
+          "The initial small feeder is unnamed in the sources read. Neither Sitidgi Creek nor Husky Lakes is propagated upstream onto it.",
+          "Sitidgi Lake is a distinct freshwater lake. Sitidgi Creek names the short outlet link into the estuary rather than the lake or the complete selected route.",
+          "Husky Lakes names an interconnected estuarine system. The historical NLUIS 107B and 107C maps use Eskimo Lakes; 107D prints Eskimo (Husky) Lakes. The independently read 2014 DFO report identifies Husky Lakes and explains the older usage. This is published component usage, not independent registry verification.",
+          "DFO basin labels B1 through B5 and IF/OF are study identifiers for unnamed basins and finger areas, not newly established hydronyms.",
+          "The selected terminal is in the estuary-to-Liverpool Bay opening near the northern end of the outer fingers and northwest of Thumb Island. It is not the mouth of Miner River, Kugaluk River or Anderson River, and does not extend to the open Beaufort Sea coast.",
+          "Inter-basin channels are tidal/estuarine connections. No uniform one-way river flow, exact contemporary bank, chosen channel around each island, surveyed mouth point or legal naming boundary is asserted.",
+          "A compound feeder–Sitidgi–Husky name is not proposed or accepted."
+        ]
+      },
+      "region": "Northwest Territories, Canada; southeast Sitidgi feeder, Sitidgi Lake/Creek, Husky Lakes estuary and Liverpool Bay opening.",
+      "candidate_name_role": "no_supported_whole_route_representative_name; completed_name_scope_hold",
+      "source_keys": [
+        "r125-nluis-aklavik-107b-1976",
+        "r125-nluis-mackenzie-delta-107c-1976",
+        "r125-nluis-stanton-107d-1976",
+        "r125-dfo-roux-3071-2014"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The selected route combines an unnamed feeder, Sitidgi Lake, Sitidgi Creek and the Husky Lakes estuary. Those distinct component names do not establish one representative river name for the entire selection.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The complete selected corridor is readable at ordinary generalized scale: a short unnamed lake-and-stream feeder east of southern Sitidgi Lake enters that lake; the route traverses Sitidgi Lake, exits by Sitidgi Creek into the southern Husky Lakes basin, and proceeds through the five interconnected estuarine basins and their inner- and outer-finger links. The actual terminal lies at the outer-finger opening northwest of Thumb Island into the Liverpool Bay setting. Original NLUIS sheets 107B, 107C and 107D provide the corridor, feeder and channel geography, while DFO Technical Report 3071 independently distinguishes the freshwater lake, creek, five-basin estuary, nearby river mouths and marine connection. No whole-route river name is established.",
+      "supported_name_scope": null,
+      "completion_scope": "The unnamed initial feeder, freshwater lake, named outlet creek, all five estuarine basins and their material links, and the actual Liverpool Bay opening are covered at ordinary corridor scale."
+    },
+    {
+      "aw_id": "hydro-system:90099199",
+      "category": "river_group",
+      "system_id": "90099199",
+      "original_queue_rank": 302,
+      "baseline_logical_fid": 2860,
+      "geometry_fids": [
+        8875
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -50.714481,
+        66.029167,
+        -47.554167,
+        67.010417
+      ],
+      "rendered_mainstem_length_km": 222.862,
+      "rendered_network_length_km": 222.862,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -50.714481,
+          66.029167,
+          -47.554167,
+          67.010417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": null,
+      "geographic_disambiguation": "The selected endpoint belongs to the innermost Kangerlussuaq/Søndre Strømfjord proglacial outlet. Tasersuatsiaq is a nearby lake south of the lower valley, not a selected lake passage or the terminal. The northern Akuliarusiarsuup Kuua valley is junction context and is not an extra selected tributary. No interior ice contour or geological lineament is mistaken for a river trace.",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The original national and Sheet 3 maps account for the inland-ice opening, entire inland and marginal corridor, lower land/valley setting and actual inner-fjord terminal. They do not establish that the complete 222.862 km modeled line is one continuous natural river. The primary prose establishes only bounded lower-reach Qinnguata Kuussua/Watson River context; extending those names over the interior-ice route would exceed the evidence.",
+      "naming_scope_details": {
+        "whole_route_natural_river_continuity_established": false,
+        "whole_route_natural_river_name_established": false,
+        "interior_ice_name": null,
+        "bounded_context_names": [
+          {
+            "name": "Qinnguata Kuussua",
+            "role": "Local lower main-river context in read primary study-location prose; not a full-feature candidate",
+            "source_key": "r125-pain-et-al-2021-prose"
+          },
+          {
+            "name": "Watson River",
+            "role": "Short reach below the Qinnguata Kuussua–Akuliarusiarsuup Kuua confluence near Kangerlussuaq in read primary prose; not a full-feature candidate",
+            "source_key": "r125-pain-et-al-2021-prose"
+          }
+        ],
+        "major_lake_reservoir_passage": "No selected major lake/reservoir passage established. Nearby Tasersuatsiaq is kept separate from the lower valley.",
+        "unknown_or_unmapped_reach_names": null,
+        "registry_status": "unverified"
+      },
+      "region": "Western Greenland; Inland Ice southeast of Kangerlussuaq, western ice-margin/proglacial valley and inner Kangerlussuaq/Søndre Strømfjord.",
+      "candidate_name_role": "no_supported_whole_route_representative_name; completed_name_scope_hold",
+      "source_keys": [
+        "r125-geus-greenland-national-1995-retained",
+        "r125-geus-kangerlussuaq-sheet3-2010",
+        "r125-pain-et-al-2021-prose"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "All of selected FID 8875, including the headward and middle inland-ice corridor, western marginal/land connector, lower valley junction and actual inner-fjord terminal, has geographic coverage at ordinary corridor scale."
+    },
+    {
+      "aw_id": "hydro-system:61518032",
+      "category": "river_group",
+      "system_id": "61518032",
+      "original_queue_rank": 303,
+      "baseline_logical_fid": 3587,
+      "geometry_fids": [
+        14466
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -62.279167,
+        -36.6375,
+        -61.152083,
+        -35.477083
+      ],
+      "rendered_mainstem_length_km": 222.253,
+      "rendered_network_length_km": 222.253,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -62.279167,
+          -36.6375,
+          -61.152083,
+          -35.477083
+        ]
+      },
+      "candidate_name": null,
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "region": "Western Buenos Aires Province, Argentina; Casey–Salazar–Pehuajó–Carlos Casares plain and the separate terminal depression north of Cambaceres.",
+      "candidate_name_role": "no_supported_whole_route_representative_name; completed_name_scope_hold",
+      "candidate_names": [],
+      "source_keys": [
+        "ign-topo250k-r125",
+        "ign-topo100k-r125",
+        "ign-topo500k-r125",
+        "gba-casares-eia"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The full selected plain corridor comprises mapped fields, dunes/interfluves, separate lakes and marsh depressions. Neither a continuous named river nor a whole-route representative hydronym is established; the Canal Mercante crossing is distinct from the terminal depression.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The complete selected Salazar–Pehuajó–Carlos Casares corridor has been read in original IGN cartography. It crosses a low-relief plain with dunes/interfluves, scattered lakes, marshy depressions, roads and railways; it is not established as one continuously named river. The northeastern loop crosses the mapped Canal Mercante corridor near Galo Llorente and ends in a separate unnamed depression in the La Escondida–San Vicente setting, north of Cambaceres. All selected geographic components and the actual terminal are covered. This is a completed naming-scope hold, not an unresolved source-coverage case.",
+      "supported_name_scope": null,
+      "completion_scope": "One full-corridor 1:500,000 overview, five overlapping 1:250,000 views, and two 1:100,000 detail views were acquired normally and read both without and with private selected-route orientation. The detail views show the intervening field/dune ground as well as the distinct depressions at the Guanaco and final Galo Llorente–San Vicente passages. Absence of a single supported hydronym or of one continuously mapped watercourse is not converted into missing source material. The conclusion is bounded geographic/name-scope review, not validation of modeled flow or present-day engineering operations.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "bounded_lake_labels": [
+          "Laguna La Salada",
+          "Laguna La Cautiva"
+        ],
+        "crossed_channel_alignment": "Canal Mercante",
+        "separate_local_urban_drainage_names": [
+          "Canal a Arias",
+          "Canal La Dorita"
+        ],
+        "actual_terminal": "Unnamed wet depression east of La Escondida and north of San Vicente, north of Cambaceres",
+        "terminal_name": null,
+        "current_operating_drainage_configuration_established": false,
+        "component_scope_limits": [
+          "No representative watercourse name is established for the whole selected mainstem. The names of settlements, estancias, individual lakes or nearby channels are not assigned to the selected system.",
+          "Laguna La Salada is a particular mapped lake at Pehuajó. Laguna La Cautiva on the 1:500,000 overview identifies a separate lake setting north of the route near Chiclana–Guanaco; neither name covers the full selected path.",
+          "Canal Mercante is read directly on the 1:250,000 original near Galo Llorente. The selected northeastern loop crosses that alignment and turns south toward its own terminal depression; it does not follow the canal as its representative downstream course.",
+          "The provincial EIA names Canal a Arias, Canal La Dorita and a municipal receiving lake for local urban drainage. That prose does not establish those facilities as names for the selected 222.253-km modeled path.",
+          "The terminal depression has no established hydronym. La Escondida and San Vicente are estancia/place labels, not inferred lake names.",
+          "Model endorheic classification and rendered length remain model metadata. No contemporary hydraulic isolation, permanent water state, operating canal configuration, formal registry status or uniform whole-feature scalar identity is asserted."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:80040607",
+      "hydro-system:90099199",
+      "hydro-system:61518032"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:60441146"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 0,
+    "scope_holds": 3,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 443,
+    "non_pending_records": 389,
+    "source_access_pending": 3,
+    "source_material_pending": 51,
+    "source_any_pending": 54,
+    "scope_holds": 129,
+    "river_groups": 345,
+    "lakes": 98,
+    "unrecorded": 3622,
+    "unrecorded_river_groups": 3110,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "IBGE-ANAJAS-2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/anajas/1500701_MM.pdf"
+    },
+    {
+      "source_key": "IBGE-BREVES-2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/breves/1501808_MM.pdf"
+    },
+    {
+      "source_key": "IBGE-ANAJAS-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pa/anajas_v2.pdf"
+    },
+    {
+      "source_key": "IBGE-BREVES-2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/pa/breves.pdf"
+    },
+    {
+      "source_key": "IBGE-AFUA-2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/pa/afua.pdf"
+    },
+    {
+      "source_key": "MAPUA-CREATION-2005",
+      "official_url": "https://www2.camara.leg.br/legin/fed/decret_sn/2005/decreto-35485-20-maio-2005-536928-publicacaooriginal-28526-pe.html"
+    },
+    {
+      "source_key": "r125-retained-nluis-index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "source_key": "r125-nluis-aklavik-107b-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107b.jpg"
+    },
+    {
+      "source_key": "r125-nluis-mackenzie-delta-107c-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107c.jpg"
+    },
+    {
+      "source_key": "r125-nluis-stanton-107d-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107d.jpg"
+    },
+    {
+      "source_key": "r125-dfo-roux-3071-2014",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/355383.pdf"
+    },
+    {
+      "source_key": "r125-geus-greenland-national-1995-retained",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r125-geus-kangerlussuaq-sheet3-2010",
+      "official_url": "https://doi.org/10.22008/FK2/X9U5BF"
+    },
+    {
+      "source_key": "r125-pain-et-al-2021-prose",
+      "official_url": "https://tc.copernicus.org/articles/15/1627/2021/index.html"
+    },
+    {
+      "source_key": "r125-geus-sheet2-1982-extent-check",
+      "official_url": "https://doi.org/10.22008/FK2/F77JXT"
+    },
+    {
+      "source_key": "ign-topo250k-r125",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-topo100k-r125",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-topo500k-r125",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "gba-casares-eia",
+      "official_url": "https://www.ambiente.gba.gob.ar/ParticipacionCiudadana/EIAS%20-%20Carlos%20Casares.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "bf76b2fdddd18e1b08e0c17cf796d97b83f477c0",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      300,
+      301,
+      302,
+      303
+    ],
+    "next_unrecorded_id": "hydro-system:60944193",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

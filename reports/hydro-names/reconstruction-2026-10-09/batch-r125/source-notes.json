@@ -1,0 +1,770 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r125",
+  "sources": [
+    {
+      "title": "Anajás – PA, Mapa Municipal, 1500701",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Ministério da Economia",
+      "series": "Coleção de Mapas Municipais 2020",
+      "edition": "04/2021",
+      "scale": "graphic bar 0–4000–8000 m; geographic coordinates, SIRGAS 2000",
+      "read_material": "Original one-page PDF, rendered map and printed footer; not search-snippet map evidence.",
+      "map_coverage": "Eastern selected wetland setting, Fundo junction, upper/middle Mapuá corridor and the Aramã/Macacos junction complex. Far eastern selected feeder and its continuous westward connection are not established.",
+      "use_notice": "Printed notice describes a semi-automated compilation from the IBGE Digital Municipal Mesh with updates from multiple sources. Intended exclusively for IBGE statistical collection/tabulation, with disclaimer for other uses; reproduction rights reserved. Used here as a bounded reference-cartography observation, not a hydrological survey, formal name registry, or redistribution permission.",
+      "source_key": "IBGE-ANAJAS-2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/anajas/1500701_MM.pdf"
+    },
+    {
+      "title": "Breves – PA, Mapa Municipal, 1501808",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Ministério da Economia",
+      "series": "Coleção de Mapas Municipais 2020",
+      "edition": "04/2021",
+      "scale": "graphic bar 0–5000–10000 m; geographic coordinates, SIRGAS 2000",
+      "read_material": "Original one-page PDF; route, junction and terminal crops read.",
+      "map_coverage": "Mapuá and Aramã middle route, Rio Jacaré Grande northward passage and actual selected terminal beside Ilha das Guaribas; southwest Igarapé Anaticu/channel approach, Rio Companhia and Furo Grande junctions.",
+      "use_notice": "Printed notice describes a semi-automated compilation from the IBGE Digital Municipal Mesh with updates from multiple sources. Intended exclusively for IBGE statistical collection/tabulation, with disclaimer for other uses; reproduction rights reserved. Used here as a bounded reference-cartography observation, not a hydrological survey, formal name registry, or redistribution permission.",
+      "source_key": "IBGE-BREVES-2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/breves/1501808_MM.pdf"
+    },
+    {
+      "title": "Anajás-PA, Mapa Municipal Estatístico, 1500701",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Ministério do Planejamento, Orçamento e Gestão",
+      "series": "Censo Demográfico 2010, mapas municipais estatísticos",
+      "edition": "Malha territorial 2010; printed edition 07/20/2011",
+      "scale": "1:250,000; geographic SIRGAS2000 and UTM SAD69 stated on sheet",
+      "read_material": "Original one-page PDF, original map pixels and printed footer.",
+      "map_coverage": "Eastern marsh setting and unnamed branch near Igarapé Fundo; Igarapé Pau-rosa, Braço do Mapuá, Lagoa dos Patos, Lagoa do Socó and Braço do Socó; links toward the named Mapuá. Does not establish the entire selected eastern feeder.",
+      "use_notice": "Printed compilation note says systematic Brazilian mapping from IBGE, DSG or others and the Digital Municipal Mesh were combined semi-automatically with updates from several sources, without full integration/completeness treatment. Reproduction rights reserved. Statistical reference cartography, not a hydrological survey or formal naming register. The sheet also says inherited raster-sheet boundaries shown in black are outdated and should be disregarded.",
+      "source_key": "IBGE-ANAJAS-2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pa/anajas_v2.pdf"
+    },
+    {
+      "title": "Breves-PA, Mapa Municipal Estatístico, Geocódigo 1501808",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Ministério do Planejamento, Orçamento e Gestão",
+      "series": "Contagem da População e Censo Agropecuário 2007, mapas municipais estatísticos",
+      "edition": "Malha territorial 2007; printed edition field reads 02 10 2007",
+      "scale": "1:250,000; UTM, central meridian51°W, printed datum SAD69",
+      "read_material": "Original one-page PDF; printed map, graticule, lake/wetland section, island/channel junctions and footer read.",
+      "map_coverage": "Mapuá/Socó lake corridor, Mapuá–Aramã and Macacos junction complex, western broad waterway/island setting. Headward far east exceeds useful coverage.",
+      "use_notice": "Printed compilation note says systematic Brazilian mapping from IBGE, DSG or others and the Digital Municipal Mesh were combined semi-automatically with updates from several sources, without full integration/completeness treatment. Reproduction rights reserved. Statistical reference cartography, not a hydrological survey or formal naming register. Search-generated text incorrectly summarized the datum as SIRGAS2000; the original printed SAD69 label is retained.",
+      "source_key": "IBGE-BREVES-2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/pa/breves.pdf"
+    },
+    {
+      "title": "Afuá-PA, Mapa Municipal Estatístico, Geocódigo 1500305",
+      "publisher": "Instituto Brasileiro de Geografia e Estatística (IBGE), Ministério do Planejamento, Orçamento e Gestão",
+      "series": "Contagem da População e Censo Agropecuário 2007, mapas municipais estatísticos",
+      "edition": "Malha territorial2007; printed edition02-03-2007",
+      "scale": "1:250,000; UTM, central meridian51°W, printed datum SAD69",
+      "read_material": "Original one-page PDF; terminal-region channel/island drawing and footer read.",
+      "map_coverage": "Northern receiving-channel complex around Ilha Mututi, Ilha Limão, Ilha Nova, Ilha das Guaribas and Ilha Anajás. This is corroboration of the waterway setting, not proof of an open-ocean endpoint.",
+      "use_notice": "Printed compilation note says systematic Brazilian mapping from IBGE, DSG or others and the Digital Municipal Mesh were combined semi-automatically with updates from several sources, without full integration/completeness treatment. Reproduction rights reserved. Statistical reference cartography, not a hydrological survey or formal naming register. Search-generated text incorrectly summarized the datum as SIRGAS2000; original printed SAD69 is retained.",
+      "source_key": "IBGE-AFUA-2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/pa/afua.pdf"
+    },
+    {
+      "title": "Decreto de 20 de maio de 2005: Dispõe sobre a criação da Reserva Extrativista Mapuá, no Município de Breves, no Estado do Pará, e dá outras providências",
+      "publisher": "Presidência da República; official transcription by Câmara dos Deputados",
+      "edition": "Diário Oficial da União, Seção 1, 23 May 2005, p. 9",
+      "scale": null,
+      "read_material": "Normally opened official HTML prose; no underlying cartographic sheet acquired from this source.",
+      "map_coverage": null,
+      "prose_observation": "Article1 separately identifies Rio Mapuá, Rio Aramá, Rio Aramá Grande and Igarapé Fundo; describes the Mapuá–Aramá confluence and a Fundo/unnamed-stream junction. This is supporting distinction of names, not full geometry coverage.",
+      "use_notice": "Page expressly says transcription does not substitute the original DOU publication. Point8 contains visibly problematic coordinate/distance text; no correction or exact boundary reconstruction is inferred. The cited SA-22-X-A and SA-22-X-C sheets were not personally acquired.",
+      "source_key": "MAPUA-CREATION-2005",
+      "official_url": "https://www2.camara.leg.br/legin/fed/decret_sn/2005/decreto-35485-20-maio-2005-536928-publicacaooriginal-28526-pe.html"
+    },
+    {
+      "title": "Northern Land Use Information Series (NLUIS): Northern Land Use, map index",
+      "publisher": "Agriculture and Agri-Food Canada, Canadian Soil Information Service",
+      "evidence_scope": "Bibliography and exact linked original identities for Aklavik 107B, Mackenzie Delta 107C and Stanton 107D only; index is not map correspondence evidence.",
+      "source_key": "r125-retained-nluis-index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "title": "Aklavik, Northwest Territories, District of Mackenzie, 107B, Land Use Information Series, 1976 edition",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment; Indian and Northern Affairs",
+      "year": 1976,
+      "scale": "1:250,000",
+      "base_map_credit": "Base compiled 1959–60 by the Surveys and Mapping Branch, Department of Mines and Technical Surveys, from air photographs 1950–52 and large-scale maps; field survey 1955; printed 1962. NLUIS edition 1976.",
+      "evidence_scope": "Initial southeast feeder, Sitidgi Lake, labeled Sitidgi Creek, southern estuarine waterway, B1–B2 link and northern sheet continuation.",
+      "limits": "Historical thematic/topographic cartography; no current legal registry, precise source point, bank or uniform river identity established.",
+      "source_key": "r125-nluis-aklavik-107b-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107b.jpg"
+    },
+    {
+      "title": "Mackenzie Delta, District of Mackenzie, Northwest Territories, 107C, Land Use Information Series, 1976 edition",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment; Indian and Northern Affairs",
+      "year": 1976,
+      "scale": "1:250,000",
+      "base_map_credit": "Compiled from large-scale maps 1960–61 by the Army Survey Establishment, R.C.E.; printed 1962, base map only. The 1976 NLUIS marginalia credit the Lands Directorate and base-map reproduction material supplied by the Surveys and Mapping Branch with minor Environment modifications.",
+      "evidence_scope": "Southern sheet continuation, middle estuarine basin, inner-finger corridor and inter-basin water connections into the eastern sheet boundary.",
+      "limits": "Historical interim thematic map. Source notices describe incomplete/preliminary/reconnaissance information in some areas, approximate thematic boundaries and differences between adjoining maps; updated information current to November 1975. No precise modern bank, channel-flow direction or formal name boundary asserted.",
+      "source_key": "r125-nluis-mackenzie-delta-107c-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107c.jpg"
+    },
+    {
+      "title": "Stanton, District of Mackenzie, Northwest Territories, 107D, Land Use Information Series, 1976 edition",
+      "publisher": "Lands Directorate, Environmental Management Service, Department of the Environment; Indian and Northern Affairs",
+      "year": 1976,
+      "scale": "1:250,000",
+      "base_map_credit": "Army Survey Establishment, R.C.E.; base information current as of 1964, printed 1964, base map only. Top frame says Edition 2; the thematic publication is explicitly the 1976 Land Use Information Series edition.",
+      "evidence_scope": "Lower basins, outer-finger channels, Eskimo (Husky) Lakes label, actual terminal near Thumb Island, and Liverpool Bay marine context.",
+      "limits": "Historical interim thematic map with the same printed preliminary/reconnaissance and approximate-boundary cautions; updated information current to November 1975. Source separates channel/lake geography from thematic hunting/trapping lines and fish symbols.",
+      "source_key": "r125-nluis-stanton-107d-1976",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107d.jpg"
+    },
+    {
+      "title": "Ecological assessment of Husky Lakes and Sitidgi Lake, Northwest Territories, 2000–2004",
+      "authors": [
+        "M.-J. Roux",
+        "P. Sparling",
+        "J. Felix",
+        "L.A. Harwood"
+      ],
+      "publisher": "Fisheries and Oceans Canada, Central and Arctic Region",
+      "year": 2014,
+      "series": "Canadian Technical Report of Fisheries and Aquatic Sciences 3071, ix + 123 pp; catalogue Fs97-6/3071E",
+      "pages_actually_used": [
+        "front matter and copyright",
+        "viii abstract",
+        "3–4 Study area and Water dynamics",
+        "60 Figure 1",
+        "61 Figure 2"
+      ],
+      "evidence_scope": "Original Figures 1 and2 visually inspected, not inferred from parsed labels. They distinguish Sitidgi Lake, the five estuarine basins, inner/outer fingers, Kugaluk Channel, Thumb Island, Liverpool Bay and nearby nonselected river mouths. Actually read prose establishes the freshwater-lake/creek relationship and interconnected estuarine basins.",
+      "use_notice": "Copyright Her Majesty the Queen in Right of Canada,2014. Series front matter explicitly permits citation as a full publication and describes international distribution. No author-permission-before-citation restriction is present in the front matter read.",
+      "limits": "Scientific ecosystem assessment, not a legal hydronym registry or a precise contemporary shoreline/mouth survey. B1–B5 are study identifiers. Its regional maps alone are not relied on to identify the small initial feeder; NLUIS 107B provides that coverage.",
+      "source_key": "r125-dfo-roux-3071-2014",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/355383.pdf"
+    },
+    {
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "acquired_scope": "Retained official single-sheet PDF reused locally without reacquisition. Full-sheet overview, west-Greenland inland-ice corridor, geographic graticule, Inland Ice legend and imprint were visually read.",
+      "supports": "The headward and middle selected corridor in the Inland Ice southeast/east of Kangerlussuaq, including the extensive area outside the southern/eastern limits of Sheet 3. Overlap with Sheet 3 in the western ice-margin and fjord setting.",
+      "limits": "Historical national-scale geological cartography establishes the broad geographical setting, not a natural river along the model line, a subglacial drainage connection, present-day hydrology or a present glacier front. The legend distinguishes surface contours, ice-thickness isopachs, bedrock contours and aeromagnetic lineaments; none is used as a river trace.",
+      "reuse_limit": "Custom Dataset Terms permit bounded internal use and processing while restricting redistribution and production or transfer of new maps. Original and local crops or derivatives remain private; own factual observations and ordinary bibliography only.",
+      "source_key": "r125-geus-greenland-national-1995-retained"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Kangerlussuaq / Søndre Strømfjord–Nuussuaq, Sheet 3. Second edition",
+      "authors": "Adam A. Garde and Mogens K. Marker",
+      "year": 2010,
+      "publisher": "Geological Survey of Denmark and Greenland, Copenhagen",
+      "official_url": "https://doi.org/10.22008/FK2/X9U5BF",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/X9U5BF",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16538",
+      "acquired_scope": "The official landing page completed HTTP200, followed sequentially by the sole official-original TIFF acquisition, completed HTTP200. Whole-sheet overview, lower ice/land corridor, terminal area, legend, graticule and imprint were visually read.",
+      "supports": "The western ice-margin/land approach, northward turn into the lower proglacial corridor, lower east–west valley north of Tasersuatsiaq, the neighbouring northern valley junction, and actual inner Kangerlussuaq/Søndre Strømfjord terminal beside Kangerlussuaq settlement.",
+      "limits": "The detailed sheet does not cover the whole distant inland-ice opening. It is historical geological/topographic mapping, not proof that every interior model segment is a natural river or that any one hydronym extends over the full model line. The locally mapped rock, ice and surficial-deposit settings are kept distinct.",
+      "reuse_limit": "The successful landing page displays Custom Dataset Terms restricting redistribution and production or transfer of new maps. The TIFF, local source crops and any derivative cartographic material remain private.",
+      "source_key": "r125-geus-kangerlussuaq-sheet3-2010"
+    },
+    {
+      "title": "Heterogeneous CO2 and CH4 content of glacial meltwater from the Greenland Ice Sheet and implications for subglacial carbon processes",
+      "authors": "Andrea J. Pain; Jonathan B. Martin; Ellen E. Martin; Åsa K. Rennermalm; Shaily Rahman",
+      "year": 2021,
+      "publisher": "The Cryosphere",
+      "volume": 15,
+      "pages": "1627–1644",
+      "doi": "https://doi.org/10.5194/tc-15-1627-2021",
+      "official_url": "https://tc.copernicus.org/articles/15/1627/2021/index.html",
+      "acquired_scope": "Article HTML opened normally; section 2.1 Study locations was actually read. Figure 2 thumbnail subsequently failed with Cache miss and was not visually read.",
+      "supports": "Bounded primary prose naming: Akuliarusiarsuup Kuua is a tributary of Qinnguata Kuussua; the short reach downstream of their confluence near Kangerlussuaq is also known as Watson River.",
+      "limits": "Prose-only support for the local naming relationship. The missing image is not cartographic correspondence evidence, and this paper does not name the entire selected interior-ice model route.",
+      "reuse_limit": "The article explicitly states Creative Commons Attribution 4.0. Only own bounded factual paraphrase is carried forward; the failed figure is not used.",
+      "source_key": "r125-pain-et-al-2021-prose"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 2, Frederikshåbs Isblink–Søndre Strømfjord",
+      "authors": "Jan H. Allaart",
+      "year": 1982,
+      "publisher": "Geological Survey of Greenland",
+      "official_url": "https://doi.org/10.22008/FK2/F77JXT",
+      "acquired_scope": "Retained original PDF metadata and full-sheet original-derived overview inspected locally without new acquisition.",
+      "supports": "Negative coverage finding: this sheet ends south of the selected terminal near 67°N and cannot replace Sheet 3 for that ending.",
+      "limits": "Not used as positive full-feature correspondence or hydronym evidence.",
+      "reuse_limit": "Retained custom terms restrict redistribution and new maps; original and local working material remain private.",
+      "source_key": "r125-geus-sheet2-1982-extent-check"
+    },
+    {
+      "title": "Cartas topográficas 1:250.000, mosaico: Casey–Salazar–Pehuajó–Carlos Casares–Galo Llorente corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Composite historical sheets; constituent sheet dates not established.",
+      "material_read": "Five overlapping original map views: southwestern head, Salazar, Pehuajó, Casares, and terminal. Original rasters and separate private orientation figures were visually read.",
+      "supports": "Complete selected corridor, local lake/marsh versus interfluve setting, labeled Canal Mercante crossing and actual terminal depression.",
+      "limits": "A small black rectangle obscures part of a nearby lake label north of the selected line near Chiclana; the continuous 1:500,000 overview independently shows the La Cautiva label, and the 1:100,000 view resolves surrounding terrain. No selected component is hidden. Historical topography does not establish present canal operation or permanent inundation.",
+      "use_notice": "The retained IGN service notice cites Article 2 of Argentine Law 27.275. No blanket redistribution permission is inferred; original maps, crops and orientation figures remain private.",
+      "source_key": "ign-topo250k-r125"
+    },
+    {
+      "title": "Cartas topográficas 1:100.000, mosaico: Chiclana–Guanaco and Galo Llorente–La Escondida–San Vicente settings",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Composite historical printed sheets; exact sheet dates not established.",
+      "material_read": "Two original bounded detail views and corresponding private orientation figures.",
+      "supports": "Separately mapped depressions and intervening field/dune ground in the Guanaco passage; full final loop and small unnamed terminal depression.",
+      "limits": "The Galo Llorente alignment is shown as railway here, while the 1:250,000 view labels Canal Mercante. The differing historical representations do not supply a contemporary operating map. A white patch north of the selected loop does not obscure the selected corridor or terminal.",
+      "use_notice": "Same retained IGN service notice; originals and derivatives remain private.",
+      "source_key": "ign-topo100k-r125"
+    },
+    {
+      "title": "Mosaico cartas 1:500.000, febrero 2026 service layer: western Buenos Aires plain",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Service layer identifies febrero_2026; constituent source-map revision dates not independently established.",
+      "material_read": "One original overview covering the entire selected head-to-terminal corridor.",
+      "supports": "Continuous regional context and distinction of major named lakes, settlements, transport corridors and wetland/plain settings.",
+      "limits": "Generalized overview does not establish an exact channel, formal name registry record or current water-transfer operation.",
+      "use_notice": "Same retained IGN service notice; source image and private overlay are not public deliverables.",
+      "source_key": "ign-topo500k-r125"
+    },
+    {
+      "title": "Readecuación de desagües pluviales Red M-N y lago receptor en Carlos Casares. Carlos Casares, Partido de Carlos Casares. Estudio de Impacto Ambiental",
+      "publisher": "Provincia de Buenos Aires, Ministerio de Infraestructura y Servicios Públicos; Dirección Provincial de Hidráulica / Departamento Estudios Ambientales",
+      "official_url": "https://www.ambiente.gba.gob.ar/ParticipacionCiudadana/EIAS%20-%20Carlos%20Casares.pdf",
+      "edition": "2021 material: includes climatic observations through March 2021; exact printed publication date not established.",
+      "material_read": "Original 129-page PDF acquired normally; cover visually read; bounded prose on project/drainage at numbered pp.12–15, hydrology p.80, regional hydrogeology pp.84–85, and wet/dry cycles p.88.",
+      "supports": "Weak natural drainage and dune barriers in the region; distinction of urban Canal a Arias, Canal La Dorita and municipal receiving-lake works from the broader selected model path.",
+      "limits": "Prose support only. No EIA map or extracted figure label is used for selected-route correspondence; no work completion or present operation inferred.",
+      "use_notice": "No limited-distribution notice was encountered in the read cover/prose; absence is not redistribution permission. The original report and working render remain private.",
+      "source_key": "gba-casares-eia"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60441146",
+      "source_keys": [
+        "IBGE-ANAJAS-2020",
+        "IBGE-BREVES-2020",
+        "IBGE-ANAJAS-2010",
+        "IBGE-BREVES-2007",
+        "IBGE-AFUA-2007",
+        "MAPUA-CREATION-2005"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            11674
+          ],
+          "component_scope": "Selected mainstem FID 11674",
+          "finding": "The eastern selected beginning lies in the marsh/interior setting south of Anajás. The originals show Igarapé Fundo joining an unnamed branch, and farther west the Pau-rosa/Braço do Mapuá setting, Lagoa dos Patos, Lagoa do Socó and Braço do Socó connecting toward the Mapuá near Jupati. They do not establish the entire selected east-to-west feeder or its continuous connection into this lake corridor. This is a material source gap rather than a demand for bank/vertex agreement. No name is assigned to the unestablished initial reach; Mapuá is not extended indiscriminately over the lakes or unnamed branches.",
+          "sources": [
+            "IBGE-ANAJAS-2020",
+            "IBGE-ANAJAS-2010",
+            "IBGE-BREVES-2007",
+            "IBGE-BREVES-2020",
+            "MAPUA-CREATION-2005"
+          ],
+          "correspondence": "partial; material source/connector gap remains",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            11675
+          ],
+          "component_scope": "Selected mainstem FID 11675",
+          "finding": "From the Jupati/Nazaré portion the route follows the mapped Mapuá northward through the Vila Amélia/São Pedro sector, then westward to the Aramã joining area near São Vicente. It continues along the northern Aramã arm of the multichannel island complex toward the Jacaré Grande/Companhia/Furo Grande junction. Mapuá-Mirim, Furo dos Macacos and associated island passages are separately shown; they are not all renamed Mapuá or Aramã.",
+          "sources": [
+            "IBGE-BREVES-2020",
+            "IBGE-ANAJAS-2020",
+            "IBGE-BREVES-2007",
+            "MAPUA-CREATION-2005"
+          ],
+          "correspondence": "covered at generalized corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            11676
+          ],
+          "component_scope": "Selected mainstem FID 11676",
+          "finding": "Northward broad Rio Jacaré Grande passage, with the Curumu and Ituquara joining channels and parallel Jacarezinho passage distinguished. The northern selected termination is in the broad waterway beside Ilha das Guaribas, with Ilha Mututi/Limão/Nova nearby. The mapped waterway continues north. Stored terminal class sea is retained as model metadata; it is not evidence that this selected endpoint is an open-ocean mouth or the river’s actual ultimate outlet.",
+          "sources": [
+            "IBGE-BREVES-2020",
+            "IBGE-AFUA-2007",
+            "IBGE-BREVES-2007"
+          ],
+          "correspondence": "covered through actual selected terminal",
+          "mapped_component_name": "Rio Jacaré Grande"
+        },
+        {
+          "fragments": [
+            11677
+          ],
+          "component_scope": "Selected tributary FID 11677",
+          "finding": "Southwestern approach from the Igarapé Anaticu sector through a small northeastward channel corridor into the Rio Companhia/parallel-furo waterway south of the main junction. The selected model tributary is an approach through the island/channel network; the downstream Jacaré Grande name is not assigned to this entire component. Individual minor-channel equivalences remain unnamed where not secure.",
+          "sources": [
+            "IBGE-BREVES-2020",
+            "IBGE-BREVES-2007"
+          ],
+          "correspondence": "covered at generalized corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            11678
+          ],
+          "component_scope": "Selected tributary FID 11678",
+          "finding": "Northward Rio Companhia/broad-channel passage alongside the Furo Grande/Jaburu network to the junction where the eastward Aramã–Macacos complex meets the northern Jacaré Grande corridor. The source shows multiple adjacent channels; model tributary role alone does not establish a single river-name scope or flow regime.",
+          "sources": [
+            "IBGE-BREVES-2020",
+            "IBGE-ANAJAS-2020",
+            "IBGE-BREVES-2007"
+          ],
+          "correspondence": "covered through main joining setting",
+          "mapped_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80040607",
+      "source_keys": [
+        "r125-nluis-aklavik-107b-1976",
+        "r125-nluis-mackenzie-delta-107c-1976",
+        "r125-nluis-stanton-107d-1976",
+        "r125-dfo-roux-3071-2014"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2357
+          ],
+          "component_scope": "Initial southeast Sitidgi feeder",
+          "finding": "The headward selection corresponds to the short pond/stream network east of the southern part of Sitidgi Lake and its westward connection to the lake shore. The source shows the small waterbodies, connecting stream and inlet at generalized corridor scale; no hydronym is printed on this selected feeder. The separate larger southern inflow and Williams Lake farther northeast are not substituted for the selected initial approach.",
+          "sources": [
+            "r125-nluis-aklavik-107b-1976"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            2357
+          ],
+          "component_scope": "Sitidgi Lake passage",
+          "finding": "From the southeastern inlet setting the selected route traverses the long north–south Sitidgi Lake toward its northern outlet. The original 107B lake outline and label, and DFO Figures 1 and 2, establish the distinct freshwater-lake component south of the estuary.",
+          "sources": [
+            "r125-nluis-aklavik-107b-1976",
+            "r125-dfo-roux-3071-2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Sitidgi Lake"
+        },
+        {
+          "fragments": [
+            2357
+          ],
+          "component_scope": "Sitidgi Creek and southern estuary entry",
+          "finding": "The narrow outlet north of Sitidgi Lake is explicitly labeled Sitidgi Creek on 107B and leads west into the southern elongate Husky Lakes waterbody. DFO pages 3–4 independently describe the shallow creek connection between the freshwater lake and the inland-most estuarine basin. The printed 6 km figure describes that creek in the report, not the selected model length.",
+          "sources": [
+            "r125-nluis-aklavik-107b-1976",
+            "r125-dfo-roux-3071-2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Sitidgi Creek"
+        },
+        {
+          "fragments": [
+            2357
+          ],
+          "component_scope": "Southern basin and northward B1–B2 connection",
+          "finding": "The selected southern estuarine reach runs west then north past the Whale Point/Portage Point setting and through the narrowing west of the island-and-peninsula complex into the larger northern basin. The lake arms and intervening water connection are visible on 107B. DFO Figure 2 places these in the inland B1 and B2 portions of the five-basin estuary; those identifiers are analytical labels, not names for separate rivers.",
+          "sources": [
+            "r125-nluis-aklavik-107b-1976",
+            "r125-dfo-roux-3071-2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Husky Lakes"
+        },
+        {
+          "fragments": [
+            2357
+          ],
+          "component_scope": "B2–B3 throat and southern 107C continuation",
+          "finding": "The selected path continues northeast through the small-channel connection near the adjoining sheet margins into the long middle basin. The original sheets show the narrowing and connected lake-water continuation; the DFO study distinguishes the small channels between B2 and B3 and discusses their influence on mixing. Source evidence supports the material connector without requiring the simplified line to follow an exact bank or island side.",
+          "sources": [
+            "r125-nluis-aklavik-107b-1976",
+            "r125-nluis-mackenzie-delta-107c-1976",
+            "r125-dfo-roux-3071-2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Husky Lakes"
+        },
+        {
+          "fragments": [
+            2357
+          ],
+          "component_scope": "Middle basin, inner fingers and B4 continuation",
+          "finding": "The route runs along the middle basin, turns through the northern ends of the inner-finger channels, and reaches the broad northeastward continuation. Original 107C pixels show the elongate peninsulas, channels and open connecting water. DFO Figure 2 separately identifies B3, the inner fingers and B4, corroborating that the channels form an estuarine link rather than an unnamed gap between isolated lakes.",
+          "sources": [
+            "r125-nluis-mackenzie-delta-107c-1976",
+            "r125-nluis-stanton-107d-1976",
+            "r125-dfo-roux-3071-2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Husky Lakes"
+        },
+        {
+          "fragments": [
+            2357
+          ],
+          "component_scope": "B4–B5 basin link and outer-finger approach",
+          "finding": "Original 107D shows the northeastward passage from the lower middle basin into the broad northern/outer basin, followed by the island and peninsula complex of the outer fingers. The map prints Eskimo (Husky) Lakes on this waterbody. DFO Figures 1 and 2 establish the B4/B5 and outer-finger arrangement and the estuarine identity. Generalized line crossings near narrow islands are not used to claim a particular surveyed navigation channel.",
+          "sources": [
+            "r125-nluis-stanton-107d-1976",
+            "r125-dfo-roux-3071-2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": "Husky Lakes"
+        },
+        {
+          "fragments": [
+            2357
+          ],
+          "component_scope": "Actual terminal near Thumb Island",
+          "finding": "The final selected approach crosses the northern outer-finger water setting and ends at the opening northwest of Thumb Island, connected to Liverpool Bay. Original 107D shows the connected opening, Thumb Island and Campbell Island, while its wider view labels Liverpool Bay. DFO Figure 1 and pages 3–4 distinguish this marine connection from the southwest inlet called Kugaluk Channel and the Miner and Kugaluk river mouths farther south. The source supports the actual terminal setting at ordinary scale, not a precise modern tidal boundary or mouth vertex.",
+          "sources": [
+            "r125-nluis-stanton-107d-1976",
+            "r125-dfo-roux-3071-2014"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null,
+          "receiving_water_name": "Liverpool Bay"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90099199",
+      "source_keys": [
+        "r125-geus-greenland-national-1995-retained",
+        "r125-geus-kangerlussuaq-sheet3-2010",
+        "r125-pain-et-al-2021-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8875
+          ],
+          "component_scope": "Headward opening and initial northwestward course",
+          "finding": "The selected opening southeast of Kangerlussuaq and its initial northwestward course occupy the mapped western Inland Ice. They lie well inland of the ice-free coastal belt.",
+          "sources": [
+            "r125-geus-greenland-national-1995-retained"
+          ],
+          "correspondence": "complete at ordinary generalized geographic component/corridor scale",
+          "limits": "The ice shading and its contours do not establish a river channel or subglacial flow. No name is assigned to this reach.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8875
+          ],
+          "component_scope": "Long middle westward/northwestward inland corridor",
+          "finding": "The long middle route remains within the mapped continental-ice setting while approaching the western margin southeast of Kangerlussuaq. The national original covers the headward/middle area beyond the detailed sheet, and overlaps the detailed sheet at the western approach.",
+          "sources": [
+            "r125-geus-greenland-national-1995-retained",
+            "r125-geus-kangerlussuaq-sheet3-2010"
+          ],
+          "correspondence": "complete at ordinary generalized geographic component/corridor scale",
+          "limits": "No continuity of a natural river through or beneath the ice is inferred. The model line is used only for orientation.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8875
+          ],
+          "component_scope": "Western ice-margin and northward landward connector",
+          "finding": "The lower approach passes through the ice-margin setting southeast of Kangerlussuaq, with mapped ice lobes, exposed bedrock and surficial-deposit corridors, and turns north into the east–west proglacial valley. Those different terrain classes remain distinct rather than being called one river.",
+          "sources": [
+            "r125-geus-greenland-national-1995-retained",
+            "r125-geus-kangerlussuaq-sheet3-2010"
+          ],
+          "correspondence": "complete at ordinary generalized geographic component/corridor scale",
+          "limits": "The source establishes the geographic setting throughout this connector; it does not justify equating every modeled interior segment with a surveyed natural channel or glacier outlet. Exact ice fronts and bank positions are not revalidated.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            8875
+          ],
+          "component_scope": "Lower proglacial valley and neighbouring northern junction",
+          "finding": "The western part of the selected route lies in the broad east–west proglacial/deposit valley immediately north of Tasersuatsiaq and south of the more northerly approach from the Russell-sector valley. The mapped valleys converge beside Kangerlussuaq before reaching the inner fjord. Read primary prose identifies the local main river and northern tributary as Qinnguata Kuussua and Akuliarusiarsuup Kuua respectively.",
+          "sources": [
+            "r125-geus-kangerlussuaq-sheet3-2010",
+            "r125-pain-et-al-2021-prose"
+          ],
+          "correspondence": "complete at ordinary generalized geographic component/corridor scale",
+          "limits": "The inspected geological map supplies valley/junction geography; the named relationship comes from actually read prose, not from the failed article figure. The northern tributary is context, not an additional selected FID. Neither name is extended to the entire model route.",
+          "mapped_component_name": null,
+          "bounded_context_names": [
+            "Qinnguata Kuussua",
+            "Akuliarusiarsuup Kuua"
+          ]
+        },
+        {
+          "fragments": [
+            8875
+          ],
+          "component_scope": "Actual terminal at the inner Kangerlussuaq/Søndre Strømfjord head",
+          "finding": "The selected ending is at the proglacial outlet into the innermost Kangerlussuaq/Søndre Strømfjord beside Kangerlussuaq settlement. It is not a termination in Tasersuatsiaq or an onward open-ocean route. The primary prose limits Watson River to the short downstream reach after the tributary/main-river confluence.",
+          "sources": [
+            "r125-geus-kangerlussuaq-sheet3-2010",
+            "r125-pain-et-al-2021-prose"
+          ],
+          "correspondence": "complete at ordinary generalized geographic component/corridor scale",
+          "limits": "Terminal geography and local lower-reach nomenclature are supported at ordinary corridor scale. The model sea-terminal flag alone is not the evidence, and the lower name does not establish a full-length natural river.",
+          "mapped_component_name": null,
+          "bounded_context_names": [
+            "Kangerlussuaq / Søndre Strømfjord",
+            "Watson River"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61518032",
+      "source_keys": [
+        "ign-topo250k-r125",
+        "ign-topo100k-r125",
+        "ign-topo500k-r125",
+        "gba-casares-eia"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14466
+          ],
+          "component_scope": "Southwestern head and Andant–Masurol–Moures country",
+          "finding": "The head lies northeast of Casey and west of Andant, in the La Fortuna–El Silencio/La Primavera country west of Daireaux. Northward it passes the La Tapera, San Alfredo, La Prosperidad and El Camoatí settings, then Moures toward the west side of Salazar. Original topography shows cultivated/plain ground, low rises, broad marsh indications and transport crossings rather than a labeled source river or source lake. The full headward course is visible; no missing connection is being supplied by a nearby name.",
+          "sources": [
+            "ign-topo250k-r125",
+            "ign-topo500k-r125"
+          ],
+          "correspondence": "Complete ordinary corridor coverage; mapped ground and marsh setting read, no whole-route watercourse name."
+        },
+        {
+          "fragments": [
+            14466
+          ],
+          "component_scope": "Salazar to the La Carreta–Albariño corridor",
+          "finding": "North of Salazar the path crosses the El Cautivo and La Victoriana dune/rise country, continues through La Tanita and La Sirena east of La Carreta, and bends northeast into the elongated unnamed marsh/depression around Los Elenos and La Lisa. It then continues toward Albariño and the northeastward railway corridor. The maps distinguish wet hollows from intervening ground; they do not present this mixture as one named river.",
+          "sources": [
+            "ign-topo250k-r125",
+            "ign-topo500k-r125"
+          ],
+          "correspondence": "Complete overlapping head and Salazar map coverage, including the large northward bend and local depression passage."
+        },
+        {
+          "fragments": [
+            14466
+          ],
+          "component_scope": "Albariño–Alagón–Francisco Madero–Pehuajó",
+          "finding": "The line follows the country from Albariño toward El Retiro, crosses the railway southwest of Alagón, passes west of La Catalana and east of 7 de Octubre, then turns northeast through an unnamed elongated lake south of the Francisco Madero–Pehuajó transport corridor near La Martha. It crosses the main road/rail setting east of Francisco Madero and reaches the western/northern side of Pehuajó, beside the southern end of Laguna La Salada. The selected line continues northeast rather than extending up the entire named lake.",
+          "sources": [
+            "ign-topo250k-r125",
+            "ign-topo500k-r125"
+          ],
+          "correspondence": "Original Pehuajó panel and regional overview read throughout. Lake passage, intervening plain and city/transport crossings visible; no unseen connector remains."
+        },
+        {
+          "fragments": [
+            14466
+          ],
+          "component_scope": "Pehuajó–Chiclana–Guanaco lake and interfluve passage",
+          "finding": "Northeast of Pehuajó the selected route crosses alternating low ground and separate elongate lake/depression settings, reaches Chiclana and turns north through country west/northwest of Guanaco (San Bernardo on the 1:250,000 map). It passes the chain of small depressions near San Juan and then bends southeast. The 1:100,000 original clearly shows field divisions, low contours and intervening ground between these depressions, with no continuous named watercourse. The nearby La Cautiva lake label on the overview is not extended to the entire chain.",
+          "sources": [
+            "ign-topo250k-r125",
+            "ign-topo100k-r125",
+            "ign-topo500k-r125"
+          ],
+          "correspondence": "Overlapping 1:250,000 and full 1:100,000 detail coverage resolves the local lake/interfluve setting at generalized corridor scale."
+        },
+        {
+          "fragments": [
+            14466
+          ],
+          "component_scope": "Santo Tomás and western Carlos Casares",
+          "finding": "From the San Juan country the line turns east across the plain north of the Route 5 and railway corridor, passes the Santo Tomás lake/depression setting, and approaches Carlos Casares from the west. It crosses the railway/road corridor on the west side of the city and turns northeast through the marshy strip west/northwest of the urban center. No source map names this entire eastward passage as one river.",
+          "sources": [
+            "ign-topo250k-r125",
+            "ign-topo500k-r125"
+          ],
+          "correspondence": "Entire passage read in the Casares and terminal 1:250,000 panels and full overview; no blank area on the selected corridor."
+        },
+        {
+          "fragments": [
+            14466
+          ],
+          "component_scope": "Carlos Casares–Gobernador Arias–Santa Rita northern loop",
+          "finding": "The route proceeds northeast from Carlos Casares through the Las Mercedes/Gobernador Arias setting, along elongated wet depressions toward Santa Rita and north of La María. It then turns east across intervening field/rise ground and additional separate hollows south of the La Catita/La Madrugada country. The north/east loop is geographically visible as several plain and wetland settings, not a single named continuous channel.",
+          "sources": [
+            "ign-topo250k-r125",
+            "ign-topo100k-r125",
+            "ign-topo500k-r125"
+          ],
+          "correspondence": "Full 1:250,000 corridor, with 1:100,000 detail over the eastern part. The 1:100,000 white patch farther north is outside the selected route."
+        },
+        {
+          "fragments": [
+            14466
+          ],
+          "component_scope": "Canal Mercante crossing and actual terminal",
+          "finding": "Near Galo Llorente the final loop turns southeast and crosses the southwest–northeast alignment labeled Canal Mercante on the 1:250,000 map, then turns south and finally east into a separate small unnamed wet depression in the La Escondida–San Vicente country, north of Cambaceres. The 1:100,000 original shows the same corridor as a railway and resolves intervening field/dune ground and the small terminal depression east of La Escondida and north of San Vicente. These historical map depictions are kept distinct; no change date or present hydraulic relationship is inferred. The selected endpoint is beyond the crossing, not a terminus assigned to Canal Mercante.",
+          "sources": [
+            "ign-topo250k-r125",
+            "ign-topo100k-r125",
+            "ign-topo500k-r125"
+          ],
+          "correspondence": "Actual ending and its approach read in both original scales. No terminal name or modern operating connection is invented."
+        },
+        {
+          "fragments": [
+            14466
+          ],
+          "component_scope": "Branch/reservoir scope and provincial drainage context",
+          "finding": "The retained selection consists of one mainstem FID; no separate selected tributary or reservoir passage needs a shared name. Official Carlos Casares EIA prose describes insufficient naturally developed drainage, dunes that obstruct surface runoff, and separate engineered urban drainage facilities. This supports interpretation of the surrounding plain but is not substituted for direct map reading or used to impose a Salado/Quinto/canal name on the selected line.",
+          "sources": [
+            "ign-topo250k-r125",
+            "ign-topo100k-r125",
+            "ign-topo500k-r125",
+            "gba-casares-eia"
+          ],
+          "correspondence": "All selected geographic components read. Regional prose is contextual only; no uninspected EIA figure supplies cartographic evidence."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:60441146",
+      "publication": "IBGE Pará2007 municipal-statistical-map collection directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/pa/",
+      "observed_outcome": "The sole web-reader directory open returned Internal Error and reported that the URL is not accessible via this tool. No origin HTTP status, authorization/security reason, directory body or new map bytes exposed.",
+      "outcome_layer": "web tool/transport; origin outcome unknown",
+      "restriction_scope": "This directory and equivalent directory-acquisition routes paused; no retry or alternate directory access. This is not a publication-wide HTTP denial of independent municipal maps.",
+      "earlier_lawful_prose_exception": "None from the directory. Independently discovered Breves2007 and Afuá2007 originals had already completed HTTP200; independent Anajás2020, Breves2020 and Anajás2010 originals also completed HTTP200.",
+      "limitation_kind": "directory availability stop; not an access-denial inference"
+    },
+    {
+      "aw_id": "hydro-system:90099199",
+      "publication": "Pain, Andrea J.; Martin, Jonathan B.; Martin, Ellen E.; Rennermalm, Åsa K.; Rahman, Shaily (2021). Heterogeneous CO2 and CH4 content of glacial meltwater from the Greenland Ice Sheet and implications for subglacial carbon processes. The Cryosphere 15:1627–1644.",
+      "official_url": "https://tc.copernicus.org/articles/15/1627/2021/index.html",
+      "observed_outcome": "The article HTML opened normally, and section2.1 study-location prose was read. A subsequent click of the Figure2 image returned Internal Error: Failed to fetch the exact thumbnail URL: Cache miss. No origin HTTP status or authorization/security reason was exposed. No original figure pixels were acquired.",
+      "outcome_layer": "web-reader/cache availability; origin HTTP status not reported",
+      "restriction_scope": "Further missing article/figure imagery and equivalent copies, PDFs, originals, reader/cache, mirror, screenshot and other acquisition routes paused; no retry or alternate visual acquisition.",
+      "earlier_lawful_prose_exception": "The already successfully read section2.1 prose identifies Qinnguata Kuussua as the recipient of Akuliarusiarsuup Kuua, and Watson River as the short lower reach after their confluence near Kangerlussuaq. Those prose claims do not stand for inspection of Figure2.",
+      "failed_url": "https://tc.copernicus.org/articles/15/1627/2021/tc-15-1627-2021-f02-thumb.png",
+      "doi": "https://doi.org/10.5194/tc-15-1627-2021",
+      "figure_inspected": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:60441146",
+      "publication": "Anajás – PA, Mapa Municipal, 1500701; 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/anajas/1500701_MM.pdf",
+      "observed_outcome": "Printed notice describes a semi-automated compilation from the IBGE Digital Municipal Mesh with updates from multiple sources. Intended exclusively for IBGE statistical collection/tabulation, with disclaimer for other uses; reproduction rights reserved. Used here as a bounded reference-cartography observation, not a hydrological survey, formal name registry, or redistribution permission.",
+      "outcome_layer": "printed source-use/compilation notice, read from acquired original",
+      "restriction_scope": "Reading retained within stated research limits; originals, crops and overlays not redistributed. Not treated as an access denial.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "source-use and interpretation limitation"
+    },
+    {
+      "aw_id": "hydro-system:60441146",
+      "publication": "Breves – PA, Mapa Municipal, 1501808; 04/2021",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PA/breves/1501808_MM.pdf",
+      "observed_outcome": "Printed notice describes a semi-automated compilation from the IBGE Digital Municipal Mesh with updates from multiple sources. Intended exclusively for IBGE statistical collection/tabulation, with disclaimer for other uses; reproduction rights reserved. Used here as a bounded reference-cartography observation, not a hydrological survey, formal name registry, or redistribution permission.",
+      "outcome_layer": "printed source-use/compilation notice, read from acquired original",
+      "restriction_scope": "Reading retained within stated research limits; originals, crops and overlays not redistributed. Not treated as an access denial.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "source-use and interpretation limitation"
+    },
+    {
+      "aw_id": "hydro-system:60441146",
+      "publication": "Anajás-PA, Mapa Municipal Estatístico, 1500701; Malha territorial 2010; printed edition 07/20/2011",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pa/anajas_v2.pdf",
+      "observed_outcome": "Printed compilation note says systematic Brazilian mapping from IBGE, DSG or others and the Digital Municipal Mesh were combined semi-automatically with updates from several sources, without full integration/completeness treatment. Reproduction rights reserved. Statistical reference cartography, not a hydrological survey or formal naming register. The sheet also says inherited raster-sheet boundaries shown in black are outdated and should be disregarded.",
+      "outcome_layer": "printed source-use/compilation notice, read from acquired original",
+      "restriction_scope": "Reading retained within stated research limits; originals, crops and overlays not redistributed. Not treated as an access denial.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "source-use and interpretation limitation"
+    },
+    {
+      "aw_id": "hydro-system:60441146",
+      "publication": "Breves-PA, Mapa Municipal Estatístico, Geocódigo 1501808; Malha territorial 2007; printed edition field reads 02 10 2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/pa/breves.pdf",
+      "observed_outcome": "Printed compilation note says systematic Brazilian mapping from IBGE, DSG or others and the Digital Municipal Mesh were combined semi-automatically with updates from several sources, without full integration/completeness treatment. Reproduction rights reserved. Statistical reference cartography, not a hydrological survey or formal naming register. Search-generated text incorrectly summarized the datum as SIRGAS2000; the original printed SAD69 label is retained.",
+      "outcome_layer": "printed source-use/compilation notice, read from acquired original",
+      "restriction_scope": "Reading retained within stated research limits; originals, crops and overlays not redistributed. Not treated as an access denial.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "source-use and interpretation limitation"
+    },
+    {
+      "aw_id": "hydro-system:60441146",
+      "publication": "Afuá-PA, Mapa Municipal Estatístico, Geocódigo 1500305; Malha territorial2007; printed edition02-03-2007",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/contagem_da_populacao_e_censo_agropecuario_2007/mapas_municipais_estatisticos/pa/afua.pdf",
+      "observed_outcome": "Printed compilation note says systematic Brazilian mapping from IBGE, DSG or others and the Digital Municipal Mesh were combined semi-automatically with updates from several sources, without full integration/completeness treatment. Reproduction rights reserved. Statistical reference cartography, not a hydrological survey or formal naming register. Search-generated text incorrectly summarized the datum as SIRGAS2000; original printed SAD69 is retained.",
+      "outcome_layer": "printed source-use/compilation notice, read from acquired original",
+      "restriction_scope": "Reading retained within stated research limits; originals, crops and overlays not redistributed. Not treated as an access denial.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "source-use and interpretation limitation"
+    },
+    {
+      "aw_id": "hydro-system:60441146",
+      "publication": "Decreto de 20 de maio de 2005: Dispõe sobre a criação da Reserva Extrativista Mapuá, no Município de Breves, no Estado do Pará, e dá outras providências",
+      "official_url": "https://www2.camara.leg.br/legin/fed/decret_sn/2005/decreto-35485-20-maio-2005-536928-publicacaooriginal-28526-pe.html",
+      "observed_outcome": "Page expressly says transcription does not substitute the original DOU publication. Point8 contains visibly problematic coordinate/distance text; no correction or exact boundary reconstruction is inferred. The cited SA-22-X-A and SA-22-X-C sheets were not personally acquired.",
+      "outcome_layer": "Interpretive limitation in normally opened official transcription; not an access failure",
+      "restriction_scope": "Use explicit river-name and joining prose only; no uninspected underlying-map observation or correction of malformed boundary coordinates.",
+      "earlier_lawful_prose_exception": "Article 1 was actually read through the official HTML reader.",
+      "limitation_kind": "prose-only support and malformed-boundary-transcription caveat"
+    },
+    {
+      "aw_id": "hydro-system:80040607",
+      "publication": [
+        "Aklavik107B, 1976",
+        "Mackenzie Delta107C, 1976",
+        "Stanton107D, 1976"
+      ],
+      "official_url": [
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107b.jpg",
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107c.jpg",
+        "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_107d.jpg"
+      ],
+      "observed_outcome": "NLUIS maps are described as interim, with incomplete/preliminary/reconnaissance information in some areas, approximate thematic boundaries and potential differences between adjoining maps. Updated sheet information is described as current to November 1975.",
+      "outcome_layer": "Source-use or interpretation notice",
+      "restriction_scope": "Interpretive source-quality caution, not an acquisition or factual-reading prohibition. No government-hosting-based redistribution permission inferred.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:80040607",
+      "publication": "Roux et al. 2014, Canadian Technical Report of Fisheries and Aquatic Sciences 3071",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/355383.pdf",
+      "observed_outcome": "Crown copyright 2014; report-series front matter permits citation as a full publication.",
+      "outcome_layer": "Source-use or interpretation notice",
+      "restriction_scope": "Citation and own factual synthesis used. Original PDF pages, maps, crops and overlays remain private; no unrestricted image redistribution inferred.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61518032",
+      "publication": "IGN historical 1:250,000 and 1:100,000 cartas_mosaicos views",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "Normal HTTP200 images include a small black label-area patch north of the Chiclana–Guanaco selected path and a white patch north of the final selected loop. Neither hides any selected component, connector or terminal; overlapping successful scales supply the relevant geography.",
+      "outcome_layer": "Content of successful original map images, not an origin HTTP denial, tool failure or availability stop.",
+      "restriction_scope": "No acquisition restriction or service stop is created. The affected pixels are not inferred or repaired; other lawfully acquired views are kept distinct.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "No material geographic coverage gap. Individual sheet dates and current operating drainage configuration remain unestablished."
+    }
+  ]
+}
