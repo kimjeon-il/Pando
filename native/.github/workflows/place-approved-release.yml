@@ -57,7 +57,9 @@ jobs:
           vcpkg install zlib:x64-windows
           if ($LASTEXITCODE -ne 0) { throw 'Windows zlib installation failed' }
           $runtime = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x64-windows/bin'
-          if (!(Test-Path (Join-Path $runtime 'zlib1.dll'))) { throw 'Windows zlib runtime missing' }
+          $runtimeDlls = @(Get-ChildItem $runtime -Filter '*zlib*.dll')
+          if ($runtimeDlls.Count -eq 0) { throw "Windows zlib runtime missing in $runtime" }
+          $runtimeDlls | Select-Object -ExpandProperty FullName
           $runtime >> $env:GITHUB_PATH
 
       - name: Configure Release with focused Qt tests
@@ -95,7 +97,7 @@ jobs:
           New-Item -ItemType Directory -Path $portable -Force | Out-Null
           Copy-Item $exe (Join-Path $portable 'pandoeditor.exe')
           Get-ChildItem (Split-Path $exe) -Filter '*.dll' | Copy-Item -Destination $portable
-          Copy-Item (Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x64-windows/bin/zlib1.dll') $portable
+          Get-ChildItem (Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x64-windows/bin') -Filter '*zlib*.dll' | Copy-Item -Destination $portable
           $deploy = Join-Path $env:QT_ROOT_DIR 'bin/windeployqt.exe'
           if (!(Test-Path $deploy)) { throw "Qt deploy utility missing: $deploy" }
           & $deploy --release --qmldir (Join-Path $PWD 'ui') --dir $portable (Join-Path $portable 'pandoeditor.exe')
