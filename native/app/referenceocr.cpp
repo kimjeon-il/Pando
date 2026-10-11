@@ -8,6 +8,8 @@
 #if defined(Q_OS_WIN) && defined(_MSC_VER) && __has_include(<winrt/Windows.Media.Ocr.h>)
 #define PANDO_REFERENCE_WINDOWS_OCR 1
 #include <winrt/base.h>
+#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Graphics.Imaging.h>
 #include <winrt/Windows.Media.Ocr.h>
 #include <winrt/Windows.Storage.Streams.h>
