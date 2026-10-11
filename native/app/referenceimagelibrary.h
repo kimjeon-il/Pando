@@ -2,6 +2,7 @@
 
 #include "referencewarp.h"
 #include "referenceimagemodel.h"
+#include "referenceautogeoref.h"
 #include <QJsonObject>
 #include <QObject>
 #include <QUrl>
@@ -17,6 +18,7 @@ class ReferenceImageLibrary : public QObject
     Q_PROPERTY(bool canRedo READ canRedo NOTIFY historyChanged)
     Q_PROPERTY(QVariantMap calibrationSession READ calibrationSession NOTIFY calibrationSessionChanged)
     Q_PROPERTY(QVariantMap traceSession READ traceSession NOTIFY traceSessionChanged)
+    Q_PROPERTY(QVariantMap autoGeorefSession READ autoGeorefSession NOTIFY autoGeorefSessionChanged)
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 public:
     explicit ReferenceImageLibrary(QObject *parent = nullptr);
@@ -29,6 +31,7 @@ public:
 
     QVariantMap calibrationSession() const;
     QVariantMap traceSession() const { return trace_; }
+    QVariantMap autoGeorefSession() const { return autoGeoref_; }
     Q_INVOKABLE bool beginRefine(const QVariantMap &context,const QVariantList &uv);
     Q_INVOKABLE bool beginTrace(const QVariantMap &context);
     Q_INVOKABLE bool traceAnchor(double u,double v);
@@ -56,6 +59,9 @@ public:
     Q_INVOKABLE bool setCalibrationMode(const QString &mode);
     Q_INVOKABLE QVariantMap calibration(const QVariantMap &record) const;
     Q_INVOKABLE bool setCalibration(const QString &id, const QVariantList &points, const QString &mode);
+    Q_INVOKABLE bool previewAutoGeoref(const QVariantList &seeds);
+    Q_INVOKABLE bool applyAutoGeoref();
+    Q_INVOKABLE void cancelAutoGeoref();
 
     Q_INVOKABLE bool importImage(const QUrl &source, const QString &name = {});
     Q_INVOKABLE bool removeImage(const QString &id);
@@ -75,6 +81,7 @@ public:
 signals:
     void calibrationSessionChanged();
     void traceSessionChanged();
+    void autoGeorefSessionChanged();
     void imagesChanged();
     void historyChanged();
     void lastErrorChanged();
@@ -101,7 +108,8 @@ private:
     static std::optional<Record> record(const QJsonObject &json);
     const Record *find(const QString &id) const;
     void calculateTrace();
-    QVariantMap trace_;
+    QVariantMap trace_,autoGeoref_;
+    QByteArray autoGeorefSignature_;
     quint64 traceEpoch_=0;
     ReferenceImageModel imageModel_;
     State state_;
