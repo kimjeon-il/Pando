@@ -1,0 +1,708 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r131",
+  "sources": [
+    {
+      "title": "Caetés – PE, Mapa Municipal Estatístico, 2603207",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial 2010; printed edition 6/10/2011",
+      "scale": "1:100,000",
+      "material_read": "Original single-sheet PDF acquired HTTP200. Initial feeder west of Caetés, Pedra Grande/Barriguda, Riacho Seco and its southeastern bend toward Umbuzeiro and Macambira visually read; printed source-use and edition notices read.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_caetes2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pe/caetes_v2.pdf",
+      "use_notice": "Semi-automated integration of systematic cartography from IBGE, DSG and other sources, with varied updates and without full integration/completeness treatment. Reproduction rights reserved. Used as historical generalized cartography; source originals and working crops remain private."
+    },
+    {
+      "title": "Paranatama – PE, Mapa Municipal Estatístico, 2610301",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial 2010 collection",
+      "scale": "1:100,000",
+      "material_read": "Original single-sheet PDF acquired HTTP200. Riacho Seco through Umbuzeiro, BR-423, Macambira and south toward Miracica visually read, overlapping the Caetés and Brejão maps. Printed source-use notice read.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_paranatama2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pe/paranatama_v2.pdf",
+      "use_notice": "Semi-automated integration of systematic cartography from IBGE, DSG and other sources, with varied updates and without full integration/completeness treatment. Reproduction rights reserved. Used as historical generalized cartography; source originals and working crops remain private."
+    },
+    {
+      "title": "Brejão – PE, Mapa Municipal Estatístico, 2602407",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial 2010; printed edition 07/06/2010",
+      "scale": "1:100,000",
+      "material_read": "Original single-sheet PDF acquired HTTP200. Riacho Seco at and south of Grota do Riacho Seco, Mamoeiro, west of Brejão, Terezinha and the southeastern Sítio Grande continuation visually read. Separate Riacho Caracol and Açude Público Garanhuns setting distinguished; printed source-use and edition notices read.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_brejao2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pe/brejao_v2.pdf",
+      "use_notice": "Semi-automated integration of systematic cartography from IBGE, DSG and other sources, with varied updates and without full integration/completeness treatment. Reproduction rights reserved. Used as historical generalized cartography; source originals and working crops remain private."
+    },
+    {
+      "title": "Lagoa do Ouro – PE, Mapa Municipal Estatístico, 2608602",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial 2010; printed edition 6/10/2011",
+      "scale": "1:100,000",
+      "material_read": "Original single-sheet PDF acquired HTTP200. Western municipal-boundary Riacho Seco corridor, small western inflow and downstream Rio Paraíba labeling, and continuation beside Serra dos Carneiros and Serra do Catolé visually read. Eastern Cocal/Cavaleiro/Piapai drainage distinguished. Printed source-use and edition notices read.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_lagoaouro2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pe/lagoa_do_ouro_v2.pdf",
+      "use_notice": "Semi-automated integration of systematic cartography from IBGE, DSG and other sources, with varied updates and without full integration/completeness treatment. Reproduction rights reserved. Used as historical generalized cartography; source originals and working crops remain private."
+    },
+    {
+      "title": "Programa Geologia do Brasil: Arapiraca, Folha SC.24-X-D, Estados de Alagoas, Pernambuco e Sergipe, Mapa Geológico",
+      "author": "Vanildo Almeida Mendes; Maria de Fátima Lyra de Brito; Ivo Pessato Paiva; CPRM – Serviço Geológico do Brasil",
+      "edition": "Recife, 2009; 112.37 × 69.42 cm",
+      "scale": "1:250,000",
+      "material_read": "Original single-sheet PDF acquired HTTP200. Riacho Seco below Brejão, western Lagoa do Ouro corridor, Quebrangulo junctions, Paulo Jacinto, Anel, Viçosa, Cajueiro, Capela/Paraibinha junction, Atalaia, Sapucaia and lower Paraíba corridor visually read. Cartographic base, edition and authorship notices read.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "cartographic_basis": "Planimetric base from the 1973/1989 SUDENE sheets Santana do Ipanema, Bom Conselho, União dos Palmares, Pão de Açúcar, Arapiraca and São Miguel dos Campos, adjusted to GeoCover 2000; settlement/road toponyms updated using IBGE 2001 and DNIT 2002.",
+      "source_key": "cprm_arapiraca2009",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/17650/11/carta_geologica_arapiraca.pdf",
+      "use_notice": "Dated geological thematic map with generalized planimetric hydrography. Official hosting is not redistribution permission; originals and working crops remain private."
+    },
+    {
+      "title": "Carta geológica da Folha Maceió (SC.25-V-C-IV): Estado de Alagoas",
+      "author": "Klaryanna Cabral Alcantara; Maria de Fátima Lyra de Brito; Cleide Regina Moura da Silva; Débora Melo Ferrer de Morais; Caio dos Santos Pereira; Serviço Geológico do Brasil",
+      "edition": "Recife, 2023; one colour map, 101 × 71 cm",
+      "scale": "1:100,000",
+      "catalogue_url": "https://rigeo.sgb.gov.br/handle/doc/24474",
+      "material_read": "Previously lawfully acquired original PDF reused locally without reacquisition. Lower Rio Paraíba and its branching entrance southwest of Pilar, Lagoa Manguaba, Marechal Deodoro, southern lagoon exit, channels around Massagueira/Santa Rita/Barra Nova, and northeastward connection to the Atlantic inlet visually read. Neighboring Mundaú lagoon/inflow distinguished. Printed cartographic base, citation and legal notice read.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "cartographic_basis": "Digital planimetric base from SUDENE/DSG's 1989 Maceió sheet, adjusted to GeoCover 2000 imagery and edited/updated by SGB's Recife regional office. This is a dated generalized cartographic source, not current survey confirmation of an inlet point.",
+      "source_key": "sgb_maceio2023",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/24474/4/carta_geologica_maceio_vr.pdf",
+      "use_notice": "SGB legal notice disclaims total accuracy and suitability, responsibility for omissions and particular uses, and requires bibliographic attribution for work using the content. No redistribution permission is inferred from official hosting; originals and working figures remain private."
+    },
+    {
+      "title": "PLAMCON: Plano Municipal de Contingência, Pilar – AL 2024",
+      "author": "Prefeitura do Pilar, Alagoas",
+      "edition": "2024",
+      "material_read": "Original 73-page PDF acquired HTTP200. Front title and bounded primary prose at PDF pages 11 and 23 read. These identify Rio Paraíba do Meio, its mouth in Pilar and the associated Manguaba water-level setting. No plan map or figure is counted as cartographic evidence.",
+      "cartography_observed": false,
+      "prose_only": true,
+      "source_type": "supporting_primary_municipal_prose",
+      "source_key": "pilar_plamcon2024",
+      "official_url": "https://pilar.al.gov.br/assets/pdf/diversos/PLANO%20MUNICIPAL%20DE%20CONTIGENCIA%202024%20ATAUALIZADO.pdf",
+      "use_notice": "Municipal contingency-plan prose used only for local river-name and terminal-context support; it is not a hydrographic naming register, uniform-route-name decision, or independent map survey. No original distributed."
+    },
+    {
+      "title": "Bedrock Geology Compilation Map Series: Herchmer, NTS 54E",
+      "publisher": "Manitoba Energy and Mines, Geological Services, Mineral Resources Division",
+      "edition": "Printed 1988",
+      "scale": "1:250,000",
+      "source_type": "Primary original geological cartography with hydrographic base",
+      "access_date": "2026-10-11",
+      "original_map_pixels_inspected": true,
+      "pages_inspected": "One-sheet map, overall sheet and detailed headward / Owl Lake / Herchmer corridor.",
+      "evidence": "The original map was acquired completely with HTTP 200 and visually inspected. It depicts the unnamed western feeder, separate Fly Lake–Owl Lake branch, their junction with the selected shared trunk, the southern Owl bend, Herchmer and the eastward continuation.",
+      "limits": "Historic 1:250,000 cartography. The sheet ends west of the coast, which is supplied by the overlapping original park and regional maps. Geological boundaries and magnetic contours are not treated as watercourses.",
+      "source_key": "r131-mb-herchmer-1988",
+      "official_url": "https://www.gov.mb.ca/iem/info/libmin/bgcms/bgcms_herchmer.pdf",
+      "use_notice": "The printed sheet includes a accuracy/liability caution. No permission to redistribute the original or derived crops is inferred; public-ready output is own observations and ordinary citations."
+    },
+    {
+      "title": "Map of Wapusk National Park",
+      "publisher": "Parks Canada",
+      "edition": "Landing page modified 11 April 2024; a separate map compilation date was not established",
+      "linked_original_url": "https://pcweb2.azureedge.net/-/media/pn-np/mb/wapusk/WET4/visit/carte-map/wnp-carte-map-740x995-e.gif",
+      "source_type": "Primary original park cartography and accompanying map description",
+      "access_date": "2026-10-11",
+      "original_map_pixels_inspected": true,
+      "evidence": "Original image read after a completed GIF-reader format limit and one successful sequential normal acquisition. It shows the Owl trunk through the park, Silcox Creek junction, separate adjacent lakes, own Hudson Bay outlet and tidal flats.",
+      "limits": "The map is explicitly intended for general orientation and not navigation. Its western edge omits the selected far-west feeder; the Herchmer map provides that coverage. The map description alone was not treated as original-map evidence.",
+      "source_key": "r131-parks-wapusk-map",
+      "official_url": "https://parks.canada.ca/pn-np/mb/wapusk/visit/carte-map/carte-map-01",
+      "use_notice": "The page credits Natural Resources Canada, Manitoba Land Inventory and Parks Canada Agency as data suppliers. This independently compiled park publication is distinguished from the stopped CBMT/Toporama service. Original image and working crops remain private."
+    },
+    {
+      "title": "Manitoba official highway map, regional sheet map11: Churchill–Wapusk–Hudson Bay coast",
+      "publisher": "Province of Manitoba, Transportation and Infrastructure",
+      "edition": "PDF metadata records creation in February 2023; no separate printed edition title/date was visible",
+      "source_type": "Primary original provincial regional cartography",
+      "access_date": "2026-10-11",
+      "original_map_pixels_inspected": true,
+      "pages_inspected": "One-sheet original, full extent.",
+      "evidence": "Original PDF acquired completely with HTTP 200 and visually inspected. It shows the Herchmer railway/Owl crossing, northeast river course through Wapusk and distinct coastal outlet in relation to Broad River, Rupert Creek and Hudson Bay.",
+      "limits": "Generalized regional map. It is useful overlapping middle/lower corridor evidence; its western cut edge is not used to establish the selected headwater. It is a separately bounded regional sheet from the historically stopped Western Manitoba map4 publication.",
+      "source_key": "r131-mb-highway-map11",
+      "official_url": "https://www.gov.mb.ca/mti/map/pdf/map11.pdf",
+      "use_notice": "No redistribution authorization inferred. Original PDF and rendered map remain private."
+    },
+    {
+      "title": "Into Wapusk National Park - Part 1",
+      "author": "Christian Artuso",
+      "publisher": "Christian Artuso: Birds, Wildlife",
+      "edition": "19 September 2011",
+      "source_type": "Primary first-person expedition prose",
+      "access_date": "2026-10-11",
+      "original_map_pixels_inspected": false,
+      "evidence": "Actually read prose recounts the June 2011 Owl River canoe survey from the Herchmer railway to Hudson Bay. It also describes the named river as originating at Fly Lake and passing through Owl Lake.",
+      "limits": "The author paddled from Herchmer downstream; the headlake description is supporting context, not firsthand cartographic proof of the selected western feeder. No photographs, unseen map or snippet is substituted for correspondence.",
+      "source_key": "r131-artuso-wapusk-2011",
+      "official_url": "https://artusobirds.blogspot.com/2011/09/into-wapusk-national-park-part-1.html",
+      "use_notice": "Own paraphrase only; no source photographs or full text redistributed."
+    },
+    {
+      "title": "Cartas topográficas 1:250.000, mosaico: Ramos Otero–General Pirán–Laguna del Maestro–Laguna Mar Chiquita corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Composite historical sheets; individual sheet survey and revision dates not established.",
+      "material_read": "Three overlapping original bounded views: full corridor overview, eastern-middle corridor, and lower coastal drainage/lagoon/outlet. Original pixels and private orientation figures read.",
+      "supports": "Entire surrounding landscape, separate regional streams and canals, lower Cañada/Arroyo Chico corridor, coastal lagoon and actual Atlantic terminal.",
+      "limits": "Geographic map coverage does not establish the unresolved western headward receiving connection. Exact channel, lake-edge and mouth-point alignment is not claimed. Offshore blank patches do not affect the selected terminal.",
+      "use_notice": "The retained IGN service notice cites Article 2 of Argentine Law 27.275. No blanket redistribution permission is inferred; originals, crops and overlays remain private.",
+      "source_key": "ign250k-r131-61536265"
+    },
+    {
+      "title": "Cartas topográficas 1:100.000, mosaico: El Yatay–Ramos Otero–Napaleofú and adjoining eastern plain",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; constituent sheet dates not established.",
+      "material_read": "Two original bounded views returned HTTP200. The western view contains detailed source mapping to its eastern sheet edge; the eastern view is blank and supplies no substantive map evidence.",
+      "supports": "Western headward landscape and distinction between Arroyo Grande to the south and the Napaleofú/Chico drainage to the north.",
+      "limits": "Separate swales/depressions do not establish the selected integrated western link. Blank eastern mosaic content is distinguished from the readable 1:250,000 coverage and from an access denial.",
+      "source_key": "ign100k-r131-61536265"
+    },
+    {
+      "title": "El agua subterránea como agente geológico en el sector meridional de la cuenca de la laguna Mar Chiquita, provincia de Buenos Aires. Su estudio con herramientas hidrogeoquímicas e isotópicas",
+      "author": "Melisa Glok Galli",
+      "publisher": "Universidad Nacional de La Plata, Facultad de Ciencias Naturales y Museo; doctoral thesis",
+      "date": "2015-03",
+      "official_url": "https://sedici.unlp.edu.ar/bitstream/handle/10915/45185/Documento_completo.pdf?isAllowed=y&sequence=26",
+      "material_read": "Original PDF acquired HTTP200. Cover, Chapter 6 pp.118–122 and 125, and original Figure 6.1 on printed p.122 visually read; supporting coastal-plain prose on p.99 read.",
+      "supports": "Distinguishes the Chico/Méndez, lake, canal and coastal-cañada drainage; confirms the Cañada del Arroyo Chico–Canal 5 convergence, Laguna Mar Chiquita and its Atlantic inlet.",
+      "limits": "Primary hydrogeological study with a compiled regional figure, not an official naming-registry decision. The hydrological map does not establish the selected western headward connector. Search-generated visual descriptions were not used in place of the observed original figure.",
+      "use_notice": "No redistribution permission is inferred from repository hosting. Source PDF and working figures remain private.",
+      "source_key": "glok-galli2015"
+    },
+    {
+      "title": "Evaluación de Impacto Ambiental y Social: Readecuación y ampliación de la planta de tratamiento de desagües cloacales, Localidad de General Pirán – Partido de Mar Chiquita",
+      "publisher": "Provincia de Buenos Aires, Ministerio de Infraestructura y Servicios Públicos, Subsecretaría de Recursos Hídricos, Dirección Provincial de Agua y Cloacas (DiPAC)",
+      "date": "2022-01",
+      "document_identifier": "PD-2022-01940411-GDEBA-DTPYPMIYSPGP",
+      "official_url": "https://www.ambiente.gba.gob.ar/ParticipacionCiudadana/informe_marchiquita.pdf",
+      "material_read": "Original PDF acquired HTTP200. Cover and bounded Chapter 2 hydrology prose, especially pp.14–18, read; original Figure 8 Orohidrografía de la Cuenca de Mar Chiquita on chapter p.15 and Figure 10 paired imagery on chapter p.17 visually read.",
+      "supports": "Independent DiPAC basin compilation distinguishes Napaleofú/Chico, Canal 6 and Canal 5, lagoon/costal drainage and separate Grande/Dulce/Vivoratá tributaries. Primary report explains intermittent streams and shallow basins connecting temporarily during wet periods.",
+      "limits": "Figure 8 is DiPAC's compilation from IGN vector data, SRTM and Google Earth, not a live Argenmap request. The separately reproduced atlas Figure 6 was excluded from substantive evidence; the inherited Atlas Cuencas stop was not treated as cleared. Seasonal imagery supplies drainage-character context, not proof of every selected western connector.",
+      "use_notice": "Figure 10 carries Google Earth and imagery-provider attributions. No source images or derivatives are redistributed. Official hosting is not treated as independent redistribution permission.",
+      "source_key": "dipac-piran2022"
+    },
+    {
+      "title": "Cartas topográficas 1:250.000, historical cartas_mosaicos mosaic, Maquinchao–Cari Laufquen corridor",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "edition": "Historical composite; constituent sheet dates unestablished from the inspected bounded views.",
+      "material_read": "Three normally completed original map views: full selected corridor overview, extreme headward detail and terminal lake-link detail. Local original-resolution views of the overview were also read for head, middle and lower corridor.",
+      "supports": "Established feeder, named Maquinchao trunk, wetland/junction setting and Chica-to-Grande connector/terminal. Extreme headward terrain was inspected but its watercourse connection remains unestablished.",
+      "limits": "Generalized historical cartography. A small white patch in the detailed terminal view lies outside the material selected continuation and does not create a terminal gap. Full geographic image coverage alone does not prove the missing headward channel.",
+      "use_notice": "No redistribution permission inferred from official hosting; originals, crops and orientation overlays remain private.",
+      "source_key": "r131-ign-historical250k-maquinchao"
+    },
+    {
+      "title": "Cartas topográficas 1:100.000, historical cartas_mosaicos mosaic, selected southeastern Maquinchao headward extent",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "material_read": "The single original request completed HTTP200 as image/png, but the image is entirely white.",
+      "supports": "No geographic or naming evidence.",
+      "limits": "Absent cartography in this bounded 100k view. No retry or alternate request for the same missing 100k content. This is not an HTTP denial or a blanket stop on successfully received 250k material.",
+      "use_notice": "No original image redistributed.",
+      "source_key": "r131-ign-historical100k-head",
+      "evidence_role": "Coverage-absence observation only; no geographic or naming evidence."
+    },
+    {
+      "title": "Informe Lagunas Carri-Laufquen, julio de 2012",
+      "publisher": "Departamento Provincial de Aguas, Provincia de Río Negro; hosted by Consejo Hídrico Federal",
+      "official_url": "https://www.cohife.org.ar/wp-content/uploads/2024/02/Ficha-64-Lagunas-Carrilaufquen-Informe-de-Situacion-2012-07.pdf",
+      "material_read": "Complete original PDF obtained HTTP200. Printed pp.4–5 hydrological description, pp.14–15 methods and Figure9 basin map, and Figure2 study-area map were read; the figures were visually inspected.",
+      "supports": "Seasonal headwater context; named trunk through Renangueyeu/Ñe-Luan and Maquinchao; lower tributaries, Huahuel Niyeo junction and Chica-to-Grande outlet.",
+      "limits": "Figure9 is a coarse basin synthesis using DEM, IGN contours, satellite imagery and provincial GIS, manually reviewed by the authors. It does not depict the selected extreme southeastern feeder clearly enough to close that gap. One prose longitude is visibly inconsistent with the region and is not used as a location anchor. Dated hydrological observations are not present-condition claims.",
+      "use_notice": "No redistribution permission established; original PDF and rendered figures remain private.",
+      "source_key": "r131-dpa-carri-laufquen2012"
+    },
+    {
+      "title": "González, P.; Giacosa, R.; Franchi, M.; Dalponte, M.; Hernando, I.; Aguilera, Y.; Coluccia, A. (2024). Hoja Geológica 4169-III, Ingeniero Jacobacci, provincia de Río Negro. Escala 1:250.000. Boletín 311, 136 pp.",
+      "publisher": "Instituto de Geología y Recursos Minerales, SEGEMAR; original report hosted in Universidad Nacional de Río Negro institutional repository",
+      "official_url": "https://rid.unrn.edu.ar/bitstream/20.500.12049/13198/1/Hoja%20Geol%C3%B3gica%204169-III%20Ingeniero%20Jacobacci.pdf",
+      "material_read": "Complete original PDF obtained HTTP200. Title/bibliographic and rights pages, printed p.2 drainage overview, p.90 physiography/hydrography, and original Figure42 on p.89 were read; Figure42 was visually inspected.",
+      "supports": "Lower Maquinchao and distinct tributary setting, Cari Laufquen Chica/Grande closed depression and temporary inter-lake connection.",
+      "limits": "The sheet covers the downstream western region. It does not cover the selected southeastern headwater gap. Its original geomorphology figure supports lower landscape/river/lake context, not every selected minor channel.",
+      "use_notice": "Printed notice identifies SEGEMAR ownership and prohibits reproduction. Factual reading only; the PDF, figures, crops and derived source imagery are not redistributed.",
+      "source_key": "r131-segemar-jacobacci2024"
+    },
+    {
+      "title": "El Departamento Provincial de Aguas evalúa la Cuenca del arroyo Maquinchao, 19 August 2022",
+      "publisher": "Gobierno de Río Negro / Departamento Provincial de Aguas",
+      "official_url": "https://rionegro.gov.ar/articulo/43051/el-departamento-provincial-de-aguas-evalua-la-cuenca-del-arroyo-maquinchao",
+      "material_read": "Official article body opened and read normally.",
+      "supports": "Separate secondary Maquinchao arm feeding Laguna Ñe Luan and the linked regional lake-management context.",
+      "limits": "Prose only. It supplies neither a map of the selected headward feeder nor present-day hydraulic conditions.",
+      "use_notice": "Government-site copyright footer observed; no image or article reproduction.",
+      "source_key": "r131-dpa-maquinchao2022"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60991587",
+      "source_keys": [
+        "ibge_caetes2010",
+        "ibge_paranatama2010",
+        "ibge_brejao2010",
+        "ibge_lagoaouro2010",
+        "cprm_arapiraca2009",
+        "sgb_maceio2023",
+        "pilar_plamcon2024"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13825
+          ],
+          "component_scope": "Initial feeder west of Caetés and northern Riacho Seco corridor",
+          "finding": "The Caetés original accounts for the selected short headward approach west of the town in the Pedra Grande/Riacho Seco setting, its southwesterly passage toward Barriguda and its southeastern bend. The map labels Riacho Seco along the connected corridor. The exact spring and a separate hydronym for the initial tip are not assigned; its geographic connection is visible rather than inferred from a basin label.",
+          "sources": [
+            "ibge_caetes2010",
+            "ibge_paranatama2010"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13825
+          ],
+          "component_scope": "Umbuzeiro–Macambira–Miracica headward continuation",
+          "finding": "Overlapping Caetés and Paranatama originals show the stream bending southeast at Umbuzeiro, crossing BR-423 and continuing south by Macambira toward the Miracica setting. This is the selected western headwater, separate from the Mundaú/Canhoto headward system farther east.",
+          "sources": [
+            "ibge_caetes2010",
+            "ibge_paranatama2010",
+            "ibge_brejao2010"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Riacho Seco"
+        },
+        {
+          "fragments": [
+            13825
+          ],
+          "component_scope": "West of Brejão through Terezinha toward Sítio Grande",
+          "finding": "The Brejão original follows the western stream through the Grota do Riacho Seco/Mamoeiro setting, south past the western side of Brejão, then southeast below Terezinha toward Sítio Grande. Arapiraca overlaps the continuation and distinguishes the eastern Riacho Caracol inflow. Açude Público Garanhuns is on a separate northeastern watercourse and is not a selected reservoir passage.",
+          "sources": [
+            "ibge_brejao2010",
+            "cprm_arapiraca2009"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Riacho Seco"
+        },
+        {
+          "fragments": [
+            13825
+          ],
+          "component_scope": "Lagoa do Ouro western boundary and Seco–Paraíba transition",
+          "finding": "The Lagoa do Ouro original shows the selected southern continuation along the western municipal boundary, with Riacho Seco labeled above and Rio Paraíba below the western inflow in the Bom Conselho boundary setting. The selected corridor proceeds beside the western flank of Serra dos Carneiros/Serra do Catolé. The name-transition point is not fixed to a model vertex. Eastern Cocal, Cavaleiro and Piapai branches are separate from the selected headward choice. The Arapiraca original supplies continuous overlapping geographic coverage to Quebrangulo.",
+          "sources": [
+            "ibge_lagoaouro2010",
+            "cprm_arapiraca2009"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Riacho Seco / Rio Paraíba"
+        },
+        {
+          "fragments": [
+            13825
+          ],
+          "component_scope": "Quebrangulo and eastward middle river",
+          "finding": "The Arapiraca original follows the southward river into Quebrangulo and its turn east through Paulo Jacinto, the Anel vicinity, Viçosa and Cajueiro. It directly distinguishes the western Bálsamo and southern Quebrangulo inflows from the selected northern approach. The eastward river occupies the same mapped valley sequence as the selected line.",
+          "sources": [
+            "cprm_arapiraca2009"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Paraíba"
+        },
+        {
+          "fragments": [
+            13825
+          ],
+          "component_scope": "Capela junction and Atalaia–Sapucaia lower river",
+          "finding": "The Arapiraca original distinguishes the Paraibinha entering near Capela from the selected Paraíba arriving from Cajueiro. The Paraíba then turns south through Atalaia and Sapucaia and continues along the western approach to Pilar. The separately mapped Sumaúma-Mirim and other side channels are not substituted for the selected main course.",
+          "sources": [
+            "cprm_arapiraca2009"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Paraíba"
+        },
+        {
+          "fragments": [
+            13825
+          ],
+          "component_scope": "Pilar deltaic entrance and Lagoa Manguaba",
+          "finding": "The overlapping Arapiraca and Maceió originals establish the lower Paraíba approach, its branches southwest of Pilar, and entrance to the northwestern part of Lagoa Manguaba. The selected line crosses Manguaba southward, passing east of Marechal Deodoro. Maceió separately labels the Salgado approach and Sumaúma entering farther south/west; the neighboring Lagoa Mundaú and its inflow are separate. The municipal plan independently uses Rio Paraíba do Meio for the river with its mouth in Pilar.",
+          "sources": [
+            "cprm_arapiraca2009",
+            "sgb_maceio2023",
+            "pilar_plamcon2024"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Paraíba / Lagoa Manguaba"
+        },
+        {
+          "fragments": [
+            13825
+          ],
+          "component_scope": "Southern Manguaba outlet channels and terminal setting",
+          "finding": "The Maceió original shows the southern Manguaba exit entering the island/channel network around Massagueira, Santa Rita and Barra Nova. These channels connect northeastward to the Atlantic inlet alongside the southern Mundaú outlet system. This is the selected terminal coastal-channel setting. The model endpoint is treated at ordinary outlet-corridor scale: no claim is made that it is the surveyed open-ocean mouth, a separate inlet, or an exact match to a dated barrier edge. No single river hydronym is imposed on the lagoon or every coastal channel.",
+          "sources": [
+            "sgb_maceio2023"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": null
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70030104",
+      "source_keys": [
+        "r131-mb-herchmer-1988",
+        "r131-parks-wapusk-map",
+        "r131-mb-highway-map11",
+        "r131-artuso-wapusk-2011"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9021
+          ],
+          "component_scope": "Unnamed western headward watercourse",
+          "finding": "The selected western start follows an irregular eastward watercourse through the small-waterbody landscape west and southwest of Owl Lake. The original sheet shows its southern excursion and return toward the outflow from Owl Lake. It is a separate branch from Fly Lake and Owl Lake; those northern lakes are not on this selected feeder.",
+          "sources": [
+            "r131-mb-herchmer-1988"
+          ],
+          "correspondence": "Headward corridor and connection supported at ordinary generalized component scale.",
+          "name_scope": "Headward feeder name remains null. Do not assign Owl River, Fly Lake or Owl Lake as a uniform name to this component."
+        },
+        {
+          "fragments": [
+            9021
+          ],
+          "component_scope": "Junction below Owl Lake and upper Owl southern bend",
+          "finding": "The mapped Owl Lake outlet meets the western feeder south of the lake. The shared route bends southeast and then northeast, with the Owl label on the downstream watercourse. The large southern bend in the retained selected route corresponds to this mapped shared trunk rather than a passage through either named lake.",
+          "sources": [
+            "r131-mb-herchmer-1988"
+          ],
+          "correspondence": "Junction and downstream bend supported.",
+          "name_scope": "Owl River applies to the shared mapped trunk; it does not rename the western feeder or the upstream lakes."
+        },
+        {
+          "fragments": [
+            9021
+          ],
+          "component_scope": "Herchmer and adjoining eastward trunk",
+          "finding": "The route turns north and then generally east/northeast through the Herchmer railway-crossing setting. The Herchmer sheet and provincial regional map place the Owl River at this crossing and show its continuation toward the park. Artuso's first-person 2011 field account independently describes paddling from Herchmer along Owl River to the Hudson Bay coast; this prose corroborates the route, without substituting for map coverage.",
+          "sources": [
+            "r131-mb-herchmer-1988",
+            "r131-mb-highway-map11",
+            "r131-artuso-wapusk-2011"
+          ],
+          "correspondence": "Overlapping mapped corridor and railway setting supported.",
+          "name_scope": "Owl River trunk; settlement and railway names are orientation only."
+        },
+        {
+          "fragments": [
+            9021
+          ],
+          "component_scope": "Central Owl River through Wapusk National Park",
+          "finding": "The original provincial and park maps follow the northeast-running Owl corridor through the park south of Broad River. Separate southern tributary channels remain distinct; the park map explicitly depicts Silcox Creek entering Owl River from the south. Skidmore Lake is north of the selected trunk and Roberge Lake is south of it, rather than selected lake passages. Continuous mapped trunk coverage bridges the Herchmer sheet's eastern edge to the coastal section.",
+          "sources": [
+            "r131-parks-wapusk-map",
+            "r131-mb-highway-map11"
+          ],
+          "correspondence": "Continuous central corridor and material tributary setting supported.",
+          "name_scope": "Representative Owl River name is supported by labels placed on the trunk, not merely by park or basin membership. Tributaries and off-route lakes retain separate scope."
+        },
+        {
+          "fragments": [
+            9021
+          ],
+          "component_scope": "Lower Owl River and actual coastal terminal",
+          "finding": "Both original maps continue the labeled Owl River to its own Hudson Bay outlet. The Parks Canada map places an Owl River management compound near the coast and depicts tidal flats along this shore. The river's outlet is distinct from the Broad River outlet to the north and Rupert Creek farther south. The selected lower east/northeast corridor reaches this same coastal setting.",
+          "sources": [
+            "r131-parks-wapusk-map",
+            "r131-mb-highway-map11"
+          ],
+          "correspondence": "Lower corridor, distinct outlet and receiving sea supported at ordinary mouth-area scale.",
+          "name_scope": "Hudson Bay is the receiving water, not an additional reach named Owl River. Exact shoreline or mouth-vertex identity is not asserted."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61536265",
+      "source_keys": [
+        "ign250k-r131-61536265",
+        "ign100k-r131-61536265",
+        "glok-galli2015",
+        "dipac-piran2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14506
+          ],
+          "component_scope": "Western head and Ramos Otero approach",
+          "finding": "The head lies in the El Yatay/Los Corrales country north of the separately mapped Arroyo Grande. The route proceeds northeast through the Ramos Otero setting toward Las Tres Lomas. The 1:100,000 original distinguishes Arroyo Grande and its southern tributaries from the Napaleofú drainage to the north. It does not show the selected intervening head-to-receiver link as a connected watercourse.",
+          "sources": [
+            "ign250k-r131-61536265",
+            "ign100k-r131-61536265"
+          ],
+          "correspondence": "Original cartographic landscape read; hydrological connector materially unresolved.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14506
+          ],
+          "component_scope": "Las Tres Lomas–El Refugio–La Oración–General Pirán lowland passage",
+          "finding": "The selected course turns east near El Refugio and San Pastor, then northeast through the La Oración/La Media Luna setting and crosses the transport corridor south of General Pirán. The detailed original shows discontinuous wetland/short-channel features in this country; the named Arroyo Chico is a distinct mapped corridor farther north before its eastern channelized connections. DiPAC describes intermittent streams, shallow basins and wet-period temporary connections, with paired imagery about 10 km west of General Pirán. Those regional observations do not identify the particular western selected receiving link.",
+          "sources": [
+            "ign250k-r131-61536265",
+            "ign100k-r131-61536265",
+            "dipac-piran2022"
+          ],
+          "correspondence": "Original geographic coverage and independently observed regional drainage character; not complete selected-connector correspondence.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14506
+          ],
+          "component_scope": "Eastern canal and Laguna del Maestro drainage setting",
+          "finding": "East of General Pirán, the selected route approaches the mapped Canal 6 and adjacent wetland country near San José de Mata and San Felipe, then the Cati Lauquén/La Paz depression-and-lagoon setting. The original 1:250,000 map shows Laguna del Maestro and its southeastern drainage. Glok Galli and DiPAC identify the natural Chico–Méndez drainage feeding the Maestro/La Argentina lake system and distinguish it from the canal network. The selected broad lagoon-to-coastal-channel passage is geographically consistent with this eastern receiving system; exact lake-edge and individual ditch positions are unassigned.",
+          "sources": [
+            "ign250k-r131-61536265",
+            "glok-galli2015",
+            "dipac-piran2022"
+          ],
+          "correspondence": "Original eastern corridor and lagoon drainage read; no back-propagation of names into the unresolved western head.",
+          "mapped_component_names": [
+            "Canal 6",
+            "Laguna del Maestro"
+          ]
+        },
+        {
+          "fragments": [
+            14506
+          ],
+          "component_scope": "Cañada del Arroyo Chico / Chico o de las Gallinas and Canal 5 junction",
+          "finding": "The eastern selected route turns south and then southwest beside the coastal dune belt, through the Arroyo Chico/La Diana/Atlántida/Los Médanos country. The IGN original labels the lower natural drainage Arroyo Chico o de las Gallinas. The thesis's Figure 6.1 explicitly distinguishes the curved eastern Cañada del Arroyo Chico from the straighter Canal 5 approach farther west and shows their convergence before Laguna Mar Chiquita. Its prose describes the cañada as the outlet drainage of La Argentina and El Maestro. This supplies the material lower receiving junction; the canal and natural cañada are not treated as one uniformly named channel.",
+          "sources": [
+            "ign250k-r131-61536265",
+            "glok-galli2015",
+            "dipac-piran2022"
+          ],
+          "correspondence": "Original mapped lower channel and material receiving connection, corroborated by bounded prose.",
+          "mapped_component_names": [
+            "Cañada del Arroyo Chico",
+            "Arroyo Chico o de las Gallinas",
+            "Canal 5"
+          ]
+        },
+        {
+          "fragments": [
+            14506
+          ],
+          "component_scope": "Laguna Mar Chiquita passage and neighboring lakes",
+          "finding": "The selected route continues southwest into the northern part of Laguna Mar Chiquita and traverses its main coastal-lagoon body. Original maps distinguish nearby Hinojales, Nahuel Rucá and other western lagoons rather than placing all of them on the selected passage. Glok Galli's basin figure independently shows the lagoon receiving the eastern cañada/canal system and other separately named western tributaries. No reservoir or dam passage is shown in the selected route.",
+          "sources": [
+            "ign250k-r131-61536265",
+            "glok-galli2015",
+            "dipac-piran2022"
+          ],
+          "correspondence": "Original lagoon and receiving-basin cartography, with generalized interior passage only.",
+          "mapped_component_name": "Laguna Mar Chiquita"
+        },
+        {
+          "fragments": [
+            14506
+          ],
+          "component_scope": "Southern lagoon inlet and actual Atlantic terminal",
+          "finding": "The selected terminal follows the lagoon's narrowing southern inlet beside the Mar Chiquita settlement and opens through the coastal barrier to the Atlantic. The IGN original shows the lagoon, constricted outlet, settlement and sea together; the thesis independently describes the lagoon's sea-communication channel and maps that connection. The endpoint is this open coastal outlet, not an inland termination or one of the neighboring lakes. Offshore white patches in the detailed mosaic do not intersect the terminal passage and are not used as evidence.",
+          "sources": [
+            "ign250k-r131-61536265",
+            "glok-galli2015"
+          ],
+          "correspondence": "Actual terminal setting and lagoon-to-sea connection read on original cartography.",
+          "mapped_component_names": [
+            "Laguna Mar Chiquita",
+            "Océano Atlántico"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61561008",
+      "source_keys": [
+        "r131-ign-historical250k-maquinchao",
+        "r131-ign-historical100k-head",
+        "r131-dpa-carri-laufquen2012",
+        "r131-segemar-jacobacci2024",
+        "r131-dpa-maquinchao2022"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14577
+          ],
+          "component_scope": "Extreme southeastern selected headward beginning",
+          "finding": "The selected beginning lies in the uplands across the Río Negro–Chubut boundary. Original 250k topography was read at overview and detailed scale: the downstream part reaches a mapped intermittent feeder, while the extreme beginning lies beyond the depicted blue-channel network. The 100k extent is entirely white. DPA's broad headwater account and basin figure cannot supply the specific missing linkage.",
+          "sources": [
+            "r131-ign-historical250k-maquinchao",
+            "r131-ign-historical100k-head",
+            "r131-dpa-carri-laufquen2012"
+          ],
+          "correspondence": "Material connection unresolved.",
+          "mapped_component_name": null,
+          "name_scope": "Do not assign Maquinchao or a nearby upland name to this unresolved initial feeder."
+        },
+        {
+          "fragments": [
+            14577
+          ],
+          "component_scope": "Established feeder and Llama-Niyeo–Rucu-Luan transition",
+          "finding": "Downstream of the unresolved extreme beginning, the selected route corresponds to the mapped intermittent drainage toward Llama-Niyeo and its northward turn into the broader Rucu-Luan valley setting. Several western and eastern feeder valleys are visible. These junctions were read geographically, rather than treating a nearby place label as the river name.",
+          "sources": [
+            "r131-ign-historical250k-maquinchao"
+          ],
+          "correspondence": "Established downstream feeder and valley junctions supported at ordinary corridor scale.",
+          "mapped_component_name": null,
+          "name_scope": "No separate headward feeder hydronym established."
+        },
+        {
+          "fragments": [
+            14577
+          ],
+          "component_scope": "Puesto de Hornos–Renangueyeu–Ñe-Luan middle corridor",
+          "finding": "The selected route follows the long north-running channel and mallín belt through the Puesto de Hornos and Renangueyeu settings toward Ñe-Luan. Original cartography places the Río Maquinchao label along the continuing trunk. Ñe-Luan and other lagoons lie beside or within neighboring branches of this wetland landscape; the selected route is not a continuous traverse of their open-water interiors. DPA separately identifies a secondary Maquinchao arm feeding Ñe-Luan.",
+          "sources": [
+            "r131-ign-historical250k-maquinchao",
+            "r131-dpa-carri-laufquen2012",
+            "r131-dpa-maquinchao2022"
+          ],
+          "correspondence": "Middle channel, wetland and branch setting supported.",
+          "name_scope": "Maquinchao supports the trunk candidate, without renaming neighboring lakes or all side channels."
+        },
+        {
+          "fragments": [
+            14577
+          ],
+          "component_scope": "Maquinchao bend and west-running lower trunk",
+          "finding": "Original cartography follows the selected course past Estancia Maquinchao and the railway setting into its westward turn near Maquinchao and Cerro Puntudo, then along the Epu Laufquen lowland north of the main road/rail corridor. Repeated Río Maquinchao labeling lies on the same mapped drainage. Southern tributary valleys enter this low belt; DPA and SEGEMAR independently distinguish Chaiful and Quetrequile, with SEGEMAR also describing Pistola.",
+          "sources": [
+            "r131-ign-historical250k-maquinchao",
+            "r131-dpa-carri-laufquen2012",
+            "r131-segemar-jacobacci2024"
+          ],
+          "correspondence": "Named lower trunk, direction change and material tributary setting supported.",
+          "name_scope": "The tributaries remain distinct and are not included in a uniform Maquinchao scalar claim."
+        },
+        {
+          "fragments": [
+            14577
+          ],
+          "component_scope": "Lower wetland convergence and Cari Laufquen Chica setting",
+          "finding": "The west-running selected line enters the low channel/mallín convergence south and east of Cari Laufquen Chica. DPA describes Maquinchao and Huahuel Niyeo joining north of RN23 before the lake. The original map shows their convergent watercourse setting. The model skirts the east side of Chica rather than matching its mapped open-water centre; no exact bank or artificial lake-interior river name is asserted.",
+          "sources": [
+            "r131-ign-historical250k-maquinchao",
+            "r131-dpa-carri-laufquen2012",
+            "r131-segemar-jacobacci2024"
+          ],
+          "correspondence": "Generalized convergence, lake-margin and outlet approach supported.",
+          "name_scope": "Cari Laufquen Chica remains a distinct lake."
+        },
+        {
+          "fragments": [
+            14577
+          ],
+          "component_scope": "Chica outlet, Cerro Ambrosio and actual Grande terminal",
+          "finding": "The detailed original terminal map shows an intermittent outlet leaving the north/east side of Chica, bending around the east side of Cerro Ambrosio and then northwest into Grande. The selected generalized continuation follows this outlet corridor and finishes within mapped Laguna Cari Laufquen Grande. SEGEMAR describes the temporary lower-Maquinchao connection between the lakes, corroborating DPA's outlet account.",
+          "sources": [
+            "r131-ign-historical250k-maquinchao",
+            "r131-dpa-carri-laufquen2012",
+            "r131-segemar-jacobacci2024"
+          ],
+          "correspondence": "Lake connector and endorheic receiving-water setting supported at ordinary corridor scale.",
+          "name_scope": "Maquinchao is the linked river-system candidate; lake interiors retain their lake identities."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:60991587",
+      "publication": "SGB sub-bacia 39 report exposed in discovery as “Relatorio_SB39_final”; printed title and edition not inspected",
+      "official_url": "https://rigeo.sgb.gov.br/server/api/core/bitstreams/88b138fd-a989-48ea-8545-37a7ca4df148/content",
+      "observed_outcome": "The sole direct web-reader open returned Cache miss. No report body, original map pixels or HTTP status acquired.",
+      "outcome_layer": "Web-reader availability response; origin HTTP status unknown",
+      "restriction_scope": "Missing report and equivalent report copies, formats, figures, catalogue/reader/original/cache/mirror routes remain paused. No retry or alternate acquisition. This does not restrict independently issued Arapiraca, Maceió or IBGE municipal maps.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60991587",
+      "publication": "Manual de Operação da Sala de Situação – Alagoas; title identified in discovery, printed edition not inspected",
+      "official_url": "https://progestao.ana.gov.br/progestao-1/acompanhamento-programa/aplicacao-dos-recursos/acompanhamento-das-metas-de-cooperacao-federativa/manuais-de-salas-de-situacao/manual-de-operacao-da-sala-de-situacao_al.pdf/%40%40download/file/Manual%20de%20Opera%C3%A7%C3%A3o%20da%20Sala%20de%20Situa%C3%A7%C3%A3o_AL.pdf",
+      "observed_outcome": "The sole direct web-reader open reported that the URL is not accessible via this tool. No original body/maps, HTTP status, security or authorization reason exposed.",
+      "outcome_layer": "Unexplained web-reader-route failure; origin HTTP status unknown",
+      "restriction_scope": "The exact failed reader route is not retried. Manual content remains unacquired; no alternative or equivalent-copy acquisition was attempted or needed for this target. This is not a whole-publication HTTP-denial observation.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "reader_route_availability_failure",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70030104",
+      "publication": "Map of Wapusk National Park, original GIF linked by Parks Canada",
+      "official_url": "https://parks.canada.ca/pn-np/mb/wapusk/visit/carte-map/carte-map-01",
+      "observed_outcome": "The image reader reported an unsupported GIF content-type limitation, without an observed origin access denial. One sequential acquisition of the known linked original then completed HTTP 200; its original map pixels were successfully read.",
+      "outcome_layer": "Completed web-reader format limit; subsequent original HTTP response succeeded. No origin HTTP denial was observed.",
+      "restriction_scope": "The failed reader route was not retried. No publication-wide stop or equivalent-route denial was established; the successful original supplied the cartographic evidence.",
+      "earlier_lawful_prose_exception": "The landing-page map description had already opened normally, but map correspondence is based on the subsequently acquired original image.",
+      "limitation_kind": "completed_technical_reader_format_limit_with_successful_original_fallback",
+      "material_gap": false,
+      "linked_original_url": "https://pcweb2.azureedge.net/-/media/pn-np/mb/wapusk/WET4/visit/carte-map/wnp-carte-map-740x995-e.gif"
+    },
+    {
+      "aw_id": "hydro-system:61561008",
+      "publication": "Hoja Geológica 4169-IV Maquinchao (2001), SEGEMAR Boletín 312",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/159",
+      "observed_outcome": "The direct web-reader catalogue request returned (400) Timeout fetching. No catalogue body or original map acquired.",
+      "outcome_layer": "Web-reader fetch/transport result; origin HTTP status unestablished.",
+      "restriction_scope": "Missing publication and equivalent copies, formats, figures, catalogue/original/reader/cache/mirror and other acquisition routes paused. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_timeout",
+      "evidence_boundary": "Discovery metadata identified the publication only. Search snippets are not substantive source evidence."
+    },
+    {
+      "aw_id": "hydro-system:61561008",
+      "publication": "IGN historical cartas_mosaicos 1:100.000, selected southeastern Maquinchao headward extent",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "observed_outcome": "Original bounded view completed HTTP200, image/png; visual inspection found an entirely white image without cartography.",
+      "outcome_layer": "Successful origin HTTP response with missing cartographic content in the inspected view.",
+      "restriction_scope": "This missing 100k headward cartographic extent supplies no evidence and was not repeated. It is not a denial or blanket restriction on the distinct successfully read 250k map content.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "bounded_cartographic_coverage_absence"
+    }
+  ],
+  "additional_source_use_notices": []
+}
