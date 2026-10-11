@@ -5,6 +5,9 @@
 #include <QTextStream>
 #include "referenceautogeoref.h"
 #include "referenceocr.h"
+#include "referencewarp.h"
+#include <algorithm>
+#include <cmath>
 
 static QVariantMap seed(const QString& id,const QString& name,double lon,double lat,int priority)
 {
@@ -16,6 +19,47 @@ static QVariantMap seed(const QString& id,const QString& name,double lon,double 
         {"expectedUv",QVariantList{u,v}},
         {"coordinate",QVariantList{lon,lat}},
         {"priority",priority}};
+}
+
+
+static double haversineMeters(const QPointF& a,const QPointF& b)
+{
+    constexpr double r=6371008.8,pi=3.14159265358979323846;
+    const double lat1=a.y()*pi/180.,lat2=b.y()*pi/180.;
+    const double dlat=(b.y()-a.y())*pi/180.;
+    double dlon=b.x()-a.x();while(dlon>180)dlon-=360;while(dlon<-180)dlon+=360;dlon*=pi/180.;
+    const double s1=std::sin(dlat/2),s2=std::sin(dlon/2);
+    const double h=s1*s1+std::cos(lat1)*std::cos(lat2)*s2*s2;
+    return 2*r*std::asin(std::min(1.,std::sqrt(std::max(0.,h))));
+}
+
+static QVariantMap leaveOneOut(const QVariantList& values,ReferenceWarpMode mode)
+{
+    QVector<ReferenceControlPoint> points;
+    QStringList names;
+    for(const auto& value:values){
+        const auto map=value.toMap(),image=map.value("image").toList(),coordinate=map.value("coordinate").toList();
+        if(image.size()!=2||coordinate.size()!=2)continue;
+        points.push_back({QPointF(image[0].toDouble(),image[1].toDouble()),
+                          QPointF(coordinate[0].toDouble(),coordinate[1].toDouble())});
+        names.push_back(map.value("id").toString());
+    }
+    QVector<double> errors;QVariantList rows;
+    for(int hold=0;hold<points.size();++hold){
+        QVector<ReferenceControlPoint> train;train.reserve(points.size()-1);
+        for(int i=0;i<points.size();++i)if(i!=hold)train.push_back(points[i]);
+        const auto warp=solveReferenceWarp(mode,train);if(!warp.valid)continue;
+        const double meters=haversineMeters(warp.map(points[hold].source),points[hold].destination);
+        errors.push_back(meters);
+        rows.push_back(QVariantMap{{"id",names[hold]},{"meters",meters}});
+    }
+    if(errors.isEmpty())return {{"count",0}};
+    auto sorted=errors;std::sort(sorted.begin(),sorted.end());
+    double sum=0,squared=0;for(double value:errors){sum+=value;squared+=value*value;}
+    const double median=sorted.size()%2?sorted[sorted.size()/2]:(sorted[sorted.size()/2-1]+sorted[sorted.size()/2])/2.;
+    return {{"count",errors.size()},{"meanMeters",sum/errors.size()},
+        {"medianMeters",median},{"rmsMeters",std::sqrt(squared/errors.size())},
+        {"maxMeters",sorted.back()},{"rows",rows}};
 }
 
 int main(int argc,char** argv)
@@ -55,7 +99,9 @@ int main(int argc,char** argv)
     QVariantMap report{
         {"image",QVariantMap{{"width",image.width()},{"height",image.height()}}},
         {"symbolOnly",symbols.toVariant()},
-        {"ocr",ocr.toVariant()}
+        {"ocr",ocr.toVariant()},
+        {"leaveOneOutProjective",leaveOneOut(symbols.controlPoints,ReferenceWarpMode::Projective)},
+        {"leaveOneOutTps",leaveOneOut(symbols.controlPoints,ReferenceWarpMode::ThinPlateSpline)}
     };
     if(ocr.ok) {
         const auto assisted=solveReferenceAutoGeorefFromOcr(image,seeds,ocr.detections,{},QStringLiteral("auto"));
@@ -64,8 +110,10 @@ int main(int argc,char** argv)
     out<<QJsonDocument::fromVariant(report).toJson(QJsonDocument::Indented);
     out.flush();
 
-    const auto assisted=report.value("ocrAssisted").toMap();
-    return assisted.value("ok").toBool()
-        && assisted.value("inlierCount").toInt()>=4
-        && assisted.value("rmsMeters").toDouble()<30000. ? 0 : 2;
+    const auto projective=report.value("leaveOneOutProjective").toMap();
+    return symbols.ok
+        && symbols.inlierCount>=8
+        && symbols.rmsMeters<20000.
+        && projective.value("count").toInt()>=8
+        && projective.value("medianMeters").toDouble()<25000. ? 0 : 2;
 }
