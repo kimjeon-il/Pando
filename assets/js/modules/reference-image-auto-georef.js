@@ -163,6 +163,59 @@ function scoreComponent(component, expected, background, searchRadius, polarity,
   return { confidence, distance, width, height, fill, contrast: rawContrast, polarity };
 }
 
+
+const DEFAULT_PLACE_KINDS = new Set(['capital', 'city', 'town']);
+
+export function buildReferenceImagePlaceSeeds(places = [], {
+  projectCoordinate,
+  hitTestUv,
+  kinds = DEFAULT_PLACE_KINDS,
+  maximumSeeds = 120,
+  edgeInset = 0.015,
+} = {}) {
+  if (!Array.isArray(places) || typeof projectCoordinate !== 'function' || typeof hitTestUv !== 'function') {
+    return Object.freeze([]);
+  }
+  const allowedKinds = kinds instanceof Set ? kinds : new Set(kinds || []);
+  const ranked = places
+    .filter(place => allowedKinds.has(String(place?.kind || '')))
+    .map(place => ({
+      place,
+      priority: Number.isFinite(Number(place?.priority)) ? Number(place.priority) : 0,
+      population: Number.isFinite(Number(place?.population)) ? Number(place.population) : 0,
+    }))
+    .sort((left, right) => right.priority - left.priority
+      || right.population - left.population
+      || String(left.place?.id || '').localeCompare(String(right.place?.id || '')));
+
+  const limit = Math.max(1, Math.min(512, Math.round(Number(maximumSeeds) || 120)));
+  const inset = clamp(Number(edgeInset) || 0, 0, 0.2);
+  const seeds = [];
+  for (const item of ranked) {
+    const coordinate = finitePair(item.place?.coordinates);
+    if (!coordinate) continue;
+    const screen = finitePair(projectCoordinate(coordinate));
+    if (!screen) continue;
+    const expectedUv = finitePair(hitTestUv(screen));
+    if (!expectedUv) continue;
+    if (
+      expectedUv[0] < inset || expectedUv[0] > 1 - inset
+      || expectedUv[1] < inset || expectedUv[1] > 1 - inset
+    ) continue;
+    seeds.push(Object.freeze({
+      id: String(item.place.id || ''),
+      name: String(item.place.name || ''),
+      kind: String(item.place.kind || ''),
+      coordinate: Object.freeze([coordinate[0], coordinate[1]]),
+      expectedUv: Object.freeze([expectedUv[0], expectedUv[1]]),
+      priority: item.priority,
+      population: item.population,
+    }));
+    if (seeds.length >= limit) break;
+  }
+  return Object.freeze(seeds);
+}
+
 export function findReferenceImagePointSymbol(raster, expectedUv, {
   searchRadiusPx = 28,
   minimumContrast = 28,
