@@ -483,12 +483,18 @@ export function createGpuMapRenderer(deps) {
       const packet = pendingCountrySharedBoundary;
       if (!packet) return false;
       if (isWebGlRenderer()) {
-        const batches = globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
-          packet, mapTheme(), shouldShowSharedCountryBorders(state.physicalSettings), countryBoundaryStyleById);
-        // Unique revisioned keys allow old and new GPU resources to coexist.
-        // No mixed-generation owner ranges or partial uploads reach the screen.
-        for (const batch of batches) strokeRenderer.ensureResource(batch);
-        if (batches.some(batch => !strokeRenderer.hasResource(batch.key))) return false;
+        // Prewarm BOTH border presentation modes before promotion. Terrain
+        // style toggles must not publish a packet whose solid shared strokes
+        // still need a separate GPU upload.
+        const batches = [
+          ...globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
+            packet, mapTheme(), true, countryBoundaryStyleById),
+          ...globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(
+            packet, mapTheme(), false, countryBoundaryStyleById),
+        ];
+        const unique = [...new Map(batches.map(batch => [batch.key, batch])).values()];
+        for (const batch of unique) strokeRenderer.ensureResource(batch);
+        if (unique.some(batch => !strokeRenderer.hasResource(batch.key))) return false;
       }
       return publishCountrySharedBoundary(packet);
     }
@@ -512,7 +518,9 @@ export function createGpuMapRenderer(deps) {
             || data?.quality !== activeMeshQuality) return;
           if (data.type === 'error') {
             console.warn('[PL-COUNTRY-BOUNDARY-001]', data.message);
-            resetCountrySharedBoundary({ terminate: true });
+            // Retain the last successfully presented borders even when a
+            // replacement Worker job fails.
+            resetCountrySharedBoundary({ terminate: true, preservePresented: true });
             return;
           }
           if (data.type !== 'prepared') return;
@@ -527,7 +535,7 @@ export function createGpuMapRenderer(deps) {
         };
         countryBoundaryWorker.onerror = event => {
           console.warn('[PL-COUNTRY-BOUNDARY-002]', event.message || event);
-          resetCountrySharedBoundary({ terminate: true });
+          resetCountrySharedBoundary({ terminate: true, preservePresented: true });
         };
         replace = true;
       }
