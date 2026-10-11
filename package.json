@@ -13,7 +13,9 @@
     "build:preview": "python tools/validate-country-geometry.py --canonical-only && node tools/build-world-preview.mjs && python tools/validate-country-geometry.py",
     "build:country-shared-boundaries": "node tools/build-country-shared-boundaries.mjs",
     "check:country-shared-boundaries": "node tools/build-country-shared-boundaries.mjs --check",
-    "build:map-assets": "pnpm build:territorial-library && pnpm build:current-world && pnpm build:mesh && pnpm build:preview && pnpm build:country-shared-boundaries",
+    "build:map-assets": "pnpm build:territorial-library && pnpm build:current-world && pnpm build:historical-world && pnpm build:mesh && pnpm build:preview && pnpm build:country-shared-boundaries",
+    "build:historical-world": "node tools/build-historical-world-timeline.mjs",
+    "check:historical-world": "node tools/build-historical-world-timeline.mjs --check",
     "generate:build-meta": "node scripts/generate-build-metadata.mjs",
     "build:ui-bundle": "node scripts/build-ui-bundle.mjs",
     "check:version": "node scripts/check-version.mjs",
@@ -44,7 +46,10 @@
     "build:territorial-geometry": "python tools/build-territorial-geometry.py",
     "build:territorial-library": "node tools/build-territorial-entity-chunks.mjs",
     "build:current-world": "node tools/build-territorial-current-world.mjs",
-    "check:territorial-library": "python tools/build-territorial-geometry.py --check && node tools/build-territorial-entity-chunks.mjs --check && node scripts/check-territorial-library.mjs"
+    "check:territorial-library": "python tools/build-territorial-geometry.py --check && node tools/build-territorial-entity-chunks.mjs --check && node scripts/check-territorial-library.mjs",
+    "check:place-sync": "node tools/export-place-sync.mjs --check && node --test tests/unit/place-sync-contract.test.mjs",
+    "build:places": "node tools/build-place-runtime.mjs",
+    "check:places": "node tools/build-place-runtime.mjs --check && node --test tests/unit/place-publication.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

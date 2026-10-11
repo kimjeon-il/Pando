@@ -73,12 +73,16 @@ export function createProgressiveStartup() {
     const previewSearch = dependencies.projectState.state.layerSearch;
     const previewSelection = (dependencies.projectState.state.selected?.domain === 'territorial' && (dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(dependencies.projectState.state.selected?.id)?.properties.parentId)) ? String(dependencies.projectState.state.selected.id || '') : '';
     (0, dependencies.builtinCountries.installCanonicalCountryStore)(geometry.canonicalCountryStore);
-    await dependencies.builtinBaseline.prepareProjectBaseline();
+    const restored = autosaveRestore.project;
+    const projectGeneration = previewStart.projectGeneration;
+    const baseline = !restored || restored.format === 'pandolab-autosave-delta'
+      ? await dependencies.builtinBaseline.prepareProjectBaseline() : null;
+    if (Number.isFinite(projectGeneration)
+      && dependencies.rendering.gpuMapRenderer.getProjectGeneration() !== projectGeneration) return null;
     // Preview-to-canonical promotion stays inside the same project generation.
     // A project hard reset here discarded the painted preview scene and forced
     // the renderer down the expensive canonical fallback path before the
     // Worker mesh was ready.
-    const projectGeneration = dependencies.rendering.gpuMapRenderer.getProjectGeneration?.();
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
     // Display-only preview sources survive canonical hydration for zoom LOD.
     // The renderer invalidates these on project replacement, never the Store.
@@ -87,15 +91,12 @@ export function createProgressiveStartup() {
       ? dependencies.territorialModel.entityRepository.list({  }).filter(entity => entity.properties.entityKind === 'regional' || !!entity.properties.parentId) : null;
     dependencies.projectState.state.countryVisualPhase = previewAllowed ? 'preview' : 'canonical';
 
-    const restored = autosaveRestore.project;
-    const baseCountries = (0, dependencies.countryServices.normalizeCountryCollection)(geometry.countries).features;
     if (restored) restoreSavedProject(restored);
-    else dependencies.territorialModel.entityStore.restoreProject(createStaticTerritorialSnapshot(baseCountries));
+    else dependencies.territorialModel.entityStore.restoreProject(baseline.project, { preserveCursor: true });
     // A display request may have initialized the edit Worker from preview countries.
     // Retire it before any canonical edit; its next request lazily rebases from this state.
     dependencies.spatialQuery.mapEditClient.stop();
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'countries-indexed';
-    if (!restored) (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
     if (!restored) (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) }));
     if (navigationChanged) {
       dependencies.projectState.state.view = navigationView;
@@ -109,7 +110,7 @@ export function createProgressiveStartup() {
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
-    (0, dependencies.projectSnapshots.configureDatasetSession)(restored);
+    (0, dependencies.projectSnapshots.configureDatasetSession)(restored || baseline.project);
     if (startupMetrics) startupMetrics.canonicalStateApplyStage = 'project-normalized';
     dependencies.projectState.state.boundaryPreparation?.cancel();
     dependencies.projectState.state.boundaryPreparation = null;
@@ -289,6 +290,9 @@ export function createProgressiveStartup() {
     const cachedPreview = !defaultPreview ? await dependencies.domains.projectDomain.restorePreview(savedProject) : null;
     const previewSource = previewSourceForProject(savedProject, baseline, cachedPreview);
     const hasStoredCountryGeometry = previewSource.kind === 'restore';
+    const sourceMonth = window.PANDOLAB_BUILD_META?.historicalWorld?.sourceMonth || new Date().toISOString().slice(0, 7);
+    const allowDefaultPreview = !dependencies.projectState.state.timelineCursor || dependencies.projectState.state.timelineCursor === sourceMonth;
+    const allowPreview = !hasStoredCountryGeometry && (previewSource.kind !== 'default' || allowDefaultPreview);
     restoringCountryFirstPaint = hasStoredCountryGeometry;
     if (hasStoredCountryGeometry) {
       (0, dependencies.readinessUi.applyDataReadinessEvent)(dependencies.applicationConstantsA.READINESS_EVENTS.RESTORE_STARTED);
@@ -297,8 +301,10 @@ export function createProgressiveStartup() {
     if (savedProject) {
       restoreSavedProject(savedProject);
     } else {
-      const classified = (0, dependencies.applicationServicesA.classifyBuiltinCountries)((0, dependencies.countryServices.normalizeCountryCollection)(window.PANDOLAB_COUNTRIES));
-      dependencies.territorialModel.entityStore.restoreProject(createStaticTerritorialSnapshot([...classified.countries.features, ...classified.subunits]));
+      const classified = allowPreview
+        ? (0, dependencies.applicationServicesA.classifyBuiltinCountries)((0, dependencies.countryServices.normalizeCountryCollection)(window.PANDOLAB_COUNTRIES))
+        : { countries: { features: [] }, subunits: [] };
+      dependencies.territorialModel.entityStore.restoreProject(createStaticTerritorialSnapshot([...classified.countries.features, ...classified.subunits]), { preserveCursor: true });
     }
     if (!hasStoredCountryGeometry) (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
@@ -314,7 +320,7 @@ export function createProgressiveStartup() {
     window.addEventListener('pandolab:mesh-progress', handleMeshProgress);
     window.addEventListener('pandolab:geometry-error', handleGeometryError);
     window.addEventListener('pandolab:mesh-error', handleMeshError);
-    const { gpuInitializeMs } = await initializeStartupRuntime({ allowPreview: !hasStoredCountryGeometry,
+    const { gpuInitializeMs } = await initializeStartupRuntime({ allowPreview,
       preview: previewSource.kind === 'project' ? cachedPreview : null });
     if (window.__PANDOLAB_STARTUP_METRICS__) {
       const previewRenderer = dependencies.rendering.gpuMapRenderer.getRuntimeState();
@@ -329,7 +335,7 @@ export function createProgressiveStartup() {
     dependencies.lifecycleUi.projectUi.syncHistory();
     dependencies.domains.editingDomain?.setTool('select', { announce: false });
     let previewFrameReady = false;
-    if (!hasStoredCountryGeometry) {
+    if (allowPreview) {
       const framePromise = dependencies.rendering.gpuMapRenderer.waitForPreviewFrame();
       previewFrameReady = await Promise.race([
         framePromise,
@@ -431,16 +437,15 @@ export function createProgressiveStartup() {
     (0, dependencies.persistence.applyAutosavedView)(autosaveRestore.view);
     dependencies.projectState.state.auditPreviewCountries = window.PANDOLAB_COUNTRIES;
 
-    const baseCountries = (0, dependencies.builtinCountries.freshPristineCountries)().features;
-    await dependencies.builtinBaseline.prepareProjectBaseline();
+    const baseline = !restored || restored.format === 'pandolab-autosave-delta'
+      ? await dependencies.builtinBaseline.prepareProjectBaseline() : null;
     if (restored) restoreSavedProject(restored);
-    else dependencies.territorialModel.entityStore.restoreProject(createStaticTerritorialSnapshot(baseCountries));
-    if (!restored) (0, dependencies.builtinCountries.applyFreshBuiltinClassification)();
+    else dependencies.territorialModel.entityStore.restoreProject(baseline.project, { preserveCursor: true });
     (0, dependencies.snapshots.normalizeProjectObjects)();
     (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
-    (0, dependencies.projectSnapshots.configureDatasetSession)(restored);
+    (0, dependencies.projectSnapshots.configureDatasetSession)(restored || baseline.project);
     const externalGeometry = !!restored?.territorialEntities && restored.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
     (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = 'Natural Earth 5.1.1 · GPU 렌더러를 준비하는 중입니다.';
     dependencies.projectState.state.boundaryPreparation?.cancel();
