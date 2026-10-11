@@ -319,6 +319,16 @@ export function installReferenceImageController({
     hint.dataset.tone = tone;
   }
 
+  function autoGeorefFailureMessage(result) {
+    const reason = String(result?.reason || '');
+    if (reason === 'insufficient-place-seeds') return '현재 화면에서 자동 맞춤에 사용할 도시가 충분하지 않습니다. 지도를 대상 지역에 대략 맞춰 놓고 다시 시도하세요.';
+    if (reason === 'insufficient-symbol-candidates') return '도시 주변에서 지도 기호를 충분히 찾지 못했습니다. 이미지를 조금 더 정확히 배치하거나 수동 고정점 하나를 지정하세요.';
+    if (reason === 'no-auto-georef-consensus') return '도시 기호 후보들의 위치가 서로 일치하지 않아 자동 정렬을 확정하지 못했습니다.';
+    if (reason === 'auto-georef-preview-stale') return '미리보기 뒤에 이미지 배치가 바뀌었습니다. 자동 맞춤을 다시 실행하세요.';
+    if (reason === 'place-snapshot-unavailable') return '도시 데이터에 접근할 수 없어 자동 맞춤을 실행할 수 없습니다.';
+    return '자동 맞춤 결과를 만들지 못했습니다. 대략 배치나 고정점을 조정한 뒤 다시 시도하세요.';
+  }
+
   async function addBlob(blob, name, persisted = null, { select = true, save = true } = {}) {
     if (save && storageState !== 'ready') throw new Error('참조 이미지 저장 목록을 먼저 읽어야 합니다.');
     if (!(blob instanceof Blob) || !ACCEPTED_IMAGE_TYPES.has(blob.type)) throw new Error('PNG, JPG, WebP 이미지만 사용할 수 있습니다.');
@@ -468,7 +478,55 @@ export function installReferenceImageController({
       return;
     }
     if (!record) return;
-    if (record.locked && !['bring-forward', 'send-backward'].includes(action)) return;
+    if (record.locked && !['bring-forward', 'send-backward', 'cancel-auto-georef'].includes(action)) return;
+    if (action === 'auto-georef') {
+      cancelInteraction();
+      record.autoGeorefBusy = true;
+      record.autoGeorefPreview = null;
+      renderEditor();
+      const token = currentToken();
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      try {
+        const result = await autoGeorefPlaceSymbols({ id: record.id });
+        if (!validToken(token) || selected() !== record || !records.includes(record)) return;
+        record.autoGeorefBusy = false;
+        record.autoGeorefPreview = result.ok ? result : null;
+        renderEditor();
+        if (result.ok) {
+          setHint(`자동 후보 ${result.symbolCandidateCount}개 중 ${result.georef.inlierCount}개를 채택했습니다. 결과를 확인한 뒤 적용하세요.`, 'success');
+        } else setHint(autoGeorefFailureMessage(result), 'error');
+      } catch (error) {
+        if (!validToken(token) || selected() !== record || !records.includes(record)) return;
+        record.autoGeorefBusy = false;
+        record.autoGeorefPreview = null;
+        renderEditor();
+        setHint(error?.message || '자동 맞춤 분석 중 오류가 발생했습니다.', 'error');
+      }
+      return;
+    }
+    if (action === 'cancel-auto-georef') {
+      record.autoGeorefPreview = null;
+      record.autoGeorefBusy = false;
+      renderEditor();
+      setHint('자동 맞춤 미리보기를 취소했습니다.');
+      return;
+    }
+    if (action === 'apply-auto-georef') {
+      const preview = record.autoGeorefPreview;
+      if (!preview?.ok) return;
+      const token = currentToken();
+      record.autoGeorefBusy = true;
+      renderEditor();
+      const result = await applyPlaceAutoGeorefResult(record, preview, token);
+      if (!validToken(token) || selected() !== record || !records.includes(record)) return;
+      record.autoGeorefBusy = false;
+      record.autoGeorefPreview = null;
+      renderEditor();
+      if (result.applied) {
+        setHint(`자동 기준점 ${result.appliedControlPointCount}개를 적용했습니다. 필요하면 개별 기준점을 수정하세요.`, 'success');
+      } else setHint(autoGeorefFailureMessage(result), 'error');
+      return;
+    }
     if (action === 'delete' || action === 'clear-gcp') {
       const token = currentToken();
       const accepted = await confirm({ title: action === 'delete' ? '참조 이미지 삭제' : '기준점 전체 삭제', message: action === 'delete' ? '이 참조 이미지를 삭제할까요?' : '기준점을 모두 삭제하고 보정을 해제할까요?', confirmText: '삭제', danger: true });
