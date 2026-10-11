@@ -42,6 +42,7 @@ function medianLuma(raster, left, top, right, bottom) {
 function connectedComponents(raster, bounds, accepts, {
   maxComponentPixels = 140,
   maxDiameter = 14,
+  excludeBoxPx = null,
 } = {}) {
   const { left, top, right, bottom } = bounds;
   const width = right - left + 1;
@@ -250,6 +251,14 @@ export function findReferenceImagePointSymbol(raster, expectedUv, {
       maxDiameter,
     });
     for (const component of components) {
+      if (Array.isArray(excludeBoxPx) && excludeBoxPx.length === 4) {
+        const [exLeft, exTop, exRight, exBottom] = excludeBoxPx.map(Number);
+        const center = component.center;
+        if (
+          center[0] >= exLeft && center[0] <= exRight
+          && center[1] >= exTop && center[1] <= exBottom
+        ) continue;
+      }
       const score = scoreComponent(component, expected, background, searchRadius, polarity, {
         maxPixels: maxComponentPixels,
       });
@@ -276,6 +285,73 @@ export function findReferenceImagePointSymbol(raster, expectedUv, {
     componentBounds: Object.freeze([...best.bounds]),
     contrast: best.contrast,
   });
+}
+
+
+export function findReferenceImagePointSymbolNearTextBox(raster, normalizedBox, {
+  searchRadiusPx = 24,
+  exclusionPaddingPx = 2,
+  minimumConfidence = 0.42,
+} = {}) {
+  if (!validRaster(raster) || !Array.isArray(normalizedBox) || normalizedBox.length !== 4) return null;
+  const values = normalizedBox.map(Number);
+  if (!values.every(Number.isFinite)) return null;
+  const [u, v, uw, vh] = values;
+  const left = clamp(u, 0, 1) * Math.max(1, raster.width - 1);
+  const top = clamp(v, 0, 1) * Math.max(1, raster.height - 1);
+  const right = clamp(u + uw, 0, 1) * Math.max(1, raster.width - 1);
+  const bottom = clamp(v + vh, 0, 1) * Math.max(1, raster.height - 1);
+  if (right <= left || bottom <= top) return null;
+
+  const radius = Math.max(8, Math.round(Number(searchRadiusPx) || 24));
+  const pad = Math.max(0, Number(exclusionPaddingPx) || 0);
+  const exclusion = [left - pad, top - pad, right + pad, bottom + pad];
+  const offset = Math.max(5, Math.min(radius * 0.5, Math.max(7, Math.min(right - left, bottom - top) * 0.55)));
+  const cx = (left + right) / 2;
+  const cy = (top + bottom) / 2;
+  const probes = [
+    [left - offset, cy],
+    [right + offset, cy],
+    [cx, top - offset],
+    [cx, bottom + offset],
+    [left - offset * 0.7, top - offset * 0.7],
+    [right + offset * 0.7, top - offset * 0.7],
+    [left - offset * 0.7, bottom + offset * 0.7],
+    [right + offset * 0.7, bottom + offset * 0.7],
+  ];
+
+  let best = null;
+  for (const pixel of probes) {
+    const expectedUv = [
+      clamp(pixel[0] / Math.max(1, raster.width - 1), 0, 1),
+      clamp(pixel[1] / Math.max(1, raster.height - 1), 0, 1),
+    ];
+    const symbol = findReferenceImagePointSymbol(raster, expectedUv, {
+      searchRadiusPx: radius,
+      minimumConfidence,
+      excludeBoxPx: exclusion,
+    });
+    if (!symbol) continue;
+
+    const dx = symbol.pixel[0] < left ? left - symbol.pixel[0]
+      : symbol.pixel[0] > right ? symbol.pixel[0] - right : 0;
+    const dy = symbol.pixel[1] < top ? top - symbol.pixel[1]
+      : symbol.pixel[1] > bottom ? symbol.pixel[1] - bottom : 0;
+    const boxDistance = Math.hypot(dx, dy);
+    const adjustedConfidence = clamp(
+      symbol.confidence * 0.88 + (1 - clamp(boxDistance / (radius * 1.5), 0, 1)) * 0.12,
+      0,
+      1,
+    );
+    const candidate = Object.freeze({ ...symbol, confidence: adjustedConfidence, boxDistancePixels: boxDistance });
+    if (!best
+      || candidate.confidence > best.confidence + 1e-9
+      || (Math.abs(candidate.confidence - best.confidence) <= 1e-9
+        && candidate.boxDistancePixels < best.boxDistancePixels)) {
+      best = candidate;
+    }
+  }
+  return best;
 }
 
 export function buildReferenceImagePlaceSymbolCandidates(raster, seeds = [], {
