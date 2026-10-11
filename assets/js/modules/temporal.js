@@ -54,6 +54,15 @@ export function normalizeTemporal(value, options) {
   return parseTemporal(value, options)?.canonical ?? null;
 }
 
+/** Resolve a month-only timeline cursor to the exact last calendar day. */
+export function temporalMonthEnd(value) {
+  const month = typeof value === 'object' && value?.startKey
+    ? value
+    : parseTemporal(value, { nullable: false });
+  if (month.precision !== 'month') throw temporalError(value, '월 단위 값이 필요합니다.');
+  return parseTemporal(`${month.canonical}-${String(month.endKey[2]).padStart(2, '0')}`, { nullable: false });
+}
+
 function compareKeys(left, right) {
   for (let index = 0; index < 3; index += 1) {
     if (left[index] !== right[index]) return left[index] < right[index] ? -1 : 1;

@@ -19,6 +19,19 @@ test('dated geometry replacement retains exact original start and later versions
   assert.deepEqual(records.geometryBindings[0].validTo, '1915-12');
 });
 
+test('month split preserves a later exact-date endpoint verbatim', () => {
+  const source = { ...records, geometryBindings: [
+    { ...records.geometryBindings[0], validTo: '1915-12-24' },
+    records.geometryBindings[1],
+  ] };
+  const result = replaceTimelineRecordAtMonth(source, 'geometryBindings', 'A', '1914-07',
+    { geometryRef: { id: 'shape', version: 2 } });
+  assert.equal(result.geometryBindings[0].validFrom, '1914-06-15');
+  assert.equal(result.geometryBindings[0].validTo, '1914-06');
+  assert.equal(result.geometryBindings[1].validFrom, '1914-07');
+  assert.equal(result.geometryBindings[1].validTo, '1915-12-24');
+});
+
 test('same-month replacement keeps its exact day and does not create overlap', () => {
   const result = replaceTimelineRecordAtMonth(records, 'geometryBindings', 'A', '1914-06',
     { geometryRef: { id: 'shape', version: 2 } });
