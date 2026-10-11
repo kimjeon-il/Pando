@@ -86,10 +86,18 @@ jobs:
             $exe = Join-Path $testRoot "$name.exe"
             $log = Join-Path $logRoot "$name.txt"
             if (!(Test-Path $exe)) { throw "Release test executable missing: $exe" }
-            $process = Start-Process -FilePath $exe -ArgumentList @('-o', "$log,txt") -Wait -PassThru -WindowStyle Hidden
+            if ($name -eq 'place_label_collision_tests') {
+              $stderr = Join-Path $logRoot "$name.stderr.txt"
+              $process = Start-Process -FilePath $exe -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $stderr
+              if (Test-Path $stderr) { Get-Content $stderr }
+              $passingReport = 'place label collision: processed=[1-9]\d* passed=[1-9]\d* failed=0 skip=0'
+            } else {
+              $process = Start-Process -FilePath $exe -ArgumentList @('-o', "$log,txt") -Wait -PassThru -WindowStyle Hidden
+              $passingReport = 'Totals:\s+\d+ passed, 0 failed'
+            }
             if (Test-Path $log) { Get-Content $log }
             if ($process.ExitCode -ne 0) { throw "$name failed with exit code $($process.ExitCode); do not publish" }
-            if (!(Test-Path $log) -or !((Get-Content $log -Raw) -match 'Totals:\s+\d+ passed, 0 failed')) { throw "$name produced no passing Qt test report; do not publish" }
+            if (!(Test-Path $log) -or !((Get-Content $log -Raw) -match $passingReport)) { throw "$name produced no passing test report; do not publish" }
           }
 
       - name: Assemble Qt Windows portable
