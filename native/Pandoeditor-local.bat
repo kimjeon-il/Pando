@@ -37,6 +37,9 @@ set "RUN_AFTER_BUILD=1"
 goto build
 
 :build
+set "ZLIB_DIR=%MINGW_DIR%\x86_64-w64-mingw32"
+if not exist "%ZLIB_DIR%\include\zlib.h" goto missing_zlib
+if not exist "%ZLIB_DIR%\lib\libz.a" goto missing_zlib
 set "CMAKE_EXE=%PANDOEDITOR_CMAKE_EXE%"
 if not defined CMAKE_EXE for %%I in (cmake.exe) do set "CMAKE_EXE=%%~$PATH:I"
 if not defined CMAKE_EXE set "CMAKE_EXE=%LOCALAPPDATA%\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Local\Pandoeditor\installer\Lib\site-packages\cmake\data\bin\cmake.exe"
@@ -45,7 +48,7 @@ if not defined NINJA_EXE for %%I in (ninja.exe) do set "NINJA_EXE=%%~$PATH:I"
 if not defined NINJA_EXE set "NINJA_EXE=%LOCALAPPDATA%\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Local\Pandoeditor\installer\Scripts\ninja.exe"
 if not exist "%CMAKE_EXE%" goto missing_cmake
 if not exist "%NINJA_EXE%" goto missing_ninja
-"%CMAKE_EXE%" -S "%SOURCE_DIR%" -B "%BUILD_DIR%" -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF "-DCMAKE_PREFIX_PATH=%QT_DIR%" "-DCMAKE_CXX_COMPILER=%MINGW_DIR%\bin\g++.exe" "-DCMAKE_MAKE_PROGRAM=%NINJA_EXE%" "-DCMAKE_CXX_FLAGS=-Wa,-mbig-obj"
+"%CMAKE_EXE%" -S "%SOURCE_DIR%" -B "%BUILD_DIR%" -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF "-DCMAKE_PREFIX_PATH=%QT_DIR%" "-DCMAKE_CXX_COMPILER=%MINGW_DIR%\bin\g++.exe" "-DCMAKE_MAKE_PROGRAM=%NINJA_EXE%" "-DCMAKE_CXX_FLAGS=-Wa,-mbig-obj" "-DZLIB_INCLUDE_DIR=%ZLIB_DIR%\include" "-DZLIB_LIBRARY=%ZLIB_DIR%\lib\libz.a"
 if errorlevel 1 goto build_failed
 "%CMAKE_EXE%" --build "%BUILD_DIR%" --target pandoeditor --parallel 2
 if errorlevel 1 goto build_failed
@@ -71,6 +74,9 @@ echo CMake was not found. Set PANDOEDITOR_CMAKE_EXE.
 goto error
 :missing_ninja
 echo Ninja was not found. Set PANDOEDITOR_NINJA_EXE.
+goto error
+:missing_zlib
+echo MinGW zlib was not found at "%ZLIB_DIR%".
 goto error
 
 :error
