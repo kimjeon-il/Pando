@@ -1,6 +1,7 @@
 #include "referenceimagelibrary.h"
 #include "referencetracing.h"
 #include "referenceautogeoref.h"
+#include "referenceocr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -202,8 +203,17 @@ bool ReferenceImageLibrary::previewAutoGeoref(const QVariantList &seeds)
     const auto item=find(calibrationId_);
     if(!item||item->locked||gestureBefore_)return false;
     QImageReader reader(directory()+"/"+item->fileName);reader.setAutoTransform(true);const QImage image=reader.read();
-    const auto result=solveReferenceAutoGeoref(image,seeds,item->anchor,item->warpMode);
+    auto result=solveReferenceAutoGeoref(image,seeds,item->anchor,item->warpMode);
+    ReferenceOcrResult ocr;
+    if(!result.ok) {
+        ocr=detectReferenceImageTextNative(image);
+        if(ocr.ok) {
+            const auto assisted=solveReferenceAutoGeorefFromOcr(image,seeds,ocr.detections,item->anchor,item->warpMode);
+            if(assisted.ok)result=assisted;
+        }
+    }
     autoGeoref_=result.toVariant();autoGeoref_["active"]=true;autoGeoref_["applied"]=false;
+    if(!ocr.provider.isEmpty()||!ocr.reason.isEmpty())autoGeoref_["ocr"]=ocr.toVariant();
     autoGeorefSignature_=QJsonDocument(json(*item)).toJson(QJsonDocument::Compact);
     emit autoGeorefSessionChanged();
     if(!result.ok)fail(result.reason);else fail({});
