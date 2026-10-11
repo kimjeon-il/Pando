@@ -23,11 +23,16 @@ bool autosaveContains(const QString& path){if(!QFile::exists(path))return false;
 class PlaceControllerTests final:public QObject {
     Q_OBJECT
 private slots:
-    void bundledEmptySourceIsHonestAndTransient(){
-        EditorController editor;const auto status=editor.placeDataStatus();
+    void explicitEmptySourceIsHonestAndTransient(){
+        EditorController editor;
+        QVERIFY(editor.configurePlaceData(QUrl::fromLocalFile(
+            QFINDTESTDATA("fixtures/web-place-runtime-source/assets/data/places/manifest.json"))));
+        const auto status=editor.placeDataStatus();
         QVERIFY(status["loaded"].toBool());QCOMPARE(status["revision"].toString(),QString("empty-v1"));
         QCOMPARE(status["manifestTileCount"].toULongLong(),qulonglong(0));QVERIFY(status["sourceRecordCount"].isNull());
-        QVERIFY(status["dataSpecificBlocked"].toBool());QVERIFY(!editor.canUndo());QVERIFY(!editor.dirty());
+        QCOMPARE(status["stage"].toString(),QString("empty-v1"));
+        QVERIFY(!status["dataSpecificBlocked"].toBool());QVERIFY(status["dataSpecificReason"].toString().isEmpty());
+        QVERIFY(!editor.canUndo());QVERIFY(!editor.dirty());
     }
     void explicitSyntheticSourceProducesReadonlyRowsWithoutContentMutation(){
         QTemporaryDir temporary;EditorController editor;origin(editor);const auto before=saved(editor,temporary.filePath("before.json"));
