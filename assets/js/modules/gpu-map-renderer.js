@@ -4401,7 +4401,10 @@ export function createGpuMapRenderer(deps) {
         ...(renderInteractionState.previewPackets || []),
         ...(renderInteractionState.draftPackets || []),
       ].map(item => item?.packet).filter(Boolean);
+      const borderPacketKeys = [countrySharedBoundary, pendingCountrySharedBoundary]
+        .flatMap(packet => packet ? [packet.key, packet.outlineOverrides?.key] : []).filter(Boolean);
       const protectedKeys = new Set([
+        ...borderPacketKeys,
         ...(renderScene?.polygons || []).filter(packet => packet.protected).map(packet => packet.key),
         ...(renderScene?.strokes || []).filter(packet => packet.protected).map(packet => packet.key),
         ...(selectionPass?.resourceKeys?.() || []),
@@ -4417,7 +4420,7 @@ export function createGpuMapRenderer(deps) {
         ...[...presentedStrokeDomains.values()].flatMap(items => items.map(item => item.resourcePacket.key)),
         ...interactionPackets.filter(packet => packet.startsEnds instanceof Float32Array).map(packet => packet.key),
         ...countryStrokeKeys,
-        ...(countrySharedBoundary ? [countrySharedBoundary.key] : []),
+        ...borderPacketKeys,
         ...(selectionPass?.resourceKeys?.() || []),
       ], { protectedKeys });
     }
