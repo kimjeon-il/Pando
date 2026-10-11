@@ -1,7 +1,7 @@
 {
   "schema": "pando-editor-readonly-place-staging-v1",
   "webRepo": "kimjeon-il/Pando",
-  "webCommit": "4808ecf854f3700d20fb93880dba735377be9166",
+  "webCommit": "aaeed815d0cc722104e989dbc01332482548f9b2",
   "appTarget": "data/places-tier1-major-cities",
   "status": "verified-source-staging-not-runtime",
   "files": [
@@ -71,7 +71,7 @@
     },
     {
       "path": "reports/places/tier1-major-cities-batch15-central-asia-capitals.json",
-      "gitBlobSha": "5764365b3531fbffd1b530f0c866e7fd54d0589e"
+      "gitBlobSha": "6bf45c43b9495fae74961ce37220e6b6e031875c"
     }
   ],
   "reviewInventory": {
