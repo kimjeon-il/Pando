@@ -10,6 +10,7 @@ import { createTerritorialEntityStore } from '../../assets/js/modules/territoria
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createTerritorialScopeResolver } from '../../assets/js/modules/territorial-scope.js';
 import { geometryRevision } from '../../assets/js/modules/geometry-versions.js';
+import { smallHistoricalWorld } from '../helpers/historical-world.mjs';
 
 function deferred() {
   let resolve;
@@ -21,7 +22,7 @@ function deferred() {
 const square = size => ({ type: 'Polygon', coordinates: [[[0,0],[0,size],[size,size],[size,0],[0,0]]] });
 const collection = size => normalizeCountryCollection({ features: [{ id: 'A', geometry: square(size) }] });
 
-function startupFixture(t, { pauseAt = null, restored = false, onEditable = () => {} } = {}) {
+function startupFixture(t, { pauseAt = null, restored = false, onEditable = () => {}, startMonth = '', baselinePending = null } = {}) {
   const noop = () => {};
   const geometry = deferred();
   const mesh = deferred();
@@ -39,6 +40,7 @@ function startupFixture(t, { pauseAt = null, restored = false, onEditable = () =
     autosaveMode: 'delta', selected: null,
   };
   initializeTestTerritorialState(state);
+  state.timelineCursor = startMonth;
 const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const originalWindow = globalThis.window;
@@ -100,7 +102,10 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
     } },
     territorialModel: { entityStore, entityRepository }, countryServices: { normalizeCountryCollection },
     applicationServicesA: { classifyBuiltinCountries: countries => ({ countries, subunits: [] }) },
-    builtinBaseline: { prepareProjectBaseline: async () => ({}) },
+    builtinBaseline: { prepareProjectBaseline: async () => {
+      if (baselinePending) { paused.resolve(); await baselinePending; }
+      return { project: smallHistoricalWorld({ currentId: 'A', currentGeometry: square(10) }), sourceMonth: '2026-10' };
+    } },
     builtinCountries: { applyFreshBuiltinClassification: noop, installCanonicalCountryStore: noop, materializePristineCountriesSync: () => normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES) },
     countryRecords: { applyPristineLabelAnchors: noop }, layerTree: { pruneLayerItemVisibility: noop },
     countries: { scheduleCountryLabelAnchors: noop }, layers: { markLayerTreeDirty: noop },
@@ -109,7 +114,7 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
     mapHostViewB: { resizeMap: noop, initializeMapHost: async () => {} },
     mapHostViewC: { startMapResizeObserver: noop }, mapHostCommands: { setReadyPromise: noop },
     rendering: { gpuMapRenderer: {
-      initialize: async () => true, getProjectGeneration: () => generation,
+      initialize: async options => { calls.push(['initialize', options]); return true; }, getProjectGeneration: () => generation,
       getRuntimeState: () => ({ renderer: 'webgl2' }), waitForPreviewFrame: async () => true,
     } },
     applicationConstantsA: {
@@ -135,6 +140,20 @@ const entityStore = createTerritorialEntityStore({ getState: () => state });
     },
   };
 }
+test('staleBaselineDoesNotReplaceNewGeneration', async t => {
+  const pending = deferred(), fixture = startupFixture(t, { baselinePending: pending.promise });
+  await fixture.promote(); await fixture.paused.promise;
+  fixture.replaceProject(); pending.resolve(); await setImmediate();
+  assert.deepEqual(fixture.state.territorialEntities.map(row => row.id), ['replacement']);
+  assert.deepEqual(fixture.errors, []);
+  fixture.mesh.resolve({}); await fixture.running;
+});
+test('nonCurrentStartHasNoModernPreview', async t => {
+  const fixture = startupFixture(t, { startMonth: '2012-10' });
+  await fixture.interactive.promise;
+  assert.equal(fixture.calls.find(row => row[0] === 'initialize')[1].allowPreview, false);
+  assert.equal(fixture.state.territorialEntities.some(row => row.id === 'RUS'), false);
+});
 
 for (const pauseAt of ['hydration', 'recovery']) {
   test(`project replacement while ${pauseAt} is pending prevents obsolete startup mutations`, async t => {

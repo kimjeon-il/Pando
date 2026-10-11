@@ -2150,6 +2150,21 @@ export function createGpuMapRenderer(deps) {
       rendererUi.onContextStateChange?.('fallback');
     }
 
+    function invalidateCountryPreview() {
+      previewAllowed = false;
+      state.auditPreviewCountries = null;
+      state.auditPreviewTerritorialUnits = null;
+      state.auditPreviewGeometryReferences = null;
+      activeMeshQuality = 'canonical';
+      meshQuality = 'canonical';
+      state.countryVisualPhase = 'canonical';
+      if (meshVariants.has('canonical')) activateMeshVariant('canonical', { renderFrame: false });
+      sceneColorCache.invalidate('timeline-preview');
+      for (const resolve of previewFrameWaiters) resolve(false);
+      previewFrameWaiters.clear();
+      invalidateGpuFrame('timeline-preview');
+    }
+
     function resetProjectRenderState({ generation = null, preserveBuiltinMesh = false } = {}) {
       desiredCountryMeshQuality = 'preview';
       countryDisplayHistoryValid = false;
@@ -4830,7 +4845,7 @@ export function createGpuMapRenderer(deps) {
       requestCountryFocus, cancelCountryFocus, setCountryEditingActive, syncCountryMeshQuality,
       setCountryPropertyEditingActive,
       invalidateHydroVisibility, invalidatePhysicalStyle, resetCountryGeometryVisualState,
-      resetProjectRenderState, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline,
+      resetProjectRenderState, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline, invalidateCountryPreview,
       hasBuiltinMeshBaseline: () => !!builtinMeshBaseline?.mesh,
       getProjectGeneration: () => projectGeneration,
       invalidateCountryPalette,

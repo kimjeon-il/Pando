@@ -7,3 +7,4 @@ tests/fixtures/timeline-*.json text eol=lf
 tests/fixtures/timeline-*-cases.mjs text eol=lf
 tools/check-platform-portability.mjs text eol=lf
 docs/architecture/platform-boundaries.md text eol=lf
+assets/data/historical-world/**/*.json text eol=lf
