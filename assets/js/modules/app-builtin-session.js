@@ -2,13 +2,12 @@ import { normalizeCountryCollection } from './country-feature.js';
 import { geometryRevision } from './geometry-versions.js';
 import { territorialSceneDisplayId } from './builtin-subunits.js';
 import { territorialRootId } from './territorial-units.js';
-import { fingerprintProjectBaseline } from './project-serializer.js';
-import { createStaticTerritorialSnapshot } from './territorial-entity-store.js';
+import { createHistoricalWorldLoader } from './historical-world-loader.js';
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createBuiltinSession() {
+export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
   let dependencies;
   let pristineCountriesFallback;
   let canonicalCountryStore;
@@ -65,14 +64,17 @@ export function createBuiltinSession() {
     }
     if (projectBaseline) return projectBaseline;
     if (projectBaselinePending) return projectBaselinePending;
-    const source = canonicalCountryStore || pristineCountriesFallback;
     projectBaselinePending = (async () => {
-      const features = materializePristineCountriesSync().features;
-      const baseDatasetFingerprint = await fingerprintProjectBaseline(features);
-      const content = createStaticTerritorialSnapshot(features);
-      if (source !== (canonicalCountryStore || pristineCountriesFallback)) throw new Error('기준 데이터가 준비 중 변경되었습니다.');
-      projectBaseline = Object.freeze({ baseEntities: content.territorialEntities,
-        baseDataset: dependencies.platformConfigurationA.BASE_DATASET, baseDatasetFingerprint });
+      if (!historicalWorldLoader) {
+        const meta = window.PANDOLAB_BUILD_META;
+        historicalWorldLoader = createHistoricalWorldLoader({ manifestUrl: meta?.historicalWorld?.url,
+          manifestSpec: meta?.historicalWorld, dataRevision: meta?.dataRevision });
+      }
+      const { project, manifest } = await historicalWorldLoader.loadProject();
+      const freeze = value => { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
+      projectBaseline = Object.freeze({ project: freeze(project), baseEntities: project.territorialEntities,
+        sourceMonth: manifest.sourceMonth, baseDataset: dependencies.platformConfigurationA.BASE_DATASET,
+        baseDatasetFingerprint: manifest.project.sha256 });
       return projectBaseline;
     })();
     try { return await projectBaselinePending; }
@@ -99,14 +101,6 @@ export function createBuiltinSession() {
     const countries = (0, dependencies.geometryMutation.reindexCountries)(materializePristineCountriesSync());
     (0, dependencies.countryRecords.applyPristineLabelAnchors)(countries);
     return countries;
-  }
-
-  function applyFreshBuiltinClassification() {
-    const result = (0, dependencies.applicationServicesA.classifyBuiltinCountries)(
-      { type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) },
-    );
-    dependencies.territorialModel.entityStore.replaceEntities([...result.countries.features, ...result.subunits]);
-    (0, dependencies.countryRecords.applyPristineLabelAnchors)({ features: result.subunits.map(unit => ({ id: (0, dependencies.objectCatalog.builtinSubunitSourceId)(unit) })) });
   }
 
   function builtinTerritorialScene({ canonical = false } = {}) {
@@ -223,7 +217,6 @@ export function createBuiltinSession() {
     connect,
     initializePristineCountriesFallback,
     get PRISTINE_LABEL_ANCHORS() { return PRISTINE_LABEL_ANCHORS; },
-    get applyFreshBuiltinClassification() { return applyFreshBuiltinClassification; },
     get builtinCountryIds() { return builtinCountryIds; },
     get builtinTerritorialScene() { return builtinTerritorialScene; },
     get canonicalCountryStore() { return canonicalCountryStore; },

@@ -54,7 +54,7 @@ test('desktop and narrow mobile use the same inline date editor and Enter/Done a
     await expect(button).toContainText(timelineMonthLabel(date));
     await expect(input).toHaveValue(date);
     const bounds = await page.locator('.timeline-status').boundingBox();
-    expect(bounds.left).toBeGreaterThanOrEqual(0);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
     expect(bounds.x + bounds.width).toBeLessThanOrEqual(width + 1);
   }
   await button.click();
@@ -66,6 +66,7 @@ test('desktop and narrow mobile use the same inline date editor and Enter/Done a
   await input.press('Escape');
   await expect(button).toBeVisible();
   await expect(input).toHaveValue('1945-08');
+  await page.setViewportSize({ width: 1280, height: 800 });
   await button.click();
   await input.fill('1916-06');
   await page.locator('#timelineNextMonth').click();
