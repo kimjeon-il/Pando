@@ -138,6 +138,18 @@ class PlaceBatchPipelineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Duplicate"):
             TOOL.validate_reviewed(reviewed(city(), city()), {})
 
+    def test_english_native_identical_spelling_may_share_one_names_row(self):
+        item = city()
+        item["displayTimeline"][0]["nameNative"] = "Oldtown"
+        item["displayTimeline"][1]["nameNative"] = "Newtown"
+        item["defaultDisplayNameNative"] = "Newtown"
+        item["names"] = [name for name in item["names"] if name["language"] != "ja"]
+        self.assertEqual(TOOL.validate_reviewed(reviewed(item), {})["validatedCities"], 1)
+        item["displayTimeline"][1]["nameNative"] = "Invented"
+        item["defaultDisplayNameNative"] = "Invented"
+        with self.assertRaisesRegex(ValueError, "not listed"):
+            TOOL.validate_reviewed(reviewed(item), {})
+
     def test_two_exact_changes_in_one_year_allowed_year_only_ambiguity_rejected(self):
         item = city()
         item["names"].append({"text": "중간도시", "language": "ko"})
