@@ -105,6 +105,10 @@ add_library(pandoeditor_editor STATIC
 target_include_directories(pandoeditor_editor PUBLIC . ../renderer)
 target_link_libraries(pandoeditor_editor PUBLIC Pandoeditor::Core Pandoeditor::MapEngine Qt6::Quick Qt6::Concurrent Qt6::Svg Qt6::Sql Qt6::Network ZLIB::ZLIB)
 target_link_libraries(pandoeditor_editor PRIVATE Qt6::GuiPrivate)
+if(WIN32 AND MSVC)
+    # Native automatic georeferencing can fall back to Windows.Media.Ocr.
+    target_link_libraries(pandoeditor_editor PRIVATE windowsapp)
+endif()
 qt_add_shaders(pandoeditor_editor m73_map_shaders
     PREFIX "/m73" BASE "${PROJECT_SOURCE_DIR}/renderer"
     FILES
