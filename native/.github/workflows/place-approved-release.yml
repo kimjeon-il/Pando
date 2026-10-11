@@ -114,6 +114,9 @@ jobs:
           if (!(Test-Path $deploy)) { throw "Qt deploy utility missing: $deploy" }
           & $deploy --release --qmldir (Join-Path $PWD 'ui') --dir $portable (Join-Path $portable 'pandoeditor.exe')
           if ($LASTEXITCODE -ne 0) { throw 'windeployqt failed' }
+          $offscreen = Join-Path $env:QT_ROOT_DIR 'plugins/platforms/qoffscreen.dll'
+          if (!(Test-Path $offscreen)) { throw 'Qt offscreen platform required for the portable smoke test is missing' }
+          Copy-Item -LiteralPath $offscreen -Destination (Join-Path $portable 'platforms/qoffscreen.dll')
           $info = [ordered]@{ sourceCommit = '${{ github.sha }}'; repository = '${{ github.repository }}'; approvedGeoNamesIds = 163; manifestRevision = 'approved-places-a912045657f35026'; shardSha256 = '43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594'; preview = $true; builtAtUtc = (Get-Date).ToUniversalTime().ToString('o') }
           $info | ConvertTo-Json | Set-Content (Join-Path $portable 'BUILD-INFO.json') -Encoding utf8
 
@@ -121,6 +124,12 @@ jobs:
         shell: pwsh
         run: |
           $env:QT_ROOT_DIR = ''
+          $env:QT_PLUGIN_PATH = ''
+          $env:QML_IMPORT_PATH = ''
+          $env:QML2_IMPORT_PATH = ''
+          $env:QT_FORCE_STDERR_LOGGING = '1'
+          $portable = Join-Path $PWD 'dist/windows-portable'
+          $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot;$portable"
           $smokeOut = Join-Path $PWD 'dist/portable-smoke.stdout.txt'
           $smokeError = Join-Path $PWD 'dist/portable-smoke.stderr.txt'
           $process = Start-Process -FilePath (Join-Path $PWD 'dist/windows-portable/pandoeditor.exe') -ArgumentList '--smoke-check' -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput $smokeOut -RedirectStandardError $smokeError
