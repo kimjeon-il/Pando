@@ -278,8 +278,9 @@ QVariantMap EditorController::pickObjectScreen(double x,double y,double zoom) co
 }
 QVariantMap EditorController::pickObjectFromCandidates(
     const std::vector<ObjectRef>& hits) const {
-    const auto top=mapPicker_.topCandidate(project_.snapshot(),hits);
-    for(const auto& ref:hits)if(ref.domain=="placeBuiltin"&&objectVisible(ref)&&(!top||mapPicker_.candidateRank(project_.snapshot(),*top)<=mapPickOrder(project_.document(),{"label",ref.id})))return objectRefValue(ref);
+    const auto snapshot=project_.snapshotForView();
+    const auto top=mapPicker_.topCandidate(snapshot,hits);
+    for(const auto& ref:hits)if(ref.domain=="placeBuiltin"&&objectVisible(ref)&&(!top||mapPicker_.candidateRank(snapshot,*top)<=mapPickOrder(snapshot.document(),{"label",ref.id})))return objectRefValue(ref);
     return top?objectRefValue(*top):QVariantMap{};
 }
 void EditorController::selectAt(double x,double y) { selectMapAt(x,y,false); }

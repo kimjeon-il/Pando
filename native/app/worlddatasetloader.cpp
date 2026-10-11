@@ -1,6 +1,11 @@
 #include "worlddatasetloader.h"
 #include "builtinworldpolicy.h"
 #include "hydrodataprovider.h"
+#include "historicalworldtimeline.h"
+#include "webimport.h"
+#include <pandoeditor/timeline-view.h>
+#include <QDate>
+#include <QRegularExpression>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -95,7 +100,26 @@ WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root) {
     WorldDataset source(root);
     CanonicalCountryStore packet(source.decompress("countryCanonical",12*1024*1024));
     auto classified=materializeBuiltinWorld(packet);
-    auto document=std::make_shared<pandoeditor::ProjectDocument>(std::move(classified.document));
+    QJsonParseError manifestError;
+    const auto manifestJson=QJsonDocument::fromJson(source.read("historicalTimelineManifest"),&manifestError);
+    require(manifestError.error==QJsonParseError::NoError&&manifestJson.isObject(),"Invalid historical world manifest JSON");
+    const auto manifest=manifestJson.object(),spec=manifest.value("project").toObject();
+    require(manifest.value("schemaVersion").toInt()==1&&
+        QRegularExpression("^[0-9]{4}-[0-9]{2}$").match(manifest.value("sourceMonth").toString()).hasMatch(),
+        "Invalid historical world manifest envelope");
+    pandoeditor::temporalMonthEnd(manifest.value("sourceMonth").toString().toStdString());
+    for(const auto* key:{"entities","currentWorld","snapshot","policy"})
+        require(QRegularExpression("^[a-f0-9]{64}$").match(manifest.value("inputHashes").toObject().value(key).toString()).hasMatch(),
+            "Invalid historical world input hash");
+    require(spec.value("encoding").toString()=="gzip"&&
+        spec.value("url").toString()=="assets/data/historical-world/generated/v1/world-project.json.gz"&&
+        spec.value("sha256").toString()==source.asset("historicalTimeline").sha256&&
+        source.read("historicalTimeline").size()==spec.value("compressedBytes").toInteger(),
+        "Historical world project identity mismatch");
+    const auto bytes=source.decompress("historicalTimeline",64*1024*1024);
+    require(bytes.size()==spec.value("decodedBytes").toInteger(),"Historical world decoded size mismatch");
+    auto document=std::make_shared<pandoeditor::ProjectDocument>(adaptHistoricalWorldTimeline(
+        webimport::prepare(bytes).document,classified,manifest.value("sourceIdentities").toArray()));
     document->physicalData.dataset="pandolab-water-shards-v5";
     document->physicalData.version="0.13.2";
     QString hydroAvailability=QStringLiteral("Pinned hydro package not installed");
@@ -116,7 +140,9 @@ WorldCanonicalResult WorldDatasetLoader::canonical(const QString& root) {
             }
         }
     }
-    auto projection=std::make_shared<MapProjection>();projection->rebuild(*document);
+    const auto month=pandoeditor::initialTimelineMonth(document->timelineRecords,QDate::currentDate().toString("yyyy-MM").toStdString());
+    const auto view=pandoeditor::timelineDocumentView(*document,month);
+    auto projection=std::make_shared<MapProjection>();projection->rebuild(view.document,view.inactiveIds);
     return {std::move(document),std::move(projection),renderRanges(classified),hydroAvailability};
 }
 std::shared_ptr<const CountryBaseMesh> WorldDatasetLoader::canonicalMesh(const QString& root) {
@@ -124,22 +150,24 @@ std::shared_ptr<const CountryBaseMesh> WorldDatasetLoader::canonicalMesh(const Q
     return decodeCountryBaseMesh(source.decompress("canonicalMesh",40*1024*1024),false);
 }
 std::shared_ptr<const WorldBaseFrame> WorldDatasetLoader::matchingBaseFrame(
-    const pandoeditor::ProjectDocument& document,const QString& root) {
+    const pandoeditor::ProjectDocument& document,const QString& root,const std::string& month) {
+    const auto view=pandoeditor::timelineDocumentView(document,month);
     WorldDataset source(root);
     CanonicalCountryStore packet(source.decompress("countryCanonical",12*1024*1024));
     const auto canonical=materializeBuiltinWorld(packet);
     bool matched=false;
     for(const auto& range:canonical.ranges) {
-        const auto unit=std::find_if(document.units.begin(),document.units.end(),
+        const auto unit=std::find_if(view.document.units.begin(),view.document.units.end(),
             [&](const auto& value){return value.id==range.ownerId;});
         const pandoeditor::GeometryRef ref{range.geometryId,1};
-        if(unit==document.units.end()||!(pandoeditor::staticGeometryBinding(document,unit->id).geometryRef==ref))continue;
         const auto actual=document.geometries.get(ref);
+        if(!actual)continue;
         const auto expected=canonical.document.geometries.get(ref);
-        if(!actual||!expected||actual->type!=expected->type||
+        if(!expected||actual->type!=expected->type||
            !actual->points.empty()||!actual->lines.empty()||
            actual->polygons.size()!=expected->polygons.size())return {};
-        // Serialized IDs alone are not proof that an imported/restored shape is canonical.
+        // The cached frame contains every country, including owners inactive this month.
+        // Check their stored coordinates before a later cursor can reuse those mesh slots.
         for(std::size_t p=0;p<actual->polygons.size();++p) {
             const auto& a=actual->polygons[p];const auto& b=expected->polygons[p];
             if(a.size()!=b.size())return {};
@@ -147,7 +175,8 @@ std::shared_ptr<const WorldBaseFrame> WorldDatasetLoader::matchingBaseFrame(
                 if(a[r].size()!=b[r].size()||!std::equal(a[r].begin(),a[r].end(),b[r].begin(),
                     [](const auto& x,const auto& y){return x.x==y.x&&x.y==y.y;}))return {};
         }
-        matched=true;
+        if(unit!=view.document.units.end()&&!view.inactiveIds.count(unit->id)&&
+           pandoeditor::staticGeometryBinding(view.document,unit->id).geometryRef==ref)matched=true;
     }
     if(!matched)return {};
     auto frame=std::make_shared<WorldBaseFrame>();

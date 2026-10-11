@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QRegularExpression>
 #include <algorithm>
 #include <array>
 #include <limits>
@@ -44,11 +45,20 @@ WorldAsset WorldDataset::asset(const QString& key) const {
         {"terrain","terrain/v0.12.6/manifest.json","0.12.6","6821c49315ffd381758f81dfe4d83b6b574f0ad4"},
         {"hydro","hydro/v0.13.2/manifest.json","0.13.2","6f6606ad01be6a9e295995222bfa984876e8caff"}}};
     auto found=std::find_if(identities.begin(),identities.end(),[&](const auto& item){return key==item.key;});
-    require(found!=identities.end(),"Unknown world dataset asset");
     const auto object=manifest_.value(key).toObject();
     WorldAsset result{object.value("path").toString(),object.value("version").toString(),
         object.value("gitBlobSha").toString(),object.value("sha256").toString(),
         object.value("required").toBool()};
+    if(key=="historicalTimelineManifest"||key=="historicalTimeline") {
+        const auto path=key=="historicalTimelineManifest"?QStringLiteral("historical-world/v1/manifest.json"):
+            QStringLiteral("historical-world/v1/world-project.json.gz");
+        require(result.path==path&&result.version=="1"&&result.required&&
+            QRegularExpression("^[a-f0-9]{40}$").match(result.gitBlobSha).hasMatch()&&
+            QRegularExpression("^[a-f0-9]{64}$").match(result.sha256).hasMatch(),
+            "Wrong historical world dataset identity");
+        return result;
+    }
+    require(found!=identities.end(),"Unknown world dataset asset");
     require(result.path==found->path&&result.version==found->version&&
         result.gitBlobSha==found->blob&&
         result.sha256.size()==64&&result.required==
