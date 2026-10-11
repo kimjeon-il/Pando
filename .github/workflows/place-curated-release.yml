@@ -1,0 +1,75 @@
+name: Curated Place Release
+
+# Source-review changes on the dedicated places branch rebuild only its own assets.
+# GITHUB_TOKEN commits do not create a second push workflow run.
+on:
+  push:
+    branches:
+      - work/places
+    paths:
+      - 'reports/places/runtime-release-approvals-v1.json'
+      - 'reports/places/tier1-major-cities-batch*.json'
+      - 'tools/build-place-runtime.mjs'
+      - 'tests/unit/place-publication.test.mjs'
+      - '.github/workflows/place-curated-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: curated-places-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  generate-verified-places:
+    if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/places'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout places branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install checked-in dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate approved-only PLAC v3 catalog, shard and manifest
+        run: node tools/build-place-runtime.mjs
+
+      - name: Verify byte-for-byte reproducibility
+        run: node tools/build-place-runtime.mjs --check
+
+      - name: Run focused publication and codec tests
+        run: node --test tests/unit/place-publication.test.mjs tests/unit/place-codec.test.mjs
+
+      - name: Lint updated release publisher and tests
+        run: pnpm exec eslint tools/build-place-runtime.mjs tests/unit/place-publication.test.mjs
+
+      - name: Check generated file integrity
+        run: git diff --check
+
+      - name: Commit only generated places assets to work/places
+        run: |
+          if git diff --quiet -- assets/data/places/reviewed-records-v1.json assets/data/places/places-v1.bin assets/data/places/manifest.json; then
+            echo "Place release outputs already match the approved source."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- assets/data/places/reviewed-records-v1.json assets/data/places/places-v1.bin assets/data/places/manifest.json
+          git commit -m 'build(places): publish approved-only city shard and search manifest'
+          git push origin 'HEAD:work/places'
