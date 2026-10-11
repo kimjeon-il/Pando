@@ -1,0 +1,522 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r120",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r119",
+    "commit": "81383ef54b55436b980c9957cd22f27c0dd8a55a",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r119/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70934231",
+    "hydro-system:80056744",
+    "hydro-system:80092529",
+    "hydro-system:80041424"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70934231",
+      "category": "river_group",
+      "system_id": "70934231",
+      "original_queue_rank": 280,
+      "baseline_logical_fid": 3290,
+      "geometry_fids": [
+        10583
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -88.85625,
+        14.885417,
+        -87.789563,
+        15.897609
+      ],
+      "rendered_mainstem_length_km": 228.887,
+      "rendered_network_length_km": 228.887,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -88.85625,
+          14.885417,
+          -87.789563,
+          15.897609
+        ]
+      },
+      "candidate_name": "Río Chamelecón",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "automatic_application": false,
+      "product_application": false,
+      "source_keys": [
+        "sinit-dulce-2025",
+        "abrego-2019",
+        "copeco-2012",
+        "jica-2023",
+        "cedvs-2007-in-jica"
+      ],
+      "region": "Northern Honduras, western Copán headward drainage through the Chamelecón mountain corridor and Sula Valley to the Caribbean coast east of Puerto Cortés.",
+      "formal_registry_verified": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "geographic_disambiguation": "The selected western Copán headward leg, northeast/east upland corridor, mountain exit into the Sula Valley, La Lima passage and older lower-river route to the Caribbean correspond at ordinary corridor scale to the Chamelecón system. Independent primary municipal and research cartography covers the headward and middle portions; the inspected JICA survey's original project maps and attributed CEDVS hydraulic map establish lower connections and the coastal receiving setting. No material component or receiving-water connector remains unobserved at this scale.",
+      "candidate_names": [
+        "Río Chamelecón"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "supported_name_scope": "representative river-system identity; not a uniform name for every selected reach",
+      "naming_scope_hold_reason": null,
+      "completion_scope": "The selected western Copán headward leg, northeast/east upland corridor, mountain exit into the Sula Valley, La Lima passage and older lower-river route to the Caribbean correspond at ordinary corridor scale to the Chamelecón system. Independent primary municipal and research cartography covers the headward and middle portions; the inspected JICA survey's original project maps and attributed CEDVS hydraulic map establish lower connections and the coastal receiving setting. No material component or receiving-water connector remains unobserved at this scale.",
+      "naming_scope_details": {
+        "representative_system_identity": "Río Chamelecón",
+        "selected_initial_feeder_name": null,
+        "lower_channel_distinction": "Older lower Chamelecón course and Canal Chambers are separately mapped; their coastal connection is observed.",
+        "receiving_waterbody_name": "Caribbean Sea",
+        "component_scope_limits": [
+          "The candidate is a representative system identity only. It does not assign one hydronym to all headwater branches, channels, flood-relief works or older courses.",
+          "SINIT's Chamelecon Alta wording is a sub-basin-drainage label. It is not treated as proof of one formally registered reach name.",
+          "The local name of the selected initial headwater reach is not independently established here; it remains null. Pasquingual appeared in discovery text from an unavailable report but is not adopted as evidence.",
+          "The lower mapped older Chamelecón course and Canal Chambers are distinct features. Their connection supports the system identity without transferring the canal's name to the older river course.",
+          "No exact official source point, current legal name registry entry, exhaustive tributary inventory or uniform whole-feature name is established."
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:80056744",
+      "category": "river_group",
+      "system_id": "80056744",
+      "original_queue_rank": 281,
+      "baseline_logical_fid": 893,
+      "geometry_fids": [
+        2498
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -85.364583,
+        67.697917,
+        -82.589583,
+        68.406714
+      ],
+      "rendered_mainstem_length_km": 228.86,
+      "rendered_network_length_km": 228.86,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -85.364583,
+          67.697917,
+          -82.589583,
+          68.406714
+        ]
+      },
+      "candidate_name": "Ajaqutalik River",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "automatic_application": false,
+      "product_application": false,
+      "source_keys": [
+        "nluis46n-miertsching",
+        "nluis47b-committee",
+        "nluis46op-barrow",
+        "nluis47a-hall"
+      ],
+      "region": "Southern Melville Peninsula, Nunavut, unnamed southwestern lake/stream branch through Souter Lake and the Ajaqutalik valley to Roche Bay.",
+      "formal_registry_verified": false,
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "geographic_disambiguation": "The selected single mainstem corresponds at generalized corridor scale to an unnamed southwestern lake-and-stream branch feeding Souter Lake, followed by the Ajaqutalik River through Sanguaq Bend to Roche Bay. Four original adjoining NLUIS sheets cover the headward branch, connecting lakes, material junctions, downstream valley and actual coastal terminal. Ajaqutalik River is supported as the representative system candidate, with the upstream feeder and lake names kept separate.",
+      "candidate_names": [
+        "Ajaqutalik River"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "supported_name_scope": "Representative downstream river-system identity, supported by the mapped Souter Lake outlet, Ajaqutalik valley and Roche Bay mouth; not a uniform name for every selected feeder or lake passage.",
+      "naming_scope_hold_reason": null,
+      "completion_scope": "The selected single mainstem corresponds at generalized corridor scale to an unnamed southwestern lake-and-stream branch feeding Souter Lake, followed by the Ajaqutalik River through Sanguaq Bend to Roche Bay. Four original adjoining NLUIS sheets cover the headward branch, connecting lakes, material junctions, downstream valley and actual coastal terminal. Ajaqutalik River is supported as the representative system candidate, with the upstream feeder and lake names kept separate.",
+      "naming_scope_details": {
+        "representative_system_identity": "Ajaqutalik River",
+        "selected_initial_feeder_name": null,
+        "selected_material_lake": "Souter Lake",
+        "mapped_local_bend": "Sanguaq Bend",
+        "receiving_waterbody_name": "Roche Bay",
+        "regional_receiving_system": "Foxe Basin",
+        "component_scope_limits": [
+          "Ajaqutalik River is the historical cartographic spelling on the acquired sheets and in their marginal prose. No present formal naming record was obtained.",
+          "The southwestern selected headwater branch is not given a confirmed river hydronym in the inspected cartography. Its connection into the larger system does not extend the downstream river name over all feeder streams or lakes.",
+          "Souter Lake retains its own lake identity. The northern Ajaqutalik inflow to Souter Lake is distinct from the selected southwestern feeder; the representative result does not imply that the selected modeled head is the officially defined source of the named river.",
+          "Sanguaq Bend is a mapped local bend within the river corridor. Hall Lake, Ikerasak River and the northerly Sanirq River are separate mapped features; their names are not applied to the selected route.",
+          "Roche Bay is the receiving coastal water. No exact mouth point, tidal boundary, bank agreement, uniform scalar name or official river length is asserted."
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:80092529",
+      "category": "river_group",
+      "system_id": "80092529",
+      "original_queue_rank": 282,
+      "baseline_logical_fid": 925,
+      "geometry_fids": [
+        2545,
+        2546,
+        2547
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -160.289132,
+        66.31875,
+        -156.727083,
+        66.622917
+      ],
+      "rendered_mainstem_length_km": 228.465,
+      "rendered_network_length_km": 228.465,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 3,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -160.289132,
+          66.31875,
+          -156.727083,
+          66.622917
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "candidate_name_role": "whole_route_name_unestablished",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Selawik River is the dominant bounded river-channel identity. Throat River, Inland Lake and Kungsugrug River retain separate actual component scopes. No representative whole-object identity is supported.",
+      "source_keys": [
+        "r120-usgs-topo-selawik",
+        "r120-fws-selawik-wild-river",
+        "r120-fws-aftr110-2019",
+        "r120-adfg-arctic-catalog2022"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "Full original cartographic coverage shows a composite of a headward tributary, the Selawik main channel, the Throat–Inland Lake connector setting, a several-kilometre traverse across separate lakes and intervening low ground, Kungsugrug and Selawik distributary reaches, and a lakeshore terminal extension. The unchannelled/lacustrine traverse is broader than ordinary bank or meander displacement. No whole-route hydronym or representative identity encompassing that composite is established; this is a completed naming-scope limitation, not a missing-source gap.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_route_candidate": null,
+        "dominant_bounded_channel_identity": "Selawik River",
+        "other_bounded_components": [
+          "Throat River",
+          "Inland Lake",
+          "Kungsugrug River"
+        ],
+        "unnamed_headward_tributary": null,
+        "unnamed_small_lakes": null,
+        "actual_terminal_waterbody_name": null,
+        "terminal_geographic_setting": "Western Selawik delta/lakeshore strip with small shore-adjacent waters",
+        "broader_receiving_water_context": "Selawik Lake",
+        "scope_limits": [
+          "No continuous named river or perennial through-flow is inferred across the lake/low-ground traverse.",
+          "The selected lower branch is Throat River, not Fox River; the latter is a separate neighboring waterway.",
+          "Selawik, Throat, Inland Lake and Kungsugrug names are component-specific.",
+          "The exact terminal pond or small waterbody remains unnamed; a direct sea mouth is not established.",
+          "No formal name registry, exact official source, legal name boundary, modern flow state, or model-error mechanism is claimed."
+        ],
+        "reach_level_naming_follow_up_required_before_product_application": true
+      },
+      "region": "Northwestern Alaska, upper Selawik valley through lower river and the eastern Selawik Lake delta/lake plain.",
+      "geographic_disambiguation": "The selected route largely follows the Selawik valley, but its lower portion takes Throat River toward Inland Lake, then crosses a separate lake/low-ground chain before reaching Kungsugrug and a Selawik distributary. Its actual terminal is a western delta/lakeshore extension. All three fragments are geographically reviewed; the whole object remains a completed name-scope hold.",
+      "completion_scope": "All three selected fragments, intervening lakes and low terrain, and actual terminal geography are covered by original cartography. Full original cartographic coverage shows a composite of a headward tributary, the Selawik main channel, the Throat–Inland Lake connector setting, a several-kilometre traverse across separate lakes and intervening low ground, Kungsugrug and Selawik distributary reaches, and a lakeshore terminal extension. The unchannelled/lacustrine traverse is broader than ordinary bank or meander displacement. No whole-route hydronym or representative identity encompassing that composite is established; this is a completed naming-scope limitation, not a missing-source gap."
+    },
+    {
+      "aw_id": "hydro-system:80041424",
+      "category": "river_group",
+      "system_id": "80041424",
+      "original_queue_rank": 283,
+      "baseline_logical_fid": 870,
+      "geometry_fids": [
+        2359
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -110.529167,
+        69.463628,
+        -106.682514,
+        69.827083
+      ],
+      "rendered_mainstem_length_km": 228.379,
+      "rendered_network_length_km": 228.379,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -110.529167,
+          69.463628,
+          -106.682514,
+          69.827083
+        ]
+      },
+      "candidate_name": "Paliryuak River",
+      "candidate_names": [
+        "Paliryuak River"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "The lower river is labelled locally known as Paliryuak R. on the historical original map, and map-margin prose uses Paliryuak River/system. Banning Lake, Surrey Lake, locally named Merkley Lake, unnamed lakes and feeder/channel links remain separate component identities. No present formal name or whole-route scalar name is established.",
+      "source_keys": [
+        "VIC1",
+        "VIC2"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Paliryuak River",
+        "whole_route_candidate": null,
+        "bounded_downstream_identity": "Paliryuak River",
+        "bounded_lake_identities": [
+          "Banning Lake",
+          "Merkley Lake (locally known as, on the source)",
+          "Surrey Lake"
+        ],
+        "terminal_geographic_identity": "Wellington Bay, connected southward to Dease Strait",
+        "scope_limits": [
+          "No Paliryuak name is applied to every unnamed feeder, inter-lake stream or lake passage.",
+          "Merkley Lake and the lower Paliryuak label retain the historical source qualifier locally known as; registry status is unverified.",
+          "Other northern and lateral inflows are mapped separately and are not substituted for the selected western Banning Lake route.",
+          "The nearby Ekalluk/Ferguson Lake outlet is a separate entry to Wellington Bay, not this selected terminal.",
+          "Historical map-margin fisheries comments provide bounded system context, not current legal fishing advice, present flow conditions, or a formal naming adjudication."
+        ]
+      },
+      "region": "Southern Victoria Island, Arctic Canada, Banning Lake–Merkley Lake–Surrey Lake–Paliryuak River corridor to Wellington Bay.",
+      "geographic_disambiguation": "The complete selected FID2359 corridor corresponds, at ordinary generalized scale, to the northwestern Banning Lake approach, Banning Lake and its eastward outlet, an unnamed middle lake-and-stream chain, the crossing into locally named Merkley Lake, Surrey Lake, and the Paliryuak River outlet to Wellington Bay. Original NLUIS77C and77D cartography covers the headward terrain, intervening connections, major lake passages, junctions and actual coastal terminal. Paliryuak River is supported as a representative system candidate only. The selected route is not assigned one uniform river name.",
+      "completion_scope": "The complete selected FID2359 corridor corresponds, at ordinary generalized scale, to the northwestern Banning Lake approach, Banning Lake and its eastward outlet, an unnamed middle lake-and-stream chain, the crossing into locally named Merkley Lake, Surrey Lake, and the Paliryuak River outlet to Wellington Bay. Original NLUIS77C and77D cartography covers the headward terrain, intervening connections, major lake passages, junctions and actual coastal terminal. Paliryuak River is supported as a representative system candidate only. The selected route is not assigned one uniform river name."
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:80092529"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 423,
+    "non_pending_records": 373,
+    "source_access_pending": 3,
+    "source_material_pending": 47,
+    "source_any_pending": 50,
+    "scope_holds": 123,
+    "river_groups": 325,
+    "lakes": 98,
+    "unrecorded": 3642,
+    "unrecorded_river_groups": 3130,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "sinit-dulce-2025",
+      "official_url": "https://sinit.hn/download/283/0408-dulce-nombre/12140/mapa-de-recursos-hidricos-de-dulce-nombre.jpeg"
+    },
+    {
+      "source_key": "abrego-2019",
+      "official_url": "https://ciencias.unah.edu.hn/assets/Ciencias/Repositorio-tesis/Fisica/MAESTRIA-EN-RECURSOS-HIDRICOS-ORIENTACION-EN-HIDROGEOLOGIA/I-promocion/ACTUALIZACION-PRELIMINAR-DE-LOS-UMBRALES-DE-ALERTA-POR-INUNDACIONES-EN-EL-RIO-CHAMELECON-EN-LA-CIUDAD-LA-LIMACORTES.pdf"
+    },
+    {
+      "source_key": "jica-2023",
+      "official_url": "https://openjicareport.jica.go.jp/pdf/1000051754.pdf"
+    },
+    {
+      "source_key": "cedvs-2007-in-jica",
+      "official_url": "https://openjicareport.jica.go.jp/pdf/1000051754.pdf"
+    },
+    {
+      "source_key": "copeco-2012",
+      "official_url": "https://documents1.worldbank.org/curated/en/328771468033712310/pdf/NonAsciiFileName0.pdf"
+    },
+    {
+      "source_key": "oas-1994-context",
+      "official_url": "https://www.oas.org/dsd/publications/Unit/oea13s/oea13s.pdf"
+    },
+    {
+      "source_key": "nluis46n-miertsching",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46n.jpg"
+    },
+    {
+      "source_key": "nluis47b-committee",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_47b.jpg"
+    },
+    {
+      "source_key": "nluis46op-barrow",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_46o_p.jpg"
+    },
+    {
+      "source_key": "nluis47a-hall",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_47a.jpg"
+    },
+    {
+      "source_key": "r120-usgs-topo-selawik",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r120-fws-selawik-wild-river",
+      "official_url": "https://www.fws.gov/rivers/river/selawik"
+    },
+    {
+      "source_key": "r120-fws-aftr110-2019",
+      "official_url": "https://www.fws.gov/sites/default/files/documents/t_2019_110.pdf"
+    },
+    {
+      "source_key": "r120-adfg-arctic-catalog2022",
+      "official_url": "https://www.adfg.alaska.gov/static-sf/AWC/PDFs/2022arc_CATALOG.pdf"
+    },
+    {
+      "source_key": "VIC1",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77c.jpg"
+    },
+    {
+      "source_key": "VIC2",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_77d.jpg"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "81383ef54b55436b980c9957cd22f27c0dd8a55a",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      280,
+      281,
+      282,
+      283
+    ],
+    "next_unrecorded_id": "hydro-system:90002144",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}
