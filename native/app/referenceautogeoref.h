@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QImage>
+#include <QString>
 #include <QVariantList>
 #include <QVariantMap>
 
