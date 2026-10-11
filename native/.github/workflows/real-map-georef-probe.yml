@@ -36,8 +36,10 @@ jobs:
       - name: Configure
         shell: pwsh
         run: cmake -S . -B build -A x64 -DBUILD_TESTING=ON "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-      - name: Build real-map probe
-        run: cmake --build build --config Release --target reference_real_map_probe
+      - name: Build georef tests and real-map probe
+        run: cmake --build build --config Release --target reference_auto_georef_tests reference_real_map_probe
+      - name: Run native automatic georef unit tests
+        run: ctest --test-dir build -C Release --output-on-failure -R "^reference_auto_georef_tests$"
       - name: Download 1914 historical map
         shell: pwsh
         run: |
@@ -53,3 +55,16 @@ jobs:
         with:
           name: real-map-georef-report
           path: real-map-report.json
+
+  web-model-selection:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/Pando
+          ref: work/auto-georef
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run web georef model-selection tests
+        run: node --test tests/unit/reference-image-georef.test.mjs
