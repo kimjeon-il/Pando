@@ -41,6 +41,8 @@ test('month-end resolution includes exact starts and excludes exact mid-month en
   ended.lifetimes.find(row => row.id === 'B:modern').validTo = '1910-01-15';
   ended.geometryBindings.find(row => row.id === 'B:modern-shape').validTo = '1910-01-15';
   ended.parentRelations.find(row => row.id === 'B:old-parent').validTo = '1910-01-15';
+  // A shortened lifetime cannot retain a later parent record outside that lifetime.
+  ended.parentRelations = ended.parentRelations.filter(row => row.id !== 'B:new-parent');
   const endedStorage = restoreTimelineStorage({ schemaVersion: 1, records: ended,
     geometries: project.geometries }, catalog);
   const january = resolveWorld(project.territorialEntities, endedStorage.records, endedStorage.geometries, '1910-01');
