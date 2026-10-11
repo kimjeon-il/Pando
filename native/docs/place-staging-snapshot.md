@@ -1,3 +1,12 @@
+# 2026-10-11: 웹/앱 264개 지명 PLAC v3 실행 데이터 동기화
+
+- `work/places`의 조사 파일을 **22개 차수·고유 GeoNames ID 264개·시대별 명칭 구간 482개**로 확대했다. `reports/places/source-manifest.json`에서 모든 출처 파일의 Git blob SHA를 고정했다.
+- `assets/place/manifest.json`과 `assets/place/places-v1.bin`은 웹 `assets/data/places/`에 있는 것과 **동일한 Git blob**이다. PLAC v3 바이너리는 76,922바이트, SHA-256 `68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6`.
+- 앱 Qt 리소스에 데이터 바이너리를 번들하고 현행/역사 한국어·영어·원어 검색 및 달력 시점별 라벨 표시를 연결했다. 관련 Qt 테스트를 추가했다.
+- 다만 불확실한 이름·도시 형성기간·과거 국가 소속·역사적 다섯 등급은 자동 승인하지 않았다. `temporalEligibility`의 여러 도시활성 구간은 PLAC v3로 아직 직렬화되지 않는다.
+- 변경은 앱 `work/places` 브랜치에 있으며 **앱 `main` 통합 및 빌드된 사용자용 릴리스는 별개**다. 아래 내용은 최초 1~15차 동기화 시기의 누적 개발 기록으로 남긴다.
+
+---
 # 도시 명칭 1~15차 — 웹·앱 검수 자료 동기화
 
 웹 `work/places` 정본에서 수집·검증한 **15개 배치·88개 고유 도시**를 앱에 그대로 동기화했다.
