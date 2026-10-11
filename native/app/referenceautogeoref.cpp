@@ -134,6 +134,39 @@ int minimum(ReferenceWarpMode mode)
 QString modeName(ReferenceWarpMode mode)
 {return mode==ReferenceWarpMode::Projective?"projective":mode==ReferenceWarpMode::Affine?"affine":"similarity";}
 
+bool anchorPair(const QVariantMap& anchor,QPointF& image,QPointF& coordinate)
+{
+    if(anchor.isEmpty())return false;
+    return pair(anchor.value("image"),image)&&pair(anchor.value("coordinate"),coordinate)
+        &&image.x()>=0&&image.x()<=1&&image.y()>=0&&image.y()<=1
+        &&coordinate.x()>=-180&&coordinate.x()<=180&&coordinate.y()>=-90&&coordinate.y()<=90;
+}
+
+bool enforceAnchor(ReferenceWarpResult& warp,const QVariantMap& anchor)
+{
+    QPointF image,coordinate;if(!anchorPair(anchor,image,coordinate))return anchor.isEmpty();
+    if(!warp.valid)return false;
+    const QPointF actual=warp.map(image),delta=coordinate-actual;
+    if(!std::isfinite(delta.x())||!std::isfinite(delta.y()))return false;
+    if(warp.resolvedMode==ReferenceWarpMode::Similarity) {
+        if(warp.xCoefficients.size()<4)return false;
+        warp.xCoefficients[2]+=delta.x();warp.xCoefficients[3]+=delta.y();
+    } else if(warp.resolvedMode==ReferenceWarpMode::Affine) {
+        if(warp.xCoefficients.size()<3||warp.yCoefficients.size()<3)return false;
+        warp.xCoefficients[2]+=delta.x();warp.yCoefficients[2]+=delta.y();
+    } else if(warp.resolvedMode==ReferenceWarpMode::Projective) {
+        if(warp.xCoefficients.size()<8)return false;
+        const double h6=warp.xCoefficients[6],h7=warp.xCoefficients[7];
+        warp.xCoefficients[0]+=delta.x()*h6;warp.xCoefficients[1]+=delta.x()*h7;warp.xCoefficients[2]+=delta.x();
+        warp.xCoefficients[3]+=delta.y()*h6;warp.xCoefficients[4]+=delta.y()*h7;warp.xCoefficients[5]+=delta.y();
+    } else {
+        const int count=warp.controlPoints.size();
+        if(warp.xCoefficients.size()<count+3||warp.yCoefficients.size()<count+3)return false;
+        warp.xCoefficients[count]+=delta.x();warp.yCoefficients[count]+=delta.y();
+    }
+    return haversine(warp.map(image),coordinate)<=.01;
+}
+
 quint32 nextRandom(quint32& state)
 {state^=state<<13;state^=state>>17;state^=state<<5;return state;}
 
@@ -220,25 +253,30 @@ ReferenceAutoGeorefResult solveCandidates(const QVector<Candidate>& candidates,i
                                           const QString& source)
 {
     ReferenceAutoGeorefResult output;output.seedCount=seedCount;output.candidateCount=candidates.size();output.source=source;
-    if(candidates.size()<2){output.reason=source=="place-ocr"?QStringLiteral("insufficient-ocr-symbol-candidates"):QStringLiteral("insufficient-symbol-candidates");return output;}
-    const int candidateCount=int(candidates.size());const auto mode=resolvedMode(requestedMode,candidateCount);const int required=minimum(mode);output.mode=modeName(mode);
-    if(candidateCount<required){output.reason=QStringLiteral("insufficient-auto-georef-candidates");return output;}
-    const double threshold=25000.;const int requiredInliers=std::min(candidateCount,std::max(required,int(std::ceil(candidateCount*.35))));
+    QPointF anchorImage,anchorCoordinate;const bool hasAnchor=anchorPair(anchor,anchorImage,anchorCoordinate);
+    if(!anchor.isEmpty()&&!hasAnchor){output.reason=QStringLiteral("invalid-anchor");return output;}
+    const int candidateCount=int(candidates.size()),hardPointCount=hasAnchor?1:0,totalPointCount=candidateCount+hardPointCount;
+    if(totalPointCount<2){output.reason=source=="place-ocr"?QStringLiteral("insufficient-ocr-symbol-candidates"):QStringLiteral("insufficient-symbol-candidates");return output;}
+    const auto mode=resolvedMode(requestedMode,totalPointCount);const int required=minimum(mode),requiredSoft=std::max(0,required-hardPointCount);output.mode=modeName(mode);
+    if(candidateCount<requiredSoft||totalPointCount<required){output.reason=QStringLiteral("insufficient-auto-georef-candidates");return output;}
+    const double threshold=25000.;
+    const int requiredTotalInliers=std::min(totalPointCount,std::max(required,int(std::ceil(totalPointCount*.35))));
+    const int requiredInliers=std::max(0,requiredTotalInliers-hardPointCount);
     Score best;bool hasBest=false;quint32 random=0x6d2b79f5u;QSet<QString> seen;
     for(int trial=0;trial<512;++trial){
-        const auto indices=sampleIndices(candidateCount,required,random);QString key;for(int index:indices)key+=QString::number(index)+",";
-        if(seen.contains(key)){if(seen.size()>=candidateCount*32)break;continue;}seen.insert(key);
-        const auto warp=solveReferenceWarp(mode,controls(candidates,indices));if(!warp.valid)continue;const auto current=score(warp,candidates,threshold,anchor);
+        const auto indices=sampleIndices(candidateCount,requiredSoft,random);QString key;for(int index:indices)key+=QString::number(index)+",";
+        if(seen.contains(key)){if(requiredSoft>=candidateCount||seen.size()>=std::max(1,candidateCount*32))break;continue;}seen.insert(key);
+        auto warp=solveReferenceWarp(mode,controls(candidates,indices));if(!warp.valid||!enforceAnchor(warp,anchor))continue;const auto current=score(warp,candidates,threshold,anchor);
         if(current.inliers.size()<requiredInliers)continue;if(!hasBest||better(current,best)){best=current;hasBest=true;}
         if(current.inliers.size()==candidateCount)break;
     }
     if(!hasBest){output.reason=QStringLiteral("no-auto-georef-consensus");return output;}
 
     QVector<Candidate> accepted;for(int index:best.inliers)accepted.push_back(candidates[index]);
-    auto finalWarp=solveReferenceWarp(mode,controls(accepted));if(!finalWarp.valid){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
+    auto finalWarp=solveReferenceWarp(mode,controls(accepted));if(!finalWarp.valid||!enforceAnchor(finalWarp,anchor)){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
     const auto finalScore=score(finalWarp,candidates,threshold,anchor);if(finalScore.inliers.size()<requiredInliers){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
     accepted.clear();for(int index:finalScore.inliers)accepted.push_back(candidates[index]);finalWarp=solveReferenceWarp(mode,controls(accepted));
-    if(!finalWarp.valid){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
+    if(!finalWarp.valid||!enforceAnchor(finalWarp,anchor)){output.reason=QStringLiteral("auto-georef-refit-failed");return output;}
 
     double squared=0;QSet<int> inlierSet;for(int index:finalScore.inliers)inlierSet.insert(index);
     for(int i=0;i<candidates.size();++i){
