@@ -8,6 +8,7 @@ import { createGeometryVersionStore } from '../assets/js/modules/geometry-versio
 import { normalizeTimelineRecords } from '../assets/js/modules/timeline-records.js';
 import { createProjectSerializer } from '../assets/js/modules/project-serializer.js';
 import { DISTRIBUTION_MODES } from '../assets/js/modules/distribution-model.js';
+import { adjustHistoricalTerritories, historicalWorldClipper } from './historical-world-territories.mjs';
 
 const compare = (a, b) => {
   for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1;
@@ -50,7 +51,7 @@ const identity = feature => ({ type: 'Feature', id: feature.id, geometry: null,
 const withoutGeometry = ({ geometry, ...value }) => structuredClone(value);
 
 /** Build an ordinary editable project; library inputs and raw intervals stay immutable. */
-export function compileHistoricalWorldTimeline({ entities, currentSnapshot, currentWorld, policy, clipper, adjustTerritories }) {
+export function compileHistoricalWorldTimeline({ entities, currentSnapshot, currentWorld, policy, clipper = historicalWorldClipper }) {
   if (currentSnapshot?.schemaVersion !== 1 || !Array.isArray(currentSnapshot.entityRefs)
       || new Set(currentSnapshot.entityRefs).size !== currentSnapshot.entityRefs.length) throw new Error('Invalid current snapshot');
   if (!policy || policy.schemaVersion !== 1) throw new Error('Missing historical world policy');
@@ -114,6 +115,11 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
     if (window.start) events.set(date(window.start), window.start);
     if (window.end) { const next = shiftDay(window.end, 1); events.set(date(next), next); }
   }
+  for (const rule of policy.replacements) {
+    const window = bounds(rule);
+    if (window.start) events.set(date(window.start), window.start);
+    if (window.end) { const next = shiftDay(window.end, 1); events.set(date(next), next); }
+  }
   const cuts = [...events.values()].sort(compare);
   const archive = createGeometryVersionStore(), byGeometry = new Map();
   const rowsByEntity = new Map(), adjustments = [];
@@ -129,7 +135,8 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
     for (const [id, definition] of ordered) {
       const active = definition.windows.filter(window => covers(window, start));
       if (active.length > 1) throw new Error(`Overlapping geometry intervals: ${id}`);
-      if (active.length) candidates.push({ ...active[0], entityId: id, currentSnapshot: definition.currentSnapshot });
+      if (active.length) candidates.push({ ...active[0], entityId: id, currentSnapshot: definition.currentSnapshot,
+        validFrom: start && date(start), validTo: end && date(end) });
     }
     // A parent gap hides descendants transitively; cycles are a source error.
     const all = new Map(candidates.map(row => [row.entityId, row]));
@@ -141,11 +148,9 @@ export function compileHistoricalWorldTimeline({ entities, currentSnapshot, curr
       return !!parent && activeParent(parent, seen);
     };
     candidates = candidates.filter(row => activeParent(row));
-    if (adjustTerritories) {
-      const adjusted = adjustTerritories(candidates, policy, clipper);
-      candidates = adjusted.candidates;
-      adjustments.push(...adjusted.adjustments.map(row => ({ ...row, validFrom: start && date(start), validTo: end && date(end) })));
-    }
+    const adjusted = adjustHistoricalTerritories(candidates, policy, clipper);
+    candidates = adjusted.candidates;
+    adjustments.push(...adjusted.adjustments.map(row => ({ ...row, validFrom: start && date(start), validTo: end && date(end) })));
     for (const candidate of candidates) {
       const definition = definitions.get(candidate.entityId), ref = geometryRef(candidate.geometry);
       if (definition.currentSnapshot) definition.info.currentGeometryRef = ref;
