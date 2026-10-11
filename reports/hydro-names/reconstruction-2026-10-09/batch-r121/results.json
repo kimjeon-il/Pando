@@ -1,0 +1,548 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r121",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r120",
+    "commit": "3010609792a8b3842f84f76878909f2a204f5d54",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r120/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:90002144",
+    "hydro-system:70879598",
+    "hydro-system:80040811",
+    "hydro-system:70065022"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:90002144",
+      "category": "river_group",
+      "system_id": "90002144",
+      "original_queue_rank": 284,
+      "baseline_logical_fid": 2816,
+      "geometry_fids": [
+        8825
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -36.870833,
+        80.422917,
+        -32.697531,
+        81.685918
+      ],
+      "rendered_mainstem_length_km": 228.074,
+      "rendered_network_length_km": 228.074,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -36.870833,
+          80.422917,
+          -32.697531,
+          81.685918
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "candidate_name_role": "whole_route_name_unestablished",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": null,
+      "geographic_disambiguation": "The terminal setting belongs to Academy Gletscher at the southwestern inner end of Independence Fjord. Marie Sophie Gletscher, north of Vildtland, and Hagen Bræ/Hagen Fjord to the east and southeast are separately mapped corridors and are not assigned as the selected ending. No lake passage or tributary name is inferred from nearby labels.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "All of selected FID8825, including the headward bend, entire northward and eastward connectors and actual terminal corridor, is accounted for by directly read original cartography at ordinary generalized corridor scale.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "Original cartography accounts for the headward Inland Ice, the southern Vildtland ice/land-margin connector and the Academy Gletscher–inner Independence Fjord terminal setting. None of the glacier, land or fjord names establishes a representative natural-river identity for the entire modeled route.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "contextual_land_names": [
+          "Vildtland",
+          "Academy Land"
+        ],
+        "terminal_glacier_context": "Academy Gletscher",
+        "terminal_fjord_context": "Independence Fjord",
+        "distinct_unassigned_neighbouring_glaciers": [
+          "Marie Sophie Gletscher",
+          "Hagen Bræ"
+        ],
+        "distinct_unassigned_neighbouring_fjord": "Hagen Fjord",
+        "regional_associations_are_exact_reach_assignments": false,
+        "no_uniform_scalar_assignment": true,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0
+      },
+      "source_keys": [
+        "r121-geus-greenland-national-1995",
+        "r121-geus-peary-land-sheet8-1986"
+      ],
+      "region": "Northern Greenland, Inland Ice–southern Vildtland–Academy Gletscher–inner Independence Fjord."
+    },
+    {
+      "aw_id": "hydro-system:70879598",
+      "category": "river_group",
+      "system_id": "70879598",
+      "original_queue_rank": 285,
+      "baseline_logical_fid": 3257,
+      "geometry_fids": [
+        10422,
+        10423,
+        10424
+      ],
+      "minimum_stage": 1,
+      "bbox": [
+        -98.002083,
+        19.527083,
+        -97.00961,
+        20.493598
+      ],
+      "rendered_mainstem_length_km": 227.879,
+      "rendered_network_length_km": 236.439,
+      "geometry_summary": {
+        "fragment_count": 3,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 1,
+        "mainstem_bbox": [
+          -98.002083,
+          19.527083,
+          -97.00961,
+          20.493598
+        ]
+      },
+      "candidate_name": "Río Tecolutla",
+      "candidate_names": [
+        "Río Tecolutla"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Tecolutla labels support the downstream river from the Apulco/Necaxa junction to the Gulf. Apulco, the short selected Necaxa tributary, Lázaro Cárdenas and Laguna la Soledad storage/waterbody settings, and the unnamed/local-labelled first feeder corridor remain distinct.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Río Tecolutla",
+        "whole_route_candidate": null,
+        "bounded_downstream_identity": "Tecolutla",
+        "bounded_upper_identity": "Apulco",
+        "bounded_tributary_identity": {
+          "10424": "Necaxa"
+        },
+        "bounded_lake_reservoir_identities": [
+          "Lázaro Cárdenas",
+          "Laguna la Soledad"
+        ],
+        "terminal_geographic_identity": "Gulf of Mexico at Barra de Tecolutla",
+        "scope_limits": [
+          "The first feeder and exact local name transitions are not named. El Gachupin and Tenexac are retained as local map context, not silently promoted to the whole upper mainstem.",
+          "The southern Tenexac reservoir is a distinct neighboring feeder/storage setting, not a claimed selected passage.",
+          "Los Lobos and Zempoala are separate lateral approaches; their regional relevance does not make them selected mainstem names.",
+          "The selected short Necaxa component is not renamed after the downstream Tecolutla.",
+          "Laguna la Soledad and the small Lázaro Cárdenas storage setting retain waterbody identities.",
+          "Historical cartography does not establish current reservoir shoreline, hydropower operations, year-round surface flow, legal naming boundaries or formal registry status."
+        ]
+      },
+      "source_keys": [
+        "MX1",
+        "MX2",
+        "MX3",
+        "MX4",
+        "MX5",
+        "MX6",
+        "MX7",
+        "MX8"
+      ],
+      "geographic_disambiguation": "All three selected components correspond at ordinary generalized corridor scale to the Tlaxcala headwater/storage approach, the Apulco route through Ixtacamaxtitlán, Zautla and Laguna la Soledad, the lower Apulco and short Necaxa junction components near Espinal, and the Tecolutla outlet to the Gulf of Mexico. Eight independently identified and successfully acquired INEGI originals supply the continuous regional course and bounded municipal detail. Río Tecolutla is supported as a representative system candidate only; all scalar, accepted and Korean-name fields remain null and application is false.",
+      "completion_scope": "All three selected components correspond at ordinary generalized corridor scale to the Tlaxcala headwater/storage approach, the Apulco route through Ixtacamaxtitlán, Zautla and Laguna la Soledad, the lower Apulco and short Necaxa junction components near Espinal, and the Tecolutla outlet to the Gulf of Mexico. Eight independently identified and successfully acquired INEGI originals supply the continuous regional course and bounded municipal detail. Río Tecolutla is supported as a representative system candidate only; all scalar, accepted and Korean-name fields remain null and application is false.",
+      "region": "Tlaxcala–northern Puebla–Veracruz, Mexico; Apulco–Necaxa joining and Tecolutla coastal corridor."
+    },
+    {
+      "aw_id": "hydro-system:80040811",
+      "category": "river_group",
+      "system_id": "80040811",
+      "original_queue_rank": 286,
+      "baseline_logical_fid": 869,
+      "geometry_fids": [
+        2358
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -142.275,
+        68.58125,
+        -139.485417,
+        69.556787
+      ],
+      "rendered_mainstem_length_km": 227.61,
+      "rendered_network_length_km": 227.61,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -142.275,
+          68.58125,
+          -139.485417,
+          69.556787
+        ]
+      },
+      "candidate_name": "Firth River",
+      "candidate_names": [
+        "Firth River"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Firth River is supported as representative system identity. Its name is not imposed on the entire unlabeled opening branch, separate tributaries, delta distributaries or receiving coastal waters.",
+      "geographic_disambiguation": "A northwestern Davidson Mountains branch descends southeast to the separately labeled Firth, which bends northeast across the Alaska–Yukon boundary, passes through the British Mountains and lower gorge, then reaches the delta by Nunaluk Spit and Herschel Island. Separate Mancha Creek and neighboring Malcolm River are distinguished.",
+      "source_keys": [
+        "r121-usgs-topo-firth-headwaters",
+        "r121-nluis-davidson-117b",
+        "r121-nluis-demarcation-117c",
+        "r121-nluis-herschel-117d"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "region": "Northeastern Alaska and northern Yukon; Davidson Mountains–British Mountains–Beaufort coast.",
+      "completion_scope": "All of selected FID2358 is covered by one successful original USGSTopo view and three complete independent NLUIS original sheets. Every major selected segment, relevant joining sequence, the map-sheet seams and actual terminal setting were read at ordinary corridor/component scale.",
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "representative_system_identity": "Firth River",
+        "initial_headward_component_name": null,
+        "exact_source_point_name": null,
+        "selected_inland_lakes": [],
+        "selected_reservoirs": [],
+        "receiving_waterbody_name": "Beaufort Sea coastal waters",
+        "terminal_limit": "Mapped Firth delta and adjacent coastal water south of Nunaluk Spit, southwest of Herschel Island, in the Workboat Passage coastal setting; no exact active-mouth assertion.",
+        "observed_separate_connecting_branches": [
+          "Mancha Creek",
+          "Muskeg Creek",
+          "Joe Creek",
+          "Sheep Creek",
+          "Loney Creek"
+        ],
+        "excluded_neighboring_drainages": [
+          "Malcolm River"
+        ],
+        "whole_route_uniform_hydronym_established": false,
+        "reach_level_naming_follow_up_required_before_product_application": true,
+        "model_limits": "Selected geometry is orientation only. Generalized river bends and terminal extension do not require exact historic bank, vertex or mouth alignment.",
+        "source_availability_limits": []
+      }
+    },
+    {
+      "aw_id": "hydro-system:70065022",
+      "category": "river_group",
+      "system_id": "70065022",
+      "original_queue_rank": 287,
+      "baseline_logical_fid": 2935,
+      "geometry_fids": [
+        9109,
+        9110
+      ],
+      "minimum_stage": 2,
+      "bbox": [
+        -63.722917,
+        55.44375,
+        -61.503082,
+        56.022917
+      ],
+      "rendered_mainstem_length_km": 226.382,
+      "rendered_network_length_km": 226.382,
+      "geometry_summary": {
+        "fragment_count": 2,
+        "mainstem_fragment_count": 2,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -63.722917,
+          55.44375,
+          -61.503082,
+          56.022917
+        ]
+      },
+      "candidate_name": "Notakwanon River",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "automatic_application": false,
+      "product_application": false,
+      "completion_scope": "Completed bounded primary-source correspondence for both selected mainstem fragments. Minor feeder naming, exact individual pond connectors, exact through-lake centerlines, bank agreement and modern shoreline or endpoint vertices are not asserted. The unavailable CanMatrix sheet is optional after the independent original maps were read; it creates no remaining material source gap.",
+      "source_keys": [
+        "anderson-1985-notakwanon",
+        "hill-1982-81-137",
+        "wardle-1993-93-16"
+      ],
+      "formal_registry_verified": false,
+      "candidate_name_role": "supported_representative_system_identity",
+      "geographic_disambiguation": "The selected western feeder and lake/steady chain near the Quebec–Labrador divide, its north-turning middle valley, the long eastward lower river and the terminal approach to Merrifield Bay correspond at ordinary generalized corridor scale to the Notakwanon River system. Wardle’s independently issued regional geological map supplies the western and eastern cartographic context; Hill’s detailed map explicitly labels the intervening Notakwanon valley; Anderson’s original river-network figure and account complete the river-to-bay relationship. No material component or receiving-water connector remains unobserved at this scale.",
+      "candidate_names": [
+        "Notakwanon River"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "region": "Quebec–Labrador divide through the Notakwanon valley to Merrifield Bay, Labrador.",
+      "supported_name_scope": "representative river-system identity; not a uniform scalar hydronym for every selected feeder, lake passage and river reach",
+      "naming_scope_details": {
+        "representative_system_identity": "Notakwanon River",
+        "initial_feeder_name": null,
+        "individual_selected_lake_names": null,
+        "receiving_waterbody_name": "Merrifield Bay",
+        "larger_receiving_water": "Labrador Sea",
+        "excluded_neighboring_lake": "Mistastin Lake",
+        "component_scope_limits": [
+          "The representative candidate applies to the river system only. The selected initial feeder and the individual upper lakes/steadies have no independently established local hydronyms in this review; their names remain null.",
+          "Hill’s Notakwanon River labels identify the observed middle river corridor. They are not extended as individual lake names or assigned to every tributary entering the corridor.",
+          "Anderson uses Notakwanon River in a river-system account and generalized network map. Its historical source description and distances are not formal name-boundary or current official-length determinations.",
+          "Mistastin Lake is geographically north of the selected western corridor and is not a selected lake passage. Anderson’s separate Kogaluk account places it in that tributary structure. Its name is not transferred to the selected lake chain.",
+          "Merrifield Bay is the coastal receiving water. It is kept distinct from the river name and from the Labrador Sea outside the bay.",
+          "No current registry entry, uniform whole-feature name, Korean form, surveyed source point or exact tidal boundary was established."
+        ],
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90002144"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 3,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 427,
+    "non_pending_records": 377,
+    "source_access_pending": 3,
+    "source_material_pending": 47,
+    "source_any_pending": 50,
+    "scope_holds": 124,
+    "river_groups": 329,
+    "lakes": 98,
+    "unrecorded": 3638,
+    "unrecorded_river_groups": 3126,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r121-geus-greenland-national-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r121-geus-peary-land-sheet8-1986",
+      "official_url": "https://doi.org/10.22008/FK2/Q7HIDY"
+    },
+    {
+      "source_key": "r111-geus-bulletin18-2009-retained",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r117-geus-lambert-land-sheet9-2000-extent-check",
+      "official_url": "https://doi.org/10.22008/FK2/GDCZIS"
+    },
+    {
+      "source_key": "MX1",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/pue/889463837039.pdf"
+    },
+    {
+      "source_key": "MX2",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/29/29034.pdf"
+    },
+    {
+      "source_key": "MX3",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/29/29047.pdf"
+    },
+    {
+      "source_key": "MX4",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/29/29046.pdf"
+    },
+    {
+      "source_key": "MX5",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/29/29030.pdf"
+    },
+    {
+      "source_key": "MX6",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/21/21083.pdf"
+    },
+    {
+      "source_key": "MX7",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30066.pdf"
+    },
+    {
+      "source_key": "MX8",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30158.pdf"
+    },
+    {
+      "source_key": "r121-usgs-topo-firth-headwaters",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r121-nluis-davidson-117b",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_117b.jpg"
+    },
+    {
+      "source_key": "r121-nluis-demarcation-117c",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_117c.jpg"
+    },
+    {
+      "source_key": "r121-nluis-herschel-117d",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/nluis_250k_lu_117d.jpg"
+    },
+    {
+      "source_key": "r121-nluis-retained-index",
+      "official_url": "https://sis.agr.gc.ca/cansis/publications/maps/nluis/250k/lu/index.html"
+    },
+    {
+      "source_key": "anderson-1985-notakwanon",
+      "official_url": "https://waves-vagues.dfo-mpo.gc.ca/Library/89967.pdf"
+    },
+    {
+      "source_key": "hill-1982-81-137",
+      "official_url": "https://www.gov.nl.ca/em/files/81-137.pdf"
+    },
+    {
+      "source_key": "wardle-1993-93-16",
+      "official_url": "https://www.gov.nl.ca/em/files/93-016_Map.pdf"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "3010609792a8b3842f84f76878909f2a204f5d54",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      284,
+      285,
+      286,
+      287
+    ],
+    "next_unrecorded_id": "hydro-system:60636465",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}
