@@ -223,6 +223,7 @@ export function findReferenceImagePointSymbol(raster, expectedUv, {
   minimumConfidence = 0.42,
   maxComponentPixels = 140,
   maxDiameter = 14,
+  excludeBoxPx = null,
 } = {}) {
   if (!validRaster(raster)) return null;
   const uv = finitePair(expectedUv);
