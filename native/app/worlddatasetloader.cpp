@@ -150,16 +150,18 @@ std::shared_ptr<const CountryBaseMesh> WorldDatasetLoader::canonicalMesh(const Q
     return decodeCountryBaseMesh(source.decompress("canonicalMesh",40*1024*1024),false);
 }
 std::shared_ptr<const WorldBaseFrame> WorldDatasetLoader::matchingBaseFrame(
-    const pandoeditor::ProjectDocument& document,const QString& root) {
+    const pandoeditor::ProjectDocument& document,const QString& root,const std::string& month) {
+    const auto view=pandoeditor::timelineDocumentView(document,month);
     WorldDataset source(root);
     CanonicalCountryStore packet(source.decompress("countryCanonical",12*1024*1024));
     const auto canonical=materializeBuiltinWorld(packet);
     bool matched=false;
     for(const auto& range:canonical.ranges) {
-        const auto unit=std::find_if(document.units.begin(),document.units.end(),
+        const auto unit=std::find_if(view.document.units.begin(),view.document.units.end(),
             [&](const auto& value){return value.id==range.ownerId;});
         const pandoeditor::GeometryRef ref{range.geometryId,1};
-        if(unit==document.units.end()||!(pandoeditor::staticGeometryBinding(document,unit->id).geometryRef==ref))continue;
+        if(unit==view.document.units.end()||view.inactiveIds.count(unit->id)||
+           !(pandoeditor::staticGeometryBinding(view.document,unit->id).geometryRef==ref))continue;
         const auto actual=document.geometries.get(ref);
         const auto expected=canonical.document.geometries.get(ref);
         if(!actual||!expected||actual->type!=expected->type||

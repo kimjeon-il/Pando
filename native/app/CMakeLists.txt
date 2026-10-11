@@ -514,6 +514,10 @@ if(BUILD_TESTING)
     target_link_libraries(historical_world_timeline_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(historical_world_timeline_tests PRIVATE PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world")
     add_test(NAME historical_world_timeline_tests COMMAND historical_world_timeline_tests -o -,txt)
+    add_executable(historical_world_ui_tests ../tests/historical_world_ui_tests.cpp)
+    target_link_libraries(historical_world_ui_tests PRIVATE pandoeditor_editor Qt6::QuickControls2 Qt6::Test)
+    target_compile_definitions(historical_world_ui_tests PRIVATE PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world")
+    add_test(NAME historical_world_ui_tests COMMAND historical_world_ui_tests -o -,txt)
     target_link_libraries(builtin_world_policy_tests PRIVATE pandoeditor_editor Qt6::Test)
     target_compile_definitions(builtin_world_policy_tests PRIVATE
         PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world")
@@ -720,7 +724,7 @@ if(BUILD_TESTING)
     target_link_libraries(ui_tests PRIVATE pandoeditor_editor Qt6::QuickControls2 Qt6::Test)
     target_compile_definitions(ui_tests PRIVATE PANDOEDITOR_WORLD_ASSET_DIR="${PROJECT_SOURCE_DIR}/assets/world"
         PANDOEDITOR_TIMELINE_COMPLEX_FIXTURE="${PROJECT_SOURCE_DIR}/tests/fixtures/timeline-resolution/complex-v10.json")
-    foreach(native_ui_target ui_tests terrain_controller_display_tests)
+    foreach(native_ui_target ui_tests terrain_controller_display_tests historical_world_ui_tests)
     qt_add_resources(${native_ui_target} ui PREFIX "/" BASE "${PROJECT_SOURCE_DIR}/ui"
         FILES "${PROJECT_SOURCE_DIR}/ui/common/Main.qml"
         "${PROJECT_SOURCE_DIR}/ui/common/WebImportDialog.qml"
@@ -741,7 +745,7 @@ if(BUILD_TESTING)
     endforeach()
     # Exercise the production default flag resolver and image loading without
     # leaving other sample-country flags unresolved in the UI test engine.
-    foreach(test_name presentation_editor_tests ui_tests terrain_controller_display_tests territorial_catalog_controller_tests)
+    foreach(test_name presentation_editor_tests ui_tests terrain_controller_display_tests historical_world_ui_tests territorial_catalog_controller_tests)
         qt_add_resources(${test_name} test_default_flag PREFIX "/defaults/flags"
             BASE "${PROJECT_SOURCE_DIR}/assets/defaults/flags"
             FILES ${DEFAULT_FLAG_FILES})
