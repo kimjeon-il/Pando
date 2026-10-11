@@ -78,7 +78,7 @@ export function deriveReleaseCatalog(directory = REVIEW_DIR) {
     const sourceBlobSha = hash('sha1', Buffer.concat([
       Buffer.from('blob ' + content.byteLength + '\0'), content,
     ]));
-    result.reviewBatches.push({ batch: data.batch || name.replace(/\.json$/u, ''), file: reviewFile,
+    result.reviewBatches.push({ batch: data.batch || name.replace(/^tier1-major-cities-/u, '').replace(/\.json$/u, ''), file: reviewFile,
       cityCount: data.records.length, sourceBlobSha });
     for (const row of data.records) {
       if (seen.has(row.geonameId)) throw new Error('Duplicate GeoNames ID ' + row.geonameId);
