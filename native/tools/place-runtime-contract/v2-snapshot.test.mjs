@@ -10,6 +10,24 @@ const blobId = bytes => createHash('sha1').update('blob ' + bytes.length + '\0')
 const names = json('contracts/places/v2.json');
 const sourceManifest = json('reports/places/source-manifest.json');
 
+test('native packaged PLAC v3 uses Web-approved 163-city data, not all research candidates', () => {
+  const released = sourceManifest.publishedRuntime;
+  const manifest = json('assets/place/manifest.json');
+  const bytes = file('assets/place/places-v1.bin');
+  const digest = createHash('sha256').update(bytes).digest('hex');
+  assert.equal(sourceManifest.reviewInventory.recordCount, 264);
+  assert.equal(released.records, 163);
+  assert.equal(released.historicalNamePeriods, 381);
+  assert.equal(released.withheldUnapprovedRecords, 101);
+  assert.equal(manifest.revision, 'approved-places-a912045657f35026');
+  assert.equal(manifest.shards['places-v1'].sha256, digest);
+  assert.equal(bytes.length, manifest.shards['places-v1'].bytes);
+  assert.equal(released.shardSha256, digest);
+  assert.equal(blobId(bytes), released.shardGitBlobSha);
+  assert.equal(blobId(file('assets/place/manifest.json')), released.manifestGitBlobSha);
+});
+
+
 test('native branch retains the exact Web-pinned v2 exchange artifact', () => {
   assert.equal(blobId(file('contracts/places/v2.json')), 'c183d618238b47f297ecc84804b3e2239ca78d3f');
   assert.equal(names.schema, 'pando-place-sync-v2');
