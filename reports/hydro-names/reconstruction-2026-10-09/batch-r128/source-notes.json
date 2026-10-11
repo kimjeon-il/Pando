@@ -1,0 +1,760 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r128",
+  "sources": [
+    {
+      "title": "Base, DataBC base/base MapServer: provincial TRIM 1:20,000 hydrographic cartography, layers 21–24",
+      "publisher": "DataBC, Province of British Columbia",
+      "year": null,
+      "type": "Primary original provincial cartographic service",
+      "inspection": "Service and layer metadata, two bounded image exports and their original PNGs completed HTTP200. Both unaltered originals and private orientation copies were visually read. Upper view contains selected head, elongate lake, northeast/southeast upper tributary loop and receiving junction. Lower view overlaps the retained provincial middle map and continues through the large western tributary junction, broad lower river and actual coastal endpoint.",
+      "source_distinction": "Only layers21–24 were rendered. Metadata explicitly identifies their separate 1:20,000 scales, TRIM_EBM_OCEAN, TRIM_EBM_WATERBODIES, TRIM_EBM_WATERCOURSES and TRIM_WATER_LINES. NTS1:250,000 layers14–18 and all national CBMT/Toporama material were excluded. No geographic-name-record or vector-feature query was made.",
+      "supports": "Full physical head/upper and lower/terminal component correspondence, complemented by overlapping retained093C middle cartography.",
+      "limits": "Unlabeled hydrographic cartography; it supplies geography, not hydronyms. No formal naming limits, precise bank agreement, surveyed mouth point or present flow conditions established. Copyright text: DataBC, Province of British Columbia. Dynamic requests, original images and orientation copies remain private.",
+      "source_key": "r128-databc-trim-hydrography",
+      "official_url": "https://delivery.maps.gov.bc.ca/arcgis/rest/services/base/base/MapServer"
+    },
+    {
+      "title": "Stuart-Nechako FSR Structure Location Map, sheet093C",
+      "publisher": "Province of British Columbia",
+      "year": 2022,
+      "type": "Primary original provincial cartography, retained successful acquisition",
+      "inspection": "Retained original single-page PDF read visually across upper loop, receiving trunk and southwest/west/south middle corridor. Its map extends south beyond the nominal093C label and overlaps the current lower TRIM view.",
+      "supports": "Continuous middle geography from receiving junction through a small waterbody passage, major western bend, lateral tributary junction and braided mountain river to the lower-map overlap.",
+      "limits": "Road/structure emphasis; most hydrographic names absent. March2022 creation metadata is not asserted as an exact printed publication date. Reused locally, no new request; no geometry edit or revalidation.",
+      "source_key": "r113-bc-structure-093c",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/natural-resource-use/resource-roads/local-road-safety-information/stuart-nechako/stuart-nechako_fsr_structure_location_map_093c.pdf"
+    },
+    {
+      "title": "Cariboo-Chilcotin Forest District Rescue Map, file dccv12-rescue_map.pdf",
+      "publisher": "Province of British Columbia",
+      "year": null,
+      "type": "Primary original provincial cartography, retained successful acquisition",
+      "inspection": "Retained original PDF visually read in the selected McClinchy tributary and Klinaklini receiving-corridor sectors. Separate labels McClinchy Creek and Klinaklini River are printed on their respective channels.",
+      "supports": "Upper selected channel belongs to McClinchy Creek; below its junction, the southwest-trending receiving trunk is Klinaklini River. The broad lake east of the junction is lateral/upstream receiving-river context, not a traversed selected lake passage.",
+      "limits": "Hydronym placement supports bounded component identity, not exact legal name boundaries. Uppermost headstream and selected lake names are unestablished. Printed warning says evacuation-site coordinates derive from TRIM base mapping and are not field verified. No original image redistribution.",
+      "source_key": "r113-bc-rescue-map",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/natural-resource-use/resource-roads/local-road-safety-information/cariboo-chilcotin/dccv12-rescue_map.pdf"
+    },
+    {
+      "title": "Dzawadi/Klinaklini Estuary Conservancy",
+      "publisher": "Province of British Columbia, Integrated Land Management Bureau / BC Parks",
+      "year": null,
+      "type": "Primary original provincial estuary map",
+      "inspection": "The original single-page PDF was successfully acquired and visually read in full; exact printed issue date was not established.",
+      "supports": "Klinaklini River labels on western braided estuary entering Knight Inlet, Tsawwati1 immediately upstream, Dutchman Head and separately entering Franklin River to the east. Selection ends in the Klinaklini estuary setting.",
+      "limits": "Ordinary estuarine correspondence only, no present shoreline/tidal limit or exact mouth-vertex agreement. Printed note says Indian Reserve boundaries were digitized at a different scale and may not reflect actual map location.",
+      "source_key": "r128-bcparks-klinaklini-estuary-map",
+      "official_url": "https://nrs.objectstore.gov.bc.ca/kuwyyf/dzawadi_klinaklini_conservancy_map_3940d7e508.pdf"
+    },
+    {
+      "title": "Dzawadi/Klinaklini Estuary Conservancy",
+      "publisher": "BC Parks",
+      "year": null,
+      "type": "Primary supporting park account",
+      "inspection": "Web prose read normally; original HTML also completed HTTP200 and supplied the exact map-original link.",
+      "supports": "The conservancy occupies the Klinaklini River mouth at the head of Knight Inlet; the river forms a heavily braided estuary.",
+      "limits": "Supports terminal identity and broad estuarine character, not a substitute for the map or a formal river-name record.",
+      "source_key": "r128-bcparks-klinaklini-estuary-prose",
+      "official_url": "https://bcparks.ca/dzawadi-klinaklini-estuary-conservancy/"
+    },
+    {
+      "title": "Dzawadi/Upper Klinaklini River Conservancy",
+      "publisher": "BC Parks",
+      "year": null,
+      "type": "Primary supporting park account",
+      "inspection": "Web prose read normally.",
+      "supports": "Identifies the conservancy as a portion of the Klinaklini middle reach and a trans-mountain valley corridor linking interior and coast.",
+      "limits": "Bounded corroborating prose; does not assign one name to every selected headwater, lake or channel.",
+      "source_key": "r128-bcparks-upper-klinaklini-prose",
+      "official_url": "https://bcparks.ca/dzawadi-upper-klinaklini-river-conservancy/"
+    },
+    {
+      "title": "Historical topographic map mosaic, cartas_mosaicos:cartas_250k",
+      "publisher": "Instituto Geográfico Nacional, Argentina",
+      "date": "Individual sheet editions not exposed in the bounded mosaic view; inspected 11 October 2026",
+      "type": "Primary original historical topographic cartography",
+      "actually_inspected": "Original headwater-to-border mosaic, including Sierra Baguales/Ensenada de Falcón, Flores and Bueno junctions, the full Argentine Vizcachas bend, western lagoon separation and Chilean border approach. Private orientation overlay and local head detail aid reading only.",
+      "evidence_limit": "Historical generalized 1:250,000 map mosaic; no present wetness or individual current sheet edition inferred. Map depiction of border is not a legal boundary determination.",
+      "distinct_publication": "Separately hosted historical cartas_mosaicos publication; not the HTTP403-stopped IGN Argenmap basemap.",
+      "use_notice": "No unrestricted republication permission inferred. Original mosaic and private derivatives remain private.",
+      "source_key": "ign-historical250k",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "title": "Cuencas de los ríos Vizcachas y Don Guillermo. Caracterización hidroambiental de cuencas integrantes del sistema hidrográfico de los ríos Vizcachas–Serrano (Rh11) en el sector argentino",
+      "author": "Diaz Boris G.; Almonacid L.; Zapata I.; Devetac I.L.; Acuña A.; Casalinuovo M.",
+      "publisher": "Nodo Santa Cruz de la Red Ecofluvial de la Patagonia / INTA",
+      "date": "June 2020, report IT02-RedEco/2020-06",
+      "type": "Primary regional research report and explicitly attributed reproduced regional cartography",
+      "actually_inspected": "Cover and bibliographic page visually; printed pages4–5 regional setting and Figure3.2; printed page21 surface-hydrography prose, with its page visually inspected.",
+      "supports": "Small stream/vega/mallín origin below Sierra Baguales and the Italiano/Vizcachas mesas; Flores/Falcón/Riques headwater contribution, Bueno contribution, southward route and westward turn near Palique, Cazador and border setting.",
+      "cartographic_attribution": "Figure3.2 explicitly reproduces CFI1961 cartography; it is not treated as newly acquired standalone CFI original. Decisive detailed head correspondence comes from the distinct original IGN mosaic.",
+      "evidence_limit": "Report synthesis and regional map do not establish a uniform whole-route hydronym or an exact spring location.",
+      "use_notice": "The report includes a suggested citation. No limited-distribution notice was encountered on inspected cover/bibliographic pages; government/repository hosting does not imply unrestricted reproduction. Original and page renders remain private.",
+      "source_key": "inta-vizcachas2020",
+      "official_url": "https://repositorio.inta.gob.ar/bitstream/handle/20.500.12123/20746/INTA_CR%20Patagonia%20Sur_EEA%20Santa%20Cruz_DIAZ_B.G_Caracterizaci%C3%B3n%20hidrogr%C3%A1fica_%20rios%20Vizcachas_Serrano.pdf?isAllowed=y&sequence=1"
+    },
+    {
+      "title": "Análisis de la variación de caudales Río Las Chinas–Río Serrano. Región de Magallanes y Antártica Chilena",
+      "publisher": "Dirección General de Aguas, División de Estudios y Planificación; Centro Interdisciplinario de Cambio Global UC",
+      "date": "June2016, S.I.T.386",
+      "catalogue_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/items/f499d15d-dded-4862-8a43-9470f13cd57a",
+      "type": "Primary basin study, original river/lake cartography and supporting prose",
+      "actually_inspected": "Cover text; printed pages21–23 drainage description; original Figure2.2 on printed page23/PDF page26 visually inspected.",
+      "supports": "Distinguishes Vizcachas, Baguales, Las Chinas, Don Guillermo, Toro, Paine, Grey, Tyndall/Geikie and Serrano components. Names the western lake outlet and final receiving seno.",
+      "cartographic_attribution": "Figure2.2 states study-author preparation based on DGA information. It is an original study map, not a claimed acquisition of underlying full datasets.",
+      "evidence_limit": "Generalized basin cartography; the marine name is additionally supported by primary prose. Study lengths are not substituted for stored rendered metadata.",
+      "distinct_publication": "Identified June2016 Serrano study, distinct from stopped Loa/DGA2014 figures and current MOP Vialidad.",
+      "use_notice": "No redistribution permission inferred. Original PDF and page render remain private.",
+      "source_key": "dga-serrano2016",
+      "official_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/server/api/core/bitstreams/13ca0aff-7aff-4ae3-acee-4514497ea7b9/content"
+    },
+    {
+      "title": "Diagnóstico y clasificación de los cursos y cuerpos de agua según objetivos de calidad. Cuenca del río Serrano",
+      "publisher": "Dirección General de Aguas / CADE-IDEPE, hosted by Ministerio del Medio Ambiente",
+      "date": "December2004",
+      "type": "Primary basin-report prose and reproduced hydrogeological overview",
+      "actually_inspected": "Cover text; printed pages1–3 and15 drainage/cartographic prose; Figure2.1 on printed page6/PDF page12 visually inspected.",
+      "supports": "Serrano lake-outlet/receiving-seno relationship, Grey and Tyndall/Geikie feeders, Las Chinas eastern Toro inflow, and separate Paine lake system.",
+      "evidence_limit": "The 1:1,000,000 Figure2.1 is only a broad reproduced hydrogeological overview. Printed page15 repeats Las Chinas in a sentence describing the Dickson–Paine lake chain; that internally inconsistent sentence is not used. Clear pages1–2 and the distinct2016 study establish the separate Paine chain.",
+      "distinct_publication": "Precisely identified December2004 Serrano basin report; not current Vialidad or stopped Loa/DGA2014 figures.",
+      "use_notice": "No unrestricted republication inferred. Original and renders remain private.",
+      "source_key": "dga-serrano2004",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Serrano.pdf"
+    },
+    {
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrográfica Nacional, layer0 Red Hidrografica",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Undated service; inspected11 October2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "type": "Primary original hydrographic cartography",
+      "actually_inspected": "Full Chilean Vizcachas/Baguales junction, Las Chinas corridor, Serrano outlet, Grey junction and lower Serrano to the terminal; labels server-rendered from NOMBRE.",
+      "evidence_limit": "Line-only publication leaves lake surface/coast interpretation to COT and DGA maps/prose. Two conflicting component labels are explicitly recorded above and are not adopted. No full vector dataset acquired.",
+      "use_notice": "Retained service copyright metadata blank; no redistribution permission inferred. Originals and private orientation figures remain private.",
+      "source_key": "mma-simbio-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "title": "SIMBIO_COT, layer1 COT2020",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Layer titled2020; inspected11 October2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer/layers",
+      "type": "Primary official land-cover/waterbody cartography",
+      "actually_inspected": "Lago del Toro full selected crossing, west outlet, lower Serrano landscape and coastal land margin at its terminal.",
+      "supports": "Physical lake passage and outlet, separation from adjacent lakes, and lower-river coastal terminal jointly with hydrography and DGA prose.",
+      "evidence_limit": "No hydronym or current water-level claim from land-cover colors; Argentine area outside layer is not treated as observed by this source.",
+      "use_notice": "No unrestricted republication inferred. Original and private orientation figure remain private.",
+      "source_key": "mma-simbio-cot2020",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrográfica Nacional, layer 0 Red Hidrografica",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Undated service; inspected 11 October 2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "type": "Primary official original hydrographic cartography",
+      "actually_inspected": "Original head, middle and west views with server-rendered NOMBRE labels; complete eight-component corridor and material tributary junctions.",
+      "evidence_limit": "Line-only hydrography does not itself establish terrain, border or lake surface. Aisen label extent upstream of Simpson conflicts with the DGA 2004 segmentation and is explicitly retained as a scope discrepancy.",
+      "use_notice": "No redistribution license inferred from official hosting or blank retained copyright metadata; originals/overlays remain private.",
+      "source_key": "mma-simbio-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "title": "SIMBIO_COT, layer 1 COT 2020",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Layer titled2020; inspected 11 October 2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer/layers",
+      "type": "Primary official land-cover cartography",
+      "actually_inspected": "Northern terrestrial band and interior river setting; western Caro/Riesco lake surfaces, Blanco river, lower Aysén river and coastal land margin.",
+      "evidence_limit": "No hydronyms or current shoreline/water-level assertion. Boundary meaning comes from DIRPLAN, not merely the edge of COT coverage.",
+      "use_notice": "No redistribution permission inferred; original views and private orientation figures remain private.",
+      "source_key": "mma-simbio-cot2020",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_COT/MapServer"
+    },
+    {
+      "title": "Región de Aysén. Plan Regional de Infraestructura y Gestión del Recurso Hídrico al 2021. Iniciativas de Inversión 2012–2021 (incluye sólo obras georreferenciables)",
+      "publisher": "Secretaría Regional Ministerial de Obras Públicas; Dirección de Planeamiento; Dirección Regional de Aysén del General Carlos Ibáñez del Campo; Unidad de Gestión de la Información Territorial (UGIT)",
+      "date": "November 2012, printed on the map.",
+      "map_code": "PRIGRH–XI–2012",
+      "scale": "1:560,000, regional sheet 1; source also contains local detail insets on sheet 2",
+      "catalogue_url": "https://planeamiento.mop.gob.cl/planes-regionales-de-infraestructura/",
+      "type": "Primary original regional planning/relief cartography",
+      "actually_inspected": "Sheet 1 original regional map, detailed private render of the entire selected corridor, legend and imprint; sheet 2 overview includes Ciudad de Aysén imagery. Decisive headward evidence is sheet 1 relief/border/hydrography.",
+      "cartographic_attribution": "Cartography: Guillermo Tapia D., Pablo Quintanilla R. and Roberto Oliva M. Base credits: IGM 2009 Cartografía Regular 1:50,000; MIDEPLAN 2003 Cartografía de Chile 1:50,000; NASA 2008 DEM SRTM 90×90m. Projection UTM 18 South, SIRGAS 2000.",
+      "supports": "Affirmative northern boundary/upland setting and separate interior Ñirehuao/Coichel route; regional confluences, Blanco/Caro valley, Puerto Aysén and coastal setting.",
+      "distinct_publication": "Independent November 2012 regional plan map. Not the stopped current MOP Vialidad portal, Loa/DGA 2014 figures, IGM 250K folder or an equivalent retrieval of the in-library IGM sheets. Underlying credited datasets were not acquired.",
+      "evidence_limit": "Thematic planning map at regional scale, not exact international-boundary demarcation, hydrological measurement or contemporary infrastructure status.",
+      "use_notice": "Printed note limits depicted investment initiatives; no unrestricted reproduction license asserted. Source PDF and all derived map images remain private.",
+      "source_key": "dirplan-aysen2012",
+      "official_url": "https://planeamiento.mop.gob.cl/uploads/sites/12/2023/05/PRIGRH_mapas_Region_Aysen.pdf"
+    },
+    {
+      "title": "Diagnóstico y clasificación de los cursos y cuerpos de agua según objetivos de calidad. Cuenca del río Aysén",
+      "publisher": "Dirección General de Aguas, Ministerio de Obras Públicas; CADE-IDEPE Consultores en Ingeniería; hosted by MMA",
+      "date": "December 2004, printed cover",
+      "type": "Primary basin-report prose and reach-segmentation table",
+      "actually_inspected": "Cover, printed pages 1–4 and Table 2.1; printed page 47 headward Ñirehuao/Goichel description; printed page 58 Lago Caro outlet description. Table 2.1 visually inspected from original PDF.",
+      "supports": "Mañihuales–Ñirehuao component distinction; Mañihuales–Simpson/Aysén name transition; Blanco Oeste from Caro through Riesco-outlet station to Aysén; northeastern headwaters at the international-limit uplands.",
+      "evidence_limit": "Used for bounded prose/table support. Unseen report plates or separately referenced source datasets are not map evidence; reported basin measures are not substituted for stored model lengths.",
+      "distinct_publication": "Precisely identified December 2004 Aysén basin report, separate from stopped Loa/DGA 2014 figures and current Vialidad request.",
+      "use_notice": "Official hosting does not establish redistribution permission.",
+      "source_key": "dga-aysen2004",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Aysen.pdf"
+    },
+    {
+      "title": "Subcuenca Rio Maniguales, código BNA 1130",
+      "publisher": "Ministerio del Medio Ambiente, SIMBIO",
+      "date": "Undated catalogue; inspected 11 October 2026",
+      "type": "Primary official basin/subbasin catalogue prose",
+      "actually_inspected": "Division into Goichel/Nireguao–Norte, lower Nireguao, Picaflor, Cañón, Emperador Guillermo and Mañiguales reaches.",
+      "evidence_limit": "Bounded naming/segmentation context only; basin catalogue is not substitute for original corridor correspondence. Some accents are corrupted in the displayed catalogue.",
+      "use_notice": "Page describes its cartography as referential and noncommittal regarding Chilean boundaries and states unrestricted use of that cartography; no extension of that statement to independent source maps.",
+      "source_key": "mma-maniguales1130",
+      "official_url": "https://simbio.mma.gob.cl/Subcuencas/Details/1130"
+    },
+    {
+      "title": "Detalle solicitud Las Ranas, Humedales Urbanos, record 1234",
+      "publisher": "Municipal request hosted on Ministerio del Medio Ambiente Portal Humedales",
+      "date": "Request documents listed2 September 2024; page inspected 11 October 2026",
+      "type": "Primary municipal environmental-description prose in official hosted request",
+      "actually_inspected": "Hydrology paragraph naming the Simpson–Mañihuales origin, Blanco Oeste/Lago Caro branch and Aysén mouth at the southeast end of Fiordo Aysén.",
+      "evidence_limit": "Hydrographic setting only. This is a request page with later closure/archival entries, not proof of a legal wetland designation; attachments and maps were not acquired.",
+      "use_notice": "Only own factual geographic summary used.",
+      "source_key": "mma-lasranas1234",
+      "official_url": "https://sistemahumedales.mma.gob.cl/HumedalesUrbanos/DetailsPublico/1234"
+    },
+    {
+      "title": "Instituto Geográfico Nacional, historical topographic-map mosaic, 1:250,000, cartas_mosaicos:cartas_250k",
+      "publisher": "Instituto Geográfico Nacional, República Argentina",
+      "publication_date": "Individual constituent-sheet editions not exposed in the bounded mosaic view; historical cartography, not asserted current.",
+      "type": "primary_original_cartography",
+      "map_coverage": "Headward plateau west of Ea. Inés; the entire Río Seco northeastward valley; lower eastward Cañadón Río Seco; its material tributary/lagoon context; Laguna Dulce and Atlantic coast.",
+      "source_key": "ign-historical-250k",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms",
+      "use_notice": "The retained IGN service notice cites Article 2 of Argentine Law 27.275. No blanket redistribution permission is inferred; originals, crops and overlays remain private.",
+      "material_read": "One complete bounded original historical map image was successfully acquired and visually read across the full selected corridor."
+    },
+    {
+      "title": "Laguna Dulce: Nuevo afloramiento del Complejo Río Deseado, Macizo del Deseado, provincia de Santa Cruz",
+      "authors": [
+        "Diego M. Guido",
+        "Raúl E. de Barrio"
+      ],
+      "publisher": "Asociación Geológica Argentina",
+      "publication_date": "2004",
+      "bibliography": "Revista de la Asociación Geológica Argentina 59(2):360–363.",
+      "type": "primary_research_prose_only",
+      "pages_used": "361–362, Afloramiento Laguna Dulce",
+      "prose_support": "The authors place their study south of the east–west Río Seco valley and describe the river reaching the Atlantic through Laguna Dulce. This is supporting regional drainage prose only, not evidence of current perennial connectivity.",
+      "source_key": "guido-de-barrio-2004",
+      "official_url": "https://revista.geologica.org.ar/raga/article/download/1454/1424",
+      "use_notice": "Printed copyright: ©2004 Asociación Geológica Argentina. No source pages or figure redistributed.",
+      "material_read": "PDF prose was opened and read successfully. The subsequent Figure 1/page 361 screenshot failed; no original figure pixels were acquired or used."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70215732",
+      "source_keys": [
+        "r128-databc-trim-hydrography",
+        "r113-bc-structure-093c",
+        "r113-bc-rescue-map",
+        "r128-bcparks-klinaklini-estuary-map",
+        "r128-bcparks-klinaklini-estuary-prose",
+        "r128-bcparks-upper-klinaklini-prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9302
+          ],
+          "component_scope": "Southwestern head stream, small headward waterbodies and northeast elongate-lake passage",
+          "finding": "The selected beginning is a mountain stream running north through a small narrow waterbody, then northeast along a connected channel through an elongate lake and its eastern outlet. Original TRIM portrays the head setting, inlet, lake body, outlet and continuation, independently of selected model connectivity. The much larger lake to the north is not traversed.",
+          "sources": [
+            "r128-databc-trim-hydrography",
+            "r113-bc-structure-093c",
+            "r113-bc-rescue-map"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact bank or vertex requirement.",
+          "mapped_component_name": null,
+          "lake_component_name": null,
+          "name_observation": "The small headstream and both lake names remain null. The downstream McClinchy label is not extended automatically across these separate waterbodies."
+        },
+        {
+          "fragments": [
+            9302
+          ],
+          "component_scope": "McClinchy Creek upper tributary loop and receiving-river junction",
+          "finding": "Beyond the elongate lake, the selected tributary continues northeast, bends east/southeast at its northernmost reach, then south beside the road corridor. It reaches the river junction west of the broad lake on the receiving river. The selection takes the southwest/west receiving channel rather than traversing the broad lake to the east. Lateral lake chains and feeders are separately drawn.",
+          "sources": [
+            "r128-databc-trim-hydrography",
+            "r113-bc-rescue-map",
+            "r113-bc-structure-093c"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact bank or vertex requirement.",
+          "mapped_component_name": "McClinchy Creek",
+          "lake_component_name": null,
+          "name_observation": "The rescue map’s McClinchy Creek label belongs to this upper tributary corridor. Exact upstream/downstream legal naming boundaries and lake names are not asserted."
+        },
+        {
+          "fragments": [
+            9302
+          ],
+          "component_scope": "Klinaklini receiving trunk, small waterbody passage and westward mountain bend",
+          "finding": "From the McClinchy-side junction the selected route follows the mapped receiving trunk west and southwest. It passes a small broadened waterbody before the substantial westward bend, receives a northern side branch and continues southwest/south. The retained original093C map covers this entire connector and overlaps both current TRIM sectors.",
+          "sources": [
+            "r113-bc-rescue-map",
+            "r113-bc-structure-093c",
+            "r128-databc-trim-hydrography",
+            "r128-bcparks-upper-klinaklini-prose"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact bank or vertex requirement.",
+          "mapped_component_name": "Klinaklini River",
+          "lake_component_name": null,
+          "name_observation": "Klinaklini River is mapped on the receiving trunk. The intervening small waterbody and northern tributary names remain null. No scalar naming of a lake passage is implied."
+        },
+        {
+          "fragments": [
+            9302
+          ],
+          "component_scope": "Southbound middle valley, constricted corridor and western glacier-fed tributary junction",
+          "finding": "The river continues south through alternately broader multichannel sections and a constricted single-channel mountain corridor. The lower TRIM original overlaps the093C middle map, shows intervening eastern and western tributaries, and follows the selected river to a major western tributary arriving from the glacier/lake complex. The selection stays on the southward receiving river.",
+          "sources": [
+            "r113-bc-structure-093c",
+            "r128-databc-trim-hydrography",
+            "r128-bcparks-upper-klinaklini-prose"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact bank or vertex requirement.",
+          "mapped_component_name": "Klinaklini River",
+          "lake_component_name": null,
+          "name_observation": "Klinaklini is the bounded representative/receiving river identity. Names of the lateral glacier, lake and western tributary are left null in this evidence set."
+        },
+        {
+          "fragments": [
+            9302
+          ],
+          "component_scope": "Broad lower river and actual Knight Inlet estuary",
+          "finding": "Below the western tributary junction the mapped river broadens into a braided alluvial corridor, continues south and spreads into the western estuary at the head of Knight Inlet. The primary park map explicitly labels the Klinaklini channels, Knight Inlet, upstream Tsawwati1 and the separate Franklin River mouth east of Dutchman Head. The retained selected terminal falls in this Klinaklini estuarine setting, not in the Franklin River, Homathko River or Bute Inlet.",
+          "sources": [
+            "r128-databc-trim-hydrography",
+            "r128-bcparks-klinaklini-estuary-map",
+            "r128-bcparks-klinaklini-estuary-prose"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact bank or vertex requirement.",
+          "mapped_component_name": "Klinaklini River",
+          "lake_component_name": null,
+          "name_observation": "Klinaklini River and Knight Inlet are directly mapped terminal names. The representative identity does not establish one scalar hydronym for all upstream selected components."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61607961",
+      "source_keys": [
+        "ign-historical250k",
+        "inta-vizcachas2020",
+        "dga-serrano2016",
+        "dga-serrano2004",
+        "mma-simbio-hydro",
+        "mma-simbio-cot2020"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14664
+          ],
+          "component_scope": "Selected mainstem FID 14664",
+          "finding": [
+            "The headward approach lies east of the Sierra Baguales divide in the valley north of Cerro Ciudadela and Cerro Pináculo. IGN maps a small upper drainage entering the labeled Ensenada de Falcón course, which meets the Flores headwater network and then the labeled Vizcachas receiving course. The exact source spring or individual name of the short initial approach is not established.",
+            "The selected route proceeds east/southeast into the Vizcachas corridor, with Arroyo de Bueno approaching from the north. It descends south past the Vizcachas ranch/valley setting, turns west in the Cerro Palique sector and crosses into Chile in the mapped Vizcachas border corridor. Wetland markings accompany parts of the valley; the western Portugués, Dulcinea and Palique lagoons are separate from the selected line.",
+            "The westward Vizcachas approach and Baguales/Las Chinas junction area are directly visible. The selected continuation then follows the southward and lower westward Las Chinas corridor, with the Don Guillermo feeder joining from the east.",
+            "Lower Las Chinas reaches the eastern shore of Lago del Toro. The rendered route traverses the lake and turns to its western outlet, consistent with the waterbody outline, the DGA river/lake map and the reported Serrano outlet. Its lake crossing is a modeled connecting passage, not a named open river."
+          ],
+          "sources": [
+            "ign-historical250k",
+            "inta-vizcachas2020",
+            "dga-serrano2016",
+            "mma-simbio-hydro",
+            "mma-simbio-cot2020"
+          ],
+          "correspondence": "Whole upper, Argentine east–south–west bend, Chilean junction and lake-entry/crossing/outlet fragment inspected against original IGN historical cartography, DGA study cartography, and MMA hydrographic/land-cover views.",
+          "name_scope": "Multiple named river and lake components; no whole-FID scalar hydronym.",
+          "mapped_component_name": null,
+          "mapped_component_names": [
+            "Arroyo Ensenada de Falcón",
+            "Río Vizcachas",
+            "Río de las Chinas",
+            "Lago del Toro"
+          ]
+        },
+        {
+          "fragments": [
+            14665
+          ],
+          "component_scope": "Selected mainstem FID 14665",
+          "finding": [
+            "The fragment starts at the western Lago del Toro outlet setting and follows the west/southwest Serrano course. The Grey feeder from the northwest joins this corridor; original hydrography separates the tributary from the selected receiving river.",
+            "The DGA 2016 map labels the lake outlet and receiving river separately and its prose explicitly identifies Serrano as the lake outlet. MMA linework and the COT waterbody/land outline independently support this geography."
+          ],
+          "sources": [
+            "dga-serrano2016",
+            "dga-serrano2004",
+            "mma-simbio-hydro",
+            "mma-simbio-cot2020"
+          ],
+          "correspondence": "Whole western lake-outlet and upper Serrano reach inspected.",
+          "name_scope": "Serrano is supported for this river reach, with no scalar application to the selected system.",
+          "mapped_component_name": "Río Serrano"
+        },
+        {
+          "fragments": [
+            14666
+          ],
+          "component_scope": "Selected mainstem FID 14666",
+          "finding": [
+            "The selected continuation follows the mapped lower Serrano corridor through the Tyndall/Geikie feeder area and southward valley to the coastal land margin. Original MMA hydrography visibly follows the receiving river to the terminal, while COT shows the coastal indentation reached by that course.",
+            "DGA primary prose identifies the terminus as Seno Última Esperanza. The INTA report’s explicitly attributed reproduction of the CFI regional map also shows the Serrano–seno connection, used only as supporting reproduced cartography."
+          ],
+          "sources": [
+            "dga-serrano2016",
+            "dga-serrano2004",
+            "mma-simbio-hydro",
+            "mma-simbio-cot2020",
+            "inta-vizcachas2020"
+          ],
+          "correspondence": "Whole lower southward Serrano course and actual coastal terminal inspected.",
+          "name_scope": "Serrano receiving reach; no tributary/lake renaming.",
+          "mapped_component_name": "Río Serrano"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61586398",
+      "source_keys": [
+        "mma-simbio-hydro",
+        "mma-simbio-cot2020",
+        "dirplan-aysen2012",
+        "dga-aysen2004",
+        "mma-maniguales1130",
+        "mma-lasranas1234"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14632
+          ],
+          "component_scope": "Selected mainstem FID 14632",
+          "finding": "The head starts on a short north-side feeder, then occupies a short part of the upper Ñirehuao/Coichel corridor before turning northeast toward the eastern upland/boundary band. The original hydrographic map identifies the receiving natural river but does not name the short feeder. The DIRPLAN relief map and COT original establish the surrounding land setting.",
+          "sources": [
+            "mma-simbio-hydro",
+            "mma-simbio-cot2020",
+            "dirplan-aysen2012"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "No single hydronym for the entire mixed component; no exact bank or start-point claim.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14633
+          ],
+          "component_scope": "Selected mainstem FID 14633",
+          "finding": "This stored border-aligned component runs through the eastern international-boundary/upland margin near the La Katterfeld sector. DIRPLAN maps that band separately from the natural Ñirehuao/Coichel river west of it; detailed MMA hydrography shows the natural southward channel and La Horqueta tributary. COT shows the adjoining terrestrial setting.",
+          "sources": [
+            "dirplan-aysen2012",
+            "mma-simbio-hydro",
+            "mma-simbio-cot2020",
+            "dga-aysen2004"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Positive geographic correspondence to the boundary/land band does not support a river name or fluvial connector.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14634
+          ],
+          "component_scope": "Selected mainstem FID 14634",
+          "finding": "The initial southwest return reaches the mapped Ñirehuao/Coichel valley. The ensuing natural river follows its broad southeastern loop, turns northwest and west through the Ñirehuao setting, receives Río Norte and continues to the north-coming Mañihuales/Picaflor corridor. The head and middle original views overlap across this entire route.",
+          "sources": [
+            "mma-simbio-hydro",
+            "dirplan-aysen2012",
+            "dga-aysen2004",
+            "mma-maniguales1130"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Ñirehuao/Coichel applies to the natural river portion, not the initial return across the eastern land/boundary margin.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            14635
+          ],
+          "component_scope": "Selected mainstem FID 14635",
+          "finding": "Below the Ñirehuao junction the selected corridor turns southwest, follows the broad Mañihuales valley and receives Cañón and Emperador Guillermo before continuing toward the Simpson junction. Hydrography and DIRPLAN show the route and material side connections; DGA 2004 provides the explicit Mañihuales reach limits.",
+          "sources": [
+            "mma-simbio-hydro",
+            "dirplan-aysen2012",
+            "dga-aysen2004"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Aisen labels appear upstream in SIMBIO; this conflicting label extent is not adopted as the DGA-defined name transition.",
+          "mapped_component_name": "Río Mañihuales"
+        },
+        {
+          "fragments": [
+            14636
+          ],
+          "component_scope": "Selected mainstem FID 14636",
+          "finding": "The component continues south from lower Mañihuales, receives the east-coming Simpson, then follows the Aysén westward meanders to the Blanco Oeste confluence. The named junction is explicit in DGA 2004 and corresponds geographically to the original hydrography and DIRPLAN map.",
+          "sources": [
+            "mma-simbio-hydro",
+            "dirplan-aysen2012",
+            "dga-aysen2004",
+            "mma-lasranas1234"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "The component crosses the Mañihuales–Aysén name transition; no uniform component scalar is asserted.",
+          "mapped_component_name": null,
+          "mapped_component_names": [
+            "Río Mañihuales",
+            "Río Aysén"
+          ]
+        },
+        {
+          "fragments": [
+            14637
+          ],
+          "component_scope": "Selected mainstem FID 14637",
+          "finding": "Below Blanco Oeste the selected line follows the Aysén channel west through the Puerto Aysén setting, adjoining the northern Pangal/Los Palos-side drainage and reaching the coastal channel/island mouth. Original hydrography, COT coast/water polygons and DIRPLAN regional cartography show the river-to-fjord setting. The municipal Las Ranas description hosted by MMA identifies the receiving southeastern head of Fiordo Aysén.",
+          "sources": [
+            "mma-simbio-hydro",
+            "mma-simbio-cot2020",
+            "dirplan-aysen2012",
+            "dga-aysen2004",
+            "mma-lasranas1234"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Rendered sea extension is interpreted at estuarine/fjord corridor scale, without an exact mouth-point or bank assertion.",
+          "mapped_component_name": "Río Aysén"
+        },
+        {
+          "fragments": [
+            14638
+          ],
+          "component_scope": "Selected tributary FID 14638",
+          "finding": "The southern start occupies the Lago Caro northern outlet setting. It continues north in the Blanco valley, with successive bends and tributary settings, to immediately upstream of the Riesco/Quetro receiving area. The original hydrographic map labels Blanco; COT distinguishes Lago Caro and the river corridor from the neighboring lake surfaces; DIRPLAN labels Caro and shows the northward valley.",
+          "sources": [
+            "mma-simbio-hydro",
+            "mma-simbio-cot2020",
+            "dirplan-aysen2012",
+            "dga-aysen2004"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Starts at the outlet setting; no selected traverse through the wider Caro–Elizalde lake system is inferred.",
+          "mapped_component_name": "Río Blanco Oeste"
+        },
+        {
+          "fragments": [
+            14639
+          ],
+          "component_scope": "Selected tributary FID 14639",
+          "finding": "The lower Blanco branch passes the west-entering Río Riesco outlet from Lago Riesco and the east-entering Río Quetro, then runs north/northeast to the Aysén confluence. Original hydrography and COT show all these connector settings; DGA 2004 separately places Blanco west between Lago Caro, the Riesco-outlet station and Aysén.",
+          "sources": [
+            "mma-simbio-hydro",
+            "mma-simbio-cot2020",
+            "dirplan-aysen2012",
+            "dga-aysen2004"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "name_scope": "Riesco is the side-lake/outlet identity; it is not substituted for the complete Blanco Oeste component.",
+          "mapped_component_name": "Río Blanco Oeste"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61599725",
+      "source_keys": [
+        "ign-historical-250k",
+        "guido-de-barrio-2004"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14651
+          ],
+          "component_scope": "Selected mainstem FID 14651",
+          "finding": "Complete source-covered corridor. Clear Río Seco correspondence after the initial unnamed modeled plain bend; lower reach and receiving lagoon context directly observed. The initial naming discrepancy is not classified as missing cartographic coverage.",
+          "sources": [
+            "ign-historical-250k",
+            "guido-de-barrio-2004"
+          ],
+          "correspondence": "Entire FID, including the initial dry/plain bend, intervening valley, eastward lower cañadón, local junctions, lagoon approach and adjacent shoreline, inspected in one complete original IGN map image and local reading crops.",
+          "name_scope": "Reach names only; whole-object candidate and scalar remain null.",
+          "mapped_component_name": null,
+          "subcomponents": [
+            {
+              "part": "Western head and initial bend",
+              "supported_name": null,
+              "observations": [
+                "The selected western start lies in the dry plateau west of Ea. Inés. It first runs generally south/southeast, turns east across the plain and reaches the cartographically mapped Río Seco approach near the estancia.",
+                "The original map shows scattered short broken-blue drainages, small depressions and a stronger drainage system southwest of this bend, but does not establish one named natural river matching the whole modeled initial bend. The plain and connector setting are fully visible; no unseen source interval remains."
+              ],
+              "source_keys": [
+                "ign-historical-250k"
+              ]
+            },
+            {
+              "part": "Upper and middle Río Seco valley",
+              "supported_name": "Río Seco",
+              "observations": [
+                "From the Ea. Inés approach, the selected line follows the long northeastward mapped drainage past Ea. Mirasol/Ea. Río Seco, La Josefina and Mulak Aike, then the broad valley through La Margary and La Calandria toward Loma Alta/Don José María.",
+                "The original map repeatedly labels the connected valley Río Seco and depicts broken-blue channels, flats and elongated shallow depressions. Coverage includes the full intervening route and tributary entrances, rather than isolated name labels.",
+                "The valley receives short side drainages, then turns east below Gran Bajo Bandera Argentina. That separately labelled depression is not silently made the terminal basin of the selected line."
+              ],
+              "source_keys": [
+                "ign-historical-250k"
+              ]
+            },
+            {
+              "part": "Eastern lower cañadón and material junctions",
+              "supported_name": "Cañadón Río Seco",
+              "observations": [
+                "The mapped eastward course passes the Manantiales setting and continues through Ea. Los Toldos toward Ea. Los Cisnes. The lower reach is labelled Cñd. Río Seco.",
+                "The Anderson cañadón joins the lower corridor in the Los Toldos sector. The selected path continues east on Río Seco and turns south toward the lagoon; it is not reassigned the Anderson name.",
+                "Laguna Tordillo is visibly north of the selected final reach, and Cañadón Porfiado occupies a separate approach south of it. No selected lake transit through Tordillo or reservoir passage is required."
+              ],
+              "source_keys": [
+                "ign-historical-250k"
+              ]
+            },
+            {
+              "part": "Selected terminal and coastal context",
+              "supported_name": "Laguna Dulce (receiving coastal-basin setting)",
+              "observations": [
+                "After Los Cisnes the selected line turns south into the northwestern approach of the Laguna Dulce depression. The original image shows the lower Río Seco approach, the labelled lagoon and the adjacent Atlantic shoreline together. The modeled endpoint is not treated as an open-sea mouth.",
+                "The original map is historical and generalized. It establishes the terminal basin context but not a currently open, perennial outlet across the coastal margin.",
+                "The earlier successfully read prose of Guido and de Barrio (2004), pp.361–362, independently locates Río Seco relative to Laguna Dulce and reports its Atlantic drainage through the lagoon. Its figure was not obtained and contributes no cartographic evidence."
+              ],
+              "source_keys": [
+                "ign-historical-250k",
+                "guido-de-barrio-2004"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:70215732",
+      "publication": "BC Timber Sales FSP Map Riparian, sheet12 Halfway Ranch,4February2019",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/forestry/bc-timber-sales/environmental-stewardship-sustainability/forest-stewardship-plans/cariboo-chilcotin/maps-fsp-tcc-riparian/map12_halfwayranch_crip.pdf",
+      "observed_outcome": "Sole original HTTP-client acquisition completed with HTTPError502 Bad Gateway; no PDF or map pixels acquired.",
+      "outcome_layer": "HTTP response reported by original client; not an authorization denial",
+      "restriction_scope": "Missing sheet12 original and equivalent map copies/formats/routes paused for availability; no retry. Distinct from previously stopped sheet8; no agency-wide stop inferred.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_created": false
+    },
+    {
+      "aw_id": "hydro-system:70215732",
+      "publication": "BC Spaces for Nature Document Archive, publications_archive.html",
+      "official_url": "https://www.spacesfornature.org/publications_archive.html",
+      "observed_outcome": "Web reader returned Cache miss, without HTTP status or page body.",
+      "outcome_layer": "Web-reader availability",
+      "restriction_scope": "Missing archive landing-page acquisition and equivalent routes paused; no retry and no linked Klinaklini resource-analysis original acquired through another route.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_created": false
+    },
+    {
+      "aw_id": "hydro-system:70215732",
+      "publication": "Results of the chinook assessment study conducted on the Klinaklini River during1999, Canadian Manuscript Report2580, catalogue466467",
+      "official_url": "https://publications.gc.ca/site/eng/466467/publication.html",
+      "observed_outcome": "Catalogue web open returned Cache miss; no HTTP status or body acquired.",
+      "outcome_layer": "Web-reader availability",
+      "restriction_scope": "Missing catalogue/report content and equivalent acquisition routes paused; no original PDF, mirror, alternate year as replacement, or retry.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_created": false
+    },
+    {
+      "aw_id": "hydro-system:70215732",
+      "publication": "Tree Farm Licence45, signed licence with map",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/forestry/timber-tenures/tree-farm-licence/licences/tfl_45_licence_signed_with_map.pdf",
+      "observed_outcome": "Sole original HTTP-client acquisition completed with HTTPError502 Bad Gateway; no PDF/map acquired.",
+      "outcome_layer": "HTTP response reported by original client; not an authorization denial",
+      "restriction_scope": "Missing licence/map content and equivalent copies/formats/routes paused; no retry.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_created": false
+    },
+    {
+      "aw_id": "hydro-system:70215732",
+      "publication": "Province of British Columbia Ministerial Order2018_M336, containing2018 Moose Closed Season MU5-06 map",
+      "official_url": "https://www.bclaws.gov.bc.ca/civix/document/id/mo/hmo/2018_m336",
+      "observed_outcome": "Sole original HTTP-client acquisition completed with HTTPError404 and empty reason string; no body/map acquired.",
+      "outcome_layer": "HTTP response reported by original client; not an authorization denial",
+      "restriction_scope": "Missing order/map and equivalent copies/formats/routes paused for availability; no alternate host, embedded PDF or retry.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_created": false
+    },
+    {
+      "aw_id": "hydro-system:70215732",
+      "publication": "Mount Waddington, NTS092N, CanMatrix1:250,000 topographic sheet; edition not inspected",
+      "official_url": "https://www.download-telecharger.services.geo.ca/pub/nrcan_rncan/raster/canmatrix/250k_300dpi/092/n/canmatrix_092n_tif.zip",
+      "observed_outcome": "Official directory completed HTTP200 and supplied the exact archive link. Sole exact archive-original acquisition completed with HTTPError403 Forbidden; no archive/map body acquired.",
+      "outcome_layer": "HTTP response reported by original client",
+      "restriction_scope": "Whole092N CanMatrix publication and equivalent copies, formats, editions offered as that same source, viewers and all acquisition routes stopped. NTS1:250,000 derivative layers were excluded; no retry or alternate sheet recovery. Independent provincial TRIM cartography was explicitly distinguished by its service/layer metadata.",
+      "earlier_lawful_prose_exception": "Directory metadata only, not geographic evidence. Previously successful independent provincial maps remain usable within their retained scope.",
+      "material_gap_created": false
+    },
+    {
+      "aw_id": "hydro-system:70215732",
+      "publication": "Grizzly Bear Habitat Mapping for Parks and Conservancies for the North and Central Coast,2008",
+      "official_url": "https://www2.gov.bc.ca/assets/gov/farming-natural-resources-and-industry/natural-resource-use/land-water-use/crown-land/land-use-plans-and-objectives/westcoast-region/great-bear-rainforest/ei02a_grizzly_habitat_report.pdf",
+      "observed_outcome": "Sole original HTTP-client acquisition completed with HTTPError502 Bad Gateway; no PDF/map acquired.",
+      "outcome_layer": "HTTP response reported by original client; not an authorization denial",
+      "restriction_scope": "Missing report/maps and equivalent acquisition routes paused for availability; no retry.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_created": false
+    },
+    {
+      "aw_id": "hydro-system:61586398",
+      "publication": "Isla Isquiliac, Instituto Geográfico Militar de Chile, 1982; BND 334529, object MP0004330",
+      "official_url": "https://www.bibliotecanacionaldigital.gob.cl/pywb/all/20210709060308mp_/http%3A/www.bibliotecanacionaldigital.gob.cl/bnd/635/w3-article-334529.html",
+      "observed_outcome": "Search-discovery catalogue text explicitly displayed Acceso en Biblioteca Nacional. No catalogue open, viewer, original map or alternative copy requested.",
+      "outcome_layer": "Discovery metadata; no origin HTTP denial or original-map inspection claimed",
+      "restriction_scope": "The identified restricted-access map and equivalent content remain excluded from acquisition/substantive correspondence; no alternate viewer, mirror, archive or edition sought as recovery.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_remaining": false,
+      "impact": "Discovery-only restriction. Catalogue geographic-name lists are not map evidence; independent acquired cartography closes coverage. Catalogue title/coverage mismatch is not resolved by inference."
+    },
+    {
+      "aw_id": "hydro-system:61586398",
+      "publication": "Baño Nuevo, Instituto Geográfico Militar de Chile; BND 339594, object MP0000173; printed edition not independently inspected",
+      "official_url": "https://www.bibliotecanacionaldigital.gob.cl/pywb/dibam/20210704200036mp_/http%3A/www.bibliotecanacionaldigital.gob.cl/bnd/631/w3-article-339594.html",
+      "observed_outcome": "Search-discovery catalogue text explicitly displayed Acceso en Biblioteca Nacional. No catalogue open, original map, viewer or equivalent route acquired.",
+      "outcome_layer": "Discovery metadata; no origin HTTP denial or original-map inspection claimed",
+      "restriction_scope": "The identified restricted-access map and equivalent content remain excluded from acquisition/substantive correspondence; no alternate archive, viewer, mirror or edition used as recovery.",
+      "earlier_lawful_prose_exception": null,
+      "material_gap_remaining": false,
+      "impact": "Optional detailed sheet remains unused; own map observations use acquired independent publications."
+    },
+    {
+      "aw_id": "hydro-system:61599725",
+      "publication": "Guido and de Barrio (2004), Laguna Dulce: Nuevo afloramiento del Complejo Río Deseado, Macizo del Deseado, provincia de Santa Cruz; RAGA59(2):360–363",
+      "official_url": "https://revista.geologica.org.ar/raga/article/download/1454/1424",
+      "observed_outcome": "Web reader opened PDF prose normally. The subsequent sole map screenshot returned Internal Error / Failed to fetch the exact PDF URL: Cache miss. No map pixels were returned.",
+      "outcome_layer": "web screenshot/tool availability; no origin HTTP status, authorization denial or security challenge exposed",
+      "restriction_scope": "Missing map/publication visual content and equivalent figures/copies/formats/reader/original/mirror acquisition routes paused. No retry, original-PDF fallback or alternative retrieval.",
+      "earlier_lawful_prose_exception": "Previously successfully opened and read original PDF prose remains usable within its observed scope, including pp361–362 Río Seco–Laguna Dulce–Atlantic geographic statement. No parsed figure labels are used as map observations.",
+      "limitation_kind": "visual_availability_stop",
+      "failed_target": "PDF page361, Figure1; zero-based screenshot page1",
+      "material_to_completion": false
+    }
+  ],
+  "additional_source_use_notices": []
+}
