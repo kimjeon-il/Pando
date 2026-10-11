@@ -24,9 +24,13 @@ import {
   buildReferenceImagePlaceSeeds,
   buildReferenceImagePlaceSymbolCandidates,
   createReferenceImagePointRaster,
+  findReferenceImagePointSymbolNearTextBox,
 } from './reference-image-auto-georef.js';
 import { detectReferenceImageText } from './reference-image-ocr.js';
-import { resolveReferenceImagePlaceAutoGeoref } from './reference-image-place-match.js';
+import {
+  resolveReferenceImagePlaceAutoGeoref,
+  resolveReferenceImagePlaceDetections,
+} from './reference-image-place-match.js';
 import { installReferenceImageSurface } from './reference-image-surface.js';
 import {
   listStoredReferenceImages,
@@ -329,6 +333,7 @@ export function installReferenceImageController({
     if (reason === 'place-snapshot-unavailable') return '도시 데이터에 접근할 수 없어 자동 맞춤을 실행할 수 없습니다.';
     if (reason === 'text-detector-unavailable') return '이 브라우저에서는 OCR을 사용할 수 없습니다. 도시 기호 기반 자동 맞춤 결과를 확인하세요.';
     if (reason === 'no-ocr-text') return '이미지에서 도시명으로 사용할 문자를 찾지 못했습니다.';
+    if (reason === 'insufficient-ocr-symbol-candidates') return '도시명은 찾았지만 주변에서 실제 도시 기호를 충분히 찾지 못했습니다.';
     if (reason === 'text-detector-failed') return '브라우저 OCR 실행에 실패했습니다.';
     return '자동 맞춤 결과를 만들지 못했습니다. 대략 배치나 고정점을 조정한 뒤 다시 시도하세요.';
   }
@@ -935,18 +940,99 @@ export function installReferenceImageController({
       });
     }
 
-    const resolved = await resolveReferenceImagePlaceAutoGeoref(detected.detections, {
+    const matched = await resolveReferenceImagePlaceDetections(detected.detections, {
       search: searchPlaces,
       anchor: record.anchor,
       mapDate,
+      ...matching,
+    });
+    if (!validToken(token) || !records.includes(record)) {
+      return Object.freeze({ ok: false, reason: 'reference-image-session-changed' });
+    }
+
+    const raster = createReferenceImagePointRaster(record.image, { maxDimension: 2048 });
+    const detectionById = new Map(detected.detections.map(item => [String(item.id), item]));
+    const refinedMatches = [];
+    const refinementRejected = [];
+    const searchRadius = Math.max(16, Math.min(42, Math.round(Math.max(raster.width, raster.height) * 0.014)));
+
+    for (const match of matched.matches || []) {
+      const detection = detectionById.get(String(match.detectionId));
+      const box = detection?.box;
+      const symbol = findReferenceImagePointSymbolNearTextBox(raster, box, {
+        searchRadiusPx: searchRadius,
+        minimumConfidence: 0.4,
+      });
+      if (!symbol) {
+        refinementRejected.push(Object.freeze({
+          detectionId: match.detectionId,
+          text: match.text,
+          placeId: match.placeId,
+          reason: 'ocr-place-symbol-not-found',
+        }));
+        continue;
+      }
+      refinedMatches.push(Object.freeze({
+        ...match,
+        id: 'auto-place:ocr-symbol:' + match.detectionId + ':' + match.placeId,
+        image: symbol.uv,
+        confidence: clamp(match.confidence * 0.76 + symbol.confidence * 0.24, 0, 1),
+        origin: 'place-ocr-symbol',
+        symbol,
+      }));
+    }
+
+    const candidates = refinedMatches.map(match => ({
+      id: match.id,
+      image: match.image,
+      coordinate: match.coordinate,
+      confidence: match.confidence,
+      origin: match.origin,
+    }));
+    const totalPossible = candidates.length + (record.anchor ? 1 : 0);
+    if (totalPossible < 2) {
+      return Object.freeze({
+        ok: false,
+        reason: 'insufficient-ocr-symbol-candidates',
+        source: 'place-ocr',
+        ocr: detected,
+        matching: Object.freeze({
+          ...matched,
+          matchCount: refinedMatches.length,
+          rejectedCount: (matched.rejectedCount || 0) + refinementRejected.length,
+          matches: Object.freeze(refinedMatches),
+          rejected: Object.freeze([...(matched.rejected || []), ...refinementRejected]),
+        }),
+        baseMappingSignature: referenceImageMappingSignature(record),
+      });
+    }
+
+    const minimumInliers = Math.min(
+      totalPossible,
+      Math.max(Math.min(totalPossible, 4), Math.ceil(totalPossible * 0.35)),
+    );
+    const solved = buildReferenceImageAutoGeoref(candidates, {
+      anchor: record.anchor,
       mode: coarseAutoGeorefMode(record, mode),
-      matching,
-      georef,
+      inlierThresholdMeters: 25000,
+      maxTrials: 512,
+      minimumInliers,
+      ...georef,
+    });
+    const refinedMatching = Object.freeze({
+      ...matched,
+      matchCount: refinedMatches.length,
+      rejectedCount: (matched.rejectedCount || 0) + refinementRejected.length,
+      matches: Object.freeze(refinedMatches),
+      rejected: Object.freeze([...(matched.rejected || []), ...refinementRejected]),
     });
     return Object.freeze({
-      ...resolved,
+      ok: solved.ok,
+      reason: solved.reason || '',
       source: 'place-ocr',
       ocr: detected,
+      matching: refinedMatching,
+      georef: solved,
       baseMappingSignature: referenceImageMappingSignature(record),
     });
   }
