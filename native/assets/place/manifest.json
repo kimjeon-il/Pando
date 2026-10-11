@@ -1,8 +1,6109 @@
 {
   "version": 1,
-  "revision": "empty-v1",
-  "stages": [],
-  "tiles": {},
-  "shards": {},
-  "search": {}
+  "revision": "reviewed-places-ac1c04485ec5e0e2",
+  "stages": [
+    {
+      "id": 0,
+      "minZoom": 0,
+      "columns": 1,
+      "rows": 1
+    }
+  ],
+  "tiles": {
+    "0/0-0": {
+      "shard": "places-v1",
+      "offset": 0,
+      "length": 76922,
+      "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6"
+    }
+  },
+  "shards": {
+    "places-v1": {
+      "url": "places-v1.bin",
+      "bytes": 76922,
+      "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6"
+    }
+  },
+  "search": {
+    "ab": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ab",
+        "last": "ab￿"
+      }
+    ],
+    "ac": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ac",
+        "last": "ac￿"
+      }
+    ],
+    "ad": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ad",
+        "last": "ad￿"
+      }
+    ],
+    "ag": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ag",
+        "last": "ag￿"
+      }
+    ],
+    "ah": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ah",
+        "last": "ah￿"
+      }
+    ],
+    "ak": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ak",
+        "last": "ak￿"
+      }
+    ],
+    "al": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "al",
+        "last": "al￿"
+      }
+    ],
+    "am": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "am",
+        "last": "am￿"
+      }
+    ],
+    "an": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "an",
+        "last": "an￿"
+      }
+    ],
+    "ap": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ap",
+        "last": "ap￿"
+      }
+    ],
+    "aq": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "aq",
+        "last": "aq￿"
+      }
+    ],
+    "as": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "as",
+        "last": "as￿"
+      }
+    ],
+    "at": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "at",
+        "last": "at￿"
+      }
+    ],
+    "au": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "au",
+        "last": "au￿"
+      }
+    ],
+    "av": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "av",
+        "last": "av￿"
+      }
+    ],
+    "a¢": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "a¢",
+        "last": "a¢￿"
+      }
+    ],
+    "aş": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "aş",
+        "last": "aş￿"
+      }
+    ],
+    "ba": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ba",
+        "last": "ba￿"
+      }
+    ],
+    "be": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "be",
+        "last": "be￿"
+      }
+    ],
+    "bi": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "bi",
+        "last": "bi￿"
+      }
+    ],
+    "bl": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "bl",
+        "last": "bl￿"
+      }
+    ],
+    "bo": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "bo",
+        "last": "bo￿"
+      }
+    ],
+    "br": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "br",
+        "last": "br￿"
+      }
+    ],
+    "bu": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "bu",
+        "last": "bu￿"
+      }
+    ],
+    "by": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "by",
+        "last": "by￿"
+      }
+    ],
+    "ca": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ca",
+        "last": "ca￿"
+      }
+    ],
+    "ch": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ch",
+        "last": "ch￿"
+      }
+    ],
+    "ci": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ci",
+        "last": "ci￿"
+      }
+    ],
+    "co": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "co",
+        "last": "co￿"
+      }
+    ],
+    "da": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "da",
+        "last": "da￿"
+      }
+    ],
+    "de": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "de",
+        "last": "de￿"
+      }
+    ],
+    "dh": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "dh",
+        "last": "dh￿"
+      }
+    ],
+    "di": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "di",
+        "last": "di￿"
+      }
+    ],
+    "dj": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "dj",
+        "last": "dj￿"
+      }
+    ],
+    "do": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "do",
+        "last": "do￿"
+      }
+    ],
+    "dr": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "dr",
+        "last": "dr￿"
+      }
+    ],
+    "du": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "du",
+        "last": "du￿"
+      }
+    ],
+    "dí": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "dí",
+        "last": "dí￿"
+      }
+    ],
+    "dü": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "dü",
+        "last": "dü￿"
+      }
+    ],
+    "ed": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ed",
+        "last": "ed￿"
+      }
+    ],
+    "er": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "er",
+        "last": "er￿"
+      }
+    ],
+    "fo": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "fo",
+        "last": "fo￿"
+      }
+    ],
+    "fr": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "fr",
+        "last": "fr￿"
+      }
+    ],
+    "fu": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "fu",
+        "last": "fu￿"
+      }
+    ],
+    "ga": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ga",
+        "last": "ga￿"
+      }
+    ],
+    "gd": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "gd",
+        "last": "gd￿"
+      }
+    ],
+    "ge": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ge",
+        "last": "ge￿"
+      }
+    ],
+    "gi": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "gi",
+        "last": "gi￿"
+      }
+    ],
+    "gu": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "gu",
+        "last": "gu￿"
+      }
+    ],
+    "ha": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ha",
+        "last": "ha￿"
+      }
+    ],
+    "he": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "he",
+        "last": "he￿"
+      }
+    ],
+    "ho": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ho",
+        "last": "ho￿"
+      }
+    ],
+    "hà": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "hà",
+        "last": "hà￿"
+      }
+    ],
+    "hồ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "hồ",
+        "last": "hồ￿"
+      }
+    ],
+    "ik": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ik",
+        "last": "ik￿"
+      }
+    ],
+    "il": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "il",
+        "last": "il￿"
+      }
+    ],
+    "in": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "in",
+        "last": "in￿"
+      }
+    ],
+    "is": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "is",
+        "last": "is￿"
+      }
+    ],
+    "i̇": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "i̇",
+        "last": "i̇￿"
+      }
+    ],
+    "ja": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ja",
+        "last": "ja￿"
+      }
+    ],
+    "je": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "je",
+        "last": "je￿"
+      }
+    ],
+    "ji": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ji",
+        "last": "ji￿"
+      }
+    ],
+    "jo": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "jo",
+        "last": "jo￿"
+      }
+    ],
+    "ju": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ju",
+        "last": "ju￿"
+      }
+    ],
+    "ka": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ka",
+        "last": "ka￿"
+      }
+    ],
+    "ke": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ke",
+        "last": "ke￿"
+      }
+    ],
+    "kh": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "kh",
+        "last": "kh￿"
+      }
+    ],
+    "ki": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ki",
+        "last": "ki￿"
+      }
+    ],
+    "kj": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "kj",
+        "last": "kj￿"
+      }
+    ],
+    "ko": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ko",
+        "last": "ko￿"
+      }
+    ],
+    "kr": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "kr",
+        "last": "kr￿"
+      }
+    ],
+    "ku": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ku",
+        "last": "ku￿"
+      }
+    ],
+    "ky": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ky",
+        "last": "ky￿"
+      }
+    ],
+    "kö": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "kö",
+        "last": "kö￿"
+      }
+    ],
+    "kø": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "kø",
+        "last": "kø￿"
+      }
+    ],
+    "l'": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "l'",
+        "last": "l'￿"
+      }
+    ],
+    "la": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "la",
+        "last": "la￿"
+      }
+    ],
+    "le": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "le",
+        "last": "le￿"
+      }
+    ],
+    "li": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "li",
+        "last": "li￿"
+      }
+    ],
+    "lj": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "lj",
+        "last": "lj￿"
+      }
+    ],
+    "lo": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "lo",
+        "last": "lo￿"
+      }
+    ],
+    "lu": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "lu",
+        "last": "lu￿"
+      }
+    ],
+    "lv": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "lv",
+        "last": "lv￿"
+      }
+    ],
+    "lw": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "lw",
+        "last": "lw￿"
+      }
+    ],
+    "ly": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ly",
+        "last": "ly￿"
+      }
+    ],
+    "lé": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "lé",
+        "last": "lé￿"
+      }
+    ],
+    "lë": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "lë",
+        "last": "lë￿"
+      }
+    ],
+    "ma": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ma",
+        "last": "ma￿"
+      }
+    ],
+    "mb": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "mb",
+        "last": "mb￿"
+      }
+    ],
+    "me": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "me",
+        "last": "me￿"
+      }
+    ],
+    "mi": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "mi",
+        "last": "mi￿"
+      }
+    ],
+    "mo": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "mo",
+        "last": "mo￿"
+      }
+    ],
+    "mu": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "mu",
+        "last": "mu￿"
+      }
+    ],
+    "mü": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "mü",
+        "last": "mü￿"
+      }
+    ],
+    "n'": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "n'",
+        "last": "n'￿"
+      }
+    ],
+    "na": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "na",
+        "last": "na￿"
+      }
+    ],
+    "ne": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ne",
+        "last": "ne￿"
+      }
+    ],
+    "ng": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ng",
+        "last": "ng￿"
+      }
+    ],
+    "ni": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ni",
+        "last": "ni￿"
+      }
+    ],
+    "no": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "no",
+        "last": "no￿"
+      }
+    ],
+    "nu": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "nu",
+        "last": "nu￿"
+      }
+    ],
+    "os": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "os",
+        "last": "os￿"
+      }
+    ],
+    "ot": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ot",
+        "last": "ot￿"
+      }
+    ],
+    "ou": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ou",
+        "last": "ou￿"
+      }
+    ],
+    "oy": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "oy",
+        "last": "oy￿"
+      }
+    ],
+    "pa": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "pa",
+        "last": "pa￿"
+      }
+    ],
+    "pe": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "pe",
+        "last": "pe￿"
+      }
+    ],
+    "ph": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ph",
+        "last": "ph￿"
+      }
+    ],
+    "pi": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "pi",
+        "last": "pi￿"
+      }
+    ],
+    "po": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "po",
+        "last": "po￿"
+      }
+    ],
+    "pr": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "pr",
+        "last": "pr￿"
+      }
+    ],
+    "pu": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "pu",
+        "last": "pu￿"
+      }
+    ],
+    "py": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "py",
+        "last": "py￿"
+      }
+    ],
+    "qu": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "qu",
+        "last": "qu￿"
+      }
+    ],
+    "ra": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ra",
+        "last": "ra￿"
+      }
+    ],
+    "re": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "re",
+        "last": "re￿"
+      }
+    ],
+    "ri": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ri",
+        "last": "ri￿"
+      }
+    ],
+    "ro": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ro",
+        "last": "ro￿"
+      }
+    ],
+    "rī": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "rī",
+        "last": "rī￿"
+      }
+    ],
+    "sa": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "sa",
+        "last": "sa￿"
+      }
+    ],
+    "se": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "se",
+        "last": "se￿"
+      }
+    ],
+    "sh": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "sh",
+        "last": "sh￿"
+      }
+    ],
+    "si": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "si",
+        "last": "si￿"
+      }
+    ],
+    "sk": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "sk",
+        "last": "sk￿"
+      }
+    ],
+    "so": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "so",
+        "last": "so￿"
+      }
+    ],
+    "sr": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "sr",
+        "last": "sr￿"
+      }
+    ],
+    "st": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "st",
+        "last": "st￿"
+      }
+    ],
+    "su": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "su",
+        "last": "su￿"
+      }
+    ],
+    "sy": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "sy",
+        "last": "sy￿"
+      }
+    ],
+    "sà": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "sà",
+        "last": "sà￿"
+      }
+    ],
+    "sã": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "sã",
+        "last": "sã￿"
+      }
+    ],
+    "t'": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "t'",
+        "last": "t'￿"
+      }
+    ],
+    "ta": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ta",
+        "last": "ta￿"
+      }
+    ],
+    "tb": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "tb",
+        "last": "tb￿"
+      }
+    ],
+    "te": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "te",
+        "last": "te￿"
+      }
+    ],
+    "th": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "th",
+        "last": "th￿"
+      }
+    ],
+    "ti": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ti",
+        "last": "ti￿"
+      }
+    ],
+    "to": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "to",
+        "last": "to￿"
+      }
+    ],
+    "tr": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "tr",
+        "last": "tr￿"
+      }
+    ],
+    "ts": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ts",
+        "last": "ts￿"
+      }
+    ],
+    "tu": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "tu",
+        "last": "tu￿"
+      }
+    ],
+    "ul": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ul",
+        "last": "ul￿"
+      }
+    ],
+    "us": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "us",
+        "last": "us￿"
+      }
+    ],
+    "va": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "va",
+        "last": "va￿"
+      }
+    ],
+    "vi": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "vi",
+        "last": "vi￿"
+      }
+    ],
+    "wa": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "wa",
+        "last": "wa￿"
+      }
+    ],
+    "we": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "we",
+        "last": "we￿"
+      }
+    ],
+    "wi": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "wi",
+        "last": "wi￿"
+      }
+    ],
+    "wr": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "wr",
+        "last": "wr￿"
+      }
+    ],
+    "ya": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ya",
+        "last": "ya￿"
+      }
+    ],
+    "ye": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ye",
+        "last": "ye￿"
+      }
+    ],
+    "yo": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "yo",
+        "last": "yo￿"
+      }
+    ],
+    "za": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "za",
+        "last": "za￿"
+      }
+    ],
+    "èk": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "èk",
+        "last": "èk￿"
+      }
+    ],
+    "αθ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "αθ",
+        "last": "αθ￿"
+      }
+    ],
+    "κω": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "κω",
+        "last": "κω￿"
+      }
+    ],
+    "λε": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "λε",
+        "last": "λε￿"
+      }
+    ],
+    "ак": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ак",
+        "last": "ак￿"
+      }
+    ],
+    "ас": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ас",
+        "last": "ас￿"
+      }
+    ],
+    "аш": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "аш",
+        "last": "аш￿"
+      }
+    ],
+    "ақ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ақ",
+        "last": "ақ￿"
+      }
+    ],
+    "ба": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ба",
+        "last": "ба￿"
+      }
+    ],
+    "бе": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "бе",
+        "last": "бе￿"
+      }
+    ],
+    "би": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "би",
+        "last": "би￿"
+      }
+    ],
+    "бу": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "бу",
+        "last": "бу￿"
+      }
+    ],
+    "ва": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ва",
+        "last": "ва￿"
+      }
+    ],
+    "ви": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ви",
+        "last": "ви￿"
+      }
+    ],
+    "ду": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ду",
+        "last": "ду￿"
+      }
+    ],
+    "их": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "их",
+        "last": "их￿"
+      }
+    ],
+    "ка": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ка",
+        "last": "ка￿"
+      }
+    ],
+    "ки": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ки",
+        "last": "ки￿"
+      }
+    ],
+    "кі": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "кі",
+        "last": "кі￿"
+      }
+    ],
+    "ле": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ле",
+        "last": "ле￿"
+      }
+    ],
+    "ль": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ль",
+        "last": "ль￿"
+      }
+    ],
+    "ме": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ме",
+        "last": "ме￿"
+      }
+    ],
+    "ми": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ми",
+        "last": "ми￿"
+      }
+    ],
+    "мо": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "мо",
+        "last": "мо￿"
+      }
+    ],
+    "мі": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "мі",
+        "last": "мі￿"
+      }
+    ],
+    "ни": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ни",
+        "last": "ни￿"
+      }
+    ],
+    "нұ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "нұ",
+        "last": "нұ￿"
+      }
+    ],
+    "пе": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "пе",
+        "last": "пе￿"
+      }
+    ],
+    "пи": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "пи",
+        "last": "пи￿"
+      }
+    ],
+    "по": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "по",
+        "last": "по￿"
+      }
+    ],
+    "пр": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "пр",
+        "last": "пр￿"
+      }
+    ],
+    "ре": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ре",
+        "last": "ре￿"
+      }
+    ],
+    "ри": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ри",
+        "last": "ри￿"
+      }
+    ],
+    "са": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "са",
+        "last": "са￿"
+      }
+    ],
+    "ск": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ск",
+        "last": "ск￿"
+      }
+    ],
+    "со": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "со",
+        "last": "со￿"
+      }
+    ],
+    "ст": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ст",
+        "last": "ст￿"
+      }
+    ],
+    "та": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "та",
+        "last": "та￿"
+      }
+    ],
+    "ти": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ти",
+        "last": "ти￿"
+      }
+    ],
+    "то": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "то",
+        "last": "то￿"
+      }
+    ],
+    "ул": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ул",
+        "last": "ул￿"
+      }
+    ],
+    "фр": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "фр",
+        "last": "фр￿"
+      }
+    ],
+    "це": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "це",
+        "last": "це￿"
+      }
+    ],
+    "эр": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "эр",
+        "last": "эр￿"
+      }
+    ],
+    "եր": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "եր",
+        "last": "եր￿"
+      }
+    ],
+    "յե": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "յե",
+        "last": "յե￿"
+      }
+    ],
+    "אח": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "אח",
+        "last": "אח￿"
+      }
+    ],
+    "יר": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "יר",
+        "last": "יר￿"
+      }
+    ],
+    "תל": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "תל",
+        "last": "תל￿"
+      }
+    ],
+    "آت": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "آت",
+        "last": "آت￿"
+      }
+    ],
+    "أب": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "أب",
+        "last": "أب￿"
+      }
+    ],
+    "اس": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "اس",
+        "last": "اس￿"
+      }
+    ],
+    "اص": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "اص",
+        "last": "اص￿"
+      }
+    ],
+    "ال": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ال",
+        "last": "ال￿"
+      }
+    ],
+    "ان": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ان",
+        "last": "ان￿"
+      }
+    ],
+    "ای": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ای",
+        "last": "ای￿"
+      }
+    ],
+    "با": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "با",
+        "last": "با￿"
+      }
+    ],
+    "بغ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "بغ",
+        "last": "بغ￿"
+      }
+    ],
+    "بل": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "بل",
+        "last": "بل￿"
+      }
+    ],
+    "بي": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "بي",
+        "last": "بي￿"
+      }
+    ],
+    "تا": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "تا",
+        "last": "تا￿"
+      }
+    ],
+    "ته": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ته",
+        "last": "ته￿"
+      }
+    ],
+    "تو": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "تو",
+        "last": "تو￿"
+      }
+    ],
+    "تی": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "تی",
+        "last": "تی￿"
+      }
+    ],
+    "جد": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "جد",
+        "last": "جد￿"
+      }
+    ],
+    "دب": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "دب",
+        "last": "دب￿"
+      }
+    ],
+    "دم": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "دم",
+        "last": "دم￿"
+      }
+    ],
+    "ده": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ده",
+        "last": "ده￿"
+      }
+    ],
+    "دو": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "دو",
+        "last": "دو￿"
+      }
+    ],
+    "دہ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "دہ",
+        "last": "دہ￿"
+      }
+    ],
+    "را": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "را",
+        "last": "را￿"
+      }
+    ],
+    "سر": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "سر",
+        "last": "سر￿"
+      }
+    ],
+    "صن": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "صن",
+        "last": "صن￿"
+      }
+    ],
+    "صو": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "صو",
+        "last": "صو￿"
+      }
+    ],
+    "طر": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "طر",
+        "last": "طر￿"
+      }
+    ],
+    "عد": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "عد",
+        "last": "عد￿"
+      }
+    ],
+    "عم": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "عم",
+        "last": "عم￿"
+      }
+    ],
+    "غز": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "غز",
+        "last": "غز￿"
+      }
+    ],
+    "قا": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "قا",
+        "last": "قا￿"
+      }
+    ],
+    "قس": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "قس",
+        "last": "قس￿"
+      }
+    ],
+    "لف": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "لف",
+        "last": "لف￿"
+      }
+    ],
+    "مد": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "مد",
+        "last": "مد￿"
+      }
+    ],
+    "مس": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "مس",
+        "last": "مس￿"
+      }
+    ],
+    "مك": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "مك",
+        "last": "مك￿"
+      }
+    ],
+    "نو": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "نو",
+        "last": "نو￿"
+      }
+    ],
+    "پر": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "پر",
+        "last": "پر￿"
+      }
+    ],
+    "پو": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "پو",
+        "last": "پو￿"
+      }
+    ],
+    "کا": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "کا",
+        "last": "کا￿"
+      }
+    ],
+    "މާ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "މާ",
+        "last": "މާ￿"
+      }
+    ],
+    "का": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "का",
+        "last": "का￿"
+      }
+    ],
+    "दि": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "दि",
+        "last": "दि￿"
+      }
+    ],
+    "मु": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "मु",
+        "last": "मु￿"
+      }
+    ],
+    "কল": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "কল",
+        "last": "কল￿"
+      }
+    ],
+    "ঢা": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ঢা",
+        "last": "ঢা￿"
+      }
+    ],
+    "ਦਿ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ਦਿ",
+        "last": "ਦਿ￿"
+      }
+    ],
+    "செ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "செ",
+        "last": "செ￿"
+      }
+    ],
+    "කො": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "කො",
+        "last": "කො￿"
+      }
+    ],
+    "කෝ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "කෝ",
+        "last": "කෝ￿"
+      }
+    ],
+    "ශ්": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ශ්",
+        "last": "ශ්￿"
+      }
+    ],
+    "กร": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "กร",
+        "last": "กร￿"
+      }
+    ],
+    "ວຽ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ວຽ",
+        "last": "ວຽ￿"
+      }
+    ],
+    "ཐི": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ཐི",
+        "last": "ཐི￿"
+      }
+    ],
+    "နေ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "နေ",
+        "last": "နေ￿"
+      }
+    ],
+    "თბ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "თბ",
+        "last": "თბ￿"
+      }
+    ],
+    "ტფ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ტფ",
+        "last": "ტფ￿"
+      }
+    ],
+    "አዲ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "አዲ",
+        "last": "አዲ￿"
+      }
+    ],
+    "ኣስ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ኣስ",
+        "last": "ኣስ￿"
+      }
+    ],
+    "ភ្": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ភ្",
+        "last": "ភ្￿"
+      }
+    ],
+    "ἀθ": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "ἀθ",
+        "last": "ἀθ￿"
+      }
+    ],
+    "上海": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "上海",
+        "last": "上海￿"
+      }
+    ],
+    "京城": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "京城",
+        "last": "京城￿"
+      }
+    ],
+    "京都": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "京都",
+        "last": "京都￿"
+      }
+    ],
+    "仁川": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "仁川",
+        "last": "仁川￿"
+      }
+    ],
+    "北京": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "北京",
+        "last": "北京￿"
+      }
+    ],
+    "北平": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "北平",
+        "last": "北平￿"
+      }
+    ],
+    "南京": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "南京",
+        "last": "南京￿"
+      }
+    ],
+    "名古": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "名古",
+        "last": "名古￿"
+      }
+    ],
+    "大坂": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "大坂",
+        "last": "大坂￿"
+      }
+    ],
+    "大田": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "大田",
+        "last": "大田￿"
+      }
+    ],
+    "大邱": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "大邱",
+        "last": "大邱￿"
+      }
+    ],
+    "大阪": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "大阪",
+        "last": "大阪￿"
+      }
+    ],
+    "天京": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "天京",
+        "last": "天京￿"
+      }
+    ],
+    "天津": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "天津",
+        "last": "天津￿"
+      }
+    ],
+    "广州": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "广州",
+        "last": "广州￿"
+      }
+    ],
+    "廣州": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "廣州",
+        "last": "廣州￿"
+      }
+    ],
+    "昇隆": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "昇隆",
+        "last": "昇隆￿"
+      }
+    ],
+    "昇龍": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "昇龍",
+        "last": "昇龍￿"
+      }
+    ],
+    "東京": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "東京",
+        "last": "東京￿"
+      }
+    ],
+    "柴棍": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "柴棍",
+        "last": "柴棍￿"
+      }
+    ],
+    "横浜": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "横浜",
+        "last": "横浜￿"
+      }
+    ],
+    "江戸": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "江戸",
+        "last": "江戸￿"
+      }
+    ],
+    "河內": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "河內",
+        "last": "河內￿"
+      }
+    ],
+    "漢城": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "漢城",
+        "last": "漢城￿"
+      }
+    ],
+    "漢陽": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "漢陽",
+        "last": "漢陽￿"
+      }
+    ],
+    "臺北": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "臺北",
+        "last": "臺北￿"
+      }
+    ],
+    "釜山": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "釜山",
+        "last": "釜山￿"
+      }
+    ],
+    "가보": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "가보",
+        "last": "가보￿"
+      }
+    ],
+    "가자": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "가자",
+        "last": "가자￿"
+      }
+    ],
+    "개버": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "개버",
+        "last": "개버￿"
+      }
+    ],
+    "경성": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "경성",
+        "last": "경성￿"
+      }
+    ],
+    "과테": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "과테",
+        "last": "과테￿"
+      }
+    ],
+    "광저": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "광저",
+        "last": "광저￿"
+      }
+    ],
+    "광주": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "광주",
+        "last": "광주￿"
+      }
+    ],
+    "교토": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "교토",
+        "last": "교토￿"
+      }
+    ],
+    "그단": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "그단",
+        "last": "그단￿"
+      }
+    ],
+    "기테": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "기테",
+        "last": "기테￿"
+      }
+    ],
+    "나고": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "나고",
+        "last": "나고￿"
+      }
+    ],
+    "나이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "나이",
+        "last": "나이￿"
+      }
+    ],
+    "나폴": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "나폴",
+        "last": "나폴￿"
+      }
+    ],
+    "난징": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "난징",
+        "last": "난징￿"
+      }
+    ],
+    "남경": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "남경",
+        "last": "남경￿"
+      }
+    ],
+    "네피": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "네피",
+        "last": "네피￿"
+      }
+    ],
+    "누르": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "누르",
+        "last": "누르￿"
+      }
+    ],
+    "누메": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "누메",
+        "last": "누메￿"
+      }
+    ],
+    "누악": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "누악",
+        "last": "누악￿"
+      }
+    ],
+    "누쿠": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "누쿠",
+        "last": "누쿠￿"
+      }
+    ],
+    "뉴욕": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "뉴욕",
+        "last": "뉴욕￿"
+      }
+    ],
+    "니슬": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "니슬",
+        "last": "니슬￿"
+      }
+    ],
+    "니아": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "니아",
+        "last": "니아￿"
+      }
+    ],
+    "니코": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "니코",
+        "last": "니코￿"
+      }
+    ],
+    "다마": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "다마",
+        "last": "다마￿"
+      }
+    ],
+    "다이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "다이",
+        "last": "다이￿"
+      }
+    ],
+    "다카": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "다카",
+        "last": "다카￿"
+      }
+    ],
+    "단치": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "단치",
+        "last": "단치￿"
+      }
+    ],
+    "대구": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "대구",
+        "last": "대구￿"
+      }
+    ],
+    "대전": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "대전",
+        "last": "대전￿"
+      }
+    ],
+    "더블": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "더블",
+        "last": "더블￿"
+      }
+    ],
+    "델리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "델리",
+        "last": "델리￿"
+      }
+    ],
+    "도도": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "도도",
+        "last": "도도￿"
+      }
+    ],
+    "도쿄": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "도쿄",
+        "last": "도쿄￿"
+      }
+    ],
+    "도하": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "도하",
+        "last": "도하￿"
+      }
+    ],
+    "두바": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "두바",
+        "last": "두바￿"
+      }
+    ],
+    "두샨": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "두샨",
+        "last": "두샨￿"
+      }
+    ],
+    "뒤셀": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "뒤셀",
+        "last": "뒤셀￿"
+      }
+    ],
+    "드레": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "드레",
+        "last": "드레￿"
+      }
+    ],
+    "딜리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "딜리",
+        "last": "딜리￿"
+      }
+    ],
+    "라고": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "라고",
+        "last": "라고￿"
+      }
+    ],
+    "라말": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "라말",
+        "last": "라말￿"
+      }
+    ],
+    "라바": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "라바",
+        "last": "라바￿"
+      }
+    ],
+    "라이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "라이",
+        "last": "라이￿"
+      }
+    ],
+    "라파": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "라파",
+        "last": "라파￿"
+      }
+    ],
+    "런던": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "런던",
+        "last": "런던￿"
+      }
+    ],
+    "레닌": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "레닌",
+        "last": "레닌￿"
+      }
+    ],
+    "레발": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "레발",
+        "last": "레발￿"
+      }
+    ],
+    "레벨": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "레벨",
+        "last": "레벨￿"
+      }
+    ],
+    "레오": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "레오",
+        "last": "레오￿"
+      }
+    ],
+    "레이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "레이",
+        "last": "레이￿"
+      }
+    ],
+    "레타": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "레타",
+        "last": "레타￿"
+      }
+    ],
+    "레프": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "레프",
+        "last": "레프￿"
+      }
+    ],
+    "렘베": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "렘베",
+        "last": "렘베￿"
+      }
+    ],
+    "로렌": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "로렌",
+        "last": "로렌￿"
+      }
+    ],
+    "로마": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "로마",
+        "last": "로마￿"
+      }
+    ],
+    "로메": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "로메",
+        "last": "로메￿"
+      }
+    ],
+    "로밤": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "로밤",
+        "last": "로밤￿"
+      }
+    ],
+    "로스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "로스",
+        "last": "로스￿"
+      }
+    ],
+    "루사": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "루사",
+        "last": "루사￿"
+      }
+    ],
+    "루안": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "루안",
+        "last": "루안￿"
+      }
+    ],
+    "룩셈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "룩셈",
+        "last": "룩셈￿"
+      }
+    ],
+    "류블": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "류블",
+        "last": "류블￿"
+      }
+    ],
+    "르부": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "르부",
+        "last": "르부￿"
+      }
+    ],
+    "리가": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "리가",
+        "last": "리가￿"
+      }
+    ],
+    "리마": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "리마",
+        "last": "리마￿"
+      }
+    ],
+    "리버": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "리버",
+        "last": "리버￿"
+      }
+    ],
+    "리보": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "리보",
+        "last": "리보￿"
+      }
+    ],
+    "리브": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "리브",
+        "last": "리브￿"
+      }
+    ],
+    "리비": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "리비",
+        "last": "리비￿"
+      }
+    ],
+    "리스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "리스",
+        "last": "리스￿"
+      }
+    ],
+    "리야": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "리야",
+        "last": "리야￿"
+      }
+    ],
+    "리옹": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "리옹",
+        "last": "리옹￿"
+      }
+    ],
+    "릴롱": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "릴롱",
+        "last": "릴롱￿"
+      }
+    ],
+    "마나": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "마나",
+        "last": "마나￿"
+      }
+    ],
+    "마닐": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "마닐",
+        "last": "마닐￿"
+      }
+    ],
+    "마드": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "마드",
+        "last": "마드￿"
+      }
+    ],
+    "마르": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "마르",
+        "last": "마르￿"
+      }
+    ],
+    "마세": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "마세",
+        "last": "마세￿"
+      }
+    ],
+    "마주": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "마주",
+        "last": "마주￿"
+      }
+    ],
+    "마타": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "마타",
+        "last": "마타￿"
+      }
+    ],
+    "마푸": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "마푸",
+        "last": "마푸￿"
+      }
+    ],
+    "말라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "말라",
+        "last": "말라￿"
+      }
+    ],
+    "말레": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "말레",
+        "last": "말레￿"
+      }
+    ],
+    "맨체": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "맨체",
+        "last": "맨체￿"
+      }
+    ],
+    "메카": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "메카",
+        "last": "메카￿"
+      }
+    ],
+    "멕시": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "멕시",
+        "last": "멕시￿"
+      }
+    ],
+    "모가": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "모가",
+        "last": "모가￿"
+      }
+    ],
+    "모나": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "모나",
+        "last": "모나￿"
+      }
+    ],
+    "모로": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "모로",
+        "last": "모로￿"
+      }
+    ],
+    "모스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "모스",
+        "last": "모스￿"
+      }
+    ],
+    "몬로": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "몬로",
+        "last": "몬로￿"
+      }
+    ],
+    "몬테": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "몬테",
+        "last": "몬테￿"
+      }
+    ],
+    "무스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "무스",
+        "last": "무스￿"
+      }
+    ],
+    "뭄바": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "뭄바",
+        "last": "뭄바￿"
+      }
+    ],
+    "뮌헨": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "뮌헨",
+        "last": "뮌헨￿"
+      }
+    ],
+    "민스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "민스",
+        "last": "민스￿"
+      }
+    ],
+    "밀라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "밀라",
+        "last": "밀라￿"
+      }
+    ],
+    "바그": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "바그",
+        "last": "바그￿"
+      }
+    ],
+    "바르": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "바르",
+        "last": "바르￿"
+      }
+    ],
+    "바마": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "바마",
+        "last": "바마￿"
+      }
+    ],
+    "바이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "바이",
+        "last": "바이￿"
+      }
+    ],
+    "바쿠": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "바쿠",
+        "last": "바쿠￿"
+      }
+    ],
+    "바타": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "바타",
+        "last": "바타￿"
+      }
+    ],
+    "반다": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "반다",
+        "last": "반다￿"
+      }
+    ],
+    "반줄": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "반줄",
+        "last": "반줄￿"
+      }
+    ],
+    "발레": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "발레",
+        "last": "발레￿"
+      }
+    ],
+    "발렌": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "발렌",
+        "last": "발렌￿"
+      }
+    ],
+    "방기": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "방기",
+        "last": "방기￿"
+      }
+    ],
+    "방콕": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "방콕",
+        "last": "방콕￿"
+      }
+    ],
+    "배서": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "배서",
+        "last": "배서￿"
+      }
+    ],
+    "베른": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "베른",
+        "last": "베른￿"
+      }
+    ],
+    "베를": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "베를",
+        "last": "베를￿"
+      }
+    ],
+    "베오": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "베오",
+        "last": "베오￿"
+      }
+    ],
+    "베이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "베이",
+        "last": "베이￿"
+      }
+    ],
+    "벨그": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "벨그",
+        "last": "벨그￿"
+      }
+    ],
+    "벨모": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "벨모",
+        "last": "벨모￿"
+      }
+    ],
+    "보고": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "보고",
+        "last": "보고￿"
+      }
+    ],
+    "봄베": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "봄베",
+        "last": "봄베￿"
+      }
+    ],
+    "부다": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "부다",
+        "last": "부다￿"
+      }
+    ],
+    "부산": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "부산",
+        "last": "부산￿"
+      }
+    ],
+    "부에": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "부에",
+        "last": "부에￿"
+      }
+    ],
+    "부줌": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "부줌",
+        "last": "부줌￿"
+      }
+    ],
+    "부쿠": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "부쿠",
+        "last": "부쿠￿"
+      }
+    ],
+    "북경": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "북경",
+        "last": "북경￿"
+      }
+    ],
+    "브라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "브라",
+        "last": "브라￿"
+      }
+    ],
+    "브레": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "브레",
+        "last": "브레￿"
+      }
+    ],
+    "브로": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "브로",
+        "last": "브로￿"
+      }
+    ],
+    "브루": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "브루",
+        "last": "브루￿"
+      }
+    ],
+    "브뤼": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "브뤼",
+        "last": "브뤼￿"
+      }
+    ],
+    "블룸": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "블룸",
+        "last": "블룸￿"
+      }
+    ],
+    "비사": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "비사",
+        "last": "비사￿"
+      }
+    ],
+    "비슈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "비슈",
+        "last": "비슈￿"
+      }
+    ],
+    "비엔": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "비엔",
+        "last": "비엔￿"
+      }
+    ],
+    "빅토": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "빅토",
+        "last": "빅토￿"
+      }
+    ],
+    "빈트": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "빈트",
+        "last": "빈트￿"
+      }
+    ],
+    "빌나": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "빌나",
+        "last": "빌나￿"
+      }
+    ],
+    "빌노": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "빌노",
+        "last": "빌노￿"
+      }
+    ],
+    "빌뉴": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "빌뉴",
+        "last": "빌뉴￿"
+      }
+    ],
+    "사나": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "사나",
+        "last": "사나￿"
+      }
+    ],
+    "사라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "사라",
+        "last": "사라￿"
+      }
+    ],
+    "사이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "사이",
+        "last": "사이￿"
+      }
+    ],
+    "산마": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "산마",
+        "last": "산마￿"
+      }
+    ],
+    "산살": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "산살",
+        "last": "산살￿"
+      }
+    ],
+    "산타": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "산타",
+        "last": "산타￿"
+      }
+    ],
+    "산토": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "산토",
+        "last": "산토￿"
+      }
+    ],
+    "산티": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "산티",
+        "last": "산티￿"
+      }
+    ],
+    "산호": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "산호",
+        "last": "산호￿"
+      }
+    ],
+    "상투": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "상투",
+        "last": "상투￿"
+      }
+    ],
+    "상트": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "상트",
+        "last": "상트￿"
+      }
+    ],
+    "상파": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "상파",
+        "last": "상파￿"
+      }
+    ],
+    "상하": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "상하",
+        "last": "상하￿"
+      }
+    ],
+    "상해": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "상해",
+        "last": "상해￿"
+      }
+    ],
+    "서울": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "서울",
+        "last": "서울￿"
+      }
+    ],
+    "세비": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "세비",
+        "last": "세비￿"
+      }
+    ],
+    "소프": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "소프",
+        "last": "소프￿"
+      }
+    ],
+    "소피": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "소피",
+        "last": "소피￿"
+      }
+    ],
+    "솔즈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "솔즈",
+        "last": "솔즈￿"
+      }
+    ],
+    "수바": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "수바",
+        "last": "수바￿"
+      }
+    ],
+    "수크": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "수크",
+        "last": "수크￿"
+      }
+    ],
+    "슈투": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "슈투",
+        "last": "슈투￿"
+      }
+    ],
+    "스리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "스리",
+        "last": "스리￿"
+      }
+    ],
+    "스코": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "스코",
+        "last": "스코￿"
+      }
+    ],
+    "스타": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "스타",
+        "last": "스타￿"
+      }
+    ],
+    "스탈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "스탈",
+        "last": "스탈￿"
+      }
+    ],
+    "스톡": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "스톡",
+        "last": "스톡￿"
+      }
+    ],
+    "시드": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "시드",
+        "last": "시드￿"
+      }
+    ],
+    "시우": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "시우",
+        "last": "시우￿"
+      }
+    ],
+    "싱가": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "싱가",
+        "last": "싱가￿"
+      }
+    ],
+    "아가": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아가",
+        "last": "아가￿"
+      }
+    ],
+    "아덴": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아덴",
+        "last": "아덴￿"
+      }
+    ],
+    "아디": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아디",
+        "last": "아디￿"
+      }
+    ],
+    "아바": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아바",
+        "last": "아바￿"
+      }
+    ],
+    "아부": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아부",
+        "last": "아부￿"
+      }
+    ],
+    "아비": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아비",
+        "last": "아비￿"
+      }
+    ],
+    "아순": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아순",
+        "last": "아순￿"
+      }
+    ],
+    "아슈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아슈",
+        "last": "아슈￿"
+      }
+    ],
+    "아스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아스",
+        "last": "아스￿"
+      }
+    ],
+    "아시": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아시",
+        "last": "아시￿"
+      }
+    ],
+    "아크": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아크",
+        "last": "아크￿"
+      }
+    ],
+    "아테": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아테",
+        "last": "아테￿"
+      }
+    ],
+    "아티": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아티",
+        "last": "아티￿"
+      }
+    ],
+    "아피": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아피",
+        "last": "아피￿"
+      }
+    ],
+    "아후": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "아후",
+        "last": "아후￿"
+      }
+    ],
+    "안도": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "안도",
+        "last": "안도￿"
+      }
+    ],
+    "안타": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "안타",
+        "last": "안타￿"
+      }
+    ],
+    "알로": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "알로",
+        "last": "알로￿"
+      }
+    ],
+    "알제": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "알제",
+        "last": "알제￿"
+      }
+    ],
+    "암만": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "암만",
+        "last": "암만￿"
+      }
+    ],
+    "암스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "암스",
+        "last": "암스￿"
+      }
+    ],
+    "앙카": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "앙카",
+        "last": "앙카￿"
+      }
+    ],
+    "애덤": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "애덤",
+        "last": "애덤￿"
+      }
+    ],
+    "야무": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "야무",
+        "last": "야무￿"
+      }
+    ],
+    "야운": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "야운",
+        "last": "야운￿"
+      }
+    ],
+    "에도": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "에도",
+        "last": "에도￿"
+      }
+    ],
+    "에리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "에리",
+        "last": "에리￿"
+      }
+    ],
+    "에코": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "에코",
+        "last": "에코￿"
+      }
+    ],
+    "예레": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "예레",
+        "last": "예레￿"
+      }
+    ],
+    "예루": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "예루",
+        "last": "예루￿"
+      }
+    ],
+    "오사": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "오사",
+        "last": "오사￿"
+      }
+    ],
+    "오슬": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "오슬",
+        "last": "오슬￿"
+      }
+    ],
+    "오얄": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "오얄",
+        "last": "오얄￿"
+      }
+    ],
+    "오클": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "오클",
+        "last": "오클￿"
+      }
+    ],
+    "오타": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "오타",
+        "last": "오타￿"
+      }
+    ],
+    "와가": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "와가",
+        "last": "와가￿"
+      }
+    ],
+    "요코": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "요코",
+        "last": "요코￿"
+      }
+    ],
+    "요하": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "요하",
+        "last": "요하￿"
+      }
+    ],
+    "우숨": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "우숨",
+        "last": "우숨￿"
+      }
+    ],
+    "울란": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "울란",
+        "last": "울란￿"
+      }
+    ],
+    "워싱": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "워싱",
+        "last": "워싱￿"
+      }
+    ],
+    "웰링": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "웰링",
+        "last": "웰링￿"
+      }
+    ],
+    "위스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "위스",
+        "last": "위스￿"
+      }
+    ],
+    "은자": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "은자",
+        "last": "은자￿"
+      }
+    ],
+    "음바": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "음바",
+        "last": "음바￿"
+      }
+    ],
+    "응게": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "응게",
+        "last": "응게￿"
+      }
+    ],
+    "이라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "이라",
+        "last": "이라￿"
+      }
+    ],
+    "이스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "이스",
+        "last": "이스￿"
+      }
+    ],
+    "이슬": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "이슬",
+        "last": "이슬￿"
+      }
+    ],
+    "이흐": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "이흐",
+        "last": "이흐￿"
+      }
+    ],
+    "인천": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "인천",
+        "last": "인천￿"
+      }
+    ],
+    "자그": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "자그",
+        "last": "자그￿"
+      }
+    ],
+    "자카": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "자카",
+        "last": "자카￿"
+      }
+    ],
+    "제다": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "제다",
+        "last": "제다￿"
+      }
+    ],
+    "제물": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "제물",
+        "last": "제물￿"
+      }
+    ],
+    "조지": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "조지",
+        "last": "조지￿"
+      }
+    ],
+    "주바": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "주바",
+        "last": "주바￿"
+      }
+    ],
+    "지부": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "지부",
+        "last": "지부￿"
+      }
+    ],
+    "천경": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "천경",
+        "last": "천경￿"
+      }
+    ],
+    "천진": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "천진",
+        "last": "천진￿"
+      }
+    ],
+    "첸나": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "첸나",
+        "last": "첸나￿"
+      }
+    ],
+    "첼리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "첼리",
+        "last": "첼리￿"
+      }
+    ],
+    "추키": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "추키",
+        "last": "추키￿"
+      }
+    ],
+    "카라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "카라",
+        "last": "카라￿"
+      }
+    ],
+    "카불": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "카불",
+        "last": "카불￿"
+      }
+    ],
+    "카이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "카이",
+        "last": "카이￿"
+      }
+    ],
+    "카트": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "카트",
+        "last": "카트￿"
+      }
+    ],
+    "칼리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "칼리",
+        "last": "칼리￿"
+      }
+    ],
+    "캄팔": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "캄팔",
+        "last": "캄팔￿"
+      }
+    ],
+    "캔버": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "캔버",
+        "last": "캔버￿"
+      }
+    ],
+    "캘커": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "캘커",
+        "last": "캘커￿"
+      }
+    ],
+    "케이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "케이",
+        "last": "케이￿"
+      }
+    ],
+    "코나": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "코나",
+        "last": "코나￿"
+      }
+    ],
+    "코로": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "코로",
+        "last": "코로￿"
+      }
+    ],
+    "코스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "코스",
+        "last": "코스￿"
+      }
+    ],
+    "코테": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "코테",
+        "last": "코테￿"
+      }
+    ],
+    "코토": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "코토",
+        "last": "코토￿"
+      }
+    ],
+    "코펜": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "코펜",
+        "last": "코펜￿"
+      }
+    ],
+    "콘스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "콘스",
+        "last": "콘스￿"
+      }
+    ],
+    "콜로": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "콜로",
+        "last": "콜로￿"
+      }
+    ],
+    "콜롬": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "콜롬",
+        "last": "콜롬￿"
+      }
+    ],
+    "콜카": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "콜카",
+        "last": "콜카￿"
+      }
+    ],
+    "쾨니": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "쾨니",
+        "last": "쾨니￿"
+      }
+    ],
+    "쾰른": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "쾰른",
+        "last": "쾰른￿"
+      }
+    ],
+    "쿠알": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "쿠알",
+        "last": "쿠알￿"
+      }
+    ],
+    "쿠웨": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "쿠웨",
+        "last": "쿠웨￿"
+      }
+    ],
+    "크리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "크리",
+        "last": "크리￿"
+      }
+    ],
+    "키갈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "키갈",
+        "last": "키갈￿"
+      }
+    ],
+    "키시": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "키시",
+        "last": "키시￿"
+      }
+    ],
+    "키예": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "키예",
+        "last": "키예￿"
+      }
+    ],
+    "키이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "키이",
+        "last": "키이￿"
+      }
+    ],
+    "키토": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "키토",
+        "last": "키토￿"
+      }
+    ],
+    "킨샤": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "킨샤",
+        "last": "킨샤￿"
+      }
+    ],
+    "킹스": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "킹스",
+        "last": "킹스￿"
+      }
+    ],
+    "타나": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "타나",
+        "last": "타나￿"
+      }
+    ],
+    "타라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "타라",
+        "last": "타라￿"
+      }
+    ],
+    "타슈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "타슈",
+        "last": "타슈￿"
+      }
+    ],
+    "타이": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "타이",
+        "last": "타이￿"
+      }
+    ],
+    "탈린": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "탈린",
+        "last": "탈린￿"
+      }
+    ],
+    "탕롱": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "탕롱",
+        "last": "탕롱￿"
+      }
+    ],
+    "테구": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "테구",
+        "last": "테구￿"
+      }
+    ],
+    "테헤": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "테헤",
+        "last": "테헤￿"
+      }
+    ],
+    "텔아": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "텔아",
+        "last": "텔아￿"
+      }
+    ],
+    "톈진": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "톈진",
+        "last": "톈진￿"
+      }
+    ],
+    "토리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "토리",
+        "last": "토리￿"
+      }
+    ],
+    "툴루": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "툴루",
+        "last": "툴루￿"
+      }
+    ],
+    "튀니": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "튀니",
+        "last": "튀니￿"
+      }
+    ],
+    "트리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "트리",
+        "last": "트리￿"
+      }
+    ],
+    "트빌": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "트빌",
+        "last": "트빌￿"
+      }
+    ],
+    "트필": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "트필",
+        "last": "트필￿"
+      }
+    ],
+    "티라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "티라",
+        "last": "티라￿"
+      }
+    ],
+    "티란": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "티란",
+        "last": "티란￿"
+      }
+    ],
+    "티토": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "티토",
+        "last": "티토￿"
+      }
+    ],
+    "티플": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "티플",
+        "last": "티플￿"
+      }
+    ],
+    "팀푸": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "팀푸",
+        "last": "팀푸￿"
+      }
+    ],
+    "파고": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "파고",
+        "last": "파고￿"
+      }
+    ],
+    "파나": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "파나",
+        "last": "파나￿"
+      }
+    ],
+    "파두": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "파두",
+        "last": "파두￿"
+      }
+    ],
+    "파라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "파라",
+        "last": "파라￿"
+      }
+    ],
+    "파리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "파리",
+        "last": "파리￿"
+      }
+    ],
+    "파페": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "파페",
+        "last": "파페￿"
+      }
+    ],
+    "팔레": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "팔레",
+        "last": "팔레￿"
+      }
+    ],
+    "팔리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "팔리",
+        "last": "팔리￿"
+      }
+    ],
+    "페슈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "페슈",
+        "last": "페슈￿"
+      }
+    ],
+    "페트": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "페트",
+        "last": "페트￿"
+      }
+    ],
+    "평양": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "평양",
+        "last": "평양￿"
+      }
+    ],
+    "포드": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "포드",
+        "last": "포드￿"
+      }
+    ],
+    "포르": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "포르",
+        "last": "포르￿"
+      }
+    ],
+    "포조": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "포조",
+        "last": "포조￿"
+      }
+    ],
+    "포트": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "포트",
+        "last": "포트￿"
+      }
+    ],
+    "폴토": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "폴토",
+        "last": "폴토￿"
+      }
+    ],
+    "푸나": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "푸나",
+        "last": "푸나￿"
+      }
+    ],
+    "푸트": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "푸트",
+        "last": "푸트￿"
+      }
+    ],
+    "프놈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "프놈",
+        "last": "프놈￿"
+      }
+    ],
+    "프라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "프라",
+        "last": "프라￿"
+      }
+    ],
+    "프랑": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "프랑",
+        "last": "프랑￿"
+      }
+    ],
+    "프레": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "프레",
+        "last": "프레￿"
+      }
+    ],
+    "프룬": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "프룬",
+        "last": "프룬￿"
+      }
+    ],
+    "프리": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "프리",
+        "last": "프리￿"
+      }
+    ],
+    "피슈": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "피슈",
+        "last": "피슈￿"
+      }
+    ],
+    "하갓": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "하갓",
+        "last": "하갓￿"
+      }
+    ],
+    "하노": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "하노",
+        "last": "하노￿"
+      }
+    ],
+    "하라": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "하라",
+        "last": "하라￿"
+      }
+    ],
+    "하르": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "하르",
+        "last": "하르￿"
+      }
+    ],
+    "한성": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "한성",
+        "last": "한성￿"
+      }
+    ],
+    "한양": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "한양",
+        "last": "한양￿"
+      }
+    ],
+    "함부": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "함부",
+        "last": "함부￿"
+      }
+    ],
+    "헬싱": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "헬싱",
+        "last": "헬싱￿"
+      }
+    ],
+    "호니": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "호니",
+        "last": "호니￿"
+      }
+    ],
+    "호찌": [
+      {
+        "shard": "places-v1",
+        "offset": 0,
+        "length": 76922,
+        "sha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+        "first": "호찌",
+        "last": "호찌￿"
+      }
+    ]
+  }
 }
