@@ -125,6 +125,14 @@ export function referenceImageEditorMarkup({
   const autoGeorefBusy = record.autoGeorefBusy === true;
   const autoGeorefPreview = record.autoGeorefPreview?.ok ? record.autoGeorefPreview : null;
   const autoGeorefDiagnostics = autoGeorefPreview?.georef?.diagnostics || null;
+  const autoGeorefIsOcr = autoGeorefPreview?.source === 'place-ocr';
+  const autoGeorefMethod = autoGeorefIsOcr ? 'OCR 도시명' : '도시 기호';
+  const autoGeorefExamined = autoGeorefIsOcr
+    ? (autoGeorefPreview?.ocr?.detections?.length ?? autoGeorefPreview?.matching?.detectionCount ?? 0)
+    : (autoGeorefPreview?.seedCount ?? 0);
+  const autoGeorefCandidates = autoGeorefIsOcr
+    ? (autoGeorefPreview?.matching?.matchCount ?? 0)
+    : (autoGeorefPreview?.symbolCandidateCount ?? 0);
 
   const anchorResidual = residuals.get('anchor');
   const pointRows = [];
@@ -246,8 +254,9 @@ export function referenceImageEditorMarkup({
 
       ${autoGeorefPreview ? `
         <div class="reference-image-diagnostics" aria-label="자동 맞춤 미리보기">
-          <span><small>탐색 도시</small><strong>${autoGeorefPreview.seedCount ?? 0}</strong></span>
-          <span><small>기호 후보</small><strong>${autoGeorefPreview.symbolCandidateCount ?? 0}</strong></span>
+          <span><small>방식</small><strong>${autoGeorefMethod}</strong></span>
+          <span><small>${autoGeorefIsOcr ? '인식 문자' : '탐색 도시'}</small><strong>${autoGeorefExamined}</strong></span>
+          <span><small>${autoGeorefIsOcr ? '지명 매칭' : '기호 후보'}</small><strong>${autoGeorefCandidates}</strong></span>
           <span><small>채택</small><strong>${autoGeorefPreview.georef?.inlierCount ?? 0}</strong></span>
           <span><small>제외</small><strong>${autoGeorefPreview.georef?.rejectedCount ?? 0}</strong></span>
           <span><small>RMS</small><strong>${autoGeorefDiagnostics ? `${numberText(autoGeorefDiagnostics.rmsMeters / 1000, 1)} km` : '—'}</strong></span>
