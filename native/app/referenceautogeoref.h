@@ -9,6 +9,7 @@ struct ReferenceAutoGeorefResult {
     bool ok=false;
     QString reason;
     QString mode;
+    QString source;
     int seedCount=0;
     int candidateCount=0;
     int inlierCount=0;
