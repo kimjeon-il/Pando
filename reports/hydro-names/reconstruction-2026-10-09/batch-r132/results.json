@@ -1,0 +1,576 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r132",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r131",
+    "commit": "aedff2bb7d53e484be05c48b5c3613245a2553b1",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r131/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:70327461",
+    "hydro-system:61317172",
+    "hydro-system:90001464",
+    "hydro-system:70815495"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:70327461",
+      "category": "river_group",
+      "system_id": "70327461",
+      "original_queue_rank": 328,
+      "baseline_logical_fid": 3029,
+      "geometry_fids": [
+        9449
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -99.7125,
+        47.90625,
+        -98.422917,
+        48.964583
+      ],
+      "rendered_mainstem_length_km": 213.751,
+      "rendered_network_length_km": 213.751,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -99.7125,
+          47.90625,
+          -98.422917,
+          48.964583
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "completion_scope": {
+        "full_selected_extent_inspected_in_original_cartography": true,
+        "full_bounded_geographic_correspondence_established": true,
+        "headward_scope": "The source maps show intermittent drainage and small unnamed ponds east of the Turtle Mountain lake terrain near Saint John, continuing toward Rolla, then southeast and east across the western Big Coulee drainage toward Perth, Bisbee and the junction with Mauvais Coulee. The uppermost selected feeder is not assigned a name merely from the surrounding Mauvais Coulee administrative basin.",
+        "lake_scope": "Selected lake passages are Lake Alice, Lake Irvine, the Pelican Lake inundated/marshy setting, Devils Lake, East Devils Lake, the Swan Lake arm/connection, and Stump Lake. Chain Lake, Mikes Lake and Dry Lake are important adjacent connected parts of the larger drainage but are not the selected main passage. Silver Lake is beside the downstream Big Coulee corridor; its label is not spread onto that corridor.",
+        "material_junctions_inspected": [
+          "Saint John–Rolla headward drainage entering the mapped western Big Coulee corridor",
+          "Western Big Coulee joining the separately mapped Mauvais Coulee northeast of Cando",
+          "Mauvais Coulee entering Lake Alice, with the Chain Lake system arriving separately from the east",
+          "Lake Alice–Lake Irvine connecting passage",
+          "Lake Irvine outlet and Big Coulee corridor at Churchs Ferry, continuing beside Silver Lake into the Pelican Lake setting",
+          "Pelican Lake connection into the western part of Devils Lake",
+          "Devils Lake eastern continuation and East Devils Lake",
+          "East Devils Lake–Swan Lake connection and entry into Stump Lake"
+        ],
+        "actual_terminal_setting": "The selected model endpoint is in the Stump Lake waterbody setting. It does not reach the Sheyenne River, Tolna, or a marine outlet. The maps show the distinct southern Stump Lake/Tolna drainage setting beyond the selected end, while official prose explains that Devils and Stump lakes are closed-basin lakes whose levels and connections vary with climate. No claim is made that the stored endorheic class excludes managed outlets or occasional historical overflow.",
+        "unresolved_material_connections": [],
+        "scale_note": "Ordinary generalized component and corridor correspondence. No exact bank, lake shoreline date, individual vertex, perennial flow, or precise headwater/mouth-point equivalence is required or claimed."
+      },
+      "region": "North Dakota, United States; Saint John–Rolla headward drainage, Big Coulee/Mauvais Coulee and the Alice–Irvine–Devils–Stump lake chain.",
+      "candidate_name_role": "No single representative river-system hydronym is established for the entire selected coulee-and-lake route. Big Coulee and Mauvais Coulee are positively identified components; Devils Lake and Stump Lake are lake/basin identities, not substituted river names.",
+      "source_keys": [
+        "r132-usgs-topo-nd",
+        "r132-ndswc-devils-basin-2006",
+        "r132-usgs-geology-devils-2017",
+        "r132-nddwr-devils-overview"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The named riverine components have positively mapped limits and relationships: the western Big Coulee joins Mauvais Coulee; Mauvais Coulee enters Lake Alice; the natural downstream drainage from Lake Irvine is identified as Big Coulee. The selected geometry continues well beyond those coulee corridors into the Devils Lake–East Devils Lake–Stump Lake terminal chain. The reviewed publications name and explain that wider setting as lakes and a basin, but do not attach a representative river-system hydronym to this whole selection. The large Mauvais Coulee, Devils Lake and Stump Lake labels on the state map are explicitly administrative basin delineations and are not whole-route stream labels.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Original federal and North Dakota cartography covers the selected FID 9449 from the Saint John–Rolla intermittent headward drainage, through the western Big Coulee branch east of Perth and Bisbee, into the separately labeled Mauvais Coulee northeast of Cando. The selected continuation enters Lake Alice, crosses into Lake Irvine, follows the downstream Big Coulee corridor through the Pelican Lake setting into Devils Lake, then continues through the eastern lake chain, East Devils Lake and the Swan Lake connection to its actual terminal inside Stump Lake. All material components and lake connections have source coverage at ordinary corridor scale. The reviewed sources establish the connected physical route and its component names, but do not establish a representative river-system hydronym for the selected line extending through this terminal lake chain. The review is complete with a null-name scope hold, not source-material pending.",
+      "supported_name_scope": "No single representative river-system hydronym is established for the entire selected coulee-and-lake route. Big Coulee and Mauvais Coulee are positively identified components; Devils Lake and Stump Lake are lake/basin identities, not substituted river names.",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [],
+        "representative_identity_assessment": {
+          "decision": "No representative river-system candidate established; completed name-scope hold.",
+          "reason": "The named riverine components have positively mapped limits and relationships: the western Big Coulee joins Mauvais Coulee; Mauvais Coulee enters Lake Alice; the natural downstream drainage from Lake Irvine is identified as Big Coulee. The selected geometry continues well beyond those coulee corridors into the Devils Lake–East Devils Lake–Stump Lake terminal chain. The reviewed publications name and explain that wider setting as lakes and a basin, but do not attach a representative river-system hydronym to this whole selection. The large Mauvais Coulee, Devils Lake and Stump Lake labels on the state map are explicitly administrative basin delineations and are not whole-route stream labels.",
+          "not_a_uniform_naming_requirement": "Different tributary or lake names alone do not force a hold. A representative river identity would be acceptable without renaming every component. Here the available source-supported broader identity is a lake-basin/connected-waterway setting; a representative river hydronym for the full selected corridor remains unestablished.",
+          "component_names_supported": [
+            "Big Coulee",
+            "Mauvais Coulee",
+            "Lake Alice",
+            "Lake Irvine",
+            "Pelican Lake",
+            "Devils Lake",
+            "East Devils Lake",
+            "Swan Lake",
+            "Stump Lake"
+          ],
+          "uppermost_feeder_name": null
+        }
+      }
+    },
+    {
+      "aw_id": "hydro-system:61317172",
+      "category": "river_group",
+      "system_id": "61317172",
+      "original_queue_rank": 329,
+      "baseline_logical_fid": 3520,
+      "geometry_fids": [
+        13949
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -41.922917,
+        -21.285417,
+        -40.963725,
+        -20.41875
+      ],
+      "rendered_mainstem_length_km": 213.408,
+      "rendered_network_length_km": 213.408,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -41.922917,
+          -21.285417,
+          -40.963725,
+          -20.41875
+        ]
+      },
+      "candidate_name": "Rio Itabapoana",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "candidate_names": [
+        "Rio Itabapoana"
+      ],
+      "region": "Minas Gerais, Espírito Santo and Rio de Janeiro, Brazil; Caparaó–São João–Itabapoana to the Atlantic at Barra do Itabapoana.",
+      "candidate_name_role": "representative downstream river and connected-system identity only",
+      "source_keys": [
+        "ibge_altocaparao2010",
+        "ibge_caparao2010",
+        "ibge_esperafeliz2010",
+        "ibge_caiana2010",
+        "ibge_rjes2015",
+        "ibge_bomjesus2020",
+        "ibge_mimoso2020",
+        "ibge_sfi2020",
+        "calheiros_rima2000",
+        "souza_oliveira2017_prior_prose"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected headward approach enters the Rio Caparaó corridor in the western Serra do Caparaó, continues through Alto Caparaó and Caparaó to Espera Feliz, and follows Rio São João through Caiana and Divininho to its junction with Rio Preto. The connected Rio Itabapoana then follows the Espírito Santo–Rio de Janeiro boundary through the upper valley, Rosal reservoir and the Calheiros/Bom Jesus corridor, turns east through Apiacá and Ponte do Itabapoana, passes the Pedra do Garrafão impoundment and continues across the coastal plain to the Atlantic at Barra do Itabapoana. Eight overlapping original IBGE maps plus an independently authored Calheiros RIMA establish ordinary geographic correspondence. The different headward names and hydropower passages are not uniformly renamed Itabapoana.",
+      "completion_scope": "The selected headward approach enters the Rio Caparaó corridor in the western Serra do Caparaó, continues through Alto Caparaó and Caparaó to Espera Feliz, and follows Rio São João through Caiana and Divininho to its junction with Rio Preto. The connected Rio Itabapoana then follows the Espírito Santo–Rio de Janeiro boundary through the upper valley, Rosal reservoir and the Calheiros/Bom Jesus corridor, turns east through Apiacá and Ponte do Itabapoana, passes the Pedra do Garrafão impoundment and continues across the coastal plain to the Atlantic at Barra do Itabapoana. Eight overlapping original IBGE maps plus an independently authored Calheiros RIMA establish ordinary geographic correspondence. The different headward names and hydropower passages are not uniformly renamed Itabapoana.",
+      "supported_name_scope": "representative downstream river and connected-system identity only",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The exact initial spring and any separate name for the first short upland feeder remain unassigned. Its connected headward setting is geographically covered by the Alto Caparaó original; this is not a material source gap.",
+          "Rio Caparaó is the mapped upper corridor. At Espera Feliz it joins the western Rio São João approach; the selected continuation through Caiana is São João. These names are not replaced by the representative downstream candidate.",
+          "The selected São João approach is distinct from the Rio Preto entering from the Dores do Rio Preto side. General basin prose describing a Rio Preto source cannot substitute that eastern source for this selected western route.",
+          "Rosal and Pedra do Garrafão are independently mapped reservoirs on the selected river corridor. Calheiros has a separately mapped project reservoir and documented natural-channel/reduced-flow connection. No tunnel, lake or reservoir receives an invented separate hydronym.",
+          "Prior-lawful 2017 field-study prose identifies additional hydropower sites in the middle valley, including Pirapetinga and Franca Amaral. It is not used to claim a current operational inventory, precise structure order, surveyed boundaries or alignment of each model vertex with diversion works.",
+          "The terminal correspondence is the mapped Itabapoana estuarine outlet beside Barra do Itabapoana into the Atlantic. No exact contemporary mouth-point, sandbar edge or bank match is asserted.",
+          "The maps have different dates and generalization levels. The result is a representative connected-system identity, not a uniform scalar hydronym or verified naming-registry determination."
+        ]
+      }
+    },
+    {
+      "aw_id": "hydro-system:90001464",
+      "category": "river_group",
+      "system_id": "90001464",
+      "original_queue_rank": 330,
+      "baseline_logical_fid": 2812,
+      "geometry_fids": [
+        8821
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -44.265315,
+        80.420833,
+        -40.364583,
+        81.832724
+      ],
+      "rendered_mainstem_length_km": 213.313,
+      "rendered_network_length_km": 213.313,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -44.265315,
+          80.420833,
+          -40.364583,
+          81.832724
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": null,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "material_pending_reason": null,
+      "completion_scope": "All selected FID 8821 geography, from its southern headward opening through the west-northwest and long northward ice connectors, the northern bends and westward terminal approach, was read at ordinary generalized corridor scale. Original map pixels, graticules, legends and imprints were inspected. This is complete geographic coverage, not a channel-by-channel or present-day hydrological-continuity claim. No geometry edits, vertex/bank/mouth-point revalidation, code, tests or audits were performed.",
+      "region": "Northern Greenland; northern Inland Ice and eastern ice/land-margin belt east of Victoria Fjord, south of Freuchen Land.",
+      "candidate_name_role": null,
+      "source_keys": [
+        "r121-geus-greenland-national-1995",
+        "r132-geus-nyeboe-land-sheet7-1989",
+        "r111-geus-bulletin18-2009-retained"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "naming_scope_hold_reason": "The retained national original covers the entire southern Inland Ice opening and approach; the newly acquired Sheet 7 covers the northern continuation, bends, and terminal ice/land-margin setting east of Victoria Fjord. These are mapped ice and land settings rather than evidence for one representative natural-river hydronym. The adjacent glacier and fjord names must not be transferred to the selected modeled line.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "This object lies wholly west of the 40 degrees W western boundary of Peary Land Sheet 8. Its northern setting is south of Freuchen Land, east of the inner Victoria Fjord region; it is not the Academy Gletscher–Independence Fjord corridor of the earlier r121 object. Jungersen Gletscher, Harder Gletscher, C. H. Ostenfeld Gletscher, Victoria Fjord and Nordenskiöld Fjord are mapped regional reference features only. None is assigned as a river name or an exact selected reach. In particular, the retained terminal class sea does not itself establish an ordinary river mouth into any named fjord.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "contextual_land_names": [
+          "Freuchen Land"
+        ],
+        "regional_fjord_context": [
+          "Victoria Fjord",
+          "Nordenskiöld Fjord"
+        ],
+        "distinct_unassigned_neighbouring_glaciers": [
+          "Jungersen Gletscher",
+          "Harder Gletscher",
+          "C. H. Ostenfeld Gletscher"
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "terminal_river_mouth_established": false,
+        "model_sea_terminal_independently_corroborated": false,
+        "no_uniform_scalar_assignment": true,
+        "selected_through_lake_names": [],
+        "selected_tributary_geometry_count": 0
+      }
+    },
+    {
+      "aw_id": "hydro-system:70815495",
+      "category": "river_group",
+      "system_id": "70815495",
+      "original_queue_rank": 331,
+      "baseline_logical_fid": 3185,
+      "geometry_fids": [
+        10228
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -82.755116,
+        28.235417,
+        -81.73125,
+        29.052083
+      ],
+      "rendered_mainstem_length_km": 213.301,
+      "rendered_network_length_km": 213.301,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -82.755116,
+          28.235417,
+          -81.73125,
+          29.052083
+        ]
+      },
+      "candidate_name": "Withlacoochee River",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "completion_scope": "Full bounded geographic correspondence is complete for FID10228, including the actual selected headward feeder, named river corridor, material junctions and lake passages, altered Inglis connector and Bird Creek-side tidal terminal. No unread connector remains. The completed representative finding is independent of uniform reach naming, exact mouth-point agreement or product application.",
+      "candidate_names": [
+        "Withlacoochee River"
+      ],
+      "region": "West-central Florida, United States; Green Swamp/Turkey Creek–Withlacoochee, Lake Rousseau and the Bird Creek-side tidal terminal.",
+      "candidate_name_role": "representative west-central Florida river and connected-system identity only",
+      "source_keys": [
+        "usgs_topo_florida",
+        "fdep_withlacoochee_paddling",
+        "swfwmd_h066_2015",
+        "swfwmd_where_river_begins",
+        "swfwmd_lakes_tributaries"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The selected eastern Green Swamp headward wetland feeder reaches the Turkey Creek corridor, then the mapped Withlacoochee River west of SR 33. The river crosses the Green Swamp, turns north east of Dade City, continues past Lacoochee, Silver Lake, the Tsala Apopka connections and the Outlet River junction, and reaches Dunnellon and Lake Rousseau. The selected lower route occupies the altered Inglis outlet corridor and Lower Withlacoochee estuary, finishing in the Bird Creek-side tidal network. Original federal and Florida cartography covers every selected component at ordinary corridor scale. This supports a representative system identity without assigning one hydronym to the headward feeder, lakes, altered connectors or terminal tidal channels.",
+      "supported_name_scope": "representative west-central Florida river and connected-system identity only",
+      "naming_scope_details": {
+        "whole_feature_uniform_name_established": false,
+        "component_scope_limits": [
+          "The candidate is the west-central Florida Withlacoochee River, distinct from the northern Florida/Georgia river of the same name.",
+          "The initial southeastern wetland tip is geographically covered but has no separately established name. Turkey Creek is mapped on the connected headward corridor; the exact naming boundary with the Withlacoochee is not fixed to a model vertex.",
+          "Silver Lake, Lake Annie, Nelson Lake, Bonnet Lake, Princess Lake and Lake Rousseau retain their own identities. The representative river name is not a replacement name for lake interiors or wetland channels.",
+          "Lake Panasoffkee and the western Tsala Apopka pools are connected lateral systems. The selected main route does not traverse the whole of either lake system.",
+          "The Inglis reach is altered by dam, lock, canal and bypass works. The selected generalized old-river corridor is not asserted to be an uninterrupted present-day natural channel across the Barge Canal or the precise modern bypass centerline.",
+          "The selected terminal bend lies in the Bird Creek-side marsh and tidal-channel network, north of the main Lower Withlacoochee navigation outlet. No surveyed open-Gulf mouth point or exact bank/shoreline coincidence is asserted.",
+          "No formal naming-register status, Korean name, uniform whole-feature scalar name, exhaustive minor tributary inventory or present operational condition of every structure is established."
+        ]
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:70327461",
+      "hydro-system:90001464"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 4,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 2,
+    "access_pending": 0,
+    "material_pending": 0
+  },
+  "totals_after": {
+    "recorded_targets": 471,
+    "non_pending_records": 410,
+    "source_access_pending": 3,
+    "source_material_pending": 58,
+    "source_any_pending": 61,
+    "scope_holds": 136,
+    "river_groups": 373,
+    "lakes": 98,
+    "unrecorded": 3594,
+    "unrecorded_river_groups": 3082,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r132-usgs-topo-nd",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r132-ndswc-devils-basin-2006",
+      "official_url": "https://www.dwr.nd.gov/pdfs/dl_072506.pdf"
+    },
+    {
+      "source_key": "r132-usgs-geology-devils-2017",
+      "official_url": "https://www.usgs.gov/centers/dakota-water-science-center/science/geology-devils-lake-basin"
+    },
+    {
+      "source_key": "r132-nddwr-devils-overview",
+      "official_url": "https://www.dwr.nd.gov/basins/devils_lake/dl_basin.html"
+    },
+    {
+      "source_key": "ibge_altocaparao2010",
+      "official_url": "https://biblioteca.ibge.gov.br/visualizacao/mapas/GEBIS%20-%20RJ/map12723.pdf"
+    },
+    {
+      "source_key": "ibge_caparao2010",
+      "official_url": "https://biblioteca.ibge.gov.br/visualizacao/mapas/GEBIS%20-%20RJ/map13214.pdf"
+    },
+    {
+      "source_key": "ibge_esperafeliz2010",
+      "official_url": "https://biblioteca.ibge.gov.br/visualizacao/mapas/GEBIS%20-%20RJ/map12999.pdf"
+    },
+    {
+      "source_key": "ibge_caiana2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/mg/caiana_v2.pdf"
+    },
+    {
+      "source_key": "ibge_rjes2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/rj_es_politico750k_2015.pdf"
+    },
+    {
+      "source_key": "ibge_bomjesus2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/bom_jesus_do_itabapoana/3300605_MM.pdf"
+    },
+    {
+      "source_key": "ibge_mimoso2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/ES/mimoso_do_sul/3203403_MM.pdf"
+    },
+    {
+      "source_key": "ibge_sfi2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/sao_francisco_de_itabapoana/3304755_MM.pdf"
+    },
+    {
+      "source_key": "calheiros_rima2000",
+      "official_url": "https://iema.es.gov.br/Media/iema/Downloads/RIMAS/RIMAS_2000/PCH%20Calheiros.PDF"
+    },
+    {
+      "source_key": "souza_oliveira2017_prior_prose",
+      "official_url": "https://editoraessentia.iff.edu.br/index.php/boletim/article/view/7579"
+    },
+    {
+      "source_key": "r121-geus-greenland-national-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r132-geus-nyeboe-land-sheet7-1989",
+      "official_url": "https://doi.org/10.22008/FK2/O16YSF"
+    },
+    {
+      "source_key": "r111-geus-bulletin18-2009-retained",
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf"
+    },
+    {
+      "source_key": "r121-geus-peary-land-sheet8-1986-extent-check",
+      "official_url": "https://doi.org/10.22008/FK2/Q7HIDY"
+    },
+    {
+      "source_key": "usgs_topo_florida",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "fdep_withlacoochee_paddling",
+      "official_url": "https://floridadep.gov/sites/default/files/WithSoGuide_1.pdf"
+    },
+    {
+      "source_key": "swfwmd_h066_2015",
+      "official_url": "https://www.swfwmd.state.fl.us/sites/default/files/medias/documents/Withlacoochee_Scenarios_Report_18_and_19.pdf"
+    },
+    {
+      "source_key": "swfwmd_where_river_begins",
+      "official_url": "https://www.swfwmd.state.fl.us/watersheds/withlacoochee-river/where-the-river-begins"
+    },
+    {
+      "source_key": "swfwmd_lakes_tributaries",
+      "official_url": "https://www.swfwmd.state.fl.us/watersheds/withlacoochee-river/lakes-and-tributaries"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "aedff2bb7d53e484be05c48b5c3613245a2553b1",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      328,
+      329,
+      330,
+      331
+    ],
+    "next_unrecorded_id": "hydro-system:61550900",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}

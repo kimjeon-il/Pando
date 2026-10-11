@@ -1,0 +1,807 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r132",
+  "sources": [
+    {
+      "title": "USGSTopo, The National Map, U.S. Geological Survey",
+      "source_type": "Original primary multiscale cartography",
+      "observed_outcome": "Six sequential bounded original PNG views completed HTTP 200 with image/png responses; each was visually inspected after its acquisition completed.",
+      "coverage": "Whole corridor overview plus overlapping Saint John–Rolla headward, Perth/Bisbee–Cando, Lake Alice/Irvine–Pelican, western/central Devils Lake and East Devils–Stump terminal views.",
+      "use_notice": "No source-use notice was present in the returned map pixels. This does not establish unrestricted redistribution. Original maps and local working figures are not included in the public-ready finding.",
+      "source_key": "r132-usgs-topo-nd",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "limits": "Multiscale map service, with mixed-date cartography and changing lake extent; supports generalized spatial correspondence and labels, not a current flow measurement or official register verification."
+    },
+    {
+      "title": "Devils Lake Basin: Including HUC12 Delineations and Administrative Units",
+      "author": "North Dakota State Water Commission; R. E. Bassler",
+      "edition": "July 2006, SWCGIS-038NE-06-006, scale 1:158,400",
+      "source_type": "Original primary state basin map",
+      "observed_outcome": "Original single-page PDF completed HTTP 200, application/pdf; full map and relevant headward, connecting and terminal portions visually read from the retained original.",
+      "coverage": "Saint John/Rolla headward route; separate Big Coulee and Mauvais Coulee branches and junction; Lake Alice/Irvine, downstream Big Coulee, Pelican/Devils/East Devils lakes, Swan and Stump lakes, and the farther southern Tolna/Sheyenne context.",
+      "use_notice": "The printed map says the commission compiled it using conventional cartographic standards and information believed reliable, disclaims guaranteed freedom from inaccuracies and responsibility for interpretations or decisions. Its water-feature legend specifies flooding extents circa 2003. Large colored labels are administrative basin delineations. Hydrology is credited to USGS/NDSWC at 1:100,000 scale; flood extents to FEMA at 1:24,000.",
+      "source_key": "r132-ndswc-devils-basin-2006",
+      "official_url": "https://www.dwr.nd.gov/pdfs/dl_072506.pdf",
+      "limits": "The map's basin labels are not stream labels. Circa-2003 flooding extent and generalized hydrography do not establish contemporary lake banks or year-round flow. No original map or crop is redistributed."
+    },
+    {
+      "title": "Geology of the Devils Lake Basin",
+      "author": "U.S. Geological Survey, Dakota Water Science Center",
+      "edition": "15 August 2017",
+      "source_type": "Primary agency explanatory prose",
+      "observed_outcome": "HTML opened normally; Surface Drainage prose was read.",
+      "coverage": "Mauvais Coulee inflow to Lake Alice; Alice–Irvine connector and Irvine outlet to Big Coulee; natural Big Coulee drainage versus Channel A and the separately connected eastern lakes.",
+      "use_notice": "The page marks some media Public Domain and some media as potentially restricted. No media from this page were acquired or used. Only its actually read explanatory prose supports this finding.",
+      "source_key": "r132-usgs-geology-devils-2017",
+      "official_url": "https://www.usgs.gov/centers/dakota-water-science-center/science/geology-devils-lake-basin",
+      "limits": "Prose corroboration, not an independently inspected map from this page. Historical channel modifications and approximate outlet elevations are descriptive context, not a current operational statement."
+    },
+    {
+      "title": "Devils Lake Basin Overview",
+      "author": "North Dakota Department of Water Resources",
+      "source_type": "Primary state explanatory prose",
+      "observed_outcome": "HTML opened normally and the basin overview prose was read.",
+      "coverage": "Devils and Stump lakes as closed-basin lakes; changing water extents, climatic sensitivity and historical overflow context.",
+      "use_notice": "The page carries a Department of Water Resources copyright footer and disclaimer link. Only bounded factual paraphrase is used.",
+      "source_key": "r132-nddwr-devils-overview",
+      "official_url": "https://www.dwr.nd.gov/basins/devils_lake/dl_basin.html",
+      "limits": "Basin context only; it is not treated as map correspondence or authority for a river name."
+    },
+    {
+      "title": "Alto Caparaó-MG, Mapa Municipal Estatístico, 3102050",
+      "author": "Instituto Brasileiro de Geografia e Estatística",
+      "edition": "Censo 2010; printed edition 22/07/2010",
+      "scale": "1:50,000",
+      "material_read": "Original one-sheet PDF acquired HTTP200; headward approach, Rio Caparaó, Alto Caparaó and southern continuation visually read.",
+      "evidence_kind": "original primary cartography",
+      "use_notice": "Statistical map compilation; cartographic integration/completeness caveat and reserved reproduction rights. Source pixels remain private.",
+      "source_key": "ibge_altocaparao2010",
+      "official_url": "https://biblioteca.ibge.gov.br/visualizacao/mapas/GEBIS%20-%20RJ/map12723.pdf"
+    },
+    {
+      "title": "Caparaó-MG, Mapa Municipal Estatístico, 3112109",
+      "author": "Instituto Brasileiro de Geografia e Estatística",
+      "edition": "Censo 2010; printed edition 22/07/2010",
+      "scale": "1:50,000",
+      "material_read": "Original one-sheet PDF acquired HTTP200; Rio Caparaó through the Caparaó/Boa Esperança/Empossado setting visually read.",
+      "evidence_kind": "original primary cartography",
+      "use_notice": "Statistical map compilation with integration/completeness caveat; reproduction rights reserved. Source pixels remain private.",
+      "source_key": "ibge_caparao2010",
+      "official_url": "https://biblioteca.ibge.gov.br/visualizacao/mapas/GEBIS%20-%20RJ/map13214.pdf"
+    },
+    {
+      "title": "Espera Feliz-MG, Mapa Municipal Estatístico, 3124203",
+      "author": "Instituto Brasileiro de Geografia e Estatística",
+      "edition": "Censo 2010; printed edition 23/07/2010",
+      "scale": "1:50,000",
+      "material_read": "Original one-sheet PDF acquired HTTP200; Caparaó–Pedra Menina–Espera Feliz route, western São João junction and southern Caiana continuation visually read.",
+      "evidence_kind": "original primary cartography",
+      "use_notice": "Statistical map compilation with integration/completeness caveat; reproduction rights reserved. Source pixels remain private.",
+      "source_key": "ibge_esperafeliz2010",
+      "official_url": "https://biblioteca.ibge.gov.br/visualizacao/mapas/GEBIS%20-%20RJ/map12999.pdf"
+    },
+    {
+      "title": "Caiana-MG, Mapa Municipal Estatístico, 3110103",
+      "author": "Instituto Brasileiro de Geografia e Estatística",
+      "edition": "Censo 2010; printed edition 22/07/2010",
+      "scale": "1:50,000",
+      "material_read": "Original one-sheet PDF independently discovered and acquired HTTP200; São João from Espera Feliz through Caiana/Divininho, Rio Preto confluence and named Itabapoana continuation visually read.",
+      "evidence_kind": "original primary cartography",
+      "use_notice": "Statistical map compilation with integration/completeness caveat; reproduction rights reserved. Source pixels remain private.",
+      "source_key": "ibge_caiana2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/mg/caiana_v2.pdf"
+    },
+    {
+      "title": "Mapa Político dos Estados do Espírito Santo e Rio de Janeiro",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências, Coordenação de Cartografia",
+      "edition": "2015; based on BCIM 2014",
+      "scale": "1:750,000",
+      "material_read": "Original one-sheet PDF acquired HTTP200; whole connected Itabapoana boundary corridor and major tributary junctions visually read at generalized scale, overlapping the detailed municipal maps.",
+      "evidence_kind": "original primary cartography",
+      "use_notice": "Generalized historical state cartography, not a current channel survey. Reproduction rights reserved; original and working crops remain private.",
+      "source_key": "ibge_rjes2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/rj_es_politico750k_2015.pdf"
+    },
+    {
+      "title": "Bom Jesus do Itabapoana-RJ, Mapa Municipal, 3300605",
+      "author": "Instituto Brasileiro de Geografia e Estatística",
+      "edition": "2020 collection; printed edition 04/2021",
+      "scale": "Graphic scale 0–1,600–3,200 m",
+      "material_read": "Original one-sheet PDF independently discovered and acquired HTTP200; upper Itabapoana/Prata approach, Rosal reservoir, Calheiros/Pirapetinga valley, Rio Calçado junction, Bom Jesus towns and eastward continuation visually read.",
+      "evidence_kind": "original primary cartography",
+      "use_notice": "Printed intended-use notice limits the map to IBGE statistical collection/tabulation and disclaims other-purpose responsibility. Treated as historical reference cartography, not an authoritative hydrological survey. Reproduction rights reserved; no pixels redistributed.",
+      "source_key": "ibge_bomjesus2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/bom_jesus_do_itabapoana/3300605_MM.pdf"
+    },
+    {
+      "title": "Mimoso do Sul-ES, Mapa Municipal, 3203403",
+      "author": "Instituto Brasileiro de Geografia e Estatística",
+      "edition": "2020 collection; printed edition 04/2021",
+      "scale": "Graphic scale 0–1,600–3,200 m",
+      "material_read": "Directory and original one-sheet PDF acquired HTTP200; Apiacá/Ponte do Itabapoana/Santo Eduardo corridor, Pedra do Garrafão reservoir and downstream channel, BR-101 and lower floodplain visually read.",
+      "evidence_kind": "original primary cartography",
+      "use_notice": "IBGE statistical-use-only intended-purpose notice and responsibility disclaimer; not a dedicated hydrological survey. Reproduction rights reserved. Source pixels remain private.",
+      "source_key": "ibge_mimoso2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/ES/mimoso_do_sul/3203403_MM.pdf"
+    },
+    {
+      "title": "São Francisco de Itabapoana-RJ, Mapa Municipal, 3304755",
+      "author": "Instituto Brasileiro de Geografia e Estatística",
+      "edition": "2020 collection; printed edition 04/2021",
+      "scale": "Graphic scale 0–1,500–3,000 m",
+      "material_read": "Directory and original one-sheet PDF acquired HTTP200; overlapping lower Itabapoana plain, tributaries, southward estuarine turn and actual Barra do Itabapoana Atlantic outlet visually read.",
+      "evidence_kind": "original primary cartography",
+      "use_notice": "IBGE statistical-use-only intended-purpose notice and responsibility disclaimer; not a dedicated hydrological survey. Reproduction rights reserved. Source pixels remain private.",
+      "source_key": "ibge_sfi2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/sao_francisco_de_itabapoana/3304755_MM.pdf"
+    },
+    {
+      "title": "PCH Calheiros, Relatório de Impacto Ambiental – RIMA; 70-156-Ejpe-1801",
+      "author": "Jaakko Pöyry Engenharia Ltda. for Eletroriver",
+      "edition": "Revision a, 23/11/2000",
+      "resolved_url": "https://iema.es.gov.br/Media/Downloads/RIMAS/RIMAS_2000/PCH%20Calheiros.PDF",
+      "material_read": "Original 93-page PDF acquired HTTP200. Printed pp5,8–10,12,14 and29 prose read; p11 Inserção Regional and p24 Implantação do Reservatório maps visually read. Confirms Calheiros project corridor below Rosal, retained natural-river/reduced-flow passage and return above the village.",
+      "evidence_kind": "primary project report and original project cartography",
+      "use_notice": "Historical project-stage document; proposed structures are not treated as proof of current operation or exact modern footprint. Official hosting does not establish redistribution permission; all source images remain private.",
+      "source_key": "calheiros_rima2000",
+      "official_url": "https://iema.es.gov.br/Media/iema/Downloads/RIMAS/RIMAS_2000/PCH%20Calheiros.PDF"
+    },
+    {
+      "title": "Qualidade da Água do rio Itabapoana: Análise dos Parâmetros Físico-Químicos e Microbiológicos e Influência de Empreendimentos Hidrelétricos",
+      "author": "Ednilson Gomes de Souza Junior and Vicente de Paulo Santos de Oliveira",
+      "edition": "Boletim do Observatório Ambiental Alberto Ribeiro Lamego 11(1),29–41; 2017",
+      "doi": "https://doi.org/10.19180/2177-4560.v11n12017p29-41",
+      "pdf_url": "https://editoraessentia.iff.edu.br/index.php/boletim/article/download/7579/7587/26041",
+      "material_read": "Bounded earlier-lawful web-PDF text on printed pp31–33, read before subsequent original HTTP403: São João/Preto formation, Atlantic outlet at Barra do Itabapoana; five then-operating hydropower sites; field-table distinction of Rosal and Pedra do Garrafão reservoir/reduced-flow sites and BR-101. Figures were not seen and are not cartographic evidence.",
+      "evidence_kind": "prior-lawful primary field-study prose only; visual acquisition stopped",
+      "use_notice": "Landing page states CC BY4.0 and retained author rights. Subsequent403 stops all additional acquisition irrespective of license. No article figures or source originals redistributed.",
+      "source_key": "souza_oliveira2017_prior_prose",
+      "official_url": "https://editoraessentia.iff.edu.br/index.php/boletim/article/view/7579"
+    },
+    {
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": "Jan C. Escher and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "year": 1995,
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "acquired_scope": "The retained complete official original was reused locally without external reacquisition. Its full overview, relevant northern Inland Ice and eastern Victoria Fjord-region crops, graticule, Inland Ice legend and imprint were visually read.",
+      "supports": "Complete southern headward and west-northwest/northward interior-ice corridor, including all selected geography south of Sheet 7's 81 degrees N edge, with overlap into the northern terminal-region setting.",
+      "limits": "National-scale historical geological cartography is used for broad Inland Ice geographic setting, not a mapped river channel, a subglacial route, present hydrology or a contemporary glacier front. Surface contours, ice-thickness isopachs and bedrock contours are distinct symbols and are not river traces.",
+      "reuse_limit": "Custom Dataset Terms permit internal use/processing while restricting redistribution and production or transfer of new maps. Original and all local crops or derivatives remain private. Own factual observations and ordinary bibliography only.",
+      "source_key": "r121-geus-greenland-national-1995"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 7, Nyeboe Land",
+      "author": "Niels Henriksen",
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "year": 1989,
+      "official_url": "https://doi.org/10.22008/FK2/O16YSF",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi%3A10.22008%2FFK2%2FO16YSF",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16809",
+      "acquired_scope": "Complete official single-sheet PDF acquired after the catalogue request completed. Full-sheet overview, southeastern ice-corridor and terminal-region crops, bottom graticule, ice/Quaternary-cover legend and original imprint were rendered and visually read.",
+      "supports": "Selected northern continuation from 81 degrees N, the northwest and north bends, and the complete westward terminal approach to the eastern land/ice-margin belt south of Freuchen Land, east of the inner Victoria Fjord region.",
+      "limits": "Historical land-and-ice geography is distinguished from natural-river evidence. Adjacent glacier and fjord names are not exact reach assignments; the model sea endpoint does not establish a river mouth. The original credits geological compilation to N. Henriksen, 1987–88, printing in 1989, and copyright to Grønlands Geologiske Undersøgelse.",
+      "reuse_limit": "Custom Dataset Terms permit internal use and processing but restrict redistribution and production or transfer of new maps. Originals, processed data, local crops and any derived cartographic materials remain private. Public-ready content is independently written factual observations and ordinary bibliography only.",
+      "source_key": "r132-geus-nyeboe-land-sheet7-1989"
+    },
+    {
+      "title": "Greenland from Archaean to Quaternary: Descriptive text to the 1995 Geological map of Greenland, 1:2 500 000. 2nd edition",
+      "authors": "Niels Henriksen, A. K. Higgins, Feiko Kalsbeek and T. Christopher R. Pulvertaft",
+      "publisher": "Geological Survey of Denmark and Greenland Bulletin 18",
+      "year": 2009,
+      "official_url": "https://www.geus.dk/media/13684/nr18_001-126.pdf",
+      "pages": "Printed pages 64–65 (Glaciology) and page 98 (bibliography).",
+      "acquired_scope": "Retained r111 original reused locally without external acquisition. Actually read printed pages 64–65 Glaciology prose and page 98 bibliography. No current FID map correspondence is claimed from an unseen bulletin figure.",
+      "supports": "Supporting distinction between continental Inland Ice and local glaciers, and between surface contours, ice-thickness isopachs and sub-ice bedrock contours. Bibliography identifies the separate 1992 descriptive text for Sheets 7 and 8.",
+      "limits": "Supporting context only; the retained 1995 national original and newly read 1989 Sheet 7 supply current corridor correspondence. Historical numerical ice and climate statements are not asserted as current, and the prose does not establish a selected hydronym.",
+      "reuse_limit": "Copyright GEUS 2009. Original and local working material remain private; own factual paraphrase only.",
+      "source_key": "r111-geus-bulletin18-2009-retained"
+    },
+    {
+      "title": "Geological map of Greenland, 1:500 000, Sheet 8, Peary Land",
+      "authors": "Hans Jørgen Bengaard and Niels Henriksen",
+      "publisher": "Geological Survey of Greenland; official digital original distributed by GEUS",
+      "year": 1986,
+      "official_url": "https://doi.org/10.22008/FK2/Q7HIDY",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/Q7HIDY",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16494",
+      "acquired_scope": "Retained original overview and edge/graticule context visually checked locally, with no external acquisition.",
+      "supports": "Negative coverage finding only: the selected object is west of the sheet's 40 degrees W boundary. This map does not supply positive selected-route correspondence.",
+      "limits": "The r121 Academy Gletscher–Independence Fjord observation belongs to a different selected object and is not transferred here.",
+      "reuse_limit": "Custom Dataset Terms restrict redistribution and production or transfer of new maps. Original, crops and any derived cartographic comparison material remain private.",
+      "source_key": "r121-geus-peary-land-sheet8-1986-extent-check",
+      "evidence_role": "Negative coverage context only; not selected-route geographic support."
+    },
+    {
+      "title": "USGSTopo, The National Map multi-scale topographic reference service",
+      "author": "U.S. Geological Survey",
+      "edition": "Composite service inspected 11 October 2026; metadata reports data refreshed September 4, 2026-v1.2, not a uniform edition date for every underlying theme.",
+      "material_read": "Three bounded original raster views acquired HTTP200 and visually read: eastern Green Swamp headward feeder and Turkey Creek connection; western Green Swamp through Lacoochee; Dunnellon, Lake Rousseau, Inglis and coastal tidal outlet. Service metadata also acquired and read HTTP200.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartographic_service",
+      "source_key": "usgs_topo_florida",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "use_notice": "The service describes its combination of National Map and other public-domain data. Its credit lists National Map datasets, USGS Global Ecosystems, Census TIGER/Line, USFS roads, Natural Earth, Department of State HIU and NOAA NCEI. Composite labels do not establish legal naming status. Original rasters and local orientation figures remain private."
+    },
+    {
+      "title": "Withlacoochee River South Paddling Trail maps and guide",
+      "author": "Florida Department of Environmental Protection, Office of Greenways and Trails",
+      "landing_url": "https://floridadep.gov/parks/ogt/documents/withlacoochee-river-south-paddling-guide",
+      "edition": "Undated acquired guide; landing-page modification date December 13, 2024 is not asserted as the date of every map.",
+      "material_read": "Original 12-page PDF acquired HTTP200; index and maps 1–7 visually read, with relevant trail prose. Coverage spans Lacoochee to Dunnellon, rather than the entire headwater-to-coast system.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography_and_prose",
+      "source_key": "fdep_withlacoochee_paddling",
+      "official_url": "https://floridadep.gov/sites/default/files/WithSoGuide_1.pdf",
+      "use_notice": "Recreational trail cartography; no precise channel, navigation or shoreline survey claim. Original PDF and working renders remain private."
+    },
+    {
+      "title": "Withlacoochee River Watershed Initiative (H066), Model Scenario Report",
+      "author": "Atkins, prepared for Southwest Florida Water Management District",
+      "edition": "September 20, 2015",
+      "landing_url": "https://www.swfwmd.state.fl.us/projects/withlacoochee-river-scenarios",
+      "material_read": "Complete 172-page original acquired; bounded reading of regional hydrography, Tsala Apopka connections and Inglis works. Figures 1, 1-1, 7-1, 12-1, 15-1, 17-1 and 18-1–18-2 visually inspected. Unread figures are not evidence.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_district_commissioned_report_and_cartography",
+      "source_key": "swfwmd_h066_2015",
+      "official_url": "https://www.swfwmd.state.fl.us/sites/default/files/medias/documents/Withlacoochee_Scenarios_Report_18_and_19.pdf",
+      "use_notice": "Figure 1-1 visibly credits OpenStreetMap contributors, CC BY-SA. Historical description and scenario alternatives are distinguished; proposed modifications are not represented as completed works. Originals and renders remain private."
+    },
+    {
+      "title": "Where the River Begins",
+      "author": "Southwest Florida Water Management District",
+      "material_read": "Original web prose read directly; identifies the Green Swamp headwater environment and discharge near Yankeetown. Its published river length is not substituted for the model length.",
+      "cartography_observed": false,
+      "prose_only": true,
+      "source_type": "primary_supporting_prose",
+      "source_key": "swfwmd_where_river_begins",
+      "official_url": "https://www.swfwmd.state.fl.us/watersheds/withlacoochee-river/where-the-river-begins"
+    },
+    {
+      "title": "Lakes and Tributaries",
+      "author": "Southwest Florida Water Management District",
+      "material_read": "Original web prose read directly; distinguishes major tributaries, Panasoffkee, Tsala Apopka and Lake Rousseau and explains their connections. Not treated as original map evidence.",
+      "cartography_observed": false,
+      "prose_only": true,
+      "source_type": "primary_supporting_prose",
+      "source_key": "swfwmd_lakes_tributaries",
+      "official_url": "https://www.swfwmd.state.fl.us/watersheds/withlacoochee-river/lakes-and-tributaries"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70327461",
+      "source_keys": [
+        "r132-usgs-topo-nd",
+        "r132-ndswc-devils-basin-2006",
+        "r132-usgs-geology-devils-2017",
+        "r132-nddwr-devils-overview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9449
+          ],
+          "component_scope": "Saint John–Rolla headward drainage and western Big Coulee",
+          "finding": "Overlapping original maps show the selected intermittent headward corridor near Saint John and Rolla, with small ponds and wet depressions rather than a named major source lake. The route continues southeast and east in the western drainage past the Perth/Bisbee area; the state map places a Big Coulee stream label on this branch before its meeting with Mauvais Coulee. Nearby McGillis Creek, Hidden Island Coulee and the main Mauvais headward branch near Rock Lake are distinguishable other corridors and are not substituted for the selected western route.",
+          "sources": [
+            "r132-usgs-topo-nd",
+            "r132-ndswc-devils-basin-2006"
+          ],
+          "correspondence": "Headward corridor and its connection to the western Big Coulee branch covered at ordinary map scale.",
+          "name_scope": "Uppermost feeder name remains null. Big Coulee is supported on the mapped western branch; the surrounding Mauvais Coulee administrative-basin label is not used as a name for every headward channel."
+        },
+        {
+          "fragments": [
+            9449
+          ],
+          "component_scope": "Big Coulee–Mauvais Coulee junction and shared route to Lake Alice",
+          "finding": "The western branch joins the separately mapped Mauvais Coulee northeast of Cando. Original cartography follows the shared southerly channel east of Cando and toward Lake Alice, through wetland and widened-channel reaches. USGS prose independently identifies Mauvais Coulee as an inflow to Lake Alice.",
+          "sources": [
+            "r132-usgs-topo-nd",
+            "r132-ndswc-devils-basin-2006",
+            "r132-usgs-geology-devils-2017"
+          ],
+          "correspondence": "Material junction and downstream lake entry inspected.",
+          "name_scope": "Mauvais Coulee is supported for this named trunk component; its name is not extended through all later lakes."
+        },
+        {
+          "fragments": [
+            9449
+          ],
+          "component_scope": "Lake Alice–Lake Irvine passage",
+          "finding": "The selected continuation turns southwest through the Lake Alice and Lake Irvine setting. Both original maps depict their relationship and connecting low-water/wetland passage. Chain Lake and Mikes Lake lie to the east as distinct connected lake components. USGS prose explicitly describes a channel connecting Alice to Irvine and the Irvine outlet to Big Coulee.",
+          "sources": [
+            "r132-usgs-topo-nd",
+            "r132-ndswc-devils-basin-2006",
+            "r132-usgs-geology-devils-2017"
+          ],
+          "correspondence": "Lake-to-lake connection covered; different mapped water extents are treated as hydrologic-stage differences, not missing correspondence.",
+          "name_scope": "Lake labels are confined to their waterbody components. Chain, Mikes and Dry lakes are not falsely counted as selected through-passages."
+        },
+        {
+          "fragments": [
+            9449
+          ],
+          "component_scope": "Lake Irvine outlet, downstream Big Coulee and Pelican Lake",
+          "finding": "The source maps continue the Irvine outlet through Churchs Ferry and along the narrow wetland/channel corridor beside Silver Lake into the Pelican Lake setting, then into the western Devils Lake waterbody. The state map labels Big Coulee at the outlet corridor, and USGS prose distinguishes this natural route from Channel A, which diverts Dry Lake water into Sixmile Bay. The selected route follows the western natural corridor, not Channel A.",
+          "sources": [
+            "r132-usgs-topo-nd",
+            "r132-ndswc-devils-basin-2006",
+            "r132-usgs-geology-devils-2017"
+          ],
+          "correspondence": "Irvine outlet, corridor beside Silver Lake, Pelican passage and Devils Lake entry covered.",
+          "name_scope": "Big Coulee is the source-supported name for the outlet corridor. It is not assigned to Pelican Lake, Devils Lake, or the entire selected system."
+        },
+        {
+          "fragments": [
+            9449
+          ],
+          "component_scope": "Devils Lake and eastern continuation",
+          "finding": "Original cartography shows the selected eastward passage across Devils Lake, south of the city and through the eastern lake continuation into East Devils Lake. Broad inundated areas, arms, peninsulas, road crossings and the distinction between the main lake and the eastern named lake provide ordinary corridor correspondence. The selected line is a modeled lake traversal, not an independently observed river centerline across the lake.",
+          "sources": [
+            "r132-usgs-topo-nd",
+            "r132-ndswc-devils-basin-2006"
+          ],
+          "correspondence": "Western-to-eastern lake passage and East Devils Lake entry covered.",
+          "name_scope": "Devils Lake and East Devils Lake are waterbody names, not inferred river names."
+        },
+        {
+          "fragments": [
+            9449
+          ],
+          "component_scope": "East Devils Lake–Swan Lake–Stump Lake terminal",
+          "finding": "The original maps show the eastern low corridor from East Devils Lake toward Swan Lake, its connection into Stump Lake, and the selected terminal within the Stump Lake setting. The 2006 map distinguishes channel/wetland connections under its circa-2003 water extents; USGSTopo shows much broader joined water. The route does not continue to the Sheyenne River. Official state prose identifies Devils Lake and Stump Lake as closed-basin lakes with large climate-driven changes and historical overflow episodes.",
+          "sources": [
+            "r132-usgs-topo-nd",
+            "r132-ndswc-devils-basin-2006",
+            "r132-nddwr-devils-overview"
+          ],
+          "correspondence": "Final material connector, lake entry and actual selected terminal covered.",
+          "name_scope": "Swan Lake and Stump Lake remain lake labels. Stump Lake basin is not used as a representative river name."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61317172",
+      "source_keys": [
+        "ibge_altocaparao2010",
+        "ibge_caparao2010",
+        "ibge_esperafeliz2010",
+        "ibge_caiana2010",
+        "ibge_rjes2015",
+        "ibge_bomjesus2020",
+        "ibge_mimoso2020",
+        "ibge_sfi2020",
+        "calheiros_rima2000",
+        "souza_oliveira2017_prior_prose"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Serra do Caparaó headward approach and Alto Caparaó",
+          "finding": "The Alto Caparaó original maps the selected upland approach west of the principal Caparaó divide, connected to the Rio Caparaó east/northeast of Alto Caparaó. It follows that river southwest toward the town and then south, while separately depicting Córrego Três Barras and the Rio José Pedro drainage beyond the divide. The initial tip is not assigned a separate spring name.",
+          "sources": [
+            "ibge_altocaparao2010"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Alto Caparaó–Caparaó–Pedra Menina continuation",
+          "finding": "Overlapping Alto Caparaó, Caparaó and Espera Feliz originals follow the southward Rio Caparaó past Pinheiros, the São Pedro/Boa Esperança setting and Caparaó, continuing through Empossado and São José da Pedra Menina toward Espera Feliz. Ribeirão São Domingos and the eastern Rio Preto are separately depicted watercourses. No lake crossing is required by this headward route.",
+          "sources": [
+            "ibge_altocaparao2010",
+            "ibge_caparao2010",
+            "ibge_esperafeliz2010"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Caparaó"
+        },
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Espera Feliz junction and Caiana continuation",
+          "finding": "The Espera Feliz original shows the selected northern Rio Caparaó approach meeting Rio São João arriving from the São Sebastião da Barra side. The river continues south through Espera Feliz and Caiana as São João. The Caiana sheet overlaps the entire continuation and distinguishes the western São Roque/Funil tributary approaches and the eastern Bananal/Mato Grosso branches.",
+          "sources": [
+            "ibge_esperafeliz2010",
+            "ibge_caiana2010"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Caparaó / Rio São João"
+        },
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Divininho and São João–Preto formation of Itabapoana",
+          "finding": "The Caiana original maps São João southeast and south past the Serra da Queixada, Santa Cruz and Divininho setting, then southeast to the Três Estados junction. Rio Preto arrives separately from the northeast along the Minas Gerais–Espírito Santo boundary. The downstream channel is explicitly labeled Rio Itabapoana, and turns east along the Espírito Santo–Rio de Janeiro boundary. This directly accounts for the selected western headward choice and name transition.",
+          "sources": [
+            "ibge_caiana2010",
+            "ibge_rjes2015"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio São João / Rio Itabapoana"
+        },
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Upper Itabapoana boundary valley toward Rosal",
+          "finding": "The state-map original continues the same boundary river east below São Pedro de Rates and then south west of Guaçuí toward the Rosal/Airituba valley. It distinguishes the Ribeirão da Onça entering from the Santa Clara side and Rio do Veado from the Guaçuí side. The Bom Jesus original overlaps the southern continuation, including the Prata/Rosal Volta Grande approach. These are continuous mapped valley connections, not identity inferred from an encompassing basin label.",
+          "sources": [
+            "ibge_rjes2015",
+            "ibge_bomjesus2020"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Itabapoana"
+        },
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Rosal reservoir and downstream natural-river corridor",
+          "finding": "The Bom Jesus original explicitly maps Reservatório Rosal as an expanded, branched waterbody along the selected boundary river below the Volta Grande setting, with the Usina Hidrelétrica Rosal label at its southern end. The river continues south through the Rosal/Airituba setting. Reservoir side arms are distinguished from the through-going selected corridor. Previously read field-study prose separately identifies a reservoir sampling reach and the reduced-flow reach below Rosal.",
+          "sources": [
+            "ibge_bomjesus2020",
+            "souza_oliveira2017_prior_prose"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Itabapoana / Reservatório Rosal"
+        },
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Calheiros hydropower connection, Pirapetinga valley and Bom Jesus",
+          "finding": "The Bom Jesus map traces the river through Calheiros, Alegoria, Ponte do Vieira and Barra do Pirapetinga, past the Rio Calçado confluence and into the Bom Jesus do Itabapoana/Bom Jesus do Norte urban valley. The independent 2000 Calheiros RIMA maps its project reservoir in this same north–south river valley and documents the intake-to-powerhouse bypass while retaining the natural river channel and returning flow above Calheiros. This project evidence is distinguished from later operation: the prior-lawful 2017 study describes Calheiros, Pirapetinga and Franca Amaral among the operating sites then. No diversion tunnel is asserted to be the selected surface line.",
+          "sources": [
+            "ibge_bomjesus2020",
+            "calheiros_rima2000",
+            "souza_oliveira2017_prior_prose"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Itabapoana"
+        },
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Bom Jesus–Apiacá–Ponte do Itabapoana middle/lower river",
+          "finding": "Overlapping Bom Jesus and Mimoso originals map the eastward river below the twin towns, through the José Carlos/Turu and Apiacá settings, then the bend toward Ponte do Itabapoana and Santo Eduardo. The Rio Muqui do Sul and other northern tributary approaches are separately depicted. The selected line remains on Itabapoana rather than following those tributaries inland.",
+          "sources": [
+            "ibge_bomjesus2020",
+            "ibge_mimoso2020",
+            "ibge_rjes2015"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Itabapoana"
+        },
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Pedra do Garrafão reservoir, outlet and BR-101 passage",
+          "finding": "The Mimoso original shows the river entering an expanded waterbody east of Santo Eduardo/Ponte do Itabapoana, with a southern side arm and an eastern constriction labeled Pequena Central Hidrelétrica Pedra do Garrafão. The river channel remains visible below the structure, continues east through several bends and reaches BR-101. Prior-lawful field-study prose independently distinguishes the reservoir, reduced-flow reach and downstream BR-101 crossing. These connections are visually mapped rather than supplied solely by the model.",
+          "sources": [
+            "ibge_mimoso2020",
+            "souza_oliveira2017_prior_prose"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Itabapoana / Pedra do Garrafão reservoir setting"
+        },
+        {
+          "fragments": [
+            13949
+          ],
+          "component_scope": "Coastal plain, lower tributaries and Atlantic terminal",
+          "finding": "The Mimoso and São Francisco originals overlap across the lower floodplain, showing the eastward Itabapoana through the Campinas/Passo Calçado setting, alongside separately drawn Rio Preto and local drainage. The São Francisco original continues the river past São Valentim/Terreira, turns south along the coastal plain, then east through the Barra do Itabapoana estuarine channel into the Atlantic. Nearby Lagoa Feia locality, Córrego São Paulo and coastal drains are not substituted for a selected lake crossing. The map also distinguishes the much farther south Paraíba do Sul outlet, which is not this terminal.",
+          "sources": [
+            "ibge_mimoso2020",
+            "ibge_sfi2020",
+            "ibge_rjes2015"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Rio Itabapoana"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90001464",
+      "source_keys": [
+        "r121-geus-greenland-national-1995",
+        "r132-geus-nyeboe-land-sheet7-1989",
+        "r111-geus-bulletin18-2009-retained"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8821
+          ],
+          "component_scope": "Southern headward opening and west-northwest approach",
+          "finding": "The southern opening and first west-northwest connector occupy the national map's northern Inland Ice. The map includes the complete selected area south of the 81 degrees N southern boundary of Sheet 7. The ice surface, ice-thickness and sub-ice bedrock contour symbols are identified through the actual legend.",
+          "sources": [
+            "r121-geus-greenland-national-1995"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null,
+          "limits": "No mapped natural source, river trace or subglacial channel is inferred from an ice contour or model connectivity."
+        },
+        {
+          "fragments": [
+            8821
+          ],
+          "component_scope": "Long northward interior-ice connector",
+          "finding": "The route continues north through the broad continental-ice area east of the exposed-land belt of the inner Victoria Fjord region. The national map covers the southern portion and overlaps Sheet 7 after its 81 degrees N edge, leaving no missing inter-sheet interval.",
+          "sources": [
+            "r121-geus-greenland-national-1995",
+            "r132-geus-nyeboe-land-sheet7-1989"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null,
+          "limits": "Ice geography provides corridor correspondence; the sources do not establish that the modeled line represents a continuous visible or subglacial river."
+        },
+        {
+          "fragments": [
+            8821
+          ],
+          "component_scope": "Northwestward and northward bends before the terminal approach",
+          "finding": "The succeeding northwest and north connectors remain in the ice-covered approach east of the mapped exposed-terrain margin, south of Freuchen Land. Sheet 7 distinguishes that ice area from rock outcrops, superficial-cover patches and the separately mapped neighboring glaciers.",
+          "sources": [
+            "r132-geus-nyeboe-land-sheet7-1989",
+            "r121-geus-greenland-national-1995"
+          ],
+          "correspondence": "complete at ordinary generalized component/corridor scale",
+          "mapped_component_name": null,
+          "limits": "No separate selected lake passage, tributary junction or reservoir connector is established, and no neighboring glacier name is extended over the modeled connectors."
+        },
+        {
+          "fragments": [
+            8821
+          ],
+          "component_scope": "Westward terminal approach and ending setting",
+          "finding": "The final westward approach occupies the eastern ice/land-margin setting in the inner Victoria Fjord region, south of the mapped Jungersen Gletscher corridor and north of Harder Gletscher. The detailed original covers the whole approach and ending setting. The ending is not established on these maps as an ordinary named river mouth.",
+          "sources": [
+            "r132-geus-nyeboe-land-sheet7-1989",
+            "r121-geus-greenland-national-1995"
+          ],
+          "correspondence": "complete at ordinary generalized terminal-corridor scale",
+          "mapped_component_name": null,
+          "limits": "The mapped land/ice margin and neighboring glacier/fjord context do not corroborate the model terminal class sea as a present river mouth. No contemporary shoreline, current glacier-front position or exact discharge destination is claimed."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70815495",
+      "source_keys": [
+        "usgs_topo_florida",
+        "fdep_withlacoochee_paddling",
+        "swfwmd_h066_2015",
+        "swfwmd_where_river_begins",
+        "swfwmd_lakes_tributaries"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10228
+          ],
+          "component_scope": "Southeastern Green Swamp wetland headward feeder",
+          "finding": "The eastern original federal view covers the selected beginning in forested wetlands east of Old Grade Road, south of Deen Still Road. It shows the northward wetland/stream connection across the Deen Still Road setting and its continuation through the eastern Green Swamp. The selected initial feeder is distinct from the lake chain and drainage beside Commonwealth Avenue farther west. No exact spring or uniform name for the initial tip is assigned.",
+          "sources": [
+            "usgs_topo_florida"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            10228
+          ],
+          "component_scope": "Turkey Creek and westward Withlacoochee approach",
+          "finding": "The same view shows the selected northward approach meeting the mapped Turkey Creek corridor in the Lake–Polk boundary setting and turning west toward SR 33. The connected watercourse continues west through Loggy Pond Swamp into the repeatedly labeled Withlacoochee River corridor near Withla and westward. The more northerly Turkey Creek and Little Creek branches, nearby ponds, and the southern Pony Creek approach are distinguishable from the selected feeder. This is direct geographic coverage, not an inference from the Green Swamp basin label.",
+          "sources": [
+            "usgs_topo_florida"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Turkey Creek / Withlacoochee River"
+        },
+        {
+          "fragments": [
+            10228
+          ],
+          "component_scope": "Green Swamp westward bend and northward course east of Dade City",
+          "finding": "The overlapping eastern and western federal views trace the river southwest through the Rock Ridge and Withlacoochee River Swamp settings, west across SR 471, and around the broad bend north of US 98 before it turns north east of Dade City. The western view continues past the riverine lakes and swamps to Lacoochee. Pony Creek, Colt/Gator Creek approaches, the southwestern Hillsborough overflow, Devils Creek and Gator Hole Slough remain separate connecting branches rather than alternate names for the entire selected line.",
+          "sources": [
+            "usgs_topo_florida"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Withlacoochee River"
+        },
+        {
+          "fragments": [
+            10228
+          ],
+          "component_scope": "Lacoochee, Ridge Manor and Silver Lake",
+          "finding": "DEP maps 1–2 continue from Lacoochee past the CR 575 bend, Ridge Manor and Croom into the Silver Lake setting and onward to Nobleton. The Little Withlacoochee enters near River Junction and southern Silver Lake; its eastern approach is not the selected headward route.",
+          "sources": [
+            "fdep_withlacoochee_paddling",
+            "usgs_topo_florida"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Withlacoochee River / Silver Lake"
+        },
+        {
+          "fragments": [
+            10228
+          ],
+          "component_scope": "Nobleton to Outlet River and Wysong",
+          "finding": "DEP maps 3–4 show the selected corridor past Istachatta, Lake Annie, Nelson Lake and Bonnet Lake, then Princess Lake, the Outlet River connection from Lake Panasoffkee, Carlson/Wysong and Rutland. Panasoffkee is east of the main route; its Outlet River is the lateral connection.",
+          "sources": [
+            "fdep_withlacoochee_paddling"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Withlacoochee River"
+        },
+        {
+          "fragments": [
+            10228
+          ],
+          "component_scope": "Tsala Apopka lateral connections and middle-river junctions",
+          "finding": "The district maps distinguish the selected river east of the Floral City, Inverness and Hernando pools. Jumper Creek and Outlet River enter from the east. Orange State and Leslie Heifner canals and northern marsh/canal connections link Tsala Apopka to the river without making all its pools a selected mainstem passage. Wysong is downstream of Outlet River.",
+          "sources": [
+            "swfwmd_h066_2015"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Withlacoochee River"
+        },
+        {
+          "fragments": [
+            10228
+          ],
+          "component_scope": "Rutland, Potts Preserve, Stokes Ferry and Dunnellon",
+          "finding": "DEP maps 5–7 trace the river past the Gum Slough/Gum Springs Run junction and Potts Preserve, northwest through Stokes Ferry and Two Mile Prairie, then to Dunnellon. The Rainbow River enters from the north at Dunnellon. The federal coastal view overlaps this junction and the westward continuation.",
+          "sources": [
+            "fdep_withlacoochee_paddling",
+            "usgs_topo_florida"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Withlacoochee River"
+        },
+        {
+          "fragments": [
+            10228
+          ],
+          "component_scope": "Lake Rousseau and altered Inglis outlet",
+          "finding": "The federal map follows the selected westward route through the broad Lake Rousseau impoundment and its southwestern old-river outlet. District figures 18-1–18-2 identify Inglis Dam, the Barge Canal, Inglis Lock and the separate Bypass Channel to the lower river. The report explains that canal construction severed the former river course and a bypass conveys normal flows. This known alteration is covered, not an unread connector.",
+          "sources": [
+            "usgs_topo_florida",
+            "swfwmd_h066_2015"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": "Lake Rousseau / Withlacoochee River"
+        },
+        {
+          "fragments": [
+            10228
+          ],
+          "component_scope": "Lower Withlacoochee and Bird Creek-side terminal estuary",
+          "finding": "The coastal federal view shows the lower river continuing west past the US 19 crossing and the Inglis–Yankeetown riverfront, then turning southwest into the tidal marsh. The selected final westward and northwestward bend occupies the Bird Creek-side outlet network north of the main river navigation exit. Bird Creek, Bennetts Creek and Johns Creek are separately labeled, and the straight Cross Florida Barge Canal lies farther south. The endpoint is assessed as this connected estuarine/coastal setting, not recast as the exact open-Gulf mouth of a uniformly named river.",
+          "sources": [
+            "usgs_topo_florida"
+          ],
+          "correspondence": "complete at ordinary component/corridor scale",
+          "mapped_component_name": null
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:61317172",
+      "publication": "Relatório Etapa A: Diagnóstico e Prognóstico – Bacia Hidrográfica do Rio Itabapoana; AGERH",
+      "official_url": "https://agerh.es.gov.br/Media/agerh/Documenta%C3%A7%C3%A3o%20CBHs/Itabapoana/Plano%20de%20Bacia/REA_DiagnosticoPrognostico_CCBH%20Itabapoana.pdf",
+      "observed_outcome": "The sole original acquisition completed HTTP502, text/html after redirect. No report PDF or original maps acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel failure reported.",
+      "restriction_scope": "Missing report, maps and equivalent copies, formats, figures, catalogue/original/reader/cache/mirror and other acquisition routes paused for availability. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": "Only catalogue bibliography at https://agerh.es.gov.br/ccbh-itabapoana/plano-de-bacia was read before the failure; it is not substantive hydrographic evidence. Discovery excerpts and unseen figures excluded.",
+      "limitation_kind": "availability_stop",
+      "material_gap": false,
+      "resolved_url": "https://agerh.es.gov.br/Media/Documenta%C3%A7%C3%A3o%20CBHs/Itabapoana/Plano%20de%20Bacia/REA_DiagnosticoPrognostico_CCBH%20Itabapoana.pdf"
+    },
+    {
+      "aw_id": "hydro-system:61317172",
+      "publication": "IBGE 2010 Minas Gerais municipal-statistical-map collection directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/mg/",
+      "observed_outcome": "Sole web-reader open returned (400) Timeout fetching; no directory body or observed origin HTTP status.",
+      "outcome_layer": "Web-reader fetch/transport outcome; origin HTTP status unestablished.",
+      "restriction_scope": "Exact directory and equivalent directory-acquisition routes paused; no retry. Independently discovered individual map publications are not denied by this directory failure.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "directory_availability_timeout",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61317172",
+      "publication": "IBGE 2020 Bom Jesus do Itabapoana municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RJ/bom_jesus_do_itabapoana/",
+      "observed_outcome": "Sole web-reader open reported Unicode decoding error. No directory body, HTTP status, authorization or security reason exposed.",
+      "outcome_layer": "Reader decoding failure; origin HTTP status unknown.",
+      "restriction_scope": "Failed directory route was not retried. This does not establish a whole-publication HTTP denial. The exact map PDF was independently discovered by search afterward and its original completed HTTP200.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "directory_reader_decoding_failure",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61317172",
+      "publication": "IBGE 2020 Caiana municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/MG/caiana/",
+      "observed_outcome": "Sole web-reader open stated URL not accessible via this tool. No directory body, HTTP status, security or authorization reason exposed.",
+      "outcome_layer": "Unexplained reader-route failure; origin HTTP status unknown.",
+      "restriction_scope": "Exact directory and equivalent directory-acquisition routes paused, with no retry or automatic fallback. The independently issued Caiana2010 map was separately discovered and acquired normally.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "directory_reader_availability_failure",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61317172",
+      "publication": "Diagnóstico Aproveitamentos Hidrelétricos, Governo do Estado do Rio de Janeiro / INEA; printed edition not inspected",
+      "official_url": "https://www.inea.rj.gov.br/wp-content/uploads/2021/03/Diagn%C3%B3stico-Aproveitamentos-Hidrel%C3%A9tricos.pdf",
+      "observed_outcome": "Sole original acquisition completed HTTP502, text/html. No PDF or report body acquired.",
+      "outcome_layer": "Completed original HTTP-client response; no separate tunnel failure reported.",
+      "restriction_scope": "Whole missing report, maps and all equivalent copies, formats, figures, original/reader/cache/mirror and acquisition routes paused. No retry or alternate acquisition.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61317172",
+      "publication": "Souza Junior and Oliveira2017, Qualidade da Água do rio Itabapoana: Análise dos Parâmetros Físico-Químicos e Microbiológicos e Influência de Empreendimentos Hidrelétricos; DOI10.19180/2177-4560.v11n12017p29-41",
+      "official_url": "https://editoraessentia.iff.edu.br/index.php/boletim/article/download/7579/7587/26041",
+      "observed_outcome": "Landing and linked13-page web-PDF reader opened normally; relevant prose was read. Subsequent sole original-file acquisition completed HTTP403, text/html. Original PDF bytes/map pixels not acquired.",
+      "outcome_layer": "Actual HTTP403 in completed original-client response.",
+      "restriction_scope": "Entire article, figures and equivalent copies, formats, DOI/publisher/viewer/original/reader/cache/mirror and every further acquisition route stopped. No retry, screenshot or alternate request.",
+      "earlier_lawful_prose_exception": "Only the previously read printed pp31–33 web-PDF prose/table and landing bibliography/license remain usable in their stated scope. These support regional formation/outlet context and hydropower reach distinctions, not unseen figures. The independent municipal-map originals and Calheiros RIMA are separate publications.",
+      "limitation_kind": "http_403_denial",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:70815495",
+      "publication": "Withlacoochee River Watershed Initiative (H066), Model Scenario Report, Atkins for Southwest Florida Water Management District, September 20, 2015",
+      "official_url": "https://www.swfwmd.state.fl.us/sites/default/files/medias/documents/Withlacoochee_Scenarios_Report_18_and_19.pdf",
+      "observed_outcome": "The web reader reported a completed content-size limitation without an observed origin access denial. One sequential acquisition of the known official original then completed HTTP 200; its prose and selected original maps were read.",
+      "outcome_layer": "First response: technical web-reader size limit with no observed origin access denial. Subsequent response: successful original HTTP200.",
+      "restriction_scope": "The failed reader route was not repeated. No publication-wide denial or equivalent-route stop was established; the successful original supplied evidence.",
+      "earlier_lawful_prose_exception": "The separate project landing page had already opened normally. No report or map finding is based on discovery snippets or the failed reader.",
+      "limitation_kind": "completed_technical_reader_size_limit_with_successful_original_fallback",
+      "material_gap": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:90001464",
+      "publication": "Geological map of Greenland, 1:500 000, Sheet 7, Nyeboe Land, Niels Henriksen, 1989: Custom Dataset Terms",
+      "official_url": "https://doi.org/10.22008/FK2/O16YSF",
+      "observed_outcome": "The official catalogue and then its exact linked original PDF both completed HTTP 200. Custom Dataset Terms were read from the catalogue, and the original copyright and imprint were visually inspected. No access denial or availability stop occurred.",
+      "outcome_layer": "Successful origin HTTP acquisition and source-use notice; no access denial or availability stop.",
+      "restriction_scope": "Custom Dataset Terms permit internal use and processing but restrict redistribution and production or transfer of new maps. Originals, processed data, local crops and any derived cartographic materials remain private. Public-ready content is independently written factual observations and ordinary bibliography only.",
+      "earlier_lawful_prose_exception": "Not needed as an exception: the newly acquired original map was directly read for this selected object. Search-discovery metadata was used to identify the publication, not as map evidence.",
+      "landing_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi%3A10.22008%2FFK2%2FO16YSF",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16809",
+      "limitation_kind": "publication_use_notice"
+    }
+  ]
+}
