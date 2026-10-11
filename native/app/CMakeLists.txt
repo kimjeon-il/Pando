@@ -646,16 +646,6 @@ if(BUILD_TESTING)
     target_link_libraries(reference_auto_georef_tests PRIVATE Qt6::Gui Qt6::Test)
     add_test(NAME reference_auto_georef_tests COMMAND reference_auto_georef_tests -o -,txt)
     set_tests_properties(reference_auto_georef_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-    add_executable(reference_real_map_probe
-        ../tests/reference_real_map_probe.cpp
-        referenceautogeoref.cpp referenceautogeoref.h
-        referenceocr.cpp referenceocr.h
-        referencewarp.cpp referencewarp.h)
-    target_include_directories(reference_real_map_probe PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(reference_real_map_probe PRIVATE Qt6::Core Qt6::Gui)
-    if(WIN32 AND MSVC)
-        target_link_libraries(reference_real_map_probe PRIVATE windowsapp)
-    endif()
     add_executable(territory_selection_tests ../tests/territory_selection_tests.cpp)
     target_link_libraries(territory_selection_tests PRIVATE pandoeditor_editor Qt6::Test)
     add_test(NAME territory_selection_tests COMMAND territory_selection_tests -o -,txt)
