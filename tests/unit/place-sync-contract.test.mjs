@@ -388,3 +388,85 @@ test('batch 14: Reykjavik and Ankara reviewed names and previously approved Cauc
     'Non-selected Ottoman variants belong in historical notes, not name candidates');
   assert.ok(ankara.displayTimeline[2].researchNote.includes('1945'));
 });
+
+
+test('batch 15: all Central Asian city names and script reforms match reviewed historical dates', () => {
+  const data = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch15-central-asia-capitals.json', import.meta.url), 'utf8'));
+  const ids = [1526273, 1512569, 1528675, 1221874, 162183];
+  assert.deepEqual(data.records.map(r => r.geonameId), ids);
+  const city = id => data.records.find(r => r.geonameId === id);
+  const starts = id => city(id).displayTimeline.map(r => r.fromDate ?? r.fromYear);
+  assert.deepEqual(starts(1526273), [1801, 1862, '1961-03-20', '1992-07-06', '1998-05-06', '2019-03-23', '2022-09-19']);
+  assert.deepEqual(starts(1512569), [1801, 1866, 1918, 1929, '1940-05-08', '1993-10-12', '1995-05-06']);
+  assert.deepEqual(starts(1528675), [1801, '1926-05-12', '1991-02-05']);
+  assert.deepEqual(starts(1221874), [1801, '1929-12-01', '1940-05-21', '1961-11-11']);
+  assert.deepEqual(starts(162183), [1801, 1919, '1927-04-07', '1929-05-05', 1937, '1940-07-01', '1991-10-27', '1993-04-12', '1995-01-11']);
+
+  for (const item of data.records) {
+    const current = item.defaultNativeNames;
+    assert.equal(current.length, 1);
+    assert.equal(current[0].text, item.defaultDisplayNameNative);
+    assert.equal(current[0].language, item.defaultNativeLanguage);
+    const allowedNames = new Set(item.names.map(n => n.language + '\u0000' + n.text));
+    assert.equal(allowedNames.size, item.names.length);
+    for (const t of item.displayTimeline) {
+      assert.deepEqual(t.nativeNames[0], {
+        text: t.nameNative, language: t.nativeLanguage, script: t.nativeNames[0].script
+      });
+      assert.ok(allowedNames.has('ko\u0000' + t.nameKo));
+      assert.ok(allowedNames.has('en\u0000' + t.nameEn));
+      assert.ok(allowedNames.has(t.nativeLanguage + '\u0000' + t.nameNative));
+      assert.ok([...t.note].length <= 28);
+    }
+  }
+
+  function names(id, date) {
+    const item = city(id);
+    const record = normalizePlace({
+      source: 'geonames', sourceId: String(id), kind: 'capital',
+      coordinates: [item.longitude, item.latitude], name: item.defaultDisplayNameKo,
+      nameEn: item.defaultDisplayNameEn, nameNative: item.defaultDisplayNameNative,
+      nameNativeExtras: [],
+      nameTimeline: item.displayTimeline.map(t => ({
+        ...(t.fromDate ? { fromDate: t.fromDate } : { fromYear: t.fromYear }),
+        ko: t.nameKo, en: t.nameEn, native: t.nameNative,
+        nativeExtras: t.nativeNames.slice(1).map(n => n.text)
+      }))
+    });
+    const wire = decodePlaceTile(encodePlaceTile([record]))[0];
+    assert.deepEqual(wire, record);
+    return resolvePlaceLabelRows(wire, { ko:true, en:true, native:true }, date).map(r => r.text);
+  }
+  for (const [id, date, expected] of [
+    [1526273, '1992-07-06', ['아크몰라','Aqmola','Ақмола']],
+    [1526273, '2019-03-23', ['누르술탄','Nur-Sultan','Нұр-Сұлтан']],
+    [1526273, '2022-09-19', ['아스타나','Astana','Астана']],
+    [1512569, '1866-01-01', ['타슈켄트','Tashkent','Ташкентъ']],
+    [1512569, '1918-09-01', ['타슈켄트','Tashkent','Ташкент']],
+    [1512569, '1934-03-13', ['타슈켄트','Tashkent','Taşkent']],
+    [1512569, '1940-05-08', ['타슈켄트','Tashkent','Тошкент']],
+    [1512569, '1993-10-12', ['타슈켄트','Tashkent','Toşkent']],
+    [1512569, '1995-05-06', ['타슈켄트','Tashkent','Toshkent']],
+    [1528675, '1991-02-05', ['비슈케크','Bishkek','Бишкек']],
+    [1221874, '1929-12-01', ['스탈리나바드','Stalinabad','Stalinobod']],
+    [1221874, '1940-05-21', ['스탈리나바드','Stalinabad','Сталинобод']],
+    [1221874, '1961-11-10', ['스탈리나바드','Stalinabad','Сталинобод']],
+    [1221874, '1961-11-11', ['두샨베','Dushanbe','Душанбе']],
+    [162183, '1929-05-05', ['아슈하바트','Ashkhabad','Asqabat']],
+    [162183, '1937-06-01', ['아슈하바트','Ashkhabad','Aşkabat']],
+    [162183, '1991-10-27', ['아시가바트','Ashgabat','Ашгабат']],
+    [162183, '1993-04-12', ['아시가바트','Ashgabat','A¢gabat']],
+    [162183, '1995-01-10', ['아시가바트','Ashgabat','A¢gabat']],
+    [162183, '1995-01-11', ['아시가바트','Ashgabat','Aşgabat']]
+  ]) assert.deepEqual(names(id,date), expected, String(id)+' @ '+date);
+
+  const t = city(1512569);
+  assert.ok(t.historicalGeography.events.some(e => e.date === '1934-03-13'));
+  assert.ok(!t.displayTimeline.some(e => e.fromDate === '1934-03-13'),
+    'A spelling reform that did not change Taşkent must not create a duplicate name period');
+  assert.equal(city(162183).displayTimeline.at(-1).fromDate, '1995-01-11');
+  for (const [id, year] of [[1526273,1830],[1528675,1868],[162183,1881]]) {
+    assert.equal(city(id).temporalEligibility.cityEstablishedFromYear, year);
+    assert.equal(city(id).temporalEligibility.beforeCityEstablished,'suppress-city-label');
+  }
+});
