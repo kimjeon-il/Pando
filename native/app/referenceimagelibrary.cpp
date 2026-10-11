@@ -205,11 +205,20 @@ bool ReferenceImageLibrary::previewAutoGeoref(const QVariantList &seeds)
     QImageReader reader(directory()+"/"+item->fileName);reader.setAutoTransform(true);const QImage image=reader.read();
     auto result=solveReferenceAutoGeoref(image,seeds,item->anchor,item->warpMode);
     ReferenceOcrResult ocr;
-    if(!result.ok) {
+    // OCR is worth the extra cost when symbol-only matching fails or produces
+    // a weak consensus. Prefer the OCR-assisted result only when it actually
+    // improves consensus quality.
+    const bool weakSymbolResult=!result.ok||result.inlierCount<6||result.rmsMeters>10000.;
+    if(weakSymbolResult) {
         ocr=detectReferenceImageTextNative(image);
         if(ocr.ok) {
             const auto assisted=solveReferenceAutoGeorefFromOcr(image,seeds,ocr.detections,item->anchor,item->warpMode);
-            if(assisted.ok)result=assisted;
+            const bool better=assisted.ok&&(
+                !result.ok
+                ||assisted.inlierCount>result.inlierCount
+                ||(assisted.inlierCount==result.inlierCount&&assisted.rmsMeters+1e-6<result.rmsMeters)
+            );
+            if(better)result=assisted;
         }
     }
     autoGeoref_=result.toVariant();autoGeoref_["active"]=true;autoGeoref_["applied"]=false;
