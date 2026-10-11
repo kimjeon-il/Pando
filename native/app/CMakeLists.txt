@@ -25,6 +25,8 @@ qt_add_executable(pandoeditor main.cpp)
 
 add_library(pandoeditor_editor STATIC
     referencewarp.cpp referencewarp.h
+    referenceautogeoref.cpp referenceautogeoref.h
+    referenceocr.cpp referenceocr.h
     referencetracing.cpp referencetracing.h
     referenceimagelibrary.cpp referenceimagelibrary.h referenceimagemodel.h
     defaultflagresolver.cpp defaultflagresolver.h
@@ -105,6 +107,10 @@ add_library(pandoeditor_editor STATIC
 target_include_directories(pandoeditor_editor PUBLIC . ../renderer)
 target_link_libraries(pandoeditor_editor PUBLIC Pandoeditor::Core Pandoeditor::MapEngine Qt6::Quick Qt6::Concurrent Qt6::Svg Qt6::Sql Qt6::Network ZLIB::ZLIB)
 target_link_libraries(pandoeditor_editor PRIVATE Qt6::GuiPrivate)
+if(WIN32 AND MSVC)
+    # Native automatic georeferencing can fall back to Windows.Media.Ocr.
+    target_link_libraries(pandoeditor_editor PRIVATE windowsapp)
+endif()
 qt_add_shaders(pandoeditor_editor m73_map_shaders
     PREFIX "/m73" BASE "${PROJECT_SOURCE_DIR}/renderer"
     FILES
@@ -147,6 +153,9 @@ qt_add_resources(pandoeditor_editor m972_river
         "${PROJECT_SOURCE_DIR}/assets/geometry/river/d3-provenance.json")
 if(WIN32)
     target_link_libraries(pandoeditor_editor PRIVATE dwmapi user32)
+    if(MSVC)
+        target_link_libraries(pandoeditor_editor PRIVATE windowsapp)
+    endif()
 endif()
 target_link_libraries(pandoeditor PRIVATE pandoeditor_editor Qt6::QuickControls2)
 
@@ -646,10 +655,22 @@ if(BUILD_TESTING)
     add_executable(world_render_baseline ../tests/world_render_baseline.cpp)
     target_link_libraries(world_render_baseline PRIVATE pandoeditor_editor)
     add_executable(reference_image_tests ../tests/reference_image_tests.cpp)
-    target_sources(reference_image_tests PRIVATE referenceimagelibrary.cpp referencewarp.cpp referencetracing.cpp referenceimagemodel.h)
+    target_sources(reference_image_tests PRIVATE referenceimagelibrary.cpp referencewarp.cpp referenceautogeoref.cpp referenceocr.cpp referencetracing.cpp referenceimagemodel.h)
     target_include_directories(reference_image_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(reference_image_tests PRIVATE Qt6::Gui Qt6::Qml Qt6::Test Qt6::Concurrent)
+    if(WIN32 AND MSVC)
+        target_link_libraries(reference_image_tests PRIVATE windowsapp)
+    endif()
     add_test(NAME reference_image_tests COMMAND reference_image_tests -o -,txt)
+    set_tests_properties(reference_image_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+    add_executable(reference_auto_georef_tests
+        ../tests/reference_auto_georef_tests.cpp
+        referenceautogeoref.cpp referenceautogeoref.h
+        referencewarp.cpp referencewarp.h)
+    target_include_directories(reference_auto_georef_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(reference_auto_georef_tests PRIVATE Qt6::Gui Qt6::Test)
+    add_test(NAME reference_auto_georef_tests COMMAND reference_auto_georef_tests -o -,txt)
+    set_tests_properties(reference_auto_georef_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     add_executable(territory_selection_tests ../tests/territory_selection_tests.cpp)
     target_link_libraries(territory_selection_tests PRIVATE pandoeditor_editor Qt6::Test)
     add_test(NAME territory_selection_tests COMMAND territory_selection_tests -o -,txt)

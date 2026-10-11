@@ -1,10 +1,10 @@
 {
   "repository": "kimjeon-il/Pando",
-  "commit": "ebcfae4d27b29cbbea6416a7045a4806930204be",
+  "commit": "a275b93b71260c296337b5a3f140fe1c524a2592",
   "files": [
     {
       "path": "assets/js/modules/reference-image-georef.js",
-      "sha256": "f0f4dafff71f3c5a4061cfd86d5d0ab54c48c9649ccbf495c40897be37454ebc"
+      "sha256": "2f38e1374cbb20014b1af61220e2f681726951847a7e8e84044d26d96e9c7fe1"
     },
     {
       "path": "assets/js/modules/reference-image-transform.js",
@@ -21,6 +21,18 @@
     {
       "path": "assets/js/modules/reference-image-line-refiner.js",
       "sha256": "a1d46b6f1d4488b22d39ff84c416b3f217cd7fcf4561a60c3b30ffce20976830"
+    },
+    {
+      "path": "assets/js/modules/reference-image-place-match.js",
+      "sha256": "62378c541168733a6545bf0466a2033c403ea1723e6c0f5ff9ce088dc4543d9a"
+    },
+    {
+      "path": "assets/js/modules/reference-image-auto-georef.js",
+      "sha256": "7b3ae2c85b37c39e64e0bf299103a3922d51147fd76f8ee531970b976cad8fab"
+    },
+    {
+      "path": "assets/js/modules/reference-image-ocr.js",
+      "sha256": "c7dd9da9e692e0825743940330f7c0497f4fa3a92315ed1e3450cadb00166ff5"
     }
   ]
 }
