@@ -325,6 +325,34 @@ private slots:
         const QVector<QPointF> draft{{12,3},{12,10},{12,20}};const auto refined=refineReferenceLine(image,draft,5);QCOMPARE(refined.size(),draft.size());
         for(const auto& point:refined)QVERIFY(point.x()>=14&&point.x()<=16);
     }
+
+    void nativeAutoGeorefPreviewAppliesGeneratedControlPoints()
+    {
+        QTemporaryDir dir;const auto path=dir.filePath("auto-georef.png");
+        QImage image(320,240,QImage::Format_RGB32);image.fill(Qt::white);
+        QPainter painter(&image);painter.setPen(Qt::NoPen);painter.setBrush(Qt::black);
+        const QVector<QPointF> uv{{.18,.20},{.78,.20},{.20,.78},{.79,.80},{.50,.52}};
+        for(const auto& point:uv)painter.drawEllipse(QPointF(point.x()*(image.width()-1),point.y()*(image.height()-1)),4,4);
+        painter.end();QVERIFY(image.save(path));
+
+        ReferenceImageLibrary library;QVERIFY(library.importImage(QUrl::fromLocalFile(path)));
+        const auto id=library.images().back().toMap()["id"].toString();QVERIFY(library.beginCalibration(id));
+        QVariantList seeds;
+        for(int i=0;i<uv.size();++i) {
+            const QPointF expected=uv[i]+QPointF(i%2?.01:-.01,i%2?-.01:.01);
+            seeds.push_back(QVariantMap{{"id",QString("city-%1").arg(i)},{"name",QString("City %1").arg(i)},{"kind","city"},
+                {"expectedUv",QVariantList{expected.x(),expected.y()}},
+                {"coordinate",QVariantList{10.+4.*uv[i].x(),50.+4.*uv[i].y()}},{"priority",90-i}});
+        }
+        QVERIFY(library.previewAutoGeoref(seeds));
+        const auto preview=library.autoGeorefSession();QVERIFY(preview["ok"].toBool());QCOMPARE(preview["inlierCount"].toInt(),5);
+        QCOMPARE(library.images().back().toMap()["geographicPoints"].toList().size(),0);
+        QVERIFY(library.applyAutoGeoref());
+        QCOMPARE(library.images().back().toMap()["geographicPoints"].toList().size(),5);
+        QVERIFY(library.autoGeorefSession().isEmpty());
+        QVERIFY(library.undo());QCOMPARE(library.images().back().toMap()["geographicPoints"].toList().size(),0);
+    }
+
 };
 QTEST_MAIN(ReferenceImageTests)
 #include "reference_image_tests.moc"
