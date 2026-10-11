@@ -25,6 +25,7 @@ import {
   buildReferenceImagePlaceSymbolCandidates,
   createReferenceImagePointRaster,
 } from './reference-image-auto-georef.js';
+import { detectReferenceImageText } from './reference-image-ocr.js';
 import { resolveReferenceImagePlaceAutoGeoref } from './reference-image-place-match.js';
 import { installReferenceImageSurface } from './reference-image-surface.js';
 import {
@@ -326,6 +327,9 @@ export function installReferenceImageController({
     if (reason === 'no-auto-georef-consensus') return '도시 기호 후보들의 위치가 서로 일치하지 않아 자동 정렬을 확정하지 못했습니다.';
     if (reason === 'auto-georef-preview-stale') return '미리보기 뒤에 이미지 배치가 바뀌었습니다. 자동 맞춤을 다시 실행하세요.';
     if (reason === 'place-snapshot-unavailable') return '도시 데이터에 접근할 수 없어 자동 맞춤을 실행할 수 없습니다.';
+    if (reason === 'text-detector-unavailable') return '이 브라우저에서는 OCR을 사용할 수 없습니다. 도시 기호 기반 자동 맞춤 결과를 확인하세요.';
+    if (reason === 'no-ocr-text') return '이미지에서 도시명으로 사용할 문자를 찾지 못했습니다.';
+    if (reason === 'text-detector-failed') return '브라우저 OCR 실행에 실패했습니다.';
     return '자동 맞춤 결과를 만들지 못했습니다. 대략 배치나 고정점을 조정한 뒤 다시 시도하세요.';
   }
 
@@ -487,7 +491,7 @@ export function installReferenceImageController({
       const token = currentToken();
       await new Promise(resolve => requestAnimationFrame(resolve));
       try {
-        const result = await autoGeorefPlaceSymbols({ id: record.id });
+        const result = await autoGeorefSmart({ id: record.id });
         if (!validToken(token) || selected() !== record || !records.includes(record)) return;
         record.autoGeorefBusy = false;
         record.autoGeorefPreview = result.ok ? result : null;
@@ -902,9 +906,68 @@ export function installReferenceImageController({
     return applyPlaceAutoGeorefResult(record, result, token);
   }
 
+
+  async function autoGeorefOcr({
+    id = selectedId,
+    mode = null,
+    mapDate = null,
+    matching = {},
+    georef = {},
+    ocr = {},
+  } = {}) {
+    const record = records.find(item => item.id === id) || null;
+    if (!record) return Object.freeze({ ok: false, reason: 'reference-image-not-found' });
+    if (typeof searchPlaces !== 'function') return Object.freeze({ ok: false, reason: 'place-search-unavailable' });
+    if (!record.image) return Object.freeze({ ok: false, reason: 'invalid-image' });
+
+    const token = currentToken();
+    const detected = await detectReferenceImageText(record.image, ocr);
+    if (!validToken(token) || !records.includes(record)) {
+      return Object.freeze({ ok: false, reason: 'reference-image-session-changed' });
+    }
+    if (!detected.ok) {
+      return Object.freeze({
+        ok: false,
+        reason: detected.reason,
+        source: 'place-ocr',
+        ocr: detected,
+        baseMappingSignature: referenceImageMappingSignature(record),
+      });
+    }
+
+    const resolved = await resolveReferenceImagePlaceAutoGeoref(detected.detections, {
+      search: searchPlaces,
+      anchor: record.anchor,
+      mapDate,
+      mode: coarseAutoGeorefMode(record, mode),
+      matching,
+      georef,
+    });
+    return Object.freeze({
+      ...resolved,
+      source: 'place-ocr',
+      ocr: detected,
+      baseMappingSignature: referenceImageMappingSignature(record),
+    });
+  }
+
+  async function autoGeorefSmart(options = {}) {
+    const symbols = await autoGeorefPlaceSymbols(options);
+    if (symbols.ok) return symbols;
+    const ocr = await autoGeorefOcr(options);
+    if (ocr.ok) return ocr;
+    return Object.freeze({
+      ...symbols,
+      ocrFallback: ocr,
+      reason: symbols.reason || ocr.reason,
+    });
+  }
+
   const api = Object.freeze({
     autoGeorefPlaces,
     autoGeorefPlaceSymbols,
+    autoGeorefOcr,
+    autoGeorefSmart,
     list: () => {
       const state = interactionState();
       return records.map((record, order) => ({
