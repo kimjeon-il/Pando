@@ -48,20 +48,11 @@ ReferenceOcrResult detectReferenceImageTextNative(const QImage& source)
             const auto engine=OcrEngine::TryCreateFromUserProfileLanguages();
             if(!engine){output.available=false;output.reason=QStringLiteral("native-ocr-unavailable");return output;}
             const auto recognized=engine.RecognizeAsync(bitmap).get();
-            int lineIndex=0;
-            for(const auto& line:recognized.Lines()) {
-                const auto raw=line.Text();
-                const QString text=QString::fromWCharArray(raw.c_str(),int(raw.size())).trimmed();
-                if(text.size()<2||text.size()>96)continue;
-                QRectF bounds;bool hasBounds=false;
-                for(const auto& word:line.Words()) {
-                    const auto box=word.BoundingRect();
-                    const QRectF rect(box.X,box.Y,box.Width,box.Height);
-                    if(rect.isEmpty())continue;
-                    bounds=hasBounds?bounds.united(rect):rect;hasBounds=true;
-                }
-                if(!hasBounds)continue;
-                const double width=std::max(1,scaled.width()),height=std::max(1,scaled.height());
+            int detectionIndex=0;
+            const double width=std::max(1,scaled.width()),height=std::max(1,scaled.height());
+            const auto appendDetection=[&](const QString& text,const QRectF& bounds,const QString& origin,double confidence) {
+                const auto trimmed=text.trimmed();
+                if(trimmed.size()<2||trimmed.size()>96||bounds.isEmpty())return;
                 const QVariantList normalizedBox{
                     std::clamp(bounds.x()/width,0.,1.),
                     std::clamp(bounds.y()/height,0.,1.),
@@ -69,15 +60,33 @@ ReferenceOcrResult detectReferenceImageTextNative(const QImage& source)
                     std::clamp(bounds.height()/height,0.,1.)
                 };
                 output.detections.push_back(QVariantMap{
-                    {"id",QStringLiteral("native-ocr-%1").arg(++lineIndex)},
-                    {"text",text},
+                    {"id",QStringLiteral("native-ocr-%1").arg(++detectionIndex)},
+                    {"text",trimmed},
                     {"image",QVariantList{
                         std::clamp(bounds.center().x()/width,0.,1.),
                         std::clamp(bounds.center().y()/height,0.,1.)}},
                     {"box",normalizedBox},
-                    {"confidence",1.0},
-                    {"origin",QStringLiteral("windows-media-ocr")}
+                    {"confidence",confidence},
+                    {"origin",origin}
                 });
+            };
+            for(const auto& line:recognized.Lines()) {
+                QRectF lineBounds;bool hasLineBounds=false;int wordCount=0;
+                for(const auto& word:line.Words()) {
+                    const auto rawWord=word.Text();
+                    const QString wordText=QString::fromWCharArray(rawWord.c_str(),int(rawWord.size())).trimmed();
+                    const auto box=word.BoundingRect();
+                    const QRectF rect(box.X,box.Y,box.Width,box.Height);
+                    if(rect.isEmpty())continue;
+                    lineBounds=hasLineBounds?lineBounds.united(rect):rect;hasLineBounds=true;++wordCount;
+                    appendDetection(wordText,rect,QStringLiteral("windows-media-ocr-word"),.96);
+                }
+                if(!hasLineBounds)continue;
+                const auto rawLine=line.Text();
+                const QString lineText=QString::fromWCharArray(rawLine.c_str(),int(rawLine.size())).trimmed();
+                // Multi-word line detections preserve names such as "Bad Homburg";
+                // single words are already emitted with the tighter word box.
+                if(wordCount>1)appendDetection(lineText,lineBounds,QStringLiteral("windows-media-ocr-line"),.92);
             }
             output.ok=!output.detections.isEmpty();
             if(!output.ok)output.reason=QStringLiteral("no-ocr-text");
