@@ -3,136 +3,136 @@
   "batch": "15-central-asia-capitals",
   "status": "verified-source-staging-not-runtime",
   "source": "GeoNames CC BY 4.0, Kazakhstan official acts and history service, Kyrgyz parliament and Bishkek city hall, Tajik Dushanbe authorities and historical institute, Tashkent city and Uzbekistan MFA, Turkmenistan MFA and government",
-  "checkedOn": "2026-10-08",
-  "selection": "Five previously unreviewed Central Asian national capitals; P/PPLC populated settlements only, not country, ADM1 or airport entities.",
+  "checkedOn": "2026-10-11",
+  "selection": "Five GeoNames P/PPLC Central Asian capitals. All historical ko/en/native displayTimeline forms updated with source-precision dates. City-label eligibility and population ranks are independent.",
   "coordinateConvention": "GeoNames WGS84 EPSG:4326 representative settlement point. Latitude/longitude is not a historic district polygon or municipal boundary.",
   "countryCodeSemantics": "Present-day GeoNames source country codes KZ UZ KG TJ TM. Never infer historical sovereignty from modern metadata.",
   "koreanMapLabelPolicyFile": "reports/places/korean-map-label-policy.json",
   "historicalDisplayPolicyFile": "reports/places/historical-display-policy.json",
   "historicalDisplayStatus": "timeline-staged-not-runtime",
-  "historicNameScope": "Historical map-name choices reviewed since 1801, with verified local city-formation gates and precisely dated official renamings where possible. Editor name choices are never presented as statutory rename without evidence.",
+  "historicNameScope": "Historical name and native-script choices since 1801 with dated legal renamings and explicitly marked editorial dates for language or writing reform. Cases lacking exact statutory effectiveness use the selected public source date and do not imply a simultaneous universal transition.",
   "qualityNotes": [
-    "Five capital populated places, GeoNames P/PPLC: Astana 1526273, Tashkent 1512569, Bishkek 1528675, Dushanbe 1221874, Ashgabat 162183; all distinct from ADM1 and airports.",
-    "Astana renaming chronology: 1961-03-20 Akmolinsk→Tselinograd; 1992-07-06 Tselinograd→Aqmola; 1998-05-06 Aqmola→Astana; 2019-03-23 Astana→Nur-Sultan; 2022 return to Astana.",
-    "Astana's 2022-09-17 decree signature and 2022-09-19 official published act are different dates. This staging explicitly selects 2022-09-19 for legal-effective Korean map label; do not silently equate signing/publication.",
-    "Bishkek renaming dates 1926-05-12 Pishpek→Frunze and 1991-02-05 Frunze→Bishkek are supported by Kyrgyz city hall and a parliamentary act. An older city-hall English overview mentions April 1991 and is kept as a source discrepancy.",
-    "Dushanbe 1929 Stalinabad renaming and 1961 restoration use year precision, because the contemporary renaming and central approval dates in 1929 are not identical in secondary accounts.",
-    "Ashgabat was renamed Poltoratsk in 1919 and restored 1927-04-07; native Türkmen Aşgabat and Russian Ашхабад differ by language. A switch to modern Korean 아시가바트 from Turkmen independence in 1991 is explicitly an editorial transcription policy, not a legal city renaming.",
-    "Tashkent's Uzbek Toshkent, Cyrillic Тошкент and Russian Ташкент forms coexist; the 1930 capital transfer from Samarkand is not an official city-name change.",
-    "Akmola fort 1830, modern Pishpek settlement 1868, and modern Askhabad administrative town 1881 are temporal city eligibility rules; earlier settlements or ruins at the sites are not automatically equated to each modern city ID.",
-    "SourceCountryCode is modern GeoNames metadata only, never sufficient for sovereign assignment of historical periods. UI short name notes/details <=28 Unicode codepoints; researchDetail and researchNote preserve complex sourcing.",
-    "Review staging only; no live PLAC v2 tile, map manifest or main branch changed."
+    "Five distinct GeoNames P/PPLC capitals: Astana 1526273, Tashkent 1512569, Bishkek 1528675, Dushanbe 1221874, Ashgabat 162183. This is staging, not release into map tiles or main.",
+    "Astana: pre-1830 city-label suppressed; 1830 Ақмола / 1862 Акмолинск / 1961-03-20 Целиноград / 1992-07-06 Ақмола / 1998-05-06 Астана / 2019-03-23 Нұр-Сұлтан / 2022-09-19 Астана. 2022-09-17 signing differs from official publication effective date; nineteenth-century name spelling is editorial normalized.",
+    "Tashkent: Arabic-script تاشکند from 1801; 1866 Russian Ташкентъ; 1918 Ташкент; 1929 old Uzbek Latin Taşkent; 1940-05-08 Uzbek Cyrillic Тошкент; 1993-10-12 Latin Toşkent; 1995-05-06 Latin Toshkent. 1934-03-13 orthography approval is recorded in historicalGeography.events but does not yield an unverified extra name change.",
+    "Bishkek: modern urban settlement starts in 1868, Russian Пишпек→Фрунзе on 1926-05-12, Kyrgyz Бишкек on 1991-02-05. Current Kyrgyz and Russian identical text is displayed only once.",
+    "Dushanbe: 1801 Tajik/Persian Arabic دوشنبه; 1929-12-01 official Stalinabad naming approval (local proposal 1929-10-19), Latin Tajik Stalinobod; 1940-05-21 Cyrillic Tajik Сталинобод; 1961-11-11 Душaнбе restoration editorial decree date. Some external sources identify 1961-11-10; precise authority source uncertain.",
+    "Ashgabat: modern urban city begins 1881; 1919 Poltoratsk; 1927-04-07 Ashkhabad; 1929-05-05 old Latin Asqabat; 1937 attested Aşkabat; 1940-07-01 Turkmen Cyrillic Ашгабат; 1991-10-27 Korean & English map transcription switch; 1993-04-12 initial Latin A¢gabat; 1995-01-11 contemporary Ş/ş revision announcement leads to Aşgabat editorial name.",
+    "1934-03-13 Uzbek reform and 1995-01-11 Turkmen letter revision are both accepted as editor-selected event dates. The former does not change the selected Tashkent city string, while the latter changes A¢gabat to Aşgabat; neither is misrepresented as city legal renaming.",
+    "Modern sourceCountryCode is only GeoNames metadata and must not assert historical sovereignty. Historical local names, city eligibility, administrative territory and five-grade settlement ranking remain distinct.",
+    "Staged nativeNames lists contain one first native form matching nameNative/nativeLanguage in every selected period. Real multilingual exceptions may separately retain up to three grounded official names.",
+    "All UI-facing short descriptions and event details are at most 28 Unicode code points; expanded researchDetail and researchNote preserve historical caveats.",
+    "No published PLAC v3 tiles, no map manifest or main-branch change."
   ],
   "records": [
     {
       "geonameId": 1526273,
       "names": [
         {
-          "text": "Астана",
-          "language": "kk",
-          "script": "Cyrl",
-          "usage": "standard",
-          "note": "카자흐어 키릴 문자 현행명",
-          "sourceUrl": "https://www.geonames.org/1526273/astana.html"
-        },
-        {
-          "text": "Astana",
-          "language": "en",
-          "usage": "standard"
-        },
-        {
-          "text": "아스타나",
+          "text": "아크몰라",
           "language": "ko",
-          "usage": "standard"
-        },
-        {
-          "text": "Акмолинск",
-          "language": "ru",
           "usage": "historical",
-          "variantType": "pre1961RussianOfficialName",
-          "note": "옛 러시아어명 Akmolinsk",
-          "sourceUrl": "https://e-history.kz/en/history-of-kazakhstan/show/9740"
+          "sourceUrl": "https://e-history.kz/en/news/show/7076"
         },
         {
-          "text": "Akmolinsk",
+          "text": "Akmola",
           "language": "en",
           "usage": "historical",
-          "variantType": "earlyEnglishRendering",
-          "sourceUrl": "https://e-history.kz/en/history-of-kazakhstan/show/9740"
+          "script": "Latn",
+          "sourceUrl": "https://e-history.kz/en/news/show/7076"
+        },
+        {
+          "text": "Ақмола",
+          "language": "kk",
+          "usage": "historical",
+          "script": "Cyrl",
+          "sourceUrl": "https://e-history.kz/en/news/show/7076"
         },
         {
           "text": "아크몰린스크",
           "language": "ko",
           "usage": "historical",
-          "variantType": "koreanRenderingOfAkmolinsk",
-          "sourceUrl": "https://e-history.kz/en/history-of-kazakhstan/show/9740"
-        },
-        {
-          "text": "Целиноград",
-          "language": "ru",
-          "usage": "historical",
-          "variantType": "officialName1961To1992",
-          "note": "1961~1992년 러시아어명",
           "sourceUrl": "https://e-history.kz/en/news/show/7076"
         },
         {
-          "text": "Tselinograd",
+          "text": "Akmolinsk",
           "language": "en",
           "usage": "historical",
-          "variantType": "sovietPeriodEnglishRendering",
+          "script": "Latn",
+          "sourceUrl": "https://e-history.kz/en/news/show/7076"
+        },
+        {
+          "text": "Акмолинск",
+          "language": "ru",
+          "usage": "historical",
+          "script": "Cyrl",
           "sourceUrl": "https://e-history.kz/en/news/show/7076"
         },
         {
           "text": "첼리노그라드",
           "language": "ko",
           "usage": "historical",
-          "variantType": "koreanRenderingOfTselinograd",
-          "sourceUrl": "https://e-history.kz/en/news/show/7076"
+          "sourceUrl": "https://www.adilet.zan.kz/rus/docs/P920001600_"
         },
         {
-          "text": "Ақмола",
-          "language": "kk",
-          "script": "Cyrl",
+          "text": "Tselinograd",
+          "language": "en",
           "usage": "historical",
-          "variantType": "restoredKazakhName1992To1998",
-          "note": "1992~1998년 공식명",
-          "sourceUrl": "https://e-history.kz/en/news/show/7076"
+          "script": "Latn",
+          "sourceUrl": "https://www.adilet.zan.kz/rus/docs/P920001600_"
+        },
+        {
+          "text": "Целиноград",
+          "language": "ru",
+          "usage": "historical",
+          "script": "Cyrl",
+          "sourceUrl": "https://www.adilet.zan.kz/rus/docs/P920001600_"
         },
         {
           "text": "Aqmola",
           "language": "en",
           "usage": "historical",
-          "variantType": "kazakhBasedEnglishRendering",
+          "script": "Latn",
+          "sourceUrl": "https://www.adilet.zan.kz/rus/docs/P920001600_"
+        },
+        {
+          "text": "아스타나",
+          "language": "ko",
+          "usage": "standard",
           "sourceUrl": "https://e-history.kz/en/news/show/7076"
         },
         {
-          "text": "아크몰라",
+          "text": "Astana",
+          "language": "en",
+          "usage": "standard",
+          "script": "Latn",
+          "sourceUrl": "https://e-history.kz/en/news/show/7076"
+        },
+        {
+          "text": "Астана",
+          "language": "kk",
+          "usage": "standard",
+          "script": "Cyrl",
+          "sourceUrl": "https://e-history.kz/en/news/show/7076"
+        },
+        {
+          "text": "누르술탄",
           "language": "ko",
           "usage": "historical",
-          "variantType": "koreanRenderingOfAqmola",
-          "sourceUrl": "https://e-history.kz/en/news/show/7076"
-        },
-        {
-          "text": "Нұр-Сұлтан",
-          "language": "kk",
-          "script": "Cyrl",
-          "usage": "historical",
-          "variantType": "officialName2019To2022",
-          "note": "2019~2022년 카자흐어명",
           "sourceUrl": "https://adilet.zan.kz/rus/docs/U1900000006"
         },
         {
           "text": "Nur-Sultan",
           "language": "en",
           "usage": "historical",
-          "variantType": "officialEnglishName2019To2022",
+          "script": "Latn",
           "sourceUrl": "https://adilet.zan.kz/rus/docs/U1900000006"
         },
         {
-          "text": "누르술탄",
-          "language": "ko",
+          "text": "Нұр-Сұлтан",
+          "language": "kk",
           "usage": "historical",
-          "variantType": "koreanRenderingOfNurSultan",
+          "script": "Cyrl",
           "sourceUrl": "https://adilet.zan.kz/rus/docs/U1900000006"
         }
       ],
@@ -143,59 +143,133 @@
       "sourceUrl": "https://www.geonames.org/1526273/astana.html",
       "sourceCountryCode": "KZ",
       "defaultDisplayNameKo": "아스타나",
-      "shortDescriptionKo": "1961·1992·1998·2019·2022 개칭",
+      "shortDescriptionKo": "1961·1992·1998·2019·2022년 개칭",
       "displayTimeline": [
         {
           "fromYear": 1801,
           "nameKo": "아크몰라",
-          "kind": "koreanEditorialTranscription",
-          "sourceUrl": "https://e-history.kz/en/history-of-kazakhstan/show/9740",
-          "note": "1830년 아크몰라 요새부터 표시",
-          "researchNote": "1801년은 공통 역사 검수 시작점에 불과하다. 근대 도시의 전신 아크몰라 요새는 1830년에 형성되었으므로 이전 시점에는 현대 취락 ID 표시를 억제한다. 1862년 시 지위 취득 후 러시아어 Akmolinsk를 기준으로 '아크몰린스크' 표기로 전환한다. 이 해를 반드시 정확한 법정 도시명 개칭일로 단정하지 않는다."
+          "nameEn": "Akmola",
+          "nameNative": "Ақмола",
+          "nativeLanguage": "kk",
+          "nativeNames": [
+            {
+              "text": "Ақмола",
+              "language": "kk",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "earlyAkmolaFortNameEditorialReconstruction",
+          "sourceUrl": "https://e-history.kz/en/news/show/7076",
+          "note": "1830년 요새 전신부터 표시",
+          "researchNote": "1801년은 조사 시작점일 뿐 아크몰라 요새는 1830년 형성되었다. 1830년 이전에는 지명 취락 라벨을 표시하지 않는다. 카자흐어 키릴 철자는 후대 표기를 옛 지명에 소급 선정한 것으로 당시의 1830년 원문 철자 확인이 아니다."
         },
         {
           "fromYear": 1862,
           "nameKo": "아크몰린스크",
-          "kind": "koreanEditorialTranscription",
-          "sourceUrl": "https://e-history.kz/en/news/show/6903",
-          "note": "1862년 러시아식 도시명 표기",
-          "researchNote": "1862년 Akmola fortification(아크몰라)이 도시 지위를 받아 Akmolinsk라는 러시아식 도시명이 사용되기 시작한다. 이름 선택은 판도편집기 한국어 편집 정책에 따른 연도 정밀도의 전환으로 공식 명칭 변경 행정 일자를 추론하지 않는다."
+          "nameEn": "Akmolinsk",
+          "nameNative": "Акмолинск",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Акмолинск",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "russianEmpireTownNameEditorialThreshold",
+          "sourceUrl": "https://e-history.kz/en/news/show/7076",
+          "note": "1862년 도시 지위·러시아명",
+          "researchNote": "1862년 법정 도시 지위 획득에 맞춰 러시아식 Akmolinsk를 대표명으로 선정한다. 원어 러시아어 철자는 1918년 이후 정서법으로 정규화된 형태이며 제정 러시아 시대 말미의 ъ 존재 여부를 모두 재현한 것은 아니다. 1862는 연도 단위 편집 기준이다."
         },
         {
           "fromDate": "1961-03-20",
           "nameKo": "첼리노그라드",
+          "nameEn": "Tselinograd",
+          "nameNative": "Целиноград",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Целиноград",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
           "kind": "officialRenaming",
-          "sourceUrl": "https://e-history.kz/en/news/show/7076",
-          "note": "1961년 소련기 공식 개칭"
+          "sourceUrl": "https://www.adilet.zan.kz/rus/docs/P920001600_",
+          "note": "소련의 첼리노그라드 개칭",
+          "researchNote": "1961-03-20 카자흐 SSR 최고회의 간부회 개칭령에 따라 Акмолинск에서 Целиноград로 전환한다."
         },
         {
           "fromDate": "1992-07-06",
           "nameKo": "아크몰라",
-          "kind": "officialRenaming",
-          "sourceUrl": "https://e-history.kz/en/news/show/7076",
-          "note": "1992년 카자흐어명 복구"
+          "nameEn": "Aqmola",
+          "nameNative": "Ақмола",
+          "nativeLanguage": "kk",
+          "nativeNames": [
+            {
+              "text": "Ақмола",
+              "language": "kk",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "officialHistoricalNameRestoration",
+          "sourceUrl": "https://www.adilet.zan.kz/rus/docs/P920001600_",
+          "note": "1992년 아크몰라 이름 복원",
+          "researchNote": "1992-07-06 카자흐스탄 최고회의 간부회 결의에 따라 역사적인 Ақмола를 복원했다. 원문은 러시아어 지명 전사 Акмола도 규정하지만 원어 대표명은 카자흐어 Ақмола로 선정한다."
         },
         {
           "fromDate": "1998-05-06",
           "nameKo": "아스타나",
+          "nameEn": "Astana",
+          "nameNative": "Астана",
+          "nativeLanguage": "kk",
+          "nativeNames": [
+            {
+              "text": "Астана",
+              "language": "kk",
+              "script": "Cyrl"
+            }
+          ],
           "kind": "officialRenaming",
-          "sourceUrl": "https://www.gov.kz/memleket/entities/abay-makanshy/press/events/details/37689?lang=en",
-          "note": "1998년 수도명 아스타나"
+          "sourceUrl": "https://e-history.kz/en/news/show/7076",
+          "note": "1998년 아스타나 개칭",
+          "researchNote": "1997-12-10 수도 이전과 1998-05-06 아스타나로의 공식 개칭을 구분한다."
         },
         {
           "fromDate": "2019-03-23",
           "nameKo": "누르술탄",
+          "nameEn": "Nur-Sultan",
+          "nameNative": "Нұр-Сұлтан",
+          "nativeLanguage": "kk",
+          "nativeNames": [
+            {
+              "text": "Нұр-Сұлтан",
+              "language": "kk",
+              "script": "Cyrl"
+            }
+          ],
           "kind": "officialRenaming",
           "sourceUrl": "https://adilet.zan.kz/rus/docs/U1900000006",
-          "note": "2019년 대통령 개칭령"
+          "note": "2019년 누르술탄 개칭",
+          "researchNote": "2019-03-23 대통령 개칭령을 공식 명칭 변동으로 적용한다."
         },
         {
           "fromDate": "2022-09-19",
           "nameKo": "아스타나",
-          "kind": "officialRenaming",
+          "nameEn": "Astana",
+          "nameNative": "Астана",
+          "nativeLanguage": "kk",
+          "nativeNames": [
+            {
+              "text": "Астана",
+              "language": "kk",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "officialRenamingPublicationEffective",
           "sourceUrl": "https://www.adilet.zan.kz/kaz/docs/U2200001017/history",
-          "note": "9월 17일 서명·19일 관보",
-          "researchNote": "2022-09-17 대통령령 제1017호 서명 및 대외 발표와 2022-09-19 최초 공식 문서·관보 게재를 구별한다. 법령은 최초 공식 공포일부터 시행한다고 명시한다. Pando의 exact display switch는 확인된 공식 게재일인 9월 19일에 둔다."
+          "note": "2022년 아스타나 명칭 복원",
+          "researchNote": "2022-09-17 대통령령 서명과 09-19 최초 공식 공포를 구별한다. 최초 공식 공포일부터 시행한다는 규정에 따라 2022-09-19를 지도 전환일로 선택한다."
         }
       ],
       "temporalEligibility": {
@@ -205,7 +279,7 @@
         "note": "1830년 아크몰라 요새·현 도시 형성",
         "researchNote": "1862년에 법적 시(город) 지위를 획득했다. 1830년은 현재 수도 도시 취락의 초기 요새 형성 시기이며 그 이전 카라우트켈 일대 취락과 동일한 현대 지명 도시 객체라고 추론하지 않는다."
       },
-      "historicalDisplayCoverage": "reviewed-since-modern-city-formation-with-dated-renames",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-provenance-dated-name-and-script-transitions",
       "historicalGeography": {
         "events": [
           {
@@ -279,47 +353,89 @@
             "detail": "현대 아스타나와 ADM1 구분",
             "researchDetail": "GeoNames 1526273은 P/PPLC 도시 취락이며 Astana ADM1은 별도 행정구역 코드다.",
             "sourceUrl": "https://www.geonames.org/1526273/astana.html"
+          },
+          {
+            "detail": "1992년 카자흐·러시아어 형태 구분",
+            "sourceUrl": "https://www.adilet.zan.kz/rus/docs/P920001600_",
+            "researchDetail": "1992년 법령은 러시아어 도시명 Акмола를 별도로 정하지만 지도 원어 대표명은 카자흐어 Ақмола를 채택한다. 이 법령은 키릴 문자 카자흐어 맞춤법의 최초 도입을 뜻하지 않는다."
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Astana",
+      "defaultDisplayNameNative": "Астана",
+      "defaultNativeLanguage": "kk",
+      "defaultNativeNames": [
+        {
+          "text": "Астана",
+          "language": "kk",
+          "script": "Cyrl"
+        }
+      ]
     },
     {
       "geonameId": 1512569,
       "names": [
         {
-          "text": "Toshkent",
-          "language": "uz",
-          "script": "Latn",
+          "text": "타슈켄트",
+          "language": "ko",
           "usage": "standard",
-          "note": "우즈베크어 공식 라틴 표기",
-          "sourceUrl": "https://tashkent.uz/en/city/salom-tashkent"
-        },
-        {
-          "text": "Тошкент",
-          "language": "uz",
-          "script": "Cyrl",
-          "usage": "standard",
-          "note": "우즈베크어 키릴 표기",
-          "sourceUrl": "https://tashkent.uz/en/city/salom-tashkent"
+          "sourceUrl": "https://www.geonames.org/1512569/"
         },
         {
           "text": "Tashkent",
           "language": "en",
-          "usage": "standard"
+          "usage": "standard",
+          "script": "Latn",
+          "sourceUrl": "https://www.geonames.org/1512569/"
         },
         {
-          "text": "타슈켄트",
-          "language": "ko",
-          "usage": "standard"
+          "text": "تاشکند",
+          "language": "uz-Arab",
+          "usage": "historical",
+          "script": "Arab",
+          "sourceUrl": "https://www.geonames.org/1512569/"
+        },
+        {
+          "text": "Ташкентъ",
+          "language": "ru",
+          "usage": "historical",
+          "script": "Cyrl",
+          "sourceUrl": "https://www.geonames.org/1512569/"
         },
         {
           "text": "Ташкент",
           "language": "ru",
-          "script": "Cyrl",
           "usage": "historical",
-          "variantType": "russianLanguageExonym",
-          "note": "러시아어 표기",
-          "sourceUrl": "https://www.geonames.org/1512569/tashkent.html"
+          "script": "Cyrl",
+          "sourceUrl": "https://www.geonames.org/1512569/"
+        },
+        {
+          "text": "Taşkent",
+          "language": "uz-Latn",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://ru.wikipedia.org/wiki/Узбекская_письменность"
+        },
+        {
+          "text": "Тошкент",
+          "language": "uz-Cyrl",
+          "usage": "historical",
+          "script": "Cyrl",
+          "sourceUrl": "https://ru.wikipedia.org/wiki/Узбекская_письменность"
+        },
+        {
+          "text": "Toşkent",
+          "language": "uz-Latn",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://www.lex.uz/uz/acts/-125418?ONDATE=17.06.1995+00"
+        },
+        {
+          "text": "Toshkent",
+          "language": "uz",
+          "usage": "standard",
+          "script": "Latn",
+          "sourceUrl": "https://lex.uz/en/acts/-116158?ONDATE=17.06.1995+00"
         }
       ],
       "latitude": 41.26465,
@@ -329,19 +445,166 @@
       "sourceUrl": "https://www.geonames.org/1512569/tashkent.html",
       "sourceCountryCode": "UZ",
       "defaultDisplayNameKo": "타슈켄트",
-      "shortDescriptionKo": "1930년 우즈베크 SSR 수도",
+      "shortDescriptionKo": "1929·1940·1993·1995년 문자 개정",
       "displayTimeline": [
         {
           "fromYear": 1801,
           "nameKo": "타슈켄트",
-          "kind": "historicalLocalName",
-          "sourceUrl": "https://tashkent.uz/en/city/salom-tashkent",
-          "note": "1801년부터 역사명 조사"
+          "nameEn": "Tashkent",
+          "nameNative": "تاشکند",
+          "nativeLanguage": "uz-Arab",
+          "nativeNames": [
+            {
+              "text": "تاشکند",
+              "language": "uz-Arab",
+              "script": "Arab"
+            }
+          ],
+          "kind": "historicalChagataiUzbekArabicScript",
+          "sourceUrl": "https://www.geonames.org/1512569/",
+          "note": "현지 아랍문자 지명 유지",
+          "researchNote": "1801년은 조사 시작점이며 투르크계 현지 언어의 아랍 문자 تاشکند를 편집상 대표 원어명으로 선택한다. 문헌상 도시명의 범위와 현대 우즈베크어 국어 규범을 1801년으로 소급해서 같은 제도였다고 단정하지 않는다."
+        },
+        {
+          "fromYear": 1866,
+          "nameKo": "타슈켄트",
+          "nameEn": "Tashkent",
+          "nameNative": "Ташкентъ",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Ташкентъ",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "russianEmpireAdministrationFormalIncorporation",
+          "sourceUrl": "https://www.geonames.org/1512569/",
+          "note": "러시아 제국 원어명 전환",
+          "researchNote": "1865년 러시아군 군사 점령과 1866년 정식 편입을 분리하고 1866년을 러시아어 원어 대표 전환의 연도 단위 편집 기준으로 삼는다. 제정 러시아 정서법의 어말 경음부호 ъ를 유지한다."
+        },
+        {
+          "fromYear": 1918,
+          "nameKo": "타슈켄트",
+          "nameEn": "Tashkent",
+          "nameNative": "Ташкент",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Ташкент",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "postImperialRussianOrthographicReform",
+          "sourceUrl": "https://www.geonames.org/1512569/",
+          "note": "러시아어 어말 ъ 철자 폐지",
+          "researchNote": "1917~1918년 러시아 정서법 개혁으로 어말 ъ를 폐지한 결과를 연도 단위 지도 철자 전환으로 적용했다. 도시명 자체가 다른 이름으로 개칭된 것은 아니다."
+        },
+        {
+          "fromYear": 1929,
+          "nameKo": "타슈켄트",
+          "nameEn": "Tashkent",
+          "nameNative": "Taşkent",
+          "nativeLanguage": "uz-Latn",
+          "nativeNames": [
+            {
+              "text": "Taşkent",
+              "language": "uz-Latn",
+              "script": "Latn"
+            }
+          ],
+          "kind": "uzbekLatinAlphabetAdoption",
+          "sourceUrl": "https://ru.wikipedia.org/wiki/Узбекская_письменность",
+          "note": "1929년 우즈베크어 라틴 문자",
+          "researchNote": "1929년 5월 새 우즈베크 라틴 문자가 회의에서 정해졌고 1929-08-10 승인 시점이 보고되었다. 실제 도시명 철자 Taşkent의 공식 사용 시작일과 모든 매체의 동시 교체일은 일치하지 않을 수 있으므로 연도만 확정한다. 1934-03-13 철자법 개정은 이 도시명의 Taşkent 철자를 바꿨다는 근거가 없어 별도 표시 전환을 생성하지 않는다."
+        },
+        {
+          "fromDate": "1940-05-08",
+          "nameKo": "타슈켄트",
+          "nameEn": "Tashkent",
+          "nameNative": "Тошкент",
+          "nativeLanguage": "uz-Cyrl",
+          "nativeNames": [
+            {
+              "text": "Тошкент",
+              "language": "uz-Cyrl",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "uzbekCyrillicAlphabetLawEditorialThreshold",
+          "sourceUrl": "https://ru.wikipedia.org/wiki/Узбекская_письменность",
+          "note": "1940년 우즈베크어 키릴 전환",
+          "researchNote": "1940-05-08 우즈베크어 키릴 문자법 채택 날짜를 편집 기준으로 한다. 실제 학교·출판물 등에서의 전환은 단계적으로 진행됐다. Тошкент는 우즈베크어이고 러시아어 Ташкент와 혼동하지 않는다."
+        },
+        {
+          "fromDate": "1993-10-12",
+          "nameKo": "타슈켄트",
+          "nameEn": "Tashkent",
+          "nameNative": "Toşkent",
+          "nativeLanguage": "uz-Latn",
+          "nativeNames": [
+            {
+              "text": "Toşkent",
+              "language": "uz-Latn",
+              "script": "Latn"
+            }
+          ],
+          "kind": "uzbekLatinAlphabetLawPublication",
+          "sourceUrl": "https://www.lex.uz/uz/acts/-125418?ONDATE=17.06.1995+00",
+          "note": "1993년 신라틴 문자법 공포",
+          "researchNote": "1993-09-02 우즈베크 신라틴 문자법 제정 후 1993-10-12 공식 게재일을 적용한다. 당시 알파벳은 Ş 문자를 포함했으며 지도에서는 Toşkent를 선택한다. 실제 사용전환은 점진적이었고 1940~1990년대 우즈베크어 키릴 사용이 즉시 사라졌다는 뜻이 아니다."
+        },
+        {
+          "fromDate": "1995-05-06",
+          "nameKo": "타슈켄트",
+          "nameEn": "Tashkent",
+          "nameNative": "Toshkent",
+          "nativeLanguage": "uz",
+          "nativeNames": [
+            {
+              "text": "Toshkent",
+              "language": "uz",
+              "script": "Latn"
+            }
+          ],
+          "kind": "uzbekLatinOrthographyShDigraphRevision",
+          "sourceUrl": "https://lex.uz/en/acts/-116158?ONDATE=17.06.1995+00",
+          "note": "1995년 Sh 표기 개정",
+          "researchNote": "1995-05-06 우즈베크 문자법 제71-I호 개정이 Ş/ş를 Sh/sh로 대체한 날짜에 따라 Toşkent→Toshkent를 원어 철자 전환으로 선택한다. 이는 도시의 행정상 개칭이 아니다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-provenance-dated-name-and-script-transitions",
       "historicalGeography": {
         "events": [
+          {
+            "year": 1865,
+            "type": "russianMilitaryCapture",
+            "detail": "1865년 러시아군 타슈켄트 점령",
+            "sourceUrl": "https://www.geonames.org/1512569/",
+            "researchDetail": "군사 점령은 1865년, 러시아 행정 편입의 편집상 원어 대표 언어 경계는 1866년으로 구분한다."
+          },
+          {
+            "year": 1866,
+            "type": "russianEmpireAdministrativeIncorporation",
+            "detail": "1866년 러시아 행정 편입",
+            "sourceUrl": "https://www.geonames.org/1512569/",
+            "researchDetail": "1866년을 연도 단위 언어 전환으로 사용하며 정확한 명칭 변경일은 주장하지 않는다."
+          },
+          {
+            "year": 1918,
+            "type": "russianOrthographyHardSignAbolition",
+            "detail": "1918년 러시아어 어말 ъ 폐지",
+            "sourceUrl": "https://www.geonames.org/1512569/",
+            "researchDetail": "Ташкентъ→Ташкент는 언어 정서법에 따른 철자 수정이고 새 도시 개칭은 아니다."
+          },
+          {
+            "date": "1929-08-10",
+            "type": "uzbekLatinAlphabetApproved",
+            "detail": "1929년 우즈베크 라틴자 승인",
+            "sourceUrl": "https://ru.wikipedia.org/wiki/Узбекская_письменность",
+            "researchDetail": "1929년 새 문자 승인일(도시명 실제 표기 보편화일과는 별개). 지도 철자 전환은 연도 단위 1929를 적용한다."
+          },
           {
             "year": 1930,
             "type": "uzbekSSRCapitalMovedToTashkent",
@@ -349,10 +612,45 @@
             "sourceUrl": "https://gov.uz/en/mfa/sections/view/14508"
           },
           {
+            "date": "1934-03-13",
+            "type": "uzbekLatinOrthographySixVowelReformApproved",
+            "detail": "1934년 우즈베크어 철자법 개정",
+            "sourceUrl": "https://www.researchgate.net/publication/376319544_OZBEK_YAZI_DILININ_MESELELERI",
+            "researchDetail": "1934-01 언어철자법 회의의 9→6 모음표기 제안은 1934-03-13 우즈베크 SSR 중앙집행위원회 간부회에서 승인됐다. Taşkent라는 도시명의 선택된 철자 자체의 변화는 확인되지 않아 새 명칭 연표 구간은 만들지 않는다."
+          },
+          {
+            "date": "1940-05-08",
+            "type": "uzbekCyrillicAlphabetLaw",
+            "detail": "1940년 우즈베크어 키릴 문자법",
+            "sourceUrl": "https://ru.wikipedia.org/wiki/Узбекская_письменность",
+            "researchDetail": "법률 날짜를 지도 철자 전환 기준으로 선택하며 인쇄·교육 전 분야의 실제 전환 완료일과 구분한다."
+          },
+          {
             "year": 1991,
             "type": "uzbekistanIndependence",
             "detail": "1991년 우즈베키스탄 독립",
             "sourceUrl": "https://gov.uz/en/mfa/sections/view/14508"
+          },
+          {
+            "date": "1993-09-02",
+            "type": "uzbekLatinAlphabetLawEnacted",
+            "detail": "1993년 라틴 문자법 제정",
+            "sourceUrl": "https://lex.uz/uz/acts/-112286",
+            "researchDetail": "1993-09-02 법 제정과 1993-10-12 공식 게재·시행을 구분한다."
+          },
+          {
+            "date": "1993-10-12",
+            "type": "uzbekLatinAlphabetLawPublished",
+            "detail": "1993년 라틴 문자법 공포",
+            "sourceUrl": "https://www.lex.uz/uz/acts/-125418?ONDATE=17.06.1995+00",
+            "researchDetail": "1993년 10월 12일 신문에 법안 게재, 공포일부터 시행 규정. 지도 원어명 Toşkent의 기준일."
+          },
+          {
+            "date": "1995-05-06",
+            "type": "uzbekLatinAlphabetShDigraphRevision",
+            "detail": "1995년 Ş→Sh 개정",
+            "sourceUrl": "https://lex.uz/en/acts/-116158?ONDATE=17.06.1995+00",
+            "researchDetail": "새 우즈베크 라틴 알파벳에서 Ş→Sh를 채택한 법률 개정일. 철자 Toshkent 선정의 근거."
           }
         ],
         "notes": [
@@ -369,83 +667,91 @@
             "detail": "도시 PPLC와 타슈켄트주 구분",
             "researchDetail": "GeoNames 1512569 Tashkent populated place는 Tashkent City/Region ADM1, Uzbekistan country와 독립된 취락 레코드다.",
             "sourceUrl": "https://www.geonames.org/1512569/tashkent.html"
+          },
+          {
+            "detail": "1934년 법률은 도시명 개칭 아님",
+            "sourceUrl": "https://www.researchgate.net/publication/376319544_OZBEK_YAZI_DILININ_MESELELERI",
+            "researchDetail": "사용자 지정 날짜 1934-03-13은 철자법 승인일로 기록한다. 도시명 Taşkent 자체의 변경은 확인되지 않아 displayTimeline에 중복 동형 구간을 만들지 않는다."
+          },
+          {
+            "detail": "원어 우즈베크어·러시아어 구분",
+            "sourceUrl": "https://www.geonames.org/1512569/",
+            "researchDetail": "Тошкент는 우즈베크어 키릴, Ташкент는 러시아어 키릴. 근대 러시아 제국 시기 원어는 러시아어를 대표형으로, 독립 후 최신 원어는 우즈베크어 Toshkent를 대표형으로 택했다."
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Tashkent",
+      "defaultDisplayNameNative": "Toshkent",
+      "defaultNativeLanguage": "uz",
+      "defaultNativeNames": [
+        {
+          "text": "Toshkent",
+          "language": "uz",
+          "script": "Latn"
+        }
+      ]
     },
     {
       "geonameId": 1528675,
       "names": [
         {
-          "text": "Бишкек",
-          "language": "ky",
-          "script": "Cyrl",
-          "usage": "standard",
-          "note": "키르기스어 현행명",
-          "sourceUrl": "https://www.bishkek.gov.kg/en/history"
-        },
-        {
-          "text": "Bishkek",
-          "language": "en",
-          "usage": "standard"
-        },
-        {
-          "text": "Бишкек",
-          "language": "ru",
-          "script": "Cyrl",
-          "usage": "standard",
-          "note": "러시아어 공용명 표기 동일",
-          "sourceUrl": "https://www.geonames.org/1528675/bishkek.html"
-        },
-        {
-          "text": "비슈케크",
+          "text": "피슈페크",
           "language": "ko",
-          "usage": "standard"
-        },
-        {
-          "text": "Пишпек",
-          "language": "ru",
-          "script": "Cyrl",
           "usage": "historical",
-          "variantType": "pre1926OfficialName",
-          "note": "1926년 5월 전 공식 도시명",
           "sourceUrl": "https://www.bishkek.gov.kg/en/history"
         },
         {
           "text": "Pishpek",
           "language": "en",
           "usage": "historical",
-          "variantType": "pre1926Romanization",
+          "script": "Latn",
           "sourceUrl": "https://www.bishkek.gov.kg/en/history"
         },
         {
-          "text": "피슈페크",
-          "language": "ko",
-          "usage": "historical",
-          "variantType": "koreanRenderingOfPishpek",
-          "sourceUrl": "https://www.bishkek.gov.kg/en/history"
-        },
-        {
-          "text": "Фрунзе",
+          "text": "Пишпек",
           "language": "ru",
+          "usage": "historical",
           "script": "Cyrl",
-          "usage": "historical",
-          "variantType": "1926To1991SovietName",
-          "note": "1926~1991년 공식 도시명",
-          "sourceUrl": "https://cbd.minjust.gov.kg/6-1685/edition/318960/ru"
-        },
-        {
-          "text": "Frunze",
-          "language": "en",
-          "usage": "historical",
-          "variantType": "sovietEraRomanization",
-          "sourceUrl": "https://cbd.minjust.gov.kg/6-1685/edition/318960/ru"
+          "sourceUrl": "https://www.bishkek.gov.kg/en/history"
         },
         {
           "text": "프룬제",
           "language": "ko",
           "usage": "historical",
-          "variantType": "koreanRenderingOfFrunze",
+          "sourceUrl": "https://www.bishkek.gov.kg/en/history"
+        },
+        {
+          "text": "Frunze",
+          "language": "en",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://www.bishkek.gov.kg/en/history"
+        },
+        {
+          "text": "Фрунзе",
+          "language": "ru",
+          "usage": "historical",
+          "script": "Cyrl",
+          "sourceUrl": "https://www.bishkek.gov.kg/en/history"
+        },
+        {
+          "text": "비슈케크",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://cbd.minjust.gov.kg/6-1685/edition/318960/ru"
+        },
+        {
+          "text": "Bishkek",
+          "language": "en",
+          "usage": "standard",
+          "script": "Latn",
+          "sourceUrl": "https://cbd.minjust.gov.kg/6-1685/edition/318960/ru"
+        },
+        {
+          "text": "Бишкек",
+          "language": "ky",
+          "usage": "standard",
+          "script": "Cyrl",
           "sourceUrl": "https://cbd.minjust.gov.kg/6-1685/edition/318960/ru"
         }
       ],
@@ -456,30 +762,61 @@
       "sourceUrl": "https://www.geonames.org/1528675/bishkek.html",
       "sourceCountryCode": "KG",
       "defaultDisplayNameKo": "비슈케크",
-      "shortDescriptionKo": "1926년 프룬제, 1991년 복구",
+      "shortDescriptionKo": "1926년 프룬제·1991년 비슈케크",
       "displayTimeline": [
         {
           "fromYear": 1801,
           "nameKo": "피슈페크",
-          "kind": "koreanEditorialTranscription",
-          "sourceUrl": "https://www.bishkek.gov.kg/ru/region/4",
-          "note": "1868년 도시 전신 취락부터 표시",
-          "researchNote": "1801년은 검수 출발점으로, 현재 비슈케크의 전신 피슈페크 취락은 1868년 설립, 도시는 1878년 법적 지위를 얻었다. 1825년 요새는 구별한다."
+          "nameEn": "Pishpek",
+          "nameNative": "Пишпек",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Пишпек",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "historicalRussianAdministrativeSettlementName",
+          "sourceUrl": "https://www.bishkek.gov.kg/en/history",
+          "note": "1868년 근대 취락부터 표시",
+          "researchNote": "1801년은 지명 조사 공통 시작점이다. 1825년 코칸트 요새와 1868년 근대 취락 형성, 1878년 도시 지위 취득을 구분하며 현대 비슈케크 PPLC의 지도 표시 시작은 기존 정책 1868년을 유지한다. 피슈페크 러시아어 Пишпек를 당시 도시 대표 원어명으로 선택한다."
         },
         {
           "fromDate": "1926-05-12",
           "nameKo": "프룬제",
+          "nameEn": "Frunze",
+          "nameNative": "Фрунзе",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Фрунзе",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
           "kind": "officialRenaming",
           "sourceUrl": "https://www.bishkek.gov.kg/en/history",
-          "note": "피슈페크에서 프룬제로 개칭"
+          "note": "1926년 프룬제 공식 개칭",
+          "researchNote": "1926-05-12 Пишпек가 혁명가 미하일 프룬제를 기념하는 Фрунзе로 개칭됐다."
         },
         {
           "fromDate": "1991-02-05",
           "nameKo": "비슈케크",
+          "nameEn": "Bishkek",
+          "nameNative": "Бишкек",
+          "nativeLanguage": "ky",
+          "nativeNames": [
+            {
+              "text": "Бишкек",
+              "language": "ky",
+              "script": "Cyrl"
+            }
+          ],
           "kind": "officialRenaming",
           "sourceUrl": "https://cbd.minjust.gov.kg/6-1685/edition/318960/ru",
-          "note": "1991-02-05 의회 결의",
-          "researchNote": "키르기스스탄 법무부 국회의결 제374-XII호와 비슈케크 시청 141주년 소개는 1991-02-05 명칭 복구를 확인한다. 시청의 일반 연혁 영어 페이지는 4월이라고 적어 구체적 날짜 차이를 기록한다."
+          "note": "1991년 비슈케크 이름 복원",
+          "researchNote": "1991-02-05 키르기스 최고회의 제374-XII 결의에 따라 Фрунзе→Бишкек로 개칭한다. 시청의 일부 영문 개요는 1991년 4월로 서술하지만 법률 정확일을 우선한다. 현행 러시아어 Бишкек와 키르기스어 Бишкек의 표시철자가 동일해 화면에서는 중복 제거한다."
         }
       ],
       "temporalEligibility": {
@@ -489,7 +826,7 @@
         "note": "1868년 피슈페크 근대 취락",
         "researchNote": "1825년 피슈페크 코칸트 요새, 1862년 그 파괴, 1868년 근대 마을 조성, 1878년 정식 도시 지위를 구별한다. 초기 요새는 현재 비슈케크 PPLC 도시 그 자체의 오래된 시 경계로 추론하지 않는다."
       },
-      "historicalDisplayCoverage": "reviewed-since-modern-pishpek-settlement",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-provenance-dated-name-and-script-transitions",
       "historicalGeography": {
         "events": [
           {
@@ -536,61 +873,80 @@
           {
             "detail": "PPLC 도시·ADM1 구별",
             "sourceUrl": "https://www.geonames.org/1528675/bishkek.html"
+          },
+          {
+            "detail": "현행 키르기스·러시아어 철자 동일",
+            "sourceUrl": "https://cbd.minjust.gov.kg/6-1685/edition/318960/ru",
+            "researchDetail": "1991년 이후 키르기스어와 러시아어 도시명은 모두 Бишкек다. 각각의 언어 지위를 구별할 수 있지만 지도 원어 대표명은 키르기스어 1개로 저장하고 렌더러의 철자 중복 제거 정책을 따른다."
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Bishkek",
+      "defaultDisplayNameNative": "Бишкек",
+      "defaultNativeLanguage": "ky",
+      "defaultNativeNames": [
+        {
+          "text": "Бишкек",
+          "language": "ky",
+          "script": "Cyrl"
+        }
+      ]
     },
     {
       "geonameId": 1221874,
       "names": [
         {
-          "text": "Душанбе",
-          "language": "tg",
-          "script": "Cyrl",
+          "text": "두샨베",
+          "language": "ko",
           "usage": "standard",
-          "note": "타지크어 현행 키릴 표기",
           "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en"
         },
         {
           "text": "Dushanbe",
           "language": "en",
-          "usage": "standard"
-        },
-        {
-          "text": "두샨베",
-          "language": "ko",
-          "usage": "standard"
-        },
-        {
-          "text": "Сталинабад",
-          "language": "ru",
-          "script": "Cyrl",
-          "usage": "historical",
-          "variantType": "sovietStalinabadName",
-          "note": "1929~1961년 러시아어명",
+          "usage": "standard",
+          "script": "Latn",
           "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en"
         },
         {
-          "text": "Сталинобод",
-          "language": "tg",
-          "script": "Cyrl",
+          "text": "دوشنبه",
+          "language": "tg-Arab",
           "usage": "historical",
-          "variantType": "tajikSovietName",
-          "note": "1929~1961년 타지크어명",
-          "sourceUrl": "https://amit.tj/index.php/tj/node/2922"
-        },
-        {
-          "text": "Stalinabad",
-          "language": "en",
-          "usage": "historical",
-          "variantType": "sovietEraEnglishRomanization",
+          "script": "Arab",
           "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en"
         },
         {
           "text": "스탈리나바드",
           "language": "ko",
           "usage": "historical",
-          "variantType": "koreanRenderingOfStalinabad",
+          "sourceUrl": "https://www.institute-history.tj/en/node/549"
+        },
+        {
+          "text": "Stalinabad",
+          "language": "en",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://www.institute-history.tj/en/node/549"
+        },
+        {
+          "text": "Stalinobod",
+          "language": "tg-Latn",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://www.institute-history.tj/en/node/549"
+        },
+        {
+          "text": "Сталинобод",
+          "language": "tg",
+          "usage": "historical",
+          "script": "Cyrl",
+          "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en"
+        },
+        {
+          "text": "Душанбе",
+          "language": "tg",
+          "usage": "standard",
+          "script": "Cyrl",
           "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en"
         }
       ],
@@ -601,34 +957,82 @@
       "sourceUrl": "https://www.geonames.org/1221874/dushanbe.html",
       "sourceCountryCode": "TJ",
       "defaultDisplayNameKo": "두샨베",
-      "shortDescriptionKo": "1929~1961년 스탈리나바드",
+      "shortDescriptionKo": "1929년 스탈리나바드·1961년 복원",
       "displayTimeline": [
         {
           "fromYear": 1801,
           "nameKo": "두샨베",
-          "kind": "koreanEditorialTranscription",
+          "nameEn": "Dushanbe",
+          "nameNative": "دوشنبه",
+          "nativeLanguage": "tg-Arab",
+          "nativeNames": [
+            {
+              "text": "دوشنبه",
+              "language": "tg-Arab",
+              "script": "Arab"
+            }
+          ],
+          "kind": "historicalPersoTajikLocalName",
           "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en",
-          "note": "17세기부터 알려진 마을",
-          "researchNote": "동명 취락의 1676년 기록을 바탕으로 1801년부터는 Pando의 한국어 표기 '두샨베'를 사용하지만 근대 이전에 한국어명이 실재했다는 주장과는 무관하다."
+          "note": "역사 취락의 페르시아계 이름",
+          "researchNote": "1676년 동명 마을의 문헌 기록을 바탕으로 1801년부터 페르시아계 타지크어 아랍 문자 두شنبه를 원어 대표로 소급 선택한다. 1920년대 후반 타지크어 라틴문자 도입이 시작됐지만 정확한 도시명 실무 전환일을 확인하지 못했으므로 과도기 철자를 추정해 끼워넣지 않는다."
         },
         {
-          "fromYear": 1929,
+          "fromDate": "1929-12-01",
           "nameKo": "스탈리나바드",
-          "kind": "officialRenaming",
+          "nameEn": "Stalinabad",
+          "nameNative": "Stalinobod",
+          "nativeLanguage": "tg-Latn",
+          "nativeNames": [
+            {
+              "text": "Stalinobod",
+              "language": "tg-Latn",
+              "script": "Latn"
+            }
+          ],
+          "kind": "officialStalinabadNameUnionApprovalEditorialDate",
           "sourceUrl": "https://www.institute-history.tj/en/node/549",
-          "note": "1929년 공식 개칭",
-          "researchNote": "타지키스탄 과학기관의 기록에는 1929-10-19 제3차 특별소비에트의 명칭 변경 결의 및 1929-12-01 소련 중앙집행위원회 승인, 다른 지역 자료에는 1929-10-16이라고 언급된다. 효력 특정 날짜를 단정하지 않고 연도만 반영한다."
+          "note": "1929년 스탈리나바드 승인",
+          "researchNote": "1929-10-19 지역 특별소비에트 개칭 결의와 1929-12-01 소련 중앙집행위원회의 승인일을 구별한다. 지도는 요청에 따른 공식 승인일 1929-12-01을 전환 기준으로 택한다. 영어 Stalinabad는 러시아어 외칭에서 차용하며 실제 타지크어 당시 라틴 표기는 Stalinobod로 선정한다."
         },
         {
-          "fromYear": 1961,
-          "nameKo": "두샨베",
-          "kind": "officialRenaming",
+          "fromDate": "1940-05-21",
+          "nameKo": "스탈리나바드",
+          "nameEn": "Stalinabad",
+          "nameNative": "Сталинобод",
+          "nativeLanguage": "tg",
+          "nativeNames": [
+            {
+              "text": "Сталинобод",
+              "language": "tg",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "tajikCyrillicAlphabetLawEditorialDate",
           "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en",
-          "note": "1961년 옛 지명 회복",
-          "researchNote": "타지키스탄 정부 도시 소개는 1961년 지명 회복을 확인하나 본 자료에서는 법적 시행 일자를 1차 공문으로 대조하지 못했으므로 연도 정밀도만 저장한다."
+          "note": "1940년 타지크어 키릴문자법",
+          "researchNote": "1940-05-21 타지크어 키릴문자 전환법 제정일을 지도 철자 변환 기준으로 택한다. 실제 행정·인쇄 전환 기한으로 1941-09-01이 제시된 자료도 있어 법률 채택일과 완료일을 구분한다. 러시아어 Сталинабад와 타지크어 Сталинобод는 다른 언어 표기다."
+        },
+        {
+          "fromDate": "1961-11-11",
+          "nameKo": "두샨베",
+          "nameEn": "Dushanbe",
+          "nameNative": "Душанбе",
+          "nativeLanguage": "tg",
+          "nativeNames": [
+            {
+              "text": "Душанбе",
+              "language": "tg",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "officialOriginalNameRestorationEditorialDecreeDate",
+          "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en",
+          "note": "1961년 두샨베 명칭 회복",
+          "researchNote": "1961-11-10 시·의회에서 결의했다는 자료와 1961-11-11 최고회의 간부회령이라는 앞선 조사 결과를 구분해, 사용자에게 제시한 간부회령 날짜 11월 11일을 지도 편집상 복원일로 적용한다. 1961-11-10을 정식 최종 개칭일로 기재한 2차 사료도 있어 법령 원문 시행일은 아직 교차 확인이 필요하다."
         }
       ],
-      "historicalDisplayCoverage": "reviewed-since-1801-with-year-granularity-renames",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-provenance-dated-name-and-script-transitions",
       "historicalGeography": {
         "events": [
           {
@@ -644,16 +1048,39 @@
             "sourceUrl": "https://amit.tj/index.php/tj/node/2922"
           },
           {
-            "year": 1929,
-            "type": "renamedStalinabad",
-            "detail": "1929년 스탈리나바드 개칭",
-            "sourceUrl": "https://www.institute-history.tj/en/node/549"
+            "date": "1929-10-19",
+            "type": "stalinabadLocalRenamingDecision",
+            "detail": "1929년 지역 개칭 결의",
+            "sourceUrl": "https://www.institute-history.tj/en/node/549",
+            "researchDetail": "10월 19일 지역 특별소비에트 개칭 결의. 소련 중앙 당국의 승인 12월 1일과 별도 사건이다."
           },
           {
-            "year": 1961,
-            "type": "restoredDushanbeName",
-            "detail": "1961년 두샨베 명칭 복구",
-            "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en"
+            "date": "1929-12-01",
+            "type": "stalinabadCentralApproval",
+            "detail": "1929년 스탈리나바드 승인",
+            "sourceUrl": "https://www.institute-history.tj/en/node/549",
+            "researchDetail": "연방기관의 개칭 승인 날짜를 지도 표시 명칭 전환일로 선택한다."
+          },
+          {
+            "date": "1940-05-21",
+            "type": "tajikCyrillicAlphabetLaw",
+            "detail": "1940년 타지크어 키릴 문자법",
+            "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en",
+            "researchDetail": "새 문자 제정일과 1941년 9월까지 완료 요구는 별도다."
+          },
+          {
+            "date": "1961-11-10",
+            "type": "dushanbeCityCouncilNameRestorationDecision",
+            "detail": "1961년 명칭 복원 관련 결의",
+            "sourceUrl": "https://www.iranicaonline.org/articles/dushanbe/",
+            "researchDetail": "복원 날짜에 대해 11월 10일을 명시하는 2차 자료가 있다. 간부회령 11월 11일 적용안과 구분해서 기록한다."
+          },
+          {
+            "date": "1961-11-11",
+            "type": "dushanbeHigherPresidiumRestorationEditorialDate",
+            "detail": "1961년 원래 도시명 복원",
+            "sourceUrl": "https://egov.tj/site/dushanbe-city?lang=en",
+            "researchDetail": "앞선 15차 조사에서 제시한 11월 11일 간부회령 날짜를 편집상 구간으로 확정한다. 원문 효력일을 확인한 것으로 주장하지 않는다."
           }
         ],
         "notes": [
@@ -670,88 +1097,129 @@
           {
             "detail": "PPLC 취락과 ADM1 구분",
             "sourceUrl": "https://www.geonames.org/1221874/dushanbe.html"
+          },
+          {
+            "detail": "1961년 10일·11일 기록 차이",
+            "sourceUrl": "https://www.iranicaonline.org/articles/dushanbe/",
+            "researchDetail": "1961년 11월 10일과 11일 기록이 혼재한다. 지도에는 앞서 확정 제안한 11월 11일을 편집상 기준으로 저장하지만 그 날을 확인된 전국적 법적 효력일로 단정하지 않는다."
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Dushanbe",
+      "defaultDisplayNameNative": "Душанбе",
+      "defaultNativeLanguage": "tg",
+      "defaultNativeNames": [
+        {
+          "text": "Душанбе",
+          "language": "tg",
+          "script": "Cyrl"
+        }
+      ]
     },
     {
       "geonameId": 162183,
       "names": [
         {
-          "text": "Aşgabat",
-          "language": "tk",
-          "script": "Latn",
-          "usage": "standard",
-          "note": "투르크멘어 라틴 표기",
-          "sourceUrl": "https://mfa.gov.tm/en/140-years/history"
-        },
-        {
-          "text": "Ashgabat",
-          "language": "en",
-          "usage": "standard"
-        },
-        {
-          "text": "아시가바트",
+          "text": "아슈하바트",
           "language": "ko",
-          "usage": "standard",
-          "note": "현지어 기반 편집 기본 표기",
-          "sourceUrl": "https://www.yna.co.kr/view/AKR20160412151800005"
+          "usage": "historical",
+          "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
         },
         {
-          "text": "Ашхабад",
-          "language": "ru",
-          "script": "Cyrl",
+          "text": "Askhabad",
+          "language": "en",
           "usage": "historical",
-          "variantType": "russianLanguageExonym",
-          "note": "1927년 이후 러시아어 형태",
-          "sourceUrl": "https://mfa.gov.tm/ru/140-years/history"
+          "script": "Latn",
+          "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
         },
         {
           "text": "Асхабад",
           "language": "ru",
+          "usage": "historical",
           "script": "Cyrl",
-          "usage": "historical",
-          "variantType": "pre1919RussianSpelling",
-          "note": "1881~1919년 러시아어명",
-          "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
-        },
-        {
-          "text": "Ashkhabad",
-          "language": "en",
-          "usage": "historical",
-          "variantType": "russianBasedEnglishSpelling",
-          "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
-        },
-        {
-          "text": "아슈하바트",
-          "language": "ko",
-          "usage": "historical",
-          "variantType": "russianBasedKoreanMapName",
-          "note": "러시아어 기반 옛 한국어형",
-          "sourceUrl": "https://www.yna.co.kr/view/AKR20160412151800005"
-        },
-        {
-          "text": "Полторацк",
-          "language": "ru",
-          "script": "Cyrl",
-          "usage": "historical",
-          "variantType": "sovietInterwarCityName",
-          "note": "1919~1927년 혁명가명",
-          "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
-        },
-        {
-          "text": "Poltoratsk",
-          "language": "en",
-          "usage": "historical",
-          "variantType": "sovietEraRomanization",
           "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
         },
         {
           "text": "폴토라츠크",
           "language": "ko",
           "usage": "historical",
-          "variantType": "koreanRenderingOfPoltoratsk",
           "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
+        },
+        {
+          "text": "Poltoratsk",
+          "language": "en",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
+        },
+        {
+          "text": "Полторацк",
+          "language": "ru",
+          "usage": "historical",
+          "script": "Cyrl",
+          "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
+        },
+        {
+          "text": "Ashkhabad",
+          "language": "en",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://mfa.gov.tm/ru/140-years/history"
+        },
+        {
+          "text": "Ашхабад",
+          "language": "ru",
+          "usage": "historical",
+          "script": "Cyrl",
+          "sourceUrl": "https://mfa.gov.tm/ru/140-years/history"
+        },
+        {
+          "text": "Asqabat",
+          "language": "tk-Latn",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf"
+        },
+        {
+          "text": "Aşkabat",
+          "language": "tk-Latn",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://www.altayturkoloji.org/index.php/pub/article/view/8"
+        },
+        {
+          "text": "Ашгабат",
+          "language": "tk",
+          "usage": "historical",
+          "script": "Cyrl",
+          "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf"
+        },
+        {
+          "text": "아시가바트",
+          "language": "ko",
+          "usage": "standard",
+          "sourceUrl": "https://mfa.gov.tm/ru/140-years/history"
+        },
+        {
+          "text": "Ashgabat",
+          "language": "en",
+          "usage": "standard",
+          "script": "Latn",
+          "sourceUrl": "https://mfa.gov.tm/ru/140-years/history"
+        },
+        {
+          "text": "A¢gabat",
+          "language": "tk-Latn",
+          "usage": "historical",
+          "script": "Latn",
+          "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf"
+        },
+        {
+          "text": "Aşgabat",
+          "language": "tk",
+          "usage": "standard",
+          "script": "Latn",
+          "sourceUrl": "https://www.researchgate.net/publication/372833850_Rewriting_the_Nation_Turkmen_literacy_language_and_power"
         }
       ],
       "latitude": 37.95,
@@ -761,39 +1229,169 @@
       "sourceUrl": "https://www.geonames.org/162183/ashgabat.html",
       "sourceCountryCode": "TM",
       "defaultDisplayNameKo": "아시가바트",
-      "shortDescriptionKo": "1919~1927년 폴토라츠크",
+      "shortDescriptionKo": "1919·1927년 개칭과 문자 변천",
       "displayTimeline": [
         {
           "fromYear": 1801,
           "nameKo": "아슈하바트",
-          "kind": "koreanEditorialTranscription",
-          "sourceUrl": "https://mfa.gov.tm/ru/140-years/history",
-          "note": "1881년 이후 도시 취락 표시",
-          "researchNote": "1801년은 검토 시작연도일 뿐 현대 아시가바트시의 형성일이 아니다. 현 도시 위치에 소규모 이쉬키아바드계 마을이 1811·1850년에 문헌상 나타나지만, 정식 도시 형성은 1881~1882년으로 구별한다."
+          "nameEn": "Askhabad",
+          "nameNative": "Асхабад",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Асхабад",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "historicalRussianNameForCityEstablishment",
+          "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes",
+          "note": "1881년부터 근대 도시로 표시",
+          "researchNote": "1801년은 조사 범위 시작이다. 현 위치의 이전 취락과는 구별해 1881년부터 근대 아시가바트 도시 라벨을 활성화한다. 'Асхабад'의 초기 러시아어 철자를 역사 원어 대표로 택한 것은 1801년에 해당 러시아 행정도시가 존재했다는 뜻이 아니다."
         },
         {
           "fromYear": 1919,
           "nameKo": "폴토라츠크",
-          "kind": "officialRenaming",
+          "nameEn": "Poltoratsk",
+          "nameNative": "Полторацк",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Полторацк",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "sovietPeriodOfficialCityRenaming",
           "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes",
-          "note": "1919년 혁명가 이름으로 개칭",
-          "researchNote": "1919년 볼셰비키가 백군에서 도시를 점령한 직후 Полторацкий(폴토라츠키)로 명명했다가 도시명은 Poltoratsk/Полторацк으로 축약되어 정착했다. 적용 정확한 날짜는 현재 근거만으로 단정하지 않는다."
+          "note": "1919년 폴토라츠크 개칭",
+          "researchNote": "1919년 볼셰비키 측의 도시 확보 이후 Полторацк으로 개칭되었다. 법령의 정확한 월·일은 미확정이므로 연도 정밀도로 저장한다."
         },
         {
           "fromDate": "1927-04-07",
           "nameKo": "아슈하바트",
-          "kind": "officialRenaming",
+          "nameEn": "Ashkhabad",
+          "nameNative": "Ашхабад",
+          "nativeLanguage": "ru",
+          "nativeNames": [
+            {
+              "text": "Ашхабад",
+              "language": "ru",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "sovietOfficialOriginalNameRestoration",
           "sourceUrl": "https://mfa.gov.tm/ru/140-years/history",
-          "note": "1927년 기존 도시명 복구",
-          "researchNote": "1927년 4월 7일 Poltoratsk에서 Ashkhabad/Aşgabat계 원래 지명으로 복구한 실제 행정 개칭이다. 투르크멘어 Aşgabat과 러시아어 Ашхабад는 그때부터 언어별로 병용될 수 있다."
+          "note": "1927년 아슈하바트 이름 복원",
+          "researchNote": "1927-04-07 폴토라츠크에서 구 도시명을 복구했다. 해당 러시아어명 Ашхабад를 당시 원어 대표로 선택하고 투르크멘어 표기와의 차이는 역사 설명에 보존한다."
+        },
+        {
+          "fromDate": "1929-05-05",
+          "nameKo": "아슈하바트",
+          "nameEn": "Ashkhabad",
+          "nameNative": "Asqabat",
+          "nativeLanguage": "tk-Latn",
+          "nativeNames": [
+            {
+              "text": "Asqabat",
+              "language": "tk-Latn",
+              "script": "Latn"
+            }
+          ],
+          "kind": "turkmenFirstLatinAlphabetImplementationEditorial",
+          "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf",
+          "note": "1929년 구 투르크멘 라틴 문자",
+          "researchNote": "1928-01-03 투르크멘 SSR에서 구 라틴 문자를 승인했고 1929-05-05 전면 전환 관련 결의를 문자표기 편집 기준으로 선택한다. 1931년 인쇄물에서 Asqabat 형태가 확인되지만 1929-05-05에 모든 기관의 실제 철자가 일제히 이 형태였음을 주장하지 않는다."
+        },
+        {
+          "fromYear": 1937,
+          "nameKo": "아슈하바트",
+          "nameEn": "Ashkhabad",
+          "nameNative": "Aşkabat",
+          "nativeLanguage": "tk-Latn",
+          "nativeNames": [
+            {
+              "text": "Aşkabat",
+              "language": "tk-Latn",
+              "script": "Latn"
+            }
+          ],
+          "kind": "turkmenOldLatinRevisedSpellingAttested",
+          "sourceUrl": "https://www.altayturkoloji.org/index.php/pub/article/view/8",
+          "note": "1937년 Aşkabat 문헌 표기",
+          "researchNote": "1934-06-05 q/ƣ를 k/g로 바꾸는 정서법 변경 논의와 1936년 5월 x/h 변경 관련 논의를 분리한다. Aşkabat은 1937년 자료에서 확인되는 인쇄 철자이며 정확한 변경 시행일이 확인되지 않아 1937년 연도만 사용한다. 이때 발음·도시명의 실질 개칭은 일어나지 않았다."
+        },
+        {
+          "fromDate": "1940-07-01",
+          "nameKo": "아슈하바트",
+          "nameEn": "Ashkhabad",
+          "nameNative": "Ашгабат",
+          "nativeLanguage": "tk",
+          "nativeNames": [
+            {
+              "text": "Ашгабат",
+              "language": "tk",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "turkmenCyrillicStateAdministrationSwitch",
+          "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf",
+          "note": "1940년 투르크멘 키릴 문자",
+          "researchNote": "1940년 5월 정부 결정에 따라 1940-07-01부터 행정기관의 새 키릴 문자를 적용하도록 한 날짜를 선택한다. 원어 투르크멘어 Ашгабат와 러시아어 Ашхабад는 다른 언어 표기이고 영어 Ashkhabad는 역사 외칭으로 남는다."
         },
         {
           "fromDate": "1991-10-27",
           "nameKo": "아시가바트",
-          "kind": "koreanEditorialTranscription",
-          "sourceUrl": "https://www.yna.co.kr/view/AKR20160412151800005",
-          "note": "독립 이후 현지어 기반 표기",
-          "researchNote": "투르크메니스탄 독립 1991-10-27을 Pando 편집상의 한국어 음역 변경 기준점으로 삼는다. 실제 도시가 1991년 10월 27일 공식 개칭되었다는 뜻은 아니다. '아시가바트'는 2016년 국립국어원 표준국어대사전 표제어에 채택되지만 그 규범 시행일 역시 지도명 변경 기준이 아니다."
+          "nameEn": "Ashgabat",
+          "nameNative": "Ашгабат",
+          "nativeLanguage": "tk",
+          "nativeNames": [
+            {
+              "text": "Ашгабат",
+              "language": "tk",
+              "script": "Cyrl"
+            }
+          ],
+          "kind": "koreanTurkmenTranscriptionIndependenceEditorial",
+          "sourceUrl": "https://mfa.gov.tm/ru/140-years/history",
+          "note": "1991년 한국어·영어 편집 전환",
+          "researchNote": "1991-10-27 투르크메니스탄 독립을 계기로 지도 한국어명을 아슈하바트에서 아시가바트로, 영어명을 Ashkhabad에서 Ashgabat으로 바꾸는 편집 규칙을 적용한다. 도시 자체의 법정 명칭 변경이나 투르크멘어의 로마자 표기 전환은 이 날짜에 일어나지 않았다."
+        },
+        {
+          "fromDate": "1993-04-12",
+          "nameKo": "아시가바트",
+          "nameEn": "Ashgabat",
+          "nameNative": "A¢gabat",
+          "nativeLanguage": "tk-Latn",
+          "nativeNames": [
+            {
+              "text": "A¢gabat",
+              "language": "tk-Latn",
+              "script": "Latn"
+            }
+          ],
+          "kind": "initialTurkmenLatinAlphabetSymbolPeriod",
+          "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf",
+          "note": "1993년 초기 라틴 문자 채택",
+          "researchNote": "1993-04-12 대통령령을 통한 새 문자 채택 시점을 원어 표기 전환으로 선택한다. 당시 투르크멘어 새 알파벳은 현대 Ş/ş 대신 대문자 $·소문자 ¢를 사용했으므로 도시명 Aşgabat의 두 번째 글자(소문자 ş)에 해당하는 역사적 표기는 A¢gabat로 복원한다. 당시 인쇄 표기의 지역별 변형이나 유니코드 이전 기호 치환 문제는 별도 연구 여지다."
+        },
+        {
+          "fromDate": "1995-01-11",
+          "nameKo": "아시가바트",
+          "nameEn": "Ashgabat",
+          "nameNative": "Aşgabat",
+          "nativeLanguage": "tk",
+          "nativeNames": [
+            {
+              "text": "Aşgabat",
+              "language": "tk",
+              "script": "Latn"
+            }
+          ],
+          "kind": "turkmenLatinAlphabetShCharacterPublicAnnouncementEditorial",
+          "sourceUrl": "https://www.researchgate.net/publication/372833850_Rewriting_the_Nation_Turkmen_literacy_language_and_power",
+          "note": "1995년 Ş·ş 변경 발표일 적용",
+          "researchNote": "1995-01-11자 Türkmenistan 신문 발표에서 1993년 알파벳의 $/¢(Ş/ş에 해당)가 Ş/ş로 바뀐 사실을 확인해 지도 원어명 A¢gabat→Aşgabat 변경의 편집 기준일로 선택한다. 별도 법적 시행일은 확인되지 않았지만 사용자 요청에 따라 해당 발표일을 적용한다."
         }
       ],
       "temporalEligibility": {
@@ -803,7 +1401,7 @@
         "note": "1881~1882년 근대 도시 형성",
         "researchNote": "현재 수도의 근대 행정도시는 1881년 제정 러시아 자카스피 주의 중심지 지정 후 성장했다. 현재 도심 인근의 19세기 초 이쉬키아바드 마을과 니사 유적은 현대 도시 PPLC의 1801년 기원으로 자동 등치하지 않는다."
       },
-      "historicalDisplayCoverage": "reviewed-since-modern-city-formation-with-russian-and-turkmen-forms",
+      "historicalDisplayCoverage": "reviewed-since-1801-with-provenance-dated-name-and-script-transitions",
       "historicalGeography": {
         "events": [
           {
@@ -815,7 +1413,7 @@
           {
             "year": 1919,
             "type": "renamedPoltoratsk",
-            "detail": "1919년 폴토라츠크 개칭",
+            "detail": "1919년 폴토라츠크 공식 개칭",
             "sourceUrl": "https://www.turkmenistan.gov.tm/en/post/54428/history-ashgabat-time-big-changes"
           },
           {
@@ -827,8 +1425,42 @@
           {
             "date": "1927-04-07",
             "type": "restoredAshgabatName",
-            "detail": "1927년 본래 도시명 회복",
-            "sourceUrl": "https://mfa.gov.tm/en/140-years/history"
+            "detail": "1927년 본래 지명 복구",
+            "sourceUrl": "https://mfa.gov.tm/ru/140-years/history"
+          },
+          {
+            "date": "1928-01-03",
+            "type": "turkmenOldLatinAlphabetApproval",
+            "detail": "1928년 구 라틴 문자 승인",
+            "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf",
+            "researchDetail": "1928년 정부 승인과 1929년 전면 적용 방침은 구별한다."
+          },
+          {
+            "date": "1929-05-05",
+            "type": "turkmenLatinAlphabetAdministrationSwitchEditorial",
+            "detail": "1929년 구 라틴 문자 전환",
+            "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf",
+            "researchDetail": "1929-05-05 전면 전환 결의 기록을 지명 원어 표기 편집일로 채택한다."
+          },
+          {
+            "date": "1934-06-05",
+            "type": "turkmenQGToKGOrthographyReform",
+            "detail": "1934년 q·ƣ 문자 대체 논의",
+            "sourceUrl": "https://www.altayturkoloji.org/index.php/pub/article/view/8",
+            "researchDetail": "1934년 6월 학술·정책 논의는 Asqabat/Aşkabat로의 특정 날짜 첫 사용을 입증하지 않는다. 1937년 인쇄 형태를 별도 연도 기준으로 삼는다."
+          },
+          {
+            "year": 1937,
+            "type": "turkmenOldLatinAskabatAttestation",
+            "detail": "1937년 Aşkabat 형태 확인",
+            "sourceUrl": "https://www.altayturkoloji.org/index.php/pub/article/view/8",
+            "researchDetail": "정확한 첫 철자 개정일 대신 인쇄 자료에서 확인된 연도를 표시 명칭 전환 기준으로 택한다."
+          },
+          {
+            "date": "1940-07-01",
+            "type": "turkmenCyrillicAdministrativeImplementation",
+            "detail": "1940년 키릴 문자 행정 적용",
+            "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf"
           },
           {
             "date": "1948-10-06",
@@ -841,6 +1473,20 @@
             "type": "turkmenIndependence",
             "detail": "1991년 투르크메니스탄 독립",
             "sourceUrl": "https://usa.tmembassy.gov.tm/en/news/75892"
+          },
+          {
+            "date": "1993-04-12",
+            "type": "turkmenLatinAlphabetPresidentialAdoption",
+            "detail": "1993년 새 투르크멘 로마자법",
+            "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf",
+            "researchDetail": "초기 로마자는 현대 Ş/ş 대신 $/¢를 사용했다."
+          },
+          {
+            "date": "1995-01-11",
+            "type": "turkmenShCharacterRevisionAnnouncementEditorialDate",
+            "detail": "1995년 Ş/ş 변경 방침 발표",
+            "sourceUrl": "https://www.researchgate.net/publication/372833850_Rewriting_the_Nation_Turkmen_literacy_language_and_power",
+            "researchDetail": "1995-01-11 신문 발표 날짜이며 확인되지 않은 법적 효력일과 구별한다. 지도 표기 변경은 이 날짜로 채택했다."
           }
         ],
         "notes": [
@@ -857,9 +1503,29 @@
             "detail": "도시 PPLC·ADM1·공항 구별",
             "researchDetail": "GeoNames 162183은 수도 도시 취락, Ashgabat ADM1과 Ashgabat International Airport S/AIRP는 별도 지역·시설 객체이며 지명으로 합병하거나 취락 지명 후보에 공항을 넣지 않는다.",
             "sourceUrl": "https://www.geonames.org/162183/ashgabat.html"
+          },
+          {
+            "detail": "A¢gabat 표기는 소문자 ¢",
+            "sourceUrl": "https://www.unicode.org/L2/L2000/00176-turkmen.pdf",
+            "researchDetail": "1993년 새 투르크멘 로마자에서 uppercase Ş에 대응하는 '$', lowercase ş에 대응하는 '¢'를 사용했다. 표기 Asgabat이나 A$gabat과 혼동하지 않도록 원어명은 A¢gabat로 선정했다."
+          },
+          {
+            "detail": "1995년 1월 11일은 발표일",
+            "sourceUrl": "https://www.researchgate.net/publication/372833850_Rewriting_the_Nation_Turkmen_literacy_language_and_power",
+            "researchDetail": "정부 알파벳위원회 관련자의 1995-01-11 Türkmenistan 신문 발표일을 적용한 편집상 전환일이다. 법적 시행일 확정이라는 의미는 아니다."
           }
         ]
-      }
+      },
+      "defaultDisplayNameEn": "Ashgabat",
+      "defaultDisplayNameNative": "Aşgabat",
+      "defaultNativeLanguage": "tk",
+      "defaultNativeNames": [
+        {
+          "text": "Aşgabat",
+          "language": "tk",
+          "script": "Latn"
+        }
+      ]
     }
   ]
 }
