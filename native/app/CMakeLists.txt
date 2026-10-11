@@ -637,8 +637,12 @@ if(BUILD_TESTING)
         target_link_libraries(reference_image_tests PRIVATE windowsapp)
     endif()
     add_test(NAME reference_image_tests COMMAND reference_image_tests -o -,txt)
-    add_executable(reference_auto_georef_tests ../tests/reference_auto_georef_tests.cpp)
-    target_link_libraries(reference_auto_georef_tests PRIVATE pandoeditor_editor Qt6::Test)
+    add_executable(reference_auto_georef_tests
+        ../tests/reference_auto_georef_tests.cpp
+        referenceautogeoref.cpp referenceautogeoref.h
+        referencewarp.cpp referencewarp.h)
+    target_include_directories(reference_auto_georef_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(reference_auto_georef_tests PRIVATE Qt6::Gui Qt6::Test)
     add_test(NAME reference_auto_georef_tests COMMAND reference_auto_georef_tests -o -,txt)
     add_executable(territory_selection_tests ../tests/territory_selection_tests.cpp)
     target_link_libraries(territory_selection_tests PRIVATE pandoeditor_editor Qt6::Test)
