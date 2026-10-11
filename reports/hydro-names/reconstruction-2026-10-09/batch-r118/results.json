@@ -1,0 +1,506 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r118",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r117",
+    "commit": "c34c4a7309a5df33921039f3394c3a744269889d",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r117/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61543259",
+    "hydro-system:60147654",
+    "hydro-system:61550005",
+    "hydro-system:61565384"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61543259",
+      "category": "river_group",
+      "system_id": "61543259",
+      "original_queue_rank": 272,
+      "baseline_logical_fid": 3607,
+      "geometry_fids": [
+        14509
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -60.01875,
+        -38.584179,
+        -58.705715,
+        -37.370833
+      ],
+      "rendered_mainstem_length_km": 231.368,
+      "rendered_network_length_km": 231.368,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -60.01875,
+          -38.584179,
+          -58.705715,
+          -37.370833
+        ]
+      },
+      "candidate_name": "Río Quequén Grande",
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "automatic_application": false,
+      "product_application": false,
+      "source_keys": [
+        "ign250k-r118-61543259",
+        "ign100k-r118-61543259",
+        "ign500k-r118-61543259",
+        "munguia-campo2003"
+      ],
+      "region": "Southeastern Buenos Aires Province, Pampa de Juárez and Pescado Castigado corridor to lower Quequén Grande and the Necochea–Quequén coastal mouth.",
+      "formal_registry_verified": false,
+      "geographic_disambiguation": "Original IGN cartography identifies the established upper/middle channel as Arroyo Pescado Castigado, its junction with Arroyo Quequén Grande, subsequent lower tributary junctions, and Río Quequén Grande continuing to the sea between Necochea and Quequén. The selected northern head south of Chillar crosses the Pampa de Juárez depression country before reaching the mapped La Gogita–La Filomena drainage west of Benito Juárez. The sources cover that landscape but do not establish the particular northern receiving connection. This single material gap prevents completed representative-system identity; it is not merely uncertainty about perennial flow or an exact channel position.",
+      "candidate_names": [
+        "Río Quequén Grande"
+      ],
+      "candidate_name_role": "limited_downstream_receiving_identity_with_unresolved_northern_headward_connector",
+      "supported_name_scope": "Source-supported downstream receiving-river identity and provisional system candidate; full selected-system correspondence remains incomplete at the northern headward connector.",
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected head south of Chillar runs through the El Diamante/La Paloma country toward La Gogita–La Filomena, west of Benito Juárez. Original 1:100,000 and 1:250,000 mapping shows small separate depressions and short drainage marks along this northern country, but does not establish the selected north–south receiving link into the mapped wetland/channel sequence farther south. The primary study's description of diffuse and locally unintegrated drainage supplies environmental context, not this missing connector. This is an unresolved connection at ordinary corridor scale, not a requirement for a perennial channel or exact model vertices.",
+      "naming_scope_hold_reason": null,
+      "completion_scope": "Original maps cover the entire landscape and establish the southern wetland-to-Pescado Castigado corridor, receiving Quequén Grande, lower junctions and actual coastal terminal. The northern selected receiving connection remains materially unresolved.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "provisional_downstream_receiving_name": "Río Quequén Grande",
+        "mapped_middle_component": "Arroyo Pescado Castigado",
+        "initial_headward_component_name": null,
+        "component_scope_limits": [
+          "Río Quequén Grande is supported for the downstream receiving river. It is not applied uniformly to the separately named Arroyo Pescado Castigado or to the unnamed northern headward passage.",
+          "The IGN sheets distinguish Arroyo Pescado Castigado, Arroyo Quequén Grande, Quequén Chico and other tributaries. One modeled mainstem FID does not erase those source-name distinctions.",
+          "No exact spring, channelized origin, continuous perennial flow, whole-feature scalar name, Korean form or formal registry status is established.",
+          "Nearby Laguna Oromí, Laguna del Hunco, Laguna San Antonio, Laguna La Salada and Laguna La Dulce Grande are not automatically named source or in-stream lake passages for the selected route."
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    },
+    {
+      "aw_id": "hydro-system:60147654",
+      "category": "river_group",
+      "system_id": "60147654",
+      "original_queue_rank": 273,
+      "baseline_logical_fid": 3377,
+      "geometry_fids": [
+        11506,
+        11507,
+        11508,
+        11509,
+        11510,
+        11511,
+        11512
+      ],
+      "minimum_stage": 0,
+      "bbox": [
+        -77.358717,
+        4.947917,
+        -76.922917,
+        6.016667
+      ],
+      "rendered_mainstem_length_km": 230.701,
+      "rendered_network_length_km": 300.002,
+      "geometry_summary": {
+        "fragment_count": 7,
+        "mainstem_fragment_count": 4,
+        "tributary_fragment_count": 3,
+        "mainstem_bbox": [
+          -77.358717,
+          4.947917,
+          -76.922917,
+          6.016667
+        ]
+      },
+      "candidate_name": "Río Baudó",
+      "candidate_names": [
+        "Río Baudó"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "research_category": "supported_representative_system_identity",
+      "supported_name_scope": "Representative Baudó system only. Selected lower Pepé is distinct. The western branch contains the mapped Dubasa corridor and a Catrú junction before joining Baudó; its headward feeder and combined lower reach are not automatically assigned a scalar name. No uniform name is inferred for every component.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "naming_scope_details": {
+        "mainstem": "Four selected fragments follow the upper-valley approach, labelled Baudó valley and lower westward coastal course; unnamed headward reaches remain unnamed.",
+        "tributaries": "One selected lower Pepé fragment and two fragments of the western Dubasa approach and combined Dubasa/Catrú lower tributary remain distinct from the representative river name.",
+        "waterbody_links": "No selected through-lake or reservoir passage is indicated by the reviewed cartography; the downstream transition is river to coastal/estuarine waters.",
+        "terminals": "The mainstem coastal mouth and both represented tributary connections to Baudó are visible in the original cartography.",
+        "precision": "Ordinary component/corridor scale. Exact bank, vertex and mouth-point alignment was neither required nor claimed."
+      },
+      "source_keys": [
+        "r118-sgc-agc2020-5-08",
+        "r118-iiap-pacific-plan2013",
+        "r118-sina-state2011-tomo2"
+      ],
+      "region": "Pacific Chocó, Colombia, Baudó headward valley to Bahía Baudó near Pizarro, including selected lower Pepé and western Dubasa/Catrú tributary fragments.",
+      "geographic_disambiguation": "Río Baudó is supported as the representative system identity after reading all seven selected fragments, material tributary junctions and the actual Pacific outlet at ordinary generalized corridor scale.",
+      "completion_scope": "Complete bounded geographic correspondence with supported representative-system identity; no uniform scalar naming claim."
+    },
+    {
+      "aw_id": "hydro-system:61550005",
+      "category": "river_group",
+      "system_id": "61550005",
+      "original_queue_rank": 274,
+      "baseline_logical_fid": 3614,
+      "geometry_fids": [
+        14527
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -65.833333,
+        -39.552083,
+        -63.922917,
+        -39.102083
+      ],
+      "rendered_mainstem_length_km": 230.42,
+      "rendered_network_length_km": 230.42,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -65.833333,
+          -39.552083,
+          -63.922917,
+          -39.102083
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "candidate_name_role": "whole_route_name_unestablished",
+      "research_category": "river_group_name_scope_hold",
+      "supported_name_scope": "Local lagoon labels are retained only as geographic orientation; no representative river-system candidate or whole-feature scalar name is supported.",
+      "full_feature_correspondence_review_completed": true,
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "follow_up_required": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The entire selected path and inland endpoint have original cartographic coverage. The path traverses meseta relief, dry/inter-basin terrain and local depressions; no hydronym is established for the whole modeled group. Nearby lake and estancia names cannot be promoted to a river-system identity. This is a completed geographic/naming-scope review, not a claim that all local lows form one continuously flowing natural river.",
+      "source_keys": [
+        "ign-topo250k-r118-61550005",
+        "ign-topo100k-r118-61550005",
+        "bertani-ferrari-valle-medio"
+      ],
+      "region": "Northern Río Negro Province, Argentina, dry meseta between the Río Negro and Río Colorado valleys, ending inland near Estancia San Juan/La Dora.",
+      "geographic_disambiguation": "Original IGN 1:250,000 and 1:100,000 mosaics place the full single-component selection in the meseta north and east of the active Río Negro valley. The route crosses dry relief and local depressions, with San Bernardo and the La Larga–La Fortuna–El Mate vicinity providing local orientation. Its actual inland endpoint is in the Estancia San Juan/La Dora sector, separate from Bajo de la Calandria. No named river or terminal waterbody supports a whole-feature assignment.",
+      "completion_scope": "Complete headward, middle, lower and actual inland terminal geography is read on both original map scales. Dry terrain and separate depressions are preserved as distinct settings; no continuous river or inter-depression through-flow is asserted.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "initial_headward_component_name": null,
+        "terminal_waterbody_name": null,
+        "local_lagoon_context": [
+          "Laguna San Bernardo",
+          "La Larga",
+          "La Fortuna",
+          "El Mate"
+        ],
+        "terminal_land_context": "Estancia San Juan/La Dora sector",
+        "distinct_unselected_depression": "Bajo de la Calandria to the north",
+        "regional_associations_are_exact_reach_assignments": false,
+        "hydrological_continuity_claimed": false
+      }
+    },
+    {
+      "aw_id": "hydro-system:61565384",
+      "category": "river_group",
+      "system_id": "61565384",
+      "original_queue_rank": 275,
+      "baseline_logical_fid": 3634,
+      "geometry_fids": [
+        14589
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -66.960417,
+        -42.014583,
+        -65.066032,
+        -41.433333
+      ],
+      "rendered_mainstem_length_km": 229.926,
+      "rendered_network_length_km": 229.926,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -66.960417,
+          -42.014583,
+          -65.066032,
+          -41.433333
+        ]
+      },
+      "candidate_name": "Arroyo Verde",
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "automatic_application": false,
+      "product_application": false,
+      "source_keys": [
+        "ign-historical-250k",
+        "codema2007-plan2008",
+        "kokot2015-coastal"
+      ],
+      "region": "Northeastern Patagonia, Argentina, Somuncurá headward drainage and Arroyo Verde to Golfo San Matías north of Puerto Lobos.",
+      "formal_registry_verified": false,
+      "geographic_disambiguation": "Original historical IGN cartography supports the selected Somuncurá headward drainage, southeastward upper corridor, named Arroyo Verde middle and lower reaches, the Laguna del Medio basin-side junction, and the coastal outlet north of Puerto Lobos as one bounded representative system. No hydronym is established for the entire selected headwater-to-sea feature.",
+      "candidate_names": [
+        "Arroyo Verde"
+      ],
+      "candidate_name_role": "supported_representative_system_identity",
+      "supported_name_scope": "representative downstream river/system identity; not a uniform name for every selected reach",
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "completion_scope": "The completed original cartographic coverage resolves every selected component and material junction at ordinary corridor scale. Optional SEGEMAR and IIA acquisition limits do not leave a substantive geographic gap. The representative downstream system identity is supported while scalar, accepted and Korean names remain null.",
+      "naming_scope_details": {
+        "representative_system_identity": "Arroyo Verde",
+        "initial_headward_component_name": null,
+        "headward_geography": "Somuncurá drainage south of Laguna Blanca, not a claimed named lake outlet.",
+        "distinct_upper_tributary": "Arroyo de las Pinturas",
+        "material_lake_basin_relationship": "Southern basin-side junction of Laguna del Medio; the selected route does not traverse the long northern lake body.",
+        "receiving_waterbody_name": "Golfo San Matías",
+        "component_scope_limits": [
+          "Arroyo Verde is supported as the representative river/system from the middle and lower corridor and coastal continuation. The upper source reach south of Laguna Blanca is not assigned that name merely by downstream connection.",
+          "Arroyo de las Pinturas is a mapped tributary at the upper-valley junction; its name is not applied to all selected headwater reaches.",
+          "Laguna Blanca, Laguna Honda and Laguna del Medio retain separate lake/depression identities. Nearby names and lake passages are not renamed Arroyo Verde.",
+          "The selected upper drainage is south of Laguna Blanca. The reading does not assert that the selected line begins at that lake or prove a specific lake-outflow position.",
+          "The lower corridor meets the southern part of the Laguna del Medio drainage/depression and continues east. The selected route does not traverse its long northern lake body.",
+          "No Korean rendering, accepted name or whole-feature scalar name is proposed for application."
+        ],
+        "regional_associations_are_exact_reach_assignments": false,
+        "reach_level_naming_follow_up_required_before_product_application": true
+      }
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:61550005"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61543259"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 3,
+    "supported_representative_system_identities": 2,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 1
+  },
+  "totals_after": {
+    "recorded_targets": 415,
+    "non_pending_records": 366,
+    "source_access_pending": 3,
+    "source_material_pending": 46,
+    "source_any_pending": 49,
+    "scope_holds": 120,
+    "river_groups": 317,
+    "lakes": 98,
+    "unrecorded": 3650,
+    "unrecorded_river_groups": 3138,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "ign250k-r118-61543259",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign100k-r118-61543259",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign500k-r118-61543259",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "munguia-campo2003",
+      "official_url": "https://revistas.um.es/geografia/article/view/46021"
+    },
+    {
+      "source_key": "r118-sgc-agc2020-5-08",
+      "official_url": "https://www2.sgc.gov.co/MGC/Documents/Atlas_2020/PDF/Plancha%205-08%20AGC%202020.pdf"
+    },
+    {
+      "source_key": "r118-iiap-pacific-plan2013",
+      "official_url": "https://www.minambiente.gov.co/wp-content/uploads/2021/10/01-02-Linea-Base-y-Diagnostico-1.pdf"
+    },
+    {
+      "source_key": "r118-sina-state2011-tomo2",
+      "official_url": "https://www.ideam.gov.co/sites/default/files/prensa/boletines/2024-08-16/informe_recursos_naturales_2011_tomo_2.pdf"
+    },
+    {
+      "source_key": "ign-topo250k-r118-61550005",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "ign-topo100k-r118-61550005",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "bertani-ferrari-valle-medio",
+      "official_url": "https://www.observatoriogeograficoamericalatina.org.mx/assets/pdf/050336006.pdf"
+    },
+    {
+      "source_key": "segemar-choele2011-catalogue",
+      "official_url": "https://repositorio.segemar.gob.ar/handle/308849217/104"
+    },
+    {
+      "source_key": "ign-historical-250k",
+      "official_url": "https://imagenes.ign.gob.ar/geoserver/cartas_mosaicos/wms"
+    },
+    {
+      "source_key": "codema2007-plan2008",
+      "official_url": "https://rionegro.gov.ar/download/boletin/4634supl.pdf"
+    },
+    {
+      "source_key": "kokot2015-coastal",
+      "official_url": "https://www.repositorio.cenpat-conicet.gob.ar/server/api/core/bitstreams/0deff26a-646c-4108-8328-282b679f999b/content"
+    },
+    {
+      "source_key": "segemar-conaniyeu-catalogue",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/108?locale-attribute=pt"
+    },
+    {
+      "source_key": "segemar-sierragrande-catalogue",
+      "official_url": "https://repositorio.segemar.gov.ar/handle/308849217/2844"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "c34c4a7309a5df33921039f3394c3a744269889d",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      272,
+      273,
+      274,
+      275
+    ],
+    "next_unrecorded_id": "hydro-system:61186834",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": []
+  }
+}
