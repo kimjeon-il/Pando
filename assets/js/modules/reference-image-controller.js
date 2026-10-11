@@ -1,4 +1,5 @@
 import {
+  buildReferenceImageAutoGeoref,
   buildReferenceImageCalibrationWarp,
   buildReferenceImageMesh,
   referenceImageWarpQuad,
@@ -19,6 +20,11 @@ import { createReferenceImageInteraction } from './reference-image-interaction.j
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
 import { referenceImageKeyBlocked, registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
+import {
+  buildReferenceImagePlaceSeeds,
+  buildReferenceImagePlaceSymbolCandidates,
+  createReferenceImagePointRaster,
+} from './reference-image-auto-georef.js';
 import { resolveReferenceImagePlaceAutoGeoref } from './reference-image-place-match.js';
 import { installReferenceImageSurface } from './reference-image-surface.js';
 import {
@@ -76,7 +82,16 @@ function createImageFromBlob(blob) {
   });
 }
 
-export function installReferenceImageController({ workspaceSurfaces, confirm, getGeneration = () => 0, isBlocked = () => false, cancelTools = () => {}, searchPlaces = null } = {}) {
+export function installReferenceImageController({
+  workspaceSurfaces,
+  confirm,
+  getGeneration = () => 0,
+  isBlocked = () => false,
+  cancelTools = () => {},
+  searchPlaces = null,
+  getPlaces = null,
+  preparePlaces = null,
+} = {}) {
   if (document.documentElement.dataset.referenceImageController === 'installed') return globalThis.__PANDOLAB_REFERENCE_IMAGES__ || null;
   const mapElement = document.getElementById('map');
   const launcher = document.getElementById('referenceImageBtn');
@@ -137,6 +152,7 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   });
 
   function rebuildWarp(record) {
+    record.autoGeorefPreview = null;
     record.warp = buildReferenceImageCalibrationWarp({
       controlPoints: record.controlPoints,
       anchor: record.anchor,
@@ -641,42 +657,27 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
   void restoreStoredImages();
 
 
-  async function autoGeorefPlaces({
-    id = selectedId,
-    detections = [],
-    mapDate = null,
-    mode = null,
-    matching = {},
-    georef = {},
-    apply = false,
-  } = {}) {
-    const record = records.find(item => item.id === id) || null;
-    if (!record) return Object.freeze({ ok: false, reason: 'reference-image-not-found' });
-    if (typeof searchPlaces !== 'function') return Object.freeze({ ok: false, reason: 'place-search-unavailable' });
-    if (apply && (record.locked || isBlocked() || storageState !== 'ready')) {
-      return Object.freeze({ ok: false, reason: 'reference-image-not-editable' });
-    }
-
-    const coarseMode = mode
+  function coarseAutoGeorefMode(record, requestedMode = null) {
+    return requestedMode
       || (record.warpMode === REFERENCE_IMAGE_WARP_MODES.TPS
         ? REFERENCE_IMAGE_WARP_MODES.AUTO
         : record.warpMode);
-    const token = currentToken();
-    const result = await resolveReferenceImagePlaceAutoGeoref(detections, {
-      search: searchPlaces,
-      anchor: record.anchor,
-      mapDate,
-      mode: coarseMode,
-      matching,
-      georef,
-    });
-    if (!apply || !result.ok) return result;
-    if (!validToken(token) || !records.includes(record) || record.locked || isBlocked()) {
+  }
+
+  async function applyPlaceAutoGeorefResult(record, result, token = currentToken()) {
+    if (!result?.ok) return Object.freeze({ ...result, applied: false });
+    if (
+      result.baseMappingSignature
+      && result.baseMappingSignature !== referenceImageMappingSignature(record)
+    ) {
+      return Object.freeze({ ...result, ok: false, reason: 'auto-georef-preview-stale', applied: false });
+    }
+    if (!validToken(token) || !records.includes(record) || record.locked || isBlocked() || storageState !== 'ready') {
       return Object.freeze({ ...result, ok: false, reason: 'reference-image-session-changed', applied: false });
     }
 
-    const acceptedIds = new Set(result.georef.inlierIds || []);
-    const autoPoints = result.matching.matches
+    const acceptedIds = new Set(result.georef?.inlierIds || []);
+    const autoPoints = (result.matching?.matches || [])
       .filter(match => acceptedIds.has(match.id))
       .map(match => ({
         id: match.id,
@@ -688,12 +689,15 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     }
 
     const before = copyReferenceImageRecords(records);
+    const previousRecord = before.find(item => item.id === record.id) || null;
     const fallbackQuad = referenceImageWarpQuad(record.warp);
     const manualPoints = record.controlPoints.filter(point => !String(point.id || '').startsWith('auto-place:'));
     record.controlPoints = [...manualPoints, ...autoPoints];
+    record.warpMode = result.georef?.mode || record.warpMode;
     rebuildWarp(record);
     if (!record.warp.ok) {
-      record.controlPoints = before.find(item => item.id === record.id)?.controlPoints || manualPoints;
+      record.controlPoints = previousRecord?.controlPoints || manualPoints;
+      record.warpMode = previousRecord?.warpMode || record.warpMode;
       rebuildWarp(record);
       if (fallbackQuad) record.mapQuad = fallbackQuad;
       return Object.freeze({ ...result, ok: false, reason: record.warp.reason || 'auto-georef-apply-failed', applied: false });
@@ -713,8 +717,136 @@ export function installReferenceImageController({ workspaceSurfaces, confirm, ge
     });
   }
 
+  async function autoGeorefPlaces({
+    id = selectedId,
+    detections = [],
+    mapDate = null,
+    mode = null,
+    matching = {},
+    georef = {},
+    apply = false,
+  } = {}) {
+    const record = records.find(item => item.id === id) || null;
+    if (!record) return Object.freeze({ ok: false, reason: 'reference-image-not-found' });
+    if (typeof searchPlaces !== 'function') return Object.freeze({ ok: false, reason: 'place-search-unavailable' });
+    if (apply && (record.locked || isBlocked() || storageState !== 'ready')) {
+      return Object.freeze({ ok: false, reason: 'reference-image-not-editable' });
+    }
+
+    const token = currentToken();
+    const result = await resolveReferenceImagePlaceAutoGeoref(detections, {
+      search: searchPlaces,
+      anchor: record.anchor,
+      mapDate,
+      mode: coarseAutoGeorefMode(record, mode),
+      matching,
+      georef,
+    });
+    if (!apply || !result.ok) return result;
+    return applyPlaceAutoGeorefResult(record, result, token);
+  }
+
+  async function autoGeorefPlaceSymbols({
+    id = selectedId,
+    mode = null,
+    apply = false,
+    rasterOptions = {},
+    symbolOptions = {},
+    georef = {},
+  } = {}) {
+    const record = records.find(item => item.id === id) || null;
+    if (!record) return Object.freeze({ ok: false, reason: 'reference-image-not-found' });
+    if (typeof getPlaces !== 'function') return Object.freeze({ ok: false, reason: 'place-snapshot-unavailable' });
+    if (apply && (record.locked || isBlocked() || storageState !== 'ready')) {
+      return Object.freeze({ ok: false, reason: 'reference-image-not-editable' });
+    }
+    const host = mapHost();
+    if (!host || !record.image) return Object.freeze({ ok: false, reason: 'reference-image-mapping-unavailable' });
+
+    const token = currentToken();
+    if (typeof preparePlaces === 'function') await preparePlaces();
+    if (!validToken(token) || !records.includes(record)) {
+      return Object.freeze({ ok: false, reason: 'reference-image-session-changed' });
+    }
+    const places = getPlaces() || [];
+    const seeds = buildReferenceImagePlaceSeeds(places, {
+      projectCoordinate: coordinate => host.project?.(coordinate),
+      hitTestUv: screen => renderer.hitTestUv(record, screen),
+      maximumSeeds: 120,
+    });
+    if (seeds.length < 2) {
+      return Object.freeze({
+        ok: false,
+        reason: 'insufficient-place-seeds',
+        seedCount: seeds.length,
+        placeCount: Array.isArray(places) ? places.length : 0,
+      });
+    }
+
+    const raster = createReferenceImagePointRaster(record.image, { maxDimension: 1600, ...rasterOptions });
+    const defaultSearchRadius = Math.max(
+      12,
+      Math.min(48, Math.round(Math.max(raster.width, raster.height) * 0.018)),
+    );
+    const detected = buildReferenceImagePlaceSymbolCandidates(raster, seeds, {
+      searchRadiusPx: defaultSearchRadius,
+      minimumConfidence: 0.42,
+      dedupeRadiusPx: 4,
+      maximumCandidates: 96,
+      ...symbolOptions,
+    });
+    const candidates = detected.candidates.map(candidate => Object.freeze({
+      ...candidate,
+      id: 'auto-place:symbol:' + candidate.id,
+      origin: 'place-symbol',
+    }));
+    const totalPossible = candidates.length + (record.anchor ? 1 : 0);
+    if (totalPossible < 2) {
+      return Object.freeze({
+        ok: false,
+        reason: 'insufficient-symbol-candidates',
+        seedCount: seeds.length,
+        symbolCandidateCount: candidates.length,
+        symbolMissCount: detected.misses.length,
+      });
+    }
+    const minimumInliers = Math.min(
+      totalPossible,
+      Math.max(Math.min(totalPossible, 4), Math.ceil(totalPossible * 0.35)),
+    );
+    const solved = buildReferenceImageAutoGeoref(candidates, {
+      anchor: record.anchor,
+      mode: coarseAutoGeorefMode(record, mode),
+      inlierThresholdMeters: 25000,
+      maxTrials: 512,
+      minimumInliers,
+      ...georef,
+    });
+    const matching = Object.freeze({
+      matchCount: candidates.length,
+      rejectedCount: detected.misses.length,
+      matches: Object.freeze(candidates),
+      rejected: detected.misses,
+    });
+    const result = Object.freeze({
+      ok: solved.ok,
+      reason: solved.reason || '',
+      source: 'place-symbol',
+      seedCount: seeds.length,
+      placeCount: Array.isArray(places) ? places.length : 0,
+      symbolCandidateCount: candidates.length,
+      symbolMissCount: detected.misses.length,
+      matching,
+      georef: solved,
+      baseMappingSignature: referenceImageMappingSignature(record),
+    });
+    if (!apply || !result.ok) return result;
+    return applyPlaceAutoGeorefResult(record, result, token);
+  }
+
   const api = Object.freeze({
     autoGeorefPlaces,
+    autoGeorefPlaceSymbols,
     list: () => {
       const state = interactionState();
       return records.map((record, order) => ({
