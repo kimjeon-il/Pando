@@ -19,6 +19,7 @@ struct ReferenceAutoGeorefResult {
     QVariantList controlPoints;
     QVariantList matches;
     QVariantList rejectedIds;
+    QVariantMap modelSelection;
 
     QVariantMap toVariant() const;
 };
