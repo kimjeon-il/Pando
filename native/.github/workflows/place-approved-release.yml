@@ -53,7 +53,18 @@ jobs:
 
       - name: Install Windows zlib
         shell: pwsh
-        run: vcpkg install zlib:x64-windows
+        run: |
+          vcpkg install zlib:x64-windows
+          if ($LASTEXITCODE -ne 0) { throw 'Windows zlib installation failed' }
+          $runtime = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x64-windows/bin'
+          $installed = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed'
+          $inventory = @(Get-ChildItem (Join-Path $installed 'vcpkg/info') -Filter 'zlib_*_x64-windows.list')
+          if ($inventory.Count -ne 1) { throw 'Expected one installed Windows zlib package inventory' }
+          $runtimeDlls = @(Get-Content $inventory[0].FullName | Where-Object { $_ -match '^x64-windows/bin/[^/]+\.dll$' } | ForEach-Object { Get-Item (Join-Path $installed $_) })
+          if ($runtimeDlls.Count -eq 0) { throw "Windows zlib runtime missing in $runtime" }
+          $runtimeDlls | Select-Object -ExpandProperty FullName
+          "ZLIB_RUNTIME_FILES=$($runtimeDlls.FullName -join ';')" >> $env:GITHUB_ENV
+          $runtime >> $env:GITHUB_PATH
 
       - name: Configure Release with focused Qt tests
         shell: pwsh
@@ -68,17 +79,37 @@ jobs:
       - name: Run focused runtime and Qt tests
         shell: pwsh
         run: |
-          ctest --test-dir build -C Release --output-on-failure -R '^(place_sync_contract_tests|place_runtime_store_tests|place_runtime_provider_tests|place_controller_tests|place_label_collision_tests)$'
-          if ($LASTEXITCODE -ne 0) { throw 'Place runtime validation failed; do not publish' }
+          $testRoot = Join-Path $PWD 'build/Release'
+          $logRoot = Join-Path $PWD 'build/release-test-logs'
+          New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
+          foreach ($name in @('place_sync_contract_tests', 'place_runtime_store_tests', 'place_runtime_provider_tests', 'place_controller_tests', 'place_label_collision_tests')) {
+            $exe = Join-Path $testRoot "$name.exe"
+            $log = Join-Path $logRoot "$name.txt"
+            if (!(Test-Path $exe)) { throw "Release test executable missing: $exe" }
+            if ($name -eq 'place_label_collision_tests') {
+              $stderr = Join-Path $logRoot "$name.stderr.txt"
+              $process = Start-Process -FilePath $exe -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $stderr
+              if (Test-Path $stderr) { Get-Content $stderr }
+              $passingReport = 'place label collision: processed=[1-9]\d* passed=[1-9]\d* failed=0 skip=0'
+            } else {
+              $process = Start-Process -FilePath $exe -ArgumentList @('-o', "$log,txt") -Wait -PassThru -WindowStyle Hidden
+              $passingReport = 'Totals:\s+\d+ passed, 0 failed'
+            }
+            if (Test-Path $log) { Get-Content $log }
+            if ($process.ExitCode -ne 0) { throw "$name failed with exit code $($process.ExitCode); do not publish" }
+            if (!(Test-Path $log) -or !((Get-Content $log -Raw) -match $passingReport)) { throw "$name produced no passing test report; do not publish" }
+          }
 
       - name: Assemble Qt Windows portable
         shell: pwsh
         run: |
-          $exe = Join-Path $PWD 'build/app/Release/pandoeditor.exe'
+          $exe = Join-Path $PWD 'build/Release/pandoeditor.exe'
           if (!(Test-Path $exe)) { throw "Expected Windows executable missing: $exe" }
           $portable = Join-Path $PWD 'dist/windows-portable'
           New-Item -ItemType Directory -Path $portable -Force | Out-Null
           Copy-Item $exe (Join-Path $portable 'pandoeditor.exe')
+          Get-ChildItem (Split-Path $exe) -Filter '*.dll' | Copy-Item -Destination $portable
+          foreach ($runtimeDll in ($env:ZLIB_RUNTIME_FILES -split ';')) { Copy-Item -LiteralPath $runtimeDll -Destination $portable }
           $deploy = Join-Path $env:QT_ROOT_DIR 'bin/windeployqt.exe'
           if (!(Test-Path $deploy)) { throw "Qt deploy utility missing: $deploy" }
           & $deploy --release --qmldir (Join-Path $PWD 'ui') --dir $portable (Join-Path $portable 'pandoeditor.exe')
@@ -90,8 +121,12 @@ jobs:
         shell: pwsh
         run: |
           $env:QT_ROOT_DIR = ''
-          & (Join-Path $PWD 'dist/windows-portable/pandoeditor.exe') --smoke-check
-          if ($LASTEXITCODE -ne 0) { throw 'Portable smoke test failed; do not publish' }
+          $smokeOut = Join-Path $PWD 'dist/portable-smoke.stdout.txt'
+          $smokeError = Join-Path $PWD 'dist/portable-smoke.stderr.txt'
+          $process = Start-Process -FilePath (Join-Path $PWD 'dist/windows-portable/pandoeditor.exe') -ArgumentList '--smoke-check' -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput $smokeOut -RedirectStandardError $smokeError
+          Get-Content $smokeOut, $smokeError
+          if ($process.ExitCode -ne 0) { throw 'Portable smoke test failed; do not publish' }
+          if (!((Get-Content $smokeError -Raw) -match 'PORTABLE_SMOKE qml=PASS .*korean=PASS svg=PASS')) { throw 'Portable smoke report missing; do not publish' }
 
       - name: Compress package and create SHA256
         shell: pwsh
