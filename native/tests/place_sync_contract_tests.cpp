@@ -70,6 +70,48 @@ bool hasLines(EditorController& editor,const QString& id,int count) {
 class PlaceSyncContractTests final : public QObject {
     Q_OBJECT
 private slots:
+    void published264CityPlaceAssetsLoadAndSearchHistoricNames() {
+        Q_INIT_RESOURCE(place_runtime);
+        QFile manifest(QStringLiteral(":/place/manifest.json"));
+        QVERIFY(manifest.open(QIODevice::ReadOnly));
+        const auto document=QJsonDocument::fromJson(manifest.readAll()).object();
+        QVERIFY(!document.isEmpty());
+        QCOMPARE(document.value("version").toInt(),1);
+        QCOMPARE(document.value("revision").toString(),
+                 QStringLiteral("reviewed-places-ac1c04485ec5e0e2"));
+        QCOMPARE(document.value("shards").toObject().size(),1);
+        QCOMPARE(document.value("search").toObject().size(),608);
+        QFile encoded(QStringLiteral(":/place/places-v1.bin"));
+        QVERIFY(encoded.open(QIODevice::ReadOnly));
+        const auto payload=encoded.readAll();
+        QCOMPARE(payload.size(),76922);
+        const auto checksum=QString::fromLatin1(QCryptographicHash::hash(payload,QCryptographicHash::Sha256).toHex());
+        QCOMPARE(checksum,QStringLiteral("68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6"));
+        const auto decoded=PlaceRuntimeStore::decodeTile(payload);
+        QCOMPARE(decoded.size(),std::size_t(264));
+        QString error;
+        const auto runtime=PlaceRuntimeStore::open(QStringLiteral(":/place/manifest.json"),error);
+        QVERIFY2(runtime,qPrintable(error));
+        for(const auto& wanted:std::vector<std::pair<QString,QString>>{
+                {QStringLiteral("서울"),QStringLiteral("1835848")},
+                {QStringLiteral("Leningrad"),QStringLiteral("498817")},
+                {QStringLiteral("València"),QStringLiteral("2509954")},
+                {QStringLiteral("臺北"),QStringLiteral("1668341")}}) {
+            const auto result=runtime->search(wanted.first);
+            const bool found=std::any_of(result.records.begin(),result.records.end(),[&](const auto& place){
+                return place.sourceId==wanted.second;
+            });
+            QVERIFY2(found,qPrintable(QStringLiteral("Missing searched record: ")+wanted.first));
+        }
+        const auto byId=std::find_if(decoded.begin(),decoded.end(),[](const auto& place){
+            return place.sourceId==QStringLiteral("498817");
+        });
+        QVERIFY(byId!=decoded.end());
+        QCOMPARE(resolvePlaceDisplayRows(*byId,PlaceLanguageSelection{},QStringLiteral("1924-01-26")).at(0).text,
+                 QStringLiteral("레닌그라드"));
+        QCOMPARE(resolvePlaceDisplayRows(*byId,PlaceLanguageSelection{},QStringLiteral("1991-09-06")).at(0).text,
+                 QStringLiteral("상트페테르부르크"));
+    }
     void publishedWireFieldsArePortable() {
         const auto source=contract();
         QCOMPARE(source.value("schema").toString(),QStringLiteral("pando-place-sync-v2"));
