@@ -1046,9 +1046,11 @@ export function installReferenceImageController({
     const symbolInliers = Number(symbols?.georef?.inlierCount || 0);
     const symbolRms = Number(symbols?.georef?.diagnostics?.rmsMeters);
     const symbolStrong = symbols.ok
-      && symbolInliers >= 6
       && Number.isFinite(symbolRms)
-      && symbolRms <= 10000;
+      && (
+        (symbolInliers >= 8 && symbolRms <= 15000)
+        || (symbolInliers >= 6 && symbolRms <= 10000)
+      );
     if (symbolStrong) return symbols;
 
     const ocr = await autoGeorefOcr(options);
