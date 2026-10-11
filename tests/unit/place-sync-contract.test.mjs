@@ -1,0 +1,472 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import { PLACE_LANGUAGES, PLACE_LIMITS, PLACE_TILE_FORMAT, normalizePlace,
+  resolvePlaceLabelRows, DEFAULT_PLACE_LANGUAGES, togglePlaceLanguage } from '../../assets/js/modules/place-contract.js';
+import { PLACE_LABEL_METRICS, placeLabelDimensions } from '../../assets/js/modules/label-layout.js';
+import { encodePlaceTile, decodePlaceTile } from '../../assets/js/modules/place-codec.js';
+
+const contract = JSON.parse(readFileSync(new URL('../../contracts/places/v3.json', import.meta.url), 'utf8'));
+test('portable place contract exposes the exact binary and language policy', () => {
+  assert.equal(contract.schema, 'pando-place-sync-v3');
+  assert.equal(contract.dataContractVersion, PLACE_TILE_FORMAT.version);
+  assert.equal(contract.wire.magicAscii, 'PLAC');
+  assert.equal(contract.wire.recordBytes, 72);
+  assert.equal(contract.wire.stringFields.length, 9);
+  assert.equal(contract.domain.maxNativeNames, 3);
+  assert.deepEqual(contract.wire.stringFields, PLACE_TILE_FORMAT.stringFields);
+  assert.deepEqual(contract.domain.languageOrder, PLACE_LANGUAGES);
+  assert.deepEqual(contract.domain.defaultLanguages, DEFAULT_PLACE_LANGUAGES);
+  assert.deepEqual(contract.display.webEstimatedBox, PLACE_LABEL_METRICS);
+  assert.deepEqual(contract.limits, PLACE_LIMITS);
+  assert.equal(togglePlaceLanguage({ ko: false, en: true, native: false }, 'en', false), null);
+});
+for (const fixture of contract.fixtures) {
+  test('native-compatible PLAC v3 and reviewed multilingual results: ' + fixture.id, () => {
+    const normalized = normalizePlace(fixture.input);
+    assert.equal(fixture.sourceReview.geonameId, Number(fixture.input.sourceId));
+    assert.match(fixture.sourceReview.reviewFile, /^reports\/places\/tier1-major-cities-batch/u);
+    assert.deepEqual(decodePlaceTile(Buffer.from(fixture.tileHex, 'hex')), [normalized]);
+    assert.equal(Buffer.from(encodePlaceTile([fixture.input])).toString('hex'), fixture.tileHex);
+    for (const scenario of fixture.scenarios) {
+      const actual = resolvePlaceLabelRows(normalized, scenario.languages, scenario.date)
+        .map(row => [row.language, row.text]);
+      assert.deepEqual(actual, scenario.rows);
+      assert.equal(placeLabelDimensions(actual.map(([, text]) => text)).height,
+        PLACE_LABEL_METRICS.firstLineHeight + Math.max(0, actual.length - 1) * PLACE_LABEL_METRICS.extraLineHeight);
+    }
+  });
+}
+
+
+test('batch 01: Busan, Osaka and Beijing select one historically aligned native, Korean and English label at date boundaries', () => {
+  const rows = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch01.json', import.meta.url), 'utf8')).records;
+  const record = id => {
+    const matches = rows.filter(row => row.geonameId === id);
+    assert.equal(matches.length, 1, 'One reviewed place per GeoNames ID: ' + id);
+    return matches[0];
+  };
+  const at = (place, date) => {
+    const selected = {
+      native: place.defaultDisplayNameNative,
+      ko: place.defaultDisplayNameKo,
+      en: place.defaultDisplayNameEn,
+      nativeLanguage: place.defaultNativeLanguage
+    };
+    let previous = '';
+    for (const change of place.displayTimeline) {
+      const from = change.fromDate ?? String(change.fromYear).padStart(4, '0') + '-01-01';
+      assert.ok(from > previous, 'Chronological historical names for ' + place.geonameId);
+      previous = from;
+      if (from > date) break;
+      if (change.nameNative !== undefined) selected.native = change.nameNative;
+      if (change.nameKo !== undefined) selected.ko = change.nameKo;
+      if (change.nameEn !== undefined) selected.en = change.nameEn;
+      if (change.nativeLanguage !== undefined) selected.nativeLanguage = change.nativeLanguage;
+    }
+    return [selected.native, selected.ko, selected.en, selected.nativeLanguage];
+  };
+  const busan = record(1838524);
+  assert.deepEqual(busan.displayTimeline.map(row => row.fromDate ?? row.fromYear),
+    [1801, '1910-08-29', '1945-08-15', '2000-07-07']);
+  for (const [date, expected] of [
+    ['1910-08-28', ['釜山', '부산', 'Pusan', 'ko-Hani']],
+    ['1910-08-29', ['釜山', '부산', 'Fusan', 'ja']],
+    ['1945-08-14', ['釜山', '부산', 'Fusan', 'ja']],
+    ['1945-08-15', ['부산', '부산', 'Pusan', 'ko']],
+    ['2000-07-06', ['부산', '부산', 'Pusan', 'ko']],
+    ['2000-07-07', ['부산', '부산', 'Busan', 'ko']]
+  ]) assert.deepEqual(at(busan, date), expected, 'Busan ' + date);
+  assert.ok(busan.displayTimeline[1].researchNote.includes('편집상'));
+  assert.ok(busan.historicalGeography.linkedPlaces.some(x => x.nameKo === '동래부'));
+
+  const osaka = record(1853909);
+  assert.deepEqual(osaka.displayTimeline.map(row => row.fromDate ?? row.fromYear),
+    [1801, '1868-06-21']);
+  assert.deepEqual(at(osaka, '1868-06-20'), ['大坂', '오사카', 'Osaka', 'ja']);
+  assert.deepEqual(at(osaka, '1868-06-21'), ['大阪', '오사카', 'Osaka', 'ja']);
+  assert.ok(osaka.displayTimeline[1].researchNote.includes('편집상'));
+
+  const beijing = record(1816670);
+  assert.deepEqual(beijing.displayTimeline.map(row => row.fromDate ?? row.fromYear),
+    [1801, '1912-01-01', '1928-06-28', '1937-10-12', '1945-08-15', '1949-09-27', '1979-01-01']);
+  for (const [date, expected] of [
+    ['1911-12-31', ['北京', '북경', 'Peking', 'zh']],
+    ['1912-01-01', ['北京', '베이징', 'Peking', 'zh']],
+    ['1928-06-27', ['北京', '베이징', 'Peking', 'zh']],
+    ['1928-06-28', ['北平', '베이핑', 'Peiping', 'zh']],
+    ['1937-10-11', ['北平', '베이핑', 'Peiping', 'zh']],
+    ['1937-10-12', ['北京', '베이징', 'Peking', 'zh']],
+    ['1945-08-14', ['北京', '베이징', 'Peking', 'zh']],
+    ['1945-08-15', ['北平', '베이핑', 'Peiping', 'zh']],
+    ['1949-09-26', ['北平', '베이핑', 'Peiping', 'zh']],
+    ['1949-09-27', ['北京', '베이징', 'Peking', 'zh']],
+    ['1978-12-31', ['北京', '베이징', 'Peking', 'zh']],
+    ['1979-01-01', ['北京', '베이징', 'Beijing', 'zh']]
+  ]) assert.deepEqual(at(beijing, date), expected, 'Beijing ' + date);
+  assert.ok(beijing.names.some(n => n.text === '북경' && n.usage === 'historical' &&
+    n.variantType === 'historicalKoreanSinoReading'));
+  assert.ok(!beijing.names.some(n => n.text === 'Beiping' || n.text === '북평'));
+  assert.deepEqual(Object.keys(beijing.displayTimeline.at(-1)).filter(k => k.startsWith('name')), ['nameEn']);
+
+  for (const item of [busan, osaka, beijing]) {
+    const unique = new Set(item.names.map(n => n.language + '\u0000' + n.text));
+    assert.equal(unique.size, item.names.length, 'No duplicate language and text: ' + item.geonameId);
+    for (const entry of item.displayTimeline) {
+      assert.ok(Object.hasOwn(entry, 'fromYear') !== Object.hasOwn(entry, 'fromDate'),
+        'Exactly one temporal precision: ' + item.geonameId);
+    }
+  }
+});
+
+
+test('Delhi multilingual first-batch names change at approved historical thresholds', () => {
+  const batch = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch01.json', import.meta.url), 'utf8'));
+  const matches = batch.records.filter(x => x.geonameId === 1273294);
+  assert.equal(matches.length, 1);
+  const city = matches[0];
+  assert.equal(city.defaultDisplayNameKo, '델리');
+  assert.equal(city.defaultDisplayNameEn, 'Delhi');
+  assert.deepEqual(city.defaultNativeNames.map(x => [x.language, x.text]),
+    [['hi','दिल्ली'], ['ur','دہلی'], ['pa','ਦਿੱਲੀ']]);
+  assert.deepEqual(city.displayTimeline.map(x => x.fromDate ?? x.fromYear),
+    [1801, '1858-11-01', '1947-08-15', '2004-01-26']);
+  const at = date => {
+    const state = { ko:city.defaultDisplayNameKo, en:city.defaultDisplayNameEn,
+      names:city.defaultNativeNames, primary:city.defaultDisplayNameNative };
+    let previous = '';
+    for (const change of city.displayTimeline) {
+      const from = change.fromDate ?? String(change.fromYear).padStart(4,'0')+'-01-01';
+      assert.ok(from>previous, 'Unsorted Delhi history');
+      previous = from;
+      if(from>date) break;
+      if(change.nameKo!==undefined)state.ko=change.nameKo;
+      if(change.nameEn!==undefined)state.en=change.nameEn;
+      if(change.nameNative!==undefined)state.primary=change.nameNative;
+      if(change.nativeNames!==undefined)state.names=change.nativeNames;
+    }
+    assert.equal(state.names[0].text,state.primary,'Primary must equal first native form');
+    assert.ok(state.names.length>=1 && state.names.length<=3);
+    assert.equal(new Set(state.names.map(x=>x.language)).size,state.names.length);
+    return [state.ko,state.en,state.names.map(x=>[x.language,x.text])];
+  };
+  for (const [date,names] of [
+    ['1858-10-31', [['fa','دهلی']]],
+    ['1858-11-01', [['ur','دہلی']]],
+    ['1947-08-14', [['ur','دہلی']]],
+    ['1947-08-15', [['hi','दिल्ली'],['ur','دہلی']]],
+    ['2004-01-25', [['hi','दिल्ली'],['ur','دہلی']]],
+    ['2004-01-26', [['hi','दिल्ली'],['ur','دہلی'],['pa','ਦਿੱਲੀ']]],
+    ['2026-10-09', [['hi','दिल्ली'],['ur','دہلی'],['pa','ਦਿੱਲੀ']]]
+  ])assert.deepEqual(at(date),['델리','Delhi',names],date);
+  for(const event of city.displayTimeline) {
+    assert.ok(Object.hasOwn(event,'fromDate')!==Object.hasOwn(event,'fromYear'));
+    assert.ok(event.sourceUrl&&event.researchNote);
+    for(const native of event.nativeNames) {
+      assert.ok(native.language&&native.script);
+      assert.ok(city.names.some(row=>row.language===native.language && row.text===native.text));
+    }
+  }
+  assert.ok(city.displayTimeline[1].researchNote.includes('편집상'));
+  assert.ok(city.displayTimeline[2].researchNote.includes('편집상'));
+  assert.ok(city.displayTimeline[3].researchNote.includes('2004-01-26'));
+  assert.ok(city.nameSelectionNotes.some(x=>x.includes('1837년')));
+  assert.ok(!city.names.some(x=>['Dilli','Dehli','New Delhi','Shahjahanabad'].includes(x.text)));
+  const policy = JSON.parse(readFileSync(new URL('../../reports/places/historical-display-policy.json', import.meta.url), 'utf8')).preferredNameSelection;
+  assert.equal(policy.maxPreferredNamesPerSlotAtAnyInstant.ko,1);
+  assert.equal(policy.maxPreferredNamesPerSlotAtAnyInstant.en,1);
+  assert.equal(policy.maxPreferredNamesPerSlotAtAnyInstant.native,3);
+  assert.equal(policy.nativeNameCardinality.normalNativeNames,1);
+});
+
+
+test('Incheon temporary Jemulpo and Korean historical romanization boundaries', () => {
+  const data = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch02-east-asia.json', import.meta.url), 'utf8'));
+  const byId = Object.fromEntries(data.records.map(r => [r.geonameId, r]));
+  const history = (id, date) => {
+    const r = byId[id];
+    assert.ok(r);
+    const s = {ko:r.defaultDisplayNameKo,en:r.defaultDisplayNameEn,
+      native:r.defaultDisplayNameNative,language:r.defaultNativeLanguage};
+    let prev = '';
+    for (const t of r.displayTimeline) {
+      const when = t.fromDate ?? String(t.fromYear).padStart(4,'0')+'-01-01';
+      assert.ok(when>prev, 'Sorted name changes');
+      prev = when;
+      if(when>date)break;
+      if(t.nameKo!==undefined)s.ko=t.nameKo;
+      if(t.nameEn!==undefined)s.en=t.nameEn;
+      if(t.nameNative!==undefined)s.native=t.nameNative;
+      if(t.nativeLanguage!==undefined)s.language=t.nativeLanguage;
+    }
+    return [s.ko,s.en,s.native,s.language];
+  };
+  const cases = [
+    [1843564,'1900-01-01',['인천','Inchon','仁川','ko-Hani']],
+    [1843564,'1910-08-28',['인천','Inchon','仁川','ko-Hani']],
+    [1843564,'1910-08-29',['인천','Jinsen','仁川','ja']],
+    [1843564,'1945-08-14',['인천','Jinsen','仁川','ja']],
+    [1843564,'1945-08-15',['인천','Inchon','인천','ko']],
+    [1843564,'1945-10-09',['인천','Inchon','인천','ko']],
+    [1843564,'1945-10-10',['제물포','Chemulpo','제물포','ko']],
+    [1843564,'1945-10-27',['제물포','Chemulpo','제물포','ko']],
+    [1843564,'1945-10-28',['인천','Inchon','인천','ko']],
+    [1843564,'2000-07-06',['인천','Inchon','인천','ko']],
+    [1843564,'2000-07-07',['인천','Incheon','인천','ko']],
+    [1835329,'1900-01-01',['대구','Taegu','大邱','ko-Hani']],
+    [1835329,'1910-08-29',['대구','Taikyu','大邱','ja']],
+    [1835329,'1945-08-15',['대구','Taegu','대구','ko']],
+    [1835329,'2000-07-07',['대구','Daegu','대구','ko']],
+    [1835235,'1900-01-01',['대전','Taejon','大田','ko-Hani']],
+    [1835235,'1910-08-29',['대전','Taiden','大田','ja']],
+    [1835235,'1945-08-15',['대전','Taejon','대전','ko']],
+    [1835235,'2000-07-07',['대전','Daejeon','대전','ko']],
+    [1848354,'1859-07-01',['요코하마','Yokohama','横浜','ja']],
+    [1856057,'1801-01-01',['나고야','Nagoya','名古屋','ja']],
+    [1857910,'1801-01-01',['교토','Kyoto','京都','ja']],
+    [1809858,'1911-12-31',['광주','Canton','廣州','zh-Hant']],
+    [1809858,'1912-01-01',['광저우','Canton','廣州','zh-Hant']],
+    [1809858,'1956-05-31',['광저우','Canton','廣州','zh-Hant']],
+    [1809858,'1956-06-01',['광저우','Canton','广州','zh-Hans']],
+    [1809858,'1978-12-31',['광저우','Canton','广州','zh-Hans']],
+    [1809858,'1979-01-01',['광저우','Guangzhou','广州','zh-Hans']],
+    [1792947,'1911-12-31',['천진','Tientsin','天津','zh']],
+    [1792947,'1912-01-01',['톈진','Tientsin','天津','zh']],
+    [1792947,'1978-12-31',['톈진','Tientsin','天津','zh']],
+    [1792947,'1979-01-01',['톈진','Tianjin','天津','zh']],
+    [1799962,'1853-03-28',['남경','Nanking','南京','zh']],
+    [1799962,'1853-03-29',['천경',"T'ien-ching",'天京','zh']],
+    [1799962,'1864-07-18',['천경',"T'ien-ching",'天京','zh']],
+    [1799962,'1864-07-19',['남경','Nanking','南京','zh']],
+    [1799962,'1912-01-01',['난징','Nanking','南京','zh']],
+    [1799962,'1978-12-31',['난징','Nanking','南京','zh']],
+    [1799962,'1979-01-01',['난징','Nanjing','南京','zh']]
+  ];
+  for(const [id,date,names] of cases)
+    assert.deepEqual(history(id,date),names,id+' / '+date);
+  assert.deepEqual(data.historicalNameReview.reviewedGeoNamesIds,
+    [1843564,1835329,1835235,1848354,1856057,1857910,1809858,1792947,1799962]);
+  assert.equal(data.historicalNameReview.pendingGeoNamesIds.length,0);
+  assert.equal(data.historicalNameReview.status,'9-of-9-city-names-reviewed');
+  assert.equal(data.historicalNameReview.gradeTimelineStatus,'not-decided-or-modified');
+  assert.deepEqual(data.records.find(r=>r.geonameId===1843564).displayTimeline.map(
+    t=>t.fromDate??t.fromYear),
+    [1801,'1910-08-29','1945-08-15','1945-10-10','1945-10-28','2000-07-07']);
+  assert.ok(data.records.find(r=>r.geonameId===1835235).nameSelectionNotes.some(
+    t=>t.includes('1801년')));
+});
+
+
+test('review-only city lifecycle interval contract covers rise, extinction, gaps and unknown years', () => {
+  const p = JSON.parse(readFileSync(new URL('../../reports/places/historical-display-policy.json', import.meta.url), 'utf8'));
+  const cfg = p.temporalEligibility;
+  assert.equal(cfg.futureIntervalsField, 'activeIntervals');
+  assert.equal(cfg.reviewStatusField, 'lifecycleReviewStatus');
+  assert.deepEqual(cfg.reviewStatusValues, ['unreviewed','provisional','verified']);
+  assert.deepEqual(cfg.boundarySemantics.resultValues, ['eligible','ineligible','unresolved']);
+  for (const key of ['cityEstablishedFromYear','cityEstablishedFromDate','beforeCityEstablished'])
+    assert.ok(cfg.legacyCompatibility.supportedFields.includes(key));
+  assert.ok(p.historicalCityIdentity.separateIdentityRule.includes('separate city records/IDs'));
+  assert.ok(p.lifecycleFollowup.explicitlyDeferred.includes('City-grade timeline'));
+  const status = (period,date) => {
+    const y = date.slice(0,4);
+    const start = period.fromDate != null
+      ? date >= period.fromDate ? true : false
+      : period.fromYear != null
+      ? y < String(period.fromYear) ? false : y === String(period.fromYear) ? null : true
+      : true;
+    const end = period.untilDateExclusive != null
+      ? date < period.untilDateExclusive ? true : false
+      : period.untilYear != null
+      ? y < String(period.untilYear) ? true : y === String(period.untilYear) ? null : false
+      : true;
+    if (start === false || end === false) return 'ineligible';
+    if (start === null || end === null) return 'unresolved';
+    return 'eligible';
+  };
+  const at = (caseData,date) => {
+    if (caseData.lifecycleReviewStatus !== 'verified') return 'unresolved';
+    const covered = status(caseData.reviewedCoverage,date);
+    if (covered !== 'eligible') return 'unresolved';
+    const episodes = caseData.activeIntervals.map(period=>status(period,date));
+    if (episodes.includes('eligible')) return 'eligible';
+    if (episodes.includes('unresolved')) return 'unresolved';
+    return 'ineligible';
+  };
+  const scope = {fromDate:'1000-01-01',untilDateExclusive:'2100-01-01'};
+  const newer = {lifecycleReviewStatus:'verified',reviewedCoverage:scope,
+    activeIntervals:[{fromDate:'1859-07-01'}]};
+  assert.equal(at(newer,'1859-06-30'),'ineligible');
+  assert.equal(at(newer,'1859-07-01'),'eligible');
+  const vanished = {lifecycleReviewStatus:'verified',reviewedCoverage:scope,
+    activeIntervals:[{untilDateExclusive:'1750-04-18'}]};
+  assert.equal(at(vanished,'1750-04-17'),'eligible');
+  assert.equal(at(vanished,'1750-04-18'),'ineligible');
+  const rebuilt = {lifecycleReviewStatus:'verified',reviewedCoverage:scope,
+    activeIntervals:[
+      {fromDate:'1600-01-01',untilDateExclusive:'1650-01-01'},
+      {fromDate:'1700-01-01'}
+    ]};
+  assert.equal(at(rebuilt,'1649-12-31'),'eligible');
+  assert.equal(at(rebuilt,'1650-01-01'),'ineligible');
+  assert.equal(at(rebuilt,'1700-01-01'),'eligible');
+  const uncertainYear = {lifecycleReviewStatus:'verified',reviewedCoverage:scope,
+    activeIntervals:[{fromYear:1859,untilYear:1950}]};
+  assert.equal(at(uncertainYear,'1858-12-31'),'ineligible');
+  assert.equal(at(uncertainYear,'1859-06-01'),'unresolved');
+  assert.equal(at(uncertainYear,'1860-01-01'),'eligible');
+  assert.equal(at(uncertainYear,'1950-06-01'),'unresolved');
+  assert.equal(at(uncertainYear,'1951-01-01'),'ineligible');
+  assert.equal(at({...newer,lifecycleReviewStatus:'provisional'},'1900-01-01'),'unresolved');
+  assert.equal(at(newer,'0900-01-01'),'unresolved');
+  const central = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch15-central-asia-capitals.json', import.meta.url), 'utf8'));
+  for (const [id,year] of [[1526273,1830],[1528675,1868],[162183,1881]]) {
+    const city=central.records.find(x=>x.geonameId===id);
+    assert.equal(city.temporalEligibility.cityEstablishedFromYear,year);
+    assert.equal(Object.hasOwn(city.temporalEligibility,'activeIntervals'),false);
+  }
+  const east = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch02-east-asia.json', import.meta.url), 'utf8'));
+  for (const [id,firstShown] of [[1848354,'1859-07-01'],[1835235,'1905-01-01']]) {
+    const city=east.records.find(x=>x.geonameId===id);
+    assert.ok(city);
+    assert.equal(city.temporalEligibility.cityEstablishedFromDate,firstShown);
+    assert.equal(city.temporalEligibility.beforeCityEstablished,'suppress-city-label');
+    assert.equal(Object.hasOwn(city.temporalEligibility,'activeIntervals'),false,
+      'Do not infer a verified urban-grade timeline or future lifecycle intervals');
+  }
+});
+
+
+test('batch 14: Reykjavik and Ankara reviewed names and previously approved Caucasus dates remain stable', () => {
+  const report = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json', import.meta.url), 'utf8'));
+  assert.equal(report.records.length, 5);
+  const ids = [3413829, 323786, 611717, 616052, 587084];
+  assert.deepEqual(report.records.map(row => row.geonameId), ids);
+  const city = id => report.records.find(row => row.geonameId === id);
+  const timelineDates = id => city(id).displayTimeline.map(row => row.fromDate ?? row.fromYear);
+  assert.deepEqual(timelineDates(3413829), [1801]);
+  assert.deepEqual(timelineDates(323786), [1801, '1929-01-01', '1930-03-28']);
+  assert.deepEqual(timelineDates(611717), [1801, '1918-05-26', '1936-08-17']);
+  assert.deepEqual(timelineDates(616052), [1801, '1828-02-22', '1918-05-28', '1922-03-04', '1940-08-15']);
+  assert.deepEqual(timelineDates(587084), [1801, '1813-10-24', '1918-09-15', '1929-01-01', '1940-01-01', '1991-12-25']);
+
+  for (const row of report.records) {
+    assert.ok(row.defaultDisplayNameEn && row.defaultDisplayNameNative && row.defaultNativeLanguage);
+    assert.deepEqual(row.defaultNativeNames.map(item => item.text), [row.defaultDisplayNameNative]);
+    assert.equal(row.defaultNativeNames[0].language, row.defaultNativeLanguage);
+    assert.ok([...row.shortDescriptionKo].length <= 28);
+    for (const period of row.displayTimeline) {
+      assert.equal(period.nameNative, period.nativeNames[0].text);
+      assert.equal(period.nativeLanguage, period.nativeNames[0].language);
+      assert.ok(period.nativeNames[0].script);
+      if (period.note != null) assert.ok([...period.note].length <= 28);
+    }
+  }
+
+  const display = (row, date) => {
+    const runtime = normalizePlace({
+      source: 'geonames', sourceId: String(row.geonameId), name: row.defaultDisplayNameKo,
+      nameEn: row.defaultDisplayNameEn, nameNative: row.defaultDisplayNameNative,
+      nameNativeExtras: row.defaultNativeNames.slice(1).map(item => item.text),
+      kind: 'capital', coordinates: [row.longitude, row.latitude],
+      nameTimeline: row.displayTimeline.map(item => ({
+        ...(item.fromDate ? { fromDate: item.fromDate } : { fromYear: item.fromYear }),
+        ...(item.nameKo ? { ko: item.nameKo } : {}),
+        ...(item.nameEn ? { en: item.nameEn } : {}),
+        ...(item.nameNative ? { native: item.nameNative, nativeExtras: item.nativeNames.slice(1).map(x => x.text) } : {})
+      }))
+    });
+    return resolvePlaceLabelRows(runtime, {ko: true, en: true, native: true}, date).map(r => r.text);
+  };
+  const iceland = city(3413829), ankara = city(323786);
+  assert.deepEqual(display(iceland, '1801-08-01'), ['레이캬비크', 'Reykjavik', 'Reykjavík']);
+  assert.deepEqual(display(ankara, '1928-12-31'), ['앙카라', 'Angora', 'انقره']);
+  assert.deepEqual(display(ankara, '1929-01-01'), ['앙카라', 'Angora', 'Ankara']);
+  assert.deepEqual(display(ankara, '1930-03-27'), ['앙카라', 'Angora', 'Ankara']);
+  assert.deepEqual(display(ankara, '1930-03-28'), ['앙카라', 'Ankara']);
+  assert.ok(!ankara.names.some(row => row.text === 'Engürü' || row.text === 'انكوري'),
+    'Non-selected Ottoman variants belong in historical notes, not name candidates');
+  assert.ok(ankara.displayTimeline[2].researchNote.includes('1945'));
+});
+
+
+test('batch 15: all Central Asian city names and script reforms match reviewed historical dates', () => {
+  const data = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch15-central-asia-capitals.json', import.meta.url), 'utf8'));
+  const ids = [1526273, 1512569, 1528675, 1221874, 162183];
+  assert.deepEqual(data.records.map(r => r.geonameId), ids);
+  const city = id => data.records.find(r => r.geonameId === id);
+  const starts = id => city(id).displayTimeline.map(r => r.fromDate ?? r.fromYear);
+  assert.deepEqual(starts(1526273), [1801, 1862, '1961-03-20', '1992-07-06', '1998-05-06', '2019-03-23', '2022-09-19']);
+  assert.deepEqual(starts(1512569), [1801, 1866, 1918, 1929, '1940-05-08', '1993-10-12', '1995-05-06']);
+  assert.deepEqual(starts(1528675), [1801, '1926-05-12', '1991-02-05']);
+  assert.deepEqual(starts(1221874), [1801, '1929-12-01', '1940-05-21', '1961-11-11']);
+  assert.deepEqual(starts(162183), [1801, 1919, '1927-04-07', '1929-05-05', 1937, '1940-07-01', '1991-10-27', '1993-04-12', '1995-01-11']);
+
+  for (const item of data.records) {
+    const current = item.defaultNativeNames;
+    assert.equal(current.length, 1);
+    assert.equal(current[0].text, item.defaultDisplayNameNative);
+    assert.equal(current[0].language, item.defaultNativeLanguage);
+    const allowedNames = new Set(item.names.map(n => n.language + '\u0000' + n.text));
+    assert.equal(allowedNames.size, item.names.length);
+    for (const t of item.displayTimeline) {
+      assert.deepEqual(t.nativeNames[0], {
+        text: t.nameNative, language: t.nativeLanguage, script: t.nativeNames[0].script
+      });
+      assert.ok(allowedNames.has('ko\u0000' + t.nameKo));
+      assert.ok(allowedNames.has('en\u0000' + t.nameEn));
+      assert.ok(allowedNames.has(t.nativeLanguage + '\u0000' + t.nameNative));
+      assert.ok([...t.note].length <= 28);
+    }
+  }
+
+  function names(id, date) {
+    const item = city(id);
+    const record = normalizePlace({
+      source: 'geonames', sourceId: String(id), kind: 'capital',
+      coordinates: [item.longitude, item.latitude], name: item.defaultDisplayNameKo,
+      nameEn: item.defaultDisplayNameEn, nameNative: item.defaultDisplayNameNative,
+      nameNativeExtras: [],
+      nameTimeline: item.displayTimeline.map(t => ({
+        ...(t.fromDate ? { fromDate: t.fromDate } : { fromYear: t.fromYear }),
+        ko: t.nameKo, en: t.nameEn, native: t.nameNative,
+        nativeExtras: t.nativeNames.slice(1).map(n => n.text)
+      }))
+    });
+    const wire = decodePlaceTile(encodePlaceTile([record]))[0];
+    assert.deepEqual(wire, record);
+    return resolvePlaceLabelRows(wire, { ko:true, en:true, native:true }, date).map(r => r.text);
+  }
+  for (const [id, date, expected] of [
+    [1526273, '1992-07-06', ['아크몰라','Aqmola','Ақмола']],
+    [1526273, '2019-03-23', ['누르술탄','Nur-Sultan','Нұр-Сұлтан']],
+    [1526273, '2022-09-19', ['아스타나','Astana','Астана']],
+    [1512569, '1866-01-01', ['타슈켄트','Tashkent','Ташкентъ']],
+    [1512569, '1918-09-01', ['타슈켄트','Tashkent','Ташкент']],
+    [1512569, '1934-03-13', ['타슈켄트','Tashkent','Taşkent']],
+    [1512569, '1940-05-08', ['타슈켄트','Tashkent','Тошкент']],
+    [1512569, '1993-10-12', ['타슈켄트','Tashkent','Toşkent']],
+    [1512569, '1995-05-06', ['타슈켄트','Tashkent','Toshkent']],
+    [1528675, '1991-02-05', ['비슈케크','Bishkek','Бишкек']],
+    [1221874, '1929-12-01', ['스탈리나바드','Stalinabad','Stalinobod']],
+    [1221874, '1940-05-21', ['스탈리나바드','Stalinabad','Сталинобод']],
+    [1221874, '1961-11-10', ['스탈리나바드','Stalinabad','Сталинобод']],
+    [1221874, '1961-11-11', ['두샨베','Dushanbe','Душанбе']],
+    [162183, '1929-05-05', ['아슈하바트','Ashkhabad','Asqabat']],
+    [162183, '1937-06-01', ['아슈하바트','Ashkhabad','Aşkabat']],
+    [162183, '1991-10-27', ['아시가바트','Ashgabat','Ашгабат']],
+    [162183, '1993-04-12', ['아시가바트','Ashgabat','A¢gabat']],
+    [162183, '1995-01-10', ['아시가바트','Ashgabat','A¢gabat']],
+    [162183, '1995-01-11', ['아시가바트','Ashgabat','Aşgabat']]
+  ]) assert.deepEqual(names(id,date), expected, String(id)+' @ '+date);
+
+  const t = city(1512569);
+  assert.ok(t.historicalGeography.events.some(e => e.date === '1934-03-13'));
+  assert.ok(!t.displayTimeline.some(e => e.fromDate === '1934-03-13'),
+    'A spelling reform that did not change Taşkent must not create a duplicate name period');
+  assert.equal(city(162183).displayTimeline.at(-1).fromDate, '1995-01-11');
+  for (const [id, year] of [[1526273,1830],[1528675,1868],[162183,1881]]) {
+    assert.equal(city(id).temporalEligibility.cityEstablishedFromYear, year);
+    assert.equal(city(id).temporalEligibility.beforeCityEstablished,'suppress-city-label');
+  }
+});

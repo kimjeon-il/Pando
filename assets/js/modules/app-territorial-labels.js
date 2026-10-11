@@ -1,7 +1,8 @@
 import { createMapVisualFrame, isMapVisualFrame } from './map-visual-frame.js';
 import { placeLabelDimensions } from './label-layout.js';
 import { createPlaceRuntime } from './place-runtime.js';
-import { PLACE_LIMITS } from './place-contract.js';
+import { isBuiltinPlaceId, resolvePlaceLabelRows, hasPlaceNameCoverage, PLACE_LIMITS } from './place-contract.js';
+import { temporalMonthEnd } from './temporal.js';
 import { territorialLabelFlag } from './territorial-label-flags.js';
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
 import { territorialSymbolGroup, territorialSymbolVisibility } from './layer-presentation.js';
@@ -22,6 +23,12 @@ export function createTerritorialLabels() {
     dependencies = ports;
   }
 
+  function placeMapDate() {
+    const month = dependencies.projectState.state.timelineCursor;
+    return typeof month === 'string' && /^\d{4}-\d{2}$/u.test(month)
+      ? temporalMonthEnd(month).canonical : null;
+  }
+
   function placeView() {
     dependencies.mapView.updateProjection();
     const state = dependencies.projectState.state;
@@ -29,7 +36,7 @@ export function createTerritorialLabels() {
     const projectionFrame = { mode: frame.mode, cssTranslate: frame.cssTranslate, cssScale: frame.cssScale, cssViewport: frame.cssViewport,
       safeInset: frame.safeInset, flatCenter: frame.flatCenter, worldOffsets: frame.worldOffsets,
       rows: { rowX: frame.rowX, rowY: frame.rowY, rowZ: frame.rowZ } };
-    return { projection: state.projection, threshold: currentMapZoom(), width: state.size.width, height: state.size.height,
+    return { projection: state.projection, threshold: currentMapZoom(), mapDate: placeMapDate(), width: state.size.width, height: state.size.height,
       scale: frame.cssScale, flatCenter: state.view.flatCenter, rotation: state.view.globeRotation, projectionFrame };
   }
 
@@ -226,6 +233,9 @@ export function createTerritorialLabels() {
     const builtinLabels = [...new Map([...builtinPlaces.snapshot().records, ...[...selectedIds].map(id => builtinPlaces.resolve(id)).filter(Boolean)].map(label => [label.id, label])).values()].filter(label => !copiedIds.has(label.id));
     const builtinIds = new Set(builtinLabels.map(label => label.id));
     const labelSources = [...dependencies.projectState.state.labels, ...builtinLabels];
+    const placeLanguages = dependencies.preferences.userPreferences.labels.place.languages;
+    const mapDate = placeMapDate();
+    const beforeCommonEra = String(dependencies.projectState.state.timelineCursor || '').startsWith('-');
     if (dependencies.projectState.state.layerVisibility.labels) for (const label of labelSources) {
       const selected = selectedIds.has(String(label.id));
       if (!selected && !builtinIds.has(label.id) && !indexedLabelIds.has(String(label.id))) continue;
@@ -235,9 +245,14 @@ export function createTerritorialLabels() {
       const point = frameContext.projectVisibleCoordinate(coordinate);
       if (!point) continue;
       const priority = settings.priority ?? (label.kind === 'capital' ? dependencies.labelPresentation.LABEL_PRIORITIES.capital : label.kind === 'city' ? dependencies.labelPresentation.LABEL_PRIORITIES.majorCity : label.kind === 'region' ? dependencies.labelPresentation.LABEL_PRIORITIES.administrative : dependencies.labelPresentation.LABEL_PRIORITIES.place);
+      if (isBuiltinPlaceId(label.id) && (beforeCommonEra || !hasPlaceNameCoverage(label, mapDate))) continue;
+      const rows = isBuiltinPlaceId(label.id)
+        ? resolvePlaceLabelRows(label, placeLanguages, mapDate)
+        : [{ language: 'ko', text: label.name }];
+      if (!rows.length) continue;
       candidates.push({
-        key: (0, dependencies.labelPresentation.labelKey)('label', label.id), sourceType: 'label', source: label, point,
-        ...placeLabelDimensions(label.name),
+        key: (0, dependencies.labelPresentation.labelKey)('label', label.id), sourceType: 'label', source: label, point, rows,
+        ...placeLabelDimensions(rows),
         priority, minZoom: Math.max(settings.minZoom, Number(label.minZoom || 0)), maxZoom: settings.maxZoom,
         pinned: settings.pinned, collisionGroup: settings.collisionGroup,
         selected,
@@ -283,6 +298,7 @@ export function createTerritorialLabels() {
       territorialLabelNames: new Map(placedTerritorialLabels.map(item => [String(item.source.id), item.nameVisible])),
       territorialFlags,
       userLabels: placedUserLabels.map(item => item.source),
+      userLabelRows: new Map(placedUserLabels.map(item => [String(item.source.id), item.rows])),
       territorialLabelPoints: new Map(placedTerritorialLabels.map(item => [String(item.source?.id || ''), item.point])),
       userLabelPoints: new Map(placedUserLabels.map(item => [String(item.source?.id || ''), item.point])),
       territorialLabelScreenAreas: new Map(territorialLabelScreenAreas),

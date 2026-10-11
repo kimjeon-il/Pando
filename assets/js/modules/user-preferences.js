@@ -1,4 +1,5 @@
 import { ACCENT_PRESET_IDS, accentPresetForColor } from './accent-presets.js';
+import { DEFAULT_PLACE_LANGUAGES, normalizePlaceLanguages } from './place-contract.js';
 
 const STORAGE_KEY = 'pandolab-user-preferences';
 
@@ -11,7 +12,7 @@ const DEFAULTS = Object.freeze({
   appearance: Object.freeze({ theme: 'system', accentPreset: 'blue', statusBarVisible: true, smoothLines: true }),
   labels: Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
-    place: Object.freeze({ font: 'default', color: null, pointColor: null }),
+    place: Object.freeze({ font: 'default', color: null, pointColor: null, languages: DEFAULT_PLACE_LANGUAGES }),
   }),
   selection: Object.freeze({ color: null, outlineVisible: true, fillStrength: 0.35 }),
 });
@@ -41,6 +42,7 @@ export function defaultUserPreferences() {
         font: DEFAULTS.labels.place.font,
         color: DEFAULTS.labels.place.color,
         pointColor: DEFAULTS.labels.place.pointColor,
+        languages: { ...DEFAULTS.labels.place.languages },
       },
     },
     selection: {
@@ -76,6 +78,7 @@ export function normalizeUserPreferences(value) {
         font: normalizeLabelFont(source.labels?.place?.font, defaults.labels.place.font),
         color: normalizeColor(source.labels?.place?.color),
         pointColor: normalizeColor(source.labels?.place?.pointColor),
+        languages: source.labels?.place?.languages == null ? { ...defaults.labels.place.languages } : normalizePlaceLanguages(source.labels.place.languages),
       },
     },
     selection: {
