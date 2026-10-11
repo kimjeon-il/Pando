@@ -559,7 +559,8 @@ function canvasFallbackWorkerMain() {
       target.globalAlpha = reserve ? 1 : theme.borderAlpha;
       target.strokeStyle = theme.border;
       target.lineJoin = 'round'; target.lineWidth = theme.strokes.country.width;
-      if (!sharedOnly) for (let index = 0; message.visible && index < features.length; index++) {
+      // Never present an empty border pass while a replacement packet is being prepared.
+      if (!sharedOnly || !countrySharedBoundary) for (let index = 0; message.visible && index < features.length; index++) {
         const feature = features[index], id = countryId(feature, index);
         if (hidden.has(id) || countrySharedBoundary?.outlineOwnerIds.includes(id)) continue;
         target.beginPath(); path(countryOutlineFeature(feature)); target.stroke();
@@ -720,7 +721,8 @@ function canvasFallbackWorkerMain() {
         features = message.features || [];
         geometryRevision = incomingGeometryRevision;
         projectGeneration = Number(message.projectGeneration || projectGeneration);
-        countrySharedBoundary = null;
+        // Keep the previously presented shared strokes until the matching
+        // replacement is published. A new project starts with a fresh Worker.
         self.postMessage({
           type: 'data-ready',
           revision: Number(message.revision || 0),
@@ -754,7 +756,8 @@ function canvasFallbackWorkerMain() {
         for (const [id, feature] of updates) if (!seen.has(id)) features.push(feature);
         geometryRevision = incomingGeometryRevision;
         projectGeneration = Number(message.projectGeneration || projectGeneration);
-        countrySharedBoundary = null;
+        // Keep the previously presented shared strokes until the matching
+        // replacement is published. A new project starts with a fresh Worker.
         self.postMessage({
           type: 'data-ready',
           revision: Number(message.revision || 0),
