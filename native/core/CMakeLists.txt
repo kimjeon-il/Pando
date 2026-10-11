@@ -61,6 +61,8 @@ if(BUILD_TESTING)
     add_test(NAME timeline_resolver_tests COMMAND timeline_resolver_tests)
     add_executable(timeline_resolution_probe ../tests/timeline_resolution_probe.cpp)
     target_link_libraries(timeline_resolution_probe PRIVATE Pandoeditor::Core)
+    add_executable(timeline_edit_probe ../tests/timeline_edit_probe.cpp)
+    target_link_libraries(timeline_edit_probe PRIVATE Pandoeditor::Core)
     add_executable(timeline_command_tests ../tests/timeline_command_tests.cpp)
     target_link_libraries(timeline_command_tests PRIVATE Pandoeditor::Core)
     add_test(NAME timeline_command_tests COMMAND timeline_command_tests)
@@ -146,6 +148,10 @@ if(BUILD_TESTING)
             COMMAND "${PANDOEDITOR_M6_NODE_EXECUTABLE}"
                 "${PROJECT_SOURCE_DIR}/tools/timeline-resolution-parity.mjs"
                 "$<TARGET_FILE:timeline_resolution_probe>")
+        add_test(NAME timeline_edit_web_parity
+            COMMAND "${PANDOEDITOR_M6_NODE_EXECUTABLE}"
+                "${PROJECT_SOURCE_DIR}/tools/timeline-edit-parity.mjs"
+                "$<TARGET_FILE:timeline_edit_probe>")
         add_test(NAME m6_historical_catalog_web_parity
             COMMAND "${PANDOEDITOR_M6_NODE_EXECUTABLE}"
                 "${PROJECT_SOURCE_DIR}/tools/m6-historical-oracle.mjs" "$<TARGET_FILE:historical_library_probe>")
