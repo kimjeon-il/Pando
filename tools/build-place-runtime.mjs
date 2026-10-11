@@ -6,7 +6,7 @@
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { encodePlaceTile, decodePlaceTile } from '../assets/js/modules/place-codec.js';
 import { normalizePlace, normalizePlaceQuery, PLACE_LIMITS } from '../assets/js/modules/place-contract.js';
 
@@ -151,6 +151,6 @@ export function publishPlaceRelease({ check = false } = {}) {
     searchPrefixes: Object.keys(generated.manifest.search).length, check };
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === fileURLToPath(new URL('file://' + process.argv[1], import.meta.url))) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   console.log(JSON.stringify(publishPlaceRelease({ check: process.argv.includes('--check') })));
 }
