@@ -11,6 +11,17 @@ on:
       - 'assets/js/modules/app-capability-ports-project-io.js'
       - 'assets/js/modules/layer-tree-controller.js'
       - 'assets/js/modules/place-*.js'
+      - 'assets/js/modules/label-layout.js'
+      - 'assets/js/modules/user-preferences.js'
+      - 'assets/js/modules/app-map-settings.js'
+      - 'tools/export-place-sync.mjs'
+      - 'tools/build-place-runtime.mjs'
+      - 'reports/places/runtime-release-approvals-v1.json'
+      - 'reports/places/tier1-major-cities-batch*.json'
+      - 'assets/data/places/**'
+      - 'tools/place-sync-cases.mjs'
+      - 'contracts/places/**'
+      - 'tests/unit/place-sync-contract.test.mjs'
       - 'assets/js/modules/project-state.js'
       - 'assets/js/modules/rendering-domain.js'
       - 'assets/js/workers/place-worker.js'
@@ -102,6 +113,10 @@ jobs:
           tests/unit/place-interaction-runtime.test.mjs
           tests/unit/worker-rpc.test.mjs
           tests/browser/place-runtime.spec.mjs
+      - name: Check portable Web/native place contract
+        run: pnpm check:place-sync
+      - name: Check 163 explicitly approved city publication
+        run: node tools/build-place-runtime.mjs --check && node --test tests/unit/place-publication.test.mjs
       - name: Run focused unit regressions
         run: >-
           node --test
