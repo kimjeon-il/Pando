@@ -335,3 +335,56 @@ test('review-only city lifecycle interval contract covers rise, extinction, gaps
       'Do not infer a verified urban-grade timeline or future lifecycle intervals');
   }
 });
+
+
+test('batch 14: Reykjavik and Ankara reviewed names and previously approved Caucasus dates remain stable', () => {
+  const report = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json', import.meta.url), 'utf8'));
+  assert.equal(report.records.length, 5);
+  const ids = [3413829, 323786, 611717, 616052, 587084];
+  assert.deepEqual(report.records.map(row => row.geonameId), ids);
+  const city = id => report.records.find(row => row.geonameId === id);
+  const timelineDates = id => city(id).displayTimeline.map(row => row.fromDate ?? row.fromYear);
+  assert.deepEqual(timelineDates(3413829), [1801]);
+  assert.deepEqual(timelineDates(323786), [1801, '1929-01-01', '1930-03-28']);
+  assert.deepEqual(timelineDates(611717), [1801, '1918-05-26', '1936-08-17']);
+  assert.deepEqual(timelineDates(616052), [1801, '1828-02-22', '1918-05-28', '1922-03-04', '1940-08-15']);
+  assert.deepEqual(timelineDates(587084), [1801, '1813-10-24', '1918-09-15', '1929-01-01', '1940-01-01', '1991-12-25']);
+
+  for (const row of report.records) {
+    assert.ok(row.defaultDisplayNameEn && row.defaultDisplayNameNative && row.defaultNativeLanguage);
+    assert.deepEqual(row.defaultNativeNames.map(item => item.text), [row.defaultDisplayNameNative]);
+    assert.equal(row.defaultNativeNames[0].language, row.defaultNativeLanguage);
+    assert.ok([...row.shortDescriptionKo].length <= 28);
+    for (const period of row.displayTimeline) {
+      assert.equal(period.nameNative, period.nativeNames[0].text);
+      assert.equal(period.nativeLanguage, period.nativeNames[0].language);
+      assert.ok(period.nativeNames[0].script);
+      if (period.note != null) assert.ok([...period.note].length <= 28);
+    }
+  }
+
+  const display = (row, date) => {
+    const runtime = normalizePlace({
+      source: 'geonames', sourceId: String(row.geonameId), name: row.defaultDisplayNameKo,
+      nameEn: row.defaultDisplayNameEn, nameNative: row.defaultDisplayNameNative,
+      nameNativeExtras: row.defaultNativeNames.slice(1).map(item => item.text),
+      kind: 'capital', coordinates: [row.longitude, row.latitude],
+      nameTimeline: row.displayTimeline.map(item => ({
+        ...(item.fromDate ? { fromDate: item.fromDate } : { fromYear: item.fromYear }),
+        ...(item.nameKo ? { ko: item.nameKo } : {}),
+        ...(item.nameEn ? { en: item.nameEn } : {}),
+        ...(item.nameNative ? { native: item.nameNative, nativeExtras: item.nativeNames.slice(1).map(x => x.text) } : {})
+      }))
+    });
+    return resolvePlaceLabelRows(runtime, {ko: true, en: true, native: true}, date).map(r => r.text);
+  };
+  const iceland = city(3413829), ankara = city(323786);
+  assert.deepEqual(display(iceland, '1801-08-01'), ['레이캬비크', 'Reykjavik', 'Reykjavík']);
+  assert.deepEqual(display(ankara, '1928-12-31'), ['앙카라', 'Angora', 'انقره']);
+  assert.deepEqual(display(ankara, '1929-01-01'), ['앙카라', 'Angora', 'Ankara']);
+  assert.deepEqual(display(ankara, '1930-03-27'), ['앙카라', 'Angora', 'Ankara']);
+  assert.deepEqual(display(ankara, '1930-03-28'), ['앙카라', 'Ankara']);
+  assert.ok(!ankara.names.some(row => row.text === 'Engürü' || row.text === 'انكوري'),
+    'Non-selected Ottoman variants belong in historical notes, not name candidates');
+  assert.ok(ankara.displayTimeline[2].researchNote.includes('1945'));
+});
