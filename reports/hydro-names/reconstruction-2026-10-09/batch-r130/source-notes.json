@@ -1,0 +1,706 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r130",
+  "sources": [
+    {
+      "title": "Condensado Estatal Veracruz de Ignacio de la Llave",
+      "publisher": "Instituto Nacional de Estadística y Geografía (INEGI)",
+      "edition": "First edition 2020; copyright 2021; scale 1:820,000",
+      "material_read": "Original single-sheet PDF, visually read along the complete selected corridor and legend; regional cartography derived from 1:250,000 series III.",
+      "limits": "Generalized regional map, supplemented by municipal maps for headward and lower connections. Printed prior-written-authorization requirement for total or partial reproduction is preserved; original, crops and derivatives remain private.",
+      "source_key": "INEGI_VERACRUZ_2020",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/ver/889463837121.pdf"
+    },
+    {
+      "title": "Compendio de información geográfica municipal 2010: Maltrata, Veracruz de Ignacio de la Llave",
+      "publisher": "INEGI",
+      "edition": "2010; municipal key 30099",
+      "material_read": "Original PDF page 6 Relieve map visually read; page 3 hydrography table read separately. The map cites topographic information at 1:250,000 series III and INEGI-CONAGUA 2007 hydrographic cartography.",
+      "limits": "Municipality-bounded coverage; maps and table distinguish local currents from sub-basin membership. No detailed present-day flow or legal-name claim.",
+      "source_key": "INEGI_MALTRATA_2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30099.pdf"
+    },
+    {
+      "title": "Compendio de información geográfica municipal 2010: Tlalixcoyan, Veracruz de Ignacio de la Llave",
+      "publisher": "INEGI",
+      "edition": "2010; municipal key 30181",
+      "material_read": "Original PDF page 6 Relieve map visually read. Shows Blanco trunk and branching plain, Espinal, Tío Chico, Las Pozas, Laguna Grande and Simón Blanco; topographic source scale 1:250,000 series II and III.",
+      "limits": "Names are scoped to depicted channels and waterbodies, not extended across the whole selected route.",
+      "source_key": "INEGI_TLALIXCOYAN_2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30181.pdf"
+    },
+    {
+      "title": "Compendio de información geográfica municipal 2010: Ignacio de la Llave, Veracruz de Ignacio de la Llave",
+      "publisher": "INEGI",
+      "edition": "2010; municipal key 30075",
+      "material_read": "Original PDF page 6 Relieve map visually read; hydrography table read separately. Map distinguishes Blanco, Las Pozas, Caño Largo and Limón; topographic source scale 1:250,000 series II.",
+      "limits": "Limón is shown in the connected-waterbody setting; this does not establish an exact alias or name transition with the Camarón label of the independent receiving-water map.",
+      "source_key": "INEGI_IGNACIO_LLAVE_2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30075.pdf"
+    },
+    {
+      "title": "Compendio de información geográfica municipal 2010: Alvarado, Veracruz de Ignacio de la Llave",
+      "publisher": "INEGI",
+      "edition": "2010; municipal key 30011",
+      "material_read": "Original PDF page 6 Relieve map visually read; page 3 hydrography table read separately. Map distinguishes Alvarado, Laguna de Tlalixcoyan, La Camaronera and neighboring river/lagoon connections; topographic source scale 1:250,000 series II.",
+      "limits": "Supports the receiving-lagoon setting and connected waters at corridor scale, not an exact shoreline or a direct open-Gulf endpoint.",
+      "source_key": "INEGI_ALVARADO_2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/30/30011.pdf"
+    },
+    {
+      "title": "Caracterización ambiental y δ13C del sedimento, detrito y vegetación del sistema lagunar de Alvarado, Veracruz, México",
+      "authors": [
+        "Andrea Raz-Guzman",
+        "Guadalupe de la Lanza",
+        "Luis A. Soto"
+      ],
+      "publisher": "Revista de Biología Tropical",
+      "edition": "1992, volume 40(2), pages 215–225",
+      "material_read": "Original article PDF, printed page 216 Figure 1 visually read, plus the adjacent study-area prose. The field-study map distinguishes Blanco, Camarón, Tlalixcoyan, Alvarado, Camaronera and Boca de Alvarado.",
+      "limits": "Historical schematic receiving-water map and field-study context; no exact modern mouth, detailed lower wetland threading or upstream mainstem coverage is claimed.",
+      "source_key": "RAZ_GUZMAN_ET_AL_1992",
+      "official_url": "https://archivo.revistas.ucr.ac.cr/index.php/rbt/article/download/24533/24725/62361"
+    },
+    {
+      "title": "USGS The National Map, USGSTopo composite topographic map service: bounded Marsh Fork–Canning–Staines and western coastal-connector views",
+      "publisher": "U.S. Geological Survey",
+      "source_type": "Primary original composite cartography",
+      "access_date": "2026-10-11",
+      "original_map_pixels_inspected": true,
+      "coverage": "Seven bounded original views: mountain corridor; central Canning; lower river and delta; headward feeder detail; terminal coast; western terminal corridor; final western wetland/pond connector detail. The corresponding map-extent metadata was used solely for orientation.",
+      "evidence": "Direct inspection of original cartographic labels, channels, lake outlines, topography, junctions and coast. The final detail was approximately 1:86,500 at its returned export scale.",
+      "limits": "Composite service, without an asserted single compilation edition or current water-level/seasonal-channel guarantee. The acquired map coverage spans the selected route, but does not depict the needed western coastal connection. This is independently maintained cartography, not a means of recovering any stopped USGS report or other publication.",
+      "source_key": "r130-usgs-topo-canning",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "use_notice": "No redistribution permission is inferred. Originals, export parameters, local crops and receipts remain private; only own observations and ordinary bibliography are public-ready."
+    },
+    {
+      "title": "Arctic National Wildlife Refuge Revised Comprehensive Conservation Plan, Appendix I: Wild and Scenic River Review",
+      "publisher": "U.S. Fish and Wildlife Service, U.S. Department of the Interior",
+      "edition": "Fall 2012, as printed in the report front matter",
+      "source_type": "Primary planning report and original report cartography",
+      "access_date": "2026-10-11",
+      "original_map_pixels_inspected": true,
+      "pages_inspected": "Sections 5.2 and 5.3; printed I-49–I-50, I-53, I-58 and associated map context; Map 5-2 Canning River (PDF page 63, printed I-51) and Map 5-3 Marsh Fork Canning River (PDF page 71, printed I-59).",
+      "evidence": "Original Map 5-3 supports the separate Marsh Fork mountain corridor and its western confluence with Canning. Map 5-2 supports the northward Canning trunk and broad delta setting. Actually read prose identifies the major western tributary and the multiple-distributary coastal setting.",
+      "limits": "Regional study maps do not resolve the selected farther-west final wetland connector. The highlighted river segments are study scope, not proof of a single uniform hydronym or present legal designation. The host path's 2025 date is not asserted as the report edition.",
+      "source_key": "r130-fws-arctic-wsr-2012",
+      "official_url": "https://www.fws.gov/sites/default/files/documents/2025-04/arccp_10_vol2_appi_wsr.pdf",
+      "use_notice": "Original report, rendered maps and excerpts remain private. Public-ready content is own factual observations and bibliography."
+    },
+    {
+      "title": "United States Coast Pilot 9, Chapter 9: Arctic Ocean",
+      "publisher": "NOAA, Office of Coast Survey",
+      "edition": "04 October 2026, as printed in the successfully opened current chapter",
+      "source_type": "Primary supporting coastal prose",
+      "access_date": "2026-10-11",
+      "original_map_pixels_inspected": false,
+      "pages_inspected": "PDF page 18, printed page 481; paragraphs 260–264, especially 262.",
+      "evidence": "The actually read prose places the western Canning discharge in the lagoon southwest of Brownlow Point, landward of Flaxman Island, supporting the receiving-water setting.",
+      "limits": "Prose context only. No NOAA chart or figure correspondence is claimed, and it does not connect the selected western freshwater channel. No navigational recommendation is made.",
+      "source_key": "r130-noaa-coast-pilot9-ch9",
+      "official_url": "https://nauticalcharts.noaa.gov/publications/coast-pilot/files/cp9/CPB9_C09_WEB.pdf",
+      "use_notice": "No source PDF or figure is redistributed."
+    },
+    {
+      "title": "USGSTopo, The National Map, ArcGIS MapServer",
+      "publisher": "United States Geological Survey",
+      "edition": "Dynamic cartographic service; individual underlying layer editions not independently established",
+      "accessed_date": "2026-10-11",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "map_scope": "Six bounded original cartographic views: Ashmere–Hinsdale–Dalton–Pittsfield; Pittsfield–Lee–Great Barrington–state line; state line–Falls Village–Cornwall–Kent–Gaylordsville; Gaylordsville–New Milford–Lillinonah–Zoar; Zoar–Stevenson–Derby–Stratford/Milford estuary; and Nells Island–Milford Point–Stratford Point coastal detail. Adjacent views overlap.",
+      "acquired_scope": "All six original PNG responses completed HTTP200 before any corresponding file inspection. Originals and private crops were visually read. No dataset download, feature-name query or copied third-party overlay used.",
+      "evidence_type": "Primary original cartography, direct visual correspondence",
+      "factual_observation": "The selected lake/feeder, East Branch, downstream Housatonic, intervening lake and reservoir chain, major junctions and terminal estuarine setting are geographically accounted for across both FIDs. The initial lake/tributary and named waterbodies retain separate scopes.",
+      "source_key": "r130-usgs-usgstopo-70537321",
+      "use_notice": "Service-hosted map pixels are used privately for factual reading only. No permission to redistribute original maps, crops or derivative map products is inferred from official hosting."
+    },
+    {
+      "title": "Final Massachusetts Statewide Total Maximum Daily Load for Pathogen-Impaired Waterbodies, Appendix B: Housatonic River Basin",
+      "publisher": "Massachusetts Department of Environmental Protection, Bureau of Water Resources, Division of Watershed Management, Watershed Planning Program",
+      "date": "December 2024",
+      "publication_number": "CN 515.1.02",
+      "acquired_scope": "Web reader opened the original as a 43-page PDF; relevant prose on printed pp.7 and 11 was read. The first screenshot, zero-based PDF page10, returned Cache miss. No map pixels were obtained.",
+      "evidence_type": "Primary prose only; map coverage not claimed",
+      "factual_observation": "The report distinguishes East Branch Housatonic River from the Housatonic mainstem, describing their junction at Fred Garner Park, Pittsfield. It puts the East Branch origin at the Muddy Pond outlet on the Washington/Hinsdale border, and describes its downstream segment from Center Pond in Dalton to Pittsfield. It places the Housatonic mouth on Long Island Sound. Its stated river mileage is not the retained model length.",
+      "source_key": "r130-massdep-housatonic-tmdl-2024",
+      "official_url": "https://www.epa.gov/system/files/documents/2025-04/appendix_b_housatonic_final_2024_12_03.pdf",
+      "use_notice": "Report disclaimer says references to trade names and commercial products do not constitute state endorsement. No redistribution of the PDF or maps is proposed."
+    },
+    {
+      "title": "Housatonic River: Fishing the Housatonic River",
+      "publisher": "Connecticut Department of Energy & Environmental Protection",
+      "date": "Content last updated December 2025",
+      "acquired_scope": "Original agency HTML opened and relevant geographic prose in sections1–8 read. No linked videos, map services or fisheries-advice content was used.",
+      "evidence_type": "Primary supporting prose; not original-map observation",
+      "factual_observation": "DEEP describes the Connecticut sequence from the state line through Great Falls/Falls Village, West Cornwall and Kent, Bulls Bridge, the Tenmile River junction, Gaylordsville, and Bleachery Dam. It identifies Lake Lillinonah, Lake Zoar and Lake Housatonic as the riverine impoundments, followed by the tidal section below Derby Dam to Long Island Sound near the Naugatuck confluence and the Stratford/Milford setting.",
+      "source_key": "r130-ctdeep-housatonic",
+      "official_url": "https://portal.ct.gov/deep/fishing/freshwater/housatonic-river",
+      "use_notice": "Ordinary agency webpage; no redistribution of original media proposed."
+    },
+    {
+      "title": "Projeto de regionalização de vazões nas bacias hidrográficas brasileiras: sistema de alerta da bacia do Mundaú, vazões máximas diárias, análise de frequência regional",
+      "author": "Múcio Valença Virães; Eber José de Andrade Pinto; Serviço Geológico do Brasil – CPRM",
+      "edition": "Recife, 2023; ISBN 978-65-5664-425-7",
+      "catalogue_url": "https://rigeo.sgb.gov.br/handle/doc/24625",
+      "material_read": "Original PDF acquired HTTP200. Front matter/use notice, section 3.1 printed pages 7–10, original Figures 3.1.1 and 3.1.2 hydrographic maps, and Figure 3.1.3 longitudinal network diagram visually read. Prose on printed page 10 separately read.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography_and_bounded_primary_prose",
+      "cartographic_basis": "Figure 3.1.1 describes hydrography from MMA 2021 sheets at 1:100,000 with corrections using ArcGIS basemap. Figure 3.1.3 is a schematic network diagram, not a geographic map.",
+      "prose_observation": "The report describes the basin's principal route as mostly Canhoto, beginning in the Riacho do Mel headwaters between Caetés and Capoeiras, and part of the Mundaú ending in Lagoa Mundaú, which connects with the Atlantic. This is contextual source prose; it does not equate the model's first vertex with that named spring, and the cited ANA resolution is not independently treated as a verified naming registry.",
+      "source_key": "sgb_mundau2023",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/24625/1/afr-bacia_do_rio_mundau-2023-vf.pdf",
+      "use_notice": "Printed edition rights belong to SGB–CPRM; the report states reproduction is permitted with source attribution. Original pages and local figures remain private under this research task's publication scope."
+    },
+    {
+      "title": "Capoeiras – PE, Mapa Municipal Estatístico, 2603801",
+      "author": "Instituto Brasileiro de Geografia e Estatística, Diretoria de Geociências",
+      "edition": "Malha Territorial 2010 collection; original capoeiras_v2 map",
+      "scale": "1:100,000",
+      "material_read": "Official 2010 collection directory and original single-sheet PDF both completed HTTP200. The southern Caetés/Bastões, Riacho do Mel, Cajarana/Roncaria and Rio Canhoto corridor and printed cartographic notice were visually read.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_capoeiras2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pe/capoeiras_v2.pdf",
+      "use_notice": "Semi-automated integration of systematic maps from IBGE, DSG and other sources with the municipal mesh, updated from varied sources without full cartographic integration/completeness treatment. IBGE reproduction rights reserved. Historical generalized correspondence only; no source original redistributed."
+    },
+    {
+      "title": "Carta geológica da Folha Maceió (SC.25-V-C-IV): Estado de Alagoas",
+      "author": "Klaryanna Cabral Alcantara; Maria de Fátima Lyra de Brito; Cleide Regina Moura da Silva; Débora Melo Ferrer de Morais; Caio dos Santos Pereira; Serviço Geológico do Brasil",
+      "edition": "Recife, 2023; one colour map, 101 × 71 cm",
+      "scale": "1:100,000",
+      "catalogue_url": "https://rigeo.sgb.gov.br/handle/doc/24474",
+      "material_read": "Original single-sheet PDF acquired HTTP200; lower Mundaú, Satuba, lagoon entrance, Lagoa Mundaú, southern island/channel network, coastal outlet, neighboring Manguaba and printed source-use/cartographic-base notices visually read.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "cartographic_basis": "Digital planimetric base from SUDENE/DSG's 1989 Maceió sheet, adjusted to GeoCover 2000 imagery and edited/updated by SGB's Recife regional office. This is a dated generalized cartographic source, not current survey confirmation of an inlet point.",
+      "source_key": "sgb_maceio2023",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/24474/4/carta_geologica_maceio_vr.pdf",
+      "use_notice": "SGB legal notice disclaims total accuracy and suitability, responsibility for omissions and particular uses, and requires bibliographic attribution for work using the content. No redistribution permission is inferred from official hosting; originals and working figures remain private."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:70895412",
+      "source_keys": [
+        "INEGI_VERACRUZ_2020",
+        "INEGI_MALTRATA_2010",
+        "INEGI_TLALIXCOYAN_2010",
+        "INEGI_IGNACIO_LLAVE_2010",
+        "INEGI_ALVARADO_2010",
+        "RAZ_GUZMAN_ET_AL_1992"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10438
+          ],
+          "component_scope": "Headward Maltrata approach and entry into the Blanco corridor",
+          "finding": "The Maltrata relief map shows the selected western valley approach continuing east through the Maltrata urban-valley setting; the named Encino approach comes from the north. The state sheet continues this eastward approach through Nogales/Ciudad Mendoza into the river corridor south of Orizaba. The municipality's hydrography table independently lists Encino and Maltrata as intermittent currents within the Blanco sub-basin; the table alone is not used as geographic correspondence.",
+          "sources": [
+            "INEGI_MALTRATA_2010",
+            "INEGI_VERACRUZ_2020"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            10438
+          ],
+          "component_scope": "Central Río Blanco trunk",
+          "finding": "The original state sheet traces the selected Orizaba–Rafael Delgado/Ixtaczoquitlán corridor, its eastward and southeastward turns past the Tuxpanguillo–Cuichapa area, and continuation near Omealca and La Campana. Río Blanco is labeled on this continuous central corridor. The separately mapped Atoyac/Paso Blanco and more southerly Otapa approaches are not substituted for it.",
+          "sources": [
+            "INEGI_VERACRUZ_2020"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            10438
+          ],
+          "component_scope": "Lower branching plain and southward wetland passage",
+          "finding": "The Tlalixcoyan relief map resolves the eastward Blanco trunk and the lower branching setting near Espinal/Tío Chico. The selected southward route corresponds to the connected Las Pozas wetland corridor, rather than the northeastern Blanco branch. The overlapping Ignacio de la Llave map carries the southern Las Pozas/Caño Largo and connected-waterbody setting eastward into the El Lodo/Limón lagoon-margin corridor shown regionally on the state sheet. This reads the material southern bend and eastward connector without assigning one name to the entire wetland network.",
+          "sources": [
+            "INEGI_TLALIXCOYAN_2010",
+            "INEGI_IGNACIO_LLAVE_2010",
+            "INEGI_VERACRUZ_2020"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        },
+        {
+          "fragments": [
+            10438,
+            10439
+          ],
+          "component_scope": "Northward lagoon-margin continuation and actual terminal setting",
+          "finding": "The Ignacio de la Llave and Alvarado maps overlap across the lower connected waters and northward lagoon-margin passage. The latter labels Laguna de Tlalixcoyan separately from Alvarado, Camaronera and the Papaloapan approach. The 1992 original field-study figure shows the Blanco and southern Camarón approaches beside Tlalixcoyan and distinguishes the lagoon complex from its outer marine mouth. Together these sources cover the fragment join, northward lower route and lagoon terminal at generalized scale; they do not support treating the modeled sea endpoint as the outer Gulf mouth.",
+          "sources": [
+            "INEGI_IGNACIO_LLAVE_2010",
+            "INEGI_ALVARADO_2010",
+            "RAZ_GUZMAN_ET_AL_1992"
+          ],
+          "correspondence": "Complete at ordinary generalized component/corridor scale."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80034507",
+      "source_keys": [
+        "r130-usgs-topo-canning",
+        "r130-fws-arctic-wsr-2012",
+        "r130-noaa-coast-pilot9-ch9"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2340
+          ],
+          "component_scope": "Selected headward mountain feeder",
+          "finding": "The retained initial reach lies in a small west-to-east mountain valley. Original detailed topography shows that feeder entering the braided Marsh Fork valley from the west. It is not the southern mapped Marsh Fork headwater continuation. The feeder has no established name in the inspected original map.",
+          "sources": [
+            "r130-usgs-topo-canning",
+            "r130-fws-arctic-wsr-2012"
+          ],
+          "correspondence": "Supported at ordinary feeder and confluence scale.",
+          "name_scope": "Initial feeder name remains null; do not call every selected headwater reach Marsh Fork or Canning."
+        },
+        {
+          "fragments": [
+            2340
+          ],
+          "component_scope": "Marsh Fork mountain corridor",
+          "finding": "From the feeder confluence the selected course follows the labeled Marsh Fork Canning River eastward, then north through the long mountain valley. The valley bends slightly west and then northeast before its confluence with the eastern Canning trunk. Original FWS Map 5-3 separately shows Marsh Fork and the Canning mainstem and supports their junction; section 5.3 describes Marsh Fork as the major western tributary.",
+          "sources": [
+            "r130-usgs-topo-canning",
+            "r130-fws-arctic-wsr-2012"
+          ],
+          "correspondence": "Continuous mountain corridor and material junction supported.",
+          "name_scope": "Marsh Fork Canning River is a distinct named tributary reach."
+        },
+        {
+          "fragments": [
+            2340
+          ],
+          "component_scope": "Marsh Fork–Canning confluence and upper Canning",
+          "finding": "The selected route joins the Canning from the west and turns generally north/northwest into the broader braided valley. The upstream Canning branch coming from the southeast is outside this selected route. The repeated Canning River label is placed on the downstream shared trunk, not merely near its basin.",
+          "sources": [
+            "r130-usgs-topo-canning",
+            "r130-fws-arctic-wsr-2012"
+          ],
+          "correspondence": "Confluence and downstream continuation supported.",
+          "name_scope": "Canning River supports the provisional representative system candidate, without renaming its Marsh Fork tributary."
+        },
+        {
+          "fragments": [
+            2340
+          ],
+          "component_scope": "Central mountain-front and foothill trunk",
+          "finding": "Overlapping original views follow the Canning past the Cache Creek valley and the Nanook/Ignek tributary-valley setting, around its westward mountain-front bend and into the coastal plain. The eastern tributaries remain separate from the selected north-running trunk; Kavik River is a separate western drainage. No substantial lake passage is present on this established corridor.",
+          "sources": [
+            "r130-usgs-topo-canning",
+            "r130-fws-arctic-wsr-2012"
+          ],
+          "correspondence": "Supported continuously at ordinary valley and junction scale.",
+          "name_scope": "Repeated Canning River trunk labels; tributaries retain their own separate scope."
+        },
+        {
+          "fragments": [
+            2340
+          ],
+          "component_scope": "Lower Canning and delta division",
+          "finding": "The lower selected reach follows the Canning north through the coastal plain to a broad braided distributary area. Original topography distinguishes eastern Canning channels and the western Staines River route. FWS Map 5-2 and the section 5.2 overview independently show/describes the broad multiple-distributary delta.",
+          "sources": [
+            "r130-usgs-topo-canning",
+            "r130-fws-arctic-wsr-2012"
+          ],
+          "correspondence": "Lower trunk, branching setting and approach to the western Staines-side channel belt supported.",
+          "name_scope": "A Canning-system delta setting is supported; it does not imply one name for each distributary."
+        },
+        {
+          "fragments": [
+            2340
+          ],
+          "component_scope": "Selected western coastal wetland and pond continuation",
+          "finding": "The selected northern continuation leaves the continuously mapped Staines route toward a farther-west wetland/pond belt. The detailed original view shows small southern channel ends, ponds, a larger unnamed northern lake, and lake/outlet channels. It does not show the watercourse link across the intervening wetland needed to join those networks along the selected continuation. The labeled Staines River remains to the east and drains by its own mapped outlet.",
+          "sources": [
+            "r130-usgs-topo-canning"
+          ],
+          "correspondence": "Material connection unresolved. Nearby channels and system membership are insufficient to claim the missing link.",
+          "name_scope": "No name established for the unresolved western connector or the selected terminal creek."
+        },
+        {
+          "fragments": [
+            2340
+          ],
+          "component_scope": "Actual terminal and receiving water",
+          "finding": "The selected endpoint lies in the coastal lagoon landward of the barrier-island coast, west of Brownlow Point. Original cartography distinguishes this position from the mapped main Staines mouth farther east. NOAA Coast Pilot 9 chapter 9, paragraph 262, identifies the western Canning discharge setting as the lagoon southwest of Brownlow Point and describes its delta shoals. This corroborates the receiving-water setting only; it does not establish the missing western freshwater connector.",
+          "sources": [
+            "r130-usgs-topo-canning",
+            "r130-noaa-coast-pilot9-ch9"
+          ],
+          "correspondence": "Receiving lagoon setting inspected; exact incoming-channel identity and continuous source correspondence remain unresolved.",
+          "name_scope": "Do not replace the selected endpoint with the better-labeled Staines or Canning mouths, and do not assert a uniform river name across lagoon water."
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70537321",
+      "source_keys": [
+        "r130-usgs-usgstopo-70537321",
+        "r130-massdep-housatonic-tmdl-2024",
+        "r130-ctdeep-housatonic"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9774
+          ],
+          "component_scope": "Actual initial Ashmere Lake passage and Bennett Brook feeder",
+          "finding": "The selected start is within the Ashmere Lake setting in Hinsdale, including the southern lake passage near and south of the Route143 neck. The southern outlet leads down Bennett Brook, which turns west across the low wetland corridor after the Tracy Brook junction and meets the northbound East Branch Housatonic River. The main East Branch continues separately southward upstream of that junction; that southern headward route is not the selected beginning.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "Bennett Brook",
+          "lake_component_name": "Ashmere Lake",
+          "name_observation": "Ashmere Lake and Bennett Brook are directly labelled on the original map. Neither is assigned the scalar name Housatonic River. Plunkett Reservoir and its Frisell Brook outlet are separate western tributary features, not the selected initial lake.",
+          "map_coverage": "Headward original and initial-feeder detail",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9774
+          ],
+          "component_scope": "Northbound East Branch through Hinsdale and the Dalton/Center Pond setting",
+          "finding": "Below Bennett Brook the selected corridor follows the East Branch north through Hinsdale, turns northwest toward Dalton, passes the Cleveland Brook connection, and runs through the Center Pond/outlet setting before turning west. The map shows the separate Wahconah Falls Brook approach at Center Pond. Cleveland Brook Reservoir and Windsor Reservoir are upstream tributary waterbodies rather than selected main-route lake passages.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "East Branch Housatonic River",
+          "lake_component_name": "Center Pond",
+          "name_observation": "East Branch Housatonic River and Center Pond are direct map labels; the East Branch identity remains distinct from the lower Housatonic mainstem.",
+          "map_coverage": "Headward original, Hinsdale–Dalton portion",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9774
+          ],
+          "component_scope": "Dalton–Pittsfield East Branch and mainstem junction",
+          "finding": "The original map traces the East Branch west through Dalton and Coltsville, south at Adams Junction, then southwest through Pittsfield to the junction with the river approaching from the west. Unkamet Brook and Brattle Brook enter separately along this corridor. West Branch Housatonic River and the westward upstream mainstem approach are distinct mapped waterways; the selection follows the East Branch approach and then the southbound Housatonic.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321",
+            "r130-massdep-housatonic-tmdl-2024"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "East Branch Housatonic River",
+          "lake_component_name": null,
+          "name_observation": "The original labels East Branch Housatonic River above the confluence and Housatonic River below it. The MassDEP prose independently locates the East Branch/mainstem meeting at Fred Garner Park, Pittsfield.",
+          "map_coverage": "Headward original, Pittsfield junction detail",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9774
+          ],
+          "component_scope": "Pittsfield–Lenox–Lee corridor and Woods Pond",
+          "finding": "The selected river continues south through the meandering floodplain past New Lenox, into Woods Pond near Lenox Station, out through Lenox Dale, and downstream through Lee. The lake entry, outlet, and continuing channel are visible. Separate lateral brooks and nearby reservoirs are not used as substitutes for the selected route.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "Housatonic River",
+          "lake_component_name": "Woods Pond",
+          "name_observation": "Housatonic River and Woods Pond are directly labelled. The reservoir/pond passage retains its own identity.",
+          "map_coverage": "Overlapping headward and Massachusetts original maps; Massachusetts northern detail",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9774
+          ],
+          "component_scope": "South Lee–Stockbridge–Great Barrington–Sheffield and the state-line corridor",
+          "finding": "The map shows the river turning west from South Lee through Stockbridge and Glendale, then south past Housatonic/Risingdale and Van Deusenville to Great Barrington, Sheffield and Ashley Falls. Channel widenings/impoundments and their connecting reaches remain visible; the inspected view does not establish a separate name for every small widening. The Williams River, Green River and Hubbard Brook approaches are distinguishable from the selected main river. The selection continues along the Housatonic into Connecticut rather than switching to an eastern tributary.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "Housatonic River",
+          "lake_component_name": null,
+          "name_observation": "Repeated Housatonic River labels support the corridor. Local pond or tributary labels are not propagated over the whole selection.",
+          "map_coverage": "Massachusetts original, middle and southern details; overlap with Connecticut-upper original",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9774
+          ],
+          "component_scope": "Upper Connecticut, Falls Village, Cornwall and Kent",
+          "finding": "The channel remains continuous from the state-line/Canaan setting through the Blackberry River and Hollenbeck River junction settings, the Great Falls/Falls Village impounded reach and the subsequent southbound river. It continues past Lime Rock, West Cornwall, Cornwall Bridge and North Kent to Kent. The Salmon Creek approach and other lateral streams are separate. All intervening bends and valley transitions are mapped at corridor scale.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "Housatonic River",
+          "lake_component_name": null,
+          "name_observation": "Housatonic River is repeatedly labelled through this reach. Great Falls and Falls Village are supporting mapped landmarks; the Connecticut agency prose corroborates the same downstream sequence.",
+          "map_coverage": "Connecticut-upper original, north/middle/south overlapping details",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9774
+          ],
+          "component_scope": "Bulls Bridge, Tenmile junction and Gaylordsville–New Milford",
+          "finding": "The selected corridor follows the Housatonic past the Bulls Bridge impounded setting and the separate Tenmile River entry from the west, then turns southeast through Gaylordsville toward New Milford. The Rocky River/Lake Candlewood connection and Aspetuck tributary approaches occur laterally. The route continues down the Housatonic through New Milford and toward Lovers Leap; it does not traverse Lake Candlewood.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "Housatonic River",
+          "lake_component_name": null,
+          "name_observation": "Housatonic River, Tenmile River, Rocky River and Lake Candlewood are direct map labels with different scopes. The model route is not named after any of these tributary or adjacent-lake features.",
+          "map_coverage": "Connecticut-upper southern detail and Connecticut-lakes northern detail",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9774
+          ],
+          "component_scope": "Lovers Leap, Lake Lillinonah, Shepaug arm and lower outlet",
+          "finding": "The map shows the Still River connection near the northern lake entrance/Lovers Leap setting, the southward then eastward Lake Lillinonah passage past Brookfield and Bridgewater, and the separate northern Shepaug River arm. The selected route stays on the Housatonic/Lillinonah axis, continues around the broad southern bend, and narrows into the outlet reach leading to the upper Lake Zoar corridor.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "Housatonic River",
+          "lake_component_name": "Lake Lillinonah",
+          "name_observation": "Both Housatonic River and Lake Lillinonah appear on the original. The Shepaug River arm remains a distinct tributary arm; it is not traversed upward by the selection.",
+          "map_coverage": "Connecticut-lakes original, northern/middle/southern overlapping details",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9774,
+            9775
+          ],
+          "component_scope": "Upper and lower Lake Zoar, including the FID boundary",
+          "finding": "After the Lillinonah outlet, the selection continues east/southeast along the connected Housatonic channel and the upper Lake Zoar reach, passing separate Pomperaug and Pootatuck tributary entries. The division between FID9774 and FID9775 is within this continuous lake/river corridor, not an independently named river break. FID9775 follows the long southeastward lake passage through Riverside and the narrows at Stevenson.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "Housatonic River",
+          "lake_component_name": "Lake Zoar",
+          "name_observation": "Lake Zoar and Housatonic River are directly labelled on the original. A model fragment boundary is not treated as a naming boundary.",
+          "map_coverage": "Connecticut-lakes southern detail and overlapping lower-estuary northern detail",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9775
+          ],
+          "component_scope": "Stevenson–Derby lower impoundment and Naugatuck junction",
+          "finding": "Below the Stevenson narrows the selected channel follows the lower elongated impounded river to the Derby/Shelton setting and then the Naugatuck River confluence. The lower map labels Housatonic River along this waterway and shows its connection throughout. Connecticut DEEP identifies the third major riverine impoundment as Lake Housatonic and places the tidal reach below Derby Dam.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321",
+            "r130-ctdeep-housatonic"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "Housatonic River",
+          "lake_component_name": "Lake Housatonic",
+          "name_observation": "Housatonic River and Naugatuck River are direct map labels. Lake Housatonic is the supporting primary-prose waterbody name, not claimed as a label observed in this map export.",
+          "map_coverage": "Lower-estuary original, northern/middle details",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9775
+          ],
+          "component_scope": "Lower estuary and actual Milford-side coastal terminal setting",
+          "finding": "From the Naugatuck junction the selected route continues down the broad estuary through the Shelton/Orange and Stratford/Milford corridor, past islands and bars, then toward the Nells Island/Cedar Beach–Milford Point shoreline complex. The terminal-detail original shows the main Housatonic channel bending around the west and south of Nells Island, the tidal-marsh branches behind Milford Point, and the adjacent open coastal water. The selected generalized terminal is understood in this estuarine/outer-shore setting, not asserted to be the exact main-channel mouth or a precise coast vertex. The lower river and its receiving Long Island Sound setting are corroborated by primary agency prose.",
+          "sources": [
+            "r130-usgs-usgstopo-70537321",
+            "r130-ctdeep-housatonic"
+          ],
+          "correspondence": "Supported at ordinary generalized component/corridor scale; no exact-bank or vertex agreement asserted.",
+          "mapped_component_name": "Housatonic River",
+          "lake_component_name": null,
+          "name_observation": "Housatonic River, Nells Island, Cedar Beach, Milford Point, Sniffens Point and Stratford Point are mapped separately. No river scalar name is assigned to every tidal-marsh or shoreline connection.",
+          "map_coverage": "Lower-estuary original, middle/mouth details, plus terminal estuarine-shoreline original",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:60989074",
+      "source_keys": [
+        "sgb_mundau2023",
+        "ibge_capoeiras2010",
+        "sgb_maceio2023"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13824
+          ],
+          "component_scope": "western headward feeder east of Caetés",
+          "finding": "The Capoeiras original depicts the small east/northeast-running feeder in the Bastões setting and its connection into the Riacho do Mel corridor. This accounts for the selected western approach, including its northward bend, before the route turns southeast. The map also distinguishes the separate Riacho São Pedro or Fundo approach farther south. The small selected initial feeder is not assigned that southern stream's label.",
+          "sources": [
+            "ibge_capoeiras2010",
+            "sgb_mundau2023"
+          ],
+          "correspondence": "complete at ordinary headward-corridor scale; initial hydronym unresolved",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13824
+          ],
+          "component_scope": "Riacho do Mel, Cajarana and upper Canhoto connection",
+          "finding": "The Capoeiras map labels Riacho do Mel on the southward approach and Rio Canhoto on the eastward continuation around the Cajarana/Roncaria setting. Its generalized depiction does not establish a modern reservoir shoreline. The original SGB longitudinal network diagram independently places Barragem Cajarana on the upper Canhoto before Canhotinho and shows continuous downstream connection. The diagram supplies the named impoundment's longitudinal connection; the maps supply the geographic corridor. The neighboring upper-Mundaú Cajueiro and Inhaúma/Inhumas impoundments are explicitly separate branches.",
+          "sources": [
+            "ibge_capoeiras2010",
+            "sgb_mundau2023"
+          ],
+          "correspondence": "complete ordinary corridor and material reservoir connection; not a reservoir-bank survey",
+          "mapped_component_name": "Riacho do Mel / Rio Canhoto"
+        },
+        {
+          "fragments": [
+            13824
+          ],
+          "component_scope": "Canhotinho–São José da Laje Canhoto reach",
+          "finding": "The SGB original hydrographic maps show the named northern river passing east through the Canhotinho station/town setting, turning southeast toward São José da Laje and then south. This sequence corresponds to the selected route rather than the southwestern upper Mundaú. The Inhaúma enters from the west below the São José da Laje station; the separately mapped Mocambo/Inhaúma branch is not included as the selected headward course.",
+          "sources": [
+            "sgb_mundau2023"
+          ],
+          "correspondence": "complete at ordinary corridor scale",
+          "mapped_component_name": "Rio Canhoto"
+        },
+        {
+          "fragments": [
+            13824
+          ],
+          "component_scope": "Canhoto–Mundaú junction and União dos Palmares",
+          "finding": "Both original SGB maps and the longitudinal diagram distinguish the Canhoto arriving from the north from the upper Mundaú arriving from Correntes and Santana do Mundaú to the west. They join upstream of the União dos Palmares station/town reach, after which the mapped southward river is Mundaú. This material junction is directly covered rather than inferred from a basin label or model connectivity.",
+          "sources": [
+            "sgb_mundau2023"
+          ],
+          "correspondence": "complete junction and downstream name correspondence",
+          "mapped_component_name": "Rio Mundaú"
+        },
+        {
+          "fragments": [
+            13824
+          ],
+          "component_scope": "União dos Palmares–Murici–Rio Largo lower river",
+          "finding": "The SGB basin maps follow the Mundaú south/southeast through the Murici-Ponte and Fazenda Boa Fortuna/Rio Largo settings to the lagoon approach. The Maceió original overlaps the lower river below Rio Largo, labels Rio Mundaú above Satuba and shows the river continuing through the lowland channel network into the northwestern part of Lagoa Mundaú. The western Rio Satuba and smaller local approaches remain separate tributary lines.",
+          "sources": [
+            "sgb_mundau2023",
+            "sgb_maceio2023"
+          ],
+          "correspondence": "complete overlapping lower-river corridor",
+          "mapped_component_name": "Rio Mundaú"
+        },
+        {
+          "fragments": [
+            13824
+          ],
+          "component_scope": "Lagoa Mundaú and actual southern Atlantic-outlet setting",
+          "finding": "The Maceió 1:100,000 original visibly carries the lower river into the lagoon northwest of Fernão Velho, shows the open lagoon east of Coqueiro Seco, and the southern island/channel system beside Trapiche da Barra and the Atlantic coastal barrier. The channels continue through the coastal outlet system toward the ocean. This establishes the selected lagoon passage and sea-terminal setting at ordinary corridor scale. The larger Lagoa Manguaba to the west and its separate incoming Rio Paraíba are clearly distinguished and are not substituted for the selected passage. No unique hydronym is imposed on every coastal channel, and no exact inlet-point or bank agreement is claimed.",
+          "sources": [
+            "sgb_maceio2023",
+            "sgb_mundau2023"
+          ],
+          "correspondence": "complete lagoon, material outlet connection and ordinary coastal terminal setting",
+          "mapped_component_name": "Lagoa Mundaú"
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:80034507",
+      "publication": "Arctic National Wildlife Refuge Revised Comprehensive Conservation Plan, Appendix I: Wild and Scenic River Review, Fall 2012",
+      "official_url": "https://www.fws.gov/sites/default/files/documents/2025-04/arccp_10_vol2_appi_wsr.pdf",
+      "observed_outcome": "The web reader reported a completed content-size limit, without an observed origin access denial. One sequential acquisition of the known official original then completed HTTP 200; its original prose and maps were successfully read.",
+      "outcome_layer": "First outcome: reader size limit, not an observed origin HTTP denial. Subsequent outcome: original-file HTTP 200.",
+      "restriction_scope": "The failed web-reader route was not retried. No publication-wide stop or equivalent-route denial was established; the successful original supplied the evidence.",
+      "earlier_lawful_prose_exception": "No substantive report evidence was taken from discovery snippets or from the failed reader. Evidence comes from the subsequently successful original.",
+      "limitation_kind": "completed_technical_reader_size_limit_with_successful_original_fallback"
+    },
+    {
+      "aw_id": "hydro-system:70537321",
+      "publication": "Massachusetts DCR, Hinsdale Flats Watershed ACEC",
+      "official_url": "https://www.mass.gov/info-details/hinsdale-flats-watershed-acec",
+      "observed_outcome": "Direct web-reader open returned (403) Forbidden. No original page body or maps acquired; discovery excerpt excluded.",
+      "outcome_layer": "HTTP403 as reported by web reader",
+      "restriction_scope": "Whole ACEC publication, linked maps/designation material and equivalent copies, formats, catalogues, originals, readers, caches, mirrors and acquisition routes stopped. No retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "http_403_denial"
+    },
+    {
+      "aw_id": "hydro-system:70537321",
+      "publication": "Final Massachusetts Statewide Total Maximum Daily Load for Pathogen-Impaired Waterbodies, Appendix B: Housatonic River Basin",
+      "official_url": "https://www.epa.gov/system/files/documents/2025-04/appendix_b_housatonic_final_2024_12_03.pdf",
+      "observed_outcome": "The PDF web reader opened normally as a43-page document and relevant prose was read. The first screenshot, zero-based PDF page10, returned Cache miss; no map pixels or HTTP status were returned.",
+      "outcome_layer": "Web screenshot availability response",
+      "restriction_scope": "Missing original visual/map content and equivalent copies, formats, figures, reader/original/cache/mirror acquisition routes paused. No retry or alternative visual retrieval.",
+      "earlier_lawful_prose_exception": "Earlier lawfully read prose on printed pp.7 and11 remains usable within its observed scope; unseen maps and parsed labels are not map evidence.",
+      "limitation_kind": "visual_availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70537321",
+      "publication": "Town of Hinsdale, MA Hazard Mitigation Plan Update; discovery title April2024, printed front matter not inspected",
+      "official_url": "https://www.hinsdalemass.com/sites/g/files/vyhlif7501/f/pages/fy24-_hmp_final_document_1.5.26.pdf",
+      "observed_outcome": "Sole original acquisition completed with HTTPError404 Not Found; no report body acquired.",
+      "outcome_layer": "Original HTTP-client response; no separate transport/tunnel failure reported",
+      "restriction_scope": "Missing report, maps and all equivalent copies, formats, figures, alternate date/file paths, mirrors, readers, caches and acquisition routes paused. No retry. Discovery excerpt excluded.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:70537321",
+      "publication": "Flood hazard analyses, Upper Housatonic River within the towns of Dalton, Hinsdale and Lanesborough and the city of Pittsfield, Massachusetts; archive CAT75651327, printed edition not inspected",
+      "official_url": "https://upload.wikimedia.org/wikipedia/commons/6/60/Flood_hazard_analyses%2C_Upper_Housatonic_River_within_the_towns_of_Dalton%2C_Hinsdale_and_Lanesborough_and_the_city_of_Pittsfield%2C_Massachusetts_%28IA_CAT75651327%29.pdf",
+      "observed_outcome": "Sole web-reader open returned Cache miss. No original report body or maps and no HTTP status acquired.",
+      "outcome_layer": "Web-reader availability response",
+      "restriction_scope": "Missing report/maps and all equivalent copies, originals, formats, figures, archive/mirror hosts, readers, caches and acquisition routes paused. No retry or alternate original acquisition. Discovery excerpt excluded.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "availability_stop"
+    },
+    {
+      "aw_id": "hydro-system:60989074",
+      "publication": "IBGE 2020 Capoeiras municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/capoeiras/",
+      "observed_outcome": "The sole direct web-reader open returned Cache miss. No HTTP status, security or authorization reason, directory body or map pixels were exposed.",
+      "outcome_layer": "Web-reader availability; origin HTTP status unknown",
+      "restriction_scope": "Exact directory and equivalent directory-acquisition routes paused. No retry or alternate directory route. This is not a publication-wide denial of independently discovered municipal maps.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "directory_availability_stop",
+      "independent_source_distinction": "The separately issued 2010 statistical map was subsequently discovered in its independent 2010 official collection directory and acquired normally. It is not a retry of the failed 2020 directory.",
+      "material_gap": false
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:70895412",
+      "publication": "Condensado Estatal Veracruz de Ignacio de la Llave, first edition 2020, copyright 2021",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/ver/889463837121.pdf",
+      "observed_outcome": "The normally acquired original carries a printed requirement for prior written authorization for total or partial reproduction.",
+      "outcome_layer": "Printed source-use notice; original acquisition completed HTTP 200.",
+      "restriction_scope": "Reproduction/distribution boundary, not an acquisition denial. Original map, crops, overlays and derivatives remain private; public findings contain only original factual observations and citations.",
+      "earlier_lawful_prose_exception": "The complete map and technical legend were lawfully read; no access stop occurred.",
+      "limitation_kind": "publication_use_notice"
+    }
+  ]
+}
