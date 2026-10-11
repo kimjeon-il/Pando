@@ -513,7 +513,8 @@ private slots:
             const auto entries=city.value("displayTimeline").toArray();
             QCOMPARE(entries.size(),counts.at(i));
             for(const auto& entry:entries) {
-                const auto t=entry.toObject(), forms=t.value("nativeNames").toArray();
+                const auto t=entry.toObject();
+                const auto forms=t.value("nativeNames").toArray();
                 QCOMPARE(forms.size(),1);
                 QCOMPARE(forms.at(0).toObject().value("text").toString(),t.value("nameNative").toString());
                 QVERIFY(!t.value("nameKo").toString().isEmpty());
@@ -626,7 +627,7 @@ private slots:
         QCOMPARE(wire.value("stringFields").toArray().size(),9);
         const auto fixtures=source.value("fixtures").toArray();
         QCOMPARE(fixtures.size(),1);
-        const auto fixture=fixtures.front().toObject();
+        const auto fixture=fixtures.first().toObject();
         const auto bytes=QByteArray::fromHex(fixture.value("tileHex").toString().toLatin1());
         const auto records=PlaceRuntimeStore::decodeTile(bytes);
         QCOMPARE(records.size(),std::size_t(1));

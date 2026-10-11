@@ -63,7 +63,7 @@ void EditorController::refreshBuiltinPlaceLabels() {
     const auto cursor=QString::fromStdString(project_.timelineCursor());
     QString mapDate;
     if(QRegularExpression(QStringLiteral("^[0-9]{4}-[0-9]{2}$")).match(cursor).hasMatch()){
-        const first=QDate::fromString(cursor+QStringLiteral("-01"),QStringLiteral("yyyy-MM-dd"));
+        const auto first=QDate::fromString(cursor+QStringLiteral("-01"),QStringLiteral("yyyy-MM-dd"));
         if(first.isValid())mapDate=cursor+QStringLiteral("-")+QString::number(first.daysInMonth()).rightJustified(2,QChar('0'));
     }
     QByteArray signatureBytes;QDataStream stream(&signatureBytes,QIODevice::WriteOnly);

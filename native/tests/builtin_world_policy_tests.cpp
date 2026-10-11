@@ -1,6 +1,7 @@
 #include "worlddatasetloader.h"
 #include "worlddataset.h"
 #include "canonicalpacket.h"
+#include <pandoeditor/timeline-view.h>
 #include <QCoreApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -34,7 +35,13 @@ int main(int argc,char** argv) {
     QCoreApplication application(argc,argv);
     try {
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
-        const auto& document=*loaded.document;
+        auto view=pandoeditor::timelineDocumentView(*loaded.document,"2026-10");
+        auto& document=view.document;
+        document.units.erase(std::remove_if(document.units.begin(),document.units.end(),[&](const auto& unit){
+            return view.inactiveIds.count(unit.id);
+        }),document.units.end());
+        auto& parents=document.timelineRecords.parentRelations;
+        parents.erase(std::remove_if(parents.begin(),parents.end(),[&](const auto& row){return view.inactiveIds.count(row.entityId);}),parents.end());
         check(std::count_if(document.units.begin(),document.units.end(),[&](const auto& value){
             return pandoeditor::isRootGeneral(document,value);
         })==std::ptrdiff_t(207),"fresh default must contain 207 countries");
