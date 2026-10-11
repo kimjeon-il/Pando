@@ -199,13 +199,16 @@
   },
   "publishedRuntime": {
     "format": "PLAC-v3",
-    "records": 264,
-    "historicalNamePeriods": 482,
+    "records": 163,
+    "historicalNamePeriods": 381,
     "manifestPath": "assets/place/manifest.json",
     "shardPath": "assets/place/places-v1.bin",
-    "manifestGitBlobSha": "1c866a7ac35e4d027f7439e20b75b83196656a92",
-    "shardGitBlobSha": "25577f265aac2213a909c3d8354ddf15ce9f5e33",
-    "shardSha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
-    "verificationNote": "Identical to work/places Web binary and manifest blobs. Historic ranks and uncertain lifetimes are not certified."
+    "manifestGitBlobSha": "0a8dbe8f24a73332e25f5ae2dbd778d497ba2440",
+    "shardGitBlobSha": "ef2ca390d9e369a01ca1c19cb5c2094ed5ac49b7",
+    "shardSha256": "43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594",
+    "verificationNote": "Byte-identical to the curated Web work/places approved-only PLAC v3 binary and manifest: 163 explicitly approved cities, 101 withheld for further verification. Historical rank and uncertain lifetimes are not inferred.",
+    "stagedRecords": 264,
+    "withheldRecords": 101,
+    "manifestRevision": "approved-places-a912045657f35026"
   }
 }
