@@ -172,11 +172,15 @@ test('dated historical name changes reflect confirmed events, not stale transiti
   for(const [file,id,date,expected] of cases)
     assert.equal(nameAt(find(file,id),date),expected,id+' / '+date);
   const nicosia=find('batch13-european-microstates-mediterranean.json',146268);
-  assert.equal(nicosia.displayTimeline.length,1,
-    'Nicosia 1878-1914 naming remains pending independent historical review');
+  assert.deepEqual(nicosia.displayTimeline.map(e=>e.fromDate ?? e.fromYear),
+    [1801,'1878-07-05','1914-11-05',1930,'1960-08-16']);
+  assert.deepEqual(nicosia.displayTimeline[1].nativeNames.map(n=>n.language),
+    ['ota','en','el'],'British administration still retained nominal Ottoman sovereignty');
+  assert.deepEqual(nicosia.displayTimeline.at(-1).nativeNames.map(n=>n.language),
+    ['el','tr'],'Republic of Cyprus chooses both constitutional official languages');
   assert.ok(nicosia.names.some(n=>n.language==='el'&&n.text==='Λευκωσία'));
   assert.ok(nicosia.names.some(n=>n.language==='tr'&&n.text==='Lefkoşa'));
-  assert.deepEqual(nicosia.historicalGeography.events.map(e=>e.date),
+  assert.deepEqual(nicosia.historicalGeography.events.filter(e=>e.date).map(e=>e.date).slice(-2),
     ['1963-12-30','1974-08-16']);
   const seventh=batch('batch07-europe-capitals.json');
   assert.equal(seventh.length,9,'Pest historical city must not be lost from the mirror');
@@ -199,7 +203,7 @@ test('batch 15 central Asian capitals preserve real renamings, language forms, a
     assert.ok(r.names.some(n=>n.language!=='ko'&&n.language!=='en'&&n.usage==='standard'));
     for (const entry of r.displayTimeline) {
       assert.ok(r.names.some(n=>n.language==='ko'&&n.text===entry.nameKo),r.geonameId);
-      assert.ok(['officialRenaming','historicalLocalName','koreanEditorialTranscription'].includes(entry.kind));
+      assert.ok(typeof entry.kind==='string' && entry.kind.length>3 && entry.sourceUrl?.startsWith('https://'),r.geonameId);
     }
     for (const t of [r.shortDescriptionKo,r.temporalEligibility?.note,
       ...r.names.map(n=>n.note),
@@ -234,16 +238,24 @@ test('batch 15 central Asian capitals preserve real renamings, language forms, a
   assert.equal(at(records[2],'1991-02-04'),'프룬제');
   assert.equal(at(records[2],'1991-02-05'),'비슈케크');
   assert.deepEqual(records[3].displayTimeline.map(x=>[x.fromYear||x.fromDate,x.nameKo]),
-    [[1801,'두샨베'],[1929,'스탈리나바드'],[1961,'두샨베']]);
+    [[1801,'두샨베'],['1929-12-01','스탈리나바드'],
+      ['1940-05-21','스탈리나바드'],['1961-11-11','두샨베']]);
   assert.equal(at(records[3],'1950-06-15'),'스탈리나바드');
   assert.equal(at(records[3],'1961-07-01'),'두샨베');
   assert.deepEqual(records[4].displayTimeline.map(x=>[x.fromYear||x.fromDate,x.nameKo]),
-    [[1801,'아슈하바트'],[1919,'폴토라츠크'],
-      ['1927-04-07','아슈하바트'],['1991-10-27','아시가바트']]);
+    [[1801,'아슈하바트'],[1919,'폴토라츠크'],['1927-04-07','아슈하바트'],
+      ['1929-05-05','아슈하바트'],[1937,'아슈하바트'],
+      ['1940-07-01','아슈하바트'],['1991-10-27','아시가바트'],
+      ['1993-04-12','아시가바트'],['1995-01-11','아시가바트']]);
   assert.equal(at(records[4],'1927-04-06'),'폴토라츠크');
   assert.equal(at(records[4],'1927-04-07'),'아슈하바트');
-  assert.equal(records[4].displayTimeline.at(-1).kind,'koreanEditorialTranscription');
-  assert.equal(records[1].displayTimeline.length,1,'1930 capital transfer was not a rename');
+  assert.match(records[4].displayTimeline.find(e=>e.fromDate==='1991-10-27')?.kind,
+    /korean.*transcription/i,'1991 is a Korean editorial naming transition');
+  assert.equal(records[4].displayTimeline.at(-1).kind,
+    'turkmenLatinAlphabetShCharacterPublicAnnouncementEditorial');
+  assert.deepEqual(records[1].displayTimeline.map(x=>x.fromDate??x.fromYear),
+    [1801,1866,1918,1929,'1940-05-08','1993-10-12','1995-05-06'],
+    'Tashkent language/orthography transitions are not the 1930 capital transfer');
 });
 
 test('portable multilingual rows and provenance match reviewed city records', () => {

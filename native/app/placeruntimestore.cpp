@@ -361,7 +361,7 @@ PlaceQueryResult PlaceRuntimeStore::search(const QString& value,const Cancellati
     const auto prefix=QString::fromUcs4(codepoints.constData(),2);std::vector<Data::Tile> rows;bool truncated=false;
     for(const auto& page:data_->search.value(prefix))if(page.last>=query&&page.first<=query+QChar(0xffff)){if(rows.size()<PlaceRuntimeLimits::QueryTiles)rows.push_back(page);else truncated=true;}
     auto result=data_->rows(rows,cancelled,[&](const auto& r){
-        const matches=[&](const QString& text){return normalizeQuery(text).startsWith(query);};
+        const auto matches=[&](const QString& text){return normalizeQuery(text).startsWith(query);};
         if(matches(r.name)||matches(r.nameEn)||matches(r.nameNative))return true;
         for(const auto& name:r.nameNativeExtras)if(matches(name))return true;
         for(const auto& period:r.nameTimeline){
