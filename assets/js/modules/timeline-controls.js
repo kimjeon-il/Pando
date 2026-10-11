@@ -16,39 +16,130 @@ export function timelineMonthLabel(value) {
   return `${point.year < 0 ? `기원전 ${Math.abs(point.year)}` : point.year}년 ${point.month}월`;
 }
 
-/** The controls own only presentation; the entity owner changes the session month. */
+/** Timeline controls update only the session cursor, never document history. */
 export function installTimelineControls({ document, window, getMonth, setMonth }) {
   const input = document.getElementById('timelineMonthInput');
+  const button = document.getElementById('timelineMonthButton');
+  const buttonText = document.getElementById('timelineMonthButtonText');
   const label = document.getElementById('timelineMonthLabel');
   const context = document.getElementById('editorTimelineContext');
   const error = document.getElementById('timelineMonthError');
-  const previous = document.getElementById('timelinePreviousMonth');
-  const next = document.getElementById('timelineNextMonth');
-  if ([input, label, context, error, previous, next].some(value => !value)) throw new Error('Timeline controls are missing.');
+  const steps = [
+    ['timelinePreviousYear', -12],
+    ['timelinePreviousMonth', -1],
+    ['timelineNextMonth', 1],
+    ['timelineNextYear', 12],
+  ].map(([id, delta]) => [document.getElementById(id), delta]);
+  if ([input, button, buttonText, label, context, error, ...steps.map(([node]) => node)].some(value => !value)) {
+    throw new Error('Timeline controls are missing.');
+  }
+
+  let editing = false;
+  let composing = false;
+  const showError = message => {
+    error.textContent = message;
+    error.hidden = !message;
+    input.setAttribute('aria-invalid', message ? 'true' : 'false');
+  };
   const sync = () => {
     const month = getMonth();
     if (!month) return;
-    input.value = month;
-    label.textContent = timelineMonthLabel(month);
-    context.textContent = `${timelineMonthLabel(month)} 기준 편집`;
+    const readable = timelineMonthLabel(month);
+    label.textContent = readable;
+    buttonText.textContent = readable;
+    button.setAttribute('aria-label', `${readable}, 시점 직접 입력`);
+    context.textContent = `${readable} 기준 편집`;
+    if (!editing) input.value = month;
   };
-  const change = month => {
-    try { setMonth(month); error.hidden = true; error.textContent = ''; }
-    catch (reason) { error.textContent = String(reason?.message || reason); error.hidden = false; }
-    sync();
+  const exitEdit = (focusButton = false) => {
+    if (!editing) return;
+    editing = false;
+    composing = false;
+    input.hidden = true;
+    button.hidden = false;
+    input.value = getMonth() || '';
+    showError('');
+    if (focusButton) button.focus({ preventScroll: true });
   };
-  const onInput = () => change(input.value);
-  const onPrevious = () => { if (getMonth()) change(shiftTimelineMonth(getMonth(), -1)); };
-  const onNext = () => { if (getMonth()) change(shiftTimelineMonth(getMonth(), 1)); };
-  input.addEventListener('change', onInput);
-  previous.addEventListener('click', onPrevious);
-  next.addEventListener('click', onNext);
+  const beginEdit = () => {
+    if (editing || !getMonth()) return;
+    input.value = getMonth();
+    showError('');
+    editing = true;
+    button.hidden = true;
+    input.hidden = false;
+    input.focus({ preventScroll: true });
+    input.select();
+  };
+  const change = requested => {
+    try {
+      const point = parseTemporal(requested, { nullable: false });
+      if (point.precision !== 'month') throw new TypeError('YYYY-MM 형식으로 입력하세요.');
+      setMonth(point.canonical);
+      showError('');
+      sync();
+      return true;
+    } catch (reason) {
+      showError(String(reason?.message || reason));
+      sync();
+      return false;
+    }
+  };
+  const acceptEdit = () => {
+    if (!editing || composing) return;
+    if (change(input.value.trim())) {
+      exitEdit(true);
+      sync();
+    }
+  };
+  const onKeydown = event => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      exitEdit(true);
+    } else if (event.key === 'Enter' && !event.isComposing && !composing && event.keyCode !== 229) {
+      event.preventDefault();
+      acceptEdit();
+    }
+  };
+  // Some mobile input methods send an insertLineBreak action instead of a keydown.
+  const onBeforeInput = event => {
+    if (event.inputType !== 'insertLineBreak' || composing || !editing) return;
+    if (event.cancelable) event.preventDefault();
+    acceptEdit();
+  };
+  const onBlur = () => exitEdit(false);
+  const onInput = () => showError('');
+  const onCompositionStart = () => { composing = true; };
+  const onCompositionEnd = () => { composing = false; };
+  const onButtonClick = () => beginEdit();
+  const onStep = delta => () => {
+    exitEdit(false);
+    if (getMonth()) change(shiftTimelineMonth(getMonth(), delta));
+  };
+  const stepHandlers = steps.map(([node, delta]) => {
+    const handler = onStep(delta);
+    node.addEventListener('click', handler);
+    return [node, handler];
+  });
+  button.addEventListener('click', onButtonClick);
+  input.addEventListener('keydown', onKeydown);
+  input.addEventListener('beforeinput', onBeforeInput);
+  input.addEventListener('blur', onBlur);
+  input.addEventListener('input', onInput);
+  input.addEventListener('compositionstart', onCompositionStart);
+  input.addEventListener('compositionend', onCompositionEnd);
   window.addEventListener('pandolab:project-changed', sync);
   sync();
   return () => {
-    input.removeEventListener('change', onInput);
-    previous.removeEventListener('click', onPrevious);
-    next.removeEventListener('click', onNext);
+    exitEdit(false);
+    button.removeEventListener('click', onButtonClick);
+    input.removeEventListener('keydown', onKeydown);
+    input.removeEventListener('beforeinput', onBeforeInput);
+    input.removeEventListener('blur', onBlur);
+    input.removeEventListener('input', onInput);
+    input.removeEventListener('compositionstart', onCompositionStart);
+    input.removeEventListener('compositionend', onCompositionEnd);
+    for (const [node, handler] of stepHandlers) node.removeEventListener('click', handler);
     window.removeEventListener('pandolab:project-changed', sync);
   };
 }
