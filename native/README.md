@@ -55,10 +55,10 @@ GIS·라이브러리 등 내부 대화상자와 일부 관계 설정은 기존 Q
 
 ### 로컬 실행 파일만 빌드·실행
 
-이 PC에서는 저장소 루트의 `Pandoeditor-local.bat build`로 Qt Release 실행 파일만
-`D:\build\Pandoeditor-ui\pandoeditor.exe`에 빌드합니다. 이후
-`Pandoeditor-local.bat`를 더블클릭하면 설치된 Qt/MinGW 경로를 설정해 해당 파일을
-실행합니다. 이 경로는 포터블 폴더나 ZIP을 만들지 않습니다. Qt 개발 키트가 설치된
+이 PC에서는 저장소 루트의 `Pandoeditor-local.bat`를 더블클릭하면 실행 파일이 없을 때
+Qt Release 실행 파일만 `D:\build\Pandoeditor-ui\pandoeditor.exe`에 빌드하고 실행합니다.
+이후에는 기존 실행 파일을 바로 실행합니다. 명시적으로 다시 빌드하려면
+`Pandoeditor-local.bat build`를 실행합니다. 이 경로는 포터블 폴더나 ZIP을 만들지 않습니다. Qt 개발 키트가 설치된
 PC에서만 실행되며, 빌드 위치를 바꾸려면 `PANDOEDITOR_BUILD_DIR`을 지정합니다.
 포터블 패키지는 명시적으로 요청받았을 때만 별도로 만듭니다.
 

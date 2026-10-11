@@ -2,7 +2,8 @@
 setlocal
 
 rem Local Qt build only. This script never creates a portable directory or ZIP.
-set "SOURCE_DIR=%~dp0"
+rem A quoted path ending in backslash escapes the closing quote for CMake.
+set "SOURCE_DIR=%~dp0."
 set "BUILD_DIR=%PANDOEDITOR_BUILD_DIR%"
 if not defined BUILD_DIR set "BUILD_DIR=%~d0\build\Pandoeditor-ui"
 set "APP_EXE=%BUILD_DIR%\pandoeditor.exe"
@@ -19,14 +20,21 @@ set "QML2_IMPORT_PATH=%QT_DIR%\qml"
 set "QML_IMPORT_PATH=%QT_DIR%\qml"
 
 if /I "%~1"=="build" goto build
-if not exist "%APP_EXE%" goto missing_exe
 if /I "%~1"=="smoke" goto smoke
+if not exist "%APP_EXE%" goto build_then_run
+:run
 start "" /D "%BUILD_DIR%" "%APP_EXE%"
 exit /b %ERRORLEVEL%
 
 :smoke
+if not exist "%APP_EXE%" goto missing_exe
 "%APP_EXE%" --smoke-check
 exit /b %ERRORLEVEL%
+
+:build_then_run
+echo No local executable at "%APP_EXE%". Building it now.
+set "RUN_AFTER_BUILD=1"
+goto build
 
 :build
 set "CMAKE_EXE=%PANDOEDITOR_CMAKE_EXE%"
@@ -38,24 +46,33 @@ if not defined NINJA_EXE set "NINJA_EXE=%LOCALAPPDATA%\Packages\OpenAI.Codex_2p2
 if not exist "%CMAKE_EXE%" goto missing_cmake
 if not exist "%NINJA_EXE%" goto missing_ninja
 "%CMAKE_EXE%" -S "%SOURCE_DIR%" -B "%BUILD_DIR%" -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF "-DCMAKE_PREFIX_PATH=%QT_DIR%" "-DCMAKE_CXX_COMPILER=%MINGW_DIR%\bin\g++.exe" "-DCMAKE_MAKE_PROGRAM=%NINJA_EXE%" "-DCMAKE_CXX_FLAGS=-Wa,-mbig-obj"
-if errorlevel 1 exit /b 1
+if errorlevel 1 goto build_failed
 "%CMAKE_EXE%" --build "%BUILD_DIR%" --target pandoeditor --parallel 2
-if errorlevel 1 exit /b 1
+if errorlevel 1 goto build_failed
 echo Built %APP_EXE%
+if defined RUN_AFTER_BUILD goto run
 exit /b 0
+
+:build_failed
+echo Local build failed.
+goto error
 
 :missing_qt
 echo Qt was not found at "%QT_DIR%". Set PANDOEDITOR_QT_DIR.
-exit /b 1
+goto error
 :missing_mingw
 echo MinGW was not found at "%MINGW_DIR%". Set PANDOEDITOR_MINGW_DIR.
-exit /b 1
+goto error
 :missing_exe
 echo No local executable at "%APP_EXE%". Run "%~nx0 build" once.
-exit /b 1
+goto error
 :missing_cmake
 echo CMake was not found. Set PANDOEDITOR_CMAKE_EXE.
-exit /b 1
+goto error
 :missing_ninja
 echo Ninja was not found. Set PANDOEDITOR_NINJA_EXE.
+goto error
+
+:error
+if "%~1"=="" pause
 exit /b 1
