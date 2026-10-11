@@ -151,6 +151,9 @@ ApplicationWindow {
                         if (event.key === Qt.Key_Escape || event.key === Qt.Key_Back) {
                             timelineControls.cancelEdit(true)
                             event.accepted = true
+                        } else {
+                            // Let TextField receive Return/IME Done and normal text input.
+                            event.accepted = false
                         }
                     }
                 }
