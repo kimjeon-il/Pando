@@ -476,7 +476,7 @@ export function createGpuMapRenderer(deps) {
         countryBoundaryStyles: Object.fromEntries(packet.ownerIds.map(id => [id, countryBoundaryStyleById(id)])),
         hiddenSharedCountryIds: packet.ownerIds.filter(id => !countryBoundaryStyleById(id)),
         geometryRevision: geometryRevisionTracker.committedRevision(), projectGeneration });
-      renderLatestVisualFrame();
+      invalidateGpuFrame('country-shared-boundary-ready');
       return true;
     }
     function promotePreparedCountryBoundary() {
@@ -3872,6 +3872,9 @@ export function createGpuMapRenderer(deps) {
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('renderFrame() requires a MapVisualFrame.');
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
       lastVisualFrame = visualFrame;
+      // A boundary Worker can finish before the GPU stroke renderer is attached.
+      // Retry admission at frame boundaries without dropping presented borders.
+      if (pendingCountrySharedBoundary) promotePreparedCountryBoundary();
       requestHydroView(visualFrame.viewState);
       let result = null;
       if (isWebGlRenderer()) {
