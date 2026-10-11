@@ -1,9 +1,9 @@
 {
   "schema": "pando-editor-readonly-place-staging-v1",
   "webRepo": "kimjeon-il/Pando",
-  "webCommit": "aaeed815d0cc722104e989dbc01332482548f9b2",
-  "appTarget": "data/places-tier1-major-cities",
-  "status": "verified-source-staging-not-runtime",
+  "webCommit": "78624161a708e410254730134dcf0ba74230c404",
+  "appTarget": "assets/place",
+  "status": "source-synced-and-bundled-plac-v3",
   "files": [
     {
       "path": "reports/places/tier1-major-cities-batch01.json",
@@ -72,12 +72,40 @@
     {
       "path": "reports/places/tier1-major-cities-batch15-central-asia-capitals.json",
       "gitBlobSha": "6bf45c43b9495fae74961ce37220e6b6e031875c"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
+      "gitBlobSha": "d2c7365a43b168316786e8b120b845bc4ec5edcd"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
+      "gitBlobSha": "2a871e09f10737bb9f2fc7f3b6daef97810670b9"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
+      "gitBlobSha": "ece91fcfb1f1196e28d9931b7ce445d09e0d0c83"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
+      "gitBlobSha": "c3746dcbea966ed1205da5e150e1af00fc4fb6bd"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
+      "gitBlobSha": "11d9d23b003227b8b51131b63e485be675559a0c"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
+      "gitBlobSha": "03644302f185d29a43b736c5abc4cf08decac4a8"
+    },
+    {
+      "path": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
+      "gitBlobSha": "a6b697cb17ecf24d84dbdb4feb79d23b0c185709"
     }
   ],
   "reviewInventory": {
-    "batchCount": 15,
-    "recordCount": 88,
-    "distinctGeoNames": 88,
+    "batchCount": 22,
+    "recordCount": 264,
+    "distinctGeoNames": 264,
     "byBatch": [
       {
         "path": "reports/places/tier1-major-cities-batch01.json",
@@ -138,7 +166,46 @@
       {
         "path": "reports/places/tier1-major-cities-batch15-central-asia-capitals.json",
         "recordCount": 5
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
+        "recordCount": 26
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
+        "recordCount": 25
+      },
+      {
+        "path": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
+        "recordCount": 25
       }
     ]
+  },
+  "publishedRuntime": {
+    "format": "PLAC-v3",
+    "records": 264,
+    "historicalNamePeriods": 482,
+    "manifestPath": "assets/place/manifest.json",
+    "shardPath": "assets/place/places-v1.bin",
+    "manifestGitBlobSha": "1c866a7ac35e4d027f7439e20b75b83196656a92",
+    "shardGitBlobSha": "25577f265aac2213a909c3d8354ddf15ce9f5e33",
+    "shardSha256": "68aff90d19dcad210c9b173bf8918d95ad186075595e807e6406cd94f2c64af6",
+    "verificationNote": "Identical to work/places Web binary and manifest blobs. Historic ranks and uncertain lifetimes are not certified."
   }
 }
