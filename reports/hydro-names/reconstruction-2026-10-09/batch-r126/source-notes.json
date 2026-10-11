@@ -1,0 +1,937 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r126",
+  "sources": [
+    {
+      "title": "Mapa Político do Estado de Pernambuco",
+      "author": "IBGE, Diretoria de Geociências / Coordenação de Cartografia",
+      "edition": "2015",
+      "scale": "1:650,000",
+      "material_read": "Complete original single-sheet PDF; relevant Una corridor and coast visually inspected.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_pe2015",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_estaduais_e_distrito_federal/politico/2015/pe_politico650k_2015.pdf",
+      "use_notice": "Compiled from BCIM 2014. Only state/international boundaries declared official; other boundaries informative. Direitos de Reprodução Reservados, © IBGE 2015."
+    },
+    {
+      "title": "São Bento do Una – PE, Mapa Municipal, 2613008",
+      "author": "IBGE",
+      "edition": "2022",
+      "material_read": "Original single-sheet map; northern headward watercourse, Riachão locality corridor, map edge overlap with Cachoeirinha, and printed notice inspected.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_sao_bento2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2022/PE/sao_bento_do_una/A0_2613008_MM.pdf",
+      "use_notice": "Printed note describes a semi-automated municipal compilation developed for exclusive use in IBGE statistical collection/tabulation, states it should not be used for other purposes and disclaims responsibility for other uses. Reproduction rights reserved. Read as historical/generalized cartographic source correspondence, not a survey, legal-boundary determination or authorization to redistribute the original."
+    },
+    {
+      "title": "Cachoeirinha – PE, Mapa Municipal, 2603108",
+      "author": "IBGE",
+      "edition": "Collection 2020; printed 04/2021",
+      "material_read": "Original single-sheet map; Riacho Riachão label and connected northern watercourse, Cabanas district, southward reach and Cachoeirinha junction setting visually inspected.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_cachoeirinha2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/cachoeirinha/2603108_MM.pdf",
+      "use_notice": "Printed note describes a semi-automated municipal compilation developed for exclusive use in IBGE statistical collection/tabulation, states it should not be used for other purposes and disclaims responsibility for other uses. Reproduction rights reserved. Read as historical/generalized cartographic source correspondence, not a survey, legal-boundary determination or authorization to redistribute the original."
+    },
+    {
+      "title": "Palmares – PE, Mapa Municipal, 2610004",
+      "author": "IBGE",
+      "edition": "Collection 2020; printed 04/2021",
+      "material_read": "Original single-sheet map; generalized Una route north of and through Palmares and southern/western tributary approaches inspected. Reservoir depiction is less current than the independently acquired 2022 satellite-based edition.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_palmares2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/palmares/2610004_MM.pdf",
+      "use_notice": "Printed note describes a semi-automated municipal compilation developed for exclusive use in IBGE statistical collection/tabulation, states it should not be used for other purposes and disclaims responsibility for other uses. Reproduction rights reserved. Read as historical/generalized cartographic source correspondence, not a survey, legal-boundary determination or authorization to redistribute the original."
+    },
+    {
+      "title": "Palmares – PE, Mapa Municipal Estatístico, 2610004",
+      "author": "IBGE",
+      "edition": "Censo 2022",
+      "material_read": "Original satellite-based single-sheet map; reservoir at Usina Serro Azul, dam/outlet, labelled Rio Una downstream, Rio da Prata junction setting and route to Palmares visually inspected.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_palmares2022",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2022/mapas_municipais_estatisticos/PE/palmares_2610004/palmares_2610004_mme_a0.pdf",
+      "use_notice": "Printed note describes a semi-automated municipal compilation developed for exclusive use in IBGE statistical collection/tabulation, states it should not be used for other purposes and disclaims responsibility for other uses. Reproduction rights reserved. Read as historical/generalized cartographic source correspondence, not a survey, legal-boundary determination or authorization to redistribute the original. Image credit: Rede MAIS/MJSP, includes © 2022 Planet Labs Inc., all rights reserved."
+    },
+    {
+      "title": "São José da Coroa Grande – PE, Mapa Municipal, 2613404",
+      "author": "IBGE",
+      "edition": "Collection 2020; printed 04/2021",
+      "material_read": "Original single-sheet map; labelled Rio Carimã and Várzea do Una coastal approach inspected. This sheet does not by itself contain the complete Una mouth; the Barreiros original supplies that coverage.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_coroa2020",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/sao_jose_da_coroa_grande/2613404_MM.pdf",
+      "use_notice": "Printed note describes a semi-automated municipal compilation developed for exclusive use in IBGE statistical collection/tabulation, states it should not be used for other purposes and disclaims responsibility for other uses. Reproduction rights reserved. Read as historical/generalized cartographic source correspondence, not a survey, legal-boundary determination or authorization to redistribute the original."
+    },
+    {
+      "title": "Barreiros – PE, Mapa Municipal Estatístico, 2601409",
+      "author": "IBGE",
+      "edition": "Malha Territorial 2010; printed edition 6/13/2011",
+      "scale": "1:100,000",
+      "material_read": "Original single-sheet map; lower Una, island reaches, Barreiros, Rio Carimã confluence/estuarine setting, Várzea do Una and Atlantic outlet visually inspected.",
+      "cartography_observed": true,
+      "prose_only": false,
+      "source_type": "primary_original_cartography",
+      "source_key": "ibge_barreiros2010",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_para_fins_de_levantamentos_estatisticos/censo_demografico_2010/mapas_municipais_estatisticos/pe/barreiros_v2.pdf",
+      "use_notice": "Semi-automated integration of IBGE/DSG/other systematic maps and municipal mesh, updated from various sources without full integration/completeness treatment. Reproduction rights reserved. Historical generalized correspondence only."
+    },
+    {
+      "title": "Regionalização da Q95% na Sub-Bacia 39",
+      "author": "Serviço Geológico do Brasil – CPRM, DHT, SUREG-RE; technical execution Keyla Almeida dos Santos",
+      "edition": "Recife, November 2011",
+      "material_read": "Successfully opened PDF text, title/front matter and section 2.1, printed p.5 (PDF p.15); no report map/figure pixels requested or used.",
+      "cartography_observed": false,
+      "prose_only": true,
+      "observation": "Places the named Una source in Serra da Boa Vista, Capoeiras; describes an intermittent upper river to about Altinho and a perennial course thereafter; identifies Piranji and Jacuípe as principal tributaries. This supports basin/river context and prevents treating the selected Riachão starting point as the named Una spring.",
+      "source_type": "primary_bounded_prose",
+      "source_key": "cprm2011",
+      "official_url": "https://rigeo.sgb.gov.br/bitstream/doc/11221/1/Relatorio_SB39_final.pdf",
+      "use_notice": "No special source-use notice identified in the bounded prose/front matter read; no redistribution permission inferred."
+    },
+    {
+      "title": "Barragem de Panelas II é inaugurada e reforça sistema de contenção de cheias na Mata Sul de Pernambuco",
+      "author": "Ministério da Integração e do Desenvolvimento Regional",
+      "edition": "Published 2 December 2025; updated 3 December 2025",
+      "material_read": "Original HTML opened successfully; bounded paragraph on the flood-control system and Serro Azul chronology read. Linked map/image not acquired.",
+      "cartography_observed": false,
+      "prose_only": true,
+      "observation": "States that Serro Azul was completed in 2016 and inaugurated in 2017; used only for chronology alongside directly observed 2022 reservoir cartography.",
+      "source_type": "primary_bounded_prose",
+      "source_key": "midr2025",
+      "official_url": "https://www.gov.br/mdr/pt-br/noticias/barragem-de-panelas-ii-e-inaugurada-e-reforca-sistema-de-contencao-de-cheias-na-mata-sul-de-pernambuco/",
+      "use_notice": "No redistribution permission inferred; no linked image used."
+    },
+    {
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrográfica Nacional, layer 0 Red Hidrografica",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "date": "Undated active service; inspected 11 October 2026",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "type": "Primary official hydrographic cartography",
+      "actually_inspected": "Entire selected corridor and a larger-scale head/upper-junction view. Published line geometry was rendered by the source service with its NOMBRE field as labels; the source has no default labels.",
+      "supports": "Northeastern mapped head branches and their westward/southwestward connection to the Quebrada de Tarapacá corridor; middle Tarapacá canyon; southward pampa drainage and neighboring Quipisca/Parca, Juan de Morales/Tambillo, Salar de Pintados and Chacarilla settings.",
+      "limits": "A drainage line is not evidence of perennial water. The mapped line ends north of the selected final Bellavista tail; the separate original report maps, rather than assumed line continuity, establish that tail as salar terrain. Headward neighboring labels are not assigned to the selected unnamed branch.",
+      "use_notice": "Service copyright field blank; no redistribution permission inferred. Original maps and private orientation images are not for publication.",
+      "source_key": "mma-simbio-hydro-r126",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "title": "Plan Estratégico de Gestión Hídrica en la Cuenca de la Pampa del Tamarugal. Informe Final. S.I.T. N°473",
+      "author": "Dirección General de Aguas, División de Estudios y Planificación; realizado por ICASS SpA",
+      "publisher": "Ministerio de Obras Públicas, Gobierno de Chile",
+      "date": "April 2021, as printed on cover",
+      "original_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/bitstreams/ec795664-e5c8-4a31-a643-8cdbca1a4570/download",
+      "type": "Primary basin-planning report, its own hydrographic map and bounded supporting synthesis",
+      "actually_inspected": "Cover/front-matter; printed pages4–8,12–17; Figures2.1,2.2,2.3 and2.5 (PDF pages23,25,28,35). Figure2.5 and the acquired MMA source form the principal geographic correspondence evidence.",
+      "principal_original_map": "Figure2.5, Delimitación de unidades hidrográficas de la zona de la Pampa del Tamarugal, printed page17: credited elaboración propia, with WGS84 UTM19S grid, 40km scale bar, mapped quebradas, relief, distinct salar polygons and labels for Salar de Pintados and Salar de Bella Vista.",
+      "supports": "Full regional head-to-pampa-to-salar setting; the southward drainage beside/into the Pintados–Bellavista saline depression; the selected endpoint within the Bellavista terminal salar setting. Report text identifies the basin as endorheic, describes alluvial-fan termination and infiltration of usual streamflow, with occasional exceptional runoff.",
+      "cartographic_attribution": "Figure2.1 is the report authors’ basin/subbasin delimitation, partly DEM-based; basin boundaries are used only for context, never as proof of a river connection. Figure2.2 is explicitly modified from SERNAGEOMIN2017. Figure2.3 is a geological compilation from cited maps and SERNAGEOMIN2017. These supplementary figures show regional geomorphology and saline deposits; no standalone underlying geological publication was acquired or claimed independently inspected.",
+      "prose_attribution": "Printed page16 cites earlier DGA/CIDERH literature for the distinction between upper perennial reaches and lower infiltration. This is the successfully read2021 report’s synthesis, not a claim to have acquired those older originals. Printed pages6–8 independently explain the report’s endorheic basin and fan setting; pages12–13 explain the mapped saline-deposit class.",
+      "limits": "The report’s model/basin delineations and groundwater flow are not treated as surface-channel continuity. Neither Figure2.5 nor prose establishes a single river hydronym for the northeastern unnamed branch plus every pampa/salar passage. Generalized cartography is used at corridor/component scale, without current wetness or precise shoreline claims.",
+      "distinct_publication": "Precisely identified April2021 Pampa del Tamarugal report, separate from stopped Loa/DGA2014 figures, current Vialidad portal and Codelco Pedernales2023. Unresolved historical MOP/DGA/Loa/CIREN references remain preserved; no blanket clearance or domain-wide ban was inferred.",
+      "use_notice": "Front-matter supplies a recommended bibliographic citation for the joint Lluta/Pampa study, SIT473. No distribution restriction was observed in the inspected pages; government hosting is not treated as redistribution permission. Originals and derivative orientation figures remain private.",
+      "source_key": "dga-icass-tamarugal2021",
+      "official_url": "https://repositoriodirplan.mop.gob.cl/biblioteca/items/52bc7ea1-759e-4603-aea5-c50342b32b63/full"
+    },
+    {
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrográfica Nacional, layer 0 Red Hidrografica",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "type": "Primary original hydrographic cartography",
+      "actually_inspected": "Service metadata and one completed original labeled overview, covering the entire selected object extent; local crops inspected for northeastern, southeastern and western components.",
+      "evidence_limit": "Line-only national source supplies no lake polygons or relief and stops short of some selected headward starts. NOMBRE labels support their individual channel corridors, not all connected branches.",
+      "layer_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer/0",
+      "cartographic_method": "Server-rendered NOMBRE labels on the published line layer, requested only within bounded local extent. Selected geometry used only in private orientation figures.",
+      "date": "Undated active service, inspected 11 October 2026",
+      "use_notice": "Copyright metadata blank. No redistribution permission inferred; originals and orientation figures stay private.",
+      "source_key": "mma-hydro",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer"
+    },
+    {
+      "title": "Diagnóstico y clasificación de los cursos y cuerpos de agua según objetivos de calidad: Cuenca del río Bueno",
+      "publisher": "Dirección General de Aguas; CADE-IDEPE Consultores en Ingeniería",
+      "type": "Primary basin report, original PDF with supporting cartography",
+      "actually_inspected": "December2004 cover; printed pp1–5 drainage descriptions and segmentation; Figure2.1 on printed p9 (PDF p15), hydrogeological map at1:1,000,000, visually inspected.",
+      "evidence_limit": "Figure2.1 is a small regional reproduction of the DGA hydrogeological map and is not sufficient for individual high-Andean headstream selection. Prose separates river and lake names and gives the actual Pacific terminal. Historical official lengths are not substituted for retained modeled lengths.",
+      "date": "December 2004",
+      "use_notice": "No new acquisition prohibition observed; no source PDF, map, crop or derived image is offered for redistribution.",
+      "source_key": "dga-bueno2004",
+      "official_url": "https://mma.gob.cl/wp-content/uploads/2017/12/Bueno.pdf"
+    },
+    {
+      "title": "Plan de manejo Parque Nacional Puyehue, Documento de Trabajo Nº487",
+      "publisher": "CONAF, Departamento de Áreas Protegidas y Medioambiente, Región de Los Lagos",
+      "type": "Primary park-management report",
+      "actually_inspected": "November2008 cover; pp6 and11–13 hydrology/boundary prose.",
+      "evidence_limit": "Actually read prose places Gol Gol and Gaviotas headwaters in the park, distinguishes Gol Gol tributaries including Bonito as Constancia outlet, and identifies Los Quetros drainage to Gaviotas. It is not a visually inspected map of the two unresolved selected starts.",
+      "date": "November 2008",
+      "source_key": "conaf-puyehue2008",
+      "official_url": "https://www.conaf.cl/centro-documental/plan-de-manejo-del-pn-puyehue/?filename=PN-Puyehue.pdf&ind=1719524630924&refresh=8c2196b7&wpdmdl=60069"
+    },
+    {
+      "title": "Diagnóstico de la calidad de las aguas del Lago Rupanco: Informe final",
+      "publisher": "Universidad de Los Lagos; Norka Fuentes González, Stefan Wölfl, Jorge Nimptsch and Catalina Ríos Henríquez; commissioned by CPA Rupanco and partner organizations",
+      "type": "Primary limnological report with attributed earlier research map",
+      "actually_inspected": "May2019 cover and Figure1 on printed/PDF p12, including full Rupanco basin, eastern Gaviotas drainage and other separately coded lake tributaries.",
+      "evidence_limit": "Figure1 explicitly attributes its base to León-Muñoz et al.2013; this is an inspected reproduction in a primary field-study report, not a newly surveyed topographic sheet. Its basin/stream patterns cover the southeastern unnamed head catchment at corridor scale but do not establish a local name for each small headstream.",
+      "date": "May 2019",
+      "figure_attribution": "León-Muñoz et al.(2013), The combined impact of land use change and aquaculture on sediment and water quality in oligotrophic Lake Rupanco (North Patagonia, Chile,40.8°S), Journal of Environmental Management128:283–291; DOI10.1016/j.jenvman.2013.05.008. The cited2013 article was not itself acquired.",
+      "source_key": "rupanco-study2019",
+      "official_url": "https://cparupanco.org/wp-content/uploads/2020/11/Diagnostico-de-la-aguas-del-Rupanco.pdf"
+    },
+    {
+      "title": "Proyecto Central Hidroeléctrica Los Lagos: Plan de Turismo",
+      "publisher": "Statkraft Chile; TKO Consultores",
+      "type": "Primary operator project plan",
+      "actually_inspected": "March2022 cover; printed pp20–21 sequence and original geographic map: Lago Puyehue/Entre Lagos outlet, Pilmaiquén, Central Pilmaiquén, Central Rucatayo and Central Los Lagos.",
+      "evidence_limit": "The inspected map establishes upper/middle Pilmaiquén corridor and project order. It does not depict or establish current reservoir waterlines or current operations.",
+      "date": "March 2022",
+      "source_key": "statkraft-tourism2022",
+      "official_url": "https://www.statkraft.cl/globalassets/0/.cl/lo-que-hacemos/los-lagos/plan-de-turismo-statkraft_11-04.pdf"
+    },
+    {
+      "title": "Los Lagos hydropower plant",
+      "publisher": "Statkraft",
+      "type": "Primary operator prose",
+      "actually_inspected": "Normally opened project page describes Pilmaiquén location, reservoir, completion/testing and planned2027 commercial operation.",
+      "evidence_limit": "Current operator statement only; no current shoreline inspection.",
+      "date": "Undated page inspected 11 October 2026",
+      "source_key": "statkraft-loslagos-current",
+      "official_url": "https://www.statkraft.com/Global-presence/chile/los-lagos-hydropower-plant/"
+    },
+    {
+      "title": "Despeja tus dudas: Proyecto Los Lagos",
+      "publisher": "Statkraft Chile",
+      "type": "Primary operator prose",
+      "actually_inspected": "Normally opened FAQ distinguishes Los Lagos from withdrawn Osorno project and places local sites downstream of Los Lagos.",
+      "evidence_limit": "No canceled Osorno reservoir is assumed to exist; older construction wording is not preferred over the current main project page.",
+      "date": "Undated page inspected 11 October 2026",
+      "source_key": "statkraft-faq",
+      "official_url": "https://www.statkraft.cl/lo-que-hacemos/nuestros-proyectos/proyecto-los-lagos/despeja-tus-dudas/"
+    },
+    {
+      "title": "Decreto1325, Ministerio del Interior: Describe específicamente los límites comunales; historical version13June1988 of decree published10December1980",
+      "publisher": "Ministerio del Interior, Chile; official text served by Biblioteca del Congreso Nacional",
+      "type": "Primary historical administrative-geography prose",
+      "actually_inspected": "Actually opened text and cached finds, especially Futrono/Lago Ranco descriptions tracing Rupumeica–Hueinahue–Maihue–Calcurrupe–Ranco; Puyehue/Puerto Octay descriptions distinguish an unnamed headstream from Gaviotas and then Rupanco–Rahue.",
+      "evidence_limit": "Used solely as bounded historical geographic prose, not a current legal determination or a map of the unresolved hooked head. The text distinguishes a straight boundary connector from the natural river origin.",
+      "source_key": "interior-decreto1325",
+      "official_url": "https://www.bcn.cl/leychile/navegar?f=1988-06-13&i=17549"
+    },
+    {
+      "title": "Humedales Comuna de Lago Ranco — Diagnóstico integral de los humedales de la región de Los Ríos",
+      "publisher": "Gobierno Regional de Los Ríos project, executed through Edáfica",
+      "type": "Primary regional project prose",
+      "actually_inspected": "Normally opened page identifies Ranco/Maihue and the locally separate Calcurrupe, Hueinahue and Rupumeica among the principal rivers.",
+      "evidence_limit": "Only regional prose retained. Its map acquisition subsequently failed; no source pixels from that map are evidence.",
+      "source_key": "humedales-ranco",
+      "official_url": "https://humedaleslosrios.cl/lagoranco/"
+    },
+    {
+      "title": "Peligros del Complejo Volcánico Puyehue–Cordón Caulle, regiones de Los Ríos y Los Lagos; Carta Geológica de Chile, Serie Geología Ambiental36",
+      "publisher": "V.Toloza, C.Jorquera, M.Mella, R.Gho; SERNAGEOMIN; IAVCEI catalogue reproduction",
+      "type": "Primary map represented by low-resolution reproduction",
+      "actually_inspected": "IAVCEI catalogue and900×491 original PNG preview at https://volcanichazardmaps.org/wp-content/uploads/3920.png inspected before the later publisher-catalogue502.",
+      "evidence_limit": "The preview shows broad lake/volcanic mountain geography, but its labels and terrain are too small to resolve the actual selected initial starts. It is not used to close a head/connector gap.",
+      "date": "2020",
+      "scale": "1:75,000 original; acquired preview is reduced",
+      "use_notice": "IAVCEI states the map may not be the most recent, complete or main operational map. No operational hazard assessment or redistribution is made.",
+      "source_key": "puyehue2020-preview",
+      "official_url": "https://volcanichazardmaps.org/map/?id=3920"
+    },
+    {
+      "title": "The National Map, USGSTopo composite cartographic service",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "edition": "Dynamic composite service; compilation edition and layer dates not independently established. Accessed 11 October 2026.",
+      "material_read": "Five sequential original PNG views, all HTTP 200 image/png and complete: Timber Creek–Scape Ore headward corridor; Scape Ore–upper Black River; Dogwood Pond–Kingstree; Kingstree–Andrews; Lower Black River–Georgetown terminal. All original map pixels were visually inspected.",
+      "supports": "Full geographic correspondence, distinct named feeder and river components, material confluences, swamp/pond passages, and actual Great Pee Dee endpoint.",
+      "limits": "Generalized cartography, not formal registry verification, legal name boundaries or exact bank/vertex agreement. The five views are one cartographic source, not five independent surveys. This independently operated service is distinct from stopped named USGS publications and was not used to recover them.",
+      "use_notice": "Original maps, local crops and orientation overlays remain private. No redistribution permission is inferred from official hosting.",
+      "source_key": "r126-usgs-topo-south-carolina"
+    },
+    {
+      "title": "Black Scenic River",
+      "publisher": "South Carolina Department of Natural Resources",
+      "official_url": "https://www.dnr.sc.gov/water/river/scenic/black.html",
+      "edition": "Undated webpage; footer copyright 2020; accessed 11 October 2026.",
+      "material_read": "Successfully opened primary HTML prose, especially river description, recreational-access sequence, Pocotaligo confluence context and final paragraph describing the Great Pee Dee mouth.",
+      "supports": "Bounded corroboration for free-flowing Black River with swamp forests and alternating broad/narrow passages, the Kingstree–Andrews access sequence, Pocotaligo as a tributary, and Black River ending at Great Pee Dee River.",
+      "limits": "Prose only. No linked management-plan PDF or page photograph is treated as map evidence; the page does not establish the selected Timber/Scape Ore head or name the whole composite route.",
+      "use_notice": "The page footer states © 2020 All rights reserved. Only own factual observations and ordinary source citation are public-ready; original page material is not redistributed.",
+      "source_key": "r126-scdnr-black-scenic"
+    },
+    {
+      "title": "Scape Ore Swamp near Bishopville, chapter in USGS Circular 1173-A",
+      "publisher": "U.S. Geological Survey",
+      "official_url": "https://pubs.usgs.gov/circ/1999/circ1173/circ1173a/chapter12.htm",
+      "edition": "1999 route; full front matter not acquired.",
+      "material_read": "None. Discovery identified a possible source, but the sole direct opening returned (403) Forbidden.",
+      "supports": null,
+      "limits": "Entire Circular 1173-A publication and equivalent chapters, maps, figures, PDFs, copies, formats and routes stopped. Discovery snippets excluded from substantive evidence.",
+      "source_key": "r126-usgs-circular-1173a-stopped"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60944193",
+      "source_keys": [
+        "ibge_pe2015",
+        "ibge_sao_bento2022",
+        "ibge_cachoeirinha2020",
+        "ibge_palmares2020",
+        "ibge_palmares2022",
+        "ibge_coroa2020",
+        "ibge_barreiros2010",
+        "cprm2011",
+        "midr2025"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13819
+          ],
+          "component_scope": "western headward feeder",
+          "finding": "The selected start corresponds to the mapped channel in the Batalha–Cachoeira–Caiana setting north of São Bento do Una. It runs east/northeast toward the Riachão and Riachão de Igrejinha localities. The complete selected western corridor is visible on the São Bento map, including the approach to the overlap with Cachoeirinha; no source-spring identity or initial-segment hydronym is imposed.",
+          "sources": [
+            "ibge_sao_bento2022"
+          ],
+          "correspondence": "complete at ordinary corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13819
+          ],
+          "component_scope": "Riachão and Cachoeirinha connection",
+          "finding": "The connected northern watercourse is explicitly labelled Riacho Riachão around Riachão de Igrejinha/Capim de Planeta. The Cachoeirinha sheet follows it east through the Cabanas setting, around the northward bend and south toward the Una approach west of Cachoeirinha. The selected route continues through the city setting and eastward. The separately mapped Una approach from the southwest is distinguished from this selected feeder.",
+          "sources": [
+            "ibge_sao_bento2022",
+            "ibge_cachoeirinha2020",
+            "ibge_pe2015"
+          ],
+          "correspondence": "complete; exact name-transition point not assigned",
+          "mapped_component_name": "Riacho Riachão"
+        },
+        {
+          "fragments": [
+            13819
+          ],
+          "component_scope": "Cachoeirinha–Altinho–middle Una corridor",
+          "finding": "The state original supplies the continuous eastward river corridor from Cachoeirinha toward Altinho and the Agrestina/São Joaquim do Monte setting, then southeast past the Laje Grande/Bonito-side valley toward Palmares. It distinguishes the parallel Ipojuca and Sirinhaém rivers and the southern Rio da Chata/Pirangi drainage; these nearby labels are not transferred to the selected Una trunk.",
+          "sources": [
+            "ibge_pe2015",
+            "cprm2011"
+          ],
+          "correspondence": "complete at regional corridor scale; prose contextual only",
+          "mapped_component_name": "Rio Una"
+        },
+        {
+          "fragments": [
+            13819
+          ],
+          "component_scope": "Serro Azul reservoir and Palmares reach",
+          "finding": "The 2022 original visibly shows the expanded reservoir beside Usina Serro Azul, its dam/outlet and the connected downstream Rio Una. This matches the selected west-to-east approach and subsequent southward bend toward Palmares. The Rio da Prata approach and the Pirangi-side tributary drainage remain separate from the selected trunk. The earlier 2020 map preserves generalized river continuity; its narrower water depiction does not replace the reservoir observation.",
+          "sources": [
+            "ibge_palmares2022",
+            "ibge_palmares2020",
+            "ibge_pe2015",
+            "midr2025"
+          ],
+          "correspondence": "complete including the major reservoir passage",
+          "mapped_component_name": "Rio Una"
+        },
+        {
+          "fragments": [
+            13819
+          ],
+          "component_scope": "Palmares–Água Preta–Barreiros lower reach",
+          "finding": "The original state map shows the Una leaving Palmares through the Água Preta lowlands, turning toward the coastal reach north of Barreiros, and distinguishes the Jacuípe tributary to the south. The Barreiros map supplies the expanded lower reach with mapped islands and river bends through the Barreiros vicinity before the estuary.",
+          "sources": [
+            "ibge_pe2015",
+            "ibge_palmares2020",
+            "ibge_palmares2022",
+            "ibge_barreiros2010"
+          ],
+          "correspondence": "complete at ordinary corridor scale",
+          "mapped_component_name": "Rio Una"
+        },
+        {
+          "fragments": [
+            13819
+          ],
+          "component_scope": "actual terminal, Una–Carimã estuarine setting",
+          "finding": "The Barreiros original carries the Una from the town’s river bends toward Várzea do Una and its opening to the Atlantic. The separately labelled Rio Carimã approaches from the west/southwest and is distinguished from the selected Una trunk. The São José da Coroa Grande sheet independently shows the Carimã/coastal approach south of the mouth, but was not counted as complete Una-mouth coverage. The actual selected sea-terminal setting is established by the Barreiros and state originals, without a bank-by-bank or exact endpoint audit.",
+          "sources": [
+            "ibge_barreiros2010",
+            "ibge_coroa2020",
+            "ibge_pe2015"
+          ],
+          "correspondence": "complete terminal correspondence",
+          "mapped_component_name": "Rio Una"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61309272",
+      "source_keys": [
+        "mma-simbio-hydro-r126",
+        "dga-icass-tamarugal2021"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13947
+          ],
+          "component_scope": "Northeastern head and initial westward branch",
+          "finding": "The detailed official map contains the selected head and westward channel sequence, then its bend southwest into the upper Tarapacá network. The head is in the mountainous northeastern basin setting shown by the2021 report. Labels on separate nearby northern/eastern joining branches do not establish a name for this selected head.",
+          "sources": [
+            "mma-simbio-hydro-r126",
+            "dga-icass-tamarugal2021"
+          ],
+          "correspondence": "complete at generalized head/branch corridor scale; head hydronym remains null",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13947
+          ],
+          "component_scope": "Upper confluence and westward Tarapacá corridor",
+          "finding": "The mapped selected branch joins the westward corridor carrying repeated Quebrada de Tarapacá labels. Its bends and junction setting are supported by the official original head and overview maps. Neighboring labeled branches are orientation context, not additional selected tributaries or name transfers.",
+          "sources": [
+            "mma-simbio-hydro-r126",
+            "dga-icass-tamarugal2021"
+          ],
+          "correspondence": "complete at corridor/junction scale",
+          "mapped_component_name": "Quebrada de Tarapacá"
+        },
+        {
+          "fragments": [
+            13947
+          ],
+          "component_scope": "Middle Tarapacá canyon and piedmont exit",
+          "finding": "The selected westward-to-southwestward route corresponds to the mapped Tarapacá valley north of the Linga/Choja and Coscaya drainage setting, then enters the central depression east/southeast of Huara. The report maps its mountain-to-pampa transition.",
+          "sources": [
+            "mma-simbio-hydro-r126",
+            "dga-icass-tamarugal2021"
+          ],
+          "correspondence": "complete; no precise-bank or vertex agreement claim",
+          "mapped_component_name": "Quebrada de Tarapacá"
+        },
+        {
+          "fragments": [
+            13947
+          ],
+          "component_scope": "Long southward alluvial-pampa continuation toward Pozo Almonte",
+          "finding": "The official sources depict southward drainage in the central depression through the Pozo Almonte corridor, with Quebrada de Tarapacá labels on the mapped eastern line and Quebrada Salar de Pintados on a distinct western line. The selected generalized line passes through this alluvial-pampa setting; it is not inferred to be a continuously flowing river. Report prose explains fan and infiltration behavior.",
+          "sources": [
+            "mma-simbio-hydro-r126",
+            "dga-icass-tamarugal2021"
+          ],
+          "correspondence": "complete geographic setting, including generalized offsets across mapped alluvial terrain",
+          "mapped_component_name": "Quebrada de Tarapacá"
+        },
+        {
+          "fragments": [
+            13947
+          ],
+          "component_scope": "Pintados saline-depression approach and eastern-side passage",
+          "finding": "The selected continuation passes the drainage convergence south of Pozo Almonte and follows the eastern Pintados saline-depression setting. Figure2.5 explicitly distinguishes the salar polygon from quebrada lines; the report geology map identifies broad saline deposits. A salar name is not a river name and no selected lake or reservoir passage is asserted.",
+          "sources": [
+            "mma-simbio-hydro-r126",
+            "dga-icass-tamarugal2021"
+          ],
+          "correspondence": "complete pampa/salar component coverage",
+          "mapped_component_name": null,
+          "mapped_setting_name": "Salar de Pintados"
+        },
+        {
+          "fragments": [
+            13947
+          ],
+          "component_scope": "Pintados–Bellavista transition and Chacarilla joining setting",
+          "finding": "Both original map sources show the southward drainage and eastward Quebrada de Chacarilla/O del Salado joining setting between Pintados and Bellavista. Figure2.5 maps the enclosing saline lowland and intervening terrain. This is an observed geographic transition, not evidence that groundwater flow or modeled connectivity creates one continuously named river.",
+          "sources": [
+            "mma-simbio-hydro-r126",
+            "dga-icass-tamarugal2021"
+          ],
+          "correspondence": "complete at inter-salar corridor scale",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            13947
+          ],
+          "component_scope": "Final southern tail and endorheic terminal",
+          "finding": "The final selected tail extends beyond the southern end of the MMA hydrographic line. The2021 original Figure2.5 nevertheless covers the full tail and endpoint within the Bellavista saline terminal setting. The regional geomorphology and saline-deposit maps corroborate the lowland/salar surface. The final westward curl is not established as a named stream or open-water lake channel.",
+          "sources": [
+            "dga-icass-tamarugal2021"
+          ],
+          "correspondence": "complete terminal terrain coverage; completed naming-scope hold rather than an unviewed-connector gap",
+          "mapped_component_name": null,
+          "mapped_setting_name": "Salar de Bellavista (map label: Salar de Bella Vista)"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "source_keys": [
+        "mma-hydro",
+        "dga-bueno2004",
+        "conaf-puyehue2008",
+        "rupanco-study2019",
+        "statkraft-tourism2022",
+        "statkraft-loslagos-current",
+        "statkraft-faq",
+        "interior-decreto1325",
+        "humedales-ranco",
+        "puyehue2020-preview"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            14547
+          ],
+          "component_scope": "Selected mainstem FID 14547",
+          "finding": "Long east-to-west Rupumeica corridor joins the separately named Hueinahue before its entry into southeastern Maihue. Selected passage crosses Maihue, follows the short Calcurrupe outlet corridor, then crosses Ranco westward. The river names are not extended across either lake. The small initial north/south hooked branch east of the well-mapped Rupumeica remains geographically unaccounted for, despite primary prose placing the river origin near the frontier cordillera/Portezuelo Lago Hermoso setting.",
+          "sources": [
+            "mma-hydro",
+            "dga-bueno2004",
+            "interior-decreto1325",
+            "humedales-ranco"
+          ],
+          "correspondence": "partial; material initial source/connector setting unresolved",
+          "unresolved_material_gap": "Initial hooked headward branch before the recognizable westbound Rupumeica corridor. Available primary line cartography does not show it, and no usable terrain/source map establishes its actual start and connection. This is not merely an unknown local hydronym.",
+          "mapped_component_names": [
+            "Río Rupumeica",
+            "Río Hueinahue",
+            "Lago Maihue",
+            "Río Calcurrupe",
+            "Lago Ranco"
+          ]
+        },
+        {
+          "fragments": [
+            14548
+          ],
+          "component_scope": "Selected mainstem FID 14548",
+          "finding": "Western Ranco passage and its western outlet transition; it is substantially a lake/outlet setting, not uniformly a river reach.",
+          "sources": [
+            "mma-hydro",
+            "dga-bueno2004"
+          ],
+          "correspondence": "complete at ordinary geographic corridor scale",
+          "unresolved_material_gap": null,
+          "mapped_component_names": [
+            "Lago Ranco",
+            "Río Bueno"
+          ]
+        },
+        {
+          "fragments": [
+            14549
+          ],
+          "component_scope": "Selected mainstem FID 14549",
+          "finding": "Ranco outlet river runs west through the central lowland/Río Bueno locality corridor; the southern Pilmaiquén branch joins before the downstream Rahue junction. The selected fragment ends at the Rahue joining setting.",
+          "sources": [
+            "mma-hydro",
+            "dga-bueno2004"
+          ],
+          "correspondence": "complete at ordinary geographic corridor scale",
+          "unresolved_material_gap": null,
+          "mapped_component_names": [
+            "Río Bueno"
+          ]
+        },
+        {
+          "fragments": [
+            14550
+          ],
+          "component_scope": "Selected mainstem FID 14550",
+          "finding": "Lower Bueno continues west from the Rahue confluence through the coastal valley to the Pacific mouth north of Punta Dehui. The retained source endpoint and renderer sea extension are modeled metadata, not a new mouth survey or a hydronym assigned to offshore water.",
+          "sources": [
+            "mma-hydro",
+            "dga-bueno2004"
+          ],
+          "correspondence": "complete at ordinary geographic corridor scale",
+          "unresolved_material_gap": null,
+          "mapped_component_names": [
+            "Río Bueno"
+          ]
+        },
+        {
+          "fragments": [
+            14551
+          ],
+          "component_scope": "Selected tributary FID 14551",
+          "finding": "Southeastern unnamed head/catchment approaches the Gaviotas drainage entering eastern Rupanco. The2019 inspected basin figure covers this headwater drainage setting; its unnamed small streams are not all called Gaviotas. The selected route then crosses Rupanco westward and follows its Rahue outlet downstream toward the Coihueco joining setting.",
+          "sources": [
+            "mma-hydro",
+            "rupanco-study2019",
+            "conaf-puyehue2008",
+            "dga-bueno2004",
+            "interior-decreto1325"
+          ],
+          "correspondence": "complete at ordinary geographic corridor scale",
+          "unresolved_material_gap": null,
+          "mapped_component_names": [
+            "Río Gaviotas",
+            "Lago Rupanco",
+            "Río Rahue"
+          ]
+        },
+        {
+          "fragments": [
+            14552
+          ],
+          "component_scope": "Selected tributary FID 14552",
+          "finding": "Rahue continues west/northwest from the upper joining setting and ends where the south-coming Negro enters, south of Osorno.",
+          "sources": [
+            "mma-hydro",
+            "dga-bueno2004"
+          ],
+          "correspondence": "complete at ordinary geographic corridor scale",
+          "unresolved_material_gap": null,
+          "mapped_component_names": [
+            "Río Rahue"
+          ]
+        },
+        {
+          "fragments": [
+            14553
+          ],
+          "component_scope": "Selected tributary FID 14553",
+          "finding": "Selected lower Negro starts within an existing mapped valley, rather than at the river’s natural source; it runs north from the Río Negro/Forrahue/Chifín tributary setting to join Rahue south of Osorno. It is kept separate from the Rahue outlet-lake branch.",
+          "sources": [
+            "mma-hydro",
+            "dga-bueno2004"
+          ],
+          "correspondence": "complete at ordinary geographic corridor scale",
+          "unresolved_material_gap": null,
+          "mapped_component_names": [
+            "Río Negro"
+          ]
+        },
+        {
+          "fragments": [
+            14554
+          ],
+          "component_scope": "Selected tributary FID 14554",
+          "finding": "After Negro joins, Rahue trends north through the Osorno/Damas and lower Curaco receiving settings, then follows the lowland two-arm reach to the southern side of Bueno. The selected branch’s actual receiving river is Bueno.",
+          "sources": [
+            "mma-hydro",
+            "dga-bueno2004"
+          ],
+          "correspondence": "complete at ordinary geographic corridor scale",
+          "unresolved_material_gap": null,
+          "mapped_component_names": [
+            "Río Rahue"
+          ]
+        },
+        {
+          "fragments": [
+            14555
+          ],
+          "component_scope": "Selected tributary FID 14555",
+          "finding": "Mapped upper drainage enters the westbound Golgol corridor, passes the El Gringo/Bonito/Pajaritos/Anticura tributary settings, enters eastern Puyehue, traverses that lake and follows its Pilmaiquén outlet northwest. The operator map places Pilmaiquén, Rucatayo and Los Lagos hydroelectric settings in sequence before the Chirre junction setting at the fragment end. Constancia is linked by the Bonito tributary in CONAF prose; the selected initial route is not asserted to traverse Constancia. The actual short northern/eastern initial source connection remains unobserved.",
+          "sources": [
+            "mma-hydro",
+            "dga-bueno2004",
+            "conaf-puyehue2008",
+            "statkraft-tourism2022",
+            "statkraft-loslagos-current",
+            "statkraft-faq"
+          ],
+          "correspondence": "partial; material initial source/connector setting unresolved",
+          "unresolved_material_gap": "Short upper start before the mapped northeastern tributary/upper Golgol drainage. The acquired line source and small volcanic preview do not establish its actual start/connector setting; no nearby name, Constancia connection or basin membership fills that gap.",
+          "mapped_component_names": [
+            "Río Golgol",
+            "Lago Puyehue",
+            "Río Pilmaiquén"
+          ]
+        },
+        {
+          "fragments": [
+            14556
+          ],
+          "component_scope": "Selected tributary FID 14556",
+          "finding": "Pilmaiquén continues northwest from the Chirre receiving setting and joins the south side of Bueno, upstream of the separate Rahue confluence.",
+          "sources": [
+            "mma-hydro",
+            "dga-bueno2004"
+          ],
+          "correspondence": "complete at ordinary geographic corridor scale",
+          "unresolved_material_gap": null,
+          "mapped_component_names": [
+            "Río Pilmaiquén"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70734796",
+      "source_keys": [
+        "r126-usgs-topo-south-carolina",
+        "r126-scdnr-black-scenic"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9880
+          ],
+          "component_scope": "Headward Timber Creek northwest of Bishopville",
+          "finding": "The selected northern beginning corresponds to the mapped Timber Creek corridor in the Timber Creek Road / Farborough Road country. It follows that creek south and then east past the Maple Branch, Long Branch and Nancy Branch junction settings toward the confluence with Black Creek. The original map labels and continuous channel establish this headward feeder; the farther-north and east Black Creek headwater network is not the selected beginning.",
+          "sources": [
+            "r126-usgs-topo-south-carolina"
+          ],
+          "correspondence": "Original map pixels inspected; ordinary headward corridor correspondence supported.",
+          "mapped_component_name": "Timber Creek"
+        },
+        {
+          "fragments": [
+            9880
+          ],
+          "component_scope": "Timber Creek–Black Creek–Scape Ore junctions",
+          "finding": "Timber Creek visibly enters Black Creek west of Bishopville. The selected route follows the short southward Black Creek connector into the Cedar Creek junction setting, then the continuous wetland channel labeled Scape Ore Swamp across Camden Highway / SC 34, beneath I-20, and across the US 15 / Sumter Highway setting. Cedar Creek is an entering branch, not the selected headward continuation.",
+          "sources": [
+            "r126-usgs-topo-south-carolina"
+          ],
+          "correspondence": "Material headward connectors mapped and inspected. Name-transition positions are bounded junction settings rather than exact legal endpoints.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9880
+          ],
+          "component_scope": "Scape Ore Swamp to Black River",
+          "finding": "South of the US 15 setting, the selected line continues down mapped Scape Ore Swamp, passes the McGirts Creek junction and US 401, crosses the Florence Highway / US 76 country, and bends through the Rocky Bluff Swamp junction area. It then proceeds southeast through the broad Scape Ore wetland corridor to the separately mapped Black River near US 378. Black River approaches from the north/east; the selected route approaches along Scape Ore from the northwest.",
+          "sources": [
+            "r126-usgs-topo-south-carolina"
+          ],
+          "correspondence": "Overlapping original map views cover the feeder passage and actual Black River junction; the neighboring Black River headwater is distinguished.",
+          "mapped_component_name": "Scape Ore Swamp"
+        },
+        {
+          "fragments": [
+            9880
+          ],
+          "component_scope": "Upper Black River swamp, Dogwood Pond and Pocotaligo junction",
+          "finding": "Below the Scape Ore junction, the selected route follows the labeled Black River / Black River Swamp southeast through the I-95 and US 301 crossings and the Tearcoat Branch setting. It continues into the wide multi-channel wetland complex labeled Dogwood Pond near June Burn Road, reaches the separately mapped Pocotaligo River confluence, and bends east then northeast through the broad Black River channel-and-swamp passage toward Pudding Swamp and Chappin Swamp. The mapped river is continuous across these expansions; there is no missing lake outlet connector.",
+          "sources": [
+            "r126-usgs-topo-south-carolina",
+            "r126-scdnr-black-scenic"
+          ],
+          "correspondence": "Original channel, wetland, pond and junction cartography inspected. SCDNR prose independently distinguishes Pocotaligo as a tributary and describes alternating broad and narrow Black River passages.",
+          "mapped_component_name": "Black River"
+        },
+        {
+          "fragments": [
+            9880
+          ],
+          "component_scope": "Kingstree and river corridor toward Andrews",
+          "finding": "The selected route turns southeast from the Pudding/Chappin swamp settings, passes the west/south side of Kingstree, crosses the US 52 / SC 261 setting, then continues south through the SC 377 crossing before bending east. It follows the meandering mapped Black River past the Boggy Swamp, Chandler Swamp and Spring Branch junction settings and the Jumping Run country toward the SC 41 crossing north of Andrews. Repeated Black River labels and the continuous mapped channel establish the middle/lower correspondence.",
+          "sources": [
+            "r126-usgs-topo-south-carolina",
+            "r126-scdnr-black-scenic"
+          ],
+          "correspondence": "Original cartographic corridor inspected. Prose recreational-access sequence supplies bounded corroboration, not a replacement for map correspondence.",
+          "mapped_component_name": "Black River"
+        },
+        {
+          "fragments": [
+            9880
+          ],
+          "component_scope": "Andrews, lower Black River bends and Black Mingo junction",
+          "finding": "After the SC 41 / Andrews setting, the selected line follows Black River east through Horse Pen Swamp and the wider Black River Swamp corridor, past the Big Dam Swamp junction. It makes the characteristic northward lower-river bend, reaches the Black Mingo Creek junction in the Mingo Swamp / Browns Ferry Road country, crosses the SC 51 setting, and continues through the broad southeastward bends past Choppee Creek, Peters Creek and the US 701 crossing. These are river and wetland passages, not a selected reservoir crossing.",
+          "sources": [
+            "r126-usgs-topo-south-carolina",
+            "r126-scdnr-black-scenic"
+          ],
+          "correspondence": "Overlapping original map views cover the major lower bends and material tributary junctions.",
+          "mapped_component_name": "Black River"
+        },
+        {
+          "fragments": [
+            9880
+          ],
+          "component_scope": "Black River mouth, Great Pee Dee extension and actual terminal",
+          "finding": "The lower selected channel remains on mapped Black River below US 701 and joins the distinctly labeled Great Pee Dee River north of Georgetown. The selected line then continues south/southwest on Great Pee Dee River to its endpoint immediately upstream of the US 17 bridge at Georgetown. Waccamaw River and the Intracoastal Waterway are mapped as the separate eastern approach; the selected final reach does not follow them. SCDNR explicitly describes the Black River as ending at its Great Pee Dee confluence, which occurs before this selected endpoint.",
+          "sources": [
+            "r126-usgs-topo-south-carolina",
+            "r126-scdnr-black-scenic"
+          ],
+          "correspondence": "Actual selected terminal and receiving-river continuation inspected in original map pixels. No ocean-mouth extension inferred from the model sea class.",
+          "mapped_component_name": null
+        },
+        {
+          "fragments": [
+            9880
+          ],
+          "component_scope": "Lake/reservoir and wetland interpretation",
+          "finding": "The inspected map corridor includes Scape Ore Swamp, Black River Swamp and the broad Dogwood Pond channel complex, along with open meanders and numerous side wetlands. No material named reservoir passage is shown along the selection at this corridor scale. SCDNR calls Black River free-flowing and describes alternation between broad lake-like areas and narrow channels. That prose is confined to Black River and is not a claim that every small headward pool is natural or undammed.",
+          "sources": [
+            "r126-usgs-topo-south-carolina",
+            "r126-scdnr-black-scenic"
+          ],
+          "correspondence": "Mapped waterbody passages distinguished from supporting prose; no new lake name or impoundment history inferred.",
+          "mapped_component_name": null
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "aw_id": "hydro-system:60944193",
+      "publication": "Representação gráfica dos corpos d’água da bacia do rio Una, CPRH; exact edition not established from acquired original",
+      "official_url": "https://www2.cprh.pe.gov.br/wp-content/uploads/2021/02/muna06.pdf",
+      "observed_outcome": "The sole original-file acquisition completed HTTP403 with HTML; no PDF, map or substantive prose acquired.",
+      "outcome_layer": "HTTP response observed in original acquisition",
+      "restriction_scope": "Whole map publication and equivalent copies, formats, figures, original/reader/cache/mirror and other acquisition routes stopped. No retry or alternate route.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_access_denial",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60944193",
+      "publication": "Plano Hidroambiental da Bacia Hidrográfica do Rio Una e Grupos de Bacias Litorâneas GL4 e GL5, Tomo V – Mapas",
+      "official_url": "https://www.apac.pe.gov.br/images/media/1649790852_TOMO%20V%20-%20Mapas.pdf",
+      "observed_outcome": "The sole original-file acquisition completed HTTP502 with HTML. No PDF, map or substantive plan prose was acquired.",
+      "outcome_layer": "HTTP response observed in original acquisition",
+      "restriction_scope": "Missing plan/map publication and equivalent copies, formats, figures, original/reader/cache/mirror and other acquisition routes paused. Other volumes were not acquired as substitutes. No retry or alternate route.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60944193",
+      "publication": "Bacia do Rio Una, Embrapa Ageitec",
+      "official_url": "https://www.embrapa.br/en/web/agencia-de-informacao-tecnologica/territorios/territorio-mata-sul-pernambucana/caracteristicas-do-territorio/recursos-naturais/recursos-hidricos/bacia-do-rio-una",
+      "observed_outcome": "Sole direct web-reader open reported Failed to fetch (403) Forbidden. No original page body or map acquired.",
+      "outcome_layer": "Web-reader reported HTTP403; no independent origin receipt asserted",
+      "restriction_scope": "Whole page/publication and equivalent copies, language variants, maps and every acquisition route stopped. No retry or alternate route; discovery text not evidence.",
+      "earlier_lawful_prose_exception": null,
+      "limitation_kind": "publication_access_denial",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:60944193",
+      "publication": "IBGE 2020 Barreiros municipal-map directory",
+      "official_url": "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/PE/barreiros/",
+      "observed_outcome": "Sole web-reader directory open returned Cache miss; no HTTP status, security/authorization reason, directory body or map bytes exposed.",
+      "outcome_layer": "Web-reader availability outcome; origin status unknown",
+      "restriction_scope": "Exact directory and equivalent directory-acquisition routes paused. No retry or alternate directory route. This is not a publication-wide denial of independently discovered municipal maps.",
+      "earlier_lawful_prose_exception": "None from the directory. Barreiros 2010 was subsequently independently discovered at its exact original URL and acquired HTTP200; it is a distinct publication.",
+      "limitation_kind": "directory_availability_stop",
+      "material_gap": false
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "publication": "Humedales Comuna de Lago Ranco — Diagnóstico integral de los humedales de la región de Los Ríos, communal map",
+      "official_url": "https://humedaleslosrios.cl/wp-content/uploads/2024/04/mapa-comnunal-lago-ranco.png",
+      "observed_outcome": "The page opened normally; its linked map click returned Cache miss. No map pixels, HTTP status or security/authorization reason were exposed.",
+      "outcome_layer": "Web-reader/cache layer",
+      "restriction_scope": "Missing publication/map content and equivalent copies, formats, figures, original/reader/cache/mirror/screenshot and other acquisition routes remain paused; no retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": "Only actually read prior regional hydrography prose at https://humedaleslosrios.cl/lagoranco/ remains usable; not map correspondence."
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "publication": "Rupanco, Instituto Geográfico Militar1972, BND record332390/objectMP0003293",
+      "official_url": "https://www.bibliotecanacionaldigital.gob.cl/bnd/631/w3-article-332390.html",
+      "observed_outcome": "Search-discovery catalogue text explicitly displayed Acceso en Biblioteca Nacional and restricted reproduction. No catalogue, viewer or map requested after that notice.",
+      "outcome_layer": "Discovery-exposed access/use notice; no new HTTP outcome",
+      "restriction_scope": "Map/equivalent content excluded from substantive acquisition/use. Listed features and catalogue text are not inspected map observations.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "publication": "Lago Ranco, IGM August2010,1:250,000, BND record156558/objectMP0001079, map information1998",
+      "official_url": "https://www.bibliotecanacionaldigital.gob.cl/visor/BND%3A156558",
+      "observed_outcome": "Search-discovery viewer metadata explicitly displayed Acceso en Biblioteca Nacional and restricted reproduction; no viewer/PDF/image requested.",
+      "outcome_layer": "Discovery-exposed access/use notice; no new HTTP outcome",
+      "restriction_scope": "Map/equivalent content excluded; no alternate original, viewer or edition requested.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "publication": "Mapa de Chile, Edición Centenaria1910, sheet12 Valdivia–Osorno; Nicanor Boloña, Luis Ossandón, Luis Risopatrón",
+      "official_url": "https://upload.wikimedia.org/wikipedia/commons/5/52/12-valdivia-osorno.jpg?utm_campaign=index&utm_content=original&utm_source=commons.wikimedia.org",
+      "observed_outcome": "The Commons catalogue opened normally. Its original-image click returned Cache miss, without HTTP status or pixels.",
+      "outcome_layer": "Web-reader/cache layer",
+      "restriction_scope": "Missing publication/map content and equivalent copies, formats, figures, original/reader/cache/mirror/screenshot and other acquisition routes remain paused; no retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": "Catalogue bibliography and public-domain notice only at https://commons.wikimedia.org/wiki/File:12-valdivia-osorno.jpg; no cartographic evidence."
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "publication": "SERNAGEOMIN-hosted2015 Chilean geological-congress paper, volume1 pp234–237, file14905_v1_pp_234_237.pdf; full printed article title/authors unestablished",
+      "official_url": "https://catalogobiblioteca.sernageomin.cl/Archivos/14905_v1_pp_234_237.pdf",
+      "observed_outcome": "The sole original request completed HTTP502 with HTML. No paper PDF, prose or figure was obtained.",
+      "outcome_layer": "Completed original HTTP response",
+      "restriction_scope": "Missing publication/map content and equivalent copies, formats, figures, original/reader/cache/mirror/screenshot and other acquisition routes remain paused; no retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "publication": "Toloza,Jorquera,Mella and Gho2020, Peligros del Complejo Volcánico Puyehue–Cordón Caulle, regiones de Los Ríos y Los Lagos; CGCH Geología Ambiental36",
+      "official_url": "http://tienda.sernageomin.cl/TiendaVirtual2/ProductDetail.aspx?pid=2967",
+      "observed_outcome": "After successful IAVCEI catalogue and low-resolution preview reading, the publisher catalogue original request completed HTTP502 with HTML. No original full-scale map or report was obtained.",
+      "outcome_layer": "Completed original HTTP response",
+      "restriction_scope": "Missing publication/map content and equivalent copies, formats, figures, original/reader/cache/mirror/screenshot and other acquisition routes remain paused; no retry or alternate retrieval.",
+      "earlier_lawful_prose_exception": "Previously read IAVCEI bibliography remains usable; the previously inspected small preview provides broad regional orientation only, not resolution of selected head starts.",
+      "earlier_lawful_map": "https://volcanichazardmaps.org/wp-content/uploads/3920.png, acquired HTTP200 before publisher502; no reacquisition."
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "publication": "Hueinahue, IGM May2010, BND record336166/objectMP0004429",
+      "official_url": "https://www.bibliotecanacionaldigital.gob.cl/pywb/all/20210709024634mp_/http%3A/www.bibliotecanacionaldigital.gob.cl/bnd/635/w3-article-336166.html",
+      "observed_outcome": "Search-discovery text explicitly showed Acceso en Biblioteca Nacional (derechos vigentes) and restricted reproduction. No catalogue, archived viewer, map or alternative edition acquired.",
+      "outcome_layer": "Discovery-exposed access/use notice; no new HTTP outcome",
+      "restriction_scope": "Map and equivalent content excluded from substantive use; catalogue listed names are not original map observations.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:61554706",
+      "publication": "Plan de Manejo Parque Nacional Puyehue, CONAF1995, Documento de Trabajo227; CIREN catalogue itemdc7d0dc2-8319-4e30-8bb1-d296b803f81f",
+      "official_url": "https://bibliotecadigital.ciren.cl/items/dc7d0dc2-8319-4e30-8bb1-d296b803f81f",
+      "observed_outcome": "Search-discovery text displayed Informe o publicación no disponible en formato digital and a library-contact notice. No catalogue/download/anexos acquired.",
+      "outcome_layer": "Discovery-exposed availability notice, not an HTTP denial",
+      "restriction_scope": "Unobtained1995 report and annexes were not used or sought through equivalent routes. The independently published CONAF2008 Documento487 original is distinct and succeeded.",
+      "earlier_lawful_prose_exception": null
+    },
+    {
+      "aw_id": "hydro-system:70734796",
+      "publication": "USGS Circular 1173-A, chapter Scape Ore Swamp near Bishopville",
+      "official_url": "https://pubs.usgs.gov/circ/1999/circ1173/circ1173a/chapter12.htm",
+      "observed_outcome": "The sole direct web-reader open returned Internal Error: Failed to fetch the exact chapter URL: (403) Forbidden. No chapter body or original map pixels were acquired.",
+      "outcome_layer": "Web reader reported HTTP 403 for the acquisition; no separate origin-server receipt was exposed.",
+      "restriction_scope": "Entire Circular 1173-A publication and equivalent copies, chapters, maps, figures, PDF/HTML formats, originals, reader/cache, mirrors and all acquisition routes stopped. No retry or alternative retrieval. This does not extend to the distinct USGSTopo service.",
+      "earlier_lawful_prose_exception": null,
+      "material_effect": "Optional supporting publication only. Independently acquired original USGSTopo maps cover all material selected components, and SCDNR primary prose supplies bounded lower-river context. No material source gap results and source_access_limited remains false under the completed representative-identity status."
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:61554706",
+      "publication": "SERNAGEOMIN Peligros_Volcan_Puyehue map service, exact map edition unestablished",
+      "official_url": "https://sdngsig.sernageomin.cl/gissdng/rest/services/FranjaVolcanes/Peligros_Volcan_Puyehue/MapServer",
+      "observed_outcome": "The direct web-reader metadata request reported that the URL was not accessible via this tool; no HTTP status, origin body or security reason exposed.",
+      "outcome_layer": "Web-tool technical metadata-route limitation",
+      "restriction_scope": "Failed reader route not repeated; no service original or export obtained. No independent publication-wide HTTP denial is inferred. Later missing2020 publication content is separately paused by its actual publisher502.",
+      "earlier_lawful_prose_exception": null
+    }
+  ]
+}
