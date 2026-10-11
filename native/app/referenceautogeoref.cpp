@@ -5,6 +5,8 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <optional>
+#include <QLineF>
 #include <QSet>
 #include <QVector>
 
