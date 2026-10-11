@@ -579,6 +579,67 @@ function betterAutoGeorefScore(candidate, current) {
   return candidate.coverage > current.coverage;
 }
 
+const AUTO_GEOREF_MODE_COMPLEXITY = Object.freeze({
+  [REFERENCE_IMAGE_WARP_MODES.SIMILARITY]: 0,
+  [REFERENCE_IMAGE_WARP_MODES.AFFINE]: 1,
+  [REFERENCE_IMAGE_WARP_MODES.PROJECTIVE]: 2,
+});
+
+function autoGeorefCrossValidation(mode, candidates, hardPoints) {
+  const minimum = MODE_MIN_POINTS[mode] || 2;
+  if (candidates.length < 2 || candidates.length - 1 + hardPoints.length < minimum) return null;
+  const errors = [];
+  for (let holdout = 0; holdout < candidates.length; holdout += 1) {
+    const training = candidates.filter((_, index) => index !== holdout);
+    const warp = buildReferenceImageWarp([...hardPoints, ...training], { mode });
+    if (!warp.ok) return null;
+    const meters = autoGeorefResidualMeters(warp, candidates[holdout]);
+    if (!Number.isFinite(meters)) return null;
+    errors.push(meters);
+  }
+  const sorted = [...errors].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  const medianMeters = sorted.length % 2
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+  const squared = errors.reduce((sum, meters) => sum + meters * meters, 0);
+  return Object.freeze({
+    mode,
+    count: errors.length,
+    rmsMeters: Math.sqrt(squared / errors.length),
+    medianMeters,
+    maxMeters: sorted.at(-1),
+  });
+}
+
+function selectAutoGeorefRefitMode(requestedMode, consensusMode, candidates, hardPoints) {
+  if (requestedMode !== REFERENCE_IMAGE_WARP_MODES.AUTO || candidates.length < 5) {
+    return Object.freeze({ mode: consensusMode, validations: Object.freeze([]) });
+  }
+  const modes = [
+    REFERENCE_IMAGE_WARP_MODES.SIMILARITY,
+    REFERENCE_IMAGE_WARP_MODES.AFFINE,
+    REFERENCE_IMAGE_WARP_MODES.PROJECTIVE,
+  ];
+  const validations = modes
+    .map(candidateMode => autoGeorefCrossValidation(candidateMode, candidates, hardPoints))
+    .filter(Boolean);
+  if (!validations.length) {
+    return Object.freeze({ mode: consensusMode, validations: Object.freeze([]) });
+  }
+  let best = validations[0];
+  for (const candidate of validations.slice(1)) {
+    const materiallyBetter = candidate.rmsMeters < best.rmsMeters * 0.99;
+    const effectivelyTied = candidate.rmsMeters <= best.rmsMeters * 1.01;
+    const simpler = AUTO_GEOREF_MODE_COMPLEXITY[candidate.mode] < AUTO_GEOREF_MODE_COMPLEXITY[best.mode];
+    if (materiallyBetter || (effectivelyTied && simpler)) best = candidate;
+  }
+  return Object.freeze({
+    mode: best.mode,
+    validations: Object.freeze(validations),
+  });
+}
+
 /**
  * Robustly fits a coarse automatic georeferencing transform from candidate
  * image/GIS matches. This deliberately limits RANSAC hypotheses to global
@@ -605,8 +666,8 @@ export function buildReferenceImageAutoGeoref(values = [], {
 
   const hardPoints = hardAnchor ? [hardAnchor] : [];
   const totalPointCount = candidates.length + hardPoints.length;
-  const resolvedMode = resolveAutoGeorefMode(mode, totalPointCount);
-  if (!resolvedMode) {
+  const consensusMode = resolveAutoGeorefMode(mode, totalPointCount);
+  if (!consensusMode) {
     return Object.freeze({
       ok: false,
       reason: 'unsupported-auto-georef-mode',
@@ -615,14 +676,14 @@ export function buildReferenceImageAutoGeoref(values = [], {
     });
   }
 
-  const minimumPoints = MODE_MIN_POINTS[resolvedMode] || 2;
-  const requiredSoftSample = Math.max(0, minimumPoints - hardPoints.length);
-  if (candidates.length < requiredSoftSample || totalPointCount < minimumPoints) {
+  const consensusMinimumPoints = MODE_MIN_POINTS[consensusMode] || 2;
+  const requiredSoftSample = Math.max(0, consensusMinimumPoints - hardPoints.length);
+  if (candidates.length < requiredSoftSample || totalPointCount < consensusMinimumPoints) {
     return Object.freeze({
       ok: false,
       reason: 'insufficient-auto-georef-candidates',
-      mode: resolvedMode,
-      minimumPoints,
+      mode: consensusMode,
+      minimumPoints: consensusMinimumPoints,
       candidateCount: candidates.length,
       hardPointCount: hardPoints.length,
     });
@@ -630,8 +691,8 @@ export function buildReferenceImageAutoGeoref(values = [], {
 
   const thresholdMeters = Math.max(1, finiteNumber(inlierThresholdMeters) ?? 25000);
   const trialLimit = Math.max(1, Math.min(4096, Math.round(finiteNumber(maxTrials) ?? 256)));
-  const requestedMinimum = Math.round(finiteNumber(minimumInliers) ?? minimumPoints);
-  const requiredInliers = Math.max(minimumPoints, requestedMinimum);
+  const requestedMinimum = Math.round(finiteNumber(minimumInliers) ?? consensusMinimumPoints);
+  const requiredInliers = Math.max(consensusMinimumPoints, requestedMinimum);
   const random = createDeterministicRandom(seed);
   const seenSamples = new Set();
   let trials = 0;
@@ -648,7 +709,7 @@ export function buildReferenceImageAutoGeoref(values = [], {
     }
     seenSamples.add(sampleKey);
     trials += 1;
-    const hypothesis = buildReferenceImageWarp([...hardPoints, ...sample], { mode: resolvedMode });
+    const hypothesis = buildReferenceImageWarp([...hardPoints, ...sample], { mode: consensusMode });
     if (!hypothesis.ok) continue;
     const score = autoGeorefHypothesisScore(hypothesis, candidates, thresholdMeters);
     if (score.inliers.length + hardPoints.length < requiredInliers) continue;
@@ -660,8 +721,8 @@ export function buildReferenceImageAutoGeoref(values = [], {
     return Object.freeze({
       ok: false,
       reason: 'no-auto-georef-consensus',
-      mode: resolvedMode,
-      minimumPoints,
+      mode: consensusMode,
+      minimumPoints: consensusMinimumPoints,
       candidateCount: candidates.length,
       hardPointCount: hardPoints.length,
       trials,
@@ -670,6 +731,9 @@ export function buildReferenceImageAutoGeoref(values = [], {
   }
 
   let accepted = [...best.score.inliers];
+  const modelSelection = selectAutoGeorefRefitMode(mode, consensusMode, accepted, hardPoints);
+  const resolvedMode = modelSelection.mode;
+  const minimumPoints = MODE_MIN_POINTS[resolvedMode] || consensusMinimumPoints;
   let finalWarp = null;
   for (let refinement = 0; refinement < 3; refinement += 1) {
     finalWarp = buildReferenceImageWarp([...hardPoints, ...accepted], { mode: resolvedMode });
@@ -739,6 +803,11 @@ export function buildReferenceImageAutoGeoref(values = [], {
       candidateCount: candidates.length,
       inlierCount: inlierIds.length,
       rejectedCount: rejectedIds.length,
+      modelSelection: Object.freeze({
+        consensusMode,
+        selectedMode: resolvedMode,
+        validations: modelSelection.validations,
+      }),
     }),
     project: finalWarp.project,
     warp: finalWarp,
