@@ -281,7 +281,7 @@ std::optional<Candidate> detectNearTextBox(const QImage& image,const QVariantMap
 
 QVariantMap ReferenceAutoGeorefResult::toVariant() const
 {
-    return {{"ok",ok},{"reason",reason},{"mode",mode},{"seedCount",seedCount},{"candidateCount",candidateCount},
+    return {{"ok",ok},{"reason",reason},{"mode",mode},{"source",source},{"seedCount",seedCount},{"candidateCount",candidateCount},
         {"inlierCount",inlierCount},{"rejectedCount",rejectedCount},{"rmsMeters",rmsMeters},
         {"controlPoints",controlPoints},{"matches",matches},{"rejectedIds",rejectedIds}};
 }
@@ -289,8 +289,7 @@ QVariantMap ReferenceAutoGeorefResult::toVariant() const
 ReferenceAutoGeorefResult solveReferenceAutoGeoref(const QImage& source,const QVariantList& seeds,
                                                     const QVariantMap& anchor,const QString& requestedMode)
 {
-    ReferenceAutoGeorefResult output;output.seedCount=seeds.size();
-    if(source.isNull()){output.reason="invalid-image";return output;}
+    if(source.isNull()){ReferenceAutoGeorefResult output;output.reason=QStringLiteral("invalid-image");output.seedCount=seeds.size();output.source=QStringLiteral("place-symbol");return output;}
     const int maxDimension=1600;const double scale=std::min(1.,double(maxDimension)/std::max(source.width(),source.height()));
     const QImage image=source.scaled(std::max(1,int(std::round(source.width()*scale))),std::max(1,int(std::round(source.height()*scale))),
         Qt::KeepAspectRatio,Qt::SmoothTransformation).convertToFormat(QImage::Format_Grayscale8);
@@ -299,42 +298,59 @@ ReferenceAutoGeorefResult solveReferenceAutoGeoref(const QImage& source,const QV
     QVector<Candidate> detected;detected.reserve(std::min(96,int(seeds.size())));
     for(const auto& value:seeds){if(auto candidate=detect(image,value.toMap(),searchRadius))detected.push_back(*candidate);}
     std::sort(detected.begin(),detected.end(),[](const auto& a,const auto& b){return a.confidence>b.confidence||(a.confidence==b.confidence&&a.id<b.id);});
-    QVector<Candidate> candidates;for(const auto& item:detected){
+    QVector<Candidate> candidates;
+    for(const auto& item:detected){
         bool duplicate=false;for(const auto& accepted:candidates)if(QLineF(item.pixel,accepted.pixel).length()<=4){duplicate=true;break;}
         if(!duplicate)candidates.push_back(item);if(candidates.size()>=96)break;
     }
-    output.candidateCount=candidates.size();if(candidates.size()<2){output.reason="insufficient-symbol-candidates";return output;}
+    return solveCandidates(candidates,int(seeds.size()),anchor,requestedMode,QStringLiteral("place-symbol"));
+}
 
-    const int candidateCount=int(candidates.size());const auto mode=resolvedMode(requestedMode,candidateCount);const int required=minimum(mode);output.mode=modeName(mode);
-    if(candidates.size()<required){output.reason="insufficient-auto-georef-candidates";return output;}
-    const double threshold=25000.;const int requiredInliers=std::min(candidateCount,std::max(required,int(std::ceil(candidateCount*.35))));
-    Score best;bool hasBest=false;quint32 random=0x6d2b79f5u;QSet<QString> seen;
-    for(int trial=0;trial<512;++trial){
-        const auto indices=sampleIndices(candidates.size(),required,random);QString key;for(int index:indices)key+=QString::number(index)+",";
-        if(seen.contains(key)){if(seen.size()>=candidates.size()*32)break;continue;}seen.insert(key);
-        const auto warp=solveReferenceWarp(mode,controls(candidates,indices));if(!warp.valid)continue;const auto current=score(warp,candidates,threshold,anchor);
-        if(current.inliers.size()<requiredInliers)continue;if(!hasBest||better(current,best)){best=current;hasBest=true;}
-        if(current.inliers.size()==candidates.size())break;
+ReferenceAutoGeorefResult solveReferenceAutoGeorefFromOcr(const QImage& source,const QVariantList& seeds,
+                                                           const QVariantList& detections,const QVariantMap& anchor,
+                                                           const QString& requestedMode)
+{
+    ReferenceAutoGeorefResult empty;empty.seedCount=seeds.size();empty.source=QStringLiteral("place-ocr");
+    if(source.isNull()){empty.reason=QStringLiteral("invalid-image");return empty;}
+    if(detections.isEmpty()){empty.reason=QStringLiteral("no-ocr-text");return empty;}
+
+    const int maxDimension=2048;const double scale=std::min(1.,double(maxDimension)/std::max(source.width(),source.height()));
+    const QImage image=source.scaled(std::max(1,int(std::round(source.width()*scale))),std::max(1,int(std::round(source.height()*scale))),
+        Qt::KeepAspectRatio,Qt::SmoothTransformation).convertToFormat(QImage::Format_Grayscale8);
+    const int searchRadius=std::clamp(int(std::round(std::max(image.width(),image.height())*.014)),16,42);
+
+    struct Proposal {QVariantMap detection,seed;double score=0,nameScore=0;};
+    QVector<Proposal> proposals;
+    for(const auto& detectionValue:detections) {
+        const auto detection=detectionValue.toMap();const QString text=detection.value("text").toString();
+        QPointF detectedUv;if(text.isEmpty()||!pair(detection.value("image"),detectedUv))continue;
+        Proposal best,second;bool hasBest=false,hasSecond=false;
+        for(const auto& seedValue:seeds) {
+            const auto seed=seedValue.toMap();QPointF expected,coordinate;
+            if(!pair(seed.value("expectedUv"),expected)||!pair(seed.value("coordinate"),coordinate))continue;
+            const double similarity=nameSimilarity(text,seed.value("name").toString());if(similarity<.62)continue;
+            const double distance=QLineF(detectedUv,expected).length();
+            const double spatial=1-clamp(distance/.35,0,1);
+            const double priority=clamp(seed.value("priority",50).toDouble()/100.,0,1);
+            const double total=clamp(similarity*.78+spatial*.12+priority*.10,0,1);
+            Proposal current{detection,seed,total,similarity};
+            if(!hasBest||current.score>best.score){second=best;hasSecond=hasBest;best=current;hasBest=true;}
+            else if(!hasSecond||current.score>second.score){second=current;hasSecond=true;}
+        }
+        if(!hasBest||best.score<.68)continue;
+        if(hasSecond&&best.score-second.score<.025)continue;
+        proposals.push_back(best);
     }
-    if(!hasBest){output.reason="no-auto-georef-consensus";return output;}
-
-    QVector<Candidate> accepted;for(int index:best.inliers)accepted.push_back(candidates[index]);
-    auto finalWarp=solveReferenceWarp(mode,controls(accepted));if(!finalWarp.valid){output.reason="auto-georef-refit-failed";return output;}
-    const auto finalScore=score(finalWarp,candidates,threshold,anchor);if(finalScore.inliers.size()<requiredInliers){output.reason="auto-georef-refit-failed";return output;}
-    accepted.clear();for(int index:finalScore.inliers)accepted.push_back(candidates[index]);finalWarp=solveReferenceWarp(mode,controls(accepted));
-    if(!finalWarp.valid){output.reason="auto-georef-refit-failed";return output;}
-
-    double squared=0;QSet<int> inlierSet;for(int index:finalScore.inliers)inlierSet.insert(index);
-    for(int i=0;i<candidates.size();++i){
-        const double meters=haversine(finalWarp.map(candidates[i].image),candidates[i].coordinate);
-        const bool inlier=inlierSet.contains(i)&&meters<=threshold;
-        QVariantMap match{{"id",candidates[i].id},{"name",candidates[i].name},{"image",QVariantList{candidates[i].image.x(),candidates[i].image.y()}},
-            {"coordinate",QVariantList{candidates[i].coordinate.x(),candidates[i].coordinate.y()}},{"confidence",candidates[i].confidence},{"residualMeters",meters},{"inlier",inlier}};
-        output.matches.push_back(match);
-        if(inlier){output.controlPoints.push_back(QVariantMap{{"id",candidates[i].id},{"image",match["image"]},{"coordinate",match["coordinate"]}});squared+=meters*meters;}
-        else output.rejectedIds.push_back(candidates[i].id);
+    std::sort(proposals.begin(),proposals.end(),[](const auto& a,const auto& b){return a.score>b.score;});
+    QSet<QString> usedSeeds;QVector<Candidate> candidates;
+    for(const auto& proposal:proposals) {
+        const QString seedId=proposal.seed.value("id").toString();if(seedId.isEmpty()||usedSeeds.contains(seedId))continue;
+        auto candidate=detectNearTextBox(image,proposal.seed,proposal.detection,searchRadius);if(!candidate)continue;
+        bool duplicate=false;for(const auto& accepted:candidates)if(QLineF(candidate->pixel,accepted.pixel).length()<=4){duplicate=true;break;}
+        if(duplicate)continue;
+        candidate->confidence=clamp(candidate->confidence*.28+proposal.score*.72,0,1);
+        candidates.push_back(*candidate);usedSeeds.insert(seedId);
+        if(candidates.size()>=96)break;
     }
-    output.inlierCount=output.controlPoints.size();output.rejectedCount=output.rejectedIds.size();
-    output.rmsMeters=output.inlierCount?std::sqrt(squared/output.inlierCount):0.;output.ok=output.inlierCount>=requiredInliers;
-    if(!output.ok)output.reason="no-auto-georef-consensus";return output;
+    return solveCandidates(candidates,int(seeds.size()),anchor,requestedMode,QStringLiteral("place-ocr"));
 }
