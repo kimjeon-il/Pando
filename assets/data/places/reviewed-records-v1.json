@@ -2,352 +2,169 @@
   "schema": "pando-builtin-place-release-v1",
   "dataContract": "PLAC-v3",
   "generatedFrom": "reports/places/tier1-major-cities-batch*.json",
-  "status": "review-derived-runtime-input",
+  "approval": {
+    "file": "reports/places/runtime-release-approvals-v1.json",
+    "sha256": "57c4b9e5454d7ea258e9c23ed594984850bd16a7fe064130e0357bc76ff8797a",
+    "approvedIds": 163
+  },
+  "status": "curated-verified-city-runtime-input",
   "reviewBatches": [
     {
       "batch": "batch01",
       "file": "reports/places/tier1-major-cities-batch01.json",
       "cityCount": 9,
+      "publishedCount": 9,
       "sourceBlobSha": "a41fa7d25787dd6b12f3228361fd0de4e3046ece"
     },
     {
       "batch": "02-east-asia",
       "file": "reports/places/tier1-major-cities-batch02-east-asia.json",
       "cityCount": 9,
+      "publishedCount": 9,
       "sourceBlobSha": "b4434cbd2856a35ae6bd481811ee8606c9ebd361"
     },
     {
       "batch": "03-india-southeast-asia",
       "file": "reports/places/tier1-major-cities-batch03-india-southeast-asia.json",
       "cityCount": 7,
+      "publishedCount": 7,
       "sourceBlobSha": "9212cbe10cb9337b4cbd2b4eb0574165c3c72393"
     },
     {
       "batch": "04-europe-west-asia",
       "file": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
       "cityCount": 5,
+      "publishedCount": 5,
       "sourceBlobSha": "ea845b13fe12d5acde38157a9615f59d5219c2e7"
     },
     {
       "batch": "05-americas",
       "file": "reports/places/tier1-major-cities-batch05-americas.json",
       "cityCount": 5,
+      "publishedCount": 5,
       "sourceBlobSha": "de8b9e6ce3ef90620e8e3603d9c304c6916de02a"
     },
     {
       "batch": "06-africa-oceania",
       "file": "reports/places/tier1-major-cities-batch06-africa-oceania.json",
       "cityCount": 4,
+      "publishedCount": 4,
       "sourceBlobSha": "49ca9f23d1e634dd9ad72b2b77528dcfc7ba0292"
     },
     {
       "batch": "07-europe-capitals",
       "file": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
       "cityCount": 9,
+      "publishedCount": 8,
       "sourceBlobSha": "b46abcd6860f241b295fcb93802e048483cdebbf"
     },
     {
       "batch": "08-northern-eastern-europe",
       "file": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
       "cityCount": 8,
+      "publishedCount": 8,
       "sourceBlobSha": "c889a9f21f4a3b974588bbedd42bc7b4ed6b0c93"
     },
     {
       "batch": "09-baltic-belarus-capitals",
       "file": "reports/places/tier1-major-cities-batch09-baltic-belarus-capitals.json",
       "cityCount": 4,
+      "publishedCount": 4,
       "sourceBlobSha": "0a6d7cbc994787648ddb3112220c81c1a3fe445c"
     },
     {
       "batch": "10-balkan-southeast-europe-capitals",
       "file": "reports/places/tier1-major-cities-batch10-balkan-southeast-europe.json",
       "cityCount": 4,
+      "publishedCount": 4,
       "sourceBlobSha": "7a6d77ffe74b9113a2087e9564c38408c8ed3cb2"
     },
     {
       "batch": "11-western-balkans-capitals",
       "file": "reports/places/tier1-major-cities-batch11-western-balkans-capitals.json",
       "cityCount": 5,
+      "publishedCount": 5,
       "sourceBlobSha": "089b9f120ae90c758aa46d0ee25ec34a17ba5a7c"
     },
     {
       "batch": "12-central-eastern-europe-capitals",
       "file": "reports/places/tier1-major-cities-batch12-central-eastern-europe-capitals.json",
       "cityCount": 4,
+      "publishedCount": 4,
       "sourceBlobSha": "b7680d86fe5b06ed928945842c1bd02a7fd9be47"
     },
     {
       "batch": "13-european-microstates-mediterranean-capitals",
       "file": "reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json",
       "cityCount": 5,
+      "publishedCount": 5,
       "sourceBlobSha": "b4eba36b4d728f01df3a417e43005b10d85e7668"
     },
     {
       "batch": "14-north-atlantic-anatolia-caucasus-capitals",
       "file": "reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json",
       "cityCount": 5,
+      "publishedCount": 5,
       "sourceBlobSha": "4262744399763184f713f2a248cd135a1e18b1dd"
     },
     {
       "batch": "15-central-asia-capitals",
       "file": "reports/places/tier1-major-cities-batch15-central-asia-capitals.json",
       "cityCount": 5,
+      "publishedCount": 5,
       "sourceBlobSha": "6bf45c43b9495fae74961ce37220e6b6e031875c"
     },
     {
       "batch": "16-americas-capitals",
       "file": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
       "cityCount": 25,
+      "publishedCount": 8,
       "sourceBlobSha": "d2c7365a43b168316786e8b120b845bc4ec5edcd"
     },
     {
       "batch": "17-africa-capitals",
       "file": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
       "cityCount": 25,
+      "publishedCount": 20,
       "sourceBlobSha": "2a871e09f10737bb9f2fc7f3b6daef97810670b9"
     },
     {
       "batch": "18-west-central-africa-capitals",
       "file": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
       "cityCount": 26,
+      "publishedCount": 17,
       "sourceBlobSha": "ece91fcfb1f1196e28d9931b7ce445d09e0d0c83"
     },
     {
       "batch": "19-southern-africa-south-southeast-asia",
       "file": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
       "cityCount": 25,
+      "publishedCount": 11,
       "sourceBlobSha": "c3746dcbea966ed1205da5e150e1af00fc4fb6bd"
     },
     {
       "batch": "20-west-east-asia-capitals",
       "file": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
       "cityCount": 25,
+      "publishedCount": 4,
       "sourceBlobSha": "11d9d23b003227b8b51131b63e485be675559a0c"
     },
     {
       "batch": "21-oceania-pacific-capitals",
       "file": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
       "cityCount": 25,
+      "publishedCount": 9,
       "sourceBlobSha": "03644302f185d29a43b736c5abc4cf08decac4a8"
     },
     {
       "batch": "22-europe-noncapital-cities",
       "file": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
       "cityCount": 25,
+      "publishedCount": 7,
       "sourceBlobSha": "a6b697cb17ecf24d84dbdb4feb79d23b0c185709"
     }
   ],
   "records": [
-    {
-      "source": "geonames",
-      "sourceId": "53654",
-      "name": "모가디슈",
-      "nameEn": "Mogadishu",
-      "nameNative": "Muqdisho",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "모가디슈",
-          "en": "Mogadishu",
-          "native": "Muqdisho",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        45.34375,
-        2.03711
-      ],
-      "countryCode": "SO",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
-      "reviewStatus": "editorial-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "71137",
-      "name": "사나",
-      "nameEn": "Sanaa",
-      "nameNative": "صنعاء",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "사나",
-          "en": "Sanaa",
-          "native": "صنعاء",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        44.20646,
-        15.35452
-      ],
-      "countryCode": "YE",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "98182",
-      "name": "바그다드",
-      "nameEn": "Baghdad",
-      "nameNative": "بغداد",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "바그다드",
-          "en": "Baghdad",
-          "native": "بغداد",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        44.40088,
-        33.34058
-      ],
-      "countryCode": "IQ",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "104515",
-      "name": "메카",
-      "nameEn": "Mecca",
-      "nameNative": "مكة",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "메카",
-          "en": "Mecca",
-          "native": "مكة",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        39.82563,
-        21.42664
-      ],
-      "countryCode": "SA",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "105343",
-      "name": "제다",
-      "nameEn": "Jeddah",
-      "nameNative": "جدة",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "제다",
-          "en": "Jeddah",
-          "native": "جدة",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        39.18624,
-        21.49012
-      ],
-      "countryCode": "SA",
-      "featureCode": "PPL",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "108410",
-      "name": "리야드",
-      "nameEn": "Riyadh",
-      "nameNative": "الرياض",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "리야드",
-          "en": "Riyadh",
-          "native": "الرياض",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        46.72185,
-        24.68773
-      ],
-      "countryCode": "SA",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "112931",
-      "name": "테헤란",
-      "nameEn": "Tehran",
-      "nameNative": "تهران",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "테헤란",
-          "en": "Tehran",
-          "native": "تهران",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        51.42151,
-        35.69439
-      ],
-      "countryCode": "IR",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
     {
       "source": "geonames",
       "sourceId": "146268",
@@ -465,7 +282,7 @@
       "nameNativeExtras": [],
       "nameTimeline": [
         {
-          "fromYear": 1801,
+          "fromYear": 1881,
           "ko": "아슈하바트",
           "en": "Askhabad",
           "native": "Асхабад",
@@ -548,36 +365,6 @@
         "note": "1881~1882년 근대 도시 형성",
         "researchNote": "현재 수도의 근대 행정도시는 1881년 제정 러시아 자카스피 주의 중심지 지정 후 성장했다. 현재 도심 인근의 19세기 초 이쉬키아바드 마을과 니사 유적은 현대 도시 PPLC의 1801년 기원으로 자동 등치하지 않는다."
       }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "170654",
-      "name": "다마스쿠스",
-      "nameEn": "Damascus",
-      "nameNative": "دمشق",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "다마스쿠스",
-          "en": "Damascus",
-          "native": "دمشق",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        36.29128,
-        33.5102
-      ],
-      "countryCode": "SY",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -766,36 +553,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "250441",
-      "name": "암만",
-      "nameEn": "Amman",
-      "nameNative": "عمّان",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "암만",
-          "en": "Amman",
-          "native": "عمّان",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        35.94503,
-        31.95522
-      ],
-      "countryCode": "JO",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "264371",
       "name": "아테네",
       "nameEn": "Athens",
@@ -839,310 +596,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
       "historicalDisplayCoverage": "reviewed-since-1801-with-1833-03-31-greek-korean-display-switch-1976-1982-greek-orthography",
       "reviewStatus": "verified-source-staging-not-runtime"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "276781",
-      "name": "베이루트",
-      "nameEn": "Beirut",
-      "nameNative": "بيروت",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "베이루트",
-          "en": "Beirut",
-          "native": "بيروت",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        35.50157,
-        33.89332
-      ],
-      "countryCode": "LB",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "281133",
-      "name": "가자",
-      "nameEn": "Gaza",
-      "nameNative": "غزة",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "가자",
-          "en": "Gaza",
-          "native": "غزة",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        34.46672,
-        31.50161
-      ],
-      "countryCode": "PS",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "281184",
-      "name": "예루살렘",
-      "nameEn": "Jerusalem",
-      "nameNative": "ירושלים",
-      "nameNativeExtras": [
-        "القدس"
-      ],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "예루살렘",
-          "en": "Jerusalem",
-          "native": "ירושלים",
-          "nativeExtras": [
-            "القدس"
-          ]
-        }
-      ],
-      "coordinates": [
-        35.21633,
-        31.76904
-      ],
-      "countryCode": "IL",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "282239",
-      "name": "라말라",
-      "nameEn": "Ramallah",
-      "nameNative": "رام الله",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "라말라",
-          "en": "Ramallah",
-          "native": "رام الله",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        35.20422,
-        31.89964
-      ],
-      "countryCode": "PS",
-      "featureCode": "PPL",
-      "population": 0,
-      "kind": "town",
-      "priority": 40,
-      "minZoom": 2.5,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "285787",
-      "name": "쿠웨이트시티",
-      "nameEn": "Kuwait City",
-      "nameNative": "مدينة الكويت",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "쿠웨이트시티",
-          "en": "Kuwait City",
-          "native": "مدينة الكويت",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        47.97429,
-        29.367
-      ],
-      "countryCode": "KW",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "287286",
-      "name": "무스카트",
-      "nameEn": "Muscat",
-      "nameNative": "مسقط",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "무스카트",
-          "en": "Muscat",
-          "native": "مسقط",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        58.40778,
-        23.58413
-      ],
-      "countryCode": "OM",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "290030",
-      "name": "도하",
-      "nameEn": "Doha",
-      "nameNative": "الدوحة",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "도하",
-          "en": "Doha",
-          "native": "الدوحة",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        51.53096,
-        25.28545
-      ],
-      "countryCode": "QA",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "290340",
-      "name": "마나마",
-      "nameEn": "Manama",
-      "nameNative": "المنامة",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "마나마",
-          "en": "Manama",
-          "native": "المنامة",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        50.58565,
-        26.22787
-      ],
-      "countryCode": "BH",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "292223",
-      "name": "두바이",
-      "nameEn": "Dubai",
-      "nameNative": "دبي",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "두바이",
-          "en": "Dubai",
-          "native": "دبي",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        55.30927,
-        25.07725
-      ],
-      "countryCode": "AE",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "292968",
-      "name": "아부다비",
-      "nameEn": "Abu Dhabi",
-      "nameNative": "أبو ظبي",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "아부다비",
-          "en": "Abu Dhabi",
-          "native": "أبو ظبي",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        54.39696,
-        24.45118
-      ],
-      "countryCode": "AE",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -1232,36 +685,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json",
       "historicalDisplayCoverage": "reviewed-since-1801-with-1929-script-1930-english-editorial-transition",
       "reviewStatus": "verified-source-staging-not-runtime"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "343300",
-      "name": "아스마라",
-      "nameEn": "Asmara",
-      "nameNative": "ኣስመራ",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "아스마라",
-          "en": "Asmara",
-          "native": "ኣስመራ",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        38.93184,
-        15.33805
-      ],
-      "countryCode": "ER",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
-      "reviewStatus": "editorial-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -1408,66 +831,6 @@
         "note": "이집트령 근대 행정도시의 형성을 1821년으로 선정",
         "researchNote": "이집트령 근대 행정도시의 형성을 1821년으로 선정. 1885~1898년 쇠퇴·재점유, 인근 옴두르만의 별도 시가지는 도시 활성 구간의 후속 검증 대상."
       }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "415189",
-      "name": "아덴",
-      "nameEn": "Aden",
-      "nameNative": "عدن",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "아덴",
-          "en": "Aden",
-          "native": "عدن",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        45.03852,
-        12.77957
-      ],
-      "countryCode": "YE",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "418863",
-      "name": "이스파한",
-      "nameEn": "Isfahan",
-      "nameNative": "اصفهان",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "이스파한",
-          "en": "Isfahan",
-          "native": "اصفهان",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        51.67462,
-        32.65246
-      ],
-      "countryCode": "IR",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -2642,36 +2005,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "921772",
-      "name": "모로니",
-      "nameEn": "Moroni",
-      "nameNative": "Moroni",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "모로니",
-          "en": "Moroni",
-          "native": "Moroni",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        43.25506,
-        -11.70216
-      ],
-      "countryCode": "KM",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "927967",
       "name": "릴롱궤",
       "nameEn": "Lilongwe",
@@ -3082,36 +2415,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "1138958",
-      "name": "카불",
-      "nameEn": "Kabul",
-      "nameNative": "کابل",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "카불",
-          "en": "Kabul",
-          "native": "کابل",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        69.17233,
-        34.52813
-      ],
-      "countryCode": "AF",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "1176615",
       "name": "이슬라마바드",
       "nameEn": "Islamabad",
@@ -3262,66 +2565,6 @@
       ],
       "countryCode": "LK",
       "featureCode": "PPL",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "selected-sourced-periods-not-exhaustive-history",
-      "reviewStatus": "selected-transitions-source-reviewed"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "1248991",
-      "name": "콜롬보",
-      "nameEn": "Colombo",
-      "nameNative": "කොළඹ",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "콜롬보",
-          "en": "Colombo",
-          "native": "කොළඹ",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        79.84868,
-        6.93548
-      ],
-      "countryCode": "LK",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "selected-sourced-periods-not-exhaustive-history",
-      "reviewStatus": "selected-transitions-source-reviewed"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "1252416",
-      "name": "팀푸",
-      "nameEn": "Thimphu",
-      "nameNative": "ཐིམ་ཕུ",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "팀푸",
-          "en": "Thimphu",
-          "native": "ཐིམ་ཕུ",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        89.64191,
-        27.46609
-      ],
-      "countryCode": "BT",
-      "featureCode": "PPLC",
       "population": 0,
       "kind": "city",
       "priority": 70,
@@ -3490,66 +2733,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "1282027",
-      "name": "말레",
-      "nameEn": "Malé",
-      "nameNative": "މާލެ",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "말레",
-          "en": "Malé",
-          "native": "މާލެ",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        73.50916,
-        4.17521
-      ],
-      "countryCode": "MV",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "1283240",
-      "name": "카트만두",
-      "nameEn": "Kathmandu",
-      "nameNative": "काठमाडौं",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "카트만두",
-          "en": "Kathmandu",
-          "native": "काठमाडौं",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        85.3206,
-        27.70169
-      ],
-      "countryCode": "NP",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "1512569",
       "name": "타슈켄트",
       "nameEn": "Tashkent",
@@ -3629,7 +2812,7 @@
       "nameNativeExtras": [],
       "nameTimeline": [
         {
-          "fromYear": 1801,
+          "fromYear": 1830,
           "ko": "아크몰라",
           "en": "Akmola",
           "native": "Ақмола",
@@ -3708,7 +2891,7 @@
       "nameNativeExtras": [],
       "nameTimeline": [
         {
-          "fromYear": 1801,
+          "fromYear": 1868,
           "ko": "피슈페크",
           "en": "Pishpek",
           "native": "Пишпек",
@@ -3749,36 +2932,6 @@
         "note": "1868년 피슈페크 근대 취락",
         "researchNote": "1825년 피슈페크 코칸트 요새, 1862년 그 파괴, 1868년 근대 마을 조성, 1878년 정식 도시 지위를 구별한다. 초기 요새는 현재 비슈케크 PPLC 도시 그 자체의 오래된 시 경계로 추론하지 않는다."
       }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "1559446",
-      "name": "코로르",
-      "nameEn": "Koror",
-      "nameNative": "Koror",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "코로르",
-          "en": "Koror",
-          "native": "Koror",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        134.47326,
-        7.33978
-      ],
-      "countryCode": "PW",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
     },
     {
       "source": "geonames",
@@ -3954,66 +3107,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "1645457",
-      "name": "딜리",
-      "nameEn": "Dili",
-      "nameNative": "Díli",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "딜리",
-          "en": "Dili",
-          "native": "Díli",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        125.57361,
-        -8.55861
-      ],
-      "countryCode": "TL",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "1651944",
-      "name": "비엔티안",
-      "nameEn": "Vientiane",
-      "nameNative": "ວຽງຈັນ",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "비엔티안",
-          "en": "Vientiane",
-          "native": "ວຽງຈັນ",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        102.6,
-        17.96667
-      ],
-      "countryCode": "LA",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "1668341",
       "name": "타이베이",
       "nameEn": "Taipei",
@@ -4063,66 +3156,6 @@
         "lifecycleReviewStatus": "provisional",
         "note": "1884년 타이베이 성곽도시 완공은 현재 대표점의 "
       }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "1701668",
-      "name": "마닐라",
-      "nameEn": "Manila",
-      "nameNative": "Maynila",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "마닐라",
-          "en": "Manila",
-          "native": "Maynila",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        120.9822,
-        14.6042
-      ],
-      "countryCode": "PH",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "1735161",
-      "name": "쿠알라룸푸르",
-      "nameEn": "Kuala Lumpur",
-      "nameNative": "Kuala Lumpur",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "쿠알라룸푸르",
-          "en": "Kuala Lumpur",
-          "native": "Kuala Lumpur",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        101.68653,
-        3.1412
-      ],
-      "countryCode": "MY",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "selected-sourced-periods-not-exhaustive-history",
-      "reviewStatus": "selected-transitions-source-reviewed"
     },
     {
       "source": "geonames",
@@ -4396,36 +3429,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "1821306",
-      "name": "프놈펜",
-      "nameEn": "Phnom Penh",
-      "nameNative": "ភ្នំពេញ",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "프놈펜",
-          "en": "Phnom Penh",
-          "native": "ភ្នំពេញ",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        104.91601,
-        11.56245
-      ],
-      "countryCode": "KH",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "1835235",
       "name": "대전",
       "nameEn": "Daejeon",
@@ -4433,11 +3436,11 @@
       "nameNativeExtras": [],
       "nameTimeline": [
         {
-          "fromYear": 1801,
           "ko": "대전",
           "en": "Taejon",
           "native": "大田",
-          "nativeExtras": []
+          "nativeExtras": [],
+          "fromDate": "1905-01-01"
         },
         {
           "fromDate": "1910-08-29",
@@ -4851,36 +3854,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "1871859",
-      "name": "평양",
-      "nameEn": "Pyongyang",
-      "nameNative": "평양",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "평양",
-          "en": "Pyongyang",
-          "native": "평양",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        125.75432,
-        39.03385
-      ],
-      "countryCode": "KP",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch20-west-east-asia-capitals.json",
-      "historicalDisplayCoverage": "editorial-current-name-baseline-historical-usage-unverified",
-      "reviewStatus": "historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "1880252",
       "name": "싱가포르",
       "nameEn": "Singapore",
@@ -5042,138 +4015,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
       "historicalDisplayCoverage": "documented-selected-historical-periods-not-exhaustive",
       "reviewStatus": "sourced-selected-events-not-complete-history"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2110257",
-      "name": "타라와",
-      "nameEn": "Tarawa",
-      "nameNative": "Tarawa",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "타라와",
-          "en": "Tarawa",
-          "native": "Tarawa",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        172.97696,
-        1.3278
-      ],
-      "countryCode": "KI",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "town",
-      "priority": 40,
-      "minZoom": 2.5,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified",
-      "urbanIdentityReview": {
-        "status": "South-Tarawa-vs-Tarawa-atoll-scope-needs-manual-review",
-        "autoTierApproved": false,
-        "sourceUrl": "https://www.geonames.org/search.html?country=KI",
-        "note": "GeoNames 2110257 refers to capital urban point near Bairiki, not Tarawa Atoll polygon."
-      }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2110394",
-      "name": "푸나푸티",
-      "nameEn": "Funafuti",
-      "nameNative": "Funafuti",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "푸나푸티",
-          "en": "Funafuti",
-          "native": "Funafuti",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        179.19417,
-        -8.52425
-      ],
-      "countryCode": "TV",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "town",
-      "priority": 40,
-      "minZoom": 2.5,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified",
-      "urbanIdentityReview": {
-        "status": "atoll-and-urban-core-scope-needs-manual-review",
-        "autoTierApproved": false,
-        "sourceUrl": "https://pwd.gov.tv/wp-content/uploads/2024/09/53417-002-rp-en.pdf",
-        "note": "Funafuti PPLC includes an atoll name; urban core concentrated at Fongafale/Vaiaku."
-      }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2113779",
-      "name": "마주로",
-      "nameEn": "Majuro",
-      "nameNative": "Majuro",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "마주로",
-          "en": "Majuro",
-          "native": "Majuro",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        171.38027,
-        7.08971
-      ],
-      "countryCode": "MH",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2135171",
-      "name": "포트빌라",
-      "nameEn": "Port Vila",
-      "nameNative": "Port-Vila",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "포트빌라",
-          "en": "Port Vila",
-          "native": "Port-Vila",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        168.31366,
-        -17.73648
-      ],
-      "countryCode": "VU",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
     },
     {
       "source": "geonames",
@@ -5386,66 +4227,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "2198148",
-      "name": "수바",
-      "nameEn": "Suva",
-      "nameNative": "Suva",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "수바",
-          "en": "Suva",
-          "native": "Suva",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        178.42531,
-        -18.13683
-      ],
-      "countryCode": "FJ",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2210247",
-      "name": "트리폴리",
-      "nameEn": "Tripoli",
-      "nameNative": "طرابلس",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "트리폴리",
-          "en": "Tripoli",
-          "native": "طرابلس",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        13.18733,
-        32.88743
-      ],
-      "countryCode": "LY",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
-      "reviewStatus": "editorial-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "2220957",
       "name": "야운데",
       "nameEn": "Yaoundé",
@@ -5488,36 +4269,6 @@
         "lifecycleReviewStatus": "provisional",
         "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
       }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2240449",
-      "name": "루안다",
-      "nameEn": "Luanda",
-      "nameNative": "Luanda",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "루안다",
-          "en": "Luanda",
-          "native": "Luanda",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        13.23432,
-        -8.83682
-      ],
-      "countryCode": "AO",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
     },
     {
       "source": "geonames",
@@ -5744,36 +4495,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "2306104",
-      "name": "아크라",
-      "nameEn": "Accra",
-      "nameNative": "Accra",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "아크라",
-          "en": "Accra",
-          "native": "Accra",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -0.1969,
-        5.55602
-      ],
-      "countryCode": "GH",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
-      "reviewStatus": "unverified-historical-continuity"
-    },
-    {
-      "source": "geonames",
       "sourceId": "2309527",
       "name": "말라보",
       "nameEn": "Malabo",
@@ -5948,96 +4669,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "2357048",
-      "name": "와가두구",
-      "nameEn": "Ouagadougou",
-      "nameNative": "Ouagadougou",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "와가두구",
-          "en": "Ouagadougou",
-          "native": "Ouagadougou",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -1.53388,
-        12.36566
-      ],
-      "countryCode": "BF",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
-      "reviewStatus": "unverified-historical-continuity"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2365267",
-      "name": "로메",
-      "nameEn": "Lomé",
-      "nameNative": "Lomé",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "로메",
-          "en": "Lomé",
-          "native": "Lomé",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        1.22154,
-        6.12874
-      ],
-      "countryCode": "TG",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
-      "reviewStatus": "unverified-historical-continuity"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2374775",
-      "name": "비사우",
-      "nameEn": "Bissau",
-      "nameNative": "Bissau",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "비사우",
-          "en": "Bissau",
-          "native": "Bissau",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -15.59767,
-        11.86357
-      ],
-      "countryCode": "GW",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
-      "reviewStatus": "unverified-historical-continuity"
-    },
-    {
-      "source": "geonames",
       "sourceId": "2377450",
       "name": "누악쇼트",
       "nameEn": "Nouakchott",
@@ -6116,66 +4747,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "2392087",
-      "name": "포르토노보",
-      "nameEn": "Porto-Novo",
-      "nameNative": "Porto-Novo",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "포르토노보",
-          "en": "Porto-Novo",
-          "native": "Porto-Novo",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        2.60359,
-        6.49646
-      ],
-      "countryCode": "BJ",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
-      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
-      "reviewStatus": "historical-selected-periods-source-reviewed"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2394819",
-      "name": "코토누",
-      "nameEn": "Cotonou",
-      "nameNative": "Cotonou",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "코토누",
-          "en": "Cotonou",
-          "native": "Cotonou",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        2.41833,
-        6.36536
-      ],
-      "countryCode": "BJ",
-      "featureCode": "PPLG",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
-      "historicalDisplayCoverage": "source-grounded-selected-periods-unresolved-eras-not-exhaustive",
-      "reviewStatus": "historical-selected-periods-source-reviewed"
-    },
-    {
-      "source": "geonames",
       "sourceId": "2399697",
       "name": "리브르빌",
       "nameEn": "Libreville",
@@ -6251,36 +4822,6 @@
         "lifecycleReviewStatus": "provisional",
         "lifecycleCaveat": "Settlement urbanization threshold not identical to physical existence or historic rank; staged only."
       }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2410763",
-      "name": "상투메",
-      "nameEn": "São Tomé",
-      "nameNative": "São Tomé",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "상투메",
-          "en": "São Tomé",
-          "native": "São Tomé",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        6.7299,
-        0.33756
-      ],
-      "countryCode": "ST",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
-      "reviewStatus": "unverified-historical-continuity"
     },
     {
       "source": "geonames",
@@ -6415,96 +4956,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "2440485",
-      "name": "니아메",
-      "nameEn": "Niamey",
-      "nameNative": "Niamey",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "니아메",
-          "en": "Niamey",
-          "native": "Niamey",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        2.1098,
-        13.51366
-      ],
-      "countryCode": "NE",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
-      "reviewStatus": "unverified-historical-continuity"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2460596",
-      "name": "바마코",
-      "nameEn": "Bamako",
-      "nameNative": "Bamako",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "바마코",
-          "en": "Bamako",
-          "native": "Bamako",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -7.97522,
-        12.60915
-      ],
-      "countryCode": "ML",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch18-west-central-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-modern-name-editorial-1801-baseline-not-verified-history",
-      "reviewStatus": "unverified-historical-continuity"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2464470",
-      "name": "튀니스",
-      "nameEn": "Tunis",
-      "nameNative": "تونس",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "튀니스",
-          "en": "Tunis",
-          "native": "تونس",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        10.16579,
-        36.81897
-      ],
-      "countryCode": "TN",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
-      "reviewStatus": "editorial-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "2507480",
       "name": "알제",
       "nameEn": "Algiers",
@@ -6567,96 +5018,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
       "historicalDisplayCoverage": "selected-sourced-periods-partial-review",
       "reviewStatus": "selected-historic-epochs-source-reviewed"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2510911",
-      "name": "세비야",
-      "nameEn": "Seville",
-      "nameNative": "Sevilla",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "세비야",
-          "en": "Seville",
-          "native": "Sevilla",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -5.97317,
-        37.38283
-      ],
-      "countryCode": "ES",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2523920",
-      "name": "팔레르모",
-      "nameEn": "Palermo",
-      "nameNative": "Palermo",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "팔레르모",
-          "en": "Palermo",
-          "native": "Palermo",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        13.3636,
-        38.1166
-      ],
-      "countryCode": "IT",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2538475",
-      "name": "라바트",
-      "nameEn": "Rabat",
-      "nameNative": "الرباط",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "라바트",
-          "en": "Rabat",
-          "native": "الرباط",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -6.83255,
-        34.01325
-      ],
-      "countryCode": "MA",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch17-africa-capitals.json",
-      "historicalDisplayCoverage": "provisional-current-form-editorial-baseline-not-exhaustive",
-      "reviewStatus": "editorial-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -6755,36 +5116,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "2643123",
-      "name": "맨체스터",
-      "nameEn": "Manchester",
-      "nameNative": "Manchester",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "맨체스터",
-          "en": "Manchester",
-          "native": "Manchester",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -2.23743,
-        53.48095
-      ],
-      "countryCode": "GB",
-      "featureCode": "PPLA2",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "2643743",
       "name": "런던",
       "nameEn": "London",
@@ -6804,36 +5135,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch01.json",
       "historicalDisplayCoverage": "reviewed-stable-since-1801",
       "reviewStatus": "verified-source-staging-not-runtime"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2644210",
-      "name": "리버풀",
-      "nameEn": "Liverpool",
-      "nameNative": "Liverpool",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "리버풀",
-          "en": "Liverpool",
-          "native": "Liverpool",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -2.97794,
-        53.41058
-      ],
-      "countryCode": "GB",
-      "featureCode": "PPLA2",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -7006,96 +5307,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "2825297",
-      "name": "슈투트가르트",
-      "nameEn": "Stuttgart",
-      "nameNative": "Stuttgart",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "슈투트가르트",
-          "en": "Stuttgart",
-          "native": "Stuttgart",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        9.17702,
-        48.78232
-      ],
-      "countryCode": "DE",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2867714",
-      "name": "뮌헨",
-      "nameEn": "Munich",
-      "nameNative": "München",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "뮌헨",
-          "en": "Munich",
-          "native": "München",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        11.57549,
-        48.13743
-      ],
-      "countryCode": "DE",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2879139",
-      "name": "라이프치히",
-      "nameEn": "Leipzig",
-      "nameNative": "Leipzig",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "라이프치히",
-          "en": "Leipzig",
-          "native": "Leipzig",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        12.37129,
-        51.33962
-      ],
-      "countryCode": "DE",
-      "featureCode": "PPLA3",
-      "population": 0,
-      "kind": "town",
-      "priority": 40,
-      "minZoom": 2.5,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "2886242",
       "name": "쾰른",
       "nameEn": "Cologne",
@@ -7129,126 +5340,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
       "historicalDisplayCoverage": "selected-sourced-periods-partial-review",
       "reviewStatus": "selected-historic-epochs-source-reviewed"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2911298",
-      "name": "함부르크",
-      "nameEn": "Hamburg",
-      "nameNative": "Hamburg",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "함부르크",
-          "en": "Hamburg",
-          "native": "Hamburg",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        9.99302,
-        53.55073
-      ],
-      "countryCode": "DE",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2925533",
-      "name": "프랑크푸르트",
-      "nameEn": "Frankfurt am Main",
-      "nameNative": "Frankfurt am Main",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "프랑크푸르트",
-          "en": "Frankfurt am Main",
-          "native": "Frankfurt am Main",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        8.68417,
-        50.11552
-      ],
-      "countryCode": "DE",
-      "featureCode": "PPLA3",
-      "population": 0,
-      "kind": "town",
-      "priority": 40,
-      "minZoom": 2.5,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2934246",
-      "name": "뒤셀도르프",
-      "nameEn": "Düsseldorf",
-      "nameNative": "Düsseldorf",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "뒤셀도르프",
-          "en": "Düsseldorf",
-          "native": "Düsseldorf",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        6.77927,
-        51.22319
-      ],
-      "countryCode": "DE",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2935022",
-      "name": "드레스덴",
-      "nameEn": "Dresden",
-      "nameNative": "Dresden",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "드레스덴",
-          "en": "Dresden",
-          "native": "Dresden",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        13.73832,
-        51.05089
-      ],
-      "countryCode": "DE",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -7373,36 +5464,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "2972315",
-      "name": "툴루즈",
-      "nameEn": "Toulouse",
-      "nameNative": "Toulouse",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "툴루즈",
-          "en": "Toulouse",
-          "native": "Toulouse",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        1.44367,
-        43.60426
-      ],
-      "countryCode": "FR",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "2988507",
       "name": "파리",
       "nameEn": "Paris",
@@ -7459,66 +5520,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json",
       "historicalDisplayCoverage": "reviewed-since-1801-with-french-annexation-name-and-1814-restoration",
       "reviewStatus": "verified-source-staging-not-runtime"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2995469",
-      "name": "마르세유",
-      "nameEn": "Marseille",
-      "nameNative": "Marseille",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "마르세유",
-          "en": "Marseille",
-          "native": "Marseille",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        5.38107,
-        43.29695
-      ],
-      "countryCode": "FR",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "2996944",
-      "name": "리옹",
-      "nameEn": "Lyon",
-      "nameNative": "Lyon",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "리옹",
-          "en": "Lyon",
-          "native": "Lyon",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        4.84789,
-        45.74906
-      ],
-      "countryCode": "FR",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -7579,53 +5580,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch12-central-eastern-europe-capitals.json",
       "historicalDisplayCoverage": "reviewed-since-1801-no-verified-name-change",
       "reviewStatus": "verified-source-staging-not-runtime"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3046446",
-      "name": "페슈트",
-      "nameEn": "Pest",
-      "nameNative": "Pest",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "페슈트",
-          "en": "Pest",
-          "native": "Pest",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        19.0833333,
-        47.5
-      ],
-      "countryCode": "HU",
-      "featureCode": "PPLX",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch07-europe-capitals.json",
-      "historicalDisplayCoverage": "reviewed-since-1801-until-1873-merger-for-independent-city",
-      "reviewStatus": "verified-source-staging-not-runtime",
-      "temporalEligibility": {
-        "lifecycleReviewStatus": "verified",
-        "reviewedCoverage": {
-          "fromYear": 1801,
-          "untilYear": 2026
-        },
-        "activeIntervals": [
-          {
-            "untilDateExclusive": "1873-11-17",
-            "sourceUrl": "https://old.bparchiv.hu/hirek/150-eves-budapest",
-            "researchNote": "역사적 독립 도시로서의 페슈트 표시는 1873-11-16까지. 1873-11-17부터는 별도 도시 표시를 종료하고 통합된 부다페스트(GeoNames 3054643)를 표시한다. 1801년 이전은 조사 범위 밖이며, 통합 후 Pest라는 지역명 자체가 소멸했다는 뜻은 아니다."
-          }
-        ],
-        "afterIndependentCityMerger": "suppress-city-label",
-        "note": "1873-11-17부터 독립 도시 라벨 제외",
-        "researchNote": "PPLX는 현재 GeoNames의 지역 분류다. 옛 독립 도시로 표시할 때만 city-label eligibility를 부여한다. 현대 Pest의 지역 지명 검색·보존은 독립 도시 표시 제외와 별개. activeIntervals는 현재 조사 데이터에만 존재하며 실제 렌더러는 아직 이를 적용하지 않는다."
-      }
     },
     {
       "source": "geonames",
@@ -7860,36 +5814,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "3128760",
-      "name": "바르셀로나",
-      "nameEn": "Barcelona",
-      "nameNative": "Barcelona",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "바르셀로나",
-          "en": "Barcelona",
-          "native": "Barcelona",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        2.15899,
-        41.38879
-      ],
-      "countryCode": "ES",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "3143244",
       "name": "오슬로",
       "nameEn": "Oslo",
@@ -7929,36 +5853,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch08-northern-eastern-europe.json",
       "historicalDisplayCoverage": "reviewed-since-1801-with-1897-orthography-and-1925-official-renaming",
       "reviewStatus": "verified-source-staging-not-runtime"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3165524",
-      "name": "토리노",
-      "nameEn": "Turin",
-      "nameNative": "Torino",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "토리노",
-          "en": "Turin",
-          "native": "Torino",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        7.68682,
-        45.07049
-      ],
-      "countryCode": "IT",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -8019,66 +5913,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch04-europe-west-asia.json",
       "historicalDisplayCoverage": "reviewed-since-1801",
       "reviewStatus": "verified-source-staging-not-runtime"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3172394",
-      "name": "나폴리",
-      "nameEn": "Naples",
-      "nameNative": "Napoli",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "나폴리",
-          "en": "Naples",
-          "native": "Napoli",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        14.26811,
-        40.85216
-      ],
-      "countryCode": "IT",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3173435",
-      "name": "밀라노",
-      "nameEn": "Milan",
-      "nameNative": "Milano",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "밀라노",
-          "en": "Milan",
-          "native": "Milano",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        9.18951,
-        45.46427
-      ],
-      "countryCode": "IT",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch22-europe-noncapital-cities.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-historical-continuity-unverified",
-      "reviewStatus": "current-name-backed-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -8350,66 +6184,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "3369157",
-      "name": "케이프타운",
-      "nameEn": "Cape Town",
-      "nameNative": "Cape Town",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "케이프타운",
-          "en": "Cape Town",
-          "native": "Cape Town",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        18.42322,
-        -33.92584
-      ],
-      "countryCode": "ZA",
-      "featureCode": "PPLA",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "selected-sourced-periods-not-exhaustive-history",
-      "reviewStatus": "selected-transitions-source-reviewed"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3374333",
-      "name": "프라이아",
-      "nameEn": "Praia",
-      "nameNative": "Praia",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "프라이아",
-          "en": "Praia",
-          "native": "Praia",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -23.51254,
-        14.93152
-      ],
-      "countryCode": "CV",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch19-southern-africa-south-southeast-asia.json",
-      "historicalDisplayCoverage": "unverified-earlier-name-continuity-modern-map-editorial-baseline",
-      "reviewStatus": "historical-usage-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "3378644",
       "name": "조지타운",
       "nameEn": "Georgetown",
@@ -8444,36 +6218,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
       "historicalDisplayCoverage": "evidence-based-selected-name-transitions-with-open-historical-coverage",
       "reviewStatus": "selected-historical-transitions-source-reviewed"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3383330",
-      "name": "파라마리보",
-      "nameEn": "Paramaribo",
-      "nameNative": "Paramaribo",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "파라마리보",
-          "en": "Paramaribo",
-          "native": "Paramaribo",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -55.16682,
-        5.86638
-      ],
-      "countryCode": "SR",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -8542,66 +6286,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "3439389",
-      "name": "아순시온",
-      "nameEn": "Asunción",
-      "nameNative": "Asunción",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "아순시온",
-          "en": "Asunción",
-          "native": "Asunción",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -57.647,
-        -25.28646
-      ],
-      "countryCode": "PY",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3441575",
-      "name": "몬테비데오",
-      "nameEn": "Montevideo",
-      "nameNative": "Montevideo",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "몬테비데오",
-          "en": "Montevideo",
-          "native": "Montevideo",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -56.18816,
-        -34.90328
-      ],
-      "countryCode": "UY",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "3448439",
       "name": "상파울루",
       "nameEn": "São Paulo",
@@ -8666,36 +6350,6 @@
         "note": "1960년 4월 21일 도시 개장",
         "researchNote": "1957년부터 신도시 조성 후 공식 개장한 날짜. 건설 노동자의 앞선 거주나 행정구역 면적·기존 작은 취락 자체를 현대 중심도시와 동일시하지 않음."
       }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3489854",
-      "name": "킹스턴",
-      "nameEn": "Kingston",
-      "nameNative": "Kingston",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "킹스턴",
-          "en": "Kingston",
-          "native": "Kingston",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -76.79358,
-        17.99702
-      ],
-      "countryCode": "JM",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -8773,36 +6427,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "3553478",
-      "name": "아바나",
-      "nameEn": "Havana",
-      "nameNative": "La Habana",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "아바나",
-          "en": "Havana",
-          "native": "La Habana",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -82.38304,
-        23.13302
-      ],
-      "countryCode": "CU",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "3582677",
       "name": "벨모판",
       "nameEn": "Belmopan",
@@ -8837,216 +6461,6 @@
         "note": "1970년 신수도 1단계 완공",
         "researchNote": "1967년 건설 시작·1970년 완공한 신수도 중심지. 2000년의 법인 자치도시 설립과 구별한다. 1970년 경계일의 정확한 일자는 미확인."
       }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3583361",
-      "name": "산살바도르",
-      "nameEn": "San Salvador",
-      "nameNative": "San Salvador",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "산살바도르",
-          "en": "San Salvador",
-          "native": "San Salvador",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -89.18718,
-        13.68935
-      ],
-      "countryCode": "SV",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3598132",
-      "name": "과테말라시티",
-      "nameEn": "Guatemala City",
-      "nameNative": "Ciudad de Guatemala",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "과테말라시티",
-          "en": "Guatemala City",
-          "native": "Ciudad de Guatemala",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -90.51327,
-        14.64072
-      ],
-      "countryCode": "GT",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3600949",
-      "name": "테구시갈파",
-      "nameEn": "Tegucigalpa",
-      "nameNative": "Tegucigalpa",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "테구시갈파",
-          "en": "Tegucigalpa",
-          "native": "Tegucigalpa",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -87.20681,
-        14.0818
-      ],
-      "countryCode": "HN",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3617763",
-      "name": "마나과",
-      "nameEn": "Managua",
-      "nameNative": "Managua",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "마나과",
-          "en": "Managua",
-          "native": "Managua",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -86.2504,
-        12.13282
-      ],
-      "countryCode": "NI",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3621849",
-      "name": "산호세",
-      "nameEn": "San José",
-      "nameNative": "San José",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "산호세",
-          "en": "San José",
-          "native": "San José",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -84.08489,
-        9.93388
-      ],
-      "countryCode": "CR",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3646738",
-      "name": "카라카스",
-      "nameEn": "Caracas",
-      "nameNative": "Caracas",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "카라카스",
-          "en": "Caracas",
-          "native": "Caracas",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -66.87919,
-        10.48801
-      ],
-      "countryCode": "VE",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3652462",
-      "name": "키토",
-      "nameEn": "Quito",
-      "nameNative": "Quito",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "키토",
-          "en": "Quito",
-          "native": "Quito",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -78.52495,
-        -0.22985
-      ],
-      "countryCode": "EC",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -9101,36 +6515,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "3703443",
-      "name": "파나마시티",
-      "nameEn": "Panama City",
-      "nameNative": "Panamá",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "파나마시티",
-          "en": "Panama City",
-          "native": "Panamá",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -79.51973,
-        8.9936
-      ],
-      "countryCode": "PA",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "3718426",
       "name": "포르토프랭스",
       "nameEn": "Port-au-Prince",
@@ -9182,36 +6566,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "3871336",
-      "name": "산티아고",
-      "nameEn": "Santiago",
-      "nameNative": "Santiago",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "산티아고",
-          "en": "Santiago",
-          "native": "Santiago",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -70.64827,
-        -33.45694
-      ],
-      "countryCode": "CL",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
       "sourceId": "3903987",
       "name": "수크레",
       "nameEn": "Sucre",
@@ -9249,276 +6603,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "3911925",
-      "name": "라파스",
-      "nameEn": "La Paz",
-      "nameNative": "La Paz",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "라파스",
-          "en": "La Paz",
-          "native": "La Paz",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -68.15,
-        -16.5
-      ],
-      "countryCode": "BO",
-      "featureCode": "PPLG",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "3936456",
-      "name": "리마",
-      "nameEn": "Lima",
-      "nameNative": "Lima",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "리마",
-          "en": "Lima",
-          "native": "Lima",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -77.02824,
-        -12.04318
-      ],
-      "countryCode": "PE",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "4030723",
-      "name": "애덤스타운",
-      "nameEn": "Adamstown",
-      "nameNative": "Adamstown",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "애덤스타운",
-          "en": "Adamstown",
-          "native": "Adamstown",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -130.10147,
-        -25.06597
-      ],
-      "countryCode": "PN",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "4032402",
-      "name": "누쿠알로파",
-      "nameEn": "Nuku'alofa",
-      "nameNative": "Nukuʻalofa",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "누쿠알로파",
-          "en": "Nuku'alofa",
-          "native": "Nukuʻalofa",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -175.20114,
-        -21.13683
-      ],
-      "countryCode": "TO",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "4033936",
-      "name": "파페에테",
-      "nameEn": "Papeete",
-      "nameNative": "Papeete",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "파페에테",
-          "en": "Papeete",
-          "native": "Papeete",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -149.56843,
-        -17.5347
-      ],
-      "countryCode": "PF",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "4034821",
-      "name": "마타우투",
-      "nameEn": "Mata-Utu",
-      "nameNative": "Matāʻutu",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "마타우투",
-          "en": "Mata-Utu",
-          "native": "Matāʻutu",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -176.17453,
-        -13.28163
-      ],
-      "countryCode": "WF",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "4035413",
-      "name": "아피아",
-      "nameEn": "Apia",
-      "nameNative": "Apia",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "아피아",
-          "en": "Apia",
-          "native": "Apia",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -171.76666,
-        -13.83333
-      ],
-      "countryCode": "WS",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "4035715",
-      "name": "아바루아",
-      "nameEn": "Avarua",
-      "nameNative": "Avarua",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "아바루아",
-          "en": "Avarua",
-          "native": "Avarua",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -159.77546,
-        -21.2075
-      ],
-      "countryCode": "CK",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "4036284",
-      "name": "알로피",
-      "nameEn": "Alofi",
-      "nameNative": "Alofi",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "알로피",
-          "en": "Alofi",
-          "native": "Alofi",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -169.91957,
-        -19.05294
-      ],
-      "countryCode": "NU",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified"
-    },
-    {
-      "source": "geonames",
       "sourceId": "4044012",
       "name": "하갓냐",
       "nameEn": "Hagåtña",
@@ -9553,36 +6637,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
       "historicalDisplayCoverage": "documented-selected-historical-periods-not-exhaustive",
       "reviewStatus": "sourced-selected-events-not-complete-history"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "4140963",
-      "name": "워싱턴 D.C.",
-      "nameEn": "Washington",
-      "nameNative": "Washington",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "워싱턴 D.C.",
-          "en": "Washington",
-          "native": "Washington",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -77.03637,
-        38.89511
-      ],
-      "countryCode": "US",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "city",
-      "priority": 70,
-      "minZoom": 1.25,
-      "reviewFile": "reports/places/tier1-major-cities-batch16-americas-capitals.json",
-      "historicalDisplayCoverage": "editorial-1801-baseline-further-primary-source-review-open",
-      "reviewStatus": "current-toponym-sourced-historical-baseline-provisional"
     },
     {
       "source": "geonames",
@@ -9649,42 +6703,6 @@
       "reviewFile": "reports/places/tier1-major-cities-batch05-americas.json",
       "historicalDisplayCoverage": "reviewed-since-1801",
       "reviewStatus": "verified-source-staging-not-runtime"
-    },
-    {
-      "source": "geonames",
-      "sourceId": "5881576",
-      "name": "파고파고",
-      "nameEn": "Pago Pago",
-      "nameNative": "Pago Pago",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "파고파고",
-          "en": "Pago Pago",
-          "native": "Pago Pago",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        -170.7025,
-        -14.27806
-      ],
-      "countryCode": "AS",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "town",
-      "priority": 40,
-      "minZoom": 2.5,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified",
-      "urbanIdentityReview": {
-        "status": "Pago-Pago-regional-label-vs-Fagatogo-Utulei-villages",
-        "autoTierApproved": false,
-        "sourceUrl": "https://www.geonames.org/5881576/",
-        "note": "GeoNames PPLC Pago Pago should not collapse Fagatogo/UtuIei government villages."
-      }
     },
     {
       "source": "geonames",
@@ -9801,78 +6819,6 @@
     },
     {
       "source": "geonames",
-      "sourceId": "7828758",
-      "name": "사이판",
-      "nameEn": "Saipan",
-      "nameNative": "Saipan",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 1801,
-          "ko": "사이판",
-          "en": "Saipan",
-          "native": "Saipan",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        145.7545,
-        15.21233
-      ],
-      "countryCode": "MP",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "town",
-      "priority": 40,
-      "minZoom": 2.5,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "provisional-baseline-retrojection-not-proven-no-renaming",
-      "reviewStatus": "modern-name-source-historical-unverified",
-      "urbanIdentityReview": {
-        "status": "island-municipality-vs-independent-city-unresolved",
-        "autoTierApproved": false,
-        "sourceUrl": "https://www.geonames.org/7828758/",
-        "note": "Saipan PPLC point must not inherit island and municipality boundary/population."
-      }
-    },
-    {
-      "source": "geonames",
-      "sourceId": "8063361",
-      "name": "응게룰무드",
-      "nameEn": "Ngerulmud",
-      "nameNative": "Ngerulmud",
-      "nameNativeExtras": [],
-      "nameTimeline": [
-        {
-          "fromYear": 2006,
-          "ko": "응게룰무드",
-          "en": "Ngerulmud",
-          "native": "Ngerulmud",
-          "nativeExtras": []
-        }
-      ],
-      "coordinates": [
-        134.6238,
-        7.50077
-      ],
-      "countryCode": "PW",
-      "featureCode": "PPLC",
-      "population": 0,
-      "kind": "town",
-      "priority": 40,
-      "minZoom": 2.5,
-      "reviewFile": "reports/places/tier1-major-cities-batch21-oceania-pacific-capitals.json",
-      "historicalDisplayCoverage": "documented-selected-historical-periods-not-exhaustive",
-      "reviewStatus": "sourced-selected-events-not-complete-history",
-      "urbanIdentityReview": {
-        "status": "national-capitol-complex-not-independently-verified-urban-settlement",
-        "autoTierApproved": false,
-        "sourceUrl": "https://2009-2017.state.gov/outofdate/bgn/palau/163315.htm",
-        "note": "Ngerulmud PPLC labels national government office complex, city-tier settlement status unresolved."
-      }
-    },
-    {
-      "source": "geonames",
       "sourceId": "12226438",
       "name": "시우다드데라파스",
       "nameEn": "Ciudad de la Paz",
@@ -9919,10 +6865,12 @@
     }
   ],
   "stats": {
-    "cityCount": 264,
-    "timelineEntries": 482,
+    "cityCount": 163,
+    "timelineEntries": 381,
+    "stagedCount": 264,
+    "withheldCount": 101,
     "sourceBatchCount": 22,
-    "unrankedCount": 264,
-    "urbanIdentityFlagged": 8
+    "unrankedCount": 163,
+    "urbanIdentityFlagged": 0
   }
 }
