@@ -1,0 +1,132 @@
+#pragma once
+
+#include "referencewarp.h"
+#include "referenceimagemodel.h"
+#include "referenceautogeoref.h"
+#include <QJsonObject>
+#include <QByteArray>
+#include <QObject>
+#include <QUrl>
+#include <QVariantList>
+#include <optional>
+
+class ReferenceImageLibrary : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QVariantList images READ images NOTIFY imagesChanged)
+    Q_PROPERTY(QAbstractItemModel *imageModel READ imageModel CONSTANT)
+    Q_PROPERTY(bool canUndo READ canUndo NOTIFY historyChanged)
+    Q_PROPERTY(bool canRedo READ canRedo NOTIFY historyChanged)
+    Q_PROPERTY(QVariantMap calibrationSession READ calibrationSession NOTIFY calibrationSessionChanged)
+    Q_PROPERTY(QVariantMap traceSession READ traceSession NOTIFY traceSessionChanged)
+    Q_PROPERTY(QVariantMap autoGeorefSession READ autoGeorefSession NOTIFY autoGeorefSessionChanged)
+    Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
+public:
+    explicit ReferenceImageLibrary(QObject *parent = nullptr);
+
+    QVariantList images() const;
+    QAbstractItemModel *imageModel() { return &imageModel_; }
+    bool canUndo() const;
+    bool canRedo() const;
+    QString lastError() const { return lastError_; }
+
+    QVariantMap calibrationSession() const;
+    QVariantMap traceSession() const { return trace_; }
+    QVariantMap autoGeorefSession() const { return autoGeoref_; }
+    Q_INVOKABLE bool beginRefine(const QVariantMap &context,const QVariantList &uv);
+    Q_INVOKABLE bool beginTrace(const QVariantMap &context);
+    Q_INVOKABLE bool traceAnchor(double u,double v);
+    Q_INVOKABLE bool undoTraceAnchor();
+    Q_INVOKABLE bool finishTrace();
+    Q_INVOKABLE void redrawTrace();
+    Q_INVOKABLE void cancelTrace();
+    Q_INVOKABLE bool flipPlacement(bool horizontal);
+    Q_INVOKABLE bool rotatePlacement(double angle,QObject *projection);
+    Q_INVOKABLE bool resetPlacement(QObject *projection,double viewportWidth,double viewportHeight);
+    Q_INVOKABLE double placementAngle(QObject *projection) const;
+    Q_INVOKABLE bool editCalibrationImagePoint(const QString &pointId);
+    Q_INVOKABLE bool setPlacementQuad(const QVariantList &quad,const QVariantList &screenQuad);
+    Q_INVOKABLE bool setCornerQuad(const QVariantList &quad,const QVariantList &screenQuad);
+    Q_INVOKABLE bool beginAnchor();
+    Q_INVOKABLE bool clearAnchor();
+    Q_INVOKABLE bool setFreeTransformEditing(bool enabled);
+    Q_INVOKABLE bool beginCalibration(const QString &id);
+    Q_INVOKABLE void cancelCalibration();
+    Q_INVOKABLE bool pickImagePoint(double u,double v);
+    Q_INVOKABLE bool pickMapCoordinate(double longitude,double latitude);
+    Q_INVOKABLE bool editCalibrationPoint(const QString &pointId);
+    Q_INVOKABLE bool deleteCalibrationPoint(const QString &pointId);
+    Q_INVOKABLE bool clearCalibrationPoints();
+    Q_INVOKABLE bool setCalibrationMode(const QString &mode);
+    Q_INVOKABLE QVariantMap calibration(const QVariantMap &record) const;
+    Q_INVOKABLE bool setCalibration(const QString &id, const QVariantList &points, const QString &mode);
+    Q_INVOKABLE bool previewAutoGeoref(const QVariantList &seeds);
+    Q_INVOKABLE bool applyAutoGeoref();
+    Q_INVOKABLE void cancelAutoGeoref();
+    Q_INVOKABLE bool setLinearConstraints(const QString &id,const QVariantList &constraints);
+    Q_INVOKABLE bool addLinearConstraint(const QString &id,const QVariantMap &constraint);
+    Q_INVOKABLE bool removeLinearConstraint(const QString &id,const QString &constraintId);
+    Q_INVOKABLE bool beginLinearConstraint(const QString &kind);
+    Q_INVOKABLE bool addLinearMapPoint(double longitude,double latitude);
+    Q_INVOKABLE bool undoLinearMapPoint();
+    Q_INVOKABLE bool previewLinearConstraint();
+    Q_INVOKABLE bool applyLinearConstraint();
+
+    Q_INVOKABLE bool importImage(const QUrl &source, const QString &name = {});
+    Q_INVOKABLE bool removeImage(const QString &id);
+    Q_INVOKABLE bool updateImage(const QString &id, const QVariantMap &changes);
+    Q_INVOKABLE bool moveImage(const QString &id, int destination);
+    Q_INVOKABLE bool beginGesture(const QString &id);
+    Q_INVOKABLE bool updateGesture(const QVariantMap &changes);
+    Q_INVOKABLE bool commitGesture();
+    Q_INVOKABLE void cancelGesture();
+    Q_INVOKABLE bool undo();
+    Q_INVOKABLE bool redo();
+    Q_INVOKABLE bool reload();
+    Q_INVOKABLE QVariantMap solveWarp(const QString &id, const QVariantList &controlPoints,
+                                      const QString &mode) const;
+    Q_INVOKABLE QVariantList traceLine(const QString &id,double startX,double startY,double endX,double endY) const;
+
+signals:
+    void calibrationSessionChanged();
+    void traceSessionChanged();
+    void autoGeorefSessionChanged();
+    void imagesChanged();
+    void historyChanged();
+    void lastErrorChanged();
+
+private:
+    struct Record {
+        QString id, name, fileName, blend = QStringLiteral("normal"), warpMode = QStringLiteral("auto");
+        bool visible = true, locked = false, flipX = false, flipY = false;
+        double opacity = .55, x = 0, y = 0, width = 0, height = 0, rotation = 0;
+        QVariantList controlPoints;
+        QVariantList geographicPoints,mapQuad,linearConstraints;
+        QVariantMap anchor;
+        bool cornerPinEnabled=false;
+    };
+    using State = QVector<Record>;
+    QString directory() const;
+    QString indexPath() const;
+    bool save(const State &state);
+    bool storeQuad(const QVariantList &quad,const QVariantList &screenQuad,bool cornerPin);
+    bool setState(State state, bool recordHistory);
+    void fail(const QString &message);
+    static QVariantMap variant(const Record &record, const QString &directory);
+    static QJsonObject json(const Record &record);
+    static std::optional<Record> record(const QJsonObject &json);
+    const Record *find(const QString &id) const;
+    void calculateTrace();
+    QVariantMap trace_,autoGeoref_;
+    QByteArray autoGeorefSignature_;
+    quint64 traceEpoch_=0;
+    ReferenceImageModel imageModel_;
+    State state_;
+    QVector<State> undo_, redo_;
+    std::optional<State> gestureBefore_;
+    QString gestureId_;
+    QString lastError_;
+    QString calibrationId_,editingPointId_;
+    bool editingImagePoint_=false,anchorPicking_=false,freeTransformEditing_=false;
+    std::optional<QPointF> pendingUv_;
+};
