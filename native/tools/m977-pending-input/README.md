@@ -71,5 +71,5 @@ node tools/m977-pending-input/compare.mjs --capture \
   --native-commit "$GITHUB_SHA"
 ```
 
-See [the observation report](../../docs/m977-pending-input-observations.md) for
+See [the observation report](https://github.com/kimjeon-il/Pando/blob/work/gis/reports/development/app/m977-pending-input-observations.md) for
 current results, causal differences and explicit coverage limits.

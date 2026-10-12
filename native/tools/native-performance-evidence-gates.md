@@ -72,7 +72,7 @@ created by these measurement runners.
 Current executed receipt (e01f0e6f2383022017ad947eb18d1a4269e2eee3)
 -----------------------------------------------
 
-See `docs/m98-windows-measurement-e01f0e6.md` for the full actual gate table.
+See the [M9.8 Windows measurement report](https://github.com/kimjeon-il/Pando/blob/work/gis/reports/development/app/m98-windows-measurement-e01f0e6.md) for the full actual gate table.
 Gate A: production exchange 16/16 and M32 2525/2525, mismatch 0; exact fixed pair.
 Gate B: selected native structure/actual compiled mutations and retained terrain
 device mechanisms executed; 206 CTests discovered, no whole-CTest pass claimed.
