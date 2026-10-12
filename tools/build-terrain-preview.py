@@ -11,6 +11,7 @@ import hashlib
 import io
 import json
 import math
+import tempfile
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -183,6 +184,13 @@ def build(output: Path, cache: Path) -> dict:
     pending = []
     checksums = {}
     for level in dem["levels"][:2]:
+        # Rasterize once for the complete LOD. Tile-local polygon clipping can
+        # round a negative edge differently from its neighboring positive edge.
+        world_land = rasterize_land_mask(countries, 0, 0, level["width"], level["height"],
+                                         level["width"], level["height"])
+        padded_land = np.pad(world_land, ((1, 1), (1, 1)), mode="edge")
+        padded_land[:, 0] = padded_land[:, -2]
+        padded_land[:, -1] = padded_land[:, 1]
         for row in range(level["rows"]):
             for column in range(level["columns"]):
                 source_path = f"terrain/v0.13.0/{level['id']}/{column}-{row}.webp"
@@ -194,8 +202,8 @@ def build(output: Path, cache: Path) -> dict:
                 if pixels.shape != (height, width, 4):
                     raise ValueError(f"DEM tile dimensions changed: {source_path}")
                 x_origin, y_origin = column * TILE_SIZE - 1, row * TILE_SIZE - 1
-                land = rasterize_land_mask(countries, x_origin, y_origin, width, height,
-                                           level["width"], level["height"])
+                land = padded_land[row * TILE_SIZE:row * TILE_SIZE + height,
+                                   column * TILE_SIZE:column * TILE_SIZE + width]
                 preview = compose_preview_rgba(pixels, tint, land, x_origin, y_origin,
                                                level["width"], level["height"])
                 data = encode_webp(preview)
@@ -252,6 +260,7 @@ def verify(output: Path) -> dict:
     if actual != expected | {"manifest.json"}:
         raise ValueError("Unexpected preview output files")
     total = 0
+    decoded = {}
     digest = hashlib.sha256()
     def tile_order(path: str):
         level, tile = path.removesuffix(".webp").split("/")
@@ -262,8 +271,25 @@ def verify(output: Path) -> dict:
         if len(data) != manifest["tiles"][path]["bytes"] or sha256(data) != manifest["tiles"][path]["sha256"]:
             raise ValueError(f"Preview tile hash differs: {path}")
         total += len(data)
+        decoded[path] = np.asarray(Image.open(io.BytesIO(data)).convert("RGBA"))
         digest.update(path.encode("utf-8") + b"\0" + bytes.fromhex(sha256(data)))
-    if digest.hexdigest() != manifest["assetsSha256"] or total > LIMIT_BYTES:
+    for level in dem["levels"][:2]:
+        for row in range(level["rows"]):
+            for column in range(level["columns"]):
+                path = f"{level['id']}/{column}-{row}.webp"
+                pixels = decoded[path]
+                expected_width = min(TILE_SIZE, level["width"] - column * TILE_SIZE) + 2
+                expected_height = min(TILE_SIZE, level["height"] - row * TILE_SIZE) + 2
+                if pixels.shape != (expected_height, expected_width, 4):
+                    raise ValueError(f"Preview tile dimensions or gutter differ: {path}")
+                next_tile = decoded[f"{level['id']}/{(column + 1) % level['columns']}-{row}.webp"]
+                if not np.array_equal(pixels[:, -1], next_tile[:, 1]) or not np.array_equal(pixels[:, -2], next_tile[:, 0]):
+                    raise ValueError(f"Preview horizontal gutter or antimeridian differs: {path}")
+                if row + 1 < level["rows"]:
+                    south = decoded[f"{level['id']}/{column}-{row + 1}.webp"]
+                    if not np.array_equal(pixels[-1], south[1]) or not np.array_equal(pixels[-2], south[0]):
+                        raise ValueError(f"Preview vertical gutter differs: {path}")
+    if digest.hexdigest() != manifest["assetsSha256"] or total + len(manifest_bytes) > LIMIT_BYTES:
         raise ValueError("Preview aggregate hash or size differs")
     return {"tiles": len(expected), "tileBytes": total,
             "totalBytes": total + len(manifest_bytes), "manifestSha256": sha256(manifest_bytes)}
@@ -274,8 +300,17 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=ROOT / f"assets/data/terrain-preview/v{VERSION}")
     parser.add_argument("--cache", type=Path, default=ROOT / "test-results/terrain-preview-source")
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--rebuild-check", action="store_true")
     options = parser.parse_args()
-    result = verify(options.output) if options.check else build(options.output, options.cache)
+    if options.rebuild_check:
+        result = verify(options.output)
+        with tempfile.TemporaryDirectory(prefix="pando-terrain-preview-") as temporary:
+            rebuilt = build(Path(temporary) / "preview", options.cache)
+            if rebuilt != result:
+                raise ValueError("Rebuilt preview differs from committed bytes")
+        result["reproducible"] = True
+    else:
+        result = verify(options.output) if options.check else build(options.output, options.cache)
     print(json.dumps(result, sort_keys=True))
 
 
