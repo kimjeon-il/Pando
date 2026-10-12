@@ -63,6 +63,9 @@ public:
     Q_INVOKABLE bool previewAutoGeoref(const QVariantList &seeds);
     Q_INVOKABLE bool applyAutoGeoref();
     Q_INVOKABLE void cancelAutoGeoref();
+    Q_INVOKABLE bool setLinearConstraints(const QString &id,const QVariantList &constraints);
+    Q_INVOKABLE bool addLinearConstraint(const QString &id,const QVariantMap &constraint);
+    Q_INVOKABLE bool removeLinearConstraint(const QString &id,const QString &constraintId);
 
     Q_INVOKABLE bool importImage(const QUrl &source, const QString &name = {});
     Q_INVOKABLE bool removeImage(const QString &id);
@@ -93,7 +96,7 @@ private:
         bool visible = true, locked = false, flipX = false, flipY = false;
         double opacity = .55, x = 0, y = 0, width = 0, height = 0, rotation = 0;
         QVariantList controlPoints;
-        QVariantList geographicPoints,mapQuad;
+        QVariantList geographicPoints,mapQuad,linearConstraints;
         QVariantMap anchor;
         bool cornerPinEnabled=false;
     };
