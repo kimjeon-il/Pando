@@ -9,7 +9,7 @@ Web 기준은 `008b99b5ca2dd39936e51f7ddd11c0c70fc7bb74`, App 기준은
 `4006e41745c9f03a70eea21de22411f3954cbbf8`다.
 아래 과거 실행 기록의 SHA·실패는 당시 증거이며 이번 후보 결과로 재사용하지 않는다.
 
-단계·실패·원인·명령 범위는 `docs/validation/country-lineage-storage.md`에 기록했다.
+단계·실패·원인·명령 범위는 [Country lineage storage 실행 기록](../reports/development/testing/country-lineage-storage.md)에 기록했다.
 전체 단위 1,729개와 Python 247+15개가 통과했고 최종 보정은 영향받은 집중 검사로
 재확인했다. 전체 브라우저는 사용자 요청으로 중단했으며 4 통과/4 실패,
 298 미완료다. 전체 브라우저 통과 또는 모든 제품 경로 동등성을 주장하지 않는다.
