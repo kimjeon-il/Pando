@@ -100,6 +100,7 @@ export function referenceImageEditorMarkup({
   controlPointEditing = false,
   selectedControlPointId = '',
   placementRotation = 0,
+  linearDraft = null,
 } = {}) {
   const diagnostics = warp?.ok ? warp.diagnostics : null;
   const residuals = diagnosticResiduals(diagnostics);
@@ -133,6 +134,12 @@ export function referenceImageEditorMarkup({
   const autoGeorefCandidates = autoGeorefIsOcr
     ? (autoGeorefPreview?.matching?.matchCount ?? 0)
     : (autoGeorefPreview?.symbolCandidateCount ?? 0);
+  const linearReady = record.controlPoints.length >= 2 && !!warp?.ok;
+  const linearRows = (record.linearConstraints || []).map((constraint, index) => `
+    <li class="reference-image-point-row">
+      <span>${escapeAttribute(({ river: '강', coastline: '해안선', border: '경계선', other: '기타 선' })[constraint.kind] || '기타 선')} ${index + 1}${constraint.enabled === false ? ' · 비활성' : ''}</span>
+      <button type="button" class="ui-button btn ghost" data-ref-action="linear-remove" data-constraint-id="${escapeAttribute(constraint.id)}"${record.locked || linearDraft ? ' disabled' : ''}>삭제</button>
+    </li>`).join('');
 
   const anchorResidual = residuals.get('anchor');
   const pointRows = [];
@@ -266,6 +273,27 @@ export function referenceImageEditorMarkup({
           <button type="button" class="ui-button btn ghost" data-ref-action="cancel-auto-georef">취소</button>
         </div>
       ` : ''}
+
+      <div class="reference-image-calibration-actions">
+        <button type="button" class="ui-button btn ghost" data-ref-action="linear-coastline"${record.locked || !linearReady || linearDraft ? ' disabled' : ''}>해안선 제약 추가</button>
+        <button type="button" class="ui-button btn ghost" data-ref-action="linear-river"${record.locked || !linearReady || linearDraft ? ' disabled' : ''}>강 제약 추가</button>
+      </div>
+      ${linearDraft ? `<div class="reference-image-linear-draft" role="status">
+        <p>${escapeAttribute(linearDraft.error || (linearDraft.phase === 'image'
+          ? '이미지에서 선을 따라 점을 찍으세요.' : linearDraft.phase === 'map'
+            ? '지도에서 대응 선을 두 점 이상 찍으세요.' : '변형 이미지를 확인한 뒤 적용하세요.'))}</p>
+        <div class="reference-image-section-actions">
+          ${linearDraft.phase === 'image' ? `
+            <button type="button" class="ui-button btn ghost" data-ref-action="linear-image-undo"${linearDraft.anchors.length ? '' : ' disabled'}>마지막 점 취소</button>
+            <button type="button" class="ui-button btn" data-ref-action="linear-image-finish"${linearDraft.image.length >= 2 ? '' : ' disabled'}>이미지 선 완료</button>` : ''}
+          ${linearDraft.phase === 'map' ? `
+            <button type="button" class="ui-button btn ghost" data-ref-action="linear-map-undo"${linearDraft.coordinates.length ? '' : ' disabled'}>지도 점 취소</button>
+            <button type="button" class="ui-button btn" data-ref-action="linear-preview"${linearDraft.coordinates.length >= 2 ? '' : ' disabled'}>미리보기</button>` : ''}
+          ${linearDraft.phase === 'preview' ? `<button type="button" class="ui-button btn" data-ref-action="linear-apply">적용</button>` : ''}
+          <button type="button" class="ui-button btn ghost" data-ref-action="linear-cancel">취소</button>
+        </div>
+      </div>` : ''}
+      ${linearRows ? `<ol class="reference-image-points" aria-label="선 제약 목록">${linearRows}</ol>` : ''}
 
       <div class="reference-image-diagnostics" aria-label="보정 진단">
         <span><small>일반점</small><strong>${record.controlPoints.length}</strong></span>

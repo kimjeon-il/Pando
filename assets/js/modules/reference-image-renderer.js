@@ -74,6 +74,7 @@ export function createReferenceImageCanvasRenderer({
   getFreeTransformEditingId,
   getControlPointEditingId,
   getSelectedControlPointId,
+  getLinearDraft,
   isPanelHidden,
 } = {}) {
   if (!mapElement) throw new TypeError('reference image renderer requires mapElement');
@@ -309,6 +310,33 @@ export function createReferenceImageCanvasRenderer({
     context.restore();
   }
 
+  function drawLinearDraft(host, dpr) {
+    const draft = getLinearDraft?.();
+    if (!draft || isPanelHidden?.()) return;
+    const sourceWarp = draft.preview?.record?.warp || draft.sourceWarp;
+    const paths = [
+      [draft.image.map(uv => projectVisible(host, sourceWarp.project(uv))), 'rgba(47,140,255,.98)'],
+      [draft.coordinates.map(coordinate => projectVisible(host, coordinate)), 'rgba(245,158,11,.98)'],
+    ];
+    context.save();context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    context.lineWidth = 3;context.lineCap = 'round';context.lineJoin = 'round';
+    for (const [points, color] of paths) {
+      context.strokeStyle = color;context.fillStyle = color;context.beginPath();
+      let started = false;
+      for (const point of points) {
+        if (!point || !point.every(Number.isFinite)) { started = false;continue; }
+        if (!started) { context.moveTo(point[0], point[1]);started = true; }
+        else context.lineTo(point[0], point[1]);
+      }
+      context.stroke();
+      for (const point of points.length <= 2 ? points : [points[0], points.at(-1)]) {
+        if (!point || !point.every(Number.isFinite)) continue;
+        context.beginPath();context.arc(point[0], point[1], 4, 0, Math.PI * 2);context.fill();
+      }
+    }
+    context.restore();
+  }
+
   function render() {
     const dpr = resizeCanvas();
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -324,6 +352,7 @@ export function createReferenceImageCanvasRenderer({
     if (host && selected) drawFreeTransformHandles(selected, host, dpr);
     if (host && selected) drawAnchor(selected, host, dpr);
     if (host && selected) drawControlPoints(selected, host, dpr);
+    if (host) drawLinearDraft(host, dpr);
   }
 
   function requestRender() {

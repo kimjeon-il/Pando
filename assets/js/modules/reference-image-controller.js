@@ -18,6 +18,8 @@ import {
 } from './reference-image-transform.js';
 import { createReferenceImageInteraction } from './reference-image-interaction.js';
 import { createReferenceImageCanvasRenderer } from './reference-image-renderer.js';
+import { getReferenceImageLiveWireField, traceReferenceImageLinearAnchors } from './reference-image-live-wire.js';
+import { buildReferenceImageSourceMapping } from './reference-image-source-mapping.js';
 import { referenceImageKeyBlocked, registerReferenceImageInput } from './reference-image-input.js';
 import { applyReferenceImageEdit, copyReferenceImageRecords, createReferenceImageHistory } from './reference-image-edit-session.js';
 import {
@@ -129,6 +131,7 @@ export function installReferenceImageController({
   let disposed = false;
   let session = 0;
   let continuousBefore = null;
+  let linearDraft = null;
   const history = createReferenceImageHistory();
   const objectUrls = new Set();
   const currentToken = () => `${session}:${getGeneration()}`;
@@ -147,7 +150,10 @@ export function installReferenceImageController({
   };
   const renderer = createReferenceImageCanvasRenderer({
     mapElement,
-    getRecords: () => records,
+    getRecords: () => linearDraft?.preview
+      ? records.map(record => record.id === linearDraft.recordId ? linearDraft.preview.record : record)
+      : records,
+    getLinearDraft: () => linearDraft,
     getSelectedId: () => selectedId,
     getPlacementEditingId: () => interactionState().placementEditingId,
     getFreeTransformEditingId: () => interactionState().freeTransformEditingId,
@@ -161,6 +167,7 @@ export function installReferenceImageController({
     record.warp = buildReferenceImageCalibrationWarp({
       controlPoints: record.controlPoints,
       anchor: record.anchor,
+      linearConstraints: record.linearConstraints,
       cornerPinEnabled: record.cornerPinEnabled,
       mapQuad: record.mapQuad,
       mode: record.warpMode,
@@ -278,11 +285,92 @@ export function installReferenceImageController({
       controlPointEditing: state.controlPointEditingId === record.id,
       selectedControlPointId: state.selectedControlPointId,
       placementRotation: referenceImagePlacementRotation(record, mapHost()),
+      linearDraft: linearDraft?.recordId === record.id ? linearDraft : null,
     });
     interaction?.syncSurface();
+    if (linearDraft) surface?.setEditing(true, linearDraft.phase === 'image'
+      ? '이미지에서 선을 따라 점을 찍으세요.'
+      : linearDraft.phase === 'map' ? '지도에서 대응 선을 찍으세요.' : '변형 이미지를 확인하세요.');
+  }
+
+  function cancelLinearDraft({ render = true } = {}) {
+    if (!linearDraft) return;
+    linearDraft = null;
+    mapElement.classList.remove('is-reference-linear-mode');
+    surface?.setEditing(false);
+    if (render) { renderEditor(); renderer.requestRender(); }
+  }
+
+  function startLinearDraft(record, kind) {
+    if (!record || record.locked || !['river', 'coastline'].includes(kind)) return false;
+    const sourceWarp = buildReferenceImageSourceMapping(record);
+    if (record.controlPoints.length < 2 || !record.warp?.ok || !sourceWarp.ok) {
+      setHint('먼저 기준점 보정을 완료하세요.', 'error'); return false;
+    }
+    interaction?.cancelAll({ renderUi: false });
+    let field;
+    try { field = getReferenceImageLiveWireField(record.image); }
+    catch { setHint('이미지의 경계를 분석하지 못했습니다.', 'error'); return false; }
+    cancelLinearDraft({ render: false });
+    linearDraft = {
+      recordId: record.id, kind, phase: 'image', anchors: [], image: [], coordinates: [],
+      field, sourceWarp, preview: null, error: '',
+      signature: referenceImageMappingSignature(record), version: recordVersions.get(record.id) || 0,
+    };
+    mapElement.classList.add('is-reference-linear-mode');
+    renderEditor(); renderer.requestRender(); return true;
+  }
+
+  function linearGesture(point, event, { spacePan = false } = {}) {
+    if (!linearDraft || event.button === 1 || spacePan) return null;
+    if (event.button !== 0) return null;
+    const draft = linearDraft;
+    return { kind: 'tap', end: next => {
+      if (linearDraft !== draft || selected()?.id !== draft.recordId) return;
+      const record = selected();
+      if (draft.phase === 'image') {
+        const uv = renderer.hitTestUv(record, next);
+        if (!uv) { draft.error = '이미지가 보이는 영역 안을 선택하세요.'; renderEditor(); return; }
+        const anchors = [...draft.anchors, uv];
+        if (anchors.length >= 2) {
+          const result = traceReferenceImageLinearAnchors(draft.field, anchors);
+          if (!result.ok) { draft.error = '선 자동 추적에 실패했습니다. 다른 지점을 찍으세요.'; renderEditor(); return; }
+          draft.image = result.image;
+        }
+        draft.anchors = anchors;
+      } else if (draft.phase === 'map') {
+        const coordinate = mapHost()?.unproject(next);
+        if (!coordinate?.every(Number.isFinite)) { draft.error = '지도 좌표를 읽을 수 없습니다.'; renderEditor(); return; }
+        draft.coordinates.push([coordinate[0], coordinate[1]]);
+      }
+      draft.error = '';renderEditor();renderer.requestRender();
+    } };
+  }
+
+  function previewLinearDraft(record) {
+    if (!linearDraft || linearDraft.phase !== 'map' || linearDraft.coordinates.length < 2) return false;
+    if (linearDraft.signature !== referenceImageMappingSignature(record)
+      || linearDraft.version !== (recordVersions.get(record.id) || 0)) {
+      linearDraft.error = '참조 이미지가 변경되었습니다. 선 제약을 다시 지정하세요.';
+      linearDraft.preview = null; renderEditor(); return false;
+    }
+    const constraint = {
+      id: createId('linear'), kind: linearDraft.kind, image: linearDraft.image.map(point => [...point]),
+      coordinates: linearDraft.coordinates.map(point => [...point]), weight: 1, enabled: true,
+    };
+    const warp = buildReferenceImageCalibrationWarp({
+      controlPoints: record.controlPoints, anchor: record.anchor,
+      linearConstraints: [...record.linearConstraints, constraint],
+      cornerPinEnabled: record.cornerPinEnabled, mapQuad: record.mapQuad, mode: record.warpMode,
+    });
+    if (!warp.ok) { linearDraft.error = '미리보기를 만들 수 없습니다. 기준점 또는 배치를 확인하세요.'; renderEditor(); return false; }
+    linearDraft.preview = { constraint, record: { ...record, warp, mesh: buildReferenceImageMesh(warp, MESH_QUALITY), projectedMesh: null } };
+    linearDraft.phase = 'preview';linearDraft.error = '';
+    renderEditor();renderer.requestRender();return true;
   }
 
   function cancelInteraction() {
+    cancelLinearDraft({ render: false });
     interaction?.cancelAll();
   }
 
@@ -436,6 +524,7 @@ export function installReferenceImageController({
     if (field === 'visible') record.visible = event.target.checked;
     if (field === 'locked') {
       record.locked = event.target.checked;
+      if (record.locked) cancelLinearDraft({ render: false });
       interaction?.handleRecordLocked(record);
     }
 
@@ -487,7 +576,51 @@ export function installReferenceImageController({
       return;
     }
     if (!record) return;
+    if (action === 'linear-cancel') { cancelLinearDraft(); return; }
     if (record.locked && !['bring-forward', 'send-backward', 'cancel-auto-georef'].includes(action)) return;
+    if (action === 'linear-river' || action === 'linear-coastline') {
+      startLinearDraft(record, action === 'linear-river' ? 'river' : 'coastline');return;
+    }
+    if (action === 'linear-image-undo' && linearDraft?.phase === 'image') {
+      linearDraft.anchors.pop();
+      const result = traceReferenceImageLinearAnchors(linearDraft.field, linearDraft.anchors);
+      linearDraft.image = result.ok ? result.image : [];
+      linearDraft.error = '';renderEditor();renderer.requestRender();return;
+    }
+    if (action === 'linear-image-finish' && linearDraft?.phase === 'image' && linearDraft.image.length >= 2) {
+      linearDraft.phase = 'map';renderEditor();renderer.requestRender();return;
+    }
+    if (action === 'linear-map-undo' && linearDraft?.phase === 'map') {
+      linearDraft.coordinates.pop();renderEditor();renderer.requestRender();return;
+    }
+    if (action === 'linear-preview') { previewLinearDraft(record);return; }
+    if (action === 'linear-apply' && linearDraft?.phase === 'preview') {
+      const draft = linearDraft;
+      if (draft.signature !== referenceImageMappingSignature(record)
+        || draft.version !== (recordVersions.get(record.id) || 0)) {
+        draft.error = '미리보기 뒤에 참조 이미지가 변경되었습니다. 다시 지정하세요.';
+        draft.preview = null;draft.phase = 'map';renderEditor();renderer.requestRender();return;
+      }
+      const before = copyReferenceImageRecords(records);
+      record.linearConstraints = [...record.linearConstraints, draft.preview.constraint];
+      rebuildWarp(record);
+      if (!record.warp.ok) {
+        record.linearConstraints = before.find(item => item.id === record.id)?.linearConstraints || [];
+        rebuildWarp(record);draft.error = '선 제약을 적용하지 못했습니다.';
+        renderEditor();renderer.requestRender();return;
+      }
+      history.push(before);
+      void persist(record);
+      cancelLinearDraft({ render: false });refreshUi();return;
+    }
+    if (action === 'linear-remove') {
+      const before = copyReferenceImageRecords(records);
+      const next = record.linearConstraints.filter(item => item.id !== button.dataset.constraintId);
+      if (next.length === record.linearConstraints.length) return;
+      record.linearConstraints = next;rebuildWarp(record);history.push(before);
+      void persist(record);refreshUi();return;
+    }
+    if (linearDraft) cancelLinearDraft({ render: false });
     if (action === 'auto-georef') {
       cancelInteraction();
       record.autoGeorefBusy = true;
@@ -619,7 +752,7 @@ export function installReferenceImageController({
     if (panel.hidden || isBlocked() || referenceImageKeyBlocked(event)) return false;
     if (event.key === 'Enter' && event.target?.closest('button,[role="button"]')) return false;
     if (event.key === 'Escape') {
-      if (interaction?.isActive()) cancelInteraction();
+      if (linearDraft || interaction?.isActive()) cancelInteraction();
       else surface.close({ restoreFocus: true });
       return true;
     }
@@ -676,8 +809,8 @@ export function installReferenceImageController({
   }); };
   surface = installReferenceImageSurface({ panel, launcher, workspaceSurfaces, onClose: cancelInteraction, onOpen: () => renderer.requestRender() });
   const unregisterInput = registerReferenceImageInput({
-    begin: interaction.beginGesture,
-    active: interaction.isActive,
+    begin: (point, event, context) => linearDraft ? linearGesture(point, event, context) : interaction.beginGesture(point, event, context),
+    active: () => !!linearDraft || interaction.isActive(),
     key: onKeyDown,
     cancel: cancelInteraction,
     reset: resetSession,
