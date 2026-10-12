@@ -54,7 +54,7 @@ GitHub Actions source-probe run `37921081699`, for the Eider mouth, Husum,
 Hauke-Haien-Koog and Beltringharder Koog (1878–1880 versus 1902–1930 layers).
 The request metadata, original raster SHA-256 values and temporary artifact
 filenames are in [`sh-wms-period-overlay-probe.json`](sh-wms-period-overlay-probe.json).
-Reproduce with [the source-only script](../../../../tools/probe_german_empire_1914_coast_period_rasters.py).
+Reproduce with [the source-only Web script](https://github.com/kimjeon-il/Pando/blob/work/gis/tools/probe_german_empire_1914_coast_period_rasters.py).
 The map attribution is **© GeoBasis-DE/LVermGeo SH/CC BY 4.0**.
 
 Small, manually selected *visual-example point* offsets against the website's
@@ -67,7 +67,7 @@ not been individually checked, the shoreline-versus-dike symbol needs independen
 interpretation, and the hand-selected sample set is not a continuous historical
 coastline.
 
-See [short overview](1914-sh-period-map-overlay-review.md) and
+See [short overview](https://github.com/kimjeon-il/Pando/blob/work/gis/reports/geography/germany/1914-sh-period-map-overlay-review.md) and
 [point-level reproducibility/provenance](sh-pre1914-era-screen-point-samples.json).
 No geometry or timeline has been changed by this source work. Period-map vector
 digitization and actual screen Hausdorff validation remain outstanding.

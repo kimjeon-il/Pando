@@ -63,7 +63,7 @@ with no content dirty flag, history entry or content revision.
 
 ## Verification
 
-Evidence and platform limitations are recorded in [the validation report](timeline-persistence-validation.md).
+Evidence and platform limitations are recorded in [the validation report](https://github.com/kimjeon-il/Pando/blob/work/gis/reports/development/app/timeline-persistence-validation.md).
 The production QFile suite covers 31 cases, including month/day/year precision,
 BCE/CE, disjoint lifetimes, parent changes, holes, islands, dateline coordinates,
 shared/unreferenced versions, duplicates, gaps/overlaps and atomic rejection.

@@ -2,7 +2,7 @@
 
 ## 범위와 시작 조건
 
-[기능 조사](web-feature-audit.md)와 [데이터 모델](qt-data-model-design.md)을 구현 단위로 나눈다. 기준 웹 17c3dbe / 0.33.0, Qt 5a1717d. 이후 M1.1–M1.2 구현과 검증은 [별도 기록](qt-v3-implementation.md)에 정리했다. M1.3 공통 명령·스냅샷 ChangeSet과 기존 PC/모바일 편집 진입점 전환은 [명령 구현 기록](qt-command-implementation.md)에 정리했다. M1.4 스냅샷 작업·취소·세션 수명은 [작업 구현 기록](qt-job-implementation.md)에 정리했다. M2.1–M2.5의 완전 저장본 판정·migration·매핑/보존·검토/확정·roundtrip 장벽은 [웹 가져오기 기록](qt-web-import-implementation.md)에 정리했다. M3 이후는 후속 계획이다. [기능 동등성 계약](web-parity-contract.md)에 따라 실제 웹 진입·입력·결과·확정 경계를 임의로 변형하지 않는다. 모바일 공통 경로·360px 검증과 실제 Android 기기 검증은 구분한다.
+[기능 조사](https://github.com/kimjeon-il/Pando/blob/work/gis/reports/development/app/web-feature-audit.md)와 [데이터 모델](qt-data-model-design.md)을 구현 단위로 나눈다. 기준 웹 17c3dbe / 0.33.0, Qt 5a1717d. 이후 M1.1–M1.2 구현과 검증은 [별도 기록](qt-v3-implementation.md)에 정리했다. M1.3 공통 명령·스냅샷 ChangeSet과 기존 PC/모바일 편집 진입점 전환은 [명령 구현 기록](qt-command-implementation.md)에 정리했다. M1.4 스냅샷 작업·취소·세션 수명은 [작업 구현 기록](qt-job-implementation.md)에 정리했다. M2.1–M2.5의 완전 저장본 판정·migration·매핑/보존·검토/확정·roundtrip 장벽은 [웹 가져오기 기록](qt-web-import-implementation.md)에 정리했다. M3 이후는 후속 계획이다. [기능 동등성 계약](web-parity-contract.md)에 따라 실제 웹 진입·입력·결과·확정 경계를 임의로 변형하지 않는다. 모바일 공통 경로·360px 검증과 실제 Android 기기 검증은 구분한다.
 
 순서: M1 공통 문서·명령 → M2 가져오기 → M3 영토 객체·웹 조작 → M4 국경·영토 → M5 지명·수계·분포 → M6 역사·GIS → M7 전체 세계지도·대규모 렌더링. M1–M6는 작은 합성 지도/자료만 사용한다. 세계지도 때문에 도메인 의미 설계를 미루지 않는다.
 
@@ -144,7 +144,7 @@ M7.6 대규모 편집의 영향 객체 계약, worker 준비, 부분 scene 및 s
 남은 gate는 `docs/m76-large-world-edit.md`에 기록한다. 미실행 검증은 완료로 간주하지 않는다.
 
 M7.7 최신 웹 drift 동결, 통합 Oracle 실행기, 자산·성능 증거 형식 및 남은 release gate는
-`docs/parity-manifest.json`과 `docs/final-parity-report.md`에 기록한다. 실제 검증 전에는
+`docs/parity-manifest.json`과 [M7.7 검증 보고서](https://github.com/kimjeon-il/Pando/blob/work/gis/reports/development/app/final-parity-report.md)에 기록한다. 실제 검증 전에는
 최종 이식 완료를 선언하지 않는다.
 
 ## 고정 검증 사례와 판정

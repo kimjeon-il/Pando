@@ -8,7 +8,6 @@ on:
       - 'assets/territorial-library-v2/**'
       - 'tools/compare-territorial-library.mjs'
       - 'tools/territorial-library-crosscheck.test.mjs'
-      - 'docs/validation/data-versioning-phase5.md'
   workflow_dispatch:
 
 permissions:

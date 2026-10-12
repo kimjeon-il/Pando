@@ -25,6 +25,8 @@ v8 저장본은 v7까지만 지원하는 이전 앱에서 열 수 없습니다. 
 상세 절차는 [브랜치·워크트리 운영 정책](docs/branch-policy.md), 에이전트 필수 규칙은
 [AGENTS.md](AGENTS.md)를 참고하세요.
 
+웹·앱 조사·검증 보고서의 정본은 웹 저장소 [보고서 색인](https://github.com/kimjeon-il/Pando/blob/work/gis/reports/README.md)에 있습니다. 앱의 실행 증거와 검사 입력은 이 저장소의 기존 위치에서 관리합니다.
+
 ## 현재 웹 기준 작업 화면
 
 웹 `28e37086d7851bd3368afd86cf5a1c03c66ff2bb` 기준으로 상단 48px 한 줄 메뉴,

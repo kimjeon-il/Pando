@@ -19,7 +19,6 @@ on:
       - 'app/editorcontroller.cpp'
       - 'app/CMakeLists.txt'
       - 'tests/country_label_anchor_tests.cpp'
-      - 'docs/validation/data-versioning-phase4.md'
   workflow_dispatch:
 
 permissions:
