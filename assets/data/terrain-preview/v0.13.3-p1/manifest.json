@@ -1,0 +1,81 @@
+{
+  "version": "0.13.3-p1",
+  "representation": "raster-rgba-v1",
+  "dataset": "ETOPO 2022 DEM derived preview",
+  "crs": "EPSG:4326",
+  "extent": [
+    -180,
+    -90,
+    180,
+    90
+  ],
+  "tileFormat": "lossless WebP RGBA",
+  "gutter": 1,
+  "channels": {
+    "rgb": "DEM tint or bathymetry with precomputed shade",
+    "alpha": "DEM precomputed hillshade for grayscale"
+  },
+  "displayColors": {
+    "oceanRepresentative": "#6aa8d2"
+  },
+  "levels": [
+    {
+      "id": 0,
+      "width": 1350,
+      "height": 675,
+      "columns": 2,
+      "rows": 1,
+      "tileSize": 1024
+    },
+    {
+      "id": 1,
+      "width": 2700,
+      "height": 1350,
+      "columns": 3,
+      "rows": 2,
+      "tileSize": 1024
+    }
+  ],
+  "urlTemplate": "terrain-preview/v0.13.3-p1/{level}/{column}-{row}.webp",
+  "sourceDem": {
+    "version": "0.13.3",
+    "assetsSha256": "622a6d272bdda6b507a1f4ba49794fe9ef41aca06f29d8b38e24114caa50d023",
+    "tintSha256": "1ae4c70e05494917c11d3c6b32869db61bf4f9e7e4b0239f9b4bd2b9bec582f3",
+    "landMaskSha256": "6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72"
+  },
+  "assetsSha256": "6d096815095e8e0290b081ab935c532e4b066d0cafbcb63d526236e803738d99",
+  "tiles": {
+    "0/0-0.webp": {
+      "bytes": 553476,
+      "sha256": "c518d380504748839ddb546f874c5f37e64d7b0ae5abd94a25255d64484a99a5"
+    },
+    "0/1-0.webp": {
+      "bytes": 195930,
+      "sha256": "bb9faf13a85878fecdf8a4081019e3d67399f74f688bcd04e42b0acd7f40e042"
+    },
+    "1/0-0.webp": {
+      "bytes": 788966,
+      "sha256": "2ac1fbbebcdebbe795a5226da33aa239f586b55df83a3b1d4d5b9a92da90453a"
+    },
+    "1/1-0.webp": {
+      "bytes": 812552,
+      "sha256": "13a79b8830258dca7e63ed054a4a4ed4bf34f0cc3e1aad95ee36c8f9af996028"
+    },
+    "1/2-0.webp": {
+      "bytes": 573444,
+      "sha256": "b272d27840bc2e67d323ae7e26f6a208da1419ed9716b7f59745e547c62a7ca6"
+    },
+    "1/0-1.webp": {
+      "bytes": 179606,
+      "sha256": "05e39e4d50ba0c929717d1e47a85477c7052670006a9cf907eb93f573225de13"
+    },
+    "1/1-1.webp": {
+      "bytes": 157586,
+      "sha256": "8bf9b8a47f32ba3ec603b40dffb03b0e73c1379c74da98a4cf9e64741bc7fc7f"
+    },
+    "1/2-1.webp": {
+      "bytes": 101706,
+      "sha256": "c5d8b6acca9124438771fced81b5c14062ebf48f359fbd6e0de8b4e48f0ea031"
+    }
+  }
+}
