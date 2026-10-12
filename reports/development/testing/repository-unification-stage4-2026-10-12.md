@@ -29,3 +29,11 @@ Pages를 브랜치 루트 게시에서 GitHub Actions 게시로 전환했다. �
 - 루트 workflow 61개를 YAML로 읽고, 옮긴 앱 workflow 11개의 실행 디렉터리와 트리거 경로를 점검했다.
 - 승인된 Web 계약 핀 `f5040d34a1f596f9385a54c4e1e60c43360acfa4`는 자동 갱신하지 않았다. 통합 전 Web 기준 커밋에서도 현재 후보 46개 중 5개(`territorial-entities` 2개, library fixture 2개, timeline fixture 1개)의 SHA-256이 핀과 달랐다. 이 차이가 승인되기 전에는 공식 parity 회귀 판정이 통과하지 않는다.
 - 전체 앱 CTest, 실제 Qt 입력, 전체 웹 UI·데이터 검증, Android 실기기, 포터블 패키징은 이 4단계에서 수행하지 않았다. 5단계 검증 또는 별도 명시적 요청이 필요하다.
+
+## 통합 후 게시·CI 확인
+
+- 통합 변경 `608c72c8`과 World 게이트 고정 출처 수정 `06743b68`이 `work/gis` 및 통합 저장소 `main`에 푸시됐다. 원본 App `main`은 `f124fdb4` 그대로다.
+- [최종 코드 Pages 실행](https://github.com/kimjeon-il/Pando/actions/runs/38227941285)이 성공했다. 게시 증거는 Web 파일 4,580개·746,796,541바이트, 제외한 `native/` 파일 2,278개를 기록한다. 실제 사이트의 `index.html`, 지형 `v0.12.6` 및 수계 `v0.13.2` manifest가 그 증거의 SHA-256과 일치했고 `native/README.md`는 HTTP 404였다.
+- [App World Stage 4 게이트](https://github.com/kimjeon-il/Pando/actions/runs/38227921080)의 고정 자산 계약과 Qt 오프라인 작업이 모두 성공했다. 원본 App의 동일 게이트는 과거 Web 커밋 `65d34d17`에 없는 수계 `v0.13.2` manifest를 요청해 실패했다. 새 출처 `8de07030`에는 필요한 manifest가 있고 World bundle Git blob은 옛 출처와 같다. 읽기 전용 동기화 계산에서 지형·수계 출처 차이는 없었다.
+- 최초 통합 커밋에서 Web Application Architecture는 통합 전 Web `982e29e0`의 CI와 마찬가지로 실패했다. App 영토 카탈로그 컨트롤러의 4개 실패는 원본 App `f124fdb4`와 통합 커밋에서 같은 테스트 이름으로 재현됐다. 제품 자료나 동작은 이번 단계에서 수정하지 않았다.
+- `06743b68`의 Web/App parity CI는 변경 영향 분류에 따라 실행 대상을 생략하고 성공했다. 이는 전체 behavioral parity 통과가 아니다. 최초 통합 커밋의 전체 parity 실행과 승인 핀 차이 5건은 별도로 판정해야 한다.
