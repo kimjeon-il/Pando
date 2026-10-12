@@ -28,7 +28,7 @@ Web `tools/audit-legacy-gis-assets.mjs`는 데이터 997개·632,007,612 bytes�
 
 Web `work/gis`의 `a932e5d5520b97272b952739e8775dffc86d8e10`에서 위 구형 메시만 제거했다. 커밋 후 `audit-legacy-gis-assets.mjs`는 **996개·617,381,012 bytes**, 현행 지형 타일 334개와 앱 고정 출처를 확인했다. 관련 Node 단위검사 **12/12 통과**. App은 제거할 현행 파일이 없어 소스 변경·새 포터블 패키지가 없으며, `verify-world-assets.mjs` **GIS 7항목 통과**, `verify-release-assets.mjs` **20/20 통과**, 기존 로컬 실행 파일의 `Pandoeditor-local.bat smoke` **종료 코드 0**이다. 이 smoke 검사는 새 빌드·패키지 검사가 아니다.
 
-Web `main` 병합·Pages 배포 후 공개 URL과 원격 커밋을 확인해 이 절에 덧붙인다. 삭제 전 구형 메시 URL은 HTTP 200이었다.
+Web `main`·`work/gis` 원격은 `b122f37b25a5ded5d0d275ea57dd9ac2bf579cca`로 확인했다. 같은 커밋의 [Pages 실행 38210548128](https://github.com/kimjeon-il/Pando/actions/runs/38210548128)은 성공했고 Pages 최신 빌드 API도 `built`·동일 커밋을 반환했다. 공개 URL 확인 결과, [홈](https://kimjeon-il.github.io/Pando/)은 HTTP 200, 삭제한 [구형 메시](https://kimjeon-il.github.io/Pando/assets/data/world-mesh-v0.10.2.bin.gz)는 HTTP 404, 현행 [지형 매니페스트](https://kimjeon-il.github.io/Pando/assets/data/terrain/v0.12.6/manifest.json)와 [이 보고서](https://kimjeon-il.github.io/Pando/reports/development/testing/repository-cleanup-2026-10-12.md)는 HTTP 200이었다. 삭제 전 구형 메시 URL은 HTTP 200이었다. 이는 Pages와 파일 경로 검증이며 전체 웹 CI·모든 사용자 흐름의 통과를 뜻하지 않는다.
 
 ## 3. 격리된 Git 이력 정리
 
@@ -42,3 +42,5 @@ Web `main` 병합·Pages 배포 후 공개 URL과 원격 커밋을 확인해 이
 이 차이는 **현재 원본 객체 디렉터리와 재압축된 복제본 디렉터리의 실측 차이**다. 압축·원본의 loose/도달 불가 객체 차이가 포함되므로 제거 경로만의 순수 절감량으로 해석하지 않는다. 웹의 과거 지형을 가리키던 Codex 임시 **tree ref 12개**는 재작성 도구가 처리하지 않아 옛 Blob을 계속 붙잡았다. 정확한 ref·원본 tree SHA를 별도 목록에 기록한 뒤 **복제본에서만** 제거하고 GC했다. 원본 ref는 유지된다.
 
 검증: Web 로컬 브랜치 **19개**, App **13개**의 최종 tree SHA가 재작성 전과 같고, 제거 경로의 도달 가능한 Blob 경로 **0개**, 양쪽 `git fsck --full --no-reflogs` **종료 코드 0**이다. Web 현행 지형은 복제본에도 **335개**다. Web `work/gis`는 원본 `a932e5d5` → 복제본 `4560f0035c1b2f94afb83ca478735408008bb6d9`, App `main`은 원본 `f124fdb4` → 복제본 `eaae3852ca06c665bf69ac4e527582ee79c3fefd`로 대응한다. 전체 commit map과 입력 ref 목록은 각 복제본의 `filter-repo/commit-map` 및 `D:/dev/history-audit/`의 sidecar 목록에 남겼다. 재작성 SHA는 원래 GitHub 커밋·릴리스 태그의 대체물이 아니며, **원본 웹·앱 저장소와 GitHub 원격 이력은 변경하지 않았다**.
+
+Web 복제본은 보고서 후속 커밋 `b122f37b` 이전의 `a932e5d5`에서 만들었다. 따라서 4단계에서 이력 정리본을 실제 통합 입력으로 채택한다면, 그때 선택한 최종 커밋에서 새 복제본을 만들어 재검증해야 한다. 영구 작업 트리가 없는 `work/auto-georef`·`work/hydro-names`는 이 단계에서 브랜치 끝을 이동하지 않았고, 과거 파일 삭제가 필요한지는 해당 작업과 합칠 때 다시 확인한다.

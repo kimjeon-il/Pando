@@ -68,7 +68,7 @@
 | `DEV-061` | [T2-2 native persistence validation (2026-10-04)](development/app/timeline-persistence-validation.md) | 2026-10-04 | `historical-record` | `not-applicable` |
 | `DEV-062` | [웹판 기능 조사 및 Qt 대응표](development/app/web-feature-audit.md) | 2026-09-17 | `historical-record` | `not-applicable` |
 | `DEV-063` | [Windows 32px 프레임 검증 (2026-09-18)](development/app/windows-frame-validation.md) | 2026-09-18 | `historical-record` | `not-applicable` |
-| `DEV-064` | [웹·앱 저장소 파일 및 Git 이력 정리 — 1~3단계](development/testing/repository-cleanup-2026-10-12.md) | 2026-10-12 | `investigating` | `not-applicable` |
+| `DEV-064` | [웹·앱 저장소 파일 및 Git 이력 정리 — 1~3단계](development/testing/repository-cleanup-2026-10-12.md) | 2026-10-12 | `historical-record` | `not-applicable` |
 | `DEV-010` | [Country lineage storage 실행 기록](development/testing/country-lineage-storage.md) | 2026-10-06 | `historical-record` | `not-applicable` |
 | `DEV-003` | [기본 세계 역사 타임라인 검증](development/testing/historical-world-timeline-validation.md) | 2026-10-12 | `historical-record` | `not-applicable` |
 | `DEV-002` | [러시아 상세 형상 편집: 구현 및 검증 기록](development/testing/russia-edit-responsiveness.md) | 2026-09-16 | `historical-record` | `not-applicable` |
