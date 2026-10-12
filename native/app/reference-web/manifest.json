@@ -1,0 +1,38 @@
+{
+  "repository": "kimjeon-il/Pando",
+  "commit": "f4f5b39357f1ea3e6dce2fcb8d0ff3f81dd8a910",
+  "files": [
+    {
+      "path": "assets/js/modules/reference-image-georef.js",
+      "sha256": "a113e9cbcf3a944ed9f9a41e1e716fa566d46b5b914aa5e137493759ef810c21"
+    },
+    {
+      "path": "assets/js/modules/reference-image-transform.js",
+      "sha256": "a8c7dab3d04d1ff8e0660432335306e771ecfbb1d2a48400a0767b2b65db65d9"
+    },
+    {
+      "path": "assets/js/modules/reference-image-live-wire.js",
+      "sha256": "c3ae32d58ac46511aa4768a12382bcc54d2a9f8bf69a85b46084394a5f44eb2e"
+    },
+    {
+      "path": "assets/js/modules/reference-image-source-mapping.js",
+      "sha256": "e16d1ac4f67abdcb6759932d419aede9a7ea2a4ecfd11cb917685edac14d918c"
+    },
+    {
+      "path": "assets/js/modules/reference-image-line-refiner.js",
+      "sha256": "a1d46b6f1d4488b22d39ff84c416b3f217cd7fcf4561a60c3b30ffce20976830"
+    },
+    {
+      "path": "assets/js/modules/reference-image-place-match.js",
+      "sha256": "62378c541168733a6545bf0466a2033c403ea1723e6c0f5ff9ce088dc4543d9a"
+    },
+    {
+      "path": "assets/js/modules/reference-image-auto-georef.js",
+      "sha256": "7b3ae2c85b37c39e64e0bf299103a3922d51147fd76f8ee531970b976cad8fab"
+    },
+    {
+      "path": "assets/js/modules/reference-image-ocr.js",
+      "sha256": "c7dd9da9e692e0825743940330f7c0497f4fa3a92315ed1e3450cadb00166ff5"
+    }
+  ]
+}

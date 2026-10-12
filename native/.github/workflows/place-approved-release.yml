@@ -1,0 +1,160 @@
+name: Approved Places Windows Portable
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: approved-places-windows-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify-package-release:
+    if: github.repository == 'kimjeon-il/PandoEditor'
+    runs-on: windows-2022
+    timeout-minutes: 90
+    env:
+      QT_QPA_PLATFORM: offscreen
+      QT_QUICK_BACKEND: software
+    steps:
+      - name: Checkout merged main
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verify approved-only Web/native place artifact
+        shell: pwsh
+        run: |
+          $manifest = Get-Content 'assets/place/manifest.json' -Raw -Encoding utf8 | ConvertFrom-Json
+          if ($manifest.revision -ne 'approved-places-a912045657f35026') { throw 'Unexpected city-approval revision; review this release workflow when the verified allowlist changes' }
+          if ($manifest.shards.'places-v1'.bytes -ne 55176) { throw 'Unexpected city shard byte count' }
+          $actual = (Get-FileHash 'assets/place/places-v1.bin' -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $manifest.shards.'places-v1'.sha256) { throw 'Bundled PLAC shard hash mismatch' }
+          if ($actual -ne '43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594') { throw 'Unexpected approved-only shard' }
+
+      - name: Setup Qt 6.8.3
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          modules: qtshadertools qtimageformats
+          cache: true
+
+      - name: Install Windows zlib
+        shell: pwsh
+        run: |
+          vcpkg install zlib:x64-windows
+          if ($LASTEXITCODE -ne 0) { throw 'Windows zlib installation failed' }
+          $runtime = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed/x64-windows/bin'
+          $installed = Join-Path $env:VCPKG_INSTALLATION_ROOT 'installed'
+          $inventory = @(Get-ChildItem (Join-Path $installed 'vcpkg/info') -Filter 'zlib_*_x64-windows.list')
+          if ($inventory.Count -ne 1) { throw 'Expected one installed Windows zlib package inventory' }
+          $runtimeDlls = @(Get-Content $inventory[0].FullName | Where-Object { $_ -match '^x64-windows/bin/[^/]+\.dll$' } | ForEach-Object { Get-Item (Join-Path $installed $_) })
+          if ($runtimeDlls.Count -eq 0) { throw "Windows zlib runtime missing in $runtime" }
+          $runtimeDlls | Select-Object -ExpandProperty FullName
+          "ZLIB_RUNTIME_FILES=$($runtimeDlls.FullName -join ';')" >> $env:GITHUB_ENV
+          $runtime >> $env:GITHUB_PATH
+
+      - name: Configure Release with focused Qt tests
+        shell: pwsh
+        run: |
+          cmake -S . -B build -A x64 -DBUILD_TESTING=ON "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build editor and place regressions
+        shell: pwsh
+        run: |
+          cmake --build build --config Release --parallel 2 --target pandoeditor place_sync_contract_tests place_runtime_store_tests place_runtime_provider_tests place_controller_tests place_label_collision_tests
+
+      - name: Run focused runtime and Qt tests
+        shell: pwsh
+        run: |
+          $testRoot = Join-Path $PWD 'build/Release'
+          $logRoot = Join-Path $PWD 'build/release-test-logs'
+          New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
+          foreach ($name in @('place_sync_contract_tests', 'place_runtime_store_tests', 'place_runtime_provider_tests', 'place_controller_tests', 'place_label_collision_tests')) {
+            $exe = Join-Path $testRoot "$name.exe"
+            $log = Join-Path $logRoot "$name.txt"
+            if (!(Test-Path $exe)) { throw "Release test executable missing: $exe" }
+            if ($name -eq 'place_label_collision_tests') {
+              $stderr = Join-Path $logRoot "$name.stderr.txt"
+              $process = Start-Process -FilePath $exe -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $stderr
+              if (Test-Path $stderr) { Get-Content $stderr }
+              $passingReport = 'place label collision: processed=[1-9]\d* passed=[1-9]\d* failed=0 skip=0'
+            } else {
+              $process = Start-Process -FilePath $exe -ArgumentList @('-o', "$log,txt") -Wait -PassThru -WindowStyle Hidden
+              $passingReport = 'Totals:\s+\d+ passed, 0 failed'
+            }
+            if (Test-Path $log) { Get-Content $log }
+            if ($process.ExitCode -ne 0) { throw "$name failed with exit code $($process.ExitCode); do not publish" }
+            if (!(Test-Path $log) -or !((Get-Content $log -Raw) -match $passingReport)) { throw "$name produced no passing test report; do not publish" }
+          }
+
+      - name: Assemble Qt Windows portable
+        shell: pwsh
+        run: |
+          $exe = Join-Path $PWD 'build/Release/pandoeditor.exe'
+          if (!(Test-Path $exe)) { throw "Expected Windows executable missing: $exe" }
+          $portable = Join-Path $PWD 'dist/windows-portable'
+          New-Item -ItemType Directory -Path $portable -Force | Out-Null
+          Copy-Item $exe (Join-Path $portable 'pandoeditor.exe')
+          Get-ChildItem (Split-Path $exe) -Filter '*.dll' | Copy-Item -Destination $portable
+          foreach ($runtimeDll in ($env:ZLIB_RUNTIME_FILES -split ';')) { Copy-Item -LiteralPath $runtimeDll -Destination $portable }
+          $deploy = Join-Path $env:QT_ROOT_DIR 'bin/windeployqt.exe'
+          if (!(Test-Path $deploy)) { throw "Qt deploy utility missing: $deploy" }
+          & $deploy --release --qmldir (Join-Path $PWD 'ui') --dir $portable (Join-Path $portable 'pandoeditor.exe')
+          if ($LASTEXITCODE -ne 0) { throw 'windeployqt failed' }
+          $offscreen = Join-Path $env:QT_ROOT_DIR 'plugins/platforms/qoffscreen.dll'
+          if (!(Test-Path $offscreen)) { throw 'Qt offscreen platform required for the portable smoke test is missing' }
+          Copy-Item -LiteralPath $offscreen -Destination (Join-Path $portable 'platforms/qoffscreen.dll')
+          $info = [ordered]@{ sourceCommit = '${{ github.sha }}'; repository = '${{ github.repository }}'; approvedGeoNamesIds = 163; manifestRevision = 'approved-places-a912045657f35026'; shardSha256 = '43664502a747723a5b4d0ee1dedb350775a3bdd209a6bfba117de369c4d7c594'; preview = $true; builtAtUtc = (Get-Date).ToUniversalTime().ToString('o') }
+          $info | ConvertTo-Json | Set-Content (Join-Path $portable 'BUILD-INFO.json') -Encoding utf8
+
+      - name: Smoke test standalone editor without Qt SDK
+        shell: pwsh
+        run: |
+          $env:QT_ROOT_DIR = ''
+          $env:QT_PLUGIN_PATH = ''
+          $env:QML_IMPORT_PATH = ''
+          $env:QML2_IMPORT_PATH = ''
+          $env:QT_FORCE_STDERR_LOGGING = '1'
+          $portable = Join-Path $PWD 'dist/windows-portable'
+          $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot;$portable"
+          $smokeOut = Join-Path $PWD 'dist/portable-smoke.stdout.txt'
+          $smokeError = Join-Path $PWD 'dist/portable-smoke.stderr.txt'
+          $process = Start-Process -FilePath (Join-Path $PWD 'dist/windows-portable/pandoeditor.exe') -ArgumentList '--smoke-check' -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput $smokeOut -RedirectStandardError $smokeError
+          Get-Content $smokeOut, $smokeError
+          if ($process.ExitCode -ne 0) { throw 'Portable smoke test failed; do not publish' }
+          if (!((Get-Content $smokeError -Raw) -match 'PORTABLE_SMOKE qml=PASS .*korean=PASS svg=PASS')) { throw 'Portable smoke report missing; do not publish' }
+
+      - name: Compress package and create SHA256
+        shell: pwsh
+        run: |
+          $short = '${{ github.sha }}'.Substring(0,12)
+          $name = "Pandoeditor-approved163-$short-windows-portable.zip"
+          $zip = Join-Path $PWD "dist/$name"
+          Compress-Archive -Path 'dist/windows-portable/*' -DestinationPath $zip -CompressionLevel Optimal
+          $sha = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha  $name" | Set-Content "$zip.sha256" -Encoding ascii
+          "PLACE_PORTABLE_ZIP=$zip" >> $env:GITHUB_ENV
+          "PLACE_PORTABLE_ZIP_SHA=$zip.sha256" >> $env:GITHUB_ENV
+          "PLACE_RELEASE_TAG=v0.1.0-approved163-$short" >> $env:GITHUB_ENV
+
+      - name: Upload Windows portable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: approved-places-windows-${{ github.sha }}
+          path: |
+            ${{ env.PLACE_PORTABLE_ZIP }}
+            ${{ env.PLACE_PORTABLE_ZIP_SHA }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish verified Windows preview release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = "Windows x64 portable preview generated from merged PandoEditor main commit ${{ github.sha }}.`nIncludes 163 specifically approved GeoNames city records, not all 264 staged research places.`nValidated by focused Qt tests and a standalone executable smoke check. Android devices, full behavioral parity and overall production release gate are not certified."
+          gh release create "$env:PLACE_RELEASE_TAG" "$env:PLACE_PORTABLE_ZIP" "$env:PLACE_PORTABLE_ZIP_SHA" --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "PandoEditor — 163 approved historical places (Windows preview)" --notes "$notes" --prerelease
