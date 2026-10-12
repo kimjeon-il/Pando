@@ -8,3 +8,5 @@ tests/fixtures/timeline-*-cases.mjs text eol=lf
 tools/check-platform-portability.mjs text eol=lf
 docs/architecture/platform-boundaries.md text eol=lf
 assets/data/historical-world/**/*.json text eol=lf
+assets/data/world/*.json text eol=lf
+assets/data/world/objects/*.json text eol=lf
