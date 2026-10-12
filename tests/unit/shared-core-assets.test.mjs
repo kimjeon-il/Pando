@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -38,4 +39,14 @@ test('source digest defines only source text line endings and retains numeric ed
   assert.deepEqual(sharedSourceManifest(root),before);
   writeFileSync(join(root,'shared/core/model.cpp'),'int model=2;\n');
   assert.notEqual(sharedSourceManifest(root).sourceSha256,before.sourceSha256);
+});
+
+test('packages JavaScript with the committed LF bytes before fixing its manifest hash',async () => {
+  const {root,build}=fixture();
+  const path=join(build,'pandoeditor-core.js'),lf=readFileSync(path);
+  writeFileSync(path,lf.toString('utf8').replace(/\n/g,'\r\n'));
+  const manifest=await packageSharedCoreAssets(root,build);
+  assert.deepEqual(readFileSync(join(root,'assets/wasm/pandoeditor-core.js')),lf);
+  assert.equal(manifest.assets.js.sha256,createHash('sha256').update(lf).digest('hex'));
+  assert.deepEqual(await packageSharedCoreAssets(root,build,{check:true}),manifest);
 });
