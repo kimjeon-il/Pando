@@ -22,7 +22,9 @@ export function sharedSourceManifest(root) {
 
 export async function packageSharedCoreAssets(rootInput,buildInput,{check=false}={}) {
   const root=resolve(rootInput),build=resolve(buildInput);
-  const js=readFileSync(join(build,'pandoeditor-core.js'));
+  // Git commits this generated module with LF endings; hash the published bytes.
+  const js=Buffer.from(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true})
+    .decode(readFileSync(join(build,'pandoeditor-core.js'))).replace(/\r\n/g,'\n'));
   const wasm=readFileSync(join(build,'pandoeditor-core.wasm'));
   assert.ok(wasm.length>=8&&wasm.subarray(0,8).equals(Buffer.from([0,97,115,109,1,0,0,0])),'invalid WASM artifact');
   const identity=sharedSourceManifest(root);

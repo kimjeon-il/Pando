@@ -403,7 +403,7 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "64db0857e689f64aae845d3d797934089ceb0d9e68767543f3e4be11b660dfdd"
+      "sha256": "10aa6552f9576f3cea9780c8ed7328351d58171b2ccdcf8e271fe7b6309f990b"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
