@@ -1,0 +1,38 @@
+# 현행 수계 데이터 최적화 — 1단계 (2026-10-09)
+
+> 보고서 ID: `GEO-009` · 상태: `historical-record` · 지도 반영: `unverified` · 색인일: 2026-10-12  
+> 원문 최종 수정: 2026-10-09  
+> 원본: [웹 `docs/validation/active-hydro-optimization-stage1.md`](https://github.com/kimjeon-il/Pando/blob/e2efceb6788f5b9e1f682916b8b9763f7bc2db85/docs/validation/active-hydro-optimization-stage1.md)  
+
+
+## 범위
+- 웹: `kimjeon-il/Pando`의 `work/gis`.
+- 검사 대상: `hydro/v0.13.1`과 이 버전이 재사용하는 `hydro/v0.13.0`, 앱의 현재 수계 원본 고정값.
+- 현행 하천·호수 도형, 명칭, 바이너리 파일, 공개 URL 및 기존 제품 코드는 **변경하지 않는다**. 구버전 `v0.12.2`~`v0.12.6`의 삭제는 후속 단계다.
+
+## 실물 배치와 최적화 판정
+- `v0.13.0`: manifest + index + metadata core/detail + shard 3개 = 7개 파일, 12,045,791 bytes.
+- `v0.13.1`: manifest + 새 metadata core = 2개 파일, 782,600 bytes.
+- v0.13.1에서 이전 버전 인덱스 1개, 상세 메타데이터 1개, 샤드 3개 총 **5개/11,244,495 bytes를 참조 재사용**.
+- v0.13.1의 명칭 메타데이터는 729,625 bytes로 구버전 748,376 bytes보다 18,751 bytes 작음.
+- 참조 경로와 SHA/크기는 두 매니페스트에서 일치. v0.13.0을 통째로 삭제하면 최신 수계도 손상된다.
+- SHA 고정 앱의 업데이트 없이 바이너리를 재압축·복제하면 서로 다른 다운로드 정본이 생긴다. 유효한 데이터 축소 효과가 입증되기 전에는 원본 유지가 우선이다.
+
+## 구현
+- `tools/check-current-hydro-layout.mjs`: 현행 매니페스트 간 그래프/경로/서명/크기, 바이너리 실제 SHA-256, 신규 폴더 잔여 복사본, 앱 고정 원본 Git Blob·SHA-256 및 이름 버전 등을 검증. gzip level 9의 재압축 **가상 벤치마크만 수행**(원본 저장 금지).
+- `tests/unit/current-hydro-layout.test.mjs`: 경로 탈출, 중복 복사, 도형 참조 변조, 바이트 손상, 원본 고정 오류 및 정상 동작을 독립 시험.
+- `.github/workflows/active-hydro-optimization-gate.yml`: GIS 작업 브랜치에서 소스 파일을 읽기 전용으로 검사하고 JSON artifact를 생성. `main` 배포나 앱 리소스 변경 없음.
+
+## 승인 경계
+- 압축 포맷·바이트를 바꾸거나 `v0.13.0`을 합치지 않는다.
+- 기준 수계가 현행 형상·명칭을 그대로 출력하는 상태에서만 최적화가 유효하다.
+- 기존 앱 오프라인 자료·핀을 변경하지 않으며, 나중 단계에서 미사용 자료를 별도 판정한다.
+- 단계1은 데이터 자체 재압축이 아니라 **이미 효율적인 활성 배치에 대한 검증·회귀 방지 최적화**다. 향후 삭제 후보 판정은 별도 수행한다.
+
+## 검증 완료
+
+- [GitHub Actions #37903489555](https://github.com/kimjeon-il/Pando/actions/runs/37903489555): **success** (검증 커밋 `a9b119798add`).
+- 단위검사 8/8. 실물 7개 바이너리의 길이·SHA-256, 현재 매니페스트 인덱스·샤드 불변 참조, 앱 `main` v1 및 `work/gis` v2의 매니페스트 SHA-256/Git Blob 확인.
+- 재사용 참조 5개 11,244,495 bytes. `v0.13.0`·`v0.13.1`에 불필요한 미참조 파일은 각각 0개.
+- 모든 gzip 압축 파일에 대해 level9 가상 재압축을 비교한 결과 추가 잠재 절감량 34,594 bytes. **재압축/원본 수정/배포/구형 파일 삭제 없음.**
+- CI 산출물: [활성 수계 감사 JSON](https://github.com/kimjeon-il/Pando/actions/runs/37903489555/artifacts/11603990024).

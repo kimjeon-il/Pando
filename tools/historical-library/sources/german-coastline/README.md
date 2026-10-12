@@ -67,7 +67,7 @@ not been individually checked, the shoreline-versus-dike symbol needs independen
 interpretation, and the hand-selected sample set is not a continuous historical
 coastline.
 
-See [short overview](1914-sh-period-map-overlay-review.md) and
+See [short overview](../../../../reports/geography/germany/1914-sh-period-map-overlay-review.md) and
 [point-level reproducibility/provenance](sh-pre1914-era-screen-point-samples.json).
 No geometry or timeline has been changed by this source work. Period-map vector
 digitization and actual screen Hausdorff validation remain outstanding.

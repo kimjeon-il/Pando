@@ -25,7 +25,7 @@ on:
       - 'assets/js/modules/app-environment.js'
       - 'assets/js/modules/terrain-manifest.js'
       - 'scripts/generate-build-metadata.mjs'
-      - 'docs/validation/data-versioning-phase10.md'
+      - 'reports/archive/data-versioning/web-data-versioning-phase10.md'
   workflow_dispatch:
 
 permissions:

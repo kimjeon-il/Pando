@@ -11,6 +11,8 @@ v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·�
 참고하세요. 개발 에이전트의 필수 규칙은 [AGENTS.md](AGENTS.md)에 정리되어 있습니다.
 작업별로 브랜치·워크트리를 새로 만들거나 작업 종료 시 자동 삭제하지 않습니다.
 
+조사·검증 보고서는 [보고서 색인](reports/README.md)에서 분야와 상태별로 찾을 수 있습니다.
+
 ## 로컬 실행
 
 이 프로젝트는 Worker와 외부 데이터 파일을 사용하므로 `index.html`을 직접 더블클릭하지 마세요.
@@ -38,7 +40,7 @@ pnpm.cmd test:python
 ```
 
 현재 계약으로 검사 파일과 CI를 검수한 범위·실행 증거는
-[검사 최신화 기록](docs/validation-audit.md)에 기록합니다.
+[검사 최신화 기록](reports/development/testing/validation-audit.md)에 기록합니다.
 
 ## GitHub Pages 배포
 
