@@ -7,6 +7,10 @@ const repo = new URL('../../', import.meta.url);
 const file = path => readFileSync(new URL(path, repo));
 const json = path => JSON.parse(file(path).toString('utf8'));
 const blobId = bytes => createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
+const checkedOutTextBlobId = bytes => {
+  const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+  return blobId(Buffer.from(text.replace(/\r\n/g, '\n'), 'utf8'));
+};
 const names = json('contracts/places/v2.json');
 const sourceManifest = json('reports/places/source-manifest.json');
 
@@ -29,7 +33,7 @@ test('native packaged PLAC v3 uses Web-approved 163-city data, not all research 
 
 
 test('native branch retains the exact Web-pinned v2 exchange artifact', () => {
-  assert.equal(blobId(file('contracts/places/v2.json')), 'c183d618238b47f297ecc84804b3e2239ca78d3f');
+  assert.equal(checkedOutTextBlobId(file('contracts/places/v2.json')), 'c183d618238b47f297ecc84804b3e2239ca78d3f');
   assert.equal(names.schema, 'pando-place-sync-v2');
   assert.equal(names.dataContractVersion, 2);
   assert.equal(names.wire.headerBytes, 32);
@@ -259,7 +263,9 @@ test('batch 15 central Asian capitals preserve real renamings, language forms, a
     [[1801,'두샨베'],['1929-12-01','스탈리나바드'],
       ['1940-05-21','스탈리나바드'],['1961-11-11','두샨베']]);
   assert.equal(at(records[3],'1950-06-15'),'스탈리나바드');
-  assert.equal(at(records[3],'1961-07-01'),'두샨베');
+  assert.equal(at(records[3],'1961-07-01'),'스탈리나바드');
+  assert.equal(at(records[3],'1961-11-10'),'스탈리나바드');
+  assert.equal(at(records[3],'1961-11-11'),'두샨베');
   assert.deepEqual(records[4].displayTimeline.map(x=>[x.fromYear||x.fromDate,x.nameKo]),
     [[1801,'아슈하바트'],[1919,'폴토라츠크'],['1927-04-07','아슈하바트'],
       ['1929-05-05','아슈하바트'],[1937,'아슈하바트'],

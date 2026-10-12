@@ -5,7 +5,7 @@ import { spawnSync, execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { sourceIdentity, verifyContractPin, verifyBuildReceipt, verifyCTestCommand, sha256 } from './parity/provenance.mjs';
+import { sourceIdentity, verifyContractPin, verifyBuildReceipt, verifyCTestCommand, verifyUnifiedSourceRoots, sha256 } from './parity/provenance.mjs';
 import { prepareNativeBuild } from './parity/native-build.mjs';
 import { nativeTargets, observeCurrent } from './parity/current-adapters.mjs';
 import { summarizeFeatures, markdownReport, expectedCaseIds as plannedCaseIds } from './parity/report.mjs';
@@ -50,8 +50,11 @@ async function main() {
     contract = verifyContractPin(webRoot, pin);
   }
   catch (error) { problems.push(error.message); provenanceVerified = false; }
-  if (process.argv.includes('--official') && (!sources.web.clean || !sources.app.clean)) {
-    problems.push('Official evidence requires two clean checkouts'); provenanceVerified = false;
+  if (process.argv.includes('--official')) {
+    try {
+      verifyUnifiedSourceRoots(webRoot, appRoot, sources);
+      if (!sources.web.clean || !sources.app.clean) throw new Error('Official evidence requires a clean monorepo checkout');
+    } catch (error) { problems.push(error.message); provenanceVerified = false; }
   }
   if (process.argv.includes('--build')) {
     try { receipt = prepareNativeBuild({ appRoot, buildRoot, targets, cmake: arg('--cmake') ?? 'cmake' }); }

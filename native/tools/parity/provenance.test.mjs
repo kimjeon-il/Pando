@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { containedFile, sourceIdentity, verifyContractPin, verifyBuildReceipt, verifyCTestCommand, sha256 } from './provenance.mjs';
+import { containedFile, sourceIdentity, verifyContractPin, verifyBuildReceipt, verifyCTestCommand, verifyUnifiedSourceRoots, sha256 } from './provenance.mjs';
 
 function repository(t) {
   const root = mkdtempSync(join(tmpdir(), 'pando-parity-'));
@@ -22,6 +22,14 @@ test('source identity includes tracked edits and untracked file content', t => {
   writeFileSync(join(root, 'new.txt'), 'one'); const second = sourceIdentity(root);
   writeFileSync(join(root, 'new.txt'), 'two');
   assert.notEqual(sourceIdentity(root).fingerprint, second.fingerprint);
+});
+test('official Web and native evidence must come from one exact checkout', t => {
+  const root = repository(t), native = join(root, 'native'), other = join(root, 'other');
+  mkdirSync(native); mkdirSync(other);
+  const head = sourceIdentity(root).head;
+  assert.doesNotThrow(() => verifyUnifiedSourceRoots(root, native, { web: { head }, app: { head } }));
+  assert.throws(() => verifyUnifiedSourceRoots(root, other, { web: { head }, app: { head } }), /native subtree/);
+  assert.throws(() => verifyUnifiedSourceRoots(root, native, { web: { head }, app: { head: '0'.repeat(40) } }), /same commit/);
 });
 test('wrong commits, contract bytes and path traversal cannot pass provenance', t => {
   const root = repository(t), identity = sourceIdentity(root);
