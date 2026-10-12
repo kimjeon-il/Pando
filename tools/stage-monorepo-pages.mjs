@@ -12,6 +12,7 @@ const REQUIRED = [
   'assets/data/hydro/v0.13.2/manifest.json'
 ];
 const hash = (algorithm, bytes) => createHash(algorithm).update(bytes).digest('hex');
+const blobHash = bytes => hash('sha1', Buffer.concat([Buffer.from(`blob ${bytes.length}\0`), bytes]));
 const within = (root, target) => {
   const rel = relative(root, target);
   return rel !== '' && rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
@@ -26,6 +27,26 @@ function gitFiles(root) {
     if (!match) throw Error(`Unsupported Git tree entry: ${row.slice(0, 100)}`);
     return { mode: match[1], blob: match[2], bytes: Number(match[3]), path: match[4] };
   });
+}
+
+function committedBlob(root, file) {
+  const bytes = execFileSync('git', ['cat-file', 'blob', file.blob], {
+    cwd: root, maxBuffer: Math.max(file.bytes + 1024, 1024 * 1024)
+  });
+  if (bytes.length !== file.bytes || blobHash(bytes) !== file.blob) {
+    throw Error(`Invalid committed Git blob: ${file.path}`);
+  }
+  return bytes;
+}
+
+function isEquivalentCrLfCheckout(working, committed) {
+  try {
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(committed);
+    if (text.includes('\0') || !text.includes('\n')) return false;
+    return working.equals(Buffer.from(text.replace(/\n/g, '\r\n'), 'utf8'));
+  } catch {
+    return false;
+  }
 }
 
 export function stageWebPages(rootInput, stageInput, manifestInput) {
@@ -48,19 +69,22 @@ export function stageWebPages(rootInput, stageInput, manifestInput) {
     if (!within(root, source) || !existsSync(source) || !lstatSync(source).isFile()) {
       throw Error(`Invalid source file: ${file.path}`);
     }
-    const bytes = readFileSync(source);
-    if (bytes.length !== file.bytes ||
-        hash('sha1', Buffer.concat([Buffer.from(`blob ${bytes.length}\0`), bytes])) !== file.blob) {
+    const working = readFileSync(source);
+    const exact = working.length === file.bytes && blobHash(working) === file.blob;
+    const committed = exact ? working : committedBlob(root, file);
+    if (!exact && !isEquivalentCrLfCheckout(working, committed)) {
       throw Error(`Committed Web file changed or mismatch: ${file.path}`);
     }
-    return { path: file.path, blob: file.blob, bytes: file.bytes, sha256: hash('sha256', bytes) };
+    return { path: file.path, blob: file.blob, bytes: file.bytes,
+      sha256: hash('sha256', committed), convertedCrLf: !exact };
   });
   mkdirSync(stage, { recursive: true });
   for (const file of files) {
     const output = resolve(stage, file.path);
     if (!within(stage, output)) throw Error(`Invalid Pages output: ${file.path}`);
     mkdirSync(dirname(output), { recursive: true });
-    copyFileSync(resolve(root, file.path), output);
+    if (file.convertedCrLf) writeFileSync(output, committedBlob(root, file));
+    else copyFileSync(resolve(root, file.path), output);
     if (hash('sha256', readFileSync(output)) !== file.sha256) throw Error(`Staged copy mismatch: ${file.path}`);
   }
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
