@@ -66,6 +66,11 @@ public:
     Q_INVOKABLE bool setLinearConstraints(const QString &id,const QVariantList &constraints);
     Q_INVOKABLE bool addLinearConstraint(const QString &id,const QVariantMap &constraint);
     Q_INVOKABLE bool removeLinearConstraint(const QString &id,const QString &constraintId);
+    Q_INVOKABLE bool beginLinearConstraint(const QString &kind);
+    Q_INVOKABLE bool addLinearMapPoint(double longitude,double latitude);
+    Q_INVOKABLE bool undoLinearMapPoint();
+    Q_INVOKABLE bool previewLinearConstraint();
+    Q_INVOKABLE bool applyLinearConstraint();
 
     Q_INVOKABLE bool importImage(const QUrl &source, const QString &name = {});
     Q_INVOKABLE bool removeImage(const QString &id);

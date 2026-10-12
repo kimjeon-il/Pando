@@ -13,6 +13,7 @@ Rectangle {
     color: editor.appearancePreferences.effectiveTheme === "dark" ? "#101820" : "#e8eff4"
     clip: true
     readonly property var cameraState: editor.mapViewState
+    readonly property var linearSession: referenceImages.traceSession.mode === "linear" ? referenceImages.traceSession : ({})
     readonly property real zoom: Number.isFinite(cameraState.flatZoom) ? cameraState.flatZoom : 1
     readonly property real panX: Number.isFinite(cameraState.panX) ? cameraState.panX : 0
     readonly property real panY: Number.isFinite(cameraState.panY) ? cameraState.panY : 0
@@ -279,6 +280,7 @@ Rectangle {
         readonly property var record: session.record || ({})
         onClosed: referenceImages.cancelCalibration()
         contentItem: ScrollView {
+            id: calibrationScroll
             clip: true; contentWidth: availableWidth
             Column {
                 width: parent.width; spacing: 8
@@ -287,19 +289,33 @@ Rectangle {
                     id: calibrationSource; objectName: "referenceCalibrationSource"
                     width: parent.width; height: 180; fillMode: Image.PreserveAspectFit
                     source: calibrationPanel.record.source || ""
-                    MouseArea { anchors.fill: parent; onClicked: function(mouse) {
+                    MouseArea { anchors.fill: parent; z: 1; onClicked: function(mouse) {
                         const u=(mouse.x-(parent.width-parent.paintedWidth)/2)/parent.paintedWidth
                         const v=(mouse.y-(parent.height-parent.paintedHeight)/2)/parent.paintedHeight
-                        if(referenceImages.traceSession.active)referenceImages.traceAnchor(u,v);else referenceImages.pickImagePoint(u,v)
+                        if(referenceImages.traceSession.active && (referenceImages.traceSession.mode !== "linear" || referenceImages.traceSession.phase === "armed" || referenceImages.traceSession.phase === "tracking"))referenceImages.traceAnchor(u,v)
+                        else if(!view.linearSession.active)referenceImages.pickImagePoint(u,v)
                     } }
+                    Canvas {
+                        anchors.fill: parent; visible: !!view.linearSession.active; enabled: false
+                        readonly property string lineRevision: JSON.stringify(view.linearSession.uv || [])
+                        onLineRevisionChanged: requestPaint()
+                        onPaint: {
+                            const points=view.linearSession.uv || [];const ctx=getContext("2d");ctx.clearRect(0,0,width,height)
+                            if(points.length<2)return
+                            const left=(width-calibrationSource.paintedWidth)/2,top=(height-calibrationSource.paintedHeight)/2
+                            ctx.beginPath();ctx.lineWidth=3;ctx.strokeStyle="#2f8cff"
+                            points.forEach((p,i)=>{const x=left+p[0]*calibrationSource.paintedWidth,y=top+p[1]*calibrationSource.paintedHeight;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)})
+                            ctx.stroke()
+                        }
+                    }
                 }
                 Column {
                     width: parent.width; spacing: 4
                     Row {
                         spacing: 4
                         UiButton { objectName: "referenceTraceStart"; text: "자동 추적"; enabled: !view.spacePanRouting && view.geometryEditing && !referenceImages.traceSession.active && (!!calibrationPanel.record.cornerPinEnabled || !!(calibrationPanel.session.result && calibrationPanel.session.result.calibrationOk)); onClicked: { if(view.ensureReferenceQuad(false))referenceImages.beginTrace(editor.referenceDraftContext()) } }
-                        UiButton { objectName: "referenceTraceUndo"; text: "마지막 점 취소"; enabled: !view.spacePanRouting && !!referenceImages.traceSession.active && !referenceImages.traceSession.busy; onClicked: referenceImages.undoTraceAnchor() }
-                        UiButton { objectName: "referenceTraceFinish"; text: "완료"; enabled: !view.spacePanRouting && !!referenceImages.traceSession.active && !referenceImages.traceSession.busy; onClicked: referenceImages.finishTrace() }
+                        UiButton { objectName: "referenceTraceUndo"; text: "마지막 점 취소"; enabled: !view.spacePanRouting && !!referenceImages.traceSession.active && referenceImages.traceSession.mode !== "linear" && !referenceImages.traceSession.busy; onClicked: referenceImages.undoTraceAnchor() }
+                        UiButton { objectName: "referenceTraceFinish"; text: "완료"; enabled: !view.spacePanRouting && !!referenceImages.traceSession.active && referenceImages.traceSession.mode !== "linear" && !referenceImages.traceSession.busy; onClicked: referenceImages.finishTrace() }
                     }
                     UiButton { objectName: "referenceRefineStart"; text: "현재 초안 선 보정"; enabled: !view.spacePanRouting && view.geometryEditing && !referenceImages.traceSession.active && (!!calibrationPanel.record.cornerPinEnabled || !!(calibrationPanel.session.result && calibrationPanel.session.result.calibrationOk)); onClicked: view.beginReferenceRefine() }
                     Row {
@@ -320,23 +336,54 @@ Rectangle {
                     UiButton { text: "고정 해제"; visible: !!calibrationPanel.record.anchor && Object.keys(calibrationPanel.record.anchor).length>0; onClicked: referenceImages.clearAnchor() }
                 }
                 Column {
+                    id: autoGeorefPreviewColumn
                     width: parent.width; spacing: 4
                     visible: !!referenceImages.autoGeorefSession.active
                     readonly property var autoResult: referenceImages.autoGeorefSession || ({})
                     Label {
                         width: parent.width; wrapMode: Text.Wrap
-                        text: autoResult.ok
-                            ? "자동 맞춤"+(autoResult.source === "place-ocr" ? " · OCR 보조" : "")
-                                +" · 후보 "+(autoResult.candidateCount||0)
-                                +" · 채택 "+(autoResult.inlierCount||0)
-                                +" · 제외 "+(autoResult.rejectedCount||0)
-                                +" · RMS "+Number(autoResult.rmsMeters||0).toFixed(1)+" m"
-                            : view.referenceAutoGeorefMessage(autoResult.reason)
+                        text: autoGeorefPreviewColumn.autoResult.ok
+                            ? "자동 맞춤"+(autoGeorefPreviewColumn.autoResult.source === "place-ocr" ? " · OCR 보조" : "")
+                                +" · 후보 "+(autoGeorefPreviewColumn.autoResult.candidateCount||0)
+                                +" · 채택 "+(autoGeorefPreviewColumn.autoResult.inlierCount||0)
+                                +" · 제외 "+(autoGeorefPreviewColumn.autoResult.rejectedCount||0)
+                                +" · RMS "+Number(autoGeorefPreviewColumn.autoResult.rmsMeters||0).toFixed(1)+" m"
+                            : view.referenceAutoGeorefMessage(autoGeorefPreviewColumn.autoResult.reason)
                     }
                     Row {
-                        spacing: 4; visible: !!autoResult.ok
+                        spacing: 4; visible: !!autoGeorefPreviewColumn.autoResult.ok
                         UiButton { objectName: "referenceAutoGeorefApply"; text: "결과 적용"; onClicked: referenceImages.applyAutoGeoref() }
                         UiButton { objectName: "referenceAutoGeorefCancel"; text: "취소"; onClicked: referenceImages.cancelAutoGeoref() }
+                    }
+                }
+                Row {
+                    spacing: 4
+                    UiButton { objectName: "referenceLinearCoastline"; text: "해안선 제약 추가"; enabled: !calibrationPanel.record.locked && !referenceImages.traceSession.active && (calibrationPanel.record.geographicPoints || []).length >= 2; onClicked: { if(referenceImages.beginLinearConstraint("coastline"))calibrationScroll.contentItem.contentY=0 } }
+                    UiButton { objectName: "referenceLinearRiver"; text: "강 제약 추가"; enabled: !calibrationPanel.record.locked && !referenceImages.traceSession.active && (calibrationPanel.record.geographicPoints || []).length >= 2; onClicked: { if(referenceImages.beginLinearConstraint("river"))calibrationScroll.contentItem.contentY=0 } }
+                }
+                Column {
+                    width: parent.width; spacing: 4; visible: !!view.linearSession.active
+                    Label { width: parent.width; wrapMode: Text.Wrap; text: view.linearSession.error || (view.linearSession.phase === "map" ? "지도에서 대응 선을 두 점 이상 찍으세요." : view.linearSession.phase === "preview" ? "변형된 이미지를 확인한 뒤 적용하세요." : "원본 이미지에서 선을 따라 두 점 이상 찍으세요.") }
+                    Row {
+                        spacing: 4
+                        UiButton { text: "마지막 점 취소"; enabled: !view.linearSession.busy && (view.linearSession.phase === "armed" || view.linearSession.phase === "tracking"); onClicked: referenceImages.undoTraceAnchor() }
+                        UiButton { objectName: "referenceLinearImageFinish"; text: "이미지 선 완료"; enabled: !view.linearSession.busy && view.linearSession.phase === "tracking" && (view.linearSession.uv || []).length >= 2; onClicked: referenceImages.finishTrace() }
+                    }
+                    Row {
+                        spacing: 4
+                        UiButton { text: "지도 점 취소"; enabled: view.linearSession.phase === "map" && (view.linearSession.mapPoints || []).length > 0; onClicked: referenceImages.undoLinearMapPoint() }
+                        UiButton { objectName: "referenceLinearPreview"; text: "미리보기"; enabled: view.linearSession.phase === "map" && (view.linearSession.mapPoints || []).length >= 2; onClicked: referenceImages.previewLinearConstraint() }
+                        UiButton { objectName: "referenceLinearApply"; text: "적용"; visible: view.linearSession.phase === "preview"; onClicked: referenceImages.applyLinearConstraint() }
+                        UiButton { objectName: "referenceLinearCancel"; text: "취소"; onClicked: referenceImages.cancelTrace() }
+                    }
+                }
+                Repeater {
+                    model: calibrationPanel.record.linearConstraints || []
+                    delegate: Row {
+                        required property var modelData; required property int index
+                        spacing: 4
+                        Label { text: (modelData.kind === "river" ? "강" : modelData.kind === "coastline" ? "해안선" : modelData.kind === "border" ? "경계선" : "기타 선") + " " + (index+1) + (modelData.enabled === false ? " · 비활성" : "") }
+                        UiButton { text: "삭제"; enabled: !calibrationPanel.record.locked && !view.linearSession.active; onClicked: referenceImages.removeLinearConstraint(calibrationPanel.record.id,modelData.id) }
                     }
                 }
                 Row {
@@ -409,7 +456,7 @@ Rectangle {
         }
     }
     MouseArea {
-        anchors.fill: parent; z: 24; enabled: !view.spacePanRouting && !!referenceImages.traceSession.active && referenceImages.traceSession.phase !== "preview" && referenceImages.traceSession.mode !== "refine"
+        anchors.fill: parent; z: 24; enabled: !view.spacePanRouting && !!referenceImages.traceSession.active && referenceImages.traceSession.mode === "trace" && referenceImages.traceSession.phase !== "preview"
         onClicked: function(mouse) { const uv=view.referenceUvAtScreen(mouse.x,mouse.y);if(uv.length===2)referenceImages.traceAnchor(uv[0],uv[1]) }
     }
     Shape {
@@ -459,6 +506,26 @@ Rectangle {
             if(coordinate.length===2)referenceImages.pickMapCoordinate(coordinate[0],coordinate[1])
         }
     }
+    MouseArea {
+        anchors.fill: parent; z: 24
+        enabled: !view.spacePanRouting && view.linearSession.phase === "map"
+        onClicked: function(mouse) {
+            const coordinate=editor.referenceCoordinateAtScreen(mouse.x,mouse.y)
+            if(coordinate.length===2)referenceImages.addLinearMapPoint(coordinate[0],coordinate[1])
+        }
+    }
+    Canvas {
+        anchors.fill: parent; z: 23; visible: !!view.linearSession.active; enabled: false
+        readonly property string lineRevision: JSON.stringify(view.cameraState)+JSON.stringify(view.linearSession.mapPoints || [])
+        onLineRevisionChanged: requestPaint()
+        onPaint: {
+            const points=view.linearSession.mapPoints || [];const ctx=getContext("2d");ctx.clearRect(0,0,width,height)
+            if(points.length<2)return
+            ctx.beginPath();ctx.lineWidth=3;ctx.strokeStyle="#f59e0b";ctx.setLineDash([7,4])
+            points.forEach((p,i)=>{const s=editor.referenceScreenAtCoordinate(p[0],p[1]);if(!s.visible)return;if(i===0)ctx.moveTo(s.x,s.y);else ctx.lineTo(s.x,s.y)})
+            ctx.stroke()
+        }
+    }
 
 
     Repeater {
@@ -485,7 +552,7 @@ Rectangle {
             height: screenRect.height
             source: modelData.source
             opacity: modelData.opacity
-            visible: modelData.visible && !view.globeMode && !modelData.calibrationMesh
+            visible: modelData.visible && !view.globeMode && !modelData.calibrationMesh && !(view.linearSession.phase === "preview" && view.linearSession.id === modelData.id)
             blendMode: modelData.blend
             warpMode: modelData.warpMode
             controlPoints: modelData.controlPoints
@@ -496,7 +563,7 @@ Rectangle {
             transformOrigin: Item.Center
             z: 0.5
             DragHandler {
-                enabled: !view.spacePanRouting && !parent.modelData.locked && !view.geometryEditing
+                enabled: !view.spacePanRouting && !parent.modelData.locked && !view.geometryEditing && !view.linearSession.active
                 target: null
                 onActiveChanged: {
                     if (active) {
@@ -531,7 +598,7 @@ Rectangle {
                 }
             }
             PinchHandler {
-                enabled: !view.spacePanRouting && !parent.modelData.locked && !view.geometryEditing
+                enabled: !view.spacePanRouting && !parent.modelData.locked && !view.geometryEditing && !view.linearSession.active
                 target: null
                 property real startWidth: 0
                 property real startHeight: 0
@@ -549,7 +616,7 @@ Rectangle {
                 })
             }
             WheelHandler {
-                enabled: !view.spacePanRouting && !parent.modelData.locked && !view.geometryEditing
+                enabled: !view.spacePanRouting && !parent.modelData.locked && !view.geometryEditing && !view.linearSession.active
                 target: null
                 onWheel: function(event) {
                     let factor=Math.pow(1.0015,event.angleDelta.y)
@@ -571,8 +638,8 @@ Rectangle {
             anchors.fill: parent
             sceneBridge: editor.mapSceneBridge
             source: modelData.source
-            visible: modelData.visible && (view.globeMode || !!modelData.calibrationMesh)
-            calibrationMesh: modelData.calibrationMesh || ({})
+            visible: modelData.visible && (view.globeMode || !!modelData.calibrationMesh || (view.linearSession.phase === "preview" && view.linearSession.id === modelData.id))
+            calibrationMesh: view.linearSession.phase === "preview" && view.linearSession.id === modelData.id ? view.linearSession.previewMesh : (modelData.calibrationMesh || ({}))
             opacity: modelData.opacity
             objectName: "referenceImageGeographicOverlay"
             readonly property var geographicBounds: editor.editMapRectGeographicBounds(Qt.rect(modelData.x, modelData.y, modelData.width, modelData.height), editor.hydroProjection)

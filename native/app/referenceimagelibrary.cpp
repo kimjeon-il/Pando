@@ -261,6 +261,77 @@ bool ReferenceImageLibrary::removeLinearConstraint(const QString &id,const QStri
     return values.size()!=before&&setLinearConstraints(id,values);
 }
 
+bool ReferenceImageLibrary::beginLinearConstraint(const QString &kind)
+{
+    if(kind!=QStringLiteral("river")&&kind!=QStringLiteral("coastline"))return false;
+    const auto base=find(calibrationId_);if(!base)return false;
+    auto input=variant(*base,directory());input["controlPoints"]=base->geographicPoints;
+    input["cornerPinEnabled"]=false;input["linearConstraints"]=QVariantList{};
+    if(!calibration(input)["ok"].toBool()){
+        fail(QStringLiteral("선 제약에는 먼저 기준점 보정이 필요합니다."));return false;
+    }
+    if(!beginTrace({{"session","linear-constraint"}}))return false;
+    const auto item=find(calibrationId_);
+    trace_["mode"]="linear";
+    trace_["kind"]=kind;
+    trace_["mapPoints"]=QVariantList{};
+    trace_["baseSignature"]=QJsonDocument(json(*item)).toJson(QJsonDocument::Compact);
+    emit traceSessionChanged();
+    return true;
+}
+
+bool ReferenceImageLibrary::addLinearMapPoint(double longitude,double latitude)
+{
+    if(trace_["mode"]!="linear"||trace_["phase"]!="map"||!std::isfinite(longitude)||!std::isfinite(latitude)
+        ||longitude< -180||longitude>180||latitude< -90||latitude>90)return false;
+    auto points=trace_["mapPoints"].toList();points.push_back(QVariantList{longitude,latitude});
+    trace_["mapPoints"]=points;emit traceSessionChanged();return true;
+}
+
+bool ReferenceImageLibrary::undoLinearMapPoint()
+{
+    if(trace_["mode"]!="linear"||trace_["phase"]!="map")return false;
+    auto points=trace_["mapPoints"].toList();if(points.empty())return false;
+    points.removeLast();trace_["mapPoints"]=points;emit traceSessionChanged();return true;
+}
+
+bool ReferenceImageLibrary::previewLinearConstraint()
+{
+    if(trace_["mode"]!="linear"||trace_["phase"]!="map"||trace_["uv"].toList().size()<2
+        ||trace_["mapPoints"].toList().size()<2)return false;
+    const auto item=find(trace_["id"].toString());
+    if(!item||item->locked||gestureBefore_)return false;
+    const auto signature=QJsonDocument(json(*item)).toJson(QJsonDocument::Compact);
+    if(trace_["baseSignature"].toByteArray()!=signature){fail(QStringLiteral("참조 이미지가 바뀌었습니다. 선 제약을 다시 지정하세요."));cancelTrace();return false;}
+    const QVariantMap constraint{{"id",QUuid::createUuid().toString(QUuid::WithoutBraces)},
+        {"kind",trace_["kind"]},{"image",trace_["uv"]},{"coordinates",trace_["mapPoints"]},
+        {"weight",1.},{"enabled",true}};
+    auto candidate=variant(*item,directory());candidate["controlPoints"]=item->geographicPoints;
+    auto constraints=item->linearConstraints;constraints.push_back(constraint);candidate["linearConstraints"]=constraints;
+    const auto result=calibration(candidate);
+    if(!result["ok"].toBool()||result["mesh"].toMap().isEmpty()){
+        fail(QStringLiteral("선 제약 미리보기를 만들 수 없습니다. 기준점 또는 배치를 확인하세요."));return false;
+    }
+    trace_["candidate"]=constraint;
+    trace_["previewMesh"]=result["mesh"];
+    trace_["diagnostics"]=result["diagnostics"];
+    trace_["phase"]="preview";
+    fail({});emit traceSessionChanged();return true;
+}
+
+bool ReferenceImageLibrary::applyLinearConstraint()
+{
+    if(trace_["mode"]!="linear"||trace_["phase"]!="preview")return false;
+    const auto item=find(trace_["id"].toString());
+    if(!item||item->locked||gestureBefore_)return false;
+    if(trace_["baseSignature"].toByteArray()!=QJsonDocument(json(*item)).toJson(QJsonDocument::Compact)){
+        fail(QStringLiteral("미리보기 뒤에 참조 이미지가 바뀌었습니다. 다시 지정하세요."));cancelTrace();return false;
+    }
+    const auto id=item->id;
+    const auto candidate=trace_["candidate"].toMap();
+    return addLinearConstraint(id,candidate);
+}
+
 bool ReferenceImageLibrary::previewAutoGeoref(const QVariantList &seeds)
 {
     const auto item=find(calibrationId_);
@@ -414,7 +485,9 @@ bool ReferenceImageLibrary::traceAnchor(double u,double v) {
  auto anchors=trace_["anchors"].toList();anchors.append(QVariant(QVariantList{u,v}));trace_["anchors"]=anchors;trace_["phase"]="tracking";calculateTrace();return true;
 }
 bool ReferenceImageLibrary::undoTraceAnchor(){if(trace_.isEmpty()||trace_["busy"].toBool())return false;auto anchors=trace_["anchors"].toList();if(anchors.empty())return false;anchors.removeLast();trace_["anchors"]=anchors;trace_["phase"]=anchors.empty()?"armed":"tracking";calculateTrace();return true;}
-bool ReferenceImageLibrary::finishTrace(){if(trace_.isEmpty()||trace_["busy"].toBool()||trace_["coordinates"].toList().size()<2)return false;trace_["phase"]="preview";emit traceSessionChanged();return true;}
+bool ReferenceImageLibrary::finishTrace(){if(trace_.isEmpty()||trace_["busy"].toBool())return false;if(trace_["mode"]=="linear"){
+ if(trace_["uv"].toList().size()<2)return false;trace_["phase"]="map";emit traceSessionChanged();return true;
+ }if(trace_["coordinates"].toList().size()<2)return false;trace_["phase"]="preview";emit traceSessionChanged();return true;}
 void ReferenceImageLibrary::redrawTrace(){if(trace_.isEmpty())return;++traceEpoch_;trace_["busy"]=false;trace_["phase"]="armed";trace_["anchors"]=QVariantList{};trace_["coordinates"]=QVariantList{};trace_["uv"]=QVariantList{};trace_["error"]="";emit traceSessionChanged();}
 void ReferenceImageLibrary::calculateTrace() {
  const auto item=find(trace_["id"].toString());if(!item){cancelTrace();return;}
