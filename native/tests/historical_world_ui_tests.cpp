@@ -39,7 +39,7 @@ private slots:
         const auto root=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);WorldDataset source(root);
         QTemporaryDir directory;QVERIFY(directory.isValid());
         QVERIFY(QFile::copy(root+"/manifest.json",directory.filePath("manifest.json")));
-        for(const auto& key:{"previewMesh","countryCanonical","historicalTimelineManifest"}) {
+        for(const auto& key:{"previewMesh","countryCanonical","labelAnchors","historicalTimelineManifest"}) {
             const auto path=source.asset(key).path;
             QVERIFY(QDir().mkpath(QFileInfo(directory.filePath(path)).path()));
             QVERIFY(QFile::copy(root+"/"+path,directory.filePath(path)));
