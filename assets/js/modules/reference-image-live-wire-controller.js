@@ -435,6 +435,7 @@ export function installReferenceImageLiveWire() {
       || mapElement.classList.contains('is-reference-gcp-edit-mode')
       || mapElement.classList.contains('is-reference-placement-mode')
       || mapElement.classList.contains('is-reference-free-transform-mode')
+      || mapElement.classList.contains('is-reference-linear-mode')
       || mapElement.classList.contains('is-reference-line-refine-mode')) {
       setMessage('참조 이미지 편집이나 선 보강을 먼저 종료한 뒤 자동 추적을 시작하세요.', 'error');
       return false;

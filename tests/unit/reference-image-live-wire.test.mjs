@@ -9,6 +9,7 @@ import {
   simplifyLiveWireSegments,
   analysisPointFromUv,
   sourcePixelsFromAnalysis,
+  traceReferenceImageLinearAnchors,
 } from '../../assets/js/modules/reference-image-live-wire.js';
 
 function makeImageData(width, height, pixelValue) {
@@ -56,6 +57,15 @@ test('local Dijkstra follows a curved high-contrast boundary', () => {
   const sample = result.points.filter((_, index) => index % 6 === 0);
   const meanError = sample.reduce((sum, point) => sum + Math.abs(point[0] - curvedBoundaryX(point[1])), 0) / sample.length;
   assert.ok(meanError < 2.5, `mean error ${meanError}`);
+});
+
+test('linear constraint tracing returns source-image UV without changing map coordinates', () => {
+  const field = buildReferenceImageLiveWireField(makeImageData(64, 64, x => x < 32 ? 0 : 255));
+  const result = traceReferenceImageLinearAnchors(field, [[.5, .1], [.5, .85]]);
+  assert.equal(result.ok, true, result.reason);
+  assert.ok(result.image.length >= 2);
+  assert.ok(result.image.every(point => point[0] >= 0 && point[0] <= 1 && point[1] >= 0 && point[1] <= 1));
+  assert.ok(result.image.every(point => Math.abs(point[0] - .5) < .05));
 });
 
 test('weak cursor corridor keeps the path on the intended branch', () => {
