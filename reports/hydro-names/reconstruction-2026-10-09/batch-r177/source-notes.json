@@ -1,0 +1,650 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r177",
+  "sources": [
+    {
+      "source_key": "r177-anla-rancheria-monitoring2024",
+      "title": "Estrategia de Monitoreo Regional del Recurso Hídrico Superficial en la Cuenca del Río Ranchería–Departamento de La Guajira. Aplicación de la Fase IV Análisis de Información",
+      "publisher": "Autoridad Nacional de Licencias Ambientales (ANLA), Subdirección de Instrumentos, Permisos y Trámites Ambientales, Grupo de Regionalización y Centro de Monitoreo",
+      "date": "June 2024",
+      "actually_read_scope": "Original completed PDF: cover and credits; introduction and project scope (PDF pages 1–7); station tables and associated prose (7–11); precipitation and analysis scope (16,18–20); hydrological model and Table18 (62–65); Table19 (85). Original map/diagram pixels inspected on PDF pages9,11,16,20,21,66,85: Figures1,2,4,6,7,12–15,57. Other figures were only located by captions, not used as evidence.",
+      "source_independence": "An original ANLA licensing-project regional monitoring program, begun in2018 and analyzed for this June2024 PhaseIV report; the report identifies its own monitoring network, methods and ANLA2024 maps. It cites the CORPOGUAJIRA2011 POMCA as earlier planning context. This is a separate environmental-licensing monitoring project, not a POMCA volume or an equivalent of the stopped DHIME cartographic service, SGC atlas, Sinú studies, Fundación POMCA or CGSM report.",
+      "access_outcome": "One direct original request completed HTTP200 application/pdf. Original file then read locally. No failed original request or alternate-route recovery.",
+      "source_use_limits": "No restrictive-distribution or citation-permission notice was identified in the inspected material and text check. No open redistribution licence is asserted. Only bounded original factual observations and bibliography are prepared; source pages, images, derivatives and full coordinates remain private.",
+      "official_url": "https://www.anla.gov.co/images/entidad/sipta/2025-02-27-anla-IERRN-Rancheria-2024.pdf"
+    },
+    {
+      "source_key": "r177-corpoguajira-rancheria-pomca2011-prose",
+      "title": "Plan de Ordenamiento de la Cuenca del Río Ranchería. Tomo3: Hidrología",
+      "publisher": "CORPOGUAJIRA; UAESPNN–Parques Nacionales; Conservación Internacional Colombia",
+      "date": "2011",
+      "actually_read_scope": "Completed web-reader front-matter and contents excerpts, and selected parsed prose about study scope, subcatchment naming methodology and lower-arm station entries. The relevant exposed text was on PDF pages1,3–13,75,133,140–141,166–169; these are excerpt locations, not a claim to have read every word on those pages. No original map pixels were inspected.",
+      "source_independence": "The basin-specific Guajira planning project was identified through its own publisher catalogue and credited organizations; it is distinct from the unidentified Sinú/Manso/Urrá regional works. Its own later screenshot availability hold now governs all equivalent volumes/routes.",
+      "source_use_limits": "Only pre-hold prose observations may be retained. The failed screenshot supplies no cartographic evidence. Website all-rights-reserved notice does not itself prohibit bounded reading; no original or derivative source material is redistributed.",
+      "official_url": "https://www.corpoguajira.gov.co/web/attachments_Joom/article/876/Tomo_3_%20Hidrolog%C3%ADa.pdf"
+    },
+    {
+      "source_key": "r177-corpoguajira-rancheria-catalogue",
+      "title": "Pomca Ranchería",
+      "publisher": "CORPOGUAJIRA",
+      "date": "Catalogue post dated5 April2013",
+      "actually_read_scope": "Completed publisher catalogue listing the POMCA volumes, including Tomo2 Diagnóstico and Tomo3 Hidrología. Catalogue alone was used for source identity and bibliography. No geographic correspondence evidence.",
+      "source_use_limits": "Pre-hold metadata only; no new catalogue acquisition after the POMCA screenshot hold.",
+      "official_url": "https://wp.corpoguajira.gov.co/pomca-rancheria/"
+    },
+    {
+      "source_key": "r177-geus-greenland-national-1995-local",
+      "title": "Geological map of Greenland 1:2 500 000",
+      "authors": [
+        "Jan C. Escher",
+        "T. Christopher R. Pulvertaft"
+      ],
+      "year": 1995,
+      "publisher": "Geological Survey of Greenland, Copenhagen; official digital original distributed by GEUS",
+      "scale": "1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "catalogue_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "original_url": "https://dataverse.geus.dk/api/access/datafile/16855",
+      "current_acquisition": "No new external request. Reused the actual surviving complete original and catalogue acquired successfully in r162 after the workspace loss.",
+      "actual_read_scope": "Retained catalogue bibliography, original identity and actual Custom Dataset Terms; original whole-sheet overview; enlarged northeast Greenland cartography including Dronning Louise Land, Storstrømmen and Dove Bugt context; clean chosen-opening, complete selected corridor and actual-terminal views; all 57 selected parts and joins; geographic graticules, WGS84/UTM zone 24 projection, Inland Ice legend, 1995 printing/copyright imprint and recommended citation.",
+      "supports": "Complete ordinary-scale geographic setting for the selected ice/exposed-rock sequence and its actual terminal.",
+      "limits": "Generalized historical geological/glaciological cartography. It establishes no representative natural-river name, continuous natural river, selected lake throughflow or current hydraulic connection. Exact present ice-front/bank/terminal placement and an ordinary river mouth remain unverified.",
+      "use_notice": "GEUS Custom Dataset Terms permit bounded internal use and processing and restrict redistribution and production or transfer of new maps. Source original, crops and all cartographic reading materials remain private. Only independently written factual observations and ordinary bibliography with GEUS attribution are public-ready."
+    },
+    {
+      "source_key": "r177-usgstopo-ca-01",
+      "title": "USGSTopo, The National Map: Cienaga Seca Creek, Heart Bar, Seven Oaks and upper Santa Ana River bounded view",
+      "publisher": "U.S. Geological Survey",
+      "publication_kind": "Independent seamless multiscale topographic map service",
+      "read_date_utc": "2026-10-12",
+      "material_read": "One successfully acquired original map view, visually inspected in full, with bounded local enlargements of the headward opening and mountain corridor.",
+      "supports": [
+        "C01",
+        "C02",
+        "C03",
+        "C04"
+      ],
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r177-usgstopo-ca-02",
+      "title": "USGSTopo, The National Map: lower mountain canyon, East Highland, San Bernardino and Colton bounded view",
+      "publisher": "U.S. Geological Survey",
+      "read_date_utc": "2026-10-12",
+      "material_read": "One successfully acquired original map view, visually inspected in full, with bounded local enlargements of the canyon dam and East Highland wash/pond setting.",
+      "supports": [
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08"
+      ],
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r177-usgstopo-ca-03",
+      "title": "USGSTopo, The National Map: Riverside, Norco, Prado basin and downstream canyon bounded view",
+      "publisher": "U.S. Geological Survey",
+      "read_date_utc": "2026-10-12",
+      "material_read": "One successfully acquired original map view, visually inspected in full, with a bounded local enlargement of the Prado basin, creek network and dam.",
+      "supports": [
+        "C08",
+        "C09",
+        "C10"
+      ],
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r177-usgstopo-ca-04",
+      "title": "USGSTopo, The National Map: lower Santa Ana River urban corridor and Pacific coastal outlet bounded view",
+      "publisher": "U.S. Geological Survey",
+      "read_date_utc": "2026-10-12",
+      "material_read": "One successfully acquired original map view, visually inspected in full, with a bounded local enlargement of the actual coastal terminal setting.",
+      "supports": [
+        "C10",
+        "C11",
+        "C12"
+      ],
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r177-usgstopo-ca-05",
+      "title": "USGSTopo, The National Map: higher-detail East Highland Santa Ana River–Plunge Creek junction and pond terrain view",
+      "publisher": "U.S. Geological Survey",
+      "read_date_utc": "2026-10-12",
+      "material_read": "One successfully acquired higher-detail original map view, visually inspected in full. It distinguishes the river, northern creek, intervening excavated ponds and downstream confluence; it does not establish the selected cross-link.",
+      "supports": [
+        "C06"
+      ],
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r177-usgstopo-buckland-upper",
+      "title": "USGSTopo, The National Map: selected southeastern feeder and South Fork Buckland River corridor",
+      "publisher": "U.S. Geological Survey",
+      "project": "USGS The National Map, USGSTopo multiscale topographic reference map",
+      "acquisition_date_utc": "2026-10-12",
+      "acquisition_outcome": "One normal bounded original request completed HTTP200, image/png; original map pixels actually read after completion. No retry or alternate route.",
+      "actual_inspected_material": "Original pixels in overlapping enlarged areas covering the chosen southeastern opening, its northward and westward bend, the feeder-to-South-Fork join, and the entire selected upper South Fork corridor into the middle-view overlap. South Fork Buckland River labels were read directly. Private orientation overlays were used separately and are not independent source evidence.",
+      "source_independence": "Current National Map cartographic project, positively distinguished by retained service metadata and repeated original-service identity from held individual USGS research reports, plates and station publications. This is not a retrieval of those works or their equivalents.",
+      "use_notice": "Retained service metadata identifies a seamless multiscale map combining current National Map and other public-domain data, and credits USGS datasets and contributing agencies. Own bounded factual observations and ordinary bibliography only; source images, crops, overlays and acquisition parameters are not deliverables.",
+      "current_registry_evidence": false,
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r177-usgstopo-buckland-middle",
+      "title": "USGSTopo, The National Map: South Fork joins and middle Buckland River corridor",
+      "publisher": "U.S. Geological Survey",
+      "project": "USGS The National Map, USGSTopo multiscale topographic reference map",
+      "acquisition_date_utc": "2026-10-12",
+      "acquisition_outcome": "One normal bounded original request completed HTTP200, image/png; original map pixels actually read after completion. No retry or alternate route.",
+      "actual_inspected_material": "Original pixels in overlapping enlarged southeastern, fork-junction, central and northwestern areas. Direct South Fork Buckland River, Middle Fork Buckland River, North Fork Buckland River and Buckland River labels; the selected South Fork-to-receiving-trunk joins; the complete northwest-trending meander corridor; and overlap toward the West Fork junction were visually read.",
+      "source_independence": "Current National Map cartographic project, positively distinguished by retained service metadata and repeated original-service identity from held individual USGS research reports, plates and station publications. This is not a retrieval of those works or their equivalents.",
+      "use_notice": "Retained service metadata identifies a seamless multiscale map combining current National Map and other public-domain data, and credits USGS datasets and contributing agencies. Own bounded factual observations and ordinary bibliography only; source images, crops, overlays and acquisition parameters are not deliverables.",
+      "current_registry_evidence": false,
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    },
+    {
+      "source_key": "r177-usgstopo-buckland-lower",
+      "title": "USGSTopo, The National Map: West Fork junction, Buckland settlement and selected lower-river terminal",
+      "publisher": "U.S. Geological Survey",
+      "project": "USGS The National Map, USGSTopo multiscale topographic reference map",
+      "acquisition_date_utc": "2026-10-12",
+      "acquisition_outcome": "One normal bounded original request completed HTTP200, image/png; original map pixels actually read after completion. No retry or alternate route.",
+      "actual_inspected_material": "Original pixels in overlapping eastern, northward-bend, Buckland-settlement and terminal enlargements. The West Fork Buckland River confluence, westward trunk, northern bend, continuation past Buckland, and final broad branching lower-river channel were read. A separate selected-terminal enlargement establishes where the actual model stops, without extending that selection to a sea mouth.",
+      "source_independence": "Current National Map cartographic project, positively distinguished by retained service metadata and repeated original-service identity from held individual USGS research reports, plates and station publications. This is not a retrieval of those works or their equivalents.",
+      "use_notice": "Retained service metadata identifies a seamless multiscale map combining current National Map and other public-domain data, and credits USGS datasets and contributing agencies. Own bounded factual observations and ordinary bibliography only; source images, crops, overlays and acquisition parameters are not deliverables.",
+      "current_registry_evidence": false,
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:60000681",
+      "source_keys": [
+        "r177-anla-rancheria-monitoring2024",
+        "r177-corpoguajira-rancheria-pomca2011-prose",
+        "r177-corpoguajira-rancheria-catalogue"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10748
+          ],
+          "component_scope": "Selected headward opening and southern turn",
+          "finding": "The selected first approach and south-to-northeast turn are not traceable on the readable original maps at adequate ordinary corridor scale. No Ranchería, La Quebrada, reservoir or formal source name is assigned to this opening.",
+          "sources": [
+            "r177-anla-rancheria-monitoring2024"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10748
+          ],
+          "component_scope": "Upper northeast approach into the receiving valley",
+          "finding": "The broad approach lies within the study setting, but the complete selected route and its entry into the named receiving river remain insufficiently distinguished from the adjoining tributary network. Basin membership and station proximity are not through-link proof.",
+          "sources": [
+            "r177-anla-rancheria-monitoring2024"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10748
+          ],
+          "component_scope": "Middle receiving corridor",
+          "finding": "The sequence of the middle valley, separate side approaches and mapped receiving course supports Río Ranchería as a bounded receiving-system candidate. Detailed source curves and the selected generalized line are not treated as exact-bank matches; this partial correspondence does not certify every stored join.",
+          "sources": [
+            "r177-anla-rancheria-monitoring2024"
+          ],
+          "correspondence": "representative_receiving_identity_supported_partial",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10748
+          ],
+          "component_scope": "Northern turn, lower split and northwest continuation",
+          "finding": "Regional coverage supports the broad lower-river setting, but does not establish the selected passage through every fork and its reunion. The named left/right arms cannot be substituted for the selected path without correspondence. The northwest continuation remains only regionally supported.",
+          "sources": [
+            "r177-anla-rancheria-monitoring2024"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10748
+          ],
+          "component_scope": "Actual coastal endpoint",
+          "finding": "A river-to-Caribbean relationship is contextual evidence only. The actual selected final coastal continuation, distributary and sea-class terminal are not independently matched. The endpoint is not moved to an adjacent mouth, lagoon or familiar delta label.",
+          "sources": [
+            "r177-anla-rancheria-monitoring2024",
+            "r177-corpoguajira-rancheria-pomca2011-prose"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            10748
+          ],
+          "component_scope": "Waterbody or managed transfers",
+          "finding": "No selected reservoir or lagoon traversal is demonstrated. The report’s mention of El Cercado elsewhere in the basin does not establish that the chosen path passes through it. No current flow, control structure operation, canal connection or exact shoreline inference is made.",
+          "sources": [
+            "r177-anla-rancheria-monitoring2024"
+          ],
+          "correspondence": "source_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90033773",
+      "source_keys": [
+        "r177-geus-greenland-national-1995-local"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            8843
+          ],
+          "component_scope": "Chosen opening and eastward inland-ice sequence",
+          "finding": "The chosen opening lies in the mapped Inland Ice south of the Dronning Louise Land exposed-rock belt. Its short initial southward leg and subsequent eastward-to-northeastward parts are covered through the surrounding ice and small exposed-rock outliers to the southern rock-margin approach. The complete first thirteen parts and their joins are geographically accounted for; ice contours and isolated nunataks do not establish a natural river.",
+          "sources": [
+            "r177-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_geographic_setting_only",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8843
+          ],
+          "component_scope": "Southern Dronning Louise Land ice and exposed-rock margin",
+          "finding": "The eastward continuation and small southward reverse bend occupy the generalized ice/exposed-rock margin at the southern end of Dronning Louise Land. All selected short parts are visible in contiguous original cartography. The source differentiates ice from the colored rock units, but does not show this whole selected succession as a named river or establish hydraulic through-links between its parts.",
+          "sources": [
+            "r177-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_geographic_setting_only",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8843
+          ],
+          "component_scope": "Northward turn and intervening ice/rock corridor",
+          "finding": "The sharp northward departure and successive short steps cross the generalized exposed-rock and intervening ice-margin corridor on the eastern side of the southern Dronning Louise Land belt. The source covers each selected turn and intermediate join. Terrain correspondence does not prove a channel across the rock/ice sequence, a lake outlet or subglacial continuity.",
+          "sources": [
+            "r177-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_geographic_setting_only",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8843
+          ],
+          "component_scope": "Northeastward succession into the broad lower-ice setting",
+          "finding": "Every part of the northeastward succession is covered along the exposed-rock and ice margin toward the broader ice-covered corridor east of Dronning Louise Land. The original distinguishes the neighboring bedrock blocks and ice passages. No selected lake-throughflow, reservoir or managed-channel connector, representative river identity or continuous watercourse is established.",
+          "sources": [
+            "r177-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_geographic_setting_only",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8843
+          ],
+          "component_scope": "Lower ice approach toward the southwestern Dove Bugt setting",
+          "finding": "The complete northeastward approach is exposed in the broad mapped ice corridor east of Dronning Louise Land, in the southern vicinity of the Storstrømmen regional label and toward southwestern Dove Bugt. The original covers all ten small parts and their joins with the preceding rock-margin sequence and final northward approach. Storstrømmen is contextual ice geography here, not a verified reach name or whole-river identity.",
+          "sources": [
+            "r177-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_geographic_setting_only",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false
+        },
+        {
+          "fragments": [
+            8843
+          ],
+          "component_scope": "Final northward part and actual selected terminal",
+          "finding": "The entire long penultimate part, its final northward steps, the last short stored part and the actual rendered endpoint are covered at the historical mapped ice/coastal-water margin on the southwestern Dove Bugt side. The original distinguishes the ice tongue, neighboring exposed-rock islands and coastal water. The supplied source and rendered endpoints lie in that same ordinary terminal setting. Neither the model’s sea-terminal classification nor the nearby bay label establishes an ordinary river mouth. Exact modern ice-front or bank placement and exact present ice/land/water assignment are not asserted.",
+          "sources": [
+            "r177-geus-greenland-national-1995-local"
+          ],
+          "correspondence": "completed_geographic_setting_only",
+          "component_correspondence_completed": true,
+          "candidate_name": null,
+          "hydraulic_continuity_established": false,
+          "ordinary_river_mouth_established": false,
+          "present_hydraulic_continuity_verified": false,
+          "exact_terminal_land_ice_water_assignment_verified": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70728795",
+      "source_keys": [
+        "r177-usgstopo-ca-01",
+        "r177-usgstopo-ca-02",
+        "r177-usgstopo-ca-03",
+        "r177-usgstopo-ca-04",
+        "r177-usgstopo-ca-05"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Short northern headward approach above Little Cienaga",
+          "finding": "The source depicts Cienaga Seca Creek below Little Cienaga and a small spring/tributary drainage on the adjacent slope. The chosen initial hillside approach is not independently established over its full short extent by this view; the nearby creek name is not assigned to the opening merely by proximity.",
+          "sources": [
+            "r177-usgstopo-ca-01"
+          ],
+          "correspondence": "headward_approach_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Cienaga Seca Creek to Santa Ana River near Heart Bar",
+          "finding": "After the initial approach, the chosen corridor follows the westward Cienaga Seca Creek valley beside State Route 38. The original depicts its connection with Santa Ana River in the Heart Bar area and the receiving river continuing northwest. Cienaga Seca Creek remains a separate reach name.",
+          "sources": [
+            "r177-usgstopo-ca-01"
+          ],
+          "correspondence": "mapped_corridor_and_receiving_junction_supported_except_C01",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Upper Santa Ana River through Seven Oaks and the mountain canyon",
+          "finding": "The labeled Santa Ana River continues through the selected mountain valley, including the Seven Oaks settlement setting and mapped tributary junctions. The selected bends remain within the same river-canyon corridor at the intended regional scale; the original does not require a transfer to an adjacent drainage.",
+          "sources": [
+            "r177-usgstopo-ca-01"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Lower mountain canyon and dam near Warm Springs",
+          "finding": "Overlapping originals show Santa Ana River in the narrowing canyon, the mapped dam at its lower end near Warm Springs, and the downstream river exiting toward the lowland wash. This supports the ordinary dam-and-river passage; current releases, water level and operating behavior are not established.",
+          "sources": [
+            "r177-usgstopo-ca-01",
+            "r177-usgstopo-ca-02"
+          ],
+          "correspondence": "mapped_managed_passage_supported",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Eastern lowland Santa Ana wash and Mill Creek junction",
+          "finding": "The map shows Santa Ana River leaving the canyon and receiving Mill Creek, then extending west through the broad wash. The eastern and central selected interval corresponds to that wash. Its later northwest departure toward the pond terrain is treated separately in C06.",
+          "sources": [
+            "r177-usgstopo-ca-02"
+          ],
+          "correspondence": "supported_until_northern_departure",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "East Highland pond/excavation detour toward Plunge Creek",
+          "finding": "The selected late part 11 and part 12 leave the mapped Santa Ana River wash and cross pond/excavation terrain toward Plunge Creek near the Foothill Freeway. The higher-detail original clearly maps Santa Ana River to the south, Plunge Creek to the north, and their downstream confluence to the west. It does not depict a through-channel across the selected intervening terrain. The lower Plunge Creek-to-Santa Ana junction is mapped, but it does not prove the preceding selected cross-link.",
+          "sources": [
+            "r177-usgstopo-ca-02",
+            "r177-usgstopo-ca-05"
+          ],
+          "correspondence": "material_selected_cross_link_unestablished",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "San Bernardino, Colton and the southwest-turning river corridor",
+          "finding": "Downstream of the mapped Plunge Creek junction, the source follows the named Santa Ana River through the urban wash and past the mapped tributary network toward Colton, then around the southwest bend. Generalized straight segments and displaced bends are assessed as corridor correspondence, not exact bank registration.",
+          "sources": [
+            "r177-usgstopo-ca-02"
+          ],
+          "correspondence": "supported_downstream_of_C06",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Riverside, Jurupa Valley and Norco",
+          "finding": "Overlapping maps depict the continuous Santa Ana River corridor southwest past Riverside and then west through its meanders and vegetated floodplain toward Norco. Nearby canals are separately drawn. The selected route corresponds to the river corridor without requiring an inferred interbasin or canal transfer.",
+          "sources": [
+            "r177-usgstopo-ca-02",
+            "r177-usgstopo-ca-03"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Prado Flood Control Basin and Prado Dam",
+          "finding": "The original depicts Santa Ana River entering the Prado wetland/flood-control setting, the adjoining Mill Creek and Chino Creek water network, rectangular managed ponds, and the impounded basin ending at Prado Dam. The selected passage lies within this mapped connected river/basin setting and emerges into the named downstream Santa Ana River. This is ordinary basin-scale passage evidence, not proof of an exact operating route through individual pond cells.",
+          "sources": [
+            "r177-usgstopo-ca-03"
+          ],
+          "correspondence": "mapped_basin_and_dam_passage_supported_at_bounded_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Downstream Santa Ana canyon to the Yorba Linda and Anaheim setting",
+          "finding": "Overlapping originals show the river downstream of Prado following the canyon near State Route 91 and continuing into the lower urban plain. The named river, canyon bends, tributary joins and adjacent canals remain distinguishable; the selected line is generalized within that corridor.",
+          "sources": [
+            "r177-usgstopo-ca-03",
+            "r177-usgstopo-ca-04"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Anaheim, Orange and Santa Ana urban river",
+          "finding": "The source depicts the broad river and managed-water corridor bending south through the Anaheim and Orange setting and continuing beside Santa Ana. The mapped river stays distinct from nearby off-channel basins and the separate Santiago Creek network. The selected corridor can be followed continuously at the ordinary map scale.",
+          "sources": [
+            "r177-usgstopo-ca-04"
+          ],
+          "correspondence": "supported_at_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            9878
+          ],
+          "component_scope": "Lower Santa Ana River and actual coastal terminal",
+          "finding": "The original labels Santa Ana River along the lower channel to Pacific Coast Highway and the open Pacific coast between the Huntington Beach and Newport Beach settings. Huntington Beach Channel and the adjacent coastal marsh/slough are separately depicted. The actual selected terminal is at this river-mouth coastal setting, not Newport Bay. Exact shoreline, jetty alignment and the rendered offshore extension are outside the bounded correspondence claim.",
+          "sources": [
+            "r177-usgstopo-ca-04"
+          ],
+          "correspondence": "terminal_corridor_supported",
+          "component_correspondence_completed": true
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80103791",
+      "source_keys": [
+        "r177-usgstopo-buckland-upper",
+        "r177-usgstopo-buckland-middle",
+        "r177-usgstopo-buckland-lower"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2560
+          ],
+          "component_scope": "Chosen southeastern opening and westward unnamed feeder",
+          "finding": "The chosen opening follows the mapped unnamed tributary valley northward, rounds its eastern bend, then turns west to meet the northward South Fork Buckland River corridor. The original depicts the connected channel and junction; the name of this small feeder is not established. The selected opening is a chosen model start, not a verified natural spring or official river source.",
+          "sources": [
+            "r177-usgstopo-buckland-upper"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2560
+          ],
+          "component_scope": "Upper South Fork Buckland River and northern turn",
+          "finding": "Repeated direct South Fork Buckland River labels identify the mapped receiving trunk. It continues north through the selected meanders and successive smaller tributary joins, then turns northwest into the middle-view overlap. Nearby lakes and abandoned-channel shapes are not treated as required through-lake passages.",
+          "sources": [
+            "r177-usgstopo-buckland-upper",
+            "r177-usgstopo-buckland-middle"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2560
+          ],
+          "component_scope": "Northwest South Fork reach and Middle/North Fork junction setting",
+          "finding": "The source shows the selected northwest-trending South Fork continuously through its meander corridor, the separately named Middle Fork approach from the east, and the North Fork approach from the north. The mapped joins connect into the downstream channel labeled Buckland River. These incoming fork names are not substituted for the selected South Fork approach, and no exact formal name-transition vertex is assigned.",
+          "sources": [
+            "r177-usgstopo-buckland-middle"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2560
+          ],
+          "component_scope": "Middle Buckland River meanders and West Fork junction",
+          "finding": "Repeated Buckland River labels and continuous mapped channels support the selected northwest course and its large westward bend. The lower-view overlap shows the separate West Fork Buckland River joining from the south and the receiving trunk continuing west. Floodplain ponds and oxbows are distinguishable from the through-channel.",
+          "sources": [
+            "r177-usgstopo-buckland-middle",
+            "r177-usgstopo-buckland-lower"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2560
+          ],
+          "component_scope": "Westward trunk, northern bend and Buckland settlement reach",
+          "finding": "The original shows the selected western trunk turning north and northwest through the same connected valley, past successive creek joins and the labeled Buckland settlement. The generalized model cuts across some large bends, but ordinary corridor identity remains clear. No reservoir or selected lake crossing needs an inferred connector.",
+          "sources": [
+            "r177-usgstopo-buckland-lower"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2560
+          ],
+          "component_scope": "Final broad lower-river branches and actual selected endpoint",
+          "finding": "North of Buckland settlement the mapped river widens and branches around islands and wetland-rich floodplain. The selection follows this connected lower-river corridor and ends within its western/northern channel at a major branching setting. Mapped water continues beyond the selected endpoint. This endpoint is not presented as the river mouth, shoreline, bay entry or end of the complete natural Buckland River.",
+          "sources": [
+            "r177-usgstopo-buckland-lower"
+          ],
+          "correspondence": "completed_at_ordinary_corridor_and_terminal_scale",
+          "component_correspondence_completed": true
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [
+    {
+      "publication": "Plan de Ordenamiento de la Cuenca del Río Ranchería (2011), Tomo 3: Hidrología; associated POMCA publication and equivalent volumes/routes",
+      "publisher": "CORPOGUAJIRA; UAESPNN–Parques Nacionales; Conservación Internacional Colombia",
+      "observed_outcome": "Catalogue and original PDF parsed prose were read successfully. The sole requested screenshot of PDF page 169 (zero-based page 168), Figure 6, ended with web-reader Cache miss. No map pixels were returned or inspected.",
+      "outcome_layer": "Completed web-reader screenshot/fetch availability failure. Origin HTTP status was not reported or separately measured.",
+      "restriction_scope": "Whole POMCA publication, related volumes, maps and equivalent original, catalogue, reader, cache, screenshot, local-download, mirror and other acquisition routes remain paused. No alternate request, other volume, download or screenshot retry followed.",
+      "earlier_lawful_prose_exception": "Only already-read catalogue metadata, front matter and bounded parsed prose described below. No unseen figure or map correspondence claim.",
+      "limitation_kind": "availability_pause",
+      "material_effect": "Potential cartographic coverage unavailable; the actual geographic gaps are identified separately from the access limitation.",
+      "aw_id": "hydro-system:60000681",
+      "official_url": "https://www.corpoguajira.gov.co/web/attachments_Joom/article/876/Tomo_3_%20Hidrolog%C3%ADa.pdf"
+    }
+  ],
+  "additional_source_use_notices": [
+    {
+      "publication": "Geological map of Greenland 1:2 500 000, GEUS Custom Dataset Terms",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J",
+      "limitation_kind": "dataset_use_terms",
+      "observed_outcome": "The retained catalogue’s actual use terms and original map copyright were read.",
+      "outcome_layer": "Published source-use terms, not an acquisition denial.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90033773",
+      "acquisition_stop": false,
+      "restriction_scope": "Originals, crops, processed data and comparison/derived maps remain private. Public-ready material is own factual observations and normal bibliography only."
+    },
+    {
+      "publication": "Geological map of Greenland 1:2 500 000",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J",
+      "limitation_kind": "naming_scope_source_epoch_and_theme",
+      "observed_outcome": "The complete selected geography is exposed, but the original establishes no representative named natural river or surface/subglacial continuity.",
+      "outcome_layer": "Substantive geographic/name scope, not an acquisition failure.",
+      "material_gap": false,
+      "aw_id": "hydro-system:90033773",
+      "acquisition_stop": false,
+      "restriction_scope": "Completed ordinary terrain and actual-terminal correspondence. No exact contemporary ice-front, bank, terminal land/ice/water assignment, selected lake-throughflow or ordinary river-mouth claim."
+    },
+    {
+      "publication": "USGSTopo, The National Map",
+      "limitation_kind": "material_geographic_correspondence_gap",
+      "use_boundary": "Only original factual synthesis, source identity and normal bibliography are public-ready. Source maps and derivatives are not redistributed. The composite service is distinct from held USGS reports, plates, station pages and Professional Paper 1386 publications; none of those held publications was acquired or used.",
+      "aw_id": "hydro-system:70728795",
+      "acquisition_stop": false,
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "observed_outcome": "All five bounded original view requests completed successfully with HTTP 200 and image content; all five originals were visually inspected. No access denial, retry, unresolved acquisition or new service-wide stop occurred.",
+      "restriction_scope": "Unestablished selected initial hillside approach and East Highland cross-link. Supported mapped reaches and terminal observations remain usable. No publication-wide access restriction is inferred."
+    },
+    {
+      "source_keys": [
+        "r177-usgstopo-buckland-upper",
+        "r177-usgstopo-buckland-middle",
+        "r177-usgstopo-buckland-lower"
+      ],
+      "type": "bounded_cartographic_compilation_scope",
+      "access_stop": false,
+      "observed_notice": "USGS National Map and contributing dataset/agency credits in retained service metadata. No new access failure or use-restricting notice observed in the inspected material.",
+      "handling": "Publish only original factual synthesis and normal bibliography. No source maps, crops, overlays, coordinate paths, acquisition parameters or fingerprints are public-ready.",
+      "aw_id": "hydro-system:80103791",
+      "acquisition_stop": false
+    }
+  ]
+}
