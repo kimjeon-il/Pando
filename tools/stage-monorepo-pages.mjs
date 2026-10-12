@@ -41,9 +41,11 @@ function committedBlob(root, file) {
 
 function isEquivalentCrLfCheckout(working, committed) {
   try {
-    const text = new TextDecoder('utf-8', { fatal: true }).decode(committed);
-    if (text.includes('\0') || !text.includes('\n')) return false;
-    return working.equals(Buffer.from(text.replace(/\n/g, '\r\n'), 'utf8'));
+    const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
+    const committedText = decoder.decode(committed);
+    const workingText = decoder.decode(working);
+    if (committedText.includes('\0') || !committedText.includes('\n')) return false;
+    return workingText.replace(/\r\n/g, '\n') === committedText;
   } catch {
     return false;
   }
