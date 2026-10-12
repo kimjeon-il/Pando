@@ -1,0 +1,9 @@
+{
+  "baseline": "930060923889d17134e36e152c29f4adbb2e60a9",
+  "initialFlag": 42,
+  "cases": [
+    { "id": "stored-number-to-string", "op": "edit", "value": "  new flag  " },
+    { "id": "stored-number-to-null", "op": "edit", "value": null },
+    { "id": "stored-number-to-deleted-key", "op": "delete" }
+  ]
+}

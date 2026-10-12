@@ -528,7 +528,7 @@ private slots:
         QVERIFY(c.geometrySelectNearest(vertex.x,vertex.y,0.1));QVERIFY(c.geometryMoveSelectedVertex(vertex.x-0.25,vertex.y+0.25));
         QCOMPARE(c.documentBytes(),before);QVERIFY2(c.requestGeometryPreview(),qPrintable(c.geometryEditState()["error"].toString()));QVERIFY(c.geometryEditState()["previewReady"].toBool());
         QVERIFY(c.confirmGeometryEdit());QVERIFY(c.documentBytes()!=before);c.undo();QCOMPARE(c.documentBytes(),before);c.redo();QVERIFY(c.documentBytes()!=before);
-        QVERIFY(c.beginGeometryEdit());c.cancelGeometryEdit();QVERIFY(!c.geometryEditState()["active"].toBool());
+        QVERIFY(c.selectObject({{"domain","territorial"},{"type","entity"},{"id","S"}}));QVERIFY(c.beginGeometryEdit());c.cancelGeometryEdit();QVERIFY(!c.geometryEditState()["active"].toBool());
     }
     void directGeometryDrawCreatesOneUndoableUnit(){
         QTemporaryDir dir;Project p;p.replace(fixture());QFile f(dir.filePath("map.json"));QVERIFY(f.open(QIODevice::WriteOnly));f.write(projectcodec::encode(p));f.close();

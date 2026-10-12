@@ -34,8 +34,8 @@ void hiddenGeneralGeometryRemainsLand() {
     auto doc=document();
     doc.presentation.webPresentation.visibility["countries"]=false;
     doc.presentation.webPresentation.visibility["subunits"]=false;
-    doc.presentation.webPresentation.hiddenItems["countries"].insert("ROOT");
-    doc.presentation.webPresentation.hiddenItems["subunits"].insert("CHILD");
+    doc.presentation.webPresentation.itemVisibility["countries"]["ROOT"]=false;
+    doc.presentation.webPresentation.itemVisibility["subunits"]["CHILD"]=false;
     doc.presentation.objectStyles[territorialRef("ROOT")].opacity=0;
     doc.presentation.objectStyles[territorialRef("CHILD")].opacity=0;
     GeometryPacketCache cache;MapSceneBuilder builder(cache);builder.setWorldBase(base());

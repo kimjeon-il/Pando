@@ -243,7 +243,6 @@ export async function composeApplication({ revision }) {
   objectPresentation.initializeObjectPresentationModel();
   physicalResources.initializeTerrainService();
   propertySelection.initializePropertySelection();
-  projectSnapshots.initializeHistoryStore();
   mapSettings.initializeLAYER_STYLE_TARGETS();
   historyAssembly.initializeBrowserProjectStorage();
   projectRestore.initializeConfirmModalController();

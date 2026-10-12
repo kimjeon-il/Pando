@@ -187,29 +187,3 @@ export function createTerritorialFeature({
   if (!feature) throw new Error('영역 형식이 올바르지 않습니다.');
   return feature;
 }
-
-export async function runTerritorialTransaction({
-  snapshot,
-  calculate,
-  validate = () => ({ ok: true }),
-  apply,
-  restore,
-  recordHistory,
-  autosave,
-}) {
-  const before = snapshot();
-  try {
-    const result = await calculate();
-    const validation = await validate(result);
-    if (validation === false || validation?.ok === false) {
-      throw new Error(validation?.message || validation?.issues?.[0] || '영역 관계가 올바르지 않습니다.');
-    }
-    await apply(result);
-    recordHistory(before);
-    autosave();
-    return result;
-  } catch (error) {
-    await restore(before);
-    throw error;
-  }
-}

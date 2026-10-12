@@ -1,5 +1,6 @@
 #include "splitgeometrynormalizer.h"
 #include "geometryruntime_p.h"
+#include "geometryprovenance.h"
 #include <QCryptographicHash>
 #include <QFile>
 #include <QJSEngine>
@@ -9,7 +10,7 @@
 #include <stdexcept>
 
 static void initializeSplitNormalizerResources() {
-    static const bool initialized=[] {Q_INIT_RESOURCE(m973_split_normalizer);return true;}();
+    static const bool initialized=[] {Q_INIT_RESOURCE(current_geometry);return true;}();
     (void)initialized;
 }
 namespace pandoeditor {
@@ -71,7 +72,7 @@ Geometry decode(const QJSValue& value,const GeometryCancellation& cancelled) {
 SplitGeometryNormalizationResult stopped() {SplitGeometryNormalizationResult output;output.status=GeometryOperationStatus::Cancelled;return output;}
 SplitGeometryNormalizationResult run(const Geometry& geometry,const char* operation,const GeometryCancellation& cancelled) {
     try {
-        check(cancelled);QJSEngine engine;loadApprovedSplitPolygonGeometry(engine);check(cancelled);
+        check(cancelled);QJSEngine engine;loadCanonicalPolygonGeometry(engine);check(cancelled);
         loadPinnedPolygonClipping(engine);check(cancelled);
         const auto input=encode(engine,geometry,cancelled);check(cancelled);
         const auto stringify=engine.globalObject().property("JSON").property("stringify");
@@ -91,13 +92,11 @@ SplitGeometryNormalizationResult run(const Geometry& geometry,const char* operat
     catch(const std::exception& error){if(cancelled&&cancelled())return stopped();SplitGeometryNormalizationResult output;output.detail=error.what();return output;}
 }
 }
-void loadApprovedSplitPolygonGeometry(QJSEngine& engine) {
+void loadCanonicalPolygonGeometry(QJSEngine& engine) {
     initializeSplitNormalizerResources();
-    verified(":/split-corrections/approved-manifest.json","d15bd80373af3ff98c3cc4fcec2f78b6268956c275e3318b08a5a71208c30096");
-    verified(":/split-corrections/provenance.json","1755ff27ba7b5a58215bff0c0ffee4bae2b0923f0c9c0cbb1873ba4fa53b31d4");
-    const auto source=verified(":/split-corrections/original/polygon-geometry.js","a645827c46f7c62dbf929f850c67f350516669dfeafe5c637aec6c67efcfebf4");
+    const auto source=verified(":/geometry/polygon-geometry.js",PANDO_CURRENT_GEOMETRY_NORMALIZER_SHA256);
     engine.globalObject().setProperty("globalThis",engine.globalObject());
-    jsCheck(engine.evaluate(QString::fromUtf8(source),":/split-corrections/original/polygon-geometry.js"));
+    jsCheck(engine.evaluate(QString::fromUtf8(source),":/geometry/polygon-geometry.js"));
     const auto api=engine.globalObject().property("PandoLabPolygonGeometry");
     for(const auto name:{"ensureClosedRing","hasCanonicalPolygonWinding","normalizePolygonGeometry","normalizeClippedPolygonGeometry","wrapPolygonGeometry","orientRing","ringDistinctCoordinateCount","ringSignedArea"})
         if(!api.property(name).isCallable())throw std::runtime_error("SPLIT_NORMALIZER_INVALID_EXPORT");

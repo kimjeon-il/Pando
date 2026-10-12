@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 using namespace pandoeditor;
 namespace {
@@ -14,53 +15,73 @@ QString rgb(std::uint32_t color) { return QString("#%1").arg(color,6,16,QChar('0
 QString typeName(UnitKind kind) { return kind==UnitKind::General?"general":"regional"; }
 QString typeLabel(UnitKind kind) { return kind==UnitKind::General?QStringLiteral("일반객체"):QStringLiteral("독립 권역"); }
 }
-std::optional<ObjectRef> EditorController::existingObjectRef(const QVariantMap& value) const {
-    const auto domain=value.value("domain").toString().trimmed();
-    const auto id=value.value("id").toString().trimmed();
-    if(id.isEmpty()) return {};
-    const ObjectRef ref{domain.toStdString(),id.toStdString()};
+std::vector<ObjectRef> EditorController::selectedObjectRefs() const {
+    std::vector<ObjectRef> result;result.reserve(selection_.items().size());
+    for(const auto& ref:selection_.items())result.push_back(asObjectRef(ref));return result;
+}
+std::optional<ObjectRef> EditorController::primaryObjectRef() const {
+    return selection_.primary()?std::optional<ObjectRef>{asObjectRef(*selection_.primary())}:std::nullopt;
+}
+std::optional<ObjectRef> EditorController::hoverObjectRef() const {
+    return selection_.hover()?std::optional<ObjectRef>{asObjectRef(*selection_.hover())}:std::nullopt;
+}
+std::optional<SelectionRef> EditorController::selectionRefFor(const ObjectRef& ref) const {
+    if(ref.id.empty())return {};
     if(ref.domain=="placeBuiltin"){
-        const auto requested=value.value("type").toString().trimmed();
-        if(!placeRuntime_.recordById(id)||copiedPlaceSourceIds(project_.document()).count(ref.id)||(!requested.isEmpty()&&requested!="placeBuiltin"))return {};
-        return ref;
+        const auto record=placeRuntime_.recordById(q(ref.id));
+        if(!record||copiedPlaceSourceIds(project_.document()).count(ref.id))return {};
+        return SelectionRef{ref.domain,record->kind.toStdString(),ref.id};
     }
     if(ref.domain=="hydroBuiltin"){
-        const auto record=hydroRuntime_.recordById(id);
-        const auto requested=value.value("type").toString().trimmed();
-        if(!record||(!requested.isEmpty()&&requested!="hydroBuiltin"))return {};
-        return ref;
+        const auto record=hydroRuntime_.recordById(q(ref.id));if(!record)return {};
+        return SelectionRef{ref.domain,record->category.toStdString(),ref.id};
     }
-    const auto found=project_.index().objects.find(ref);
-    if(found==project_.index().objects.end()) return {};
-    if(ref.domain=="territorial"&&project_.inactiveEntityIds().count(ref.id))return {};
-    const auto expected=ref.domain=="territorial"?typeName(project_.document().units.at(found->second).kind):q(ref.domain);
+    if(!project_.hasActiveObject(ref))return {};
+    if(ref.domain=="userLayer")return SelectionRef{ref.domain,"layer",ref.id};
+    const auto index=project_.index().objects.at(ref);
+    const auto type=ref.domain=="territorial"?"entity":ref.domain=="distributionLayer"?"layer":
+        ref.domain=="distributionEntry"?"entry":ref.domain=="generic"?"feature":
+        ref.domain=="label"?project_.document().labels.at(index).kind:
+        ref.domain=="hydro"?project_.document().hydro.at(index).kind:std::string{};
+    return type.empty()?std::nullopt:std::optional<SelectionRef>{{ref.domain,type,ref.id}};
+}
+std::vector<SelectionRef> EditorController::selectionRefsFor(const std::vector<ObjectRef>& refs) const {
+    std::vector<SelectionRef> result;result.reserve(refs.size());
+    for(const auto& ref:refs){const auto typed=selectionRefFor(ref);
+        if(!typed)throw std::invalid_argument("Selection target does not exist");result.push_back(*typed);}
+    return result;
+}
+std::optional<SelectionRef> EditorController::existingSelectionRef(const QVariantMap& value) const {
+    auto ref=selectionRefFor({value.value("domain").toString().trimmed().toStdString(),
+        value.value("id").toString().trimmed().toStdString()});
+    if(!ref)return {};
     const auto requested=value.value("type").toString().trimmed();
-    if(!requested.isEmpty() && requested!=expected) return {};
+    if(requested.isEmpty())return ref; // Native document ObjectRefs derive type at this boundary.
+    if(ref->domain=="territorial"&&requested!="entity")return {};
+    if((ref->domain=="placeBuiltin"||ref->domain=="hydroBuiltin")&&requested!=q(ref->type))return {};
+    // Stored selection identity captures its type; a later model kind change
+    // does not rewrite it. Existence and command/render ObjectRefs use domain/id.
+    ref->type=requested.toStdString();
     return ref;
 }
+std::optional<ObjectRef> EditorController::existingObjectRef(const QVariantMap& value) const {
+    const auto ref=existingSelectionRef(value);return ref?std::optional<ObjectRef>{asObjectRef(*ref)}:std::nullopt;
+}
+QVariantMap EditorController::selectionRefValue(const SelectionRef& ref) const {
+    QVariantMap result{{"domain",q(ref.domain)},{"type",q(ref.type)},{"id",q(ref.id)},{"key",q(selectionRefKey(ref))}};
+    if(ref.domain=="territorial")if(const auto found=project_.index().objects.find(asObjectRef(ref));found!=project_.index().objects.end())
+        result["kind"]=typeName(project_.document().units.at(found->second).kind);
+    return result;
+}
 QVariantMap EditorController::objectRefValue(const ObjectRef& ref) const {
-    if(ref.domain=="placeBuiltin"){
-        const auto id=q(ref.id);return {{"domain","placeBuiltin"},{"type","placeBuiltin"},{"id",id},
-            {"key",QStringLiteral("placeBuiltin:placeBuiltin:")+QString::fromLatin1(QUrl::toPercentEncoding(id,"-_.!~*'()"))}};
-    }
-    if(ref.domain=="hydroBuiltin"){
-        const auto id=q(ref.id);
-        return {{"domain","hydroBuiltin"},{"type","hydroBuiltin"},{"id",id},
-            {"key",QStringLiteral("hydroBuiltin:hydroBuiltin:")+QString::fromLatin1(QUrl::toPercentEncoding(id,"-_.!~*'()"))}};
-    }
-    const auto it=project_.index().objects.find(ref);
-    if(it==project_.index().objects.end()) return {{"domain",q(ref.domain)},{"id",q(ref.id)}};
-    const auto type=ref.domain=="territorial"?typeName(project_.document().units.at(it->second).kind):q(ref.domain);
-    const auto id=q(ref.id);
-    return {{"domain",q(ref.domain)},{"type",type},{"id",id},
-        {"key",q(ref.domain)+":"+type+":"+QString::fromLatin1(QUrl::toPercentEncoding(id,"-_.!~*'()"))}};
+    const auto typed=selectionRefFor(ref);return typed?selectionRefValue(*typed):QVariantMap{{"domain",q(ref.domain)},{"id",q(ref.id)}};
 }
 QVariantList EditorController::selectionItems() const {
-    QVariantList result;for(const auto& ref:selection_.items()) result.append(objectRefValue(ref));return result;
+    QVariantList result;for(const auto& ref:selection_.items()) result.append(selectionRefValue(ref));return result;
 }
-QVariantMap EditorController::primaryObject() const { return selection_.primary()?objectRefValue(*selection_.primary()):QVariantMap{}; }
+QVariantMap EditorController::primaryObject() const { return selection_.primary()?selectionRefValue(*selection_.primary()):QVariantMap{}; }
 QVariantMap EditorController::rangeAnchor(const QString& scope) const {
-    const auto ref=selection_.rangeAnchor(scope.toStdString());return ref?objectRefValue(*ref):QVariantMap{};
+    const auto ref=selection_.rangeAnchor(scope.toStdString());return ref?selectionRefValue(*ref):QVariantMap{};
 }
 bool EditorController::objectVisible(const ObjectRef& ref) const {
     if(ref.domain=="placeBuiltin")return placeRuntime_.recordById(q(ref.id)).has_value()&&
@@ -212,29 +233,33 @@ void EditorController::clearParkedDrafts() {
     if(editing)refreshTypedScene();
 }
 void EditorController::applySelection(SelectionState next) {
+    coreSession_.requireEpoch(coreEpoch());
+    next.prune([this](const SelectionRef& ref){return coreSession_.selectionRefExists(ref);});
     const bool changed=selection_.revision()!=next.revision();
-    if(!changed) {selection_=std::move(next);return;} // anchor-only changes are silent in the web reducer
+    const bool hoverChangedNow=selection_.hoverRevision()!=next.hoverRevision();
+    if(!changed) {coreSession_.selection()=std::move(next);if(hoverChangedNow){requestPlaceResources();emit hoverChanged();}return;} // anchor-only changes are silent in the web reducer
     QScopedValueRollback<bool> guard(selectionTransition_,true);
-    cancelColorEdit();fieldSessions_.clear();parkDrafts();selection_=std::move(next);
+    cancelColorEdit();fieldSessions_.clear();parkDrafts();coreSession_.selection()=std::move(next);
     requestPlaceResources();refreshBuiltinPlaceLabels();
     reloadDrafts();
     emit selectionChanged();
     emit stateChanged();emit draftsChanged();
     emit visualChanged();
+    if(hoverChangedNow)emit hoverChanged();
     // Child split previews bind to the selection identity observed at request
     // time. Refresh their read-only readiness when that identity changes.
     if(geometryEdit_&&geometryEdit_->splitIntent&&!staticParentRelation(geometryEdit_->base.document(),geometryEdit_->target.id).parentId.empty())emit geometryEditChanged();
     // No dirtyChanged, project revision, history, import epoch or content preview mutation.
 }
 bool EditorController::selectObject(const QVariantMap& value,const QString& mode,const QString& scope,const QVariantList& ordered,bool additive) {
-    const auto ref=existingObjectRef(value);if(!ref) return false;
+    const auto ref=existingSelectionRef(value);if(!ref) return false;
     closeObjectChooser();
     auto next=selection_;
     if(mode=="replace") next.replace(*ref,scope.toStdString());
     else if(mode=="toggle") next.toggle(*ref,scope.toStdString());
     else if(mode=="range") {
-        std::vector<ObjectRef> refs;
-        for(const auto& v:ordered) if(const auto candidate=existingObjectRef(v.toMap())) refs.push_back(*candidate);
+        std::vector<SelectionRef> refs;
+        for(const auto& v:ordered) if(const auto candidate=existingSelectionRef(v.toMap())) refs.push_back(*candidate);
         next.selectRange(*ref,refs,scope.isEmpty()?"default":scope.toStdString(),additive);
     } else if(mode=="remove") next.remove(*ref);
     else return false;
@@ -242,13 +267,13 @@ bool EditorController::selectObject(const QVariantMap& value,const QString& mode
 }
 bool EditorController::setSelection(const QVariantList& values,const QVariantMap& primary,const QString& scope) {
     closeObjectChooser();
-    std::vector<ObjectRef> refs;
-    for(const auto& v:values) if(const auto ref=existingObjectRef(v.toMap())) refs.push_back(*ref);
-    auto next=selection_;next.setMany(refs,existingObjectRef(primary),scope.toStdString());applySelection(std::move(next));return true;
+    std::vector<SelectionRef> refs;
+    for(const auto& v:values) if(const auto ref=existingSelectionRef(v.toMap())) refs.push_back(*ref);
+    auto next=selection_;next.setMany(refs,existingSelectionRef(primary),scope.toStdString());applySelection(std::move(next));return true;
 }
 void EditorController::clearSelection() { closeObjectChooser();auto next=selection_;next.clear();applySelection(std::move(next)); }
 void EditorController::selectCountry(const QString& id) {
-    selectObject({{"domain","territorial"},{"type","general"},{"id",id}},"replace","countries");
+    selectObject({{"domain","territorial"},{"type","entity"},{"id",id}},"replace","countries");
 }
 void EditorController::selectLayer(const QString& id) {
     if(!project_.layer(id.toStdString())||selectedLayer_==id) return;
@@ -287,18 +312,18 @@ void EditorController::selectAt(double x,double y) { selectMapAt(x,y,false); }
 void EditorController::selectMapAt(double x,double y,bool additive) {
     beginMapSelection(x,y,additive);
 }
-QVariantMap EditorController::hoverObject() const { return hover_?objectRefValue(*hover_):QVariantMap{}; }
+QVariantMap EditorController::hoverObject() const { return selection_.hover()?selectionRefValue(*selection_.hover()):QVariantMap{}; }
 bool EditorController::setHoverObject(const QVariantMap& value,const QString& source,const QString& expectedKey) {
-    std::optional<ObjectRef> next;
-    if(value.isEmpty()) {
-        if((!source.isEmpty()&&!hoverSource_.isEmpty()&&source!=hoverSource_) ||
-           (!expectedKey.isEmpty()&&hoverObject().value("key").toString()!=expectedKey)) return false;
-    } else {next=existingObjectRef(value);if(!next) return false;}
-    if(next==hover_) {if(next) hoverSource_=source;return true;}
-    hover_=next;hoverSource_=next?source:QString();requestPlaceResources();++hoverRevision_;emit hoverChanged();return true;
+    coreSession_.requireEpoch(coreEpoch());
+    std::optional<SelectionRef> next;
+    if(!value.isEmpty()){next=existingSelectionRef(value);if(!next)return false;}
+    const auto before=selection_.hoverRevision();
+    if(!coreSession_.selection().setHover(next,source.toStdString(),expectedKey.toStdString()))return false;
+    if(before!=selection_.hoverRevision()){requestPlaceResources();emit hoverChanged();}
+    return true;
 }
 bool EditorController::focusObject(const QVariantMap& value) {
-    const auto ref=value.isEmpty()?selection_.primary():existingObjectRef(value);
+    const auto ref=value.isEmpty()?primaryObjectRef():existingObjectRef(value);
     if(!ref) return false;
     if(ref->domain=="placeBuiltin"){
         const auto record=placeRuntime_.recordById(q(ref->id));if(!record||!objectVisible(*ref))return false;
@@ -316,7 +341,7 @@ bool EditorController::focusObject(const QVariantMap& value) {
         emit focusRequested(topLeft.x,topLeft.y,width,height,mobileMode_?12:10);
         return true;
     }
-    for(const auto& path:projection_.paths) {
+    for(const auto& path:projection_.objects) {
         const auto p=path.toMap();
         if(ref->domain=="territorial" ? p["countryId"].toString()!=q(ref->id) :
             (p["domain"].toString()!=q(ref->domain) || p["objectId"].toString()!=q(ref->id))) continue;
@@ -331,18 +356,12 @@ void EditorController::reconcileSelection() {
     // Cancellation emits synchronous QML notifications. Drop references to the
     // old document before any of those notifications can read object properties.
     if(replaced) {
-        selectionInstance_=project_.instanceId();selection_.reset();hover_.reset();hoverSource_.clear();hoverRevision_=0;
+        selectionInstance_=project_.instanceId();
         searchQuery_.clear();clearParkedDrafts();
         labelEngine_.clear();++labelCounterGeneration_;labelFlagSources_.clear();labelSourcesDirty_=true;
         if(!placedLabels_.isEmpty()){placedLabels_.clear();emit labelLayoutChanged();}
     } else {
-        selection_.prune([this](const ObjectRef& ref){if(ref.domain=="placeBuiltin")return placeRuntime_.recordById(q(ref.id)).has_value()&&!copiedPlaceSourceIds(project_.document()).count(ref.id);return ref.domain=="hydroBuiltin"?
-            bool(hydroRuntime_.recordById(q(ref.id))):project_.index().objects.count(ref)!=0&&
-                (ref.domain!="territorial"||!project_.inactiveEntityIds().count(ref.id));});
-        if(hover_&&!(hover_->domain=="placeBuiltin"?placeRuntime_.recordById(q(hover_->id)).has_value()&&!copiedPlaceSourceIds(project_.document()).count(hover_->id):hover_->domain=="hydroBuiltin"?bool(hydroRuntime_.recordById(q(hover_->id))):
-            (project_.index().objects.count(*hover_)&&
-             (hover_->domain!="territorial"||!project_.inactiveEntityIds().count(hover_->id))))) {
-            hover_.reset();hoverSource_.clear();++hoverRevision_;}
+        coreSession_.selection().prune([this](const SelectionRef& ref){return coreSession_.selectionRefExists(ref);});
     }
     closeObjectChooser();cancelColorEdit();fieldSessions_.clear();
     if(replaced) {cancelContentEdit();cancelGeometryEdit();}

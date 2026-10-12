@@ -10,7 +10,7 @@
 #include <stdexcept>
 namespace {
 const QString sourceId=QStringLiteral("builtin:place:synthetic:capital");
-QVariantMap builtinRef(){return {{"domain","placeBuiltin"},{"type","placeBuiltin"},{"id",sourceId}};}
+QVariantMap builtinRef(){return {{"domain","placeBuiltin"},{"type","capital"},{"id",sourceId}};}
 QUrl fixture(){return QUrl::fromLocalFile(QFINDTESTDATA("fixtures/web-place-runtime-source/synthetic/basic/manifest.json"));}
 void origin(EditorController& editor){editor.resizeMapCamera(800,600);editor.publishMapView({{"viewportWidth",800},{"viewportHeight",600},{"centerLongitude",0},{"centerLatitude",0},{"scale",100},{"translateX",400},{"translateY",300}});}
 QVariantMap row(EditorController& editor,const QString& id){for(const auto& value:editor.objectRows())if(value.toMap()["id"].toString()==id)return value.toMap();return {};}

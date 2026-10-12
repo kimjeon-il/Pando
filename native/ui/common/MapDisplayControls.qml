@@ -120,10 +120,10 @@ Popup {
                 }
                 ColumnLayout {
                     visible:popup.section==="distributions";Layout.fillWidth:true
-                    RadioButton {objectName:"distributionOverlap";text:"여러 분포 겹쳐 보기";checked:editor.distributionDisplay.mode==="overlap";onClicked:editor.setDistributionDisplay("overlap",editor.distributionDisplay.boundaryVisible)}
-                    RadioButton {objectName:"distributionSingle";text:"분포 하나만 보기";checked:editor.distributionDisplay.mode==="single";onClicked:editor.setDistributionDisplay("single",editor.distributionDisplay.boundaryVisible)}
-                    UiComboBox {objectName:"distributionActiveLayer";visible:editor.distributionDisplay.mode==="single";Layout.fillWidth:true;textRole:"name";valueRole:"id";model:editor.distributionDisplay.layers;currentIndex:Math.max(0,model.findIndex(function(row){return row.id===editor.distributionDisplay.activeLayerId}));onActivated:editor.setDistributionDisplay("single",editor.distributionDisplay.boundaryVisible,currentValue)}
-                    UiSwitch {objectName:"distributionBoundary";text:"분포 경계";checked:editor.distributionDisplay.boundaryVisible;onClicked:editor.setDistributionDisplay(editor.distributionDisplay.mode,checked)}
+                    RadioButton {objectName:"distributionOverlap";text:"여러 분포 겹쳐 보기";checked:editor.distributionDisplay.mode==="overlap";onClicked:editor.setDistributionRenderMode("overlap")}
+                    RadioButton {objectName:"distributionSingle";text:"분포 하나만 보기";checked:editor.distributionDisplay.mode==="single";onClicked:editor.setDistributionRenderMode("single")}
+                    UiComboBox {objectName:"distributionActiveLayer";visible:editor.distributionDisplay.mode==="single";Layout.fillWidth:true;textRole:"name";valueRole:"id";model:editor.distributionDisplay.layers;currentIndex:Math.max(0,model.findIndex(function(row){return row.id===editor.distributionDisplay.activeLayerId}));onActivated:editor.setDistributionActiveLayer(currentValue)}
+                    UiSwitch {objectName:"distributionBoundary";text:"분포 경계";checked:editor.distributionDisplay.boundaryVisible;onClicked:editor.setDistributionBoundaryVisible(checked)}
                 }
                 ColumnLayout {
                     visible:popup.section==="selection";Layout.fillWidth:true

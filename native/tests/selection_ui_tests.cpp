@@ -17,7 +17,7 @@
 using namespace pandoeditor;
 
 namespace {
-QVariantMap ref(QString id,QString type="general") {return {{"domain","territorial"},{"type",type},{"id",id}};}
+QVariantMap ref(QString id,QString kind="general") {return {{"domain","territorial"},{"type","entity"},{"kind",kind},{"id",id}};}
 QStringList ids(const QVariantList& rows) {QStringList out;for(auto row:rows)out<<row.toMap()["id"].toString();return out;}
 QQuickItem* item(QQuickItem* root,const QString& name) {
     if(root->objectName()==name)return root;
@@ -103,7 +103,7 @@ struct Harness {
         window->grabWindow();return true;
     }
     QPointF point(const QString& id) const {
-        for(auto value:editor.paths()){
+        for(auto value:editor.objectBounds()){
             const auto p=value.toMap();if(p["countryId"]!=id)continue;
             return {p["left"].toDouble()+p["width"].toDouble()/2,p["top"].toDouble()+p["height"].toDouble()/2};
         }
@@ -126,7 +126,7 @@ struct Harness {
         if(id=="A"||id=="S"){
             // At 360px the web's 12px subunit tolerance reaches the rectangle
             // center. Use an interior point away from S/R for a single-country hit.
-            for(auto value:editor.paths()){
+            for(auto value:editor.objectBounds()){
                 const auto p=value.toMap();if(p["countryId"]!=id)continue;
                 auto map=control("mapView");
                 // After selection, touch-sized corner handles cover the former
@@ -235,7 +235,7 @@ private slots:
     void focusAndHoverDoNotEdit(){
         QFETCH(bool,mobile);Harness h(mobile);QVERIFY(h.window);
         h.editor.selectCountry("A");h.editor.setNameDraft("Saved A");QVERIFY(h.editor.commitCountryField("name"));
-        h.editor.setMemoDraft("Redo");QVERIFY(h.editor.commitCountryField("notes"));h.editor.undo();
+        h.editor.setMemoDraft("Redo");QVERIFY(h.editor.commitCountryField("notes"));h.editor.undo();QVERIFY(h.editor.selectionItems().isEmpty());h.editor.selectCountry("A");
         const auto bytes=h.editor.documentBytes();const auto rev=h.editor.revision();const bool dirty=h.editor.dirty();
         QSignalSpy changes(&h.editor,&EditorController::dirtyChanged);
         QVERIFY(h.search("Beta"));QVERIFY(h.click("searchFocus_B",Qt::NoModifier,mobile));

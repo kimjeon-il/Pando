@@ -1,0 +1,6473 @@
+{
+  "schema": "current-web-timeline-read-model-v1",
+  "baseline": "930060923889d17134e36e152c29f4adbb2e60a9",
+  "contract": "Every row field, identity property and geometry coordinate from the unchanged Web month-end resolver; no rounding or field exclusions.",
+  "cases": [
+    {
+      "month": "-0001-01",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "A",
+          "coverageMode": "partition",
+          "validFrom": "-0001",
+          "validTo": "0001",
+          "ancestors": [
+            "A"
+          ],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "-0001-12",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "A",
+          "coverageMode": "partition",
+          "validFrom": "-0001",
+          "validTo": "0001",
+          "ancestors": [
+            "A"
+          ],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "0001-01",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "A",
+          "coverageMode": "partition",
+          "validFrom": "-0001",
+          "validTo": "0001",
+          "ancestors": [
+            "A"
+          ],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "0001-12",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "A",
+          "coverageMode": "partition",
+          "validFrom": "-0001",
+          "validTo": "0001",
+          "ancestors": [
+            "A"
+          ],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "0002-01",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "1909-12",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "1910-01",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "A",
+          "coverageMode": "partition",
+          "validFrom": "1910-01-02",
+          "validTo": "1920-03",
+          "ancestors": [
+            "A"
+          ],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "1914-06",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "A",
+          "coverageMode": "partition",
+          "validFrom": "1910-01-02",
+          "validTo": "1920-03",
+          "ancestors": [
+            "A"
+          ],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "1914-07",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 2
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1.2345678901234567,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "A",
+          "coverageMode": "partition",
+          "validFrom": "1910-01-02",
+          "validTo": "1920-03",
+          "ancestors": [
+            "A"
+          ],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "1915-12",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 2
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1.2345678901234567,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "A",
+          "coverageMode": "partition",
+          "validFrom": "1910-01-02",
+          "validTo": "1920-03",
+          "ancestors": [
+            "A"
+          ],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "1916-01",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 2
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1.2345678901234567,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "C",
+          "coverageMode": "explicit",
+          "validFrom": "1910-01-02",
+          "validTo": "1920-03",
+          "ancestors": [
+            "C"
+          ],
+          "rootId": "C"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "1920-03",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 2
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1.2345678901234567,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "B",
+          "identity": {
+            "type": "Feature",
+            "id": "B",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "B 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "B"
+                },
+                "originalName": "B Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "C",
+          "coverageMode": "explicit",
+          "validFrom": "1910-01-02",
+          "validTo": "1920-03",
+          "ancestors": [
+            "C"
+          ],
+          "rootId": "C"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "1920-04",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 2
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1.2345678901234567,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    },
+    {
+      "month": "2000-02",
+      "expected": [
+        {
+          "id": "A",
+          "identity": {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "A 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "A"
+                },
+                "originalName": "A Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 2
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1.2345678901234567,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "A"
+        },
+        {
+          "id": "C",
+          "identity": {
+            "type": "Feature",
+            "id": "C",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "C 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "C"
+                },
+                "originalName": "C Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "C"
+        },
+        {
+          "id": "R",
+          "identity": {
+            "type": "Feature",
+            "id": "R",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "regional",
+              "name": "R 영토",
+              "style": {
+                "color": "#507090"
+              },
+              "locked": false,
+              "notes": "원본 메타데이터 보존",
+              "metadata": {
+                "capital": "서울",
+                "source": {
+                  "provider": "T2-2 exchange corpus",
+                  "sourceId": "R"
+                },
+                "originalName": "R Territory"
+              },
+              "sourceFolderId": "exchange",
+              "sourceEntityId": "timeline-test",
+              "sourceGeometryVersion": "source-1"
+            }
+          },
+          "geometryRef": {
+            "id": "shape",
+            "version": 1
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": [
+              [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    10,
+                    0
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    2,
+                    2
+                  ],
+                  [
+                    2,
+                    3
+                  ],
+                  [
+                    3,
+                    3
+                  ],
+                  [
+                    3,
+                    2
+                  ],
+                  [
+                    2,
+                    2
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    12,
+                    0
+                  ],
+                  [
+                    13,
+                    0
+                  ],
+                  [
+                    13,
+                    1
+                  ],
+                  [
+                    12,
+                    0
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    179,
+                    0
+                  ],
+                  [
+                    -179,
+                    0
+                  ],
+                  [
+                    -179,
+                    1
+                  ],
+                  [
+                    179,
+                    0
+                  ]
+                ]
+              ]
+            ]
+          },
+          "parentId": "",
+          "coverageMode": "explicit",
+          "validFrom": null,
+          "validTo": null,
+          "ancestors": [],
+          "rootId": "R"
+        }
+      ]
+    }
+  ]
+}

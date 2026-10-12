@@ -5,6 +5,7 @@
 #include <QQueue>
 #include <QSet>
 #include <QString>
+#include <QStringList>
 #include <QUrl>
 #include <QVector>
 #include <QHash>
@@ -22,6 +23,7 @@ struct PhysicalInventory {
     QVector<PhysicalAssetSpec> assets;
     bool valid() const {return error.isEmpty();}
 };
+struct PhysicalAssetPreparation {QString path,error;};
 PhysicalInventory parsePhysicalInventory(const QByteArray& json);
 
 class PhysicalDataStore final : public QObject {
@@ -34,6 +36,9 @@ public:
     void setExternalDatasetRoot(const QString& dataset,QString root);
     QString cachePath(const PhysicalAssetSpec&) const;
     QString resolveExisting(const PhysicalAssetSpec&) const;
+    // Receipt-only owner-thread query. Cold/corrupt sources still go through
+    // request()'s worker verification and the existing download/retry policy.
+    bool hasVerifiedExisting(const PhysicalAssetSpec&) const;
     // Value-only verifier for asynchronous source owners; never captures this QObject.
     std::function<QString(const PhysicalAssetSpec&)> verifiedResolver() const;
     // Stable logical cache identity: no file access or verification. Workers
@@ -42,9 +47,13 @@ public:
     // Existing expected-size file only; deliberately not an integrity receipt.
     QString candidatePath(const PhysicalAssetSpec&) const;
     std::function<QString(const PhysicalAssetSpec&)> candidatePathResolver() const;
+    std::function<PhysicalAssetPreparation(const std::function<bool()>&)> promotionJob(
+        const PhysicalAssetSpec&) const;
     bool installVerified(const PhysicalAssetSpec&,const QByteArray& bytes);
     void request(const PhysicalAssetSpec&);
     bool cleanupVersions(const QString& dataset,const QString& keepVersion);
+    std::function<bool()> cleanupVersionsJob(const QString& dataset,const QString& keepVersion,
+                                            QStringList protectedSources) const;
 signals:
     void assetReady(const QString& relativePath,const QString& localPath,bool reused);
     void assetFailed(const QString& relativePath,const QString& message);
@@ -53,14 +62,17 @@ private:
     struct Job {PhysicalAssetSpec asset;int failures=0;};
     static QString defaultRoot();
     static bool validAsset(const PhysicalAssetSpec&);
-    static bool verified(const QString& path,const PhysicalAssetSpec&);
+    static bool verified(const QString& path,const PhysicalAssetSpec&,
+                         const std::function<bool()>& cancelled={});
     static QString assetPath(const QString& root,const PhysicalAssetSpec&);
     static QString candidateAssetPath(const QString& cacheRoot,const QString& externalRoot,
                                       const QHash<QString,QString>& datasetRoots,const PhysicalAssetSpec&);
+    static bool installBytes(const QString& root,const PhysicalAssetSpec&,const QByteArray&);
     QString externalPath(const PhysicalAssetSpec&) const;
     void quarantine(const QString& path) const;
     void pump();
     void start(Job job);
+    void finish(Job job,bool installed,const QString& error);
     QString root_,externalRoot_;
     QHash<QString,QString> externalDatasetRoots_;
     int maximumConcurrent_=3,maximumRetries_=2,active_=0;

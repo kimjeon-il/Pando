@@ -1,4 +1,5 @@
 #include <pandoeditor/version.h>
+#include "buildprovenance.h"
 
 #include <QCoreApplication>
 #include <QGuiApplication>
@@ -29,6 +30,8 @@ int main(int argc, char *argv[])
     const auto version = pandoeditor::version();
     QCoreApplication::setApplicationVersion(
         QString::fromUtf8(version.data(), static_cast<qsizetype>(version.size())));
+    qInfo().noquote()<<"PANDO_BUILD commit=" PANDO_BUILD_COMMIT
+        " dirtySourceHash=" PANDO_BUILD_DIRTY_SOURCE_HASH " sourceHash=" PANDO_BUILD_SOURCE_HASH;
 
     const bool smokeCheck=QCoreApplication::arguments().contains(QStringLiteral("--smoke-check"));
     if(smokeCheck)QStandardPaths::setTestModeEnabled(true);

@@ -6,7 +6,7 @@ import { createPointerTargets } from '../../assets/js/modules/app-pointer-target
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
 import { createMapInputPresentation } from '../../assets/js/modules/map-input-presentation.js';
 import { createTooltipController } from '../../assets/js/modules/tooltip-controller.js';
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
+import {createNodeSelection} from '../helpers/core-selection.mjs';
 import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
 import { editorNode } from './helpers/editor-dom-fixture.mjs';
 
@@ -41,7 +41,7 @@ function node(name, parent = null) {
   return n;
 }
 
-function fixture({ queuedPicks = false, peerKind = 'city', editing = null } = {}) {
+async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = null } = {}) {
   const document = node('document');
   document.documentElement = editorNode();
   document.createElement = editorNode;
@@ -60,19 +60,28 @@ function fixture({ queuedPicks = false, peerKind = 'city', editing = null } = {}
   tooltip.id = 'uiTooltip';
   const tip = createTooltipController({ document, window, tooltip, clamp: (v, a, b) => Math.max(a, Math.min(v, b)) });
   tip.bind();
-  const ref = { domain: 'territorial', type: 'entity', id: 'DEU' };
+  const ref = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'DEU' });
   let published = 0, areaPicks = 0;
   const points = [], clicks = [], draftEvents = [];
   const state = { tool: 'select' };
   const draft = {};
   let panning = false;
-  const domain = createSelectionDomain({ onHoverChanged: s => {
+  const owner=await createNodeSelection({territorialIds:['DEU'],genericIds:[],labelIds:['PLACE'],distributionIds:[],onHoverChanged: s => {
     published++;
     tip.setMapHover(s.hover?.domain === 'territorial' ? { name: '독일' } : null);
-  } });
+  } }),domain=owner.domain;
+  const hoverTimers=new Map(),originalTimer=globalThis.setTimeout,originalClear=globalThis.clearTimeout;
+  t.mock.method(globalThis,'setTimeout',(callback,delay,...args)=>{
+    if(delay!==50)return originalTimer(callback,delay,...args);
+    const token={};hoverTimers.set(token,()=>callback(...args));return token;
+  });
+  t.mock.method(globalThis,'clearTimeout',token=>{if(!hoverTimers.delete(token))originalClear(token);});
+  const settle=async()=>{await owner.client.selectionSnapshot();};
+  const runQueuedPicks=async()=>{for(const[token,callback]of hoverTimers){hoverTimers.delete(token);callback();}await settle();};
   let executedPicks = 0;
   const pointers = createPointerTargets();
-  pointers.connect({ domains: { selectionDomain: domain }, projectState: { state },
+  pointers.connect({ domains: { selectionDomain: domain,projectDomain:owner.project }, projectState: { state },
+    feedback:{reportOperationError:error=>{throw error;}},
     draftPresentation: { editingDraftSnapshot: () => draft }, mapLayout: { viewRevision: 1 },
     objectPicking: { territorialObjectsAt: () => { executedPicks++; return [{ ref }]; } } });
   pointers.initializeHoverPickFrame();
@@ -85,12 +94,14 @@ function fixture({ queuedPicks = false, peerKind = 'city', editing = null } = {}
   // mousemove to bubble to the shared map input boundary.
   vm.runInNewContext(renderingSource.slice(start, end), { enter: d3.select(peer),
     labels: { isMobile: () => false }, labelState: () => state, selectionDomain: domain,
+    reportDiagnostic:entry=>{throw entry.error;},
     labelRef: value => normalizeObjectRef({ domain: 'label', type: value.kind, id: value.id }) });
   const input = createMapInputPresentation({
     getElement: () => map, window, navigator: {}, d3,
     createMapInputController: () => ({ destroy() {}, isPanning: () => panning }),
     getInputSnapshot: () => state, getDraftSnapshot: () => editing ? editing.snapshot().draft : draft,
-    editingDomain: editing,
+    editingDomain: editing || { clearDraftHover: async () => false,cancelActiveGesture: async () => false },
+    reportOperationError: error => { throw error; },
     isMobile: () => false, isGenericFeatureDraftTool: () => false,
     screenToGeo: () => [10, 49], getTerritorialLabelRef: () => ref,
     cancelCountryHoverPick: pointers.cancelCountryHoverPick, clearHoverHit() {}, dispatchEditingInteraction: (...args) => draftEvents.push(args), mapClickBlocked: () => false,
@@ -111,9 +122,10 @@ function fixture({ queuedPicks = false, peerKind = 'city', editing = null } = {}
     }
     return event;
   };
-  const hover = target => {
+  const hover = async target => {
     dispatch(target, 'pointermove');
     dispatch(target, 'mousemove');
+    await settle();
     return {
       hover: domain.snapshot().hover?.id || null,
       tooltip: tooltip.dataset.kind || null,
@@ -121,79 +133,86 @@ function fixture({ queuedPicks = false, peerKind = 'city', editing = null } = {}
       selectionRevision: domain.snapshot().revision,
     };
   };
-  return { hover, label: text, peer: peerText, hit, map, overlay, interaction, dispatch, points, clicks, input, domain, state, draft, draftEvents, pointers, executedPicks: () => executedPicks, setPanning: value => { panning = value; } };
+  t.after(async()=>{await pointers.cancelCountryHoverPick();input.dispose();await settle();owner.dispose();});
+  return { hover,settle,runQueuedPicks,label: text, peer: peerText, hit, map, overlay, interaction, dispatch, points, clicks, input, domain, state, draft, draftEvents, pointers, executedPicks: () => executedPicks, setPanning: value => { panning = value; } };
 }
 
 // Reflect app-map-host's actual sibling SVG topology. Real D3 listeners see
 // capture/bubble propagation from the hit node; tests never call a handler directly.
-test('label hover in the sibling interaction SVG reaches the canonical tooltip and not the ground picker', () => {
-  const f = fixture();
-  assert.deepEqual(f.hover(f.label), { hover: 'DEU', tooltip: 'country', published: 1, areaPicks: 0, selectionRevision: 0 });
+test('label hover in the sibling interaction SVG reaches the canonical tooltip and not the ground picker', async t => {
+  const f = await fixture(t);
+  assert.deepEqual(await f.hover(f.label), { hover: 'DEU', tooltip: 'country', published: 1, areaPicks: 0, selectionRevision: 0 });
 });
 
-test('ground hover shares the map owner and uses actual map-local D3 pointer coordinates', () => {
-  const f = fixture();
-  assert.deepEqual(f.hover(f.hit), { hover: 'DEU', tooltip: 'country', published: 1, areaPicks: 1, selectionRevision: 0 });
+test('ground hover shares the map owner and uses actual map-local D3 pointer coordinates', async t => {
+  const f = await fixture(t);
+  assert.deepEqual(await f.hover(f.hit), { hover: 'DEU', tooltip: 'country', published: 1, areaPicks: 1, selectionRevision: 0 });
   assert.deepEqual(f.points.map(point => [...point]), [[60, 60]]);
   f.dispatch(f.hit, 'click');
   assert.deepEqual(f.clicks.map(point => [...point]), [[60, 60]], 'ground clicks retain one overlay-SVG owner');
 });
 
-test('rebinding and disposing remove the shared-map hover listeners without duplicating picks', () => {
-  const f = fixture(); f.input.bindSvg(d3.select(f.overlay));
-  assert.equal(f.hover(f.hit).areaPicks, 1);
-  f.input.dispose(); f.domain.setHover(null);
-  assert.equal(f.hover(f.label).hover, null);
-  assert.equal(f.hover(f.hit).areaPicks, 1);
+test('rebinding and disposing remove the shared-map hover listeners without duplicating picks', async t => {
+  const f = await fixture(t); f.input.bindSvg(d3.select(f.overlay));
+  assert.equal((await f.hover(f.hit)).areaPicks, 1);
+  f.input.dispose(); await f.domain.setHover(null);
+  assert.equal((await f.hover(f.label)).hover, null);
+  assert.equal((await f.hover(f.hit)).areaPicks, 1);
 });
 
-test('shared-map mouseleave clears hover and draft movement retains one map-local dispatch', () => {
-  const f = fixture(); f.hover(f.label);
+test('shared-map mouseleave clears hover and draft movement retains one map-local dispatch', async t => {
+  const f = await fixture(t); await f.hover(f.label);
   // Browsers emit both; D3 uses mouseout to emulate leave without a native probe.
   f.dispatch(f.map, 'mouseout'); f.dispatch(f.map, 'mouseleave');
+  await f.settle();
   assert.equal(f.domain.snapshot().hover, null);
   f.draftEvents.length = 0;
   f.state.tool = 'annex-territory';
   f.state.territorySelectionSession = { tool: 'annex-territory', stage: 'selection', activePhase: 'drawing', activeMethod: 'line' };
   Object.assign(f.draft, { inputPhase: 'draw', coords: [[0, 0]] });
-  f.hover(f.label);
+  await f.hover(f.label);
   assert.equal(f.draftEvents.length, 1);
   assert.equal(f.draftEvents[0][0], 'draft-hover-move');
   assert.deepEqual([...f.draftEvents[0][1].screenPoint], [60, 60]);
-  f.setPanning(true); f.hover(f.hit);
+  f.setPanning(true); await f.hover(f.hit);
   assert.equal(f.draftEvents.length, 1, 'panning cannot add draft points');
   assert.equal(f.domain.size(), 0);
 });
 
 for (const peerKind of ['city', 'label']) for (const moveWithinLabel of [false, true]) test(`shared hover preserves ${peerKind} labels and cancels stale queued country picks (move=${moveWithinLabel})`, async t => {
-  const f = fixture({ queuedPicks: true, peerKind });
+  const f = await fixture(t,{ queuedPicks: true, peerKind });
   t.after(() => { f.pointers.cancelCountryHoverPick(); f.input.dispose(); });
-  f.hover(f.hit);
+  await f.hover(f.hit);
   assert.equal(f.domain.snapshot().hover, null, 'ground pick is still queued');
   f.dispatch(f.peer, 'mouseover'); f.dispatch(f.peer, 'mouseenter');
+  await f.settle();
   assert.equal(f.domain.snapshot().hover.key, `label:${peerKind}:PLACE`);
-  if (moveWithinLabel) assert.equal(f.hover(f.peer).tooltip, null);
-  await new Promise(resolve => setTimeout(resolve, 75));
+  if (moveWithinLabel) assert.equal((await f.hover(f.peer)).tooltip, null);
+  await f.runQueuedPicks();
   assert.equal(f.domain.snapshot().hover.key, `label:${peerKind}:PLACE`, 'a stale ground result must not overwrite peer-label hover');
   assert.equal(f.executedPicks(), 0);
-  assert.equal(f.hover(f.peer).areaPicks, 1, 'movement within a peer label must not queue new ground picks');
+  assert.equal((await f.hover(f.peer)).areaPicks, 1, 'movement within a peer label must not queue new ground picks');
   f.dispatch(f.peer, 'mouseout'); f.dispatch(f.peer, 'mouseleave');
+  await f.settle();
   assert.equal(f.domain.snapshot().hover, null);
-  f.hover(f.hit);
-  await new Promise(resolve => setTimeout(resolve, 75));
+  await f.hover(f.hit);
+  await f.runQueuedPicks();
   assert.equal(f.domain.snapshot().hover.key, 'territorial:entity:DEU');
   assert.equal(f.executedPicks(), 1);
-  assert.equal(f.hover(f.label).tooltip, 'country');
+  assert.equal((await f.hover(f.label)).tooltip, 'country');
   assert.equal(f.domain.size(), 0); assert.equal(f.domain.snapshot().revision, 0);
 });
 
-function draftFixture(t, tool) {
+async function draftFixture(t, tool) {
+  const pendingInteractions=[];
   const editing = createEditingDomain({ draftServices: {
     getToolConfig: () => ({ shape: 'line' }), projectCoordinate: point => point, screenToCoordinate: point => point,
   } });
-  editing.setTool(tool);
-  editing.replaceDraftCoordinates([[0, 0], [100, 0]], { inputPhase: 'refine' });
-  const f = fixture({ editing }); f.state.tool = tool;
+  await editing.setTool(tool);
+  await editing.replaceDraftCoordinates([[0, 0], [100, 0]], { inputPhase: 'refine' });
+  const f = await fixture(t,{ editing: { ...editing,clearDraftHover(reason) {
+    const operation=editing.clearDraftHover(reason);pendingInteractions.push(operation);return operation;
+  } } }); f.state.tool = tool;
   const root = node('draft-layer', f.interaction);
   const segment = node('draft-segment', root), handle = node('draft-insert', root), vertex = node('draft-vertex', root);
   for (const item of [segment, handle, vertex]) item.parentNode = root;
@@ -210,7 +229,8 @@ function draftFixture(t, tool) {
     publishEditingInteraction: event => {
       events.push(event.type);
       const packet = editing.createRenderPacket();
-      return editing.handleInteraction({ ...event, projectGeneration: packet.projectGeneration, packetRevision: packet.revision });
+      const operation=editing.handleInteraction({ ...event, projectGeneration: packet.projectGeneration, packetRevision: packet.revision });
+      pendingInteractions.push(operation);return operation;
     },
   };
   // Use the renderer's actual control handlers with real D3 registration and
@@ -225,43 +245,46 @@ function draftFixture(t, tool) {
   end = source.indexOf('    vertices.each', start);
   vm.runInNewContext('d3.select(vertex)' + source.slice(start, end), context);
   t.after(() => { f.input.dispose(); editing.dispose(); });
-  return { ...f, editing, segment, handle, handleHit, vertexHit, events };
+  const settle=() => Promise.all(pendingInteractions.splice(0));
+  return { ...f, editing, segment, handle, handleHit, vertexHit, events,
+    async hover(target) { const result=await f.hover(target);await settle();return result; },
+    async dispatch(...args) { const event=f.dispatch(...args);await f.settle();await settle();return event; } };
 }
 
-for (const tool of ['draw-territorial-unit', 'river']) test(`shared map preserves ${tool} segment, insertion and vertex control ownership`, t => {
-  const f = draftFixture(t, tool);
+for (const tool of ['draw-territorial-unit', 'river']) test(`shared map preserves ${tool} segment, insertion and vertex control ownership`, async t => {
+  const f = await draftFixture(t, tool);
   const before = f.editing.snapshot().draft;
-  f.hover(f.segment);
+  await f.hover(f.segment);
   const target = { segmentIndex: 0, coordinate: [60, 0] };
   assert.deepEqual(f.editing.snapshot().draft.insertTarget, target);
-  f.dispatch(f.segment, 'mouseout', { relatedTarget: f.handleHit });
-  f.hover(f.handleHit);
+  await f.dispatch(f.segment, 'mouseout', { relatedTarget: f.handleHit });
+  await f.hover(f.handleHit);
   assert.deepEqual(f.editing.snapshot().draft.insertTarget, target, 'bubbling movement must preserve the handle target');
   assert.deepEqual(f.events, ['draft-segment-hover']);
-  const click = f.dispatch(f.handleHit, 'click');
+  const click = await f.dispatch(f.handleHit, 'click');
   assert.equal(click.defaultPrevented, true); assert.equal(click.cancelBubble, true);
   assert.deepEqual(f.editing.snapshot().draft.coords, [[0, 0], [60, 0], [100, 0]]);
   assert.equal(f.editing.snapshot().draft.historyCount, before.historyCount + 1);
-  f.hover(f.vertexHit); f.dispatch(f.vertexHit, 'click');
+  await f.hover(f.vertexHit); await f.dispatch(f.vertexHit, 'click');
   assert.equal(f.editing.snapshot().draft.selectedVertexIndex, 1);
   assert.deepEqual(f.events, ['draft-segment-hover', 'draft-insert-request', 'draft-vertex-select']);
   assert.equal(f.editing.snapshot().draft.historyCount, before.historyCount + 1);
   assert.deepEqual(f.clicks, []); assert.deepEqual(f.draftEvents, []);
   assert.equal(f.domain.size(), 0); assert.equal(f.domain.snapshot().revision, 0);
-  assert.equal(f.editing.performDraftUndo(), true);
+  assert.equal(await f.editing.performDraftUndo(), true);
   assert.deepEqual(f.editing.snapshot().draft.coords, before.coords);
 });
 
-test('draft controls retain leave cleanup and the map still clears insertion during panning', t => {
-  const f = draftFixture(t, 'draw-territorial-unit');
-  f.hover(f.segment);
+test('draft controls retain leave cleanup and the map still clears insertion during panning', async t => {
+  const f = await draftFixture(t, 'draw-territorial-unit');
+  await f.hover(f.segment);
   assert.notEqual(f.editing.snapshot().draft.insertTarget, null);
-  f.dispatch(f.segment, 'mouseout', { relatedTarget: f.handleHit });
-  f.dispatch(f.handle, 'mouseout', { relatedTarget: f.hit });
+  await f.dispatch(f.segment, 'mouseout', { relatedTarget: f.handleHit });
+  await f.dispatch(f.handle, 'mouseout', { relatedTarget: f.hit });
   assert.equal(f.editing.snapshot().draft.insertTarget, null);
-  f.hover(f.segment);
+  await f.hover(f.segment);
   assert.notEqual(f.editing.snapshot().draft.insertTarget, null);
-  f.setPanning(true); f.hover(f.hit);
+  f.setPanning(true); await f.hover(f.hit);
   assert.equal(f.editing.snapshot().draft.insertTarget, null);
   assert.deepEqual(f.editing.snapshot().draft.coords, [[0, 0], [100, 0]]);
 });

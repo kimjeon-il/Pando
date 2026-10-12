@@ -1,0 +1,1136 @@
+{
+  "schema": "current-web-territorial-contract-v1",
+  "baseline": "930060923889d17134e36e152c29f4adbb2e60a9",
+  "contract": "Complete territorial storage, views, revision, dirty/history availability and public operation result. Error diagnostics compare name/code/message; stack is environment dependent.",
+  "expected": [
+    {
+      "id": "initial",
+      "result": null,
+      "stateRevision": 0,
+      "undo": false,
+      "redo": false,
+      "dirty": false,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:0"
+      },
+      "views": [
+        {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Alpha",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "normal",
+      "result": {
+        "ok": true,
+        "changed": true,
+        "unit": {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Beta",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      },
+      "stateRevision": 1,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Beta",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:1"
+      },
+      "views": [
+        {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Beta",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "noop",
+      "result": {
+        "ok": true,
+        "changed": false,
+        "unit": {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Beta",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      },
+      "stateRevision": 1,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Beta",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:1"
+      },
+      "views": [
+        {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Beta",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "error",
+      "result": {
+        "ok": false,
+        "code": "not-found"
+      },
+      "stateRevision": 1,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Beta",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:1"
+      },
+      "views": [
+        {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Beta",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "cancel",
+      "result": {
+        "ok": false,
+        "cancelled": true,
+        "error": {
+          "name": "AbortError",
+          "code": "PL-FIXTURE-CANCELLED",
+          "message": "User cancelled"
+        },
+        "stage": "apply-canonical",
+        "externalCommitted": false,
+        "historyCommitted": false
+      },
+      "stateRevision": 1,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Beta",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:1"
+      },
+      "views": [
+        {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Beta",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "undo",
+      "result": true,
+      "stateRevision": 1,
+      "undo": false,
+      "redo": true,
+      "dirty": false,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Alpha",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:0"
+      },
+      "views": [
+        {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Alpha",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "redo",
+      "result": true,
+      "stateRevision": 1,
+      "undo": true,
+      "redo": false,
+      "dirty": true,
+      "snapshot": {
+        "territorialEntities": [
+          {
+            "type": "Feature",
+            "id": "A",
+            "geometry": null,
+            "properties": {
+              "schemaVersion": 6,
+              "entityKind": "general",
+              "name": "Beta",
+              "style": {},
+              "locked": false,
+              "notes": "",
+              "metadata": {},
+              "sourceFolderId": "",
+              "sourceEntityId": "",
+              "sourceGeometryVersion": ""
+            }
+          }
+        ],
+        "timelineRecords": {
+          "schemaVersion": 1,
+          "lifetimes": [
+            {
+              "id": "lifetime:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null
+            }
+          ],
+          "geometryBindings": [
+            {
+              "id": "geometry:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "geometryRef": {
+                "id": "territorial-geometry:A",
+                "version": 1
+              }
+            }
+          ],
+          "parentRelations": [
+            {
+              "id": "parent:A",
+              "entityId": "A",
+              "validFrom": null,
+              "validTo": null,
+              "parentId": "",
+              "coverageMode": "explicit"
+            }
+          ]
+        },
+        "geometries": [
+          {
+            "id": "territorial-geometry:A",
+            "version": 1,
+            "geojson": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    8,
+                    0
+                  ],
+                  [
+                    8,
+                    8
+                  ],
+                  [
+                    0,
+                    8
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          }
+        ],
+        "historyContentToken": "content:1"
+      },
+      "views": [
+        {
+          "type": "Feature",
+          "id": "A",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "schemaVersion": 6,
+            "entityKind": "general",
+            "name": "Beta",
+            "style": {},
+            "locked": false,
+            "notes": "",
+            "metadata": {},
+            "sourceFolderId": "",
+            "sourceEntityId": "",
+            "sourceGeometryVersion": "",
+            "parentId": "",
+            "coverageMode": "explicit",
+            "validFrom": null,
+            "validTo": null
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schema": "pandoeditor-web-supplemental-oracle",
+  "baseline": "930060923889d17134e36e152c29f4adbb2e60a9",
+  "reason": "Builtin hydro copy and independent physical view history",
+  "files": [
+    {
+      "path": "assets/js/modules/app-property-selection.js",
+      "blob": "beec79748ae3ab3802e0d8465a06916ff2b39a7f",
+      "sha256": "71b042f8b230b9a63bf1cc44fab2994e99dc31ec88385c7ccfbda17e30132a4f"
+    },
+    {
+      "path": "assets/js/modules/select-option-policy.js",
+      "blob": "dde6b5d3e1376e87bbed6a97c6bd16f957d78a5a",
+      "sha256": "fd226a4efb5a6f7b344247f041d842de3019a0b7bbb3c26141e20ec1eabdb2a3"
+    }
+  ]
+}

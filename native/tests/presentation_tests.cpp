@@ -10,9 +10,10 @@ ProjectDocument fixture(){
     return d;
 }
 int main(){try{
-    auto groups=fixture();groups.presentation.webPresentation.hiddenItems={{"countries",{}},{"subunits",{"missing"}},{"labels",{}}};
+    auto groups=fixture();groups.presentation.webPresentation.itemVisibility={{"countries",{{"A",true}}},{"subunits",{{"missing",false}}},{"labels",{}}};
     normalizePresentation(groups);
-    check(groups.presentation.webPresentation.hiddenItems==std::map<std::string,std::set<std::string>>{{"countries",{}},{"subunits",{}},{"labels",{}}},"normalization preserves group presence while pruning missing IDs");
+    check(groups.presentation.webPresentation.itemVisibility==std::map<std::string,std::map<std::string,bool>>{{"countries",{{"A",true}}},{"subunits",{}},{"labels",{}}},"normalization retains explicit true and group presence while pruning missing IDs");
+    check(itemVisible(groups.presentation.webPresentation,"countries","A"),"explicit true remains visible");
     Project p;p.replace(fixture());
     const auto visibleBefore=p.document().presentation.webPresentation;
     check(PresentationCommandProcessor::apply(p,SetBatchVisibility{{territorialRef("A")},true})==PresentationResult::NoOp,"visible item in absent group is a noop");

@@ -15,7 +15,7 @@ class WebImportEditorTests:public QObject {
 private slots:
  void prepareCancelKeepsDraftHistoryAndSelection() {
     QTemporaryDir d;auto path=d.filePath("source.json");write(path,source());
-    EditorController c;c.selectCountry(first(c));c.setColor("#102030");c.undo();c.setNameDraft("pending");
+    EditorController c;c.selectCountry(first(c));c.setColor("#102030");c.undo();c.selectCountry(first(c));c.setNameDraft("pending");
     auto rev=c.revision();auto selected=c.selectedId();auto name=c.selectedName();
     QVERIFY(c.prepareWebImport(QUrl::fromLocalFile(path)));QVERIFY(c.webImportBusy());
     QCOMPARE(c.revision(),rev);QCOMPARE(c.nameDraft(),QString("pending"));
@@ -37,6 +37,7 @@ private slots:
     QTemporaryDir d;auto path=d.filePath("source.json");write(path,source());EditorController c;c.selectCountry(first(c));
     auto saved=QUrl::fromLocalFile(d.filePath("current.json"));QVERIFY(c.saveFile(saved));
     for(int scenario=0;scenario<3;++scenario) {
+       c.selectCountry(first(c));
        QVERIFY(c.prepareWebImport(QUrl::fromLocalFile(path)));QTRY_VERIFY(c.hasWebImportPreview());auto hash=c.webImportHash();
        if(scenario==0)c.setNameDraft("edited after report");
        if(scenario==1){c.setColor("#203040");c.undo();}
@@ -46,7 +47,7 @@ private slots:
  }
  void saveFailurePreservesAllAndSaveSuccessStagesDraft() {
     QTemporaryDir d;auto path=d.filePath("source.json");write(path,source());EditorController c;c.selectCountry(first(c));
-    auto oldId=c.selectedId();c.setColor("#103050");c.undo();c.setNameDraft("save pending draft");auto rev=c.revision();auto session=c.projectInstanceId();
+    auto oldId=c.selectedId();c.setColor("#103050");c.undo();c.selectCountry(oldId);c.setNameDraft("save pending draft");auto rev=c.revision();auto session=c.projectInstanceId();
     QVERIFY(c.prepareWebImport(QUrl::fromLocalFile(path)));QTRY_VERIFY(c.hasWebImportPreview());auto hash=c.webImportHash();
     QVERIFY(!c.confirmWebImport(hash,"save",QUrl::fromLocalFile(d.path())));
     QCOMPARE(c.nameDraft(),QString("save pending draft"));QCOMPARE(c.revision(),rev);QCOMPARE(c.projectInstanceId(),session);QVERIFY(c.canRedo());QVERIFY(c.hasWebImportPreview());

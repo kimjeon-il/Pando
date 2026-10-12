@@ -139,7 +139,7 @@ private slots:
         QVERIFY(editor.selectObject(ref("C")));editor.setNameDraft("Changed child");QVERIFY(editor.commitObjectField("name"));
         QVERIFY(editor.selectObject(ref("B")));const auto changed=editor.objectProperties().value("childRows").toList();
         QVERIFY(!changed.isEmpty());QCOMPARE(changed.first().toMap().value("name").toString(),QString("Changed child"));
-        editor.undo();const auto restored=editor.objectProperties().value("childRows").toList();
+        editor.undo();QVERIFY(editor.selectionItems().isEmpty());QVERIFY(editor.selectObject(ref("B")));const auto restored=editor.objectProperties().value("childRows").toList();
         QVERIFY(!restored.isEmpty());QCOMPARE(restored.first().toMap().value("name").toString(),QString("Child"));
     }
 };

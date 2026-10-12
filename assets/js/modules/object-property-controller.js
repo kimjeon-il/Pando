@@ -19,7 +19,6 @@ export function createObjectPropertyController(runtime = {}) {
     distributionService,
     distributionEntriesForLayer,
     genericFeatureById,
-    normalizeGenericFeatureSemantics,
     genericFeatureGeometryKind,
     genericFeatureRole,
     genericFeatureName,
@@ -48,7 +47,9 @@ export function createObjectPropertyController(runtime = {}) {
     createEmptyState,
     createSemanticIcon,
     onHydroLoaded,
+    reportOperationError,
   } = runtime;
+  if(typeof reportOperationError!=='function')throw new TypeError('Object property hydration requires its operation error reporter.');
   const $ = getElement;
   const geometryAreaDisplayCache = new WeakMap();
 
@@ -186,7 +187,6 @@ export function createObjectPropertyController(runtime = {}) {
   function presentDistribution(id, refreshOnly = false) {
     const layer = distributionService.getLayer(id);
     if (!layer) return false;
-    state.selectedDistributionLayerId = layer.id;
     show('distribution', layer.name, { resetScroll: !refreshOnly });
     $('distributionNameInput').value = layer.name;
     $('distributionUnitInput').value = layer.unit;
@@ -280,7 +280,6 @@ export function createObjectPropertyController(runtime = {}) {
   function presentGeneric(id, refreshOnly = false) {
     const feature = genericFeatureById(id);
     if (!feature) return false;
-    normalizeGenericFeatureSemantics(feature);
     const displayName = genericFeatureName(feature);
     show('generic', displayName, { resetScroll: !refreshOnly });
     $('genericFeatureIdInput').textContent = String(id);
@@ -352,11 +351,11 @@ export function createObjectPropertyController(runtime = {}) {
     layerTreeController()?.syncSelection();
     if (!editable && !feature.geometry && !feature.__geometryLoading) {
       feature.__geometryLoading = true;
-      gpuMapRenderer.loadHydroLogicalFeature(Number(properties.__logicalFid)).then(full => {
+      gpuMapRenderer.loadHydroLogicalFeature(Number(properties.__logicalFid)).then(async full => {
         if (!full) return;
         prepareHydroFeature(full);
-        onHydroLoaded(full);
-      }).catch(error => console.warn('강·호수 선택 형상을 불러오지 못했습니다.', error))
+        await onHydroLoaded(full);
+      }).catch(error => reportOperationError(error,'강·호수 선택 형상을 불러오지 못했습니다.','PL-HYDRO-PROPERTY-001',4200))
         .finally(() => { feature.__geometryLoading = false; });
     }
     return true;

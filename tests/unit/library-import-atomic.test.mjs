@@ -1,216 +1,181 @@
-import { initializeTestTerritorialState, snapshotTestTerritorialState, restoreTestTerritorialState } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGisImportTransactionCommitter } from '../../assets/js/modules/gis-import-transaction.js';
-import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { createLibraryAssembly } from '../../assets/js/modules/app-library-assembly.js';
-import { createObjectPicking } from '../../assets/js/modules/app-object-picking.js';
-import { createTerritorialLibraryService } from '../../assets/js/modules/territorial-library-service.js';
-import { TERRITORIAL_LIBRARY_SCHEMA_VERSION, normalizeTerritorialLibraryEntity } from '../../assets/js/modules/territorial-library.js';
-import {createTerritorialEntityLoader} from '../../assets/js/modules/territorial-entity-loader.js';
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
+import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
+import {createTerritorialFeature,TERRITORIAL_COVERAGE_MODES} from '../../assets/js/modules/territorial-units.js';
+import {createLibraryAssembly} from '../../assets/js/modules/app-library-assembly.js';
+import {createTerritorialLibraryService} from '../../assets/js/modules/territorial-library-service.js';
+import {TERRITORIAL_LIBRARY_SCHEMA_VERSION,normalizeTerritorialLibraryEntity} from '../../assets/js/modules/territorial-library.js';
+import {createTerritorialEntityLoader} from '../../assets/js/modules/territorial-entity-loader.js';
 import * as libraryOwnership from '../../assets/js/modules/library-ownership.js';
 
-function harness(fail = false, expectedChildren = 1, { failTransfer = false } = {}) {
-  const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
-  const state = {territorialEntities:[createTerritorialFeature({id:'A',entityKind: 'general',geometry})],historyDirtyEntityIds:new Set(),sourceInfo:null,distributionEntries:[]};
+const noop=()=>{};
+const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]};
+const feature=(id,properties={})=>createTerritorialFeature({id,entityKind:'general',name:id,geometry,...properties});
+const collection=features=>({type:'FeatureCollection',features});
+const snapshot=h=>structuredClone(h.documentModel.snapshot());
+const rows=h=>h.store.snapshot();
+const importEnvelope=(features,removedIds=[])=>({commandId:'territorial.library-import',targets:[],payload:{
+  operations:[{commandId:'territorial.patch',
+    targets:[...new Set([...features.map(feature=>String(feature.id)),...removedIds.map(String)])].map(id=>({domain:'territorial',id})),
+    payload:{features,removedIds}}],
+  sourceInfo:{next:{imports:[{kind:'library',sourceId:'state:fixture',license:'test'}]},mergedAt:'2026-10-06T00:00:00.000Z'},
+}});
 
-  const history = [], events = [], restores = [];
-  const noop = () => {};
-  initializeTestTerritorialState(state);
-  const before = snapshotTestTerritorialState(state);
-const fixtureEntityStore1 = createTerritorialEntityStore({ getState: () => state });
-  const commit = createGisImportTransactionCommitter({
-    state, entityStore: fixtureEntityStore1, territorialEntityRepository: createTerritorialEntityRepository({ entityStore: fixtureEntityStore1 }),
-    deepClone: structuredClone, applyImportedPackageAssets: (_meta, values) => values,
-    validateGisCountryCollection: async () => ({ overlapAreaKm2: 0 }),
-    snapshotEditable: () => snapshotTestTerritorialState(state), restoreEditTransactionSnapshot: snapshot => {
-      restores.push(snapshot);
-      restoreTestTerritorialState(state, snapshot);
-    },
-    normalizeProjectObjects: noop, markLayerTreeDirty: noop, pruneLayerItemVisibility: noop,
-    transferLandDependents: () => {
-      events.push('transfer');
-      if (failTransfer) {
-        state.distributionEntries.push({ id: 'transient-dependent' });
-        throw new Error('dependent transfer failed');
-      }
-    },
-    assertProjectReferenceIntegrity: snapshot => {
-      events.push('validate');
-      assert.equal(snapshot.territorialEntities.filter(entity=>!(entity.properties.entityKind === 'general' && !entity.properties.parentId)).length, expectedChildren);
-      if (fail) throw new Error('invalid relation');
-    },
-    appendImportedSourceInfo: (_before, next) => next, scheduleCountryLabelAnchors: noop, markCountryGeometriesChanged: noop,
-    commitHistorySnapshot: snapshot => { events.push('history'); history.push(snapshot); },
-    selectionUiController: { clear: noop }, renderingDomain: { invalidateCountryPatch: noop }, queueAutosave: noop, setActionStatus: noop,
-  });
-  const result = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',entityKind: 'general',geometry})] }, preparedTerritorialUnits: [createTerritorialFeature({id:'CHILD',entityKind: 'general',parentId:'NEW',geometry})],
-    landTransfers: [{ targetId: 'NEW', geometry: {}, donorIds: ['A'] }], sourceInfo: { sourceId: 'library' } };
-  const plan = { countriesData: { type: 'FeatureCollection', features: [createTerritorialFeature({id:'NEW',entityKind: 'general',geometry})] }, affectedIds: ['A', 'NEW'], counts: { added: 2 } };
-  return { state, before, history, events, restores, commit, run: () => commit.commitGisMerge(result, plan), result };
+async function harness(t,{invalidChild=false,failTransfer=false,failPresentation=false,entities=[feature('A')]}={}) {
+  const previousWindow=globalThis.window,platformEvents=[];
+  t.after(()=>{globalThis.window=previousWindow;});
+  const runtime={createGisImportError:(message,details)=>Object.assign(new Error(message),details),
+    RELIABILITY_ERROR_CATEGORIES:{GEOMETRY:'geometry'}};
+  if(failTransfer)runtime.planTransferLandDependents=()=>{throw new Error('dependent geometry failed');};
+  if(failPresentation)runtime.markCountryGeometriesChanged=()=>{throw new Error('accepted platform failed');};
+  const h=await createGisCoreFixture(entities,{fields:{sourceInfo:null},runtime});
+  Object.defineProperty(h.state,'projectReplacing',{get:h.project.isReplacing});
+  const imported=feature('NEW'),child=feature('CHILD',{parentId:invalidChild?'missing':'NEW'});
+  const result={countriesData:collection([imported]),preparedTerritorialUnits:[child],
+    landTransfers:invalidChild?[]:[{targetId:'NEW',geometry,donorIds:['A']}],
+    sourceInfo:{imports:[{kind:'library',sourceId:'state:fixture',license:'test'}]}};
+  const plan={countriesData:collection([imported]),affectedIds:['A','NEW'],counts:{added:2}};
+  return {...h,platformEvents,result,plan,run:()=>h.committer.commitGisMerge(result,plan)};
 }
 
-test('country transfer and library children validate together and commit one reversible snapshot', async () => {
-  const h = harness();
-  await h.run();
-  assert.deepEqual(h.events, ['transfer', 'validate', 'history']);
-  assert.equal(h.history.length, 1);
-  assert.deepEqual(h.history[0], h.before);
-  const after = snapshotTestTerritorialState(h.state);
-  restoreTestTerritorialState(h.state, h.history[0]);
-  assert.deepEqual(snapshotTestTerritorialState(h.state), h.before);
-  restoreTestTerritorialState(h.state, after);
-  assert.equal(h.state.territorialEntities.find(entity=>entity.id==='CHILD').properties.parentId, 'NEW');
+test('country transfer and library children commit one actual Core Undo with source metadata',async t=>{
+  const h=await harness(t),before=snapshot(h),checkpoint=h.client.state().checkpoint;
+  const outcome=await h.run();assert.equal(outcome.added,2);
+  assert.deepEqual(rows(h).map(row=>row.id),['NEW','CHILD']);assert.equal(h.repository.get('CHILD').properties.parentId,'NEW');
+  assert.equal(h.client.state().checkpoint,checkpoint+1);assert.equal(h.client.state().stateRevision,1);
+  assert.equal(h.project.canUndo(),true);assert.deepEqual(h.events,['history','save']);
+  assert.deepEqual(h.state.sourceInfo.imports,[{kind:'library',sourceId:'state:fixture',license:'test'}]);
+  const after=snapshot(h);await h.project.undo();assert.deepEqual(snapshot(h),before);await h.project.redo();assert.deepEqual(snapshot(h),after);
 });
 
-test('child validation failure restores countries, children and source; does not record history', async () => {
-  const h = harness(true);
-  await assert.rejects(h.run(), /invalid relation/);
-  assert.deepEqual(snapshotTestTerritorialState(h.state), h.before);
-  assert.equal(h.history.length, 0);
-  assert.equal(h.restores.length, 1);
+test('actual invalid child relation leaves countries, children, source and Core history unchanged',async t=>{
+  const h=await harness(t,{invalidChild:true}),before=snapshot(h),state=h.client.state();
+  await assert.rejects(h.run(),/parent|missing|관계/i);assert.deepEqual(snapshot(h),before);assert.equal(h.project.canUndo(),false);
+  assert.equal(h.client.state().checkpoint,state.checkpoint);assert.equal(h.client.state().stateRevision,state.stateRevision);assert.deepEqual(h.events,[]);
 });
 
-test('dependent mutation failure before territory publication still restores the entire edit snapshot', async () => {
-  const h = harness(false, 1, { failTransfer: true });
-  await assert.rejects(h.run(), /dependent transfer failed/);
-  assert.deepEqual(snapshotTestTerritorialState(h.state), h.before);
-  assert.equal(h.restores.length, 1);
-  assert.equal(h.history.length, 0);
+test('dependent geometry failure before approval cannot mutate the readonly document or Core history',async t=>{
+  const h=await harness(t,{failTransfer:true}),before=snapshot(h),state=h.client.state();
+  await assert.rejects(h.run(),/dependent geometry failed/);assert.deepEqual(snapshot(h),before);assert.equal(h.project.canUndo(),false);
+  assert.equal(h.client.state().epoch,state.epoch);assert.deepEqual(h.events,[]);assert.equal(Object.isFrozen(h.state.distributionEntries),true);
 });
 
-test('cancelled or stale request cannot commit after async country validation', async () => {
-  const h = harness();
-  h.result.assertCurrent = () => { throw new Error('cancelled'); };
-  await assert.rejects(h.run(), /cancelled/);
-  assert.deepEqual(snapshotTestTerritorialState(h.state), h.before);
-  assert.equal(h.history.length, 0);
+test('cancelled request cannot commit after asynchronous geometry validation',async t=>{
+  const h=await harness(t),before=snapshot(h);h.result.assertCurrent=()=>{throw new Error('cancelled');};
+  await assert.rejects(h.run(),/cancelled/);assert.deepEqual(snapshot(h),before);assert.equal(h.project.canUndo(),false);assert.deepEqual(h.events,[]);
 });
 
-async function libraryAssemblyHarness(t, finite) {
-  const h = harness(false, 0), noop = () => {};
-  Object.assign(h.state, { stateRevision: 7, history: [{ token: 'prior' }], future: [{ token: 'redo' }],
-    dirty: true, selection: { primaryKey: 'territorial:entity:A' }, savedTarget: 'prior.gpkg' });
-  const previousWindow = globalThis.window, previousDocument = globalThis.document;
-  globalThis.window = {};
-  globalThis.document = { querySelector: () => null };
-  t.after(() => { globalThis.window = previousWindow; globalThis.document = previousDocument; });
-  const entityId = 'state:fixture', geometry = { type: 'Polygon',
-    coordinates: [[[2, 0], [2, 1], [3, 1], [3, 0], [2, 0]]] };
-  const pilot = { schemaVersion: TERRITORIAL_LIBRARY_SCHEMA_VERSION, snapshots: [], entities: [{
-    entityId, lineageId:'fixture', entityKind: 'general', names: {en:'Fixture'},
-    schemaVersion: 2, lifetime: {validFrom: finite ? '1900' : null, validTo: finite ? '1991-12' : null},
-    metadata: { defaultFlagDataUrl: 'data:image/svg+xml;base64,ZmxhZw==', fixtureProvenance: 'immutable-source' },
-    sourceInfo: { title: 'Fixture source', license: 'test' },
-    geometryVersions: [{ versionId: 'fixture:1', geometry, validFrom: finite ? '1900' : null,
-      validTo: finite ? '1991-12' : null }],
-  }] };
-  pilot.entities[0]=normalizeTerritorialLibraryEntity(pilot.entities[0]);
-  pilot.lineages=[{lineageId:'fixture',names:{en:'Fixture'},entityRefs:[entityId],relations:[]}];
-  const stored=gzipSync(Buffer.from(JSON.stringify(pilot.entities[0])));
-  const entry={...pilot.entities[0],validFrom:pilot.entities[0].lifetime.validFrom,validTo:pilot.entities[0].lifetime.validTo,bbox:[2,0,3,1],geometryVersions:pilot.entities[0].geometryVersions.map(({geometry,...v})=>v),file:'state-fixture.json.gz',geometryVersionCount:1,compressedBytes:stored.length,decodedBytes:Buffer.byteLength(JSON.stringify(pilot.entities[0])),sha256:createHash('sha256').update(stored).digest('hex')};
-  const index=Buffer.from(JSON.stringify({...pilot,entities:[entry]}));
-  globalThis.window.PANDOLAB_BUILD_META={dataRevision:'unit-test',territorialIndex:{encoding:'identity',compressedBytes:index.length,decodedBytes:index.length,sha256:createHash('sha256').update(index).digest('hex')}};
+test('retained library preview changes nothing until approval and cancellation consumes the candidate',async t=>{
+  const h=await harness(t),before=snapshot(h),state=h.client.state();
+  const prepared=await h.project.prepareCommand(importEnvelope([feature('NEW'),feature('CHILD',{parentId:'NEW'})],['A']));
+  assert.equal(prepared.ok,true);assert.equal(prepared.changed,true);assert.ok(prepared.candidateId);
+  assert.deepEqual(prepared.preview.territorialViews.map(row=>row.id),['NEW','CHILD']);assert.deepEqual(snapshot(h),before);
+  assert.equal(h.client.state().checkpoint,state.checkpoint);assert.equal(h.project.canUndo(),false);
+  await h.project.cancelCandidate(prepared.candidateId);
+  await assert.rejects(h.project.confirmCandidate(prepared.candidateId,prepared.state.epoch),error=>error.code==='PL-CORE-STALE');
+  assert.deepEqual(snapshot(h),before);assert.deepEqual(h.events,[]);
+  const accepted=await h.project.prepareCommand(importEnvelope([feature('NEW')],['A']));
+  assert.equal((await h.project.confirmCandidate(accepted.candidateId,accepted.state.epoch)).changed,true);
+  assert.deepEqual(rows(h).map(row=>row.id),['NEW']);assert.equal(h.client.state().checkpoint,state.checkpoint+1);
+  await h.project.undo();assert.deepEqual(snapshot(h),before);
+});
+
+test('post-confirm platform failure rolls back actual document, selection, draft and history',async t=>{
+  const h=await harness(t,{failPresentation:true});
+  await h.client.selectionApply({action:'replace',ref:{domain:'territorial',type:'entity',id:'A'}});
+  await h.client.draftApply({action:'start',shape:'line',coords:[[0,0],[1,1]],inputPhase:'draw'});
+  const before=snapshot(h),state=h.client.state(),selection=await h.client.selectionSnapshot(),draft=await h.client.draftSnapshot();
+  await assert.rejects(h.run(),/accepted platform failed/);assert.deepEqual(snapshot(h),before);
+  assert.equal(h.client.state().checkpoint,state.checkpoint);assert.equal(h.client.state().stateRevision,state.stateRevision);assert.equal(h.project.canUndo(),false);
+  assert.deepEqual(await h.client.selectionSnapshot(),selection);assert.deepEqual(await h.client.draftSnapshot(),draft);assert.deepEqual(h.events,[]);
+});
+
+async function libraryAssemblyHarness(t,finite,{impacts=false,entities}={}) {
+  const h=await harness(t,{entities}),previousDocument=globalThis.document;
+  globalThis.document={querySelector:()=>null};t.after(()=>{globalThis.document=previousDocument;});
+  const entityId='state:fixture',sourceGeometry={type:'Polygon',coordinates:[[[2,0],[2,1],[3,1],[3,0],[2,0]]]};
+  const entity=normalizeTerritorialLibraryEntity({entityId,lineageId:'fixture',entityKind:'general',names:{en:'Fixture'},schemaVersion:2,
+    lifetime:{validFrom:finite?'1900':null,validTo:finite?'1991-12':null},metadata:{defaultFlagDataUrl:'data:image/svg+xml;base64,ZmxhZw==',fixtureProvenance:'immutable-source'},
+    sourceInfo:{title:'Fixture source',license:'test'},geometryVersions:[{versionId:'fixture:1',geometry:sourceGeometry,
+      validFrom:finite?'1900':null,validTo:finite?'1991-12':null}]});
+  const stored=gzipSync(Buffer.from(JSON.stringify(entity)));
+  const entry={...entity,validFrom:entity.lifetime.validFrom,validTo:entity.lifetime.validTo,bbox:[2,0,3,1],
+    geometryVersions:entity.geometryVersions.map(({geometry,...version})=>version),file:'state-fixture.json.gz',geometryVersionCount:1,
+    compressedBytes:stored.length,decodedBytes:Buffer.byteLength(JSON.stringify(entity)),sha256:createHash('sha256').update(stored).digest('hex')};
+  const index=Buffer.from(JSON.stringify({schemaVersion:TERRITORIAL_LIBRARY_SCHEMA_VERSION,snapshots:[],entities:[entry],
+    lineages:[{lineageId:'fixture',names:{en:'Fixture'},entityRefs:[entityId],relations:[]}]}));
+  globalThis.window.PANDOLAB_BUILD_META={dataRevision:'unit-test',territorialIndex:{encoding:'identity',compressedBytes:index.length,
+    decodedBytes:index.length,sha256:createHash('sha256').update(index).digest('hex')}};
   t.mock.method(globalThis,'fetch',async url=>new Response(String(url).includes('state-fixture.json.gz')?stored:index));
-  const store = createTerritorialEntityStore({ getState: () => h.state });
-  const repository = createTerritorialEntityRepository({ entityStore: store });
-  const picking = createObjectPicking();
-  picking.connect({ surfaces: { uid: () => 'generated' }, platform: { deepClone: structuredClone } });
-  let allocated=0;
-  const operations = [], fakeElement = { querySelector: () => null };
-  let controllerOptions;
-  const assembly = createLibraryAssembly();
-  assembly.connect({
-    projectState: { state: h.state }, countries: { countryLandRevision: 0 },
-    domains: { projectDomain: { getGeneration: () => 7 } },
-    territorialModel: { entityRepository: repository }, objectPicking: picking,
-    libraryServices: { ...libraryOwnership, ensureTerritorialLibraryRuntime: noop,
-      territorialEntityLoaderModule: {createTerritorialEntityLoader},
-      territorialLibraryServiceModule: { createTerritorialLibraryService },
-      territorialLibraryControllerModule: { createTerritorialLibraryController: options => { controllerOptions=options; return { connect: noop }; } } },
-    gisRuntime: { gisWorkflow: { ensure: noop }, getGisImportCommitter: async () => h.commit },
-    applicationServicesA: { ensureModalRuntime: noop }, applicationServicesB: {},
-    platform: { $: () => fakeElement }, platformConfigurationA: { TERRITORIAL_LIBRARY_INDEX_URL: 'https://fixture/index.json' },
-    platformConfigurationB: {}, builtinCountries: { materializePristineCountriesSync: () => ({ features: repository.list() }) },
-    objectPresentation: { territorialEntityName: entity => entity.properties.name },
-    cutGeometry: { normalizeClippedLandGeometry: coordinates => ({ type: 'MultiPolygon', coordinates }) },
-    territorialServicesA: {createTerritorialFeature}, propertyEditingB: {}, objectModelA: {}, surfaces: { uid: () => `generated-${++allocated}` },
-    workspaceUiA: {}, workspaceUiB: {}, projectRestore: {}, feedback: {},
-    spatialQuery: { mapEditClient: { sourcesCurrent: () => true,
-      execute: async (_operation, { payload }) => ({ sourceRevision: 7, result: {
-        features: payload.countries, removedIds: [], affectedIds: payload.countries.map(entity => entity.id),
-        donorIds: [], transfers: [], deleted: 0, impacts: [],
-      } }) } },
-    layers: { markLayerTreeDirty: () => operations.push('layers') },
-    spatialRecords: { scheduleMapObjectSpatialIndexRebuild: () => operations.push('index') },
-    projectSession: { saveState: { markNewProject: () => operations.push('new-project') } },
+  let allocated=0,controllerOptions;const operations=[],fakeElement={querySelector:()=>null};
+  const assembly=createLibraryAssembly();assembly.connect({projectState:{state:h.state},countries:{get countryLandRevision(){return h.client.state().revision;}},
+    domains:{projectDomain:h.project,renderingDomain:{invalidateProject:()=>operations.push('render')}},
+    territorialModel:{entityRepository:h.repository,TERRITORIAL_COVERAGE_MODES},
+    libraryServices:{...libraryOwnership,ensureTerritorialLibraryRuntime:noop,territorialEntityLoaderModule:{createTerritorialEntityLoader},
+      territorialLibraryServiceModule:{createTerritorialLibraryService},territorialLibraryControllerModule:{createTerritorialLibraryController:options=>{controllerOptions=options;return {connect:noop};}}},
+    gisRuntime:{gisWorkflow:{ensure:noop},getGisImportCommitter:async()=>h.committer},applicationServicesA:{ensureModalRuntime:noop},
+    platform:{$:()=>fakeElement},platformConfigurationA:{TERRITORIAL_LIBRARY_INDEX_URL:'https://fixture/index.json'},platformConfigurationB:{},propertyEditingB:{},
+    territorialServicesA:{createTerritorialFeature},objectPresentation:{territorialEntityName:entity=>entity.properties.name},
+    surfaces:{uid:()=>`generated-${++allocated}`},workspaceUiA:{},workspaceUiB:{},feedback:{},
+    spatialQuery:{mapEditClient:{sourcesCurrent:revision=>revision===h.client.state().epoch,execute:async(operation,{payload})=>{
+      assert.equal(operation,'territorial-library-batch');return {sourceRevision:h.client.state().epoch,result:{features:payload.countries,removedIds:[],
+        affectedIds:payload.countries.map(row=>row.id),donorIds:[],transfers:[],deleted:0,impacts:impacts?[{name:'A',area:1,deleted:false}]:[]}};}}},
+    layers:{markLayerTreeDirty:()=>operations.push('layers')},spatialRecords:{scheduleMapObjectSpatialIndexRebuild:()=>operations.push('index')},
+    projectSession:{saveState:{markNewProject:()=>operations.push('new-project')}},
   });
-  assembly.initializeTerritorialLibraryService();
-  await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.load();
-  return { ...h, operations, entityId, pilot, geometry, controllerGeneration:()=>controllerOptions.getProjectGeneration(), source: structuredClone(await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.get(entityId)) };
+  assembly.initializeTerritorialLibraryService();const api=globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY;await api.load();
+  return {...h,api,operations,entityId,geometry:sourceGeometry,source:structuredClone(await api.get(entityId)),controller:()=>controllerOptions};
 }
 
-test('finite source imports as static geometry with original dates and reversible archive', async t => {
-  const h = await libraryAssemblyHarness(t, true);
-  const before = snapshotTestTerritorialState(h.state);
-  await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId, '1914');
-  const added=h.state.territorialEntities.find(item=>item.properties.sourceEntityId===h.entityId);
-  assert.notEqual(added.id,h.entityId);
-  assert.equal(added.properties.validFrom,null);assert.equal(added.properties.validTo,null);
+test('finite source imports as static geometry with original dates and actual reversible archive',async t=>{
+  const h=await libraryAssemblyHarness(t,true),before=snapshot(h),checkpoint=h.client.state().checkpoint;
+  await h.api.instantiate(h.entityId,'1914');const added=rows(h).find(item=>item.properties.sourceEntityId===h.entityId);
+  assert.notEqual(added.id,h.entityId);assert.equal(added.properties.validFrom,null);assert.equal(added.properties.validTo,null);
   assert.deepEqual(added.properties.metadata.sourceLifetime,{validFrom:'1900',validTo:'1991-12'});
-  assert.equal(added.properties.metadata.sourceReferenceDate,'1914');
-  assert.deepEqual(added.geometry,h.geometry);assert.equal(h.history.length,1);
-  const after=snapshotTestTerritorialState(h.state);
-  restoreTestTerritorialState(h.state,h.history[0]);assert.deepEqual(snapshotTestTerritorialState(h.state),before);
-  restoreTestTerritorialState(h.state,after);assert.deepEqual(snapshotTestTerritorialState(h.state),after);
-  assert.deepEqual(await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.get(h.entityId),h.source);
+  assert.equal(added.properties.metadata.sourceReferenceDate,'1914');assert.deepEqual(added.geometry,h.geometry);assert.equal(h.client.state().checkpoint,checkpoint+1);
+  const after=snapshot(h);await h.project.undo();assert.deepEqual(snapshot(h),before);await h.project.redo();assert.deepEqual(snapshot(h),after);
+  assert.deepEqual(await h.api.get(h.entityId),h.source);
 });
 
-test('static library merge preserves source metadata, flag, geometry version and one reversible history entry', async t => {
-  const h = await libraryAssemblyHarness(t, false);
-  const initialEntities=h.state.territorialEntities;
-  assert.equal(h.controllerGeneration(),7,'UI must use the canonical project session generation');
-  const before = snapshotTestTerritorialState(h.state);
-  const result = await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId, '2026-10-06');
-  assert.equal(result.added, 1);
-  assert.notEqual(h.state.territorialEntities,initialEntities,'production commit publishes a new collection');
-  assert.equal(h.controllerGeneration(),7,'successful content commit is not project replacement');
-  const added = createTerritorialEntityRepository({ entityStore: createTerritorialEntityStore({ getState: () => h.state }) }).list().find(item=>item.properties.sourceEntityId===h.entityId);
-  assert.equal(added.properties.sourceEntityId, h.entityId);
-  assert.equal(added.properties.sourceGeometryVersion, 'fixture:1');
-  assert.equal(added.properties.metadata.flagDataUrl, 'data:image/svg+xml;base64,ZmxhZw==');
-  assert.equal(added.properties.metadata.fixtureProvenance, 'immutable-source');
-  assert.deepEqual(added.geometry, h.geometry);
-  assert.equal(added.properties.validFrom, null);
-  assert.equal(added.properties.validTo, null);
-  assert.equal(h.history.length, 1);
-  assert.deepEqual(h.history[0], before);
-  assert.equal(h.state.sourceInfo.imports[0].sourceId, h.entityId);
-  assert.equal(h.state.sourceInfo.imports[0].geometryVersionId, 'fixture:1');
-  assert.equal(h.state.sourceInfo.imports[0].license, 'test');
-  assert.deepEqual(await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.get(h.entityId), h.source);
+test('static library merge preserves source metadata, flag, geometry version and one Core history entry',async t=>{
+  const h=await libraryAssemblyHarness(t,false),initial=rows(h),before=snapshot(h),generation=h.project.getGeneration(),checkpoint=h.client.state().checkpoint;
+  assert.equal(h.controller().getProjectGeneration(),generation);const result=await h.api.instantiate(h.entityId,'2026-10-06');
+  assert.equal(result.added,1);assert.notEqual(rows(h),initial);assert.equal(h.controller().getProjectGeneration(),generation);
+  const added=rows(h).find(item=>item.properties.sourceEntityId===h.entityId);
+  assert.equal(added.properties.sourceGeometryVersion,'fixture:1');assert.equal(added.properties.metadata.flagDataUrl,'data:image/svg+xml;base64,ZmxhZw==');
+  assert.equal(added.properties.metadata.fixtureProvenance,'immutable-source');assert.deepEqual(added.geometry,h.geometry);
+  assert.equal(added.properties.validFrom,null);assert.equal(added.properties.validTo,null);assert.equal(h.client.state().checkpoint,checkpoint+1);
+  assert.equal(h.state.sourceInfo.imports[0].sourceId,h.entityId);assert.equal(h.state.sourceInfo.imports[0].geometryVersionId,'fixture:1');
+  assert.equal(h.state.sourceInfo.imports[0].license,'test');await h.project.undo();assert.deepEqual(snapshot(h),before);assert.deepEqual(await h.api.get(h.entityId),h.source);
 });
-test('source-equal project ID is preserved and repeated imports allocate independent identities',async t=>{
-  const h=await libraryAssemblyHarness(t,false);
-  const store=createTerritorialEntityStore({getState:()=>h.state});
-  store.appendEntities([createTerritorialFeature({id:h.entityId,entityKind:'general',geometry:{type:'Polygon',coordinates:[[[10,0],[10,1],[11,1],[11,0],[10,0]]]},name:'Unrelated'})]);
-  await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId,'2026');
-  const first=store.snapshot().find(item=>item.properties.sourceEntityId===h.entityId);
-  store.applyChanges({features:[{...first,geometry:{type:'Polygon',coordinates:[[[4,0],[4,1],[5,1],[5,0],[4,0]]]},properties:{...first.properties,name:'Edited copy'}}]});
-  await globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId,'2026');
-  const copies=store.snapshot().filter(item=>item.properties.sourceEntityId===h.entityId);
-  assert.equal(copies.length,2);assert.notEqual(copies[0].id,copies[1].id);
+
+test('source-equal project identity and edited earlier copy survive repeated import and Undo',async t=>{
+  const unrelated=feature('state:fixture',{name:'Unrelated',geometry:{type:'Polygon',coordinates:[[[10,0],[10,1],[11,1],[11,0],[10,0]]]}});
+  const h=await libraryAssemblyHarness(t,false,{entities:[feature('A'),unrelated]});await h.api.instantiate(h.entityId,'2026');
+  const first=rows(h).find(row=>row.properties.sourceEntityId===h.entityId);
+  const edited={...first,geometry:{type:'Polygon',coordinates:[[[4,0],[4,1],[5,1],[5,0],[4,0]]]},properties:{...first.properties,name:'Edited copy'}};
+  const edit=await h.project.executeCommand({commandId:'territorial.patch',targets:[{domain:'territorial',id:first.id}],payload:{features:[edited]}});assert.equal(edit.ok,true);
+  const before=snapshot(h),checkpoint=h.client.state().checkpoint;await h.api.instantiate(h.entityId,'2026');
+  const copies=rows(h).filter(row=>row.properties.sourceEntityId===h.entityId);assert.equal(copies.length,2);assert.notEqual(copies[0].id,copies[1].id);
   assert.equal(copies[0].properties.name,'Edited copy');assert.deepEqual(copies[1].geometry,h.geometry);assert.notDeepEqual(copies[0].geometry,copies[1].geometry);
-  assert.ok(copies.every(item=>item.id!==h.entityId));
-  assert.equal(store.snapshot().find(item=>item.id===h.entityId).properties.name,'Unrelated');
-  assert.equal(h.history.length,2);
+  assert.ok(copies.every(row=>row.id!==h.entityId));assert.equal(h.repository.get(h.entityId).properties.name,'Unrelated');assert.equal(h.client.state().checkpoint,checkpoint+1);
+  await h.project.undo();assert.deepEqual(snapshot(h),before);await h.project.redo();assert.equal(rows(h).filter(row=>row.properties.sourceEntityId===h.entityId).length,2);
+  assert.deepEqual(await h.api.get(h.entityId),h.source);
 });
-test('out-of-lifetime import preserves complete session and never reaches commit',async t=>{
-  const h=await libraryAssemblyHarness(t,true),before=snapshotTestTerritorialState(h.state);
-  await assert.rejects(globalThis.window.PANDOLAB_TERRITORIAL_LIBRARY.instantiate(h.entityId,'2000'), /경계|시점/);
-  assert.deepEqual(snapshotTestTerritorialState(h.state),before);assert.deepEqual(h.history,[]);assert.deepEqual(h.events,[]);assert.deepEqual(h.operations,[]);
+
+test('out-of-lifetime library import preserves complete Core session and never reaches commit',async t=>{
+  const h=await libraryAssemblyHarness(t,true),before=snapshot(h),state=h.client.state();
+  await assert.rejects(h.api.instantiate(h.entityId,'2000'),/경계|시점/);assert.deepEqual(snapshot(h),before);
+  assert.equal(h.client.state().checkpoint,state.checkpoint);assert.equal(h.client.state().epoch,state.epoch);assert.equal(h.project.canUndo(),false);
+  assert.deepEqual(h.events,[]);assert.deepEqual(h.operations,[]);
+});
+
+test('original library impact approval leaves the project unchanged until explicit confirmation',async t=>{
+  const h=await libraryAssemblyHarness(t,false,{impacts:true}),before=snapshot(h),checkpoint=h.client.state().checkpoint;
+  const options=h.controller(),pending=await options.instantiate([h.entityId],'2026','none');
+  assert.equal(pending.confirmationRequired,true);assert.ok(pending.impactKey);assert.deepEqual(snapshot(h),before);assert.equal(h.project.canUndo(),false);assert.deepEqual(h.operations,[]);
+  const result=await options.instantiate([h.entityId],'2026','none',{confirmedImpact:pending.impactKey});
+  assert.equal(result.added,1);assert.equal(h.client.state().checkpoint,checkpoint+1);await h.project.undo();assert.deepEqual(snapshot(h),before);
 });

@@ -23,7 +23,7 @@ for (const input of ['1900', '1900 ~~ 1901', '1900 ~ 1901 ~', '0000 ~', '1900-02
   assert.throws(() => propertyEditor.parseTerritorialPeriodInput(input), error => /^PL-(TEMPORAL|EDITOR-PERIOD)/.test(error.code));
 });
 
-test('one period change submits both endpoints together and failure uses native validation', () => {
+test('one period change submits both endpoints together and failure uses native validation', async () => {
   const controls = new Map();
   const getElement = id => {
     if (!controls.has(id)) controls.set(id, { value: '', listeners: {}, attributes: {},
@@ -40,11 +40,12 @@ test('one period change submits both endpoints together and failure uses native 
   propertyEditor.createTerritorialPropertyController({ window: { addEventListener() {} }, document: { addEventListener() {} }, isMutationBlocked: () => false, getElement, getPrimaryRef: () => ref,
     elements: { name: getElement('entityNameInput'), notes: getElement('entityNotesInput') },
     commitField: (...args) => { commits.push(args); return result; },
+    reportEditError: error => { throw error; },
   }).bind();
   const period = getElement('entityPeriodInput');
   assert.equal(typeof period.listeners.change, 'function');
   period.value = '1871-01-18 ~ 1918-11-09';
-  period.listeners.change({ target: period });
+  await period.listeners.change({ target: period });
   assert.deepEqual(commits, [[ref, 'validity', { validFrom: '1871-01-18', validTo: '1918-11-09' }]]);
   assert.equal(period.attributes['aria-invalid'], 'true');
   assert.equal(period.reported, true);
@@ -53,11 +54,11 @@ test('one period change submits both endpoints together and failure uses native 
   assert.equal(period.validationMessage, '');
   assert.equal(period.attributes['aria-invalid'], undefined);
   period.value = '1900 ~~ 1901';
-  period.listeners.change({ target: period });
+  await period.listeners.change({ target: period });
   assert.equal(commits.length, 1, 'invalid syntax never reaches the metadata command');
   result = { ok: true, changed: false };
   period.value = ' ~ ';
-  period.listeners.change({ target: period });
+  await period.listeners.change({ target: period });
   assert.equal(period.value, '', 'both open endpoints display as an empty input even for a no-op');
 });
 

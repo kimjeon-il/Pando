@@ -162,7 +162,7 @@ function hoverLifecycle() {
   const window = { setTimeout, clearTimeout, CustomEvent: class { constructor(type) { this.type = type; } }, dispatchEvent() {} };
   const surfaces = createSurfaceController({ getElement: id => nodes.get(id), getLayout: () => 'wide', document });
   surfaces.open('search');
-  const places = createPlaceRuntime({ rpc: { request: async () => ({ result: { records: [], signature: 'test' } }), stop() {} },
+  const places = createPlaceRuntime({ admitReferences:async ()=>{}, rpc: { request: async () => ({ result: { records: [], signature: 'test' } }), stop() {} },
     onSettled: () => { controller.cancelSearch(); controller.render(true); } });
   const close = () => { surfaces.close('search'); controller.cancelSearch(); };
   const domains = { selectionDomain: domain };

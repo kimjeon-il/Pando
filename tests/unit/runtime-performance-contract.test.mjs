@@ -5,8 +5,8 @@ import test from 'node:test';
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
 const uiRuntime = read('assets/js/modules/ui-runtime.js');
 const persistence = read('assets/js/modules/persistence-service.js');
-const transaction = read('assets/js/modules/project-transaction.js');
-const commandPipeline = read('assets/js/modules/project-command-pipeline.js');
+const transaction = read('assets/js/modules/app-geometry-preview.js');
+const projectDomain = read('assets/js/modules/project-domain.js');
 const metrics = read('assets/js/modules/runtime-performance-metrics.js');
 
 test('runtime performance collector is installed once from the canonical UI runtime', () => {
@@ -28,7 +28,7 @@ test('performance report covers startup long tasks, mobile sheet cadence and com
 test('edit transactions, ordinary project commands and autosave publish timings without owning domain state', () => {
   assert.match(transaction, /PERFORMANCE_METRIC_NAMES\.TRANSACTION/);
   assert.match(transaction, /stageDurations/);
-  assert.match(commandPipeline, /PERFORMANCE_METRIC_NAMES\.COMMAND/);
+  assert.match(projectDomain,/PERFORMANCE_METRIC_NAMES\.COMMAND/);
   assert.match(persistence, /PERFORMANCE_METRIC_NAMES\.AUTOSAVE/);
   assert.match(persistence, /buildMs/);
   assert.match(persistence, /indexedDbMs/);

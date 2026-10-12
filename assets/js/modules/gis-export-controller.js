@@ -9,7 +9,7 @@ export function createGisExportController({
   elements,
   ensureRuntime,
   requireReady,
-  getProject,
+  getFileSnapshot,
   getCounts,
   download,
   setStatus,
@@ -83,14 +83,16 @@ export function createGisExportController({
     elements.error.classList.add('hidden');
     try {
       setStatus('GIS 데이터를 내보내는 중입니다.', 'working', 0);
-      const project = getProject();
+      const receipt = await getFileSnapshot();
+      if(!receipt?.project || !Object.hasOwn(receipt,'spatialState'))throw new TypeError('The complete Core file export receipt is required.');
+      const project=receipt.project;
       if (elements.format.value === 'geojson-zip') {
-        const result = await window.PandoLabGIS.exportGeoJsonBundle(project, selected, (_message, percent) => setStatus(`GeoJSON 묶음 생성 중 · ${Math.round(percent || 0)}%`, 'working', 0));
+        const result = await window.PandoLabGIS.exportGeoJsonBundle(project, selected, (_message, percent) => setStatus(`GeoJSON 묶음 생성 중 · ${Math.round(percent || 0)}%`, 'working', 0),{spatialState:receipt.spatialState});
         download('판도연구소-GIS-데이터.zip', result.blob);
         close();
         setStatus(`GeoJSON 레이어 ${result.manifest.layers.length}개를 만들었습니다.`, 'success', 3600);
       } else {
-        const blob = await window.PandoLabGIS.exportGeoPackage(project, (_message, percent) => setStatus(`GIS용 GeoPackage 생성 중 · ${Math.round(percent || 0)}%`, 'working', 0), { mode: 'gis', layers: selected });
+        const blob = await window.PandoLabGIS.exportGeoPackage(project, (_message, percent) => setStatus(`GIS용 GeoPackage 생성 중 · ${Math.round(percent || 0)}%`, 'working', 0), { mode: 'gis', layers: selected,spatialState:receipt.spatialState });
         download('판도연구소-GIS-데이터.gpkg', blob);
         close();
         setStatus('GIS용 GeoPackage를 만들었습니다.', 'success', 3600);

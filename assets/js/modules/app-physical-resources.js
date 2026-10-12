@@ -28,6 +28,30 @@ export function createPhysicalResources() {
     return hydroService.load(force);
   }
 
+  function builtinHydroSelectionReferences(features=(0,dependencies.hydroPresentation.allBuiltInHydroFeatures)()) {
+    return [...new Map(features.map(feature=>{
+      const id=String(feature.properties?.pandolab_id || feature.id);
+      const category=dependencies.hydroPresentation.HYDRO_LAYER_META[feature.properties?.layer_id]?.category || feature.properties?.category;
+      const sourceIds=String(feature.properties?.source_id || '').split(',').filter(Boolean);
+      return [id,{domain:'hydroBuiltin',id,logicalId:id,type:(0,dependencies.hydroPresentation.hydroCategoryKey)(category),sourceIds}];
+    })).values()];
+  }
+
+  async function admitHydroFeatures(features=[]) {
+    if(typeof dependencies.domains.projectDomain?.admitSelectionCatalog!=='function')
+      throw new TypeError('Hydro source identities require the canonical Core admission boundary.');
+    const cache=dependencies.projectState.state.hydroFeatureCache;
+    if(!(cache instanceof Map))throw new TypeError('The canonical hydro resource cache is required.');
+    for(const feature of features) {
+      const id=String(feature.properties?.pandolab_id || feature.id),existing=cache.get(id);
+      // Descriptor/FID indexes point at this aggregate. Hydrate that same
+      // resource allocation rather than replacing it with a second full row.
+      if(existing && existing!==feature)Object.assign(existing,feature);
+      else cache.set(id,feature);
+    }
+    return dependencies.domains.projectDomain.admitSelectionCatalog('hydroBuiltin',()=>builtinHydroSelectionReferences());
+  }
+
   function loadPhysicalData() {
     loadTerrainManifest();
     loadHydroData();
@@ -168,6 +192,7 @@ export function createPhysicalResources() {
         dependencies.projectState.state.physicalLoadState.hydroCachePercent = 0;
         const workerReady = await dependencies.rendering.gpuMapRenderer.setHydroManifest(manifest, manifestUrl);
         if (!workerReady) return false;
+        await admitHydroFeatures();
         dependencies.projectState.state.physicalLoadState.hydroWorker = 'ready';
         dependencies.projectState.state.physicalLoadState.hydro = 'ready';
         (0, dependencies.layerPresentation.markLayerTreeDirty)();
@@ -196,6 +221,8 @@ export function createPhysicalResources() {
     get hydroRenderGroups() { return hydroRenderGroups; },
     get hydroVisibilityThreshold() { return hydroVisibilityThreshold; },
     get loadHydroData() { return loadHydroData; },
+    builtinHydroSelectionReferences,
+    admitHydroFeatures,
     get loadPhysicalData() { return loadPhysicalData; },
     get loadTerrainManifest() { return loadTerrainManifest; },
     get prepareHydroFeature() { return prepareHydroFeature; },

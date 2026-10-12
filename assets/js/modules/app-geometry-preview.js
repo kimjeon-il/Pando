@@ -1,4 +1,6 @@
 import { adoptBoundaryRenderPacketAsync } from './editing-render-packet.js';
+import {getRuntimePerformanceMetrics,PERFORMANCE_METRIC_NAMES} from './runtime-performance-metrics.js';
+const metricNow=()=>typeof performance==='undefined'?Date.now():performance.now();
 /** GeometryPreview: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -18,36 +20,51 @@ export function createGeometryPreview() {
     dependencies = ports;
   }
 
-  function assertCurrentProjectReferences() {
-    return (0, dependencies.territorialModel.assertProjectReferenceIntegrity)({
-      territorialEntities: dependencies.territorialModel.entityRepository.list(),
-      distributionLayers: dependencies.projectState.state.distributionLayers || [],
-      distributionEntries: dependencies.projectState.state.distributionEntries || [],
-      labels: dependencies.projectState.state.labels || [],
-      genericFeatures: dependencies.projectState.state.genericFeatures || [],
-      itemVisibility: dependencies.projectState.state.itemVisibility || {},
-      labelSettings: dependencies.projectState.state.labelSettings || {},
-    });
+  function rejectedOutcome(outcome) {
+    if(outcome?.ok)return outcome;
+    throw Object.assign(new Error(outcome?.error?.message || 'Core rejected the geometry command.'),{ code: outcome?.error?.code || 'PL-PREVIEW-COMMAND' });
   }
 
-  function transactMapEdit({ operation, payload, snapshot, applyResult, onSuccess, onError }) {
-    return (0, dependencies.geometryEditingCore.runMapEditTransaction)({
-      client: dependencies.spatialQuery.mapEditClient,
-      operation,
-      payload,
-      snapshot,
-      applyResult,
-      validateCanonical: assertCurrentProjectReferences,
-      commitHistory: (...args) => dependencies.domains.projectDomain.commitHistorySnapshot(...args),
-      restore: (editableSnapshot, { rebaseWorker }) => {
-        (0, dependencies.validation.restoreEditTransactionSnapshot)(editableSnapshot);
-        if (rebaseWorker) dependencies.spatialQuery.mapEditClient.rebase();
-      },
-      queueAutosave: (...args) => dependencies.domains.projectDomain.queueAutosave(...args),
-      diagnostic: dependencies.readiness.reliabilityDiagnostic,
-      onSuccess,
-      onError,
-    });
+  async function transactMapEdit({ operation,payload,prepareResult,applyAccepted,onSuccess,onError }) {
+    const expectedEpoch=dependencies.domains.projectDomain.state().epoch;
+    const startedAt=metricNow(),stageDurations={};
+    let requestId=0,prepared,stage='prepare-geometry',stageStartedAt=startedAt,result='failed',failure;
+    const enterStage=next=>{stageDurations[stage]=Math.max(0,metricNow()-stageStartedAt);stage=next;stageStartedAt=metricNow();};
+    try {
+      if(typeof prepareResult!=='function')throw new TypeError('A typed Core geometry command preparer is required.');
+      const response=await dependencies.spatialQuery.mapEditClient.execute(operation,payload);requestId=response.requestId;
+      enterStage('prepare-core');
+      prepared=rejectedOutcome(await prepareResult(response.result,{ expectedEpoch }));
+      if(!prepared.changed){dependencies.spatialQuery.mapEditClient.discard(requestId);result='unchanged';return false;}
+      enterStage('confirm-core');
+      const outcome=rejectedOutcome(await dependencies.domains.projectDomain.confirmCandidate(prepared.candidateId,prepared.state.epoch,{ applyAccepted: async result => {
+        const effectStartedAt=metricNow();
+        if(applyAccepted)await applyAccepted(result,response.result);
+        stageDurations['apply-platform']=Math.max(0,metricNow()-effectStartedAt);
+        const commitStartedAt=metricNow();
+        dependencies.spatialQuery.mapEditClient.commit(requestId);
+        stageDurations['commit-external']=Math.max(0,metricNow()-commitStartedAt);
+      } }));
+      enterStage('success');
+      stageDurations['confirm-core']=Math.max(0,stageDurations['confirm-core']-(stageDurations['apply-platform']||0)-(stageDurations['commit-external']||0));
+      result=outcome.changed?'success':'unchanged';
+      if(outcome.changed)try {await onSuccess(response.result);} catch(error) {
+        result='success-with-warning';failure=error;
+        dependencies.feedback.reportOperationError(error,'변경을 적용했지만 완료 표시를 갱신하지 못했습니다.','PL-PREVIEW-NOTIFY',4200);
+      }
+      return outcome.changed;
+    } catch(error) {
+      failure=error;result=error.cancelled||error.name==='AbortError'?'cancelled':'failed';enterStage('cleanup');
+      if(prepared?.candidateId)await dependencies.domains.projectDomain.cancelCandidate(prepared.candidateId).catch(cleanupError => {error.cleanupError=cleanupError;});
+      if(requestId)dependencies.spatialQuery.mapEditClient.discard(requestId);
+      dependencies.spatialQuery.mapEditClient.rebase();
+      await onError(error);return false;
+    } finally {
+      stageDurations[stage]=Math.max(0,metricNow()-stageStartedAt);
+      try {getRuntimePerformanceMetrics()?.record(PERFORMANCE_METRIC_NAMES.TRANSACTION,Math.max(0,metricNow()-startedAt),{
+        operationType:operation,result,finalStage:stage,stages:stageDurations,errorCode:String(failure?.code || ''),
+      });}catch(_){/* Telemetry cannot change the settled Core operation. */}
+    }
   }
 
   function geometryPolygonSets(geometry) {
@@ -183,213 +200,105 @@ export function createGeometryPreview() {
     };
   }
 
-  async function beginWorkerGeometryPreview({
-    operation,
-    payload,
-    snapshot,
-    transferredGeometry = null,
-    applyResult,
-    resolveFeature = id => dependencies.territorialModel.entityRepository.get(id),
-    invalidateAfterApply = () => dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-geometry-preview-applied'),
-    onSuccess = () => {},
-    onError = () => {},
-    shouldKeepResult = () => true,
-  }) {
-    discardActiveGeometryPreview({ announce: false });
-    const baseDataRevision = dependencies.projectState.state.stateRevision;
-    (0, dependencies.feedback.setActionStatus)('변경 미리보기 계산 중…', 'working', 0);
-    let requestId = 0;
+  async function beginWorkerGeometryPreview({ operation,payload,transferredGeometry=null,prepareResult,applyAccepted,
+    invalidateAfterApply=()=>{},onSuccess=()=>{},onError,shouldKeepResult=()=>true }) {
+    await discardActiveGeometryPreview({ announce:false });
+    const expectedEpoch=dependencies.domains.projectDomain.state().epoch;
+    let requestId=0,prepared;
     try {
-      const response = await dependencies.spatialQuery.mapEditClient.execute(operation, { ...payload, previewTransferredGeometry: transferredGeometry });
-      requestId = response.requestId;
-      if (dependencies.projectState.state.stateRevision !== baseDataRevision || !shouldKeepResult()) {
-        dependencies.spatialQuery.mapEditClient.discard(requestId);
-        throw Object.assign(new Error('계산 중 지도 상태가 바뀌어 미리보기를 폐기했습니다.'), { cancelled: true });
-      }
-      const result = response.result;
-      transferredGeometry = result.transferredGeometry || transferredGeometry;
-      const affectedIds = new Set((result.affectedIds || []).map(String));
-      const removedIds = new Set((result.removedIds || []).map(String));
-      const beforeFeatures = [...affectedIds]
-        .map(id => resolveFeature(id))
-        .filter(Boolean);
-      const patchById = new Map((result.features || []).map(feature => [String(feature?.id || ''), feature]));
-      const afterFeatures = [...affectedIds].filter(id => !removedIds.has(id))
-        .map(id => patchById.get(id) || resolveFeature(id))
-        .filter(Boolean);
-      const preview = result.preview;
-      if (!preview?.validation) throw new Error('Worker 미리보기 검증 결과를 받지 못했습니다.');
-      const validationIssues = preview.validation.issues;
-      const session = (0, dependencies.geometryEditingCore.beginGeometryPreview)(dependencies.projectState.state.geometryPreview, {
-        operation,
-        baseDataRevision,
-        workerRequestId: requestId,
-        affectedIds: [...affectedIds],
-        beforeFeatures,
-        afterFeatures,
-        removedIds: [...removedIds],
-        ...preview,
-        validation: {
-          issues: validationIssues,
-          blocking: validationIssues.some(issue => issue.severity !== 'warning'),
-        },
-      });
-      activeGeometryPreviewDiscard = () => dependencies.spatialQuery.mapEditClient.discard(requestId);
-      activeGeometryPreviewApply = async () => {
-        if (!shouldKeepResult() || !(0, dependencies.geometryEditingCore.previewIsCurrent)(dependencies.projectState.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.projectState.state.stateRevision !== baseDataRevision) {
-          dependencies.spatialQuery.mapEditClient.discard(requestId);
-          (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
-          activeGeometryPreviewApply = null;
-          activeGeometryPreviewDiscard = null;
-          dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('geometry-preview-cancelled');
-          (0, dependencies.taskUi.updateModeButtons)();
-          (0, dependencies.feedback.setActionStatus)('지도가 바뀌어 미리보기를 취소했습니다.', 'error', 3800);
-          return false;
-        }
-        if (session.validation?.blocking) {
-          (0, dependencies.feedback.setActionStatus)('미리보기 형상을 수정하세요.', 'error', 3400);
-          return false;
-        }
-        (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
-        activeGeometryPreviewApply = null;
-        activeGeometryPreviewDiscard = null;
-        try {
-          await applyResult(result);
-          assertCurrentProjectReferences();
-          dependencies.spatialQuery.mapEditClient.commit(requestId);
-          dependencies.domains.projectDomain.commitHistorySnapshot(snapshot);
-          dependencies.domains.projectDomain.queueAutosave();
-          onSuccess(result);
-          invalidateAfterApply(result);
-          (0, dependencies.taskUi.updateModeButtons)();
-          return true;
-        } catch (error) {
-          dependencies.spatialQuery.mapEditClient.discard(requestId);
-          (0, dependencies.validation.restoreEditTransactionSnapshot)(snapshot);
-          onError(error);
-          return false;
-        }
-      };
-      dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('geometry-preview-ready');
-      (0, dependencies.taskUi.updateModeButtons)();
-      const blockingIssue = validationIssues.find(issue => issue.severity !== 'warning');
-      const included = result.autoIncludedSlivers;
-      const inclusionNote = included?.count
-        ? ` 미세 잔여 영역 ${included.count}개 포함 · ${included.areaM2 < 0.01 ? '0.01m² 미만' : `${included.areaM2.toFixed(2)}m²`}.` : '';
-      (0, dependencies.taskUi.setModeBanner)(blockingIssue?.message || `변경 결과를 확인한 뒤 적용하세요.${inclusionNote}`);
-      if (blockingIssue) (0, dependencies.platform.$)('modeTaskInstruction')?.classList.add('cut-invalid');
-      (0, dependencies.feedback.setActionStatus)(validationIssues.length
-        ? `미리보기에서 geometry 문제 ${validationIssues.length}건을 찾았습니다.`
-        : '변경 결과 미리보기를 준비했습니다.', validationIssues.length ? 'error' : 'success', 3600);
-      return true;
-    } catch (error) {
-      if (requestId) dependencies.spatialQuery.mapEditClient.discard(requestId);
-      if (!error?.cancelled) onError(error);
-      else (0, dependencies.feedback.setActionStatus)('지도 작업을 취소했습니다.', 'success', 2200);
+      if(typeof prepareResult!=='function')throw new TypeError('A typed Core geometry command preparer is required.');
+      dependencies.feedback.setActionStatus('변경 미리보기 계산 중…','working',0);
+      const response=await dependencies.spatialQuery.mapEditClient.execute(operation,{ ...payload,previewTransferredGeometry:transferredGeometry });requestId=response.requestId;
+      if(!shouldKeepResult() || dependencies.domains.projectDomain.state().epoch!==expectedEpoch)
+        throw Object.assign(new Error('계산 중 지도 상태가 바뀌어 미리보기를 폐기했습니다.'),{ cancelled:true });
+      prepared=rejectedOutcome(await prepareResult(response.result,{ expectedEpoch }));
+      if(!prepared.changed){dependencies.spatialQuery.mapEditClient.discard(requestId);return false;}
+      const ready=await beginLocalGeometryPreview({ operation,preparedCommand:prepared,preparedPreview:response.result.preview,
+        transferredGeometry:response.result.transferredGeometry || transferredGeometry,shouldKeepResult,
+        discardPrepared:()=>dependencies.spatialQuery.mapEditClient.discard(requestId),
+        applyAccepted:async result=>{if(applyAccepted)await applyAccepted(result,response.result);dependencies.spatialQuery.mapEditClient.commit(requestId);},
+        invalidateAfterApply:()=>invalidateAfterApply(response.result),
+        onSuccess:()=>onSuccess(response.result) });
+      if(!ready){await dependencies.domains.projectDomain.cancelCandidate(prepared.candidateId);dependencies.spatialQuery.mapEditClient.discard(requestId);}
+      return ready;
+    } catch(error) {
+      if(prepared?.candidateId)await dependencies.domains.projectDomain.cancelCandidate(prepared.candidateId).catch(cleanupError=>{error.cleanupError=cleanupError;});
+      if(requestId)dependencies.spatialQuery.mapEditClient.discard(requestId);
+      if(error.cancelled)dependencies.feedback.setActionStatus('지도 작업을 취소했습니다.','success',2200);
+      else if(onError)await onError(error);
+      else dependencies.feedback.reportOperationError(error,'변경 미리보기를 준비하지 못했습니다.','PL-PREVIEW-PREPARE',4200);
       return false;
     }
   }
 
-  async function beginLocalGeometryPreview({
-    operation,
-    beforeFeatures = [],
-    afterFeatures = [],
-    removedIds = [],
-    transferredGeometry = null,
-    snapshot = (0, dependencies.snapshots.snapshotEditable)(),
-    applyResult,
-    shouldKeepResult = () => true,
-    commitHistorySnapshot = false,
-    beforeApply = async () => true,
-    preparedPreview = null,
-    validatePrepared = async () => true,
-    invalidateAfterApply = () => dependencies.domains.renderingDomain?.invalidateGenericPatch?.('local-geometry-preview-applied'),
-    successMessage = '변경을 적용했습니다.',
-    errorMessage = '변경을 적용하지 못했습니다.',
-  }) {
-    discardActiveGeometryPreview({ announce: false });
-    if (!shouldKeepResult()) return false;
-    const baseDataRevision = dependencies.projectState.state.stateRevision;
-    const epoch = ++localPreparationEpoch;
-    if (!preparedPreview) {
-      localPreparationPending = true;
-      try {
-        const response = await dependencies.spatialQuery.mapEditClient.execute('territorial-preview', { payload: {
-          operation, beforeIds: beforeFeatures.map(feature => String(feature.id)), afterFeatures, removedIds, transferredGeometry,
-        } });
-        if (epoch !== localPreparationEpoch || !shouldKeepResult() || dependencies.projectState.state.stateRevision !== baseDataRevision) return false;
-        preparedPreview = response.result;
-        validatePrepared = async () => {
-          await dependencies.spatialQuery.mapEditClient.execute('territorial-validation', { payload: { preparationId: preparedPreview.preparationId } });
-          return dependencies.spatialQuery.mapEditClient.sourcesCurrent(response.sourceRevision);
-        };
-      } catch (error) {
-        if (!error?.cancelled) (0, dependencies.feedback.reportOperationError)(error, errorMessage, 'PL-PREVIEW-PREPARE', 3600);
-        return false;
-      } finally {
-        if (epoch === localPreparationEpoch) localPreparationPending = false;
-      }
+  async function beginLocalGeometryPreview({ operation,preparedCommand,transferredGeometry=null,shouldKeepResult=()=>true,
+    beforeApply=async()=>true,preparedPreview=null,validatePrepared=async()=>true,applyAccepted,
+    discardPrepared=()=>{},invalidateAfterApply=()=>{},onSuccess=()=>{},
+    successMessage='변경을 적용했습니다.',errorMessage='변경을 적용하지 못했습니다.' }) {
+    await discardActiveGeometryPreview({ announce:false });
+    if(!preparedCommand?.ok || !preparedCommand.changed || !preparedCommand.preview || !preparedCommand.candidateId)
+      throw new TypeError('A retained C++ candidate and its immutable projection are required.');
+    const expectedEpoch=preparedCommand.state.epoch;
+    const current=()=>shouldKeepResult() && dependencies.domains.projectDomain.getGeneration()===preparedCommand.projectGeneration;
+    if(!current()){await dependencies.domains.projectDomain.cancelCandidate(preparedCommand.candidateId);discardPrepared();return false;}
+    const epoch=++localPreparationEpoch;
+    const source=preparedCommand.preview;
+    const ids=new Set((source.delta?.objects || []).filter(row=>row.ref.domain==='territorial').map(row=>row.ref.id));
+    const previous=new Map(preparedCommand.beforeTerritorial.map(feature=>[String(feature.id),feature]));
+    const nextIds=new Set(source.territorialViews.map(feature=>String(feature.id)));
+    for(const feature of source.territorialViews) {
+      const before=previous.get(String(feature.id));
+      if(!before || before.geometry!==feature.geometry || ['parentId','coverageMode','validFrom','validTo'].some(field=>before.properties[field]!==feature.properties[field]))ids.add(String(feature.id));
     }
-    const issues = preparedPreview.validation?.issues || [];
-    const preview = preparedPreview;
-    const session = (0, dependencies.geometryEditingCore.beginGeometryPreview)(dependencies.projectState.state.geometryPreview, {
-      operation,
-      baseDataRevision,
-      affectedIds: [...new Set([...beforeFeatures, ...afterFeatures].map(feature => String(feature?.id || '')).filter(Boolean))],
-      beforeFeatures,
-      afterFeatures,
-      removedIds,
-      ...preview,
-      validation: { issues, blocking: issues.some(issue => issue.severity !== 'warning') },
-    });
-    activeGeometryPreviewDiscard = null;
-    activeGeometryPreviewApply = async () => {
-      if (!shouldKeepResult() || !(0, dependencies.geometryEditingCore.previewIsCurrent)(dependencies.projectState.state.geometryPreview, session.sessionId, baseDataRevision) || dependencies.projectState.state.stateRevision !== baseDataRevision) {
-        (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
-        activeGeometryPreviewApply = null;
-        dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('local-geometry-preview-cancelled');
-        (0, dependencies.taskUi.updateModeButtons)();
-        (0, dependencies.feedback.setActionStatus)('지도가 바뀌어 미리보기를 취소했습니다.', 'error', 3600);
-        return false;
-      }
-      if (session.validation?.blocking) {
-        (0, dependencies.feedback.setActionStatus)('미리보기 형상을 수정하세요.', 'error', 3400);
-        return false;
-      }
-      if (!await beforeApply()) return false;
-      try { if (!await validatePrepared()) return false; }
-      catch (error) {
-        (0, dependencies.feedback.reportOperationError)(error, '미리보기를 다시 계산하세요.', 'PL-PREVIEW-STALE', 3600);
-        return false;
-      }
-      if (!shouldKeepResult() || dependencies.projectState.state.stateRevision !== baseDataRevision
-        || !(0, dependencies.geometryEditingCore.previewIsCurrent)(dependencies.projectState.state.geometryPreview, session.sessionId, baseDataRevision)) return false;
-      (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
-      activeGeometryPreviewApply = null;
-      activeGeometryPreviewDiscard = null;
+    for(const id of previous.keys())if(!nextIds.has(id))ids.add(id);
+    const beforeFeatures=preparedCommand.beforeTerritorial.filter(feature=>ids.has(String(feature.id)));
+    const afterFeatures=source.territorialViews.filter(feature=>ids.has(String(feature.id)));
+    const removedIds=[...ids].filter(id=>!afterFeatures.some(feature=>String(feature.id)===id));
+    if(!preparedPreview){
+      localPreparationPending=true;
       try {
-        applyResult();
-        assertCurrentProjectReferences();
-        if (commitHistorySnapshot) dependencies.domains.projectDomain.commitHistorySnapshot(snapshot);
-        dependencies.projectState.state.stateRevision += 1;
-        dependencies.domains.projectDomain.queueAutosave();
-        invalidateAfterApply();
-        (0, dependencies.taskUi.updateModeButtons)();
-        (0, dependencies.feedback.setActionStatus)(successMessage, 'success', 3600);
-        return true;
-      } catch (error) {
-        (0, dependencies.validation.restoreEditTransactionSnapshot)(snapshot);
-        (0, dependencies.feedback.reportOperationError)(error, errorMessage, 'PL-PREVIEW-001', 4400);
-        return false;
+        const response=await dependencies.spatialQuery.mapEditClient.execute('territorial-preview',{ payload:{ operation,beforeIds:beforeFeatures.map(feature=>String(feature.id)),afterFeatures,removedIds,transferredGeometry } });
+        if(epoch!==localPreparationEpoch || !current()){await dependencies.domains.projectDomain.cancelCandidate(preparedCommand.candidateId);discardPrepared();return false;}
+        preparedPreview=response.result;
+        validatePrepared=async()=>{await dependencies.spatialQuery.mapEditClient.execute('territorial-validation',{ payload:{ preparationId:preparedPreview.preparationId } });return dependencies.spatialQuery.mapEditClient.sourcesCurrent(response.sourceRevision);};
+      } catch(error) {
+        await dependencies.domains.projectDomain.cancelCandidate(preparedCommand.candidateId);discardPrepared();
+        if(!error.cancelled)dependencies.feedback.reportOperationError(error,errorMessage,'PL-PREVIEW-PREPARE',3600);return false;
+      } finally {if(epoch===localPreparationEpoch)localPreparationPending=false;}
+    }
+    const issues=preparedPreview.validation?.issues || [];
+    const baseDataRevision=dependencies.projectState.state.stateRevision;
+    const session=dependencies.geometryEditingCore.beginGeometryPreview(dependencies.projectState.state.geometryPreview,{
+      operation,baseDataRevision,affectedIds:[...ids],beforeFeatures,afterFeatures,removedIds,...preparedPreview,
+      validation:{ issues,blocking:issues.some(issue=>issue.severity!=='warning') } });
+    activeGeometryPreviewDiscard=async()=>{discardPrepared();await dependencies.domains.projectDomain.cancelCandidate(preparedCommand.candidateId);};
+    activeGeometryPreviewApply=async()=>{
+      if(!current() || !dependencies.geometryEditingCore.previewIsCurrent(dependencies.projectState.state.geometryPreview,session.sessionId,baseDataRevision)){
+        await discardActiveGeometryPreview({ announce:false });dependencies.feedback.setActionStatus('지도가 바뀌어 미리보기를 취소했습니다.','error',3600);return false;
+      }
+      if(session.validation.blocking){dependencies.feedback.setActionStatus('미리보기 형상을 수정하세요.','error',3400);return false;}
+      if(!await beforeApply())return false;
+      try {if(!await validatePrepared())return false;}
+      catch(error){dependencies.feedback.reportOperationError(error,'미리보기를 다시 계산하세요.','PL-PREVIEW-STALE',3600);return false;}
+      if(!current() || dependencies.projectState.state.geometryPreview.session!==session)return false;
+      dependencies.geometryEditingCore.clearGeometryPreview(dependencies.projectState.state.geometryPreview);
+      activeGeometryPreviewApply=null;activeGeometryPreviewDiscard=null;
+      try {
+        const result=rejectedOutcome(await dependencies.domains.projectDomain.confirmCandidate(preparedCommand.candidateId,expectedEpoch,{ applyAccepted:async outcome=>{
+          if(applyAccepted)await applyAccepted(outcome);await invalidateAfterApply(outcome);
+        } }));
+        if(!result.changed)return false;
+        await onSuccess(result);dependencies.taskUi.updateModeButtons();dependencies.feedback.setActionStatus(successMessage,'success',3600);return true;
+      } catch(error) {
+        discardPrepared();dependencies.spatialQuery.mapEditClient.rebase();
+        dependencies.feedback.reportOperationError(error,errorMessage,'PL-PREVIEW-001',4400);return false;
       }
     };
-    dependencies.domains.editingDomain?.refreshEditingPresentation?.('draft-preview-ready');
-    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('local-geometry-preview-ready');
-    (0, dependencies.taskUi.updateModeButtons)();
-    const blockingIssue = issues.find(issue => issue.severity !== 'warning');
-    (0, dependencies.taskUi.setModeBanner)(blockingIssue?.message || '변경 결과를 확인한 뒤 적용하세요.');
-    if (blockingIssue) (0, dependencies.platform.$)('modeTaskInstruction')?.classList.add('cut-invalid');
-    return true;
+    dependencies.domains.editingDomain.refreshEditingPresentation('draft-preview-ready');
+    dependencies.domains.renderingDomain.invalidateGpuInteraction('local-geometry-preview-ready');dependencies.taskUi.updateModeButtons();
+    const blockingIssue=issues.find(issue=>issue.severity!=='warning');
+    dependencies.taskUi.setModeBanner(blockingIssue?.message || '변경 결과를 확인한 뒤 적용하세요.');
+    if(blockingIssue)dependencies.platform.$('modeTaskInstruction')?.classList.add('cut-invalid');return true;
   }
 
   async function applyActiveGeometryPreview() {
@@ -397,7 +306,7 @@ export function createGeometryPreview() {
     return activeGeometryPreviewApply();
   }
 
-  function discardActiveGeometryPreview({ announce = true } = {}) {
+  async function discardActiveGeometryPreview({ announce = true } = {}) {
     localPreparationEpoch += 1;
     if (localPreparationPending) {
       localPreparationPending = false;
@@ -409,13 +318,17 @@ export function createGeometryPreview() {
       && direct.successor.sessionId === dependencies.projectState.state.geometryPreview.session.sessionId) {
       editPreviewController.clear(direct.id);
     }
-    activeGeometryPreviewDiscard?.();
+    const discard=activeGeometryPreviewDiscard;
     activeGeometryPreviewApply = null;
     activeGeometryPreviewDiscard = null;
     (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
     dependencies.domains.editingDomain?.refreshEditingPresentation?.('draft-preview-discard');
     dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('geometry-preview-discard');
     (0, dependencies.taskUi.updateModeButtons)();
+    if(discard)try {await discard();} catch(error) {
+      dependencies.feedback.reportOperationError(error,'미리보기 취소를 완료하지 못했습니다.','PL-PREVIEW-CANCEL',4200);
+      return false;
+    }
     if (announce) (0, dependencies.feedback.setActionStatus)('미리보기를 닫았습니다.', 'success', 2600);
     return true;
   }
@@ -451,7 +364,6 @@ export function createGeometryPreview() {
     initializeBoundarySelectionAnalysisCache,
     initializeActiveGeometryPreviewApply,
     get applyActiveGeometryPreview() { return applyActiveGeometryPreview; },
-    get assertCurrentProjectReferences() { return assertCurrentProjectReferences; },
     get beginLocalGeometryPreview() { return beginLocalGeometryPreview; },
     get beginWorkerGeometryPreview() { return beginWorkerGeometryPreview; },
     get boundaryEditSelectionAnalysis() { return boundaryEditSelectionAnalysis; },

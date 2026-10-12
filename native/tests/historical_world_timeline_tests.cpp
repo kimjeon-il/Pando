@@ -16,7 +16,7 @@ private slots:
     void inactiveCanonicalCoordinatesAreCheckedBeforeMeshReuse() {
         using namespace pandoeditor;
         const auto root=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
-        auto document=*WorldDatasetLoader::canonical(root).document;
+        auto document=WorldDatasetLoader::canonical(root).project->document();
         QVERIFY(WorldDatasetLoader::matchingBaseFrame(document,root,"2026-10"));
         const auto ref=timelineDocumentView(document,"2026-10").world.find("DEU")->geometryRef;
         auto defer=[](auto& rows) {for(auto& row:rows)if(row.entityId=="DEU")row.validity={"2026-11-01","2026-11-30"};};
@@ -34,7 +34,7 @@ private slots:
     void historicalEditsAndFullSaveRetainAllMonths() {
         using namespace pandoeditor;
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
-        Project project;project.replace(*loaded.document);project.setTimelineCursor("2012-10");
+        Project project;project.replace(loaded.project->document());project.setTimelineCursor("2012-10");
         const std::string id="state:ukraine";
         const auto symbol=project.document().symbols.find(territorialRef(id));
         QVERIFY(symbol!=project.document().symbols.end());QCOMPARE(symbol->second.policy,FlagPolicy::Embedded);
@@ -87,22 +87,22 @@ private slots:
     }
     void nativeWorldContainsHistoricalRecords() {
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
-        const auto view=pandoeditor::timelineDocumentView(*loaded.document,"2012-10");
+        const auto view=pandoeditor::timelineDocumentView(loaded.project->document(),"2012-10");
         QVERIFY(view.world.find("state:ukraine"));
         QVERIFY(!view.world.find("RUS"));
         QCOMPARE(view.world.entities.size(),std::size_t(2));
-        QVERIFY(!pandoeditor::isStaticTimeline(*loaded.document));
+        QVERIFY(!pandoeditor::isStaticTimeline(loaded.project->document()));
     }
     void currentGeometryAliasesMatchCanonicalPacket() {
         WorldDataset source(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
         const auto canonical=materializeBuiltinWorld(CanonicalCountryStore(source.decompress("countryCanonical",12*1024*1024)));
-        const auto view=pandoeditor::timelineDocumentView(*loaded.document,"2026-10");
+        const auto view=pandoeditor::timelineDocumentView(loaded.project->document(),"2026-10");
         QCOMPARE(view.world.entities.size(),std::size_t(254));
         for(const auto& range:canonical.ranges) {
             const auto active=view.world.find(range.ownerId); QVERIFY(active);
             QCOMPARE(active->geometryRef.id,range.geometryId);
-            const auto actual=loaded.document->geometries.get(active->geometryRef),expected=canonical.document.geometries.get(active->geometryRef);
+            const auto actual=loaded.project->document().geometries.get(active->geometryRef),expected=canonical.document.geometries.get(active->geometryRef);
             QVERIFY(actual&&expected); QCOMPARE(actual->polygons.size(),expected->polygons.size());
             for(std::size_t p=0;p<actual->polygons.size();++p)for(std::size_t r=0;r<actual->polygons[p].size();++r) {
                 const auto& a=actual->polygons[p][r]; const auto& b=expected->polygons[p][r];

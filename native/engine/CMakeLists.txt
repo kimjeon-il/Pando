@@ -40,6 +40,35 @@ target_compile_features(pandoeditor_map_engine PUBLIC cxx_std_17)
 target_link_libraries(pandoeditor_map_engine PUBLIC Pandoeditor::Core Threads::Threads)
 set_target_properties(pandoeditor_map_engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+if(BUILD_TESTING)
+    add_executable(prepared_scene_tests ../tests/prepared_scene_tests.cpp)
+    target_link_libraries(prepared_scene_tests PRIVATE Pandoeditor::MapEngine)
+    add_test(NAME prepared_scene_tests COMMAND prepared_scene_tests)
+    set_tests_properties(prepared_scene_tests PROPERTIES TIMEOUT 15)
+    find_package(Qt6 REQUIRED COMPONENTS Core)
+    add_executable(m72_mapprojection_lifetime_tests
+        ../tests/m72_mapprojection_lifetime_tests.cpp ../renderer/mapprojection.cpp)
+    target_include_directories(m72_mapprojection_lifetime_tests PRIVATE ../renderer)
+    target_link_libraries(m72_mapprojection_lifetime_tests PRIVATE Pandoeditor::MapEngine Qt6::Core)
+    add_test(NAME m72_mapprojection_lifetime_tests COMMAND m72_mapprojection_lifetime_tests)
+    set_tests_properties(m72_mapprojection_lifetime_tests PROPERTIES TIMEOUT 15)
+    find_package(Qt6 REQUIRED COMPONENTS Concurrent Network)
+    find_package(ZLIB REQUIRED)
+    add_executable(startup_source_tests ../tests/startup_source_tests.cpp
+        ../app/hydroruntimeprovider.cpp ../app/hydroruntimeprovider.h
+        ../app/hydroloadscheduler.cpp ../app/hydroloadscheduler.h
+        ../app/hydroassetreader.cpp ../app/hydromanifest.cpp ../app/hydrometadata.cpp
+        ../app/hydroshardreader.cpp ../app/hydroruntimecache.cpp
+        ../app/physicaldatastore.cpp ../app/physicaldatastore.h)
+    set_target_properties(startup_source_tests PROPERTIES AUTOMOC ON)
+    target_include_directories(startup_source_tests PRIVATE ../app)
+    target_compile_definitions(startup_source_tests PRIVATE
+        WEB_HYDRO_FIXTURE="${PROJECT_SOURCE_DIR}/tests/fixtures/web-hydro")
+    target_link_libraries(startup_source_tests PRIVATE Pandoeditor::MapEngine Qt6::Core Qt6::Concurrent Qt6::Network ZLIB::ZLIB)
+    add_test(NAME startup_source_tests COMMAND startup_source_tests)
+    set_tests_properties(startup_source_tests PROPERTIES TIMEOUT 15)
+endif()
+
 # JavaScript's specified intermediate operations must not be fused on native targets.
 set_source_files_properties(src/geometrysnap.cpp src/sharedboundary.cpp src/editcoordinates.cpp PROPERTIES COMPILE_OPTIONS
     "$<$<CXX_COMPILER_ID:MSVC>:/fp:strict>;$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-ffp-contract=off>")

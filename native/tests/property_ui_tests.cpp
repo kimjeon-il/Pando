@@ -21,7 +21,7 @@
 using namespace pandoeditor;
 
 namespace {
-QVariantMap ref(QString id,QString type="general") {return {{"domain","territorial"},{"type",type},{"id",id}};}
+QVariantMap ref(QString id,QString kind="general") {return {{"domain","territorial"},{"type","entity"},{"kind",kind},{"id",id}};}
 QStringList ids(const QVariantList& rows) {QStringList out;for(auto row:rows)out<<row.toMap()["id"].toString();return out;}
 QQuickItem* item(QQuickItem* root,const QString& name) {
     if(root->objectName()==name)return root;
@@ -121,7 +121,7 @@ struct Harness {
         QTest::qWait(80);return true;
     }
     QPointF point(const QString& id) const {
-        for(auto value:editor.paths()){
+        for(auto value:editor.objectBounds()){
             const auto p=value.toMap();if(p["countryId"]!=id)continue;
             return {p["left"].toDouble()+p["width"].toDouble()/2,p["top"].toDouble()+p["height"].toDouble()/2};
         }
@@ -137,7 +137,7 @@ struct Harness {
         if(id=="A"){
             // At 360px the web's 12px subunit tolerance reaches the rectangle
             // center. Use an interior point away from S/R for a single-country hit.
-            for(auto value:editor.paths()){
+            for(auto value:editor.objectBounds()){
                 const auto p=value.toMap();if(p["countryId"]!=id)continue;
                 auto map=control("mapView");
                 const QPointF projected(p["left"].toDouble()+p["width"].toDouble()*.85,
@@ -544,7 +544,7 @@ private slots:
         QVERIFY(h.click("relationParentPicker"));QTest::keyClick(h.window,Qt::Key_End);QTest::keyClick(h.window,Qt::Key_Return);
         QTRY_COMPARE(h.editor.objectProperties().value("parentId").toString(),QString("G"));
         QVERIFY(h.editor.documentBytes()!=before);QCOMPARE(h.editor.revision(),revision+1);QVERIFY(!h.editor.structureDialogOpen());
-        h.editor.undo();QCOMPARE(h.editor.objectProperties().value("parentId").toString(),QString("A"));
+        h.editor.undo();QVERIFY(h.editor.selectionItems().isEmpty());QVERIFY(h.editor.selectObject(ref("S")));QCOMPARE(h.editor.objectProperties().value("parentId").toString(),QString("A"));
         QVERIFY2(h.warnings.isEmpty(),qPrintable(h.warnings.join("\n")));
     }
     void commonPresentationAndSheets_data(){modes();}

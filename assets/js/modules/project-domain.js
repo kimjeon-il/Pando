@@ -1,6 +1,7 @@
-import { restoreTimelineStorage } from './timeline-storage.js';
-import { resolveWorld as resolveTimelineWorld } from './timeline-resolver.js';
+import { getRuntimePerformanceMetrics,PERFORMANCE_METRIC_NAMES } from './runtime-performance-metrics.js';
+import { createCoreDocumentReadModel } from './core-document-read-model.js';
 
+const metricNow=() => typeof performance==='undefined' ? Date.now():performance.now();
 const cloneValue = value => {
   if (value === undefined || value === null) return value;
   if (typeof structuredClone === 'function') {
@@ -10,158 +11,417 @@ const cloneValue = value => {
   if (Array.isArray(value)) return value.map(cloneValue);
   return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]));
 };
+const presentationCommands=new Set(['presentation.apply','distribution.render-mode','distribution.boundary-visible']);
 
 /**
  * Owns the canonical project boundary without exposing the mutable object
  * returned by the host application.
  */
 export function createProjectDomain({
-  context = null,
-  getSnapshot = null,
   replaceSnapshot = () => false,
-  commandPipeline = null,
-  serializer = null,
-  history = null,
   persistence = null,
   saveState = null,
   createProjectFile = null,
   prepareEmpty = async () => null,
-  prepareRestore = null,
-  captureReplacement = null,
   restoreReplacement = null,
   invalidateProject = () => {},
+  invalidateCommand = () => {},
   invalidateHistory = () => {},
   reportDiagnostic = () => {},
-  restoreEntitiesFromDelta = null,
   onProjectChanged = () => {},
   onProjectReset = () => {},
   onReplacementState = () => {},
   onReplacementCommitted = () => {},
   onReplacementError = () => {},
+  appVersion,
+  commandOwner = null,
+  documentModel = null,
+  publishCommand = null,
+  readBuiltinSelectionCatalogs,
 } = {}) {
   let generation = 0;
   let disposed = false;
   let replacing = false;
   let saving = false;
+  let commandQueue = Promise.resolve();
+  const preparedIntents=new Map();
 
-  const snapshot = () => cloneValue(
-    typeof serializer?.buildProject === 'function'
-      ? serializer.buildProject()
-      : (typeof getSnapshot === 'function' ? getSnapshot() : context?.getProjectSnapshot?.()),
-  );
-  const buildProject = sourceSnapshot => cloneValue(
-    typeof serializer?.buildProject === 'function'
-      ? serializer.buildProject(sourceSnapshot)
-      : (sourceSnapshot || (typeof getSnapshot === 'function' ? getSnapshot() : context?.getProjectSnapshot?.())),
-  );
-  const buildAutosave = () => cloneValue(
-    typeof serializer?.buildAutosave === 'function' ? serializer.buildAutosave() : buildProject(),
-  );
-  const entitiesFromAutosaveDelta = (project, suppliedBase = null) => {
-    if (typeof restoreEntitiesFromDelta !== 'function') throw new TypeError('공통 영역 변경분 복원기가 필요합니다.');
-    return restoreEntitiesFromDelta(project, suppliedBase);
+  const snapshot = () => {
+    if (typeof documentModel?.snapshot!=='function') throw new TypeError('The accepted C++ document read model is required.');
+    return documentModel.snapshot();
   };
+  const exportReceipt = async format => {
+    const expectedGeneration = generation;
+    const predecessor = commandQueue;
+    // A confirmed Core candidate can still be inside a reversible platform
+    // adoption. Read only after earlier application transactions settle; this
+    // read does not become a new queue owner that blocks future replacement.
+    await predecessor;
+    assertActive();
+    if (generation!==expectedGeneration || replacing)
+      throw Object.assign(new Error('Project export crossed a project replacement.'),{ code: 'PL-PERSISTENCE-STALE' });
+    if (typeof commandOwner?.exportSnapshot!=='function' || typeof appVersion!=='string')
+      throw new TypeError('Project export requires its C++ codec and current application version.');
+    const output=await commandOwner.exportSnapshot({ format,version: appVersion,savedAt: new Date().toISOString() });
+    if (generation!==expectedGeneration || replacing)
+      throw Object.assign(new Error('Project export crossed a project replacement.'),{ code: 'PL-PERSISTENCE-STALE' });
+    if(format==='pandolab-project-state' && !Object.hasOwn(output,'spatialState'))
+      throw new TypeError('The C++ file export spatial projection is required.');
+    return Object.freeze({ project: JSON.parse(output.storageJson),...(format==='pandolab-project-state' ? { spatialState: output.spatialState } : {}),checkpoint: Object.freeze({ projectGeneration: expectedGeneration,
+      epoch: output.state.epoch,content: output.state.checkpoint,presentation: output.state.presentationCheckpoint }) });
+  };
+  const buildFileSnapshot = () => exportReceipt('pandolab-project-state');
+  const buildAutosave = () => exportReceipt('pandolab-autosave');
   const emitChanged = (reason, detail = null) => {
     const event = Object.freeze({ generation, reason: String(reason || 'project-changed'), detail: cloneValue(detail) });
     onProjectChanged(event);
     return event;
   };
-  const bumpGeneration = (reason, detail = null) => {
+  const bumpGeneration = async (reason, detail = null) => {
     generation += 1;
     const event = { generation, reason: String(reason || 'project-reset') };
     if (detail && typeof detail === 'object') Object.assign(event, detail);
-    onProjectReset(Object.freeze(event));
+    await onProjectReset(Object.freeze(event));
     return generation;
   };
   const assertActive = () => {
     if (disposed) throw new Error('Project domain is disposed.');
   };
 
-  const dispatch = async command => {
-    assertActive();
-    const id = String(command?.id || '').trim();
-    if (!id) throw new TypeError('ProjectDomain.dispatch() requires a command id.');
-    if (typeof commandPipeline?.execute !== 'function') {
-      throw new TypeError('ProjectDomain.dispatch() requires a commandPipeline with execute().');
-    }
-    const result = await commandPipeline.execute(id, command?.context || {}, command?.payload);
-    if (result?.ok === true && result?.changed === true) emitChanged(id, result);
-    return result;
+  const executeCommand = (envelope,{ applyAccepted } = {}) => {
+    if(replacing)return Promise.reject(Object.assign(new Error('A project replacement is already requested.'),{ code: 'PL-CORE-STALE' }));
+    if(applyAccepted!==undefined && typeof applyAccepted!=='function')return Promise.reject(new TypeError('An accepted platform effect must be a function.'));
+    const expectedGeneration = generation;
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if (generation!==expectedGeneration)
+        throw Object.assign(new Error('The command belongs to another project generation.'),{ code: 'PL-CORE-STALE' });
+      if (typeof commandOwner?.execute!=='function' || typeof documentModel?.snapshot!=='function'
+        || typeof publishCommand!=='function')
+        throw new TypeError('Project commands require the ordered C++ document owner and accepted read-model publisher.');
+      const before=documentModel.snapshot(),beforeTerritorial=documentModel.territorialViews();
+      const startedAt=metricNow();
+      let capsule,result,failure,finishedAt;
+      try {
+        if(applyAccepted)capsule=await commandOwner.captureReplacement();
+        const outcome=await commandOwner.execute(envelope);
+        await publishCommand(outcome,{ expectedGeneration });
+        const after=documentModel.snapshot();
+        result=Object.freeze({ ...outcome,before,after,beforeTerritorial,afterTerritorial: documentModel.territorialViews() });
+        if(outcome.ok && outcome.changed) {
+          if(applyAccepted)await applyAccepted(result);
+          if(generation===expectedGeneration) {
+            if(applyAccepted && !presentationCommands.has(envelope.commandId))invalidateCommand(envelope.commandId,outcome);
+            notify(envelope.commandId,outcome,
+              applyAccepted || presentationCommands.has(envelope.commandId) ? null:reason => invalidateCommand(reason,outcome),
+              presentationCommands.has(envelope.commandId) ? 'presentation':'document');
+          }
+        }
+      } catch(error) {
+        failure=error;
+        if(capsule!==undefined) {
+          try { const restored=await commandOwner.rollbackReplacement(capsule);await publishCommand(restored,{ expectedGeneration,reason: 'command-rollback' }); }
+          catch(restoreError) { error.restoreError=restoreError; }
+        }
+      } finally {
+        finishedAt=metricNow();
+        if(capsule!==undefined)try { await commandOwner.releaseReplacement(capsule); }
+        catch(error) { if(failure)failure.cleanupError=error;else failure=error; }
+      }
+      // Telemetry observes the settled operation and cannot change its result.
+      try { getRuntimePerformanceMetrics()?.record(PERFORMANCE_METRIC_NAMES.COMMAND,Math.max(0,finishedAt-startedAt),{
+        commandId: envelope.commandId,kind: presentationCommands.has(envelope.commandId) ? 'view':'document',
+        outcome: failure || !result?.ok ? 'failed':result.changed ? 'success':'unchanged',
+        errorCode: String(failure?.code || result?.error?.code || ''),
+      }); } catch(_) { /* A collector cannot roll back an accepted command. */ }
+      if(failure)throw failure;
+      return result;
+    });
+    commandQueue=operation.catch(() => {});
+    return operation;
+  };
+  const readmitBuiltinSelectionCatalogs = async () => {
+    if(typeof readBuiltinSelectionCatalogs!=='function')throw new TypeError('The immutable platform builtin identity catalogs are required for document admission.');
+    const catalogs=readBuiltinSelectionCatalogs();
+    if(!Array.isArray(catalogs))throw new TypeError('Builtin selection catalogs must be explicit domain/ref records.');
+    for(const { domain,refs } of catalogs)await commandOwner.selectionCatalogLoad(domain,refs);
   };
 
-  const notify = (reason, detail, invalidate) => {
+  // Startup promotion replaces data inside the current render generation. It
+  // shares the application dispatch queue with commands and whole history;
+  // only C++ admits the complete document or allocates a static feature source.
+  const admit = (project,{ features,territorialSource,baselineId,preserveCursor = false,reason = 'project-admission',expectedGeneration = generation } = {}) => {
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if (generation!==expectedGeneration || replacing)
+        throw Object.assign(new Error('Document admission belongs to another project generation.'),{ code: 'PL-CORE-STALE' });
+      if (typeof commandOwner?.load!=='function' || typeof commandOwner.initialize!=='function'
+        || typeof documentModel?.snapshot!=='function' || typeof publishCommand!=='function')
+        throw new TypeError('Document admission requires the canonical C++ owner and accepted read-model publisher.');
+      const outcome=features===undefined && territorialSource===undefined && baselineId===undefined && !preserveCursor
+        ? await commandOwner.load(JSON.stringify(project))
+        : await commandOwner.initialize({ project,preserveCursor,...(features===undefined ? {} : { features }),
+          ...(territorialSource===undefined ? {} : { territorialSource }),...(baselineId===undefined ? {} : { baselineId }) });
+      await readmitBuiltinSelectionCatalogs();
+      if(generation!==expectedGeneration || replacing)
+        throw Object.assign(new Error('Document admission completed after project replacement.'),{ code: 'PL-CORE-STALE' });
+      await publishCommand(outcome,{ expectedGeneration,reason });
+      return documentModel.snapshot();
+    });
+    commandQueue=operation.catch(() => {});
+    return operation;
+  };
+
+  const admitStorageBaseline = (baseline,{ expectedGeneration = generation } = {}) => {
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if (generation!==expectedGeneration)
+        throw Object.assign(new Error('Storage baseline admission crossed a project replacement.'),{ code: 'PL-CORE-STALE' });
+      if (typeof commandOwner?.storageBaselineLoad!=='function' || typeof publishCommand!=='function')
+        throw new TypeError('The canonical C++ storage baseline admission is required.');
+      const result=await commandOwner.storageBaselineLoad(baseline);
+      if(generation!==expectedGeneration)
+        throw Object.assign(new Error('Storage baseline admission completed after project replacement.'),{ code: 'PL-CORE-STALE' });
+      await publishCommand(result,{ expectedGeneration,reason: 'storage-baseline' });
+      return result.state;
+    });
+    commandQueue=operation.catch(() => {});return operation;
+  };
+  const prepareImport = (project,{ baselineId = null,expectedGeneration = generation } = {}) => {
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if (generation!==expectedGeneration)
+        throw Object.assign(new Error('Project validation crossed a project replacement.'),{ code: 'PL-CORE-STALE' });
+      if (typeof commandOwner?.validateImport!=='function') throw new TypeError('The pure C++ project import validator is required.');
+      const result=await commandOwner.validateImport(JSON.stringify(project),{ baselineId });
+      if (generation!==expectedGeneration)
+        throw Object.assign(new Error('Project validation completed after project replacement.'),{ code: 'PL-CORE-STALE' });
+      return result;
+    });
+    commandQueue=operation.catch(() => {});return operation;
+  };
+  const inspectImport = (project,{ baselineId = null,expectedGeneration = generation } = {}) => {
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if(generation!==expectedGeneration)throw Object.assign(new Error('Import geometry inspection crossed a project replacement.'),{ code: 'PL-CORE-STALE' });
+      if(typeof commandOwner?.inspectImport!=='function')throw new TypeError('The pure C++ import geometry inspector is required.');
+      const packet=await commandOwner.inspectImport(JSON.stringify(project),{ baselineId });
+      if(generation!==expectedGeneration)throw Object.assign(new Error('Import geometry inspection completed after project replacement.'),{ code: 'PL-CORE-STALE' });
+      return createCoreDocumentReadModel(packet.project).detachedImportProjection(packet.world);
+    });
+    commandQueue=operation.catch(() => {});return operation;
+  };
+
+  const notify = (reason, detail, invalidate,scope = 'document') => {
     for (const [stage, action] of [
       ['event', () => emitChanged(reason, detail)],
-      ['render', () => invalidate(reason)],
-      ['autosave', () => persistence?.queueProject(undefined, { markDirty: false })],
+      ['render', () => { if(invalidate)invalidate(reason); }],
+      ['autosave', () => scope==='presentation' ? persistence?.queuePresentation({ markDirty: false })
+        : persistence?.queueProject(undefined, { markDirty: false })],
     ]) {
       try { action(); } catch (error) {
         try { reportDiagnostic({ stage, reason, error }); } catch (_) { /* A diagnostic cannot undo a commit. */ }
       }
     }
   };
+  const admitPresentationCatalog = catalog => {
+    const expectedGeneration=generation;
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if (generation!==expectedGeneration) throw Object.assign(new Error('Presentation admission crossed a project replacement.'),{ code: 'PL-CORE-STALE' });
+      if (typeof commandOwner?.presentationCatalogLoad!=='function' || typeof publishCommand!=='function')
+        throw new TypeError('Canonical C++ presentation catalog admission is required.');
+      const outcome=await commandOwner.presentationCatalogLoad(catalog);
+      await publishCommand(outcome,{ expectedGeneration,reason: 'presentation-catalog' });
+      return outcome;
+    });
+    commandQueue=operation.catch(() => {});
+    return operation;
+  };
+  const admitSelectionCatalog = (domain,refsProducerOrArray,{ expectedEpoch,expectedGeneration = generation } = {}) => {
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if(generation!==expectedGeneration)throw Object.assign(new Error('Builtin selection admission crossed a project replacement.'),{ code: 'PL-CORE-STALE' });
+      if(typeof commandOwner?.selectionCatalogLoad!=='function' || typeof publishCommand!=='function')
+        throw new TypeError('Canonical C++ builtin identity admission is required.');
+      const refs=typeof refsProducerOrArray==='function' ? refsProducerOrArray():refsProducerOrArray;
+      const result=await commandOwner.selectionCatalogLoad(domain,refs,expectedEpoch);
+      await publishCommand(result,{ expectedGeneration,reason: 'selection-catalog' });
+      return result;
+    });
+    commandQueue=operation.catch(() => {});return operation;
+  };
+  const prepareCommand = envelope => {
+    const expectedGeneration=generation;
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if (replacing || generation!==expectedGeneration) throw Object.assign(new Error('The prepared command belongs to another project.'),{ code: 'PL-CORE-STALE' });
+      const before=documentModel.snapshot(),beforeTerritorial=documentModel.territorialViews();
+      const outcome=await commandOwner.prepare(envelope);
+      if (!outcome.ok || !outcome.changed) return Object.freeze({ ...outcome,before,beforeTerritorial,projectGeneration:expectedGeneration });
+      const source=await commandOwner.candidateProjection(outcome.candidateId,outcome.state.epoch);
+      const preview=documentModel.candidateProjection(source,outcome.state.epoch);
+      preparedIntents.clear();preparedIntents.set(outcome.candidateId,{ commandId: envelope.commandId,expectedGeneration });
+      return Object.freeze({ ...outcome,before,beforeTerritorial,preview,projectGeneration:expectedGeneration });
+    });
+    commandQueue=operation.catch(() => {});return operation;
+  };
+  const labelGestureApply = payload => {
+    if(replacing)return Promise.reject(Object.assign(new Error('A project replacement is already requested.'),{code:'PL-CORE-STALE'}));
+    const expectedGeneration=generation;
+    const operation=commandQueue.then(async()=>{
+      assertActive();
+      if(generation!==expectedGeneration)throw Object.assign(new Error('The label gesture belongs to another project.'),{code:'PL-CORE-STALE'});
+      if(typeof commandOwner?.labelGestureApply!=='function')throw new TypeError('The canonical C++ label gesture owner is required.');
+      const before=documentModel.snapshot(),outcome=await commandOwner.labelGestureApply(payload);
+      await publishCommand(outcome,{expectedGeneration,reason:'label-gesture-'+payload.action});
+      const result=Object.freeze({...outcome,before,after:documentModel.snapshot()});
+      if(outcome.ok&&outcome.changed&&payload.action==='finish')notify('label-gesture-finish',outcome,reason=>invalidateCommand(reason,outcome));
+      return result;
+    });
+    commandQueue=operation.catch(()=>{});return operation;
+  };
+  const confirmCandidate = (candidateId,expectedEpoch,{ applyAccepted } = {}) => {
+    if(applyAccepted!==undefined && typeof applyAccepted!=='function')return Promise.reject(new TypeError('An accepted platform effect must be a function.'));
+    const intent=preparedIntents.get(candidateId);
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if (replacing || !intent || generation!==intent.expectedGeneration) throw Object.assign(new Error('The prepared intent is no longer current.'),{ code: 'PL-CORE-STALE' });
+      const before=documentModel.snapshot(),beforeTerritorial=documentModel.territorialViews();
+      const startedAt=metricNow();
+      let capsule,result,failure,finishedAt;
+      try {
+        if(applyAccepted)capsule=await commandOwner.captureReplacement();
+        const outcome=await commandOwner.confirm(candidateId,expectedEpoch);
+        await publishCommand(outcome,{ expectedGeneration: intent.expectedGeneration });
+        result=Object.freeze({ ...outcome,before,after: documentModel.snapshot(),beforeTerritorial,afterTerritorial: documentModel.territorialViews() });
+        if(outcome.ok && outcome.changed) {
+          if(applyAccepted)await applyAccepted(result);
+          if(generation===intent.expectedGeneration) {
+            if(applyAccepted && !presentationCommands.has(intent.commandId))invalidateCommand(intent.commandId,outcome);
+            notify(intent.commandId,outcome,
+              applyAccepted || presentationCommands.has(intent.commandId) ? null:reason => invalidateCommand(reason,outcome),
+              presentationCommands.has(intent.commandId) ? 'presentation':'document');
+          }
+        }
+      } catch(error) {
+        failure=error;
+        if(capsule!==undefined)try {
+          const restored=await commandOwner.rollbackReplacement(capsule);
+          await publishCommand(restored,{ expectedGeneration: intent.expectedGeneration,reason: 'command-rollback' });
+        } catch(restoreError) { error.restoreError=restoreError; }
+      } finally {
+        preparedIntents.delete(candidateId);
+        finishedAt=metricNow();
+        if(capsule!==undefined)try { await commandOwner.releaseReplacement(capsule); }
+        catch(error) { if(failure)failure.cleanupError=error;else failure=error; }
+      }
+      try { getRuntimePerformanceMetrics()?.record(PERFORMANCE_METRIC_NAMES.COMMAND,Math.max(0,finishedAt-startedAt),{
+        commandId: intent.commandId,kind: presentationCommands.has(intent.commandId) ? 'view':'document',
+        outcome: failure || !result?.ok ? 'failed':result.changed ? 'success':'unchanged',
+        errorCode: String(failure?.code || result?.error?.code || ''),
+      }); } catch(_) { /* An observer cannot change an accepted candidate. */ }
+      if(failure)throw failure;
+      return result;
+    });
+    commandQueue=operation.catch(() => {});return operation;
+  };
+  const cancelCandidate = candidateId => {
+    const operation=commandQueue.then(async () => {
+      assertActive();const outcome=await commandOwner.cancel(candidateId);preparedIntents.delete(candidateId);return outcome;
+    });
+    commandQueue=operation.catch(() => {});return operation;
+  };
 
-  const replace = async (serializedProject, reason) => {
+  const replaceAccepted = async (prepared, reason) => {
     assertActive();
-    if (replacing) throw new Error('Project replacement is already running.');
-    if (reason === 'new' && persistence?.getRecovery?.()) throw new Error('저장본 선택을 먼저 완료하세요.');
-    replacing = true;
     let checkpoint;
-    let resetStarted = false;
     let replacementStarted = false;
+    let failure;
+    let replacementResult;
     try {
-      // Finish asynchronous preparation before touching the current project.
-      if (reason !== 'new' && typeof prepareRestore !== 'function')
-        throw new TypeError('Project restore requires a candidate validator.');
-      const prepared = reason === 'new' ? await prepareEmpty() : await prepareRestore(serializedProject);
-      checkpoint = captureReplacement?.();
+      checkpoint = { replacementId: await commandOwner.captureReplacement(),io: saveState?.checkpoint() };
       replacementStarted = true;
-      onReplacementState(true, reason);
+      await onReplacementState(true, reason);
       persistence?.cancelPending?.();
-      resetStarted = true;
-      const nextGeneration = bumpGeneration(`project-${reason}`, reason === 'new'
+      const nextGeneration = await bumpGeneration(`project-${reason}`, reason === 'new'
         ? { preserveBuiltinMesh: prepared?.builtinMeshReady === true }
         : null);
-      const result = await replaceSnapshot(reason === 'new' ? serializedProject : prepared, {
+      if(reason==='new') {
+        if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
+        await commandOwner.loadBaseline(prepared.baselineId);
+      } else await commandOwner.load(JSON.stringify(prepared));
+      await readmitBuiltinSelectionCatalogs();
+      const result = await replaceSnapshot(reason === 'new' ? null : documentModel.snapshot(), {
         reason, generation: nextGeneration, skipRenderReset: true,
         ...(reason === 'new' ? {
-          prepared,
+          prepared: { ...prepared,project: documentModel.snapshot() },
           preserveBuiltinMesh: prepared?.builtinMeshReady === true,
         } : {}),
       });
       if (result === false) throw new Error('Project replacement was rejected.');
       if (reason === 'new') await persistence?.clear?.();
-      history?.reset();
-      if (reason === 'new') saveState?.markNewProject('content:0');
-      else saveState?.markOpenedFile(`content:${Date.now()}`);
+      if (reason === 'new') saveState?.markNewProject();
+      else saveState?.markOpenedFile();
       notify(`project-${reason}`, null, invalidateProject);
       onReplacementCommitted(reason);
-      return result;
+      replacementResult=result;
     } catch (error) {
-      if (resetStarted && checkpoint !== undefined && restoreReplacement) {
+      failure=error;
+      if (replacementStarted && checkpoint !== undefined) {
         // Generations stay monotonic so failed replacement workers remain stale.
-        const rollbackGeneration = bumpGeneration('project-rollback');
-        try { await restoreReplacement(checkpoint, rollbackGeneration); }
+        try {
+          const rollbackGeneration = await bumpGeneration('project-rollback');
+          await commandOwner.rollbackReplacement(checkpoint.replacementId);
+          if(restoreReplacement)await restoreReplacement(documentModel.snapshot(),rollbackGeneration);
+          if(saveState && checkpoint.io)saveState.restore(checkpoint.io);
+        }
         catch (restoreError) { error.restoreError = restoreError; }
       }
       if (replacementStarted) onReplacementError(error, reason);
-      throw error;
     } finally {
+      let cleanupError;
+      try { if(checkpoint)await commandOwner.releaseReplacement(checkpoint.replacementId); }
+      catch(error) { cleanupError=error; }
       replacing = false;
-      if (replacementStarted) onReplacementState(false, reason);
+      try { if(replacementStarted)await onReplacementState(false,reason); }
+      catch(error) { if(cleanupError)cleanupError.stateError=error;else cleanupError=error; }
+      if(cleanupError) { if(failure)failure.cleanupError=cleanupError;else failure=cleanupError; }
     }
+    if(failure)throw failure;
+    return replacementResult;
+  };
+  const replace = async (serializedProject,reason) => {
+    assertActive();
+    if(replacing)throw new Error('Project replacement is already running.');
+    if(reason==='new' && persistence?.getRecovery?.())throw new Error('저장본 선택을 먼저 완료하세요.');
+    replacing=true;
+    try {
+      // Pure preparation does not claim the bounded Core rollback capsule.
+      // The complete replacement shares its lifetime with accepted commands.
+      const prepared=reason==='new' ? await prepareEmpty()
+        : await commandOwner.validateImport(JSON.stringify(serializedProject),{ baselineId: null });
+      const operation=commandQueue.then(() => replaceAccepted(prepared,reason));
+      commandQueue=operation.catch(() => {});return await operation;
+    } catch(error) { replacing=false;throw error; }
   };
   const load = project => replace(project, 'load');
   const createEmpty = () => replace(null, 'new');
   const travelHistory = (direction, metadata) => {
-    assertActive();
-    if (replacing) return false;
-    if (!history) throw new TypeError('Project history is not configured.');
-    const changed = history[direction](metadata);
-    if (changed) {
-      notify(`project-${direction}`, null, invalidateHistory);
-    }
-    return changed;
+    const operation=commandQueue.then(async () => {
+      assertActive();
+      if (replacing) return false;
+      if (typeof commandOwner?.[direction]!=='function' || typeof publishCommand!=='function')
+        throw new TypeError('Whole-project history requires the canonical C++ document owner and accepted publisher.');
+      const expectedGeneration = generation;
+      const outcome = await commandOwner[direction]();
+      await publishCommand(outcome,{ expectedGeneration,reason: `project-${direction}`,metadata });
+      if (!outcome.ok) throw Object.assign(new Error(outcome.error.message),{ code: outcome.error.code });
+      if (outcome.changed && generation === expectedGeneration) notify(`project-${direction}`,outcome,reason => invalidateHistory(reason,outcome));
+      return outcome.changed;
+    });
+    commandQueue=operation.catch(() => {});
+    return operation;
   };
   const save = async write => {
     assertActive();
@@ -173,14 +433,17 @@ export function createProjectDomain({
     const checkpoint = saveState?.checkpoint?.();
     const savedGeneration = generation;
     const tokens = saveState?.snapshot?.();
-    const unchanged = () => generation === savedGeneration
-      && saveState?.snapshot?.().currentContentToken === tokens?.currentContentToken
-      && saveState?.snapshot?.().currentPresentationToken === tokens?.currentPresentationToken;
+    let receipt;
+    const unchanged = () => generation === savedGeneration && !replacing
+      && (receipt ? commandOwner.state().epoch===receipt.checkpoint.epoch
+        : saveState?.snapshot?.().currentContentToken === tokens?.currentContentToken
+          && saveState?.snapshot?.().currentPresentationToken === tokens?.currentPresentationToken);
     saveState?.markFileSaving?.();
     try {
-      const blob = await createProjectFile(buildProject());
+      receipt=await exportReceipt('pandolab-project-state');
+      const blob = await createProjectFile(receipt.project,{ spatialState: receipt.spatialState });
       const result = await write(blob);
-      if (unchanged()) saveState?.markFileSaved?.(result);
+      if (unchanged()) { await commandOwner.markSaved(receipt.checkpoint.epoch);saveState?.markFileSaved?.(result); }
       return true;
     } catch (error) {
       if (error?.name === 'AbortError') {
@@ -193,35 +456,35 @@ export function createProjectDomain({
   const resetRenderGeneration = reason => bumpGeneration(reason || 'render-reset');
   const dispose = () => { disposed = true; };
 
-  const resolveWorld = month => {
+  const resolveWorld = async (month, options) => {
     assertActive();
-    const project = snapshot();
-    const identities = project.territorialEntities;
-    const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
-      geometries: project.geometries }, identities.map(feature => ({ id: feature.id,
-      entityKind: feature.properties.entityKind })));
-    return resolveTimelineWorld(identities, storage.records, storage.geometries, month);
+    if (typeof commandOwner?.resolveWorld!=='function' || typeof documentModel?.projectWorld!=='function')
+      throw new TypeError('Project timeline requires the same C++ document query and accepted read model.');
+    const result=await commandOwner.resolveWorld(month,options);
+    return documentModel.projectWorld(result,commandOwner.state().epoch);
   };
 
   return Object.freeze({
     snapshot,
+    state: () => commandOwner.state(),
     resolveWorld,
-    buildProject,
+    buildFileSnapshot,
     buildAutosave,
-    entitiesFromAutosaveDelta,
     getGeneration: () => generation,
     isReplacing: () => replacing,
-    dispatch,
+    executeCommand,
+    prepareCommand,confirmCandidate,cancelCandidate,labelGestureApply,
+    admit,
+    admitPresentationCatalog,
+    admitSelectionCatalog,
+    admitStorageBaseline,prepareImport,inspectImport,
     load,
     createEmpty,
     save,
     undo: metadata => travelHistory('undo', metadata),
     redo: metadata => travelHistory('redo', metadata),
-    canUndo: () => history?.canUndo() || false,
-    canRedo: () => history?.canRedo() || false,
-    recordHistory: history?.record,
-    commitHistorySnapshot: history?.commitSnapshot,
-    discardHistory: history?.discardLast,
+    canUndo: () => commandOwner.state().canUndo,
+    canRedo: () => commandOwner.state().canRedo,
     queueAutosave: persistence?.queueProject,
     queueViewAutosave: persistence?.queueView,
     queuePresentationAutosave: persistence?.queuePresentation,

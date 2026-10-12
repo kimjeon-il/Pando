@@ -132,7 +132,7 @@ void startupPreviewRemainsVisibleBeforeDocumentMaterialization() {
 void documentReadyPreviewHonorsStylesVisibilityAndEditedShapes() {
     using namespace pandoeditor;
     auto doc=zoomPreviewDocument();
-    doc.presentation.webPresentation.hiddenItems["countries"].insert("B");
+    doc.presentation.webPresentation.itemVisibility["countries"]["B"]=false;
     doc.presentation.webPresentation.objectStyles["territorial:entity:A"].boundaryVisible=false;
     doc.geometries.insert({"world-country-C",2},square(30));staticGeometryBinding(doc,doc.units[2].id).geometryRef.version=2;
     const auto originalA=doc.geometries.get({"world-country-A",1});

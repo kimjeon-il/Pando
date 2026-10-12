@@ -20,11 +20,11 @@ private slots:
         c.setNameDraft("새 이름"); c.setMemoDraft("새 메모"); c.setColorDraft("#102030");
         c.previewCountryOpacity(0.4); c.setLayerNameDraft("새 레이어명"); c.previewLayerOpacity(0.7);
         QVERIFY(c.commitPendingEdits()); QCOMPARE(c.selectedName(),QString("새 이름"));
-        c.undo(); QCOMPARE(c.selectedName(),original); QCOMPARE(c.colorDraft(),originalColor);
+        c.undo(); QVERIFY(c.selectionItems().isEmpty());c.selectCountry(countryId(c));QCOMPARE(c.selectedName(),original); QCOMPARE(c.colorDraft(),originalColor);
         QCOMPARE(c.layerNameDraft(),originalLayer); QCOMPARE(c.countryOpacity(),originalOpacity);
         QCOMPARE(c.layerOpacity(),originalLayerOpacity); QVERIFY(!c.canUndo()); QVERIFY(!c.dirty());
         QVERIFY(c.property("revision").isValid()); QCOMPARE(revision(c),quint64(2));
-        c.redo(); QCOMPARE(c.selectedName(),QString("새 이름")); QCOMPARE(revision(c),quint64(3));
+        c.redo(); QVERIFY(c.selectionItems().isEmpty());c.selectCountry(countryId(c));QCOMPARE(c.selectedName(),QString("새 이름")); QCOMPARE(revision(c),quint64(3));
     }
     void invalidDraftStaysAndImmediateFailureDoesNotCommit() {
         EditorController c; c.selectCountry(countryId(c)); const auto original=c.selectedName();
@@ -42,19 +42,19 @@ private slots:
         EditorController c; c.selectCountry(countryId(c)); const auto original=c.selectedName();
         const auto color=c.colorDraft();
         c.setNameDraft("pending name"); c.setMemoDraft("pending memo"); c.setColor("#102030");
-        QCOMPARE(c.selectedName(),QString("pending name")); c.undo();
+        QCOMPARE(c.selectedName(),QString("pending name")); c.undo();QVERIFY(c.selectionItems().isEmpty());c.selectCountry(countryId(c));
         QCOMPARE(c.selectedName(),original); QCOMPARE(c.colorDraft(),color); QVERIFY(!c.canUndo());
         QCOMPARE(revision(c),quint64(2));
     }
     void undoRedoNeverAutoCommitDrafts() {
         EditorController c; c.selectCountry(countryId(c)); const auto original=c.selectedName();
-        c.setColor("#102030"); c.undo(); QVERIFY(c.canRedo());
+        c.setColor("#102030"); c.undo(); QVERIFY(c.canRedo());c.selectCountry(countryId(c));
         c.setNameDraft("pending"); QSignalSpy errors(&c,&EditorController::errorOccurred);
         c.redo(); QVERIFY(c.canRedo()); QCOMPARE(c.nameDraft(),QString("pending"));
         QCOMPARE(c.selectedName(),original); QCOMPARE(revision(c),quint64(2));
         QVERIFY(!errors.empty()); QVERIFY(errors.last().front().toString().contains("PENDING_EDITS"));
         QVERIFY(QMetaObject::invokeMethod(&c,"discardPendingEdits"));
-        c.redo(); QCOMPARE(c.colorDraft(),QString("#102030")); QCOMPARE(revision(c),quint64(3));
+        c.redo();QVERIFY(c.selectionItems().isEmpty());c.selectCountry(countryId(c));QCOMPARE(c.colorDraft(),QString("#102030")); QCOMPARE(revision(c),quint64(3));
     }
     void previewIsPureAndCancelPreservesDrafts() {
         EditorController c; c.selectCountry(countryId(c)); const auto original=c.selectedName();

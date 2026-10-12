@@ -8,6 +8,7 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "applicationServicesB",
     "distributionPresentation",
     "domains",
+    "feedback",
     "hydroModel",
     "layers",
     "mapNavigation",
@@ -104,7 +105,7 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "uiFactoriesA",
     "workspaceUiA"
   ],
-  "objectDeletion": ["countries","domains","feedback","hydroModel","hydroPresentation","labelPresentation","landRelations","layers","objectModelA","objectModelB","objectOperationsB","objectPresentation","presentation","projectRestore","projectSnapshots","projectState","propertyEditingA","readinessUi","rendering","snapshots","spatialQuery","territorialModel","territorialServicesB","objectOperationsA"],
+  "objectDeletion": ["countries","domains","feedback","hydroModel","hydroPresentation","labelPresentation","landRelations","layers","objectModelA","objectModelB","objectOperationsB","objectPresentation","presentation","projectRestore","projectSnapshots","projectState","propertyEditingA","readinessUi","rendering","snapshots","spatialQuery","territorialModel","objectOperationsA"],
   "gisAssembly": [
     "applicationConstantsA",
     "applicationFactories",
@@ -143,7 +144,7 @@ export const PROJECT_IO_OWNER_PORTS = Object.freeze({
     "surfaces",
     "territorialModel",
     "territorialServicesA",
-    "territorialServicesB",
+
     "territoryGeometry",
     "uiFactoriesA",
     "validation"
@@ -247,7 +248,7 @@ const PORT_SPECS = Object.freeze({
   libraryServices: Object.freeze([["territorialEntityLoaderModule","runtime","territorialEntityLoaderModule"],["ensureTerritorialLibraryRuntime","runtime","ensureTerritorialLibraryRuntime"],["territorialLibraryControllerModule","runtime","territorialLibraryControllerModule"],["territorialLibraryServiceModule","runtime","territorialLibraryServiceModule"],["missingLibraryOwnership","runtime","missingLibraryOwnership"],["prepareLibraryOwnership","runtime","prepareLibraryOwnership"]]),
   mapHostViewA: Object.freeze([["boundaryEditLayer","mapHost","boundaryEditLayer"],["territorialLabelLayer","mapHost","territorialLabelLayer"],["distributionLayer","mapHost","distributionLayer"],["draftLayer","mapHost","draftLayer"],["genericFeatureLayer","mapHost","genericFeatureLayer"],["handleRenderFrameComplete","mapHost","handleRenderFrameComplete"],["hoverLayer","mapHost","hoverLayer"],["hydroEditLayer","mapHost","hydroEditLayer"],["hydroLakeLayer","mapHost","hydroLakeLayer"],["hydroRiverLayer","mapHost","hydroRiverLayer"],["initSvg","mapHost","initSvg"]]),
   mapHostViewC: Object.freeze([["startMapResizeObserver","mapHost","startMapResizeObserver"],["syncViewRevision","mapHost","syncViewRevision"],["territorialBoundaryLayer","mapHost","territorialBoundaryLayer"],["territorialOperationLayer","mapHost","territorialOperationLayer"],["territorialUnitLayer","mapHost","territorialUnitLayer"],["validationLayer","mapHost","validationLayer"],["vertexLayer","mapHost","vertexLayer"],["visualProjectionForSnapshot","mapHost","visualProjectionForSnapshot"],["visualProjectionRevision","mapHost","visualProjectionRevision"]]),
-  mapSettingsUi: Object.freeze([["bindMapDisplayUI","mapSettings","bindMapDisplayUI"],["closeDesktopViewMenuGroup","mapSettings","closeDesktopViewMenuGroup"],["projectSerializer","mapSettings","projectSerializer"],["renderMapDisplaySettings","mapSettings","renderMapDisplaySettings"],["setProjection","mapSettings","setProjection"],["syncProjectionButtons","mapSettings","syncProjectionButtons"]]),
+  mapSettingsUi: Object.freeze([["bindMapDisplayUI","mapSettings","bindMapDisplayUI"],["closeDesktopViewMenuGroup","mapSettings","closeDesktopViewMenuGroup"],["renderMapDisplaySettings","mapSettings","renderMapDisplaySettings"],["setProjection","mapSettings","setProjection"],["syncProjectionButtons","mapSettings","syncProjectionButtons"]]),
   workspaceUiC: Object.freeze([["toggleSurface","workspaceSurfaces","toggleSurface"],["trackMobileSheetHistory","workspaceSurfaces","trackMobileSheetHistory"]]),
 });
 
@@ -262,7 +263,6 @@ export function createProjectIoPorts(providers) {
     labelCacheCommands: Object.freeze({
     }),
     projectServiceCommands: Object.freeze({
-      installCommandPipeline: value => { providers.objectPresentation.projectCommandPipeline = value; },
       installDistributionService: value => { providers.objectPresentation.distributionService = value; },
       installGenericFeatureService: value => { providers.objectPresentation.genericFeatureService = value; },
       installTerritorialApplicationService: value => { providers.objectPresentation.territorialApplicationService = value; },
