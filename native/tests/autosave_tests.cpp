@@ -118,7 +118,7 @@ private slots:
     void fullWorldRecoveryKeepsEventLoopResponsiveAndReusesMesh() {
         QTemporaryDir dir;QVERIFY(dir.isValid());
         const auto root=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
-        pandoeditor::Project world;world.replace(*WorldDatasetLoader::canonical(root).document);
+        pandoeditor::Project world;world.replace(WorldDatasetLoader::canonical(root).project->document());
         world.setTimelineCursor("2026-10");
         QVERIFY(world.setColor("DEU",0x123456));
         const auto expected=projectcodec::encode(world);
@@ -187,7 +187,7 @@ private slots:
         if(fixture.isEmpty()) {
             // Old development saves are refused without rewriting the recovery copy.
             pandoeditor::Project world;
-            world.replace(*WorldDatasetLoader::canonical(config.worldDataRoot).document);
+            world.replace(WorldDatasetLoader::canonical(config.worldDataRoot).project->document());
             auto legacy=losslessjson::parse(projectcodec::encode(world));
             legacy.object.at("version")=losslessjson::Value::num(7);
             auto& distributionSettings=legacy.object.at("presentation").object.at("webPresentation")
@@ -248,7 +248,7 @@ private slots:
     }
     void canonicalIdsDoNotReplaceEditedCoordinates() {
         const auto root=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
-        auto document=*WorldDatasetLoader::canonical(root).document;
+        auto document=WorldDatasetLoader::canonical(root).project->document();
         const auto view=timelineDocumentView(document,"2026-10");
         const auto ref=view.world.entities.front().geometryRef;
         auto changed=*document.geometries.get(ref);

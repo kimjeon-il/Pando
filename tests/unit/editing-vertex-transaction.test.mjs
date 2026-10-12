@@ -35,8 +35,8 @@ test('object vertex gesture keeps canonical geometry detached until one commit',
     vertexKey: '0:0',
     vertexIndex: 0,
   };
-  assert.equal(editing.handleInteraction({ ...base, type: 'object-vertex-drag-start', screenPoint: [0, 0] }), true);
-  assert.equal(editing.handleInteraction({ ...base, type: 'object-vertex-drag-move', screenPoint: [4, 5] }), true);
+  assert.equal(await editing.handleInteraction({ ...base, type: 'object-vertex-drag-start', screenPoint: [0, 0] }), true);
+  assert.equal(await editing.handleInteraction({ ...base, type: 'object-vertex-drag-move', screenPoint: [4, 5] }), true);
   frames.shift()();
   assert.deepEqual(source.geometry.coordinates[0], [0, 0], 'canonical source is untouched during preview');
   assert.deepEqual(editing.createRenderPacket().objectVertices.handles[0].coordinate, [4, 5]);
@@ -46,7 +46,7 @@ test('object vertex gesture keeps canonical geometry detached until one commit',
   assert.deepEqual(commits[0].feature.geometry.coordinates[0], [4, 5]);
 });
 
-test('cancelled object gesture never commits its detached preview', () => {
+test('cancelled object gesture never commits its detached preview', async () => {
   const source = {
     type: 'Feature', id: 'area-1', properties: {},
     geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] },
@@ -62,12 +62,12 @@ test('cancelled object gesture never commits its detached preview', () => {
     },
   });
   const packet = editing.createRenderPacket();
-  assert.equal(editing.handleInteraction({
+  assert.equal(await editing.handleInteraction({
     type: 'object-vertex-drag-start', projectGeneration: packet.projectGeneration,
     packetRevision: packet.revision, gestureId: 'cancel-me', targetRef: { domain: 'generic', id: source.id },
     vertexKey: '0:0', vertexIndex: 0, screenPoint: [0, 0],
   }), true);
-  assert.equal(editing.cancelActiveGesture('pointercancel'), true);
+  assert.equal(await editing.cancelActiveGesture('pointercancel'), true);
   assert.equal(commits, 0);
   assert.deepEqual(source.geometry.coordinates[0], [0, 0]);
 });
@@ -86,9 +86,9 @@ test('returning a dragged object vertex to its starting coordinate commits no ch
   const packet = editing.createRenderPacket();
   const event = { projectGeneration: 0, packetRevision: packet.revision, gestureId: 'return-to-start',
     targetRef: { domain: 'hydro', id: source.id }, vertexKey: '0:0', vertexIndex: 0 };
-  editing.handleInteraction({ ...event, type: 'object-vertex-drag-start', screenPoint: [0, 0] });
+  await editing.handleInteraction({ ...event, type: 'object-vertex-drag-start', screenPoint: [0, 0] });
   for (const screenPoint of [[4, 5], [0, 0]]) {
-    editing.handleInteraction({ ...event, type: 'object-vertex-drag-move', screenPoint });
+    await editing.handleInteraction({ ...event, type: 'object-vertex-drag-move', screenPoint });
     frames.shift()();
   }
   assert.equal(await editing.handleInteraction({ ...event, type: 'object-vertex-drag-end' }), false);
@@ -113,8 +113,8 @@ test('hidden, deleted, replaced, locked or externally revised targets cancel the
     });
     const event = { projectGeneration: 0, packetRevision: editing.createRenderPacket().revision,
       gestureId: invalidation, targetRef: { domain: 'hydro', id: source.id }, vertexKey: '0:0', vertexIndex: 0 };
-    editing.handleInteraction({ ...event, type: 'object-vertex-drag-start', screenPoint: [0, 0] });
-    editing.handleInteraction({ ...event, type: 'object-vertex-drag-move', screenPoint: [4, 5] });
+    await editing.handleInteraction({ ...event, type: 'object-vertex-drag-start', screenPoint: [0, 0] });
+    await editing.handleInteraction({ ...event, type: 'object-vertex-drag-move', screenPoint: [4, 5] });
     frames.shift()();
     if (invalidation === 'deleted') current = null;
     else if (invalidation === 'replaced') current = structuredClone(source);

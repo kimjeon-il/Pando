@@ -1,20 +1,36 @@
-import { snapshotTestTerritorialState, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import {testCoreProject,snapshotTestTerritorialState,initializeTestTerritorialState,executeTestCommand,executeTerritorialTestCommand,staticAutosaveProject} from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { subunitSelectionPolicy, territorialDeletionAllowed, removeTerritorialEntities, boundaryTouchesGeometry } from '../../assets/js/modules/territorial-interaction-policy.js';
+import { subunitSelectionPolicy, territorialDeletionAllowed, boundaryTouchesGeometry } from '../../assets/js/modules/territorial-interaction-policy.js';
+import * as interactionPolicy from '../../assets/js/modules/territorial-interaction-policy.js';
+import {readFileSync} from 'node:fs';
+import {normalizeLayerPresentation} from '../../assets/js/modules/layer-presentation.js';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
-import { BUILTIN_SUBUNITS } from '../../assets/js/modules/builtin-subunits.js';
+import { BUILTIN_SUBUNITS,territorialSceneDisplayId } from '../../assets/js/modules/builtin-subunits.js';
 
 const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] };
 const country = (id, notes = '') => createTerritorialFeature({ id, entityKind: 'general', notes, geometry });
 const unit = (id, parentId = 'KR', locked = false) => createTerritorialFeature({ id, entityKind: 'general', parentId, locked, geometry });
 const region = id => createTerritorialFeature({ id, entityKind: 'regional', geometry });
+const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+const initializeInteractionState=async(state,options)=>{
+  await initializeTestTerritorialState(state,null,options);
+  const owner=testCoreProject(state),features=owner.entityStore.snapshot(),countryIds=new Set(features.filter(row=>!row.properties.parentId&&row.properties.entityKind==='general').map(row=>row.id));
+  await owner.project.admitPresentationCatalog({hydroLayers:{},builtinSubunitSources:Object.fromEntries(BUILTIN_SUBUNITS.map(row=>[row.id,row.sourceCountryId])),
+    countryLabelIds:features.map(row=>territorialSceneDisplayId(row,countryIds))});
+};
+const executeRemoval=async(state,ids)=>{
+  const refs=ids.map(id=>({domain:'territorial',id}));
+  return executeTestCommand(state,{commandId:'objects.remove',targets:refs,payload:{refs}});
+};
+const locked=(state,id,value)=>executeTerritorialTestCommand(state,'territorial.lock',{ids:[id],locked:value});
 
 test('territorial deletion requires the canonical store before touching project state', () => {
   const state = { territorialEntities: [] };
   const before = structuredClone(state);
-  assert.throws(() => removeTerritorialEntities(state), /엔티티 저장소/);
+  assert.equal('removeTerritorialEntities' in interactionPolicy,false,'retired JS mutable document helper is removed');
+  assert.throws(()=>createTerritorialEntityStore({getState:()=>state}),/C\+\+ territorial projection/);
   assert.deepEqual(state, before);
 });
 
@@ -28,57 +44,58 @@ test('multiple subunits require one parent, unlocked objects and a connected sel
   units[1].properties.parentId = 'KR'; units[1].properties.locked = true;
   assert.equal(subunitSelectionPolicy(units, { adjacent }).valid, false);
 });
-test('single and batch deletion never expands into descendants and rechecks changed locks', () => {
+test('single and batch deletion never expands into descendants and rechecks changed locks', async () => {
   const a = unit('a'), b = unit('b');
-  const state = { territorialEntities: [country('KR'), a, b], distributionEntries: [{ mode: 'territorial', territorialUnitId: 'a' }], itemVisibility: { subunits: { a: false } }, labelSettings: { 'territorial:a': {} } };
-  initializeTestTerritorialState(state);
-const store = createTerritorialEntityStore({ getState: () => state });
-  store.appendEntities([unit('child', 'a')]);
+  const state = {territorialEntities:[country('KR'),a,b],distributionLayers:seed.distributionLayers,
+    distributionEntries:[{...seed.distributionEntries[0],territorialUnitId:'a'}],itemVisibility:{subunits:{a:false}},labelSettings:{'territorial:a':{}}};
+  await initializeInteractionState(state);
+  await executeTerritorialTestCommand(state,'territorial.create',{feature:unit('child','a')});
   assert.equal(territorialDeletionAllowed([a, b], state.territorialEntities), false);
   const before = snapshotTestTerritorialState(state);
-  assert.throws(() => removeTerritorialEntities(state, { unitIds: ['a', 'b'] }, 'territorial', { entityStore: store }));
+  await assert.rejects(()=>executeRemoval(state,['a','b']));
   assert.deepEqual(snapshotTestTerritorialState(state), before);
-  store.removeEntities(['child']);
-  store.setLocked('b', true);
-  assert.throws(() => removeTerritorialEntities(state, { unitIds: ['a', 'b'] }, 'territorial', { entityStore: store }));
-  store.setLocked('b', false);
-  removeTerritorialEntities(state, { unitIds: ['a'] }, 'territorial', { entityStore: store });
+  await executeTerritorialTestCommand(state,'territorial.remove',{ids:['child']});
+  await locked(state,'b',true);
+  await assert.rejects(()=>executeRemoval(state,['a','b']));
+  await locked(state,'b',false);
+  await executeRemoval(state,['a']);
   assert.deepEqual(state.territorialEntities.map(entity => entity.id), ['KR', 'b']);
   assert.deepEqual(state.distributionEntries, []);
   assert.deepEqual(state.labelSettings, {});
 });
-test('country deletion uses the same territorial cleanup surface and removes dangling references', () => {
+test('country deletion uses the same territorial cleanup surface and removes dangling references', async () => {
   const linkedRegion = region('r');
   const state = {
     territorialEntities: [country('A', 'remove'), country('B', 'keep'), linkedRegion],
+    distributionLayers:seed.distributionLayers,
     distributionEntries: [
-      { id: 'd-a', mode: 'territorial', territorialUnitId: 'A' },
-      { id: 'd-r', mode: 'territorial', territorialUnitId: 'r' },
+      {...seed.distributionEntries[0],territorialUnitId:'A'},
+      {...seed.distributionEntries[0],id:'22000000-0000-4000-8000-000000000009',territorialUnitId:'r'},
     ],
-    labels: [{ id: 'l', countryId: 'A' }],
-    genericFeatures: [{ id: 'g', properties: { source: { provenance: { ownerId: 'A', topologyGroup: 'land:A' } } } }],
+    labels:[{...seed.labels[0],territorialUnitId:'A'}],
+    genericFeatures:[{...seed.genericFeatures[0],properties:{...seed.genericFeatures[0].properties,
+      source:{...seed.genericFeatures[0].properties.source,details:{provenance:{ownerId:'A',topologyGroup:'land:A'}}}}}],
     itemVisibility: { countries: { A: false }, countryLabels: { A: false }, subunits: {}, regions: {} },
     labelSettings: { 'territorial:A': {} },
   };
 
-  initializeTestTerritorialState(state);
-const store = createTerritorialEntityStore({ getState: () => state });
-  removeTerritorialEntities(state, { countryIds: ['A'] }, 'territorial', { entityStore: store });
+  await initializeInteractionState(state);
+  await executeRemoval(state,['A']);
 
   assert.deepEqual(state.territorialEntities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId).map(feature => feature.id), ['B']);
   assert.equal(state.territorialEntities.find(entity => entity.id === 'B').properties.notes, 'keep');
   assert.equal(state.territorialEntities.find(entity => entity.id === 'r').properties.associatedCountryId, undefined);
   assert.equal(state.territorialEntities.find(entity => entity.id === 'r').properties.parentId, '');
   assert.deepEqual(state.timelineRecords.parentRelations.map(record => record.entityId), ['B', 'r']);
-  assert.deepEqual(state.distributionEntries.map(entry => entry.id), ['d-r']);
-  assert.equal(state.labels[0].countryId, '');
-  assert.deepEqual(state.genericFeatures[0].properties.source.provenance, { ownerId: 'A', topologyGroup: 'land:A' });
+  assert.deepEqual(state.distributionEntries.map(entry=>entry.id),['22000000-0000-4000-8000-000000000009']);
+  assert.equal(state.labels[0].territorialUnitId,'A','original current Web stores this non-owning label reference after territory deletion');
+  assert.deepEqual(state.genericFeatures[0].properties.source.details.provenance,{ownerId:'A',topologyGroup:'land:A'});
   assert.deepEqual(state.itemVisibility.countries, {});
   assert.deepEqual(state.itemVisibility.countryLabels, {});
   assert.deepEqual(state.labelSettings, {});
 });
 
-test('territorial deletion delegates physical collection writes to the entity store', () => {
+test('territorial deletion publishes the accepted C++ collection once', async () => {
   const state = {
     territorialEntities: [country('A'), country('B'), region('r', 'A')],
     distributionEntries: [],
@@ -88,25 +105,17 @@ test('territorial deletion delegates physical collection writes to the entity st
     labelSettings: {},
   };
   let writes = 0;
-  initializeTestTerritorialState(state);
-const store = createTerritorialEntityStore({
-    getState: () => state,
-    onEntitiesReplaced() { writes += 1; },
-  });
+  await initializeInteractionState(state);
+createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client,onEntitiesReplaced() { writes += 1; } });
 
-  removeTerritorialEntities(
-    state,
-    { countryIds: ['A'] },
-    'territorial',
-    { entityStore: store },
-  );
+  await executeRemoval(state,['A']);
 
   assert.deepEqual(state.territorialEntities.filter(entity => entity.properties.entityKind === 'general' && !entity.properties.parentId).map(feature => feature.id), ['B']);
   assert.equal(state.territorialEntities.find(entity => entity.id === 'r').properties.associatedCountryId, undefined);
   assert.equal(writes, 1);
 });
 
-test('deletion clears the actual native and synthetic scene IDs without touching another country label', () => {
+test('deletion clears the actual native and synthetic scene IDs without touching another country label', async () => {
   const native = BUILTIN_SUBUNITS.find(row => row.sourceCountryId === 'ALD');
   for (const sourceCountryPresent of [false, true]) {
     const displayId = sourceCountryPresent ? `territorial:entity:${native.id}` : 'ALD';
@@ -117,18 +126,20 @@ test('deletion clears the actual native and synthetic scene IDs without touching
       } }, region('r')],
       labelSettings: { [`territorial:${native.id}`]: {}, 'territorial:r': {}, 'territorial:FIN': { pinned: true } },
       itemVisibility: { countryLabels: { [displayId]: false, 'territorial:entity:r': false, FIN: false } },
-      layerPresentation: { objectStyles: { [`territorial:entity:${native.id}`]: {}, 'territorial:entity:r': {}, 'territorial:entity:FIN': {} } },
+      layerPresentation:normalizeLayerPresentation({objectStyles:{[`territorial:entity:${native.id}`]:{},'territorial:entity:r':{},'territorial:entity:FIN':{}}}),
     };
-    initializeTestTerritorialState(state);
-const store = createTerritorialEntityStore({ getState: () => state });
-    removeTerritorialEntities(state, { unitIds: [native.id, 'r'] }, 'territorial', { entityStore: store });
-    assert.deepEqual(state.labelSettings, { 'territorial:FIN': { pinned: true } });
+    const input=structuredClone(staticAutosaveProject({labelSettings:state.labelSettings,layerPresentation:state.layerPresentation},state.territorialEntities));
+    input.itemVisibility=structuredClone(state.itemVisibility);
+    await initializeInteractionState(state,{project:input});
+    const survivorSettings=state.labelSettings['territorial:FIN'];
+    await executeRemoval(state,[native.id,'r']);
+    assert.deepEqual(state.labelSettings, { 'territorial:FIN': survivorSettings });
     assert.deepEqual(state.itemVisibility.countryLabels, { FIN: false });
     assert.deepEqual(state.layerPresentation.objectStyles, { 'territorial:entity:FIN': {} });
   }
 });
 
-test('country deletion rejects current administrative children before changing state', () => {
+test('country deletion rejects current administrative children before changing state', async () => {
   const state = {
     territorialEntities: [country('A'), unit('child', 'A')],
     distributionEntries: [],
@@ -137,10 +148,9 @@ test('country deletion rejects current administrative children before changing s
     itemVisibility: { countries: {}, countryLabels: {}, subunits: {}, regions: {} },
     labelSettings: {},
   };
-  initializeTestTerritorialState(state);
+  await initializeInteractionState(state);
   const before = snapshotTestTerritorialState(state);
-const store = createTerritorialEntityStore({ getState: () => state });
-  assert.throws(() => removeTerritorialEntities(state, { countryIds: ['A'] }, 'territorial', { entityStore: store }), /하위 영역/);
+  await assert.rejects(()=>executeRemoval(state,['A']));
   assert.deepEqual(snapshotTestTerritorialState(state), before);
 });
 

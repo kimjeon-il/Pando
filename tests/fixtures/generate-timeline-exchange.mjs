@@ -2,7 +2,7 @@ import {TERRITORIAL_SCHEMA_VERSION} from '../../assets/js/modules/territorial-un
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createProjectSerializer } from '../../assets/js/modules/project-serializer.js';
 import { projectForStorage } from '../helpers/timeline-project.mjs';
-import { productionGeoPackage } from '../helpers/production-geopackage.mjs';
+import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
 
 export function exchangeProject(kind) {
   if (!['static', 'complex', 'calendar-boundaries'].includes(kind)) throw new Error(`Unknown exchange case: ${kind}`);
@@ -64,7 +64,8 @@ await mkdir(destination, { recursive: true });
 for (const kind of kinds.length ? kinds : ['static','complex','calendar-boundaries']) {
   const project = exchangeProject(kind);
   await writeFile(new URL(`${kind}.json`, destination), JSON.stringify(project,null,2)+'\n');
-  const file = await productionGeoPackage('write',new ArrayBuffer(0),project);
+  const receipt=await coreFileProjection(project);
+  const file = await productionGeoPackage('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);
   await writeFile(new URL(`${kind}.gpkg`, destination),new Uint8Array(file.buffer));
   // Independent expected files are reviewed contract oracles, never exporter output.
 }

@@ -11,7 +11,6 @@ export function createObjectPresentation() {
   let territorialApplicationService;
   let distributionService;
   let genericFeatureService;
-  let projectCommandPipeline;
   let LAYER_GROUP_KEYS;
   let LAYER_SEARCH_GROUP_KEYS;
   let layerGroupNames;
@@ -195,8 +194,6 @@ export function createObjectPresentation() {
     get hydroFallbackName() { return hydroFallbackName; },
     get layerGroupNames() { return layerGroupNames; },
     get layerNameCollator() { return layerNameCollator; },
-    get projectCommandPipeline() { return projectCommandPipeline; },
-    set projectCommandPipeline(value) { projectCommandPipeline = value; },
 
     get syncMapObjectCategoryLabels() { return syncMapObjectCategoryLabels; },
     get territorialApplicationService() { return territorialApplicationService; },

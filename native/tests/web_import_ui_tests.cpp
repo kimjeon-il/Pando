@@ -62,7 +62,7 @@ private slots:
         auto button=item(window->contentItem(),"webImportButton");QVERIFY2(button&&button->isVisible(),"web import must have a real PC/mobile entry");
         QCOMPARE(button->property("text").toString(),QString("웹 프로젝트 가져오기…"));
         QVERIFY(QMetaObject::invokeMethod(window,"handleBack"));
-        editor.selectCountry("DEU");editor.setColor("#102030");editor.undo();editor.setNameDraft("uncommitted name");
+        editor.selectCountry("DEU");editor.setColor("#102030");editor.undo();QVERIFY(editor.selectionItems().isEmpty());editor.selectCountry("DEU");editor.setNameDraft("uncommitted name");
         auto revision=editor.revision();auto name=editor.selectedName();
         // The file dialog callback and tests share the same QML entry. Opening
         // it must not turn a pending field into a committed edit.

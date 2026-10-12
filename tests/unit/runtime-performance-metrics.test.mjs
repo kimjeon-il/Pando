@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -6,8 +7,8 @@ import {
   createRuntimePerformanceMetrics,
   installRuntimePerformanceMetrics,
 } from '../../assets/js/modules/runtime-performance-metrics.js';
-import { createProjectCommandPipeline } from '../../assets/js/modules/project-command-pipeline.js';
-import { runProjectTransaction } from '../../assets/js/modules/project-transaction.js';
+import {createGeometryPreview} from '../../assets/js/modules/app-geometry-preview.js';
+import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import { createPersistenceService } from '../../assets/js/modules/persistence-service.js';
 
 class FakePerformanceObserver {
@@ -134,27 +135,28 @@ test('installs one global report API and reuses it idempotently', () => {
   first.dispose();
 });
 
-test('canonical command, transaction and persistence paths publish operation timings', async () => {
+test('canonical command, transaction and persistence paths publish operation timings', async t => {
   const samples = [];
   globalThis.__PANDOLAB_PERFORMANCE__ = {
     version: 1,
     record: (name, durationMs, detail) => samples.push({ name, durationMs, detail }),
   };
   try {
-    const commandPipeline = createProjectCommandPipeline({
-      commands: { edit: { execute: () => ({ changed: true }), renderDirty: null } },
-      captureSnapshot: () => ({ value: 1 }),
-      validateProject: () => true,
-    });
-    assert.equal(commandPipeline.execute('edit').ok, true);
-
-    const transaction = await runProjectTransaction({
-      operationType: 'geometry-test',
-      snapshot: { value: 1 },
-      prepare: async () => ({ value: 2 }),
-      applyCanonical: value => value,
-    });
-    assert.equal(transaction.ok, true);
+    const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+    const owner=await createNodeCoreProject(seed);t.after(()=>owner.dispose());
+    assert.equal((await owner.project.executeCommand({commandId:'territorial.field',targets:[{domain:'territorial',id:'A'}],
+      payload:{id:'A',field:'name',value:'Ordinary command'}})).ok,true);
+    const calls=[],preview=createGeometryPreview();
+    preview.connect({domains:{projectDomain:owner.project},spatialQuery:{mapEditClient:{
+      execute:async()=>({requestId:17,result:{name:'Prepared transaction'}}),
+      commit:id=>calls.push(['commit',id]),discard:id=>calls.push(['discard',id]),rebase:()=>calls.push(['rebase']),
+    }}});
+    const transaction=await preview.transactMapEdit({operation:'geometry-test',payload:{},
+      prepareResult:(result,{expectedEpoch})=>owner.project.prepareCommand({commandId:'territorial.field',
+        targets:[{domain:'territorial',id:'A'}],expectedEpoch,payload:{id:'A',field:'name',value:result.name}}),
+      onSuccess:()=>calls.push(['success']),onError:error=>{throw error;}});
+    assert.equal(transaction,true);assert.deepEqual(calls,[['commit',17],['success']]);
+    assert.equal(owner.documentModel.territorialViews()[0].properties.name,'Prepared transaction');
 
     const tasks = new Map();
     const persistence = createPersistenceService({
@@ -173,9 +175,8 @@ test('canonical command, transaction and persistence paths publish operation tim
         cancel: key => tasks.delete(key),
       },
       canPersist: () => true,
-      buildAutosave: () => ({ format: 'pandolab-autosave-delta' }),
+      buildAutosave: () => ({ project: { format: 'pandolab-autosave-delta' }, checkpoint: null }),
       readView: () => ({}),
-      validateProject: value => value,
       onDirty: () => {},
       onAutosaveState: () => {},
       onSaved: () => {},
@@ -185,6 +186,7 @@ test('canonical command, transaction and persistence paths publish operation tim
 
     assert.equal(samples.some(sample => sample.name === PERFORMANCE_METRIC_NAMES.COMMAND), true);
     assert.equal(samples.some(sample => sample.name === PERFORMANCE_METRIC_NAMES.TRANSACTION), true);
+    assert.ok(samples.find(sample=>sample.name===PERFORMANCE_METRIC_NAMES.TRANSACTION).detail.stages);
     assert.equal(samples.some(sample => sample.name === PERFORMANCE_METRIC_NAMES.AUTOSAVE), true);
   } finally {
     delete globalThis.__PANDOLAB_PERFORMANCE__;

@@ -5,7 +5,7 @@ import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {loadPinnedAcorn} from './river/generate-d3-adapter.mjs';
+import {loadPinnedAcorn,generateHoistAdapter} from './river/generate-d3-adapter.mjs';
 export const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 export const CUT=path.join(ROOT,'assets/geometry/cut');
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -82,7 +82,9 @@ export function extractPacketDependency(source, sources, parser=loadPinnedAcorn(
     retainedByteRange:[0,Buffer.byteLength(source.slice(0,end))],retainedExports:['freezeEditingGeometry'],
     omittedExports:omitted,reason:'The complete cut import closure consumes only freezeEditingGeometry and its private WeakSet. Unreachable UI packet exports include async syntax unsupported by Qt; the retained prefix is byte-identical.'}};
 }
-export function generate(cut=CUT) {
+// Historical differential oracle only. Production consumes the current root
+// modules through generateCurrent below; these pinned assets remain immutable.
+export function generateHistoricalCutOracle(cut=CUT) {
   const parser=loadPinnedAcorn(),outputs=new Map(),modules=[];
   const sources=Object.fromEntries(Object.keys(PINS).map(name=>[name,readFileSync(path.join(cut,'original',name),'utf8')]));
   const upstream=JSON.parse(readFileSync(path.join(ROOT,'tests/fixtures/web-m97/lifecycle-manifest.json')));
@@ -119,18 +121,93 @@ export function generate(cut=CUT) {
     dependencies:{d3:'assets/geometry/river/d3-provenance.json',polygonClipping:'assets/geometry/README.md',
       platform:'assets/geometry/river/platform.js',polygonGeometry:'Original pinned application module, evaluated unchanged.'},modules};
   outputs.set(path.join(cut,'provenance.json'),Buffer.from(JSON.stringify(manifest,null,2)+'\n'));
-  const paths=[...outputs.keys()].map(file=>path.relative(path.join(ROOT,'assets/geometry/cut'),file));
+  const paths=[...outputs.keys()].map(file=>path.relative(path.join(ROOT,'assets/geometry/cut'),file).replace(/\\/g,'/'));
   // Originals are retained and verified; the polygon normalizer is evaluated unchanged.
   paths.push(...Object.keys(PINS).map(name=>'original/'+name),'platform.js');
   const qrc='<RCC>\n  <qresource prefix="/cut">\n'+paths.sort().map(file=>`    <file alias="${file}">../assets/geometry/cut/${file}</file>`).join('\n')+'\n  </qresource>\n</RCC>\n';
   outputs.set(path.join(ROOT,'resources/m973_cut.qrc'),Buffer.from(qrc));
   return outputs;
 }
+export function generateCurrent(repositoryRoot=path.resolve(ROOT,'..')) {
+  const current=path.join(repositoryRoot,'native/assets/geometry/current');
+  const outputs=new Map(),files=new Map(),artifacts=[];
+  const read=relative=>{
+    const bytes=Buffer.from(readFileSync(path.join(repositoryRoot,relative),'utf8').replace(/\r\n/g,'\n'));
+    files.set(relative,{path:relative,sha256:sha256(bytes)});return bytes;
+  };
+  const add=(name,bytes,resource,kind)=>{
+    const absolute=path.join(current,name),relative=path.relative(repositoryRoot,absolute).replace(/\\/g,'/');
+    outputs.set(absolute,bytes);
+    artifacts.push({path:relative,sha256:sha256(bytes),resource,kind});
+    return sha256(bytes);
+  };
+  const nativeResource=(relative,resource,kind)=>{
+    const bytes=read(relative);artifacts.push({path:relative,sha256:sha256(bytes),resource,kind});return sha256(bytes);
+  };
+  const parser=loadPinnedAcorn();
+  const sources=Object.fromEntries(Object.keys(PINS).map(name=>[name,read('assets/js/modules/'+name).toString('utf8')]));
+  for(const [name,source] of Object.entries(sources)){
+    const transformed=name==='editing-render-packet.js'
+      ?extractPacketDependency(source,sources,parser):adapt(source,parser);
+    add('cut/'+name,Buffer.from(transformed.adapted),':/cut/current/'+name,'cutModule');
+  }
+  const river=read('assets/js/modules/river-territory-partition.js').toString('utf8');
+  const hashes={
+    RIVER:add('river/river-territory-partition.js',Buffer.from(adapt(river,parser).adapted),':/river/current/river-territory-partition.js','riverModule'),
+    PLANAR:add('river/planar-graph-faces.js',read('assets/js/modules/planar-graph-faces.js'),':/river/current/planar-graph-faces.js','riverModule'),
+    NORMALIZER:add('polygon-geometry.js',read('assets/js/modules/polygon-geometry.js'),':/geometry/polygon-geometry.js','normalizer'),
+    RETRY:add('polygon-clipping-calculation.js',read('assets/js/modules/polygon-clipping-calculation.js'),':/geometry/polygon-clipping-calculation.js','retry'),
+    POLYGON_CLIPPING:add('polygon-clipping.min.js',read('assets/js/vendor/polygon-clipping.min.js'),':/geometry/polygon-clipping-0.15.7.js','vendor'),
+  };
+  const d3=read('assets/js/vendor/d3.min.js');
+  hashes.D3_ORIGINAL=add('d3-original.min.js',d3,':/river/current/d3-original.min.js','vendorOriginal');
+  hashes.D3=add('d3.min.js',Buffer.from(generateHoistAdapter(d3.toString('utf8'),parser).code),':/river/current/d3.min.js','vendor');
+  hashes.RIVER_PLATFORM=nativeResource('native/assets/geometry/river/platform.js',':/river/platform.js','platform');
+  hashes.CUT_PLATFORM=nativeResource('native/assets/geometry/cut/platform.js',':/cut/platform.js','platform');
+  nativeResource('native/assets/geometry/river/bridge.js',':/river/bridge.js','boundary');
+  nativeResource('native/assets/geometry/river/presentation.js',':/river/presentation.js','boundary');
+  nativeResource('native/assets/geometry/river/workspace-observation.js',':/river/workspace-observation.js','diagnostics');
+  nativeResource('native/assets/geometry/LICENSE.polygon-clipping.txt',':/geometry/LICENSE.polygon-clipping.txt','license');
+  nativeResource('native/assets/geometry/river/LICENSE.d3.txt',':/river/LICENSE.d3.txt','license');
+  for(const relative of ['native/tools/m97/cut-kernel-generate.mjs','native/tools/m97/river/generate-d3-adapter.mjs'])read(relative);
+  const manifest={schemaVersion:2,sourceOwner:'repository Web geometry modules',sourceEncoding:'UTF-8 LF',
+    generator:'native/tools/m97/cut-kernel-generate.mjs',parser:{name:'acorn',version:parser.version},
+    transformations:'Existing guarded object-spread adapter, exact packet dependency prefix and D3 redundant-var adapter. Polygon normalization, clipping and retry sources are unchanged.',
+    files:[...files.values()].sort((a,b)=>a.path.localeCompare(b.path)),
+    artifacts:artifacts.sort((a,b)=>a.resource.localeCompare(b.resource))};
+  const manifestBytes=Buffer.from(JSON.stringify(manifest,null,2)+'\n');
+  outputs.set(path.join(current,'manifest.json'),manifestBytes);
+  const header='#pragma once\n'+Object.entries({MANIFEST:sha256(manifestBytes),...hashes})
+    .map(([name,digest])=>`#define PANDO_CURRENT_GEOMETRY_${name}_SHA256 "${digest}"\n`).join('');
+  outputs.set(path.join(current,'geometryprovenance.h'),Buffer.from(header));
+  const resources=[...manifest.artifacts,{path:'native/assets/geometry/current/manifest.json',resource:':/geometry/current-manifest.json'}];
+  const groups=new Map();
+  for(const row of resources){
+    const match=/^:\/([^/]+)\/(.+)$/.exec(row.resource);if(!match)throw new Error('GEOMETRY_RESOURCE_PATH_INVALID');
+    const prefix='/'+match[1];if(!groups.has(prefix))groups.set(prefix,[]);
+    groups.get(prefix).push({alias:match[2],path:path.relative(path.join(repositoryRoot,'native/resources'),path.join(repositoryRoot,row.path)).replace(/\\/g,'/')});
+  }
+  const qrc='<RCC>\n'+[...groups].map(([prefix,rows])=>'  <qresource prefix="'+prefix+'">\n'+
+    rows.map(row=>'    <file alias="'+row.alias+'">'+row.path+'</file>').join('\n')+'\n  </qresource>').join('\n')+'\n</RCC>\n';
+  outputs.set(path.join(repositoryRoot,'native/resources/current_geometry.qrc'),Buffer.from(qrc));
+  return outputs;
+}
+export function verifyCurrent(repositoryRoot,manifest) {
+  if(manifest.schemaVersion!==2||manifest.sourceEncoding!=='UTF-8 LF'||!manifest.files.length||!manifest.artifacts.length)
+    throw new Error('GEOMETRY_MANIFEST_INVALID');
+  for(const [label,rows] of [['SOURCE',manifest.files],['ARTIFACT',manifest.artifacts]])for(const row of rows){
+    const target=path.resolve(repositoryRoot,row.path),relative=path.relative(repositoryRoot,target);
+    if(!relative||relative==='..'||relative.startsWith('..'+path.sep)||path.isAbsolute(relative))throw new Error('GEOMETRY_SOURCE_OUTSIDE_REPOSITORY');
+    const bytes=Buffer.from(readFileSync(target,'utf8').replace(/\r\n/g,'\n'));
+    if(sha256(bytes)!==row.sha256)throw new Error('GEOMETRY_'+label+'_HASH_MISMATCH: '+row.path);
+  }
+  return {verifiedFiles:manifest.files.length,verifiedArtifacts:manifest.artifacts.length,mismatches:0};
+}
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const check=process.argv.includes('--check');
-  for(const [file,bytes] of generate()){
+  for(const [file,bytes] of generateCurrent()){
     if(check){if(!readFileSync(file).equals(bytes))throw new Error(`CUT_GENERATED_DRIFT: ${file}`);}
     else {mkdirSync(path.dirname(file),{recursive:true});writeFileSync(file,bytes);}
   }
-  console.log('Verified pinned cut dependency closure and deterministic syntax/dependency adapter.');
+  console.log('Verified canonical Web geometry sources and deterministic Qt resource adapters.');
 }

@@ -3058,11 +3058,6 @@ export function createGpuMapRenderer(deps) {
       prepareHydroFeature(aggregate);
       state.hydroFeatureCache.set(logicalId, aggregate);
       for (const fragment of ordered) state.hydroFeatureByFid.set(Number(fragment.properties?.__fid), aggregate);
-      const sourceIds = new Set(String(aggregate.properties?.source_id || '').split(',').filter(Boolean));
-      const legacyHidden = Object.keys(state.physicalSettings.hiddenHydroIds || {}).find(id => (
-        state.physicalSettings.hiddenHydroIds[id] === true && id !== logicalId && sourceIds.has(String(id).split(':').pop())
-      ));
-      if (legacyHidden) state.physicalSettings.hiddenHydroIds[logicalId] = true;
       return aggregate;
     }
 

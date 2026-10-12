@@ -6,6 +6,10 @@ import { resolve, relative, isAbsolute, sep } from 'node:path';
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 export const git = (root, args) => execFileSync('git', args, { cwd: root, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 });
 export function sourceIdentity(root) {
+  // Both native/ and Web identify the unified checkout. Git file listings from
+  // a subdirectory otherwise omit untracked shared/ sources and use paths that
+  // cannot be resolved against the caller's native/ directory.
+  root = git(root, ['rev-parse', '--show-toplevel']).toString().trim();
   const head = git(root, ['rev-parse', 'HEAD']).toString().trim();
   const status = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all']).toString();
   const patch = git(root, ['diff', '--no-ext-diff', '--binary', 'HEAD']);
@@ -13,7 +17,7 @@ export function sourceIdentity(root) {
   const changed = changedPaths.map(path => ({ path, sha256: existsSync(resolve(root, path)) ? sha256(readFileSync(resolve(root, path))) : null }));
   const untracked = git(root, ['ls-files', '--others', '--exclude-standard', '-z']).toString().split('\0').filter(Boolean);
   const files = untracked.map(path => ({ path, sha256: sha256(readFileSync(resolve(root, path))) }));
-  return { head, clean: status.length === 0, status, diffSha256: sha256(patch), changed, untracked: files,
+  return { sourceRoot: root, head, clean: status.length === 0, status, diffSha256: sha256(patch), changed, untracked: files,
     fingerprint: sha256(JSON.stringify({ head, patch: sha256(patch), changed, files })) };
 }
 export function verifyUnifiedSourceRoots(webRoot, appRoot, sources) {

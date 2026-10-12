@@ -1,0 +1,240 @@
+import { restoreTimelineStorage } from './timeline-storage.js';
+import { resolveWorld as resolveTimelineWorld } from './timeline-resolver.js';
+
+const cloneValue = value => {
+  if (value === undefined || value === null) return value;
+  if (typeof structuredClone === 'function') {
+    try { return structuredClone(value); } catch (_) { /* fall through */ }
+  }
+  if (typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map(cloneValue);
+  return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]));
+};
+
+/**
+ * Owns the canonical project boundary without exposing the mutable object
+ * returned by the host application.
+ */
+export function createProjectDomain({
+  context = null,
+  getSnapshot = null,
+  replaceSnapshot = () => false,
+  commandPipeline = null,
+  serializer = null,
+  history = null,
+  persistence = null,
+  saveState = null,
+  createProjectFile = null,
+  prepareEmpty = async () => null,
+  prepareRestore = null,
+  captureReplacement = null,
+  restoreReplacement = null,
+  invalidateProject = () => {},
+  invalidateHistory = () => {},
+  reportDiagnostic = () => {},
+  restoreEntitiesFromDelta = null,
+  onProjectChanged = () => {},
+  onProjectReset = () => {},
+  onReplacementState = () => {},
+  onReplacementCommitted = () => {},
+  onReplacementError = () => {},
+} = {}) {
+  let generation = 0;
+  let disposed = false;
+  let replacing = false;
+  let saving = false;
+
+  const snapshot = () => cloneValue(
+    typeof serializer?.buildProject === 'function'
+      ? serializer.buildProject()
+      : (typeof getSnapshot === 'function' ? getSnapshot() : context?.getProjectSnapshot?.()),
+  );
+  const buildProject = sourceSnapshot => cloneValue(
+    typeof serializer?.buildProject === 'function'
+      ? serializer.buildProject(sourceSnapshot)
+      : (sourceSnapshot || (typeof getSnapshot === 'function' ? getSnapshot() : context?.getProjectSnapshot?.())),
+  );
+  const buildAutosave = () => cloneValue(
+    typeof serializer?.buildAutosave === 'function' ? serializer.buildAutosave() : buildProject(),
+  );
+  const entitiesFromAutosaveDelta = (project, suppliedBase = null) => {
+    if (typeof restoreEntitiesFromDelta !== 'function') throw new TypeError('공통 영역 변경분 복원기가 필요합니다.');
+    return restoreEntitiesFromDelta(project, suppliedBase);
+  };
+  const emitChanged = (reason, detail = null) => {
+    const event = Object.freeze({ generation, reason: String(reason || 'project-changed'), detail: cloneValue(detail) });
+    onProjectChanged(event);
+    return event;
+  };
+  const bumpGeneration = (reason, detail = null) => {
+    generation += 1;
+    const event = { generation, reason: String(reason || 'project-reset') };
+    if (detail && typeof detail === 'object') Object.assign(event, detail);
+    onProjectReset(Object.freeze(event));
+    return generation;
+  };
+  const assertActive = () => {
+    if (disposed) throw new Error('Project domain is disposed.');
+  };
+
+  const dispatch = async command => {
+    assertActive();
+    const id = String(command?.id || '').trim();
+    if (!id) throw new TypeError('ProjectDomain.dispatch() requires a command id.');
+    if (typeof commandPipeline?.execute !== 'function') {
+      throw new TypeError('ProjectDomain.dispatch() requires a commandPipeline with execute().');
+    }
+    const result = await commandPipeline.execute(id, command?.context || {}, command?.payload);
+    if (result?.ok === true && result?.changed === true) emitChanged(id, result);
+    return result;
+  };
+
+  const notify = (reason, detail, invalidate) => {
+    for (const [stage, action] of [
+      ['event', () => emitChanged(reason, detail)],
+      ['render', () => invalidate(reason)],
+      ['autosave', () => persistence?.queueProject(undefined, { markDirty: false })],
+    ]) {
+      try { action(); } catch (error) {
+        try { reportDiagnostic({ stage, reason, error }); } catch (_) { /* A diagnostic cannot undo a commit. */ }
+      }
+    }
+  };
+
+  const replace = async (serializedProject, reason) => {
+    assertActive();
+    if (replacing) throw new Error('Project replacement is already running.');
+    if (reason === 'new' && persistence?.getRecovery?.()) throw new Error('저장본 선택을 먼저 완료하세요.');
+    replacing = true;
+    let checkpoint;
+    let resetStarted = false;
+    let replacementStarted = false;
+    try {
+      // Finish asynchronous preparation before touching the current project.
+      if (reason !== 'new' && typeof prepareRestore !== 'function')
+        throw new TypeError('Project restore requires a candidate validator.');
+      const prepared = reason === 'new' ? await prepareEmpty() : await prepareRestore(serializedProject);
+      checkpoint = captureReplacement?.();
+      replacementStarted = true;
+      onReplacementState(true, reason);
+      persistence?.cancelPending?.();
+      resetStarted = true;
+      const nextGeneration = bumpGeneration(`project-${reason}`, reason === 'new'
+        ? { preserveBuiltinMesh: prepared?.builtinMeshReady === true }
+        : null);
+      const result = await replaceSnapshot(reason === 'new' ? serializedProject : prepared, {
+        reason, generation: nextGeneration, skipRenderReset: true,
+        ...(reason === 'new' ? {
+          prepared,
+          preserveBuiltinMesh: prepared?.builtinMeshReady === true,
+        } : {}),
+      });
+      if (result === false) throw new Error('Project replacement was rejected.');
+      if (reason === 'new') await persistence?.clear?.();
+      history?.reset();
+      if (reason === 'new') saveState?.markNewProject('content:0');
+      else saveState?.markOpenedFile(`content:${Date.now()}`);
+      notify(`project-${reason}`, null, invalidateProject);
+      onReplacementCommitted(reason);
+      return result;
+    } catch (error) {
+      if (resetStarted && checkpoint !== undefined && restoreReplacement) {
+        // Generations stay monotonic so failed replacement workers remain stale.
+        const rollbackGeneration = bumpGeneration('project-rollback');
+        try { await restoreReplacement(checkpoint, rollbackGeneration); }
+        catch (restoreError) { error.restoreError = restoreError; }
+      }
+      if (replacementStarted) onReplacementError(error, reason);
+      throw error;
+    } finally {
+      replacing = false;
+      if (replacementStarted) onReplacementState(false, reason);
+    }
+  };
+  const load = project => replace(project, 'load');
+  const createEmpty = () => replace(null, 'new');
+  const travelHistory = (direction, metadata) => {
+    assertActive();
+    if (replacing) return false;
+    if (!history) throw new TypeError('Project history is not configured.');
+    const changed = history[direction](metadata);
+    if (changed) {
+      notify(`project-${direction}`, null, invalidateHistory);
+    }
+    return changed;
+  };
+  const save = async write => {
+    assertActive();
+    if (saving || replacing) return false;
+    if (typeof createProjectFile !== 'function' || typeof write !== 'function') {
+      throw new TypeError('Project save requires an encoder and a file writer.');
+    }
+    saving = true;
+    const checkpoint = saveState?.checkpoint?.();
+    const savedGeneration = generation;
+    const tokens = saveState?.snapshot?.();
+    const unchanged = () => generation === savedGeneration
+      && saveState?.snapshot?.().currentContentToken === tokens?.currentContentToken
+      && saveState?.snapshot?.().currentPresentationToken === tokens?.currentPresentationToken;
+    saveState?.markFileSaving?.();
+    try {
+      const blob = await createProjectFile(buildProject());
+      const result = await write(blob);
+      if (unchanged()) saveState?.markFileSaved?.(result);
+      return true;
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        if (checkpoint && unchanged()) saveState.restore(checkpoint);
+      } else if (unchanged()) saveState?.markFileError?.();
+      throw error;
+    } finally { saving = false; }
+  };
+
+  const resetRenderGeneration = reason => bumpGeneration(reason || 'render-reset');
+  const dispose = () => { disposed = true; };
+
+  const resolveWorld = month => {
+    assertActive();
+    const project = snapshot();
+    const identities = project.territorialEntities;
+    const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
+      geometries: project.geometries }, identities.map(feature => ({ id: feature.id,
+      entityKind: feature.properties.entityKind })));
+    return resolveTimelineWorld(identities, storage.records, storage.geometries, month);
+  };
+
+  return Object.freeze({
+    snapshot,
+    resolveWorld,
+    buildProject,
+    buildAutosave,
+    entitiesFromAutosaveDelta,
+    getGeneration: () => generation,
+    isReplacing: () => replacing,
+    dispatch,
+    load,
+    createEmpty,
+    save,
+    undo: metadata => travelHistory('undo', metadata),
+    redo: metadata => travelHistory('redo', metadata),
+    canUndo: () => history?.canUndo() || false,
+    canRedo: () => history?.canRedo() || false,
+    recordHistory: history?.record,
+    commitHistorySnapshot: history?.commitSnapshot,
+    discardHistory: history?.discardLast,
+    queueAutosave: persistence?.queueProject,
+    queueViewAutosave: persistence?.queueView,
+    queuePresentationAutosave: persistence?.queuePresentation,
+    persistAutosave: persistence?.persist,
+    restoreAutosave: persistence?.restore,
+    getAutosaveRecovery: persistence?.getRecovery,
+    resolveAutosaveRecovery: persistence?.resolveRecovery,
+    completeAutosaveRecovery: persistence?.completeRecovery,
+    loadAutosave: project => load(project),
+    restorePreview: persistence?.restorePreview,
+    ensurePreview: persistence?.ensurePreview,
+    flushAutosave: () => persistence?.persist(),
+    resetRenderGeneration,
+    dispose,
+  });
+}

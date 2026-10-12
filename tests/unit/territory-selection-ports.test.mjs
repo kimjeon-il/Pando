@@ -56,6 +56,8 @@ function createToolbarFixture() {
     platform: { $: id => ({ modeCancelBtn: cancelButton, resetViewBtn: resetButton, addEntityBtn: addEntityButton, territorialCreateRegionalInput: regionalInput })[id] || null },
     projectState: { state },
     countryCommitFlow: { addMultiDraftPart() {}, undoMultiDraftPart() {} },
+    taskPresentation: { toggleMapTaskWindow() {} },
+    feedback: { reportOperationError: error => assert.fail(error.stack) },
     navigation: { resetView() {} },
     countryEditingA: { cancelActiveMode: () => { state.territorySelectionSession = null; } },
     territorySelectionB: ports.territorySelectionB,

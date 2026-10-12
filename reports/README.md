@@ -36,6 +36,7 @@
 
 | ID | 보고서 | 원문 수정일 | 상태 | 지도 반영 |
 | --- | --- | --- | --- | --- |
+| `DEV-066` | [공통 C++·WASM 코어와 앱 시작 경로 개선 — 진행 기록](development/testing/shared-core-startup-implementation-2026-10-12.md) | 2026-10-12 | `investigating` | `not-applicable` |
 | `DEV-028` | [Android storage and shared UI report](development/app/android-storage-report.md) | 2026-09-17 | `historical-record` | `not-applicable` |
 | `DEV-029` | [M7.7 migration release gate — open](development/app/final-parity-report.md) | 2026-09-27 | `historical-record` | `not-applicable` |
 | `DEV-030` | [Flag output contract — 2026-10-04](development/app/flag-web-parity-20261004.md) | 2026-10-04 | `historical-record` | `not-applicable` |

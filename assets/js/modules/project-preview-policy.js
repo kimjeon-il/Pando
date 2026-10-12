@@ -1,25 +1,29 @@
 import { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
-import { staticTimelineViews } from './timeline-static-view.js';
-import { initialTimelineMonth, resolvedTimelineViews } from './timeline-resolver.js';
 export { BUILTIN_SUBUNIT_REVISION } from './builtin-subunits.js';
 
 export const PROJECT_PREVIEW_ALGORITHM_REVISION = 'project-topology-4';
 export const PROJECT_PREVIEW_MAX_BYTES = 16 * 1024 * 1024;
 
-function previewEntities(project) {
-  const archive = new Map(project.geometries.map(entry => [JSON.stringify([entry.id, entry.version]), entry.geojson]));
-  const identities = (project.territorialEntities || project.entityDelta.changed).map(entity => ({ ...entity,
-    properties: { ...entity.properties, style: structuredClone(entity.properties.style), metadata: structuredClone(entity.properties.metadata) } }));
-  const geometries = { get: ref => archive.get(JSON.stringify([ref.id, ref.version])) };
-  if (!project.territorialEntities) return staticTimelineViews(identities, project.timelineRecords, geometries);
-  const month = initialTimelineMonth(project.timelineRecords, new Date().toISOString().slice(0, 7));
-  return resolvedTimelineViews(identities, project.timelineRecords, geometries, month);
+function sourceEntities(source) {
+  if (!source || !source.project || typeof source.project !== 'object' || Array.isArray(source.project)
+    || !Array.isArray(source.territorialViews)) {
+    throw Object.assign(new TypeError('Project preview requires the raw stored project and explicit Core territorial views.'),
+      { code: 'PL-PREVIEW-SOURCE' });
+  }
+  if (source.project.format !== 'pandolab-autosave-delta') return source.territorialViews;
+  const delta = source.project.entityDelta;
+  if (!Array.isArray(delta?.changed) || !Array.isArray(delta.removedIds)) {
+    throw Object.assign(new TypeError('Delta preview requires the original stored changed rows and removed IDs.'),
+      { code: 'PL-PREVIEW-SOURCE' });
+  }
+  const changed = new Set(delta.changed.map(row => row.id));
+  return source.territorialViews.filter(row => changed.has(row.id));
 }
 
-export function projectPreviewGeometryRows(project) {
-  const entities = previewEntities(project);
+export function projectPreviewGeometryRows(source) {
+  const entities = sourceEntities(source);
   const countries = entities.filter(feature => (feature.properties?.entityKind === 'general' && !feature.properties?.parentId));
-  const removed = project?.entityDelta?.removedIds || [];
+  const removed = source.project.format === 'pandolab-autosave-delta' ? source.project.entityDelta.removedIds : [];
   return {
     countries: countries.map(feature => [String(feature.id), feature.geometry]).sort((a, b) => a[0].localeCompare(b[0])),
     removed: removed.map(String).sort(),
@@ -41,15 +45,6 @@ export function geometryFingerprint(geometry) {
   return `${source.length.toString(36)}:${(hash >>> 0).toString(36)}`;
 }
 
-/** Reuse display geometry while always showing the current saved properties. */
-export function previewCountriesWithProjectProperties(countries, project) {
-  const saved = previewEntities(project).filter(entity => (entity.properties?.entityKind === 'general' && !entity.properties?.parentId));
-  if (!saved.length) return countries;
-  const properties = new Map(saved.map(feature => [String(feature.id), feature.properties || {}]));
-  return { ...countries, features: countries.features.map(feature => properties.has(String(feature.id))
-    ? { ...feature, properties: properties.get(String(feature.id)) } : feature) };
-}
-
 function unitsMatchDefault(units, expected) {
   if (!Array.isArray(units) || units.length !== Object.keys(expected).length) return false;
   const seen = new Set();
@@ -66,11 +61,11 @@ function unitsMatchDefault(units, expected) {
 }
 
 /** Only an exact canonical default-classification match may use the shipped preview. */
-export function matchesDefaultPreview(project, baseline) {
-  if (!project) return true;
+export function matchesDefaultPreview(source, baseline) {
+  const entities = sourceEntities(source);
+  const project = source.project;
   if (!baseline?.sourceSha256 || !baseline?.defaultClassification) return false;
   const expected = baseline.defaultClassification;
-  const entities = previewEntities(project);
   if (!unitsMatchDefault(entities.filter(feature => !(feature.properties?.entityKind === 'general' && !feature.properties?.parentId)), expected.units || {})) return false;
   const expectedCountries = expected.countries || {};
   if (project.format === 'pandolab-autosave-delta') {
@@ -99,8 +94,8 @@ export function matchesDefaultPreview(project, baseline) {
   return true;
 }
 
-export function previewSourceForProject(project, baseline, cache) {
-  if (!project || matchesDefaultPreview(project, baseline)) return { kind: 'default' };
+export function previewSourceForProject(source, baseline, cache) {
+  if (matchesDefaultPreview(source, baseline)) return { kind: 'default' };
   if (cache?.algorithmRevision === PROJECT_PREVIEW_ALGORITHM_REVISION
     && cache?.baseSourceSha256 === baseline?.sourceSha256
     && cache?.geometryKey && Array.isArray(cache?.countries?.features)

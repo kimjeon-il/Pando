@@ -25,17 +25,6 @@
     {
       "file": "assets/js/gis-io.js",
       "functions": [
-        "buildGisExportLayers"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/gis-io.js",
-      "functions": [
         "exportGeoPackage"
       ],
       "access": [
@@ -54,17 +43,6 @@
       ],
       "owner": "instantiateTerritorialLibraryEntities",
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/app-library-assembly.js",
-      "functions": [
-        "getProjectGeneration"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "territorial library preview session generation",
-      "reason": "Read the canonical project collection identity to reject async results from a replaced project; no project writes."
     },
     {
       "file": "assets/js/modules/app-library-assembly.js",
@@ -91,17 +69,6 @@
     {
       "file": "assets/js/modules/app-progressive-startup.js",
       "functions": [
-        "initProgressive"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "initProgressive",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/app-progressive-startup.js",
-      "functions": [
         "init"
       ],
       "access": [
@@ -119,50 +86,6 @@
         "read"
       ],
       "owner": "applyAtlasState",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/app-project-snapshots.js",
-      "functions": [
-        "configureDatasetSession"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "configureDatasetSession",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/app-project-snapshots.js",
-      "functions": [
-        "buildEntityDelta"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "buildEntityDelta",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/app-project-snapshots.js",
-      "functions": [
-        "restoreEntitiesFromSnapshot"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "restoreEntitiesFromSnapshot",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/app-project-snapshots.js",
-      "functions": [
-        "snapshotEditable"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "snapshotEditable",
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
@@ -185,17 +108,6 @@
         "read"
       ],
       "owner": "commitGisMerge",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/gpu-map-renderer.js",
-      "functions": [
-        "prepareCountrySharedBoundary"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "prepareCountrySharedBoundary",
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
@@ -265,79 +177,6 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/project-domain.js",
-      "functions": [
-        "replace"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "replace",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/project-domain.js",
-      "functions": [
-        "loadAutosave"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "loadAutosave",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/project-domain.js",
-      "functions": ["resolveWorld"],
-      "access": ["read"],
-      "owner": "ProjectDomain",
-      "reason": "Resolve a detached validated project snapshot at the requested month without changing stored identities."
-    },
-    {
-      "file": "assets/js/modules/project-preview-policy.js",
-      "functions": [
-        "projectPreviewGeometryRows"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "projectPreviewGeometryRows",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/project-preview-policy.js",
-      "functions": [
-        "previewCountriesWithProjectProperties"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "previewCountriesWithProjectProperties",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/project-preview-policy.js",
-      "functions": [
-        "matchesDefaultPreview"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "matchesDefaultPreview",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/project-serializer.js",
-      "functions": [
-        "buildProject"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "buildProject",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
       "file": "assets/js/modules/project-state.js",
       "functions": [
         "assertCurrentProjectSchema"
@@ -371,120 +210,6 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "state"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": ["datedCandidateFor"],
-      "access": ["read"],
-      "owner": "Canonical entity owner",
-      "reason": "Read the current month view to prepare a validated dated record candidate before publication."
-    },
-    {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": ["setTimelineCursor"],
-      "access": ["read", "write"],
-      "owner": "Canonical entity owner",
-      "reason": "Publish a derived month view; persistent identities and records remain owned by this store."
-    },
-    {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "transaction"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "snapshot"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "entity"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "replaceEntities"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "publish"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "applyChanges"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "appendEntities"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "TerritorialEntityStore",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "assets/js/workers/gis-gpkg-worker.js",
-      "functions": [
-        "writeAtlasTables"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "writeAtlasTables",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
       "file": "assets/js/gis-io.js",
       "functions": [
         "inspectFiles",
@@ -504,8 +229,8 @@
       "access": [
         "read"
       ],
-      "owner": "Builtin baseline owner",
-      "reason": "Hashes exact normalized source metadata and geometry; stores detached baseline identities."
+      "owner": "Verified source receipt",
+      "reason": "Reads detached source metadata for existing dataset and preview decisions; source document admission and hash checks are owned by C++."
     },
     {
       "file": "assets/js/modules/project-state.js",
@@ -515,8 +240,8 @@
       "access": [
         "read"
       ],
-      "owner": "History validation boundary",
-      "reason": "Validates detached identities, records, archive and project references before publishing history."
+      "owner": "Detached current-format validation",
+      "reason": "Validates detached data at the offline current-format boundary; live history is owned by C++ DocumentSession."
     },
     {
       "file": "assets/js/modules/project-preview-policy.js",
@@ -538,8 +263,8 @@
       "access": [
         "read"
       ],
-      "owner": "Project serializer",
-      "reason": "Validates complete canonical identity and archive snapshots before emitting v9 full/delta records."
+      "owner": "Detached current-format codec",
+      "reason": "Encodes detached current-format data for offline tooling. Live save and autosave use C++ exportSnapshot, never a second writable model."
     },
     {
       "file": "assets/js/modules/project-state.js",
@@ -555,21 +280,6 @@
       "reason": "Only writes detached candidates; validates storage separately from static UI activation."
     },
     {
-      "file": "assets/js/modules/territorial-entity-store.js",
-      "functions": [
-        "candidateFor",
-        "publishCandidate",
-        "identities",
-        "restoreProject"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "owner": "Canonical entity owner",
-      "reason": "Sole writer; candidate and archive validation precede atomic canonical publication."
-    },
-    {
       "file": "assets/js/workers/gis-gpkg-worker.js",
       "functions": [
         "writeGeoPackage"
@@ -579,6 +289,28 @@
       ],
       "owner": "Project file codec",
       "reason": "Derives static spatial views from validated detached records; complex files retain canonical JSON only."
+    },
+    {
+      "file": "assets/js/modules/app-project-session.js",
+      "functions": [
+        "installDocumentProjection"
+      ],
+      "access": [
+        "write"
+      ],
+      "owner": "Accepted C++ read-model projection",
+      "reason": "Installs getter-only JavaScript properties with Object.defineProperties. These properties read accepted Core state; this function never writes document values."
+    },
+    {
+      "file": "assets/js/modules/core-document-read-model.js",
+      "functions": [
+        "worldAgainst"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Accepted C++ world projection",
+      "reason": "Reads immutable accepted identities to attach source-pinned C++ resolved rows and geometry buffers. Does not resolve timeline rules or mutate the document."
     }
   ]
 }

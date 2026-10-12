@@ -17,7 +17,7 @@ function fixture({ archive = async () => {} } = {}) {
     storage: { readProject: async () => saved.db, readView: async () => null, readFallback: () => saved.local,
       writeProject: async value => { saved.db = value; }, writeFallback: value => { saved.local = value; },
       removeFallback: () => { saved.local = null; }, writeRecovery: async value => { await archive(); saved.recovery.push(value); } },
-    scheduler: { scheduleIdle() {}, cancel() {} }, canPersist: () => true, buildAutosave: () => current,
+    scheduler: { scheduleIdle() {}, cancel() {} }, canPersist: () => true, buildAutosave: () => ({ project: current, checkpoint: null }),
     validateProject() {}, onDirty() {}, onAutosaveState() {}, onSaved() {}, onFailure() {},
     onRecoveryState: value => { paused = !!value; },
   });
@@ -57,7 +57,7 @@ test('startup selection stays paused until the restored project has actually bee
   f.modals.shift().onConfirm('localstorage');
   assert.equal((await startup).project.name, 'fallback');
   assert.ok(f.service.getRecovery());
-  await f.service.writeProject({ name: 'before application' });
+  await f.service.persist({ project: { name: 'before application' }, checkpoint: null });
   assert.equal(f.saved.db.name, 'database');
   await f.bridge.completeAutosaveRecovery();
   assert.equal(f.service.getRecovery(), null);
@@ -74,7 +74,7 @@ test('startup cancel preserves both saves and later selection confirms replaceme
   f.bridge.syncSaveStatus();
   assert.equal(f.elements.get('autosaveRecoveryBtn').hidden, false);
   assert.equal(f.elements.get('projectSaveStatusText').textContent, '자동저장 중지');
-  await f.service.writeProject({ name: 'unload' });
+  await f.service.persist({ project: { name: 'unload' }, checkpoint: null });
   assert.equal(f.saved.db.name, 'database');
   f.dirty();
   const retry = f.bridge.requestAutosaveRecovery();

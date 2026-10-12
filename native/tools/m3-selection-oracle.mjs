@@ -14,7 +14,7 @@ if(process.argv[2]==='--verify') {
 }
 assert.ok(process.argv[2],'Usage: node tools/m3-selection-oracle.mjs <selection_probe>');
 const ref=(domain,type,id)=>({domain,type,id});
-const refs=[ref('territorial','country','A'),ref('territorial','country','B'),ref('territorial','subunit','S'),ref('territorial','region','지방:%/ 1'),ref('label','city','A'),ref('hydro','river','강'),ref('generic','feature','G')];
+const refs=[ref('territorial','entity','A'),ref('territorial','entity','B'),ref('territorial','entity','S'),ref('territorial','entity','지방:%/ 1'),ref('label','city','A'),ref('hydro','river','강'),ref('generic','feature','G')];
 const scopes=['objects','search','other'];
 const operations=[
  {op:'replace',ref:refs[0],scope:'objects'},

@@ -57,7 +57,7 @@ test('object handoff checks the logical key and exact committed geometry as well
   assert.equal(preview.completeHandoff(id, target, frame), true);
 });
 
-function gestureHarness() {
+async function gestureHarness() {
   const preview = createEditPreviewController();
   let release;
   const waiting = new Promise(resolve => { release = resolve; });
@@ -81,13 +81,13 @@ function gestureHarness() {
   });
   const packet = editing.createRenderPacket();
   const event = type => ({ type, gestureId: 'move-1', projectGeneration: 0, packetRevision: packet.revision });
-  editing.handleInteraction(event('boundary-vertex-drag-start'));
-  const end = () => editing.handleInteraction(event('boundary-vertex-drag-end'));
+  await editing.handleInteraction(event('boundary-vertex-drag-start'));
+  const end = async () => await editing.handleInteraction(event('boundary-vertex-drag-end'));
   return { editing, preview, release, end };
 }
 
 test('drag end does not clear a pending result or a result awaiting its presentation frame', async () => {
-  const h = gestureHarness();
+  const h = await gestureHarness();
   const result = h.end();
   assert.equal(h.preview.snapshot().status, 'pending-result');
   h.release(true);
@@ -105,8 +105,9 @@ test('boundary handoff oracle targets the submitted vertex when mouseup flushes 
   const node = prepared.handles.find(handle => handle.nodeKey === '0,0');
   assert.ok(node && !node.fixed);
   const preview = createEditPreviewController(), frames = [], requests = [];
-  let release, result;
+  let release, result,signalSubmitted;
   const waiting = new Promise(resolve => { release = resolve; });
+  const submitted = new Promise(resolve => { signalSubmitted=resolve; });
   const editing = createEditingDomain({ previewController: preview,
     transactionRunner: ({ patch }) => patch.commit(),
     draftServices: { screenToCoordinate: point => point,
@@ -126,6 +127,7 @@ test('boundary handoff oracle targets the submitted vertex when mouseup flushes 
           packetStatus: preview.snapshot().status, packetRevision: preview.packet().packet.geometryRevision });
         // This is the same production boundary calculation used by the Worker.
         result = service.move(payload);
+        signalSubmitted();
         await waiting;
         return preview.handoff(session.previewId, successor);
       },
@@ -133,19 +135,20 @@ test('boundary handoff oracle targets the submitted vertex when mouseup flushes 
   });
   const event = { projectGeneration: 0, packetRevision: editing.createRenderPacket().revision,
     gestureId: 'withheld-final-raf', vertexKey: node.key };
-  const dispatch = (type, screenPoint) => editing.handleInteraction({ ...event, type: `boundary-vertex-drag-${type}`, screenPoint });
-  assert.equal(dispatch('start', [0, 0]), true);
+  const dispatch = async (type, screenPoint) => await editing.handleInteraction({ ...event, type: `boundary-vertex-drag-${type}`, screenPoint });
+  assert.equal(await dispatch('start', [0, 0]), true);
   const target = { nodeKey: node.nodeKey, preparationId: prepared.preparationId, previewId: preview.snapshot().id };
   const originalCoordinate = editing.createRenderPacket().boundaryActiveCoordinate;
-  assert.equal(dispatch('move', [1, 1]), true);
+  assert.equal(await dispatch('move', [1, 1]), true);
   frames.shift()();
-  assert.equal(dispatch('move', [2, 2]), true);
+  assert.equal(await dispatch('move', [2, 2]), true);
   const preUpCoordinate = editing.createRenderPacket().boundaryActiveCoordinate;
   assert.deepEqual(preUpCoordinate, [1, 1]);
   assert.deepEqual([...preview.packet().packet.startsEnds], [1, 1, 3, 0, -1, 0, 1, 1]);
   assert.equal(frames.length, 1, 'the final animation callback remains withheld');
 
   const ended = dispatch('end', [2, 2]);
+  await submitted;
   const packet = preview.packet().packet;
   const pending = { ...preview.snapshot(), key: packet.key, packetRevision: packet.geometryRevision, coordinates: [...packet.startsEnds] };
   const evidence = boundaryDragCommitEvidence({ target, originalCoordinate, preUpCoordinate, requests, pending });
@@ -182,10 +185,10 @@ test('boundary handoff oracle targets the submitted vertex when mouseup flushes 
 
 for (const action of ['tool-change', 'project-reset', 'dispose']) {
   test(`${action} invalidates a result after mouseup without allowing it to clear a later preview`, async () => {
-    const h = gestureHarness();
+    const h = await gestureHarness();
     const result = h.end();
-    if (action === 'tool-change') h.editing.setTool('select');
-    if (action === 'project-reset') h.editing.resetProject(1);
+    if (action === 'tool-change') await h.editing.setTool('select');
+    if (action === 'project-reset') await h.editing.resetProject(1);
     if (action === 'dispose') h.editing.dispose();
     assert.equal(h.preview.isActive(), false);
     const next = h.preview.begin({ key: 'border:A', segments, projectGeneration: 1 });
@@ -197,7 +200,7 @@ for (const action of ['tool-change', 'project-reset', 'dispose']) {
 }
 
 test('a failed boundary result clears its preview instead of leaving the attempted move painted', async () => {
-  const h = gestureHarness();
+  const h = await gestureHarness();
   const result = h.end();
   h.release(false);
   assert.equal(await result, false);
@@ -205,7 +208,7 @@ test('a failed boundary result clears its preview instead of leaving the attempt
 });
 
 test('a thrown commit failure cleans the moved preview and preserves the technical error for its operation boundary', async () => {
-  const h = gestureHarness();
+  const h = await gestureHarness();
   const failure = new Error('production boundary calculation failed');
   const result = h.end();
   h.release(failure);
