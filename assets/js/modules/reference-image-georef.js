@@ -814,6 +814,190 @@ export function buildReferenceImageAutoGeoref(values = [], {
   });
 }
 
+
+function normalizeLinearConstraintPolyline(values, { geographic = false } = {}) {
+  if (!Array.isArray(values)) return [];
+  const points = [];
+  for (const value of values) {
+    const pair = finitePair(value);
+    if (!pair) continue;
+    if (!geographic && pair.some(component => component < 0 || component > 1)) continue;
+    points.push(geographic
+      ? [wrapLongitude(pair[0]), clamp(pair[1], -90, 90)]
+      : [pair[0], pair[1]]);
+  }
+  return points;
+}
+
+function polylineCumulativeLengths(points, distance) {
+  const cumulative = [0];
+  for (let index = 1; index < points.length; index += 1) {
+    cumulative.push(cumulative[index - 1] + distance(points[index - 1], points[index]));
+  }
+  return cumulative;
+}
+
+function interpolatePolyline(points, cumulative, fraction) {
+  if (!points.length) return null;
+  if (points.length === 1) return [...points[0]];
+  const total = cumulative.at(-1);
+  if (!Number.isFinite(total) || total <= EPSILON) return [...points[0]];
+  const target = clamp(fraction, 0, 1) * total;
+  let index = 1;
+  while (index < cumulative.length && cumulative[index] < target) index += 1;
+  if (index >= cumulative.length) return [...points.at(-1)];
+  const start = cumulative[index - 1];
+  const end = cumulative[index];
+  const ratio = end - start <= EPSILON ? 0 : (target - start) / (end - start);
+  return [
+    points[index - 1][0] + (points[index][0] - points[index - 1][0]) * ratio,
+    points[index - 1][1] + (points[index][1] - points[index - 1][1]) * ratio,
+  ];
+}
+
+function orientLinearConstraint(image, coordinates) {
+  if (image.length < 2 || coordinates.length < 2) return { image, coordinates };
+  const forward = haversineMeters(coordinates[0], coordinates[0])
+    + haversineMeters(coordinates.at(-1), coordinates.at(-1));
+  const reverse = haversineMeters(coordinates[0], coordinates.at(-1))
+    + haversineMeters(coordinates.at(-1), coordinates[0]);
+  // Endpoint-only orientation cannot infer direction from one polyline alone.
+  // Preserve authoring order here; automatic reversal is handled against the base warp below.
+  void forward;
+  void reverse;
+  return { image, coordinates };
+}
+
+function chooseConstraintCoordinateDirection(image, coordinates, baseWarp) {
+  if (!baseWarp?.ok || typeof baseWarp.project !== 'function' || image.length < 2 || coordinates.length < 2) {
+    return coordinates;
+  }
+  const imageEnds = [baseWarp.project(image[0]), baseWarp.project(image.at(-1))];
+  if (imageEnds.some(point => !point)) return coordinates;
+  const forward = haversineMeters(imageEnds[0], coordinates[0])
+    + haversineMeters(imageEnds[1], coordinates.at(-1));
+  const reverse = haversineMeters(imageEnds[0], coordinates.at(-1))
+    + haversineMeters(imageEnds[1], coordinates[0]);
+  return reverse + 1 < forward ? [...coordinates].reverse() : coordinates;
+}
+
+export function buildReferenceImageLinearConstraintPoints(linearConstraints = [], {
+  baseWarp = null,
+  samplesPerConstraint = 4,
+  maximumSamples = 24,
+} = {}) {
+  if (!Array.isArray(linearConstraints)) return Object.freeze([]);
+  const result = [];
+  const limit = Math.max(1, Math.min(96, Math.round(Number(maximumSamples) || 24)));
+  for (const raw of linearConstraints) {
+    if (raw?.enabled === false || result.length >= limit) continue;
+    const id = String(raw?.id || '').trim();
+    if (!id) continue;
+    const oriented = orientLinearConstraint(
+      normalizeLinearConstraintPolyline(raw?.image),
+      normalizeLinearConstraintPolyline(raw?.coordinates || raw?.coordinate, { geographic: true }),
+    );
+    if (oriented.image.length < 2 || oriented.coordinates.length < 2) continue;
+    const coordinates = chooseConstraintCoordinateDirection(oriented.image, oriented.coordinates, baseWarp);
+    const imageLengths = polylineCumulativeLengths(oriented.image, (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]));
+    const coordinateLengths = polylineCumulativeLengths(coordinates, haversineMeters);
+    const weight = clamp(finiteNumber(raw?.weight) ?? 1, 0.25, 3);
+    const count = Math.max(2, Math.min(6, Math.round((finiteNumber(samplesPerConstraint) ?? 4) * Math.sqrt(weight))));
+    for (let index = 1; index <= count && result.length < limit; index += 1) {
+      const fraction = index / (count + 1);
+      const image = interpolatePolyline(oriented.image, imageLengths, fraction);
+      const coordinate = interpolatePolyline(coordinates, coordinateLengths, fraction);
+      if (!image || !coordinate) continue;
+      result.push(Object.freeze({
+        id: 'linear:' + id + ':' + index,
+        image: Object.freeze(image),
+        coordinate: Object.freeze(coordinate),
+        pinned: false,
+        linearConstraintId: id,
+        kind: String(raw?.kind || 'other'),
+        fraction,
+      }));
+    }
+  }
+  return Object.freeze(result);
+}
+
+export function buildReferenceImageLinearRefinement({
+  controlPoints = [],
+  anchor = null,
+  linearConstraints = [],
+  baseMode = REFERENCE_IMAGE_WARP_MODES.AUTO,
+  samplesPerConstraint = 4,
+  maximumSamples = 24,
+} = {}) {
+  const basePoints = Array.isArray(controlPoints) ? controlPoints : [];
+  const baseWarp = buildReferenceImageWarp([
+    ...(anchor ? [{
+      id: 'anchor',
+      image: anchor.image,
+      coordinate: anchor.coordinate,
+      pinned: true,
+    }] : []),
+    ...basePoints.map(point => ({ ...point, pinned: false })),
+  ], { mode: baseMode });
+  if (!baseWarp.ok) {
+    return Object.freeze({
+      ok: false,
+      reason: 'linear-refinement-base-warp-unavailable',
+      baseWarp,
+      linePointCount: 0,
+    });
+  }
+  const linePoints = buildReferenceImageLinearConstraintPoints(linearConstraints, {
+    baseWarp,
+    samplesPerConstraint,
+    maximumSamples,
+  });
+  if (!linePoints.length) {
+    return Object.freeze({
+      ok: false,
+      reason: 'no-linear-constraints',
+      baseWarp,
+      linePointCount: 0,
+    });
+  }
+  const points = [
+    ...(anchor ? [{
+      id: 'anchor',
+      image: anchor.image,
+      coordinate: anchor.coordinate,
+      pinned: true,
+    }] : []),
+    ...basePoints.map(point => ({ ...point, pinned: false })),
+    ...linePoints,
+  ];
+  const refinedWarp = buildReferenceImageWarp(points, { mode: REFERENCE_IMAGE_WARP_MODES.TPS });
+  if (!refinedWarp.ok) {
+    return Object.freeze({
+      ok: false,
+      reason: refinedWarp.reason || 'linear-refinement-failed',
+      baseWarp,
+      linePointCount: linePoints.length,
+    });
+  }
+  return Object.freeze({
+    ok: true,
+    mode: REFERENCE_IMAGE_WARP_MODES.TPS,
+    baseWarp,
+    warp: refinedWarp,
+    project: refinedWarp.project,
+    controlPoints: refinedWarp.controlPoints,
+    linePoints,
+    linePointCount: linePoints.length,
+    diagnostics: Object.freeze({
+      ...refinedWarp.diagnostics,
+      linearConstraintCount: new Set(linePoints.map(point => point.linearConstraintId)).size,
+      linearConstraintPointCount: linePoints.length,
+      baseRmsMeters: baseWarp.diagnostics?.rmsMeters ?? null,
+    }),
+  });
+}
+
 export function referenceImageWarpQuad(warp) {
   if (!warp?.ok || typeof warp.project !== 'function') return null;
   const corners = [[0, 0], [1, 0], [1, 1], [0, 1]]
@@ -826,6 +1010,7 @@ export function referenceImageWarpQuad(warp) {
 export function buildReferenceImageCalibrationWarp({
   controlPoints = [],
   anchor = null,
+  linearConstraints = [],
   cornerPinEnabled = false,
   mapQuad = null,
   mode = REFERENCE_IMAGE_WARP_MODES.AUTO,
@@ -848,8 +1033,39 @@ export function buildReferenceImageCalibrationWarp({
     });
   }
 
+  let linePoints = [];
+  if (
+    Array.isArray(linearConstraints)
+    && linearConstraints.some(item => item?.enabled !== false)
+    && calibrationPoints.length
+  ) {
+    const baseWarp = buildReferenceImageWarp(calibrationPoints, { mode });
+    if (baseWarp.ok) {
+      linePoints = [...buildReferenceImageLinearConstraintPoints(linearConstraints, {
+        baseWarp,
+        samplesPerConstraint: 4,
+        maximumSamples: 24,
+      })];
+      calibrationPoints.push(...linePoints);
+    }
+  }
+
+  const withLinearDiagnostics = warp => {
+    if (!warp?.ok || !linePoints.length) return warp;
+    return Object.freeze({
+      ...warp,
+      diagnostics: Object.freeze({
+        ...warp.diagnostics,
+        linearConstraintCount: new Set(linePoints.map(point => point.linearConstraintId)).size,
+        linearConstraintPointCount: linePoints.length,
+      }),
+    });
+  };
+
   if (!cornerPinEnabled || !calibrationPoints.length) {
-    return buildReferenceImageWarp(calibrationPoints, { mode });
+    return withLinearDiagnostics(buildReferenceImageWarp(calibrationPoints, {
+      mode: linePoints.length ? REFERENCE_IMAGE_WARP_MODES.TPS : mode,
+    }));
   }
 
   if (!Array.isArray(mapQuad) || mapQuad.length !== 4) {
@@ -869,10 +1085,10 @@ export function buildReferenceImageCalibrationWarp({
     coordinate: Array.isArray(coordinate) ? [...coordinate] : coordinate,
     pinned: true,
   }));
-  return buildReferenceImageWarp(
+  return withLinearDiagnostics(buildReferenceImageWarp(
     [...cornerPoints, ...calibrationPoints],
     { mode: REFERENCE_IMAGE_WARP_MODES.TPS },
-  );
+  ));
 }
 
 export function buildReferenceImageProjectiveWarpFromQuad(mapQuad) {
