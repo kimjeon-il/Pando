@@ -26,8 +26,19 @@ Web `tools/audit-legacy-gis-assets.mjs`는 데이터 997개·632,007,612 bytes�
 
 ## 2. 변경 및 검증 기록
 
-검증 커밋·명령·결과와 Pages 공개 URL 결과는 파일 정리 반영 후 기록한다. App은 제거할 파일이 없으므로 소스 변경이나 새 포터블 패키지를 만들지 않는다.
+Web `work/gis`의 `a932e5d5520b97272b952739e8775dffc86d8e10`에서 위 구형 메시만 제거했다. 커밋 후 `audit-legacy-gis-assets.mjs`는 **996개·617,381,012 bytes**, 현행 지형 타일 334개와 앱 고정 출처를 확인했다. 관련 Node 단위검사 **12/12 통과**. App은 제거할 현행 파일이 없어 소스 변경·새 포터블 패키지가 없으며, `verify-world-assets.mjs` **GIS 7항목 통과**, `verify-release-assets.mjs` **20/20 통과**, 기존 로컬 실행 파일의 `Pandoeditor-local.bat smoke` **종료 코드 0**이다. 이 smoke 검사는 새 빌드·패키지 검사가 아니다.
+
+Web `main` 병합·Pages 배포 후 공개 URL과 원격 커밋을 확인해 이 절에 덧붙인다. 삭제 전 구형 메시 URL은 HTTP 200이었다.
 
 ## 3. 격리된 Git 이력 정리
 
-로컬 복제본의 입력 ref, 제거 경로, 재작성 도구·커밋 대응표, 전후 객체 용량, 최종 파일 트리·`git fsck` 결과를 작업 후 기록한다. 원본 웹·앱 저장소와 GitHub 원격의 이력은 재작성하지 않는다.
+두 원본 저장소를 `--mirror --no-hardlinks`로 독립 복제했다. 두 복제본에서만 `git-filter-repo 2.47.0`으로 과거 경로를 제거했다. 로컬 복제본이 원본의 loose object까지 복사해 도구의 fresh-clone 판별을 통과하지 못했으므로, 절대 경로·bare 여부·입력 HEAD를 확인하고 복제본에서만 `--force`를 사용했다. 도구가 복제본의 `origin` 원격 추적 ref를 제거했으며, 원본 원격은 변경하지 않았다.
+
+| 복제본 | 과거 이력 제거 경로 | 원본 객체 디렉터리 | 정리 복제본 객체 디렉터리 | 차이 |
+| --- | --- | ---: | ---: | ---: |
+| Web `D:/dev/history-audit/Pando-web-20261012-a932e5d5.git` | `assets/data/terrain/v0.12.0/` (과거 335개·374,094,147 bytes) | 1,356,546,173 bytes | 829,110,766 bytes | 527,435,407 bytes |
+| App `D:/dev/history-audit/Pando-app-20261012-f124fdb4.git` | `dist/windows-portable/` (과거 태그의 1,385개·258,078,222 bytes) | 220,073,338 bytes | 60,919,225 bytes | 159,154,113 bytes |
+
+이 차이는 **현재 원본 객체 디렉터리와 재압축된 복제본 디렉터리의 실측 차이**다. 압축·원본의 loose/도달 불가 객체 차이가 포함되므로 제거 경로만의 순수 절감량으로 해석하지 않는다. 웹의 과거 지형을 가리키던 Codex 임시 **tree ref 12개**는 재작성 도구가 처리하지 않아 옛 Blob을 계속 붙잡았다. 정확한 ref·원본 tree SHA를 별도 목록에 기록한 뒤 **복제본에서만** 제거하고 GC했다. 원본 ref는 유지된다.
+
+검증: Web 로컬 브랜치 **19개**, App **13개**의 최종 tree SHA가 재작성 전과 같고, 제거 경로의 도달 가능한 Blob 경로 **0개**, 양쪽 `git fsck --full --no-reflogs` **종료 코드 0**이다. Web 현행 지형은 복제본에도 **335개**다. Web `work/gis`는 원본 `a932e5d5` → 복제본 `4560f0035c1b2f94afb83ca478735408008bb6d9`, App `main`은 원본 `f124fdb4` → 복제본 `eaae3852ca06c665bf69ac4e527582ee79c3fefd`로 대응한다. 전체 commit map과 입력 ref 목록은 각 복제본의 `filter-repo/commit-map` 및 `D:/dev/history-audit/`의 sidecar 목록에 남겼다. 재작성 SHA는 원래 GitHub 커밋·릴리스 태그의 대체물이 아니며, **원본 웹·앱 저장소와 GitHub 원격 이력은 변경하지 않았다**.
