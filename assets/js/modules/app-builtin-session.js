@@ -22,7 +22,6 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
   let builtinPaletteVisibility;
   let projectBaseline = null;
   let projectBaselinePending = null;
-  let projectBaselineLoadFailure = null;
   function connect(ports) {
     if (dependencies) throw new Error('builtin-session already connected');
     dependencies = ports;
@@ -35,33 +34,11 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
     }
     if (canonicalCountryStore === store) return;
     canonicalCountryStore = store;
-    projectBaselineLoadFailure = null;
-    projectBaseline = null;
-    projectBaselinePending = null;
     builtinCountryIds = new Set(store.ids());
     pristineCountriesFallback = null;
   }
 
   async function prepareProjectBaseline() {
-    if (!canonicalCountryStore && window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE) {
-      const source = window.PANDOLAB_CANONICAL_GEOMETRY_PROMISE;
-      if (projectBaselineLoadFailure?.source === source) throw projectBaselineLoadFailure.error;
-      let onError;
-      const failure = new Promise((_resolve, reject) => {
-        onError = event => {
-          const error = Object.assign(new Error(String(event.detail || '기준 데이터를 불러오지 못했습니다.')),
-            { code: 'PL-SCHEMA-BASE', cause: event.detail });
-          projectBaselineLoadFailure = { source, error };
-          reject(error);
-        };
-        window.addEventListener('pandolab:geometry-error', onError, { once: true });
-      });
-      try {
-        window.dispatchEvent(new CustomEvent('pandolab:canonical-geometry-required'));
-        const geometry = await Promise.race([source, failure]);
-        installCanonicalCountryStore(geometry.canonicalCountryStore);
-      } finally { window.removeEventListener('pandolab:geometry-error', onError); }
-    }
     if (projectBaseline) return projectBaseline;
     if (projectBaselinePending) return projectBaselinePending;
     projectBaselinePending = (async () => {
@@ -70,11 +47,18 @@ export function createBuiltinSession({ historicalWorldLoader = null } = {}) {
         historicalWorldLoader = createHistoricalWorldLoader({ manifestUrl: meta?.historicalWorld?.url,
           manifestSpec: meta?.historicalWorld, dataRevision: meta?.dataRevision });
       }
-      const { project, manifest } = await historicalWorldLoader.loadProject();
-      const freeze = value => { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
-      projectBaseline = Object.freeze({ project: freeze(project), baseEntities: project.territorialEntities,
-        sourceMonth: manifest.sourceMonth, baseDataset: dependencies.platformConfigurationA.BASE_DATASET,
-        baseDatasetFingerprint: manifest.project.sha256 });
+      const domain=dependencies.domains.projectDomain,expectedGeneration=domain.getGeneration();
+      const facts=({sourceBytes,manifest})=>({kind:'stored-asset',sourceBytes,encoding:manifest.project.encoding,
+        compressedBytes:manifest.project.compressedBytes,decodedBytes:manifest.project.decodedBytes,sourceMonth:manifest.sourceMonth,
+        baseDataset:dependencies.platformConfigurationA.BASE_DATASET,fingerprint:manifest.project.sha256});
+      const {sourceBytes,manifest,admission}=await historicalWorldLoader.loadSource(async source=>{
+        try {const accepted=await domain.admitStorageBaseline(facts(source),{expectedGeneration});return {baselineId:accepted.storageBaselineId};}
+        catch(error){if(error.code==='PL-CORE-STALE'||error.code==='STALE_REVISION'){error.name='AbortError';error.cancelled=true;}throw error;}
+      });
+      if(!(sourceBytes instanceof Uint8Array)||!Number.isSafeInteger(admission?.baselineId)||admission.baselineId<=0)
+        throw new TypeError('The verified stored source and admitted Core baseline handle are required.');
+      if(domain.getGeneration()!==expectedGeneration)throw Object.assign(new Error('Historical source admission crossed a project replacement.'),{code:'PL-CORE-STALE',name:'AbortError',cancelled:true});
+      projectBaseline=Object.freeze({...facts({sourceBytes,manifest}),baselineId:admission.baselineId});
       return projectBaseline;
     })();
     try { return await projectBaselinePending; }

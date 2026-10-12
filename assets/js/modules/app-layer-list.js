@@ -1,4 +1,6 @@
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
+import {BUILTIN_SUBUNITS} from './builtin-subunits.js';
+const builtinSubunitSources=Object.freeze(Object.fromEntries(BUILTIN_SUBUNITS.map(row=>[row.id,row.sourceCountryId])));
 
 /** LayerList: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -40,63 +42,6 @@ export function createLayerList() {
     return !!dependencies.projectState.state.layerVisibility.countries && isLayerItemVisible('countries', id);
   }
 
-  function setLayerItemsVisibility(items, visible) {
-    const byGroup = new Map();
-    for (const item of items) {
-      if (!dependencies.layerPresentation.LAYER_GROUP_KEYS.includes(item.layerGroup)) continue;
-      const ids = byGroup.get(item.layerGroup) || [];
-      ids.push(String(item.id)); byGroup.set(item.layerGroup, ids);
-    }
-    for (const [group, ids] of byGroup) {
-      if (group === 'hydro') {
-        // Preserve the effective visibility of *both* built-in sources and user edits
-        // before lifting a legacy river/lake master switch.
-        for (const category of ['river', 'lake']) {
-          const categoryItems = layerTreeItems('hydro').filter(item => item.hydroCategory === category);
-          const targets = categoryItems.filter(item => ids.includes(item.id));
-          if (!targets.length) continue;
-          const master = category === 'river' ? 'rivers' : 'lakes';
-          if (dependencies.projectState.state.layerVisibility[master] === false) {
-            dependencies.projectState.state.itemVisibility.hydro ||= {};
-            for (const item of categoryItems) {
-              if (item.isBuiltin) dependencies.projectState.state.physicalSettings.hydroLayers[item.id] = false;
-              else dependencies.projectState.state.itemVisibility.hydro[item.id] = false;
-            }
-            dependencies.projectState.state.layerVisibility[master] = true;
-          }
-          for (const item of targets) {
-            if (item.isBuiltin) dependencies.projectState.state.physicalSettings.hydroLayers[item.id] = !!visible;
-            else {
-              dependencies.projectState.state.itemVisibility.hydro ||= {};
-              if (visible) delete dependencies.projectState.state.itemVisibility.hydro[item.id];
-              else dependencies.projectState.state.itemVisibility.hydro[item.id] = false;
-            }
-          }
-        }
-        dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
-      } else {
-        (0, dependencies.layerPresentation.setScopedItemVisibility)({
-          layerVisibility: dependencies.projectState.state.layerVisibility, itemVisibility: dependencies.projectState.state.itemVisibility,
-          group, allIds: layerTreeItems(group).map(item => item.id), ids, visible,
-        });
-        if (group === 'distributions') dependencies.distributionPresentation.bumpVisibilityRevision();
-        if (group === 'countries') dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-item-visibility');
-      }
-    }
-    if (!byGroup.size) return;
-    // Existing presentation fields are saved once for the whole bundle operation.
-    for (const [group] of byGroup) {
-      const masters = group === 'hydro' ? ['rivers', 'lakes'] : [group];
-      for (const master of masters) { const input = (0, dependencies.platform.$)(master + 'Visible'); if (input) input.checked = dependencies.projectState.state.layerVisibility[master] !== false; }
-    }
-    markLayerTreeDirty();
-    dependencies.domains.renderingDomain?.invalidateOverlayStyle?.('layer-item-visibility');
-    dependencies.domains.projectDomain.queuePresentationAutosave();
-  }
-
-  function setLayerItemVisibility(group, id, visible) {
-    setLayerItemsVisibility([{ layerGroup: group, id }], visible);
-  }
 
   function isLayerListItemVisible(group, id) {
     const master = group === 'hydro'
@@ -202,29 +147,16 @@ export function createLayerList() {
     }));
   }
 
-  function pruneLayerItemVisibility() {
-    const valid = {
-      countries: new Set(dependencies.territorialModel.entityRepository
-        .list({ kind: 'general', parentId: '' })
-        .map(feature => String(feature.id || ''))),
-      countryLabels: new Set((0, dependencies.countries.builtinTerritorialScene)().labelById.keys()),
-      subunits: new Set(dependencies.territorialModel.entityRepository
-        .list({ kind: 'general' }).filter(entity => !!entity.properties.parentId)
-        .map(feature => String(feature.id))),
-      regions: new Set(dependencies.territorialModel.entityRepository
-        .list({ kind: 'regional' })
-        .map(feature => String(feature.id))),
-      distributions: new Set(dependencies.projectState.state.distributionLayers.map(layer => layer.id)),
-      hydro: new Set([...Object.keys(dependencies.hydroPresentation.HYDRO_LAYER_META), ...dependencies.projectState.state.hydroEdits.map(feature => String(feature.id))]),
-      genericFeatures: new Set(dependencies.projectState.state.genericFeatures.map(feature => String(feature.id))),
-      labels: new Set(dependencies.projectState.state.labels.map(label => String(label.id))),
-    };
-    for (const group of dependencies.layerPresentation.LAYER_GROUP_KEYS) {
-      dependencies.projectState.state.itemVisibility[group] ||= {};
-      for (const id of Object.keys(dependencies.projectState.state.itemVisibility[group])) if (!valid[group].has(id)) delete dependencies.projectState.state.itemVisibility[group][id];
-    }
-
-    dependencies.domains.selectionDomain?.prune?.(null, { reason: 'prune-invalid-selection' });
+  async function pruneLayerItemVisibility() {
+    if (typeof dependencies.domains.projectDomain?.admitPresentationCatalog !== 'function')
+      throw new TypeError('Layer visibility pruning requires the canonical C++ presentation catalog.');
+    if (typeof dependencies.domains.selectionDomain?.prune !== 'function')
+      throw new TypeError('Layer visibility pruning requires the canonical C++ selection owner.');
+    const hydroLayers=Object.fromEntries(Object.entries(dependencies.hydroPresentation.HYDRO_LAYER_META)
+      .map(([id,meta]) => [id,(0,dependencies.hydroPresentation.hydroCategoryKey)(meta.category)]));
+    await dependencies.domains.projectDomain.admitPresentationCatalog({ hydroLayers,builtinSubunitSources,
+      countryLabelIds:[...(0,dependencies.countries.builtinTerritorialScene)().labelById.keys()] });
+    await dependencies.domains.selectionDomain.prune(null,{ reason:'prune-invalid-selection' });
   }
 
   return Object.freeze({
@@ -238,7 +170,5 @@ export function createLayerList() {
     get normalizeLayerFolderState() { return normalizeLayerFolderState; },
     get normalizeLayerItemState() { return normalizeLayerItemState; },
     get pruneLayerItemVisibility() { return pruneLayerItemVisibility; },
-    get setLayerItemVisibility() { return setLayerItemVisibility; },
-    get setLayerItemsVisibility() { return setLayerItemsVisibility; },
   });
 }

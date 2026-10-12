@@ -1,4 +1,3 @@
-import { prepareProjectForActivation } from './project-state.js';
 /** ProjectRestore: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -14,29 +13,26 @@ export function createProjectRestore() {
     dependencies = ports;
   }
 
-  function applyAtlasState(project, manual = false, { projectGeneration = null, skipRenderReset = false } = {}) {
-    project = prepareProjectForActivation(project);
-    dependencies.territorialModel.entityStore.restoreProject(project);
+  async function applyAtlasState(project, manual = false, { projectGeneration = null,skipRenderReset = false,preserveCoreSession = false } = {}) {
+    if(project!==dependencies.domains.projectDomain.snapshot())throw new TypeError('Project presentation requires the accepted C++ document projection.');
     (0, dependencies.countryRecords.resetCountryLabelAnchorRuntime)();
     const nextProjectGeneration = skipRenderReset && Number.isFinite(projectGeneration)
       ? projectGeneration
-      : dependencies.domains.projectDomain
-        ? dependencies.domains.projectDomain.resetRenderGeneration('project-reset')
-        : dependencies.rendering.gpuMapRenderer.resetProjectRenderState?.();
+      : await dependencies.domains.projectDomain.resetRenderGeneration('project-reset');
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
     dependencies.projectState.state.countryVisualPhase = 'preview';
-    (0, dependencies.snapshots.applySharedProjectFields)(project);
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     dependencies.projectState.state.layerSearch = '';
     dependencies.projectState.state.auditPreviewCountries = null;
-    (0, dependencies.snapshots.normalizeProjectObjects)();
-    (0, dependencies.layerTree.pruneLayerItemVisibility)();
+    await (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.countries.scheduleCountryLabelAnchors)(null, 10);
     (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(project);
     const externalGeometry = !!project.territorialEntities && project.baseDataset !== dependencies.platformConfigurationA.BASE_DATASET;
-    dependencies.domains.selectionDomain.resetProject(dependencies.domains.projectDomain?.getGeneration?.() || 0);
-    dependencies.domains.editingDomain?.resetProject?.(dependencies.domains.projectDomain?.getGeneration?.() || 0);
+    if(!preserveCoreSession) {
+      await dependencies.domains.selectionDomain.resetProject(dependencies.domains.projectDomain.getGeneration());
+      await dependencies.domains.editingDomain.resetProject(dependencies.domains.projectDomain.getGeneration());
+    }
 
     (0, dependencies.mapSettingsUi.syncProjectionButtons)();
     (0, dependencies.mapSettingsUi.renderMapDisplaySettings)();
@@ -51,7 +47,7 @@ export function createProjectRestore() {
     (0, dependencies.mapView.syncMapHostFromState)();
     (0, dependencies.spatialRecords.scheduleMapObjectSpatialIndexRebuild)();
     dependencies.lifecycleUi.projectUi.syncHistory();
-    dependencies.domains.editingDomain?.setTool('select');
+    if(!preserveCoreSession)await dependencies.domains.editingDomain.setTool('select');
     if (manual) (0, dependencies.feedback.setActionStatus)(externalGeometry
       ? '외부 GIS 형상을 저장 당시 상태로 불러왔습니다.'
       : '프로젝트를 불러왔습니다.', 'success', 3200);
@@ -77,6 +73,9 @@ export function createProjectRestore() {
       },
       setChoices: dependencies.propertyEditingB.replaceSelectOptions,
       beforeOpen: dependencies.readinessUi.clearNotification,
+      reportOperationError: (error, { operation }) => dependencies.feedback.reportOperationError(error,
+        operation === 'cancel' ? '작업 취소를 완료하지 못했습니다.' : '확인한 작업을 완료하지 못했습니다.',
+        operation === 'cancel' ? 'PL-CONFIRM-CANCEL-001' : 'PL-CONFIRM-OPERATION-001', 4200),
     });
     confirmModalController.bind();
     return confirmModalController;
@@ -165,14 +164,12 @@ export function createProjectRestore() {
 
   async function resetProjectInPlace({ projectGeneration = null, skipRenderReset = false, prepared = null } = {}) {
     if (!prepared?.project) throw new Error('내장 기본 프로젝트 자료가 준비되지 않았습니다.');
-    dependencies.territorialModel.entityStore.restoreProject(prepared.project);
+    if(prepared.project!==dependencies.domains.projectDomain.snapshot())throw new TypeError('New project presentation requires the accepted C++ document projection.');
     closeConfirmModal();
     (0, dependencies.workspaceUiA.closeMobileSheets)();
     const nextProjectGeneration = skipRenderReset && Number.isFinite(projectGeneration)
       ? projectGeneration
-      : dependencies.domains.projectDomain
-        ? dependencies.domains.projectDomain.resetRenderGeneration('project-reset')
-        : dependencies.rendering.gpuMapRenderer.resetProjectRenderState?.();
+      : await dependencies.domains.projectDomain.resetRenderGeneration('project-reset');
     (0, dependencies.renderQuality.cancelGpuMeshRebuild)();
     dependencies.spatialQuery.mapEditClient?.stop?.();
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
@@ -180,25 +177,12 @@ export function createProjectRestore() {
 
     (0, dependencies.countryRecords.resetCountryLabelAnchorRuntime)();
 
-    dependencies.projectState.state.sourceInfo = null;
-    dependencies.projectState.state.labels = [];
-    dependencies.projectState.state.labelSettings = {};
-    dependencies.projectState.state.genericFeatures = [];
-    dependencies.projectState.state.hydroEdits = [];
-    dependencies.projectState.state.distributionLayers = [];
-    dependencies.projectState.state.distributionEntries = [];
-    dependencies.projectState.state.distributionSettings = { renderMode: dependencies.applicationConstantsA.DISTRIBUTION_RENDER_MODES.OVERLAP, activeLayerId: '', boundaryVisible: true };
-    dependencies.projectState.state.selectedDistributionLayerId = '';
     dependencies.projectState.state.distributionDraft = null;
     (0, dependencies.geometryEditingCore.clearGeometryPreview)(dependencies.projectState.state.geometryPreview);
-    dependencies.domains.editingDomain?.cancelActiveGesture?.('project-state-replaced');
+    await dependencies.domains.editingDomain.cancelActiveGesture('project-state-replaced');
     dependencies.projectState.state.audit = { status: 'idle', revision: dependencies.projectState.state.audit.revision + 1, report: null, selectedIssueId: null };
     dependencies.interactionStateCommands.setHoverHit(null);
-    dependencies.projectState.state.physicalSettings = (0, dependencies.hydroModel.normalizePhysicalSettings)(null);
     dependencies.projectState.state.projection = 'globe';
-    dependencies.projectState.state.layerVisibility = (0, dependencies.projectSession.normalizeLayerVisibility)();
-    dependencies.projectState.state.itemVisibility = (0, dependencies.layerTree.normalizeLayerItemState)(null);
-    dependencies.projectState.state.layerPresentation = (0, dependencies.modelValidation.normalizeLayerPresentation)();
     dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
     dependencies.projectState.state.layerFolders = (0, dependencies.layerTree.normalizeLayerFolderState)(null);
     dependencies.projectState.state.layerSearch = '';
@@ -211,17 +195,17 @@ export function createProjectRestore() {
     dependencies.projectState.state.genericFeatureMergeSourceId = null;
     dependencies.projectState.state.genericFeatureMergeTargetIds = [];
     dependencies.projectState.state.genericFeatureSplitSourceId = null;
-    (0, dependencies.countryEditingB.resetTerritorialUnitEditState)();
+    await dependencies.countryEditingB.resetTerritorialUnitEditState();
     (0, dependencies.countryEditingB.resetMergeState)();
-    (0, dependencies.countryEditingB.resetTerritoryEditingState)(true);
-    dependencies.domains.selectionDomain.resetProject(dependencies.domains.projectDomain?.getGeneration?.() || 0);
+    await dependencies.countryEditingB.resetTerritoryEditingState(true);
+    await dependencies.domains.selectionDomain.resetProject(dependencies.domains.projectDomain.getGeneration());
     dependencies.projectState.state.view = { globeRotation: [-15, -25, 0], globeZoom: 1, flatCenter: [0, 20], flatZoom: 1 };
 
     // 핵심: 현재 state나 window 객체가 아니라 앱 시작 때 고정해 둔 불변 원본 스냅샷에서 다시 생성한다.
     dependencies.projectState.state.countryIndex.clear();
     (0, dependencies.countryRecords.applyPristineLabelAnchors)(({ type: 'FeatureCollection', features: dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' }) }));
     dependencies.projectState.state.auditPreviewCountries = null;
-    (0, dependencies.layerTree.pruneLayerItemVisibility)();
+    await (0, dependencies.layerTree.pruneLayerItemVisibility)();
     (0, dependencies.layers.markLayerTreeDirty)();
     (0, dependencies.projectSnapshots.configureDatasetSession)(prepared.project);
     (0, dependencies.countryValidation.refreshCountryCentroids)();
@@ -235,7 +219,7 @@ export function createProjectRestore() {
     (0, dependencies.mapSettingsUi.syncProjectionButtons)();
     dependencies.domainControllers.objectPropertyController.show(null);
     (0, dependencies.platform.$)('selectionStatus').textContent = '';
-    dependencies.domains.editingDomain?.setTool('select', { announce: false });
+    await dependencies.domains.editingDomain.setTool('select', { announce: false });
 
     const clearReplacedProjectLayers = () => {
       // Existing SVG nodes can retain the edited Feature as __data__.  Clear

@@ -63,6 +63,12 @@ function normalizedFlagUrl(value) {
   return typeof value === 'string' && value.trim() ? value : null;
 }
 
+/** Current Web edit policy: require a value, without decoding stored media. */
+export function validateWebFlagDataUrl(value) {
+  if (normalizedFlagUrl(value) === null)
+    throw Object.assign(new Error('깃발 값에는 비어 있지 않은 문자열이 필요합니다.'), { code: 'invalid-flag' });
+}
+
 export function effectiveTerritorialFlagUrl(feature, { assetRevision = '' } = {}) {
   const metadata = feature?.properties?.metadata || {};
   if ((feature?.properties?.entityKind === 'general' && !feature?.properties?.parentId)) {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import '../../assets/js/vendor/polygon-clipping.min.js';
-import { initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import { createObjectCommands } from '../../assets/js/modules/app-object-commands.js';
 import { createCountryIndex } from '../../assets/js/modules/app-country-index.js';
 import { normalizeObjectRef } from '../../assets/js/modules/object-selection-controller.js';
@@ -47,14 +47,14 @@ test('object focus uses the actual viewport center and safe insets only for zoom
   assert.doesNotMatch(source, /largest|sovereign|parentId|children/i);
 });
 
-test('territorial focus uses the root label anchor and scope extent, while children and regions keep their own geometry', () => {
+test('territorial focus uses the root label anchor and scope extent, while children and regions keep their own geometry', async () => {
   const square = (x0, x1) => ({ type: 'Polygon', coordinates: [[[x0, 0], [x0, 2], [x1, 2], [x1, 0], [x0, 0]]] });
-  const state = initializeTestTerritorialState({ territorialEntities: [
+  const state = await initializeTestTerritorialState({ territorialEntities: [
     createTerritorialFeature({ id: 'root', entityKind: 'general', geometry: square(0, 2) }),
     createTerritorialFeature({ id: 'child', entityKind: 'general', parentId: 'root', geometry: square(3, 5) }),
     createTerritorialFeature({ id: 'region', entityKind: 'regional', geometry: square(6, 8) }),
   ] });
-  const entityStore = createTerritorialEntityStore({ getState: () => state });
+  const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
   const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state,
     clipper: () => globalThis.polygonClipping });

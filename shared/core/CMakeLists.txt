@@ -1,0 +1,90 @@
+configure_file(src/version.cpp.in generated/version.cpp @ONLY)
+# Deterministic pin shared by native and WASM builds and the packaging manifest.
+# Hash the relative repository path and CRLF-normalized contents, with no clock,
+# checkout path or generated build output in the digest.
+get_filename_component(PANDOEDITOR_SHARED_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
+get_filename_component(PANDOEDITOR_REPOSITORY_ROOT "${PANDOEDITOR_SHARED_ROOT}/.." ABSOLUTE)
+file(GLOB_RECURSE PANDOEDITOR_CORE_PIN_INPUTS CONFIGURE_DEPENDS
+    "${PANDOEDITOR_SHARED_ROOT}/*.cpp" "${PANDOEDITOR_SHARED_ROOT}/*.h"
+    "${PANDOEDITOR_SHARED_ROOT}/*.cpp.in" "${PANDOEDITOR_SHARED_ROOT}/*.h.in"
+    "${PANDOEDITOR_SHARED_ROOT}/*.cmake" "${PANDOEDITOR_SHARED_ROOT}/CMakeLists.txt")
+list(SORT PANDOEDITOR_CORE_PIN_INPUTS)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${PANDOEDITOR_CORE_PIN_INPUTS})
+set(PANDOEDITOR_CORE_PIN_LINES "")
+foreach(pin_input IN LISTS PANDOEDITOR_CORE_PIN_INPUTS)
+    file(RELATIVE_PATH pin_path "${PANDOEDITOR_SHARED_ROOT}/.." "${pin_input}")
+    file(READ "${pin_input}" pin_contents)
+    string(REPLACE "\r\n" "\n" pin_contents "${pin_contents}")
+    string(SHA256 pin_hash "${pin_contents}")
+    string(APPEND PANDOEDITOR_CORE_PIN_LINES "${pin_path}\n${pin_hash}\n")
+endforeach()
+string(SHA256 PANDOEDITOR_CORE_SOURCE_SHA256 "${PANDOEDITOR_CORE_PIN_LINES}")
+set(PANDOEDITOR_CORE_SOURCE_SHA256 "${PANDOEDITOR_CORE_SOURCE_SHA256}" PARENT_SCOPE)
+if(NOT EMSCRIPTEN)
+    find_package(ZLIB REQUIRED)
+endif()
+
+add_library(pandoeditor_core STATIC
+    src/geobounds.cpp
+    src/spatialindex.cpp
+    src/hydroformat.cpp
+    src/hydroviewport.cpp
+    src/maprenderorder.cpp
+    src/project.cpp
+    src/presentation.cpp
+    src/presentationcommands.cpp
+    src/document.cpp
+    src/geometryprovenance.cpp
+    src/temporal.cpp
+    src/timeline-records.cpp
+    src/timeline-resolver.cpp
+    src/timeline-view.cpp
+    src/timeline-edit.cpp
+    src/timeline-storage.cpp
+    src/losslessjson.cpp
+    src/projectcodec.cpp
+    src/webstorage.cpp
+    src/document-session.cpp
+    src/geometrydraft.cpp
+    src/historicallibrary.cpp
+    src/historicalinstantiation.cpp
+    src/gisexchange.cpp
+    src/geopackagegeometry.cpp
+    src/giszip.cpp
+    src/content.cpp
+    src/objectproperties.cpp
+    src/geometrypredicates.cpp
+    src/territorialmutation.cpp
+    src/commands.cpp
+  src/commandbatch.cpp
+  src/webcommands.cpp
+    src/webcontentcommands.cpp
+    src/webpresentationcommands.cpp
+    src/webterritorialcommands.cpp
+    src/webterritorialedit.cpp
+    src/webobjectcommands.cpp
+    src/jobs.cpp
+    src/snapshot.cpp
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/version.cpp"
+)
+add_library(Pandoeditor::Core ALIAS pandoeditor_core)
+
+target_include_directories(pandoeditor_core PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+target_compile_features(pandoeditor_core PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(pandoeditor_core PUBLIC /utf-8)
+endif()
+if(EMSCRIPTEN)
+    target_compile_options(pandoeditor_core PUBLIC "-sUSE_ZLIB=1" -fexceptions)
+    target_link_options(pandoeditor_core PUBLIC "-sUSE_ZLIB=1" -fexceptions)
+else()
+    target_link_libraries(pandoeditor_core PUBLIC ZLIB::ZLIB)
+endif()
+set_target_properties(pandoeditor_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+if(EMSCRIPTEN OR CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(pandoeditor_core PUBLIC
+        "-ffile-prefix-map=${PANDOEDITOR_REPOSITORY_ROOT}=/pando"
+        "-fdebug-prefix-map=${PANDOEDITOR_REPOSITORY_ROOT}=/pando")
+endif()

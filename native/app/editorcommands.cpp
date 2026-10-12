@@ -1,6 +1,10 @@
 #include "editorcontroller.h"
+#include <pandoeditor/webobjectcommands.h>
 #include <QRegularExpression>
 #include <exception>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonValue>
 
 namespace {
 bool validColor(const QString& value)
@@ -8,6 +12,163 @@ bool validColor(const QString& value)
     static const QRegularExpression pattern("^#[0-9a-fA-F]{6}$");
     return pattern.match(value).hasMatch();
 }
+}
+pandoeditor::projectcodec::PlatformPorts EditorController::coreCodecPorts() const
+{
+    return {::projectcodec::validateFlagDataUrl,true,pandoeditor::codecjson::ParsedTextPolicy::QtUtf8};
+}
+pandoeditor::codecjson::Value EditorController::coreInputValue(const QVariant& input)
+{
+    const auto value=QJsonValue::fromVariant(input);
+    QJsonArray envelope;envelope.append(value);
+    auto parsed=pandoeditor::codecjson::parse(QJsonDocument(envelope).toJson(QJsonDocument::Compact).toStdString(),
+        pandoeditor::codecjson::ParsedTextPolicy::QtUtf8);
+    return std::move(parsed.array.at(0));
+}
+pandoeditor::PrepareResult EditorController::prepareCoreRequest(const pandoeditor::CommandRequest& request) const
+{
+    if(const auto field=std::get_if<pandoeditor::TerritorialFieldEdit>(&request.args.action)) {
+        using V=pandoeditor::codecjson::Value;
+        const auto name=field->field==pandoeditor::TerritorialField::Name?"name":
+            field->field==pandoeditor::TerritorialField::Notes?"notes":
+            field->field==pandoeditor::TerritorialField::ValidFrom?"validFrom":"validTo";
+        auto payload=V::obj();payload.object["id"]=V::str(field->target.id);payload.object["field"]=V::str(name);
+        payload.object["valuePresent"]=V::boolean(true);payload.object["value"]=V::str(field->value);
+        return coreSession_.prepareNativeCommand(
+            pandoeditor::readWebMetadataCommand(project_.snapshot(),payload,coreCodecPorts()),coreEpoch());
+    }
+    return coreSession_.prepareNativeCommand(request,coreEpoch());
+}
+pandoeditor::CommandRequest EditorController::coreTerritorialRequest(const pandoeditor::TerritorialMutationIntent& intent,
+    const pandoeditor::GeometryPatch* patch) const
+{
+    using namespace pandoeditor;using V=codecjson::Value;
+    const auto snapshot=project_.snapshot();
+    auto payload=V::obj();std::string operation;
+    if(const auto parent=std::get_if<ChangeParentIntent>(&intent)) {
+        operation="territorial.parent";payload.object["id"]=V::str(parent->target.id);payload.object["parentId"]=V::str(parent->parent.id);
+        return readWebTerritorialCommand(snapshot,operation,payload,coreCodecPorts());
+    }
+    if(const auto removal=std::get_if<DeleteTerritorialIntent>(&intent)) {
+        auto refs=V::arr();for(const auto& ref:removal->targets) {
+            auto row=V::obj();row.object["domain"]=V::str(ref.domain);row.object["id"]=V::str(ref.id);
+            refs.array.push_back(std::move(row));
+        }
+        payload.object["refs"]=std::move(refs);return readWebObjectRemoval(snapshot,payload);
+    }
+    const auto createRow=[&](const CreateTerritorialIntent& create,const Geometry& geometry) {
+        auto row=V::obj(),properties=V::obj();row.object["type"]=V::str("Feature");row.object["id"]=V::str(create.id);
+        row.object["geometry"]=pandoeditor::projectcodec::webGeometryValue(geometry);properties.object["schemaVersion"]=V::num(6);
+        properties.object["entityKind"]=V::str(create.kind==UnitKind::General?"general":"regional");
+        properties.object["name"]=V::str(create.name);properties.object["notes"]=V::str(create.notes);
+        const auto parent=create.parent?create.parent->id:std::string{};properties.object["parentId"]=V::str(parent);
+        properties.object["coverageMode"]=V::str(create.coverageMode.empty()?(parent.empty()?"explicit":"partition"):create.coverageMode);
+        properties.object["locked"]=V::boolean(false);properties.object["metadata"]=V::obj();properties.object["style"]=V::obj();
+        if(create.explicitColor)properties.object["style"].object["color"]=V::str(QString("#%1").arg(*create.explicitColor,6,16,QChar('0')).toStdString());
+        properties.object["validFrom"]=create.validity.from?V::str(*create.validity.from):V{};
+        properties.object["validTo"]=create.validity.to?V::str(*create.validity.to):V{};row.object["properties"]=std::move(properties);
+        auto input=V::obj();input.object["feature"]=std::move(row);
+        return std::get<WebTerritorialEdit>(readWebTerritorialCommand(snapshot,"territorial.create",input,coreCodecPorts()).args.action).features.at(0);
+    };
+    if(const auto create=std::get_if<CreateTerritorialIntent>(&intent)) {
+        WebTerritorialEdit edit;edit.operation=WebTerritorialOperation::Create;edit.features.push_back(createRow(*create,create->geometry));
+        CommandArguments args;args.action=std::move(edit);auto request=CommandProcessor::makeRequest(project_,"territorial.create",std::move(args));request.targets={territorialRef(create->id)};return request;
+    }
+    if(!patch)throw TimelineError("invalid","A platform geometry receipt is required.");
+    if(patch->sourceRevision!=project_.revision())throw TimelineError("STALE_REVISION","Geometry receipt source changed.");
+    const auto& view=project_.viewDocument();
+    const auto existing=[&](const ObjectRef& ref) {
+        const auto found=project_.index().objects.find(ref);if(ref.domain!="territorial"||found==project_.index().objects.end()||project_.inactiveEntityIds().count(ref.id))throw TimelineError("not-found","Geometry owner is inactive.");
+        WebTerritorialFeature row;row.identity=project_.document().units.at(found->second);
+        const auto& relation=staticParentRelation(view,ref.id);row.parentId=relation.parentId;row.coverageMode=relation.coverageMode;row.validity=staticLifetime(view,ref.id).validity;
+        row.geometry=*view.geometries.get(staticGeometryBinding(view,ref.id).geometryRef);
+        const auto& document=project_.document();row.style=document.presentation.objectStyles.at(ref);
+        if(document.countryDetails.count(ref))row.countryDetails=document.countryDetails.at(ref);
+        if(document.symbols.count(ref))row.symbol=document.symbols.at(ref);return row;
+    };
+    WebTerritorialEdit edit;edit.operation=WebTerritorialOperation::Patch;
+    for(const auto& replacement:patch->replacements) {auto row=existing(replacement.owner);row.geometry=replacement.geometry;edit.features.push_back(std::move(row));}
+    for(const auto& creation:patch->creations) {
+        const auto split=std::get_if<SplitTerritorialIntent>(&intent);if(!split||creation.owner.id!=split->createdId)throw TimelineError("invalid","Unknown platform creation intent.");
+        auto source=existing(split->source);CreateTerritorialIntent create;create.id=split->createdId;create.name=split->createdName;create.kind=source.identity.kind;
+        if(!source.parentId.empty())create.parent=territorialRef(source.parentId);create.coverageMode=source.coverageMode;
+        edit.features.push_back(createRow(create,creation.geometry));
+    }
+    for(const auto& ref:patch->removedGeometryOwners) {if(ref.domain!="territorial")throw TimelineError("invalid","Unknown geometry removal domain.");edit.removedIds.push_back(ref.id);}
+    const auto relation=[&](const ObjectRef& target,const std::string& parent) {
+        auto found=std::find_if(edit.features.begin(),edit.features.end(),[&](const auto& row){return row.identity.id==target.id;});
+        if(found==edit.features.end()){edit.features.push_back(existing(target));found=std::prev(edit.features.end());}
+        found->parentId=parent;if(parent.empty())found->coverageMode="explicit";
+    };
+    if(const auto transfer=std::get_if<TransferSubunitIntent>(&intent))relation(transfer->target,transfer->destinationCountry.id);
+    if(const auto conversion=std::get_if<ConvertTerritorialTypeIntent>(&intent))relation(conversion->source,conversion->parent?conversion->parent->id:std::string{});
+    CommandArguments args;args.action=std::move(edit);auto request=CommandProcessor::makeRequest(project_,"territorial.patch",std::move(args));
+    const auto& action=std::get<WebTerritorialEdit>(request.args.action);for(const auto& row:action.features)request.targets.push_back(territorialRef(row.identity.id));for(const auto& id:action.removedIds)request.targets.push_back(territorialRef(id));return request;
+}
+pandoeditor::PrepareResult EditorController::prepareCoreTerritorialReceipt(pandoeditor::PrepareResult&& prepared) const
+{
+    if(!prepared.ok()||!prepared.preview)return std::move(prepared);
+    const auto& action=prepared.preview->change().request().args.action;
+    const auto* mutation=std::get_if<pandoeditor::ApplyTerritorialMutation>(&action);
+    if(const auto timeline=std::get_if<pandoeditor::TimelineTerritorialMutation>(&action))mutation=&timeline->mutation;
+    if(!mutation)return std::move(prepared);
+    try {return prepareCoreRequest(coreTerritorialRequest(mutation->plan.intent,mutation->geometry?&*mutation->geometry:nullptr));}
+    catch(const std::exception& error) {pandoeditor::PrepareResult rejected;rejected.error=pandoeditor::CommandError::PrepareFailed;rejected.detail=error.what();return rejected;}
+}
+pandoeditor::CommandRequest EditorController::coreContentRequest(const pandoeditor::ContentEdit& edit,const pandoeditor::Geometry* geometry) const
+{
+    using namespace pandoeditor;using V=codecjson::Value;
+    const auto snapshot=project_.snapshot();auto payload=V::obj();payload.object["id"]=V::str(edit.target.id);
+    if(edit.target.domain=="territorial") {
+        payload.object["valuePresent"]=V::boolean(true);
+        if(const auto details=std::get_if<CountryDetails>(&edit.value)) {payload.object["field"]=V::str("capital");payload.object["value"]=V::str(details->capital);}
+        else if(const auto symbol=std::get_if<TerritorialSymbolStyle>(&edit.value)) {
+            payload.object["field"]=V::str("flagDataUrl");payload.object["valuePresent"]=V::boolean(symbol->policy!=FlagPolicy::Default);
+            payload.object["value"]=symbol->policy==FlagPolicy::Embedded?V::str(symbol->embeddedDataUrl):V{};
+        } else throw TimelineError("invalid","Unsupported territorial metadata value.");
+        auto request=readWebMetadataCommand(snapshot,payload,coreCodecPorts());
+        if(const auto original=std::get_if<TerritorialSymbolStyle>(&edit.value))if(auto content=std::get_if<ContentEdit>(&request.args.action))if(auto normalized=std::get_if<TerritorialSymbolStyle>(&content->value)) {
+            normalized->defaultCountryId=original->defaultCountryId;normalized->defaultFlagDataUrl=original->defaultFlagDataUrl;
+        }
+        return request;
+    }
+    const bool remove=std::holds_alternative<std::monostate>(edit.value);
+    const auto row=remove?V{}:pandoeditor::projectcodec::webContentValue(snapshot,edit.target,&edit.value,geometry?geometry:edit.geometry?&edit.geometry->second:nullptr);
+    if(edit.target.domain=="label"||edit.target.domain=="hydro") {
+        auto normalized=pandoeditor::projectcodec::readNativeContentEdit(snapshot,edit.target,row,edit.create);
+        if(edit.initialLabelSettings)normalized.initialLabelSettings=edit.initialLabelSettings;
+        CommandArguments args;args.action=std::move(normalized);
+        auto request=CommandProcessor::makeRequest(project_,edit.target.domain+".edit",std::move(args));request.targets={edit.target};return request;
+    }
+    std::string operation;
+    if(edit.target.domain=="generic")operation=edit.create?"generic.create":remove?"generic.remove":"";
+    else if(edit.target.domain=="distributionLayer")operation=edit.create?"distribution.layer.create":remove?"distribution.layer.remove":"";
+    else if(edit.target.domain=="distributionEntry")operation=edit.create?"distribution.entry.create":remove?"distribution.entry.remove":"";
+    else throw TimelineError("invalid","Unsupported content domain.");
+    if(!operation.empty()) {
+        if(edit.create)payload.object[edit.target.domain=="generic"?"feature":"options"]=row;
+        return readWebContentCommand(snapshot,operation,payload,ContentIdentityPolicy::NativeExact);
+    }
+    auto normalized=pandoeditor::projectcodec::readNativeContentEdit(snapshot,edit.target,row,false);
+    CommandArguments args;args.action=std::move(normalized);auto request=CommandProcessor::makeRequest(project_,"content.edit",std::move(args));request.targets={edit.target};return request;
+}
+pandoeditor::CommandResult EditorController::confirmCorePreview(pandoeditor::CommandPreview& preview,std::uint32_t expectedEpoch)
+{
+    pandoeditor::PrepareResult prepared;prepared.status=pandoeditor::CommandStatus::Prepared;
+    prepared.preview.emplace(std::move(preview));
+    auto retained=coreSession_.adoptPreparedCommand(std::move(prepared),expectedEpoch);
+    if(!retained.result.ok()||!retained.candidateId)return retained.result;
+    return coreSession_.confirmCandidate(retained.candidateId,expectedEpoch).result;
+}
+pandoeditor::PresentationResult EditorController::applyCorePresentation(const pandoeditor::PresentationAction& action)
+{
+    try {
+        const auto outcome=coreSession_.applyPresentation(action,coreEpoch());
+        if(!outcome.result.ok()){commandError(outcome.result.error,QString::fromStdString(outcome.result.detail));return pandoeditor::PresentationResult::Failed;}
+        return outcome.result.changed()?pandoeditor::PresentationResult::Applied:pandoeditor::PresentationResult::NoOp;
+    } catch(const std::exception& error) {
+        emit errorOccurred("PRESENTATION_FAILED: "+QString::fromUtf8(error.what()));return pandoeditor::PresentationResult::Failed;
+    }
 }
 void EditorController::commandError(pandoeditor::CommandError error,const QString& detail)
 {
@@ -75,13 +236,13 @@ pandoeditor::CommandStatus EditorController::prepareCommand(const std::string& c
     cancelPreview();
     try {
         if(!collectPendingEdits(args)) return CommandStatus::Rejected;
-        if(commandId=="edit.properties"&&!isStaticTimeline(project_.document())&&
+        if(commandId=="edit.properties"&&project_.timelineEditsEnabled()&&
             args.properties.countries.empty()&&args.properties.layers.empty()&&args.properties.fields.empty())
             return CommandStatus::NoOp;
         auto request=CommandProcessor::makeRequest(project_,commandId,std::move(args));
-        auto result=CommandProcessor::prepare(project_,request);
+        auto result=prepareCoreRequest(request);
         if(!result.ok()) {commandError(result.error,QString::fromStdString(result.detail));return result.status;}
-        if(result.preview) {pendingPreview_=std::move(result.preview);emit previewChanged();}
+        if(result.preview) {pendingPreviewEpoch_=coreEpoch();pendingPreview_=std::move(result.preview);emit previewChanged();}
         return result.status;
     }catch(const std::exception&) {commandError(CommandError::PrepareFailed);return CommandStatus::Rejected;}
 }
@@ -89,7 +250,7 @@ bool EditorController::preparePendingEdits(){return prepareCommand("edit.propert
 bool EditorController::confirmCommand()
 {
     if(!pendingPreview_) {commandError(pandoeditor::CommandError::PreviewConsumed);return false;}
-    auto result=pandoeditor::CommandProcessor::confirm(project_,*pendingPreview_);
+    auto result=confirmCorePreview(*pendingPreview_,pendingPreviewEpoch_);
     pendingPreview_.reset();
     if(result.ok())clearParkedDrafts();
     emit previewChanged();

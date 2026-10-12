@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
 import { assertCurrentProjectSchema } from '../../assets/js/modules/project-state.js';
 
 async function openMap(page) {
@@ -203,7 +203,7 @@ for (const width of [1366, 390]) test(`pinned country label over another territo
   try {
     const saved = staticAutosaveProject();
     const square = (x, y, size) => ({ type: 'Polygon', coordinates: [[[x, y], [x, y + size], [x + size, y + size], [x + size, y], [x, y]]] });
-    Object.assign(saved, createStaticTerritorialSnapshot([
+    Object.assign(saved, staticTerritorialInput([
       createTerritorialFeature({ id: 'DEU', entityKind: 'general', name: 'A 국가의 긴 이름', geometry: square(10, 0, 15) }),
       createTerritorialFeature({ id: 'FRA', entityKind: 'general', name: 'B 국가', geometry: square(-10, 0, 15) }),
     ]));

@@ -1,10 +1,3 @@
-import { readTerritorialSources } from '../../tools/territorial-entity-sources.mjs';
-import { buildCurrentWorld } from '../../tools/territorial-current-world.mjs';
-import fs from 'node:fs';
-
-const sources = readTerritorialSources();
-const snapshot = JSON.parse(fs.readFileSync(new URL('../../assets/data/territorial-entities/source/snapshots/current-world.json', import.meta.url)));
-const current = new Set(snapshot.entityRefs);
 const square = x => ({ type: 'Polygon', coordinates: [[[x, 60], [x + 1, 60], [x + 1, 61], [x, 61], [x, 60]]] });
 const version = (id, from, to, x) => ({ versionId: id, validFrom: from, validTo: to, datePrecision: 'date', geometry: square(x) });
 const entity = (id, from, to, versions, parent = '') => ({
@@ -14,15 +7,27 @@ const entity = (id, from, to, versions, parent = '') => ({
   geometryVersions: versions,
 });
 export function historicalWorldCases() {
+  // The committed synthetic squares exercise source-month and lineage rules.
+  // Full source reconstruction belongs to separate data publication checks.
+  // The compiler's current-world ingress requires all default subunit endpoints.
+  // Include those identities as the same tiny squares, without reading assets.
+  const ids = [...new Set(['RUS', 'KOR', 'PRK', ...BUILTIN_SUBUNITS.flatMap(row => [row.sourceCountryId, row.parentId])])];
+  const sources = ids.map((id, index) => ({ ...entity(`current:${id}`, null, null,
+    [version(`${id}:current`, null, null, index * 2)]), sourceInfo: { featureId: id } }));
+  const snapshot = { schemaVersion: 1, referenceDate: '2026-10-01', entityRefs: sources.map(row => row.entityId) };
+  const currentWorld = { type: 'FeatureCollection', features: ids.map((id, index) => ({
+    type: 'Feature', id, geometry: square(index * 2), properties: { name: id },
+  })) };
   return {
-    entities: [...sources.filter(item => current.has(item.entityId)),
+    entities: [...sources,
       entity('state:test-ukraine', '1991-08-24', '2014-03-17', [version('ukraine-v1', '1991-08-24', '2014-03-17', 10)]),
       entity('state:single-day', '1989-04-25', '1989-04-25', [version('day-v1', '1989-04-25', '1989-04-25', 12)]),
       entity('state:parent', '1900', '1903', [version('parent-v1', '1900', '1900', 14), version('parent-v2', '1902', '1903', 14)]),
       entity('state:child', '1900', '1903', [version('child-v1', '1900', '1903', 14)], 'state:parent'),
       entity('state:changing', '2020-01-01', '2020-12-31', [version('before', '2020-01-01', '2020-11-09', 16), version('after', '2020-11-10', '2020-12-31', 17)]),
       entity('state:leap', '2000-02-29', '2000-02-29', [version('leap-v1', '2000-02-29', '2000-02-29', 19)]),
-    ], currentSnapshot: structuredClone(snapshot), currentWorld: buildCurrentWorld(),
+    ], currentSnapshot: snapshot, currentWorld,
     policy: { schemaVersion: 1, unknownPeerOverlap: 'exclude-from-all', replacements: [] },
   };
 }
+import { BUILTIN_SUBUNITS } from '../../assets/js/modules/builtin-subunits.js';

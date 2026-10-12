@@ -11,6 +11,8 @@ export function createPointerTargets() {
   let lastHoverPickPoint;
   let lastHoverPickViewRevision;
   let lastHoverHit;
+  let hoverPickSequence = 0;
+  let pendingHoverRequests = 0;
   let snapCandidateCache;
   const snapSources = new WeakMap();
   let snapSequence = 0;
@@ -43,34 +45,67 @@ export function createPointerTargets() {
     return cpuCountryAtCoordinate(coord);
   }
 
-  function cancelCountryHoverPick({ clear = false } = {}) {
+  const obsoleteHoverError = error => error.cancelled || error.name === 'AbortError'
+    || ['STALE_REVISION','PL-CORE-STALE','PL-CORE-CANCELLED','PL-WORKER-RPC-STALE'].includes(error.code);
+
+  async function applyCountryHover(hit, sequence, clear = false) {
+    pendingHoverRequests += 1;
+    try {
+      const generation = dependencies.domains.projectDomain.getGeneration(), viewRevision = dependencies.mapLayout.viewRevision;
+      const nextRef = hit?.ref || null;
+      const accepted = await dependencies.domains.selectionDomain.setHover(nextRef,clear ? {} : { source: 'map' });
+      if (!accepted || !Object.hasOwn(accepted,'hover')) throw new TypeError('An accepted Core hover snapshot is required.');
+      if (sequence !== hoverPickSequence || generation !== dependencies.domains.projectDomain.getGeneration()
+        || (!clear && (viewRevision !== dependencies.mapLayout.viewRevision || dependencies.projectState.state.mapMoving
+          || dependencies.projectState.state.tool !== 'select' || dependencies.draftPresentation.editingDraftSnapshot().dragging))) return false;
+      const key = nextRef?.key || null;
+      if ((accepted.hover?.key || null) !== key || (dependencies.domains.selectionDomain.snapshot().hover?.key || null) !== key) return false;
+      lastHoverHit = hit;
+      return true;
+    } catch (error) {
+      if (!obsoleteHoverError(error)) dependencies.feedback.reportOperationError(error,'지도 hover를 갱신하지 못했습니다.','PL-MAP-HOVER-001',4200);
+      return false;
+    } finally { pendingHoverRequests -= 1; }
+  }
+
+  async function cancelCountryHoverPick({ clear = false } = {}) {
+    const sequence = ++hoverPickSequence;
     if (hoverPickFrame) clearTimeout(hoverPickFrame);
     hoverPickFrame = 0;
     pendingHoverPick = null;
     lastHoverPickPoint = null;
     lastHoverPickViewRevision = -1;
-    if (clear && dependencies.domains.selectionDomain.snapshot().hover) {
-      lastHoverHit = null;
-      dependencies.domains.selectionDomain.setHover(null);
+    try {
+      // A pending enter can still acknowledge after cancellation. Queue its
+      // clear even when no hover has been accepted yet.
+      if (clear && (pendingHoverRequests || dependencies.domains.selectionDomain.snapshot().hover))
+        return await applyCountryHover(null,sequence,true);
+      return false;
+    } catch (error) {
+      if (!obsoleteHoverError(error)) dependencies.feedback.reportOperationError(error,'지도 hover를 취소하지 못했습니다.','PL-MAP-HOVER-001',4200);
+      return false;
     }
   }
 
   function queueCountryHoverPick(screenPoint, coord) {
     if (!screenPoint || !coord || dependencies.projectState.state.mapMoving || (0, dependencies.draftPresentation.editingDraftSnapshot)().dragging || dependencies.projectState.state.tool !== 'select') return;
     if (lastHoverPickPoint && Math.hypot(screenPoint[0] - lastHoverPickPoint[0], screenPoint[1] - lastHoverPickPoint[1]) < 3) return;
-    pendingHoverPick = { screenPoint: [...screenPoint], coord: [...coord] };
+    pendingHoverPick = { screenPoint: [...screenPoint], coord: [...coord], sequence: ++hoverPickSequence };
     if (hoverPickFrame) return;
-    hoverPickFrame = setTimeout(() => {
+    hoverPickFrame = setTimeout(async () => {
       hoverPickFrame = 0;
       const pending = pendingHoverPick;
       pendingHoverPick = null;
-      if (!pending || dependencies.projectState.state.mapMoving || (0, dependencies.draftPresentation.editingDraftSnapshot)().dragging || dependencies.projectState.state.tool !== 'select') return;
-      lastHoverPickPoint = pending.screenPoint;
-      lastHoverPickViewRevision = dependencies.mapLayout.viewRevision;
-      const hit = dependencies.objectPicking.territorialObjectsAt(pending.screenPoint, pending.coord)[0] || null;
-      const nextRef = hit?.ref || null;
-      lastHoverHit = hit;
-      dependencies.domains.selectionDomain.setHover(nextRef, { source: 'map' });
+      try {
+        if (!pending || dependencies.projectState.state.mapMoving || (0, dependencies.draftPresentation.editingDraftSnapshot)().dragging || dependencies.projectState.state.tool !== 'select') return false;
+        lastHoverPickPoint = pending.screenPoint;
+        lastHoverPickViewRevision = dependencies.mapLayout.viewRevision;
+        const hit = dependencies.objectPicking.territorialObjectsAt(pending.screenPoint, pending.coord)[0] || null;
+        return await applyCountryHover(hit,pending.sequence);
+      } catch (error) {
+        if (!obsoleteHoverError(error)) dependencies.feedback.reportOperationError(error,'지도 hover 대상을 찾지 못했습니다.','PL-MAP-HOVER-001',4200);
+        return false;
+      }
     }, 50);
   }
 
@@ -205,6 +240,7 @@ export function createPointerTargets() {
   }
 
   function initializeHoverPickFrame() {
+    hoverPickSequence += 1;
     (hoverPickFrame = 0);
 
     (pendingHoverPick = null);

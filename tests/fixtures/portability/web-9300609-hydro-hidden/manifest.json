@@ -1,0 +1,12 @@
+{
+  "schema": "pandoeditor-web-supplemental-oracle",
+  "baseline": "930060923889d17134e36e152c29f4adbb2e60a9",
+  "reason": "Current builtin hydro source hidden aliases during fragment aggregation",
+  "files": [
+    {
+      "path": "assets/js/modules/gpu-map-renderer.js",
+      "blob": "60f069c0da7dc5555c3e3b9900732c5aafa7165d",
+      "sha256": "bd6d14b157584482d0491fc15223286cdbdd448cf19184e15dbceed50f8aeee1"
+    }
+  ]
+}

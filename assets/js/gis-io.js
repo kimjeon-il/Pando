@@ -1019,18 +1019,15 @@
     return layers;
   }
 
-  async function gisSpatialSnapshot(projectState) {
-    const { prepareProjectForActivation } = await import('./modules/project-state.js');
-    const { staticTimelineViews } = await import('./modules/timeline-static-view.js');
-    const { createGeometryVersionStore } = await import('./modules/geometry-version-store.js');
-    const candidate = prepareProjectForActivation(projectState);
-    return { ...candidate, territorialEntities: staticTimelineViews(candidate.territorialEntities,
-      candidate.timelineRecords, createGeometryVersionStore(candidate.geometries)) };
+  function gisSpatialSnapshot(options) {
+    if(!Object.hasOwn(options,'spatialState'))throw new TypeError('The Core GIS spatial projection is required.');
+    if(options.spatialState===null)throw Object.assign(new Error('시계열 프로젝트는 현재 GIS 공간 레이어로 내보낼 수 없습니다.'),{code:'TIMELINE_ACTIVATION'});
+    return options.spatialState;
   }
 
-  async function exportGeoJsonBundle(projectState, selectedLayers, progress = () => {}) {
+  async function exportGeoJsonBundle(projectState, selectedLayers, progress = () => {},options = {}) {
     progress('GeoJSON 레이어를 만드는 중입니다.', 18);
-    const layers = buildGisExportLayers(await gisSpatialSnapshot(projectState), selectedLayers);
+    const layers = buildGisExportLayers(gisSpatialSnapshot(options), selectedLayers);
     if (!layers.length) throw new Error('선택한 범주에 내보낼 데이터가 없습니다.');
     const fflate = await getFflate();
     const createdAt = new Date().toISOString();
@@ -1059,14 +1056,15 @@
   async function exportGeoPackage(projectState, progress = () => {}, options = {}) {
     const exportMode = options.mode === 'gis' ? 'gis' : 'project';
     if (exportMode === 'project') {
+      if(!Object.hasOwn(options,'spatialState'))throw new TypeError('The accepted Core file spatial projection is required.');
       progress('프로젝트 기록과 형상을 저장하는 중입니다.', 25);
-      const result = await callGpkgWorker('write', new ArrayBuffer(0), { exportMode,
+      const result = await callGpkgWorker('write', new ArrayBuffer(0), { exportMode,spatialState: options.spatialState,
         projectState: { ...projectState, countryAssets: countryAssets(projectState.territorialEntities) } });
       progress('GeoPackage 저장 준비를 마쳤습니다.', 100);
       return new Blob([result.buffer], { type: 'application/geopackage+sqlite3' });
     }
     const selectedLayers = [...new Set(options.layers || [])];
-    projectState = await gisSpatialSnapshot(projectState);
+    projectState = gisSpatialSnapshot(options);
     const gdal = await getGdal(progress);
     progress('GIS용 GeoPackage 구조를 준비하는 중입니다.', 25);
     const gisLayers = buildGisExportLayers(projectState, selectedLayers);

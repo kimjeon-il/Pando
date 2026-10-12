@@ -32,8 +32,8 @@ private slots:
     void currentMeshOnlyMatchesActiveShape() {
         const auto root=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);
         const auto loaded=WorldDatasetLoader::canonical(root);
-        QVERIFY(!WorldDatasetLoader::matchingBaseFrame(*loaded.document,root,"2012-10"));
-        QVERIFY(WorldDatasetLoader::matchingBaseFrame(*loaded.document,root,"2026-10"));
+        QVERIFY(!WorldDatasetLoader::matchingBaseFrame(loaded.project->document(),root,"2012-10"));
+        QVERIFY(WorldDatasetLoader::matchingBaseFrame(loaded.project->document(),root,"2026-10"));
     }
     void unavailableCanonicalDoesNotLeaveModernPreview() {
         const auto root=QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR);WorldDataset source(root);
@@ -107,7 +107,7 @@ private slots:
     }
     void fullAutosaveRecoveryWorksWithoutWorldAssets() {
         const auto loaded=WorldDatasetLoader::canonical(QStringLiteral(PANDOEDITOR_WORLD_ASSET_DIR));
-        pandoeditor::Project project;project.replace(*loaded.document);project.setTimelineCursor("2012-10");
+        pandoeditor::Project project;project.replace(loaded.project->document());project.setTimelineCursor("2012-10");
         QTemporaryDir directory;QVERIFY(directory.isValid());
         const auto bytes=projectcodec::encode(project);
         EditorControllerConfig config;config.bootstrapWorld=true;config.autosaveEnabled=true;

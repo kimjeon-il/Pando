@@ -79,7 +79,7 @@ private slots:
         QCOMPARE(normalizeSplitClippedGeometry(degenerate).status,GeometryOperationStatus::Empty);
     }
     void fullApprovedExportsAreLoadedWithoutPruning() {
-        QJSEngine engine;loadApprovedSplitPolygonGeometry(engine);
+        QJSEngine engine;loadCanonicalPolygonGeometry(engine);
         const auto api=engine.globalObject().property("PandoLabPolygonGeometry");
         for(const auto name:{"ensureClosedRing","hasCanonicalPolygonWinding","normalizePolygonGeometry","normalizeClippedPolygonGeometry","wrapPolygonGeometry","orientRing","ringDistinctCoordinateCount","ringSignedArea"})QVERIFY2(api.property(name).isCallable(),name);
     }

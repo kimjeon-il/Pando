@@ -1,50 +1,48 @@
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
-import { createEmptyTerritorialState, createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
+import { createTerritorialEntityStore } from '../../assets/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../assets/js/modules/territorial-entity-repository.js';
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
-import { createProjectCommandPipeline } from '../../assets/js/modules/project-command-pipeline.js';
-import { createHistoryService } from '../../assets/js/modules/history-service.js';
-import { createProjectDomain } from '../../assets/js/modules/project-domain.js';
 import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
+import { createNodeCoreProject } from '../../tests/helpers/core-project.mjs';
+import { startupDocument } from '../../tests/helpers/core-startup.mjs';
 
-// Test composition uses the real store, command pipeline, history and domain.
-// The common shape observes history availability, not a fabricated native depth.
-export function createCommandFixture(initial = {id:'A',name:'Alpha'}) {
-  const state = createEmptyTerritorialState();
-  state.stateRevision = 0;
-  const store = createTerritorialEntityStore({ getState: () => state });
-  store.replaceEntities((initial.entities??[initial]).map(row=>createTerritorialFeature({ id: row.id, entityKind: row.kind??'general', name: row.name,
-    parentId:row.parent??'',locked:row.locked??false,
-    geometry: { type: 'Polygon', coordinates: [[[0,0],[8,0],[8,8],[0,8],[0,0]]] } })));
-  const saveState = createSaveStateController({ now: () => new Date('2000-01-01T00:00:00Z') });
-  const snapshot = () => ({ territorialEntities: store.identities(), timelineRecords: structuredClone(state.timelineRecords), geometries: state.geometries.snapshot(),
-    historyContentToken: saveState.snapshot().currentContentToken });
-  const restore = value => { store.restoreProject(value); saveState.setContentToken(value.historyContentToken); };
-  const history = createHistoryService({ store: { history: [], historyMeta: [], future: [], futureMeta: [] }, maxEntries: 100,
-    snapshot, restore, normalizeMetadata: value => value,
-    onRecord: () => saveState.markContentChanged() });
-  const pipeline = createProjectCommandPipeline({ captureSnapshot: snapshot, restoreSnapshot: restore,
-    recordHistory: (meta, before) => history.commitSnapshot(before, meta), discardHistory: history.discardLast,
-    advanceRevision: () => { state.stateRevision += 1; } });
-  const repository = createTerritorialEntityRepository({ entityStore: store });
-  const service = createTerritorialApplicationService({ entityStore: store, entityRepository: repository, commandPipeline: pipeline,
-    createId: () => { throw new Error('This scenario must not generate IDs'); } });
-  const domain = createProjectDomain({ history, saveState, getSnapshot: snapshot,
-    prepareRestore: async value => value, replaceSnapshot: value => store.restoreProject(value) });
-  return {state,store,repository,service,domain,saveState,snapshot};
+// Current results use the production Worker/DocumentSession and application
+// service. Scenario Features are detached input; C++ allocates their records.
+export async function createCommandFixture(initial = { id: 'A',name: 'Alpha' }) {
+  const owner=await createNodeCoreProject(startupDocument(),{ replaceSnapshot: () => true });
+  let store;
+  try {
+    const features=(initial.entities??[initial]).map(row => createTerritorialFeature({ id: row.id,entityKind: row.kind??'general',name: row.name,
+      parentId: row.parent??'',locked: row.locked??false,
+      geometry: { type: 'Polygon',coordinates: [[[0,0],[8,0],[8,8],[0,8],[0,0]]] } }));
+    await owner.project.admit(owner.project.snapshot(),{ features,preserveCursor: true });
+    store=createTerritorialEntityStore({ documentModel: owner.documentModel,commandOwner: owner.client });
+    const repository=createTerritorialEntityRepository({ entityStore: store });
+    const service=createTerritorialApplicationService({ entityRepository: repository,commandOwner: owner.project,
+      createId: () => { throw new Error('This scenario must not generate object IDs.'); } });
+    const saveState=createSaveStateController({ getDocumentState: owner.client.state,now: () => new Date('2000-01-01T00:00:00Z') });
+    return { state: Object.freeze({ get stateRevision() { return owner.client.state().stateRevision; } }),store,repository,service,
+      domain: owner.project,saveState,snapshot: owner.project.snapshot,
+      async markSaved() { await owner.client.markSaved(owner.client.state().epoch);saveState.markFileSaved(); },
+      dispose() { store.dispose();owner.dispose(); } };
+  } catch(error) { store?.dispose();owner.dispose();throw error; }
 }
 
-export function commandHistoryTrace(corpus) {
-  const {repository,service,domain,saveState} = createCommandFixture(corpus.initial);
-  return corpus.operations.map(operation => {
-    switch (operation.op) {
-      case 'observe': break;
-      case 'rename': service.updateMetadata(operation.target, 'name', operation.value); break;
-      case 'markSaved': saveState.markFileSaved(); break;
-      case 'undo': domain.undo(); break;
-      case 'redo': domain.redo(); break;
-      default: throw new Error('Unknown operation: ' + operation.op);
+export async function commandHistoryTrace(corpus) {
+  const fixture=await createCommandFixture(corpus.initial),{ repository,service,domain,saveState }=fixture;
+  try {
+    const trace=[];
+    for(const operation of corpus.operations) {
+      switch(operation.op) {
+        case 'observe': break;
+        case 'rename': await service.updateMetadata(operation.target,'name',operation.value);break;
+        case 'markSaved': await fixture.markSaved();break;
+        case 'undo': await domain.undo();break;
+        case 'redo': await domain.redo();break;
+        default: throw new Error('Unknown operation: '+operation.op);
+      }
+      trace.push({ name: repository.get(corpus.initial.id).properties.name,undo: domain.canUndo(),redo: domain.canRedo(),dirty: saveState.snapshot().documentDirty });
     }
-    return { name: repository.get(corpus.initial.id).properties.name, undo: domain.canUndo(), redo: domain.canRedo(), dirty: saveState.snapshot().documentDirty };
-  });
+    return trace;
+  } finally { fixture.dispose(); }
 }

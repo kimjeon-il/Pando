@@ -12,39 +12,36 @@ export function createCountryCommits() {
     dependencies = ports;
   }
 
-  function applyTerritorialGeometryPlan(plan, {
-    patchOptions = undefined,
-    afterPatch = () => {},
-    updateDependents = () => {},
-    centroidIds = plan?.affectedIds || [],
-    requireCountryId = '',
-    clearDraftReason = '',
-    clearMultiDraft = false,
-    selectedId = '',
-  } = {}) {
-    const previousChildren = dependencies.territorialModel.entityRepository.list({ kind: 'general' })
-      .filter(feature => !!feature.properties.parentId).map(feature => String(feature.id));
-    dependencies.territorialModel.entityStore.transaction(() => {
-      (0, dependencies.cutOperations.applyWorkerCountryPatches)(plan, patchOptions);
-      afterPatch(plan);
-      updateDependents(plan);
-    });
-    // Presentation is not staged by the entity store. Clean it only after the
-    // geometry transaction publishes successfully, so failed apply is atomic.
-    for (const id of previousChildren) if (!dependencies.territorialModel.entityRepository.has(id)) {
-      delete dependencies.projectState.state.itemVisibility?.subunits?.[id];
-      delete dependencies.projectState.state.layerPresentation?.objectStyles?.[`territorial:entity:${id}`];
-    }
-    (0, dependencies.countryValidation.refreshCountryCentroids)(new Set([...(centroidIds || [])].map(String)));
-    dependencies.projectState.state.boundaryPreparation?.cancel();
-    dependencies.projectState.state.boundaryPreparation = null;
-    if (requireCountryId && !(dependencies.territorialModel.entityRepository.get(requireCountryId)?.properties?.entityKind === 'general' && !dependencies.territorialModel.entityRepository.get(requireCountryId)?.properties?.parentId)) {
-      throw new Error('국가 geometry 적용 결과에서 대상 국가가 사라졌습니다.');
-    }
-    if (clearMultiDraft) dependencies.projectState.state.multiDraft = null;
-    if (clearDraftReason) dependencies.domains.editingDomain?.clearDraft?.({ reason: clearDraftReason, render: false });
-    dependencies.domains.editingDomain?.setTool('select', { announce: false });
-    if (selectedId) dependencies.domains.selectionUiController.applyIntent({ domain: 'territorial', type: 'entity', id: String(selectedId) }, { refreshOnly: false, openEditor: false });
+  async function prepareTerritorialGeometryPlan(plan,{commandId,expectedEpoch,dependentPlan,extraOperations=[]}={}) {
+    const before=dependencies.territorialModel.entityRepository.list();
+    const previous=new Map(before.map(feature=>[String(feature.id),feature]));
+    const patches=new Map((plan.features || []).map(feature=>[String(feature.id),feature]));
+    const removed=new Set((plan.removedIds || []).map(String));
+    const policyViews=before.map(feature=>patches.get(String(feature.id)) || (removed.has(String(feature.id)) ? {...feature,geometry:null}:feature));
+    for(const feature of patches.values())if(!previous.has(String(feature.id)))policyViews.push(feature);
+    const dependent=dependentPlan ? await dependentPlan(policyViews):{features:[],removedIds:[]};
+    for(const feature of dependent.features)patches.set(String(feature.id),feature);
+    for(const id of dependent.removedIds)removed.add(String(id));
+    for(const id of removed)patches.delete(id);
+    const operations=[{commandId:'territorial.patch',
+      targets:[...new Set([...patches.keys(),...removed])].map(id=>({domain:'territorial',id})),
+      payload:{features:[...patches.values()],removedIds:[...removed]}}];
+    for(const entry of dependent.distributionEntries || [])operations.push({commandId:'content.edit',targets:[{domain:'distributionEntry',id:entry.id}],
+      payload:{domain:'distributionEntry',id:entry.id,value:entry,create:false}});
+    operations.push(...extraOperations);
+    return dependencies.domains.projectDomain.prepareCommand({commandId,targets:[],expectedEpoch,payload:{operations}});
+  }
+
+  async function presentTerritorialGeometryPlan(plan,{centroidIds=plan?.affectedIds || [],requireCountryId='',clearDraftReason='',clearMultiDraft=false,selectedId='',patchOptions}={}) {
+    dependencies.spatialQuery.markCountryGeometriesChanged(new Set(plan.affectedIds || []),patchOptions);
+    dependencies.countryValidation.refreshCountryCentroids(new Set((centroidIds || []).map(String)));
+    dependencies.projectState.state.boundaryPreparation?.cancel();dependencies.projectState.state.boundaryPreparation=null;
+    const country=requireCountryId && dependencies.territorialModel.entityRepository.get(requireCountryId);
+    if(requireCountryId && !(country?.properties.entityKind==='general'&&!country.properties.parentId))throw new Error('국가 geometry 적용 결과에서 대상 국가가 사라졌습니다.');
+    if(clearMultiDraft)dependencies.projectState.state.multiDraft=null;
+    if(clearDraftReason)await dependencies.domains.editingDomain.clearDraft({reason:clearDraftReason,render:false});
+    await dependencies.domains.editingDomain.setTool('select',{announce:false});
+    if(selectedId)await dependencies.domains.selectionUiController.applyIntent({domain:'territorial',type:'entity',id:String(selectedId)},{refreshOnly:false,openEditor:false});
   }
 
   function cancelScheduledMultiDraftPreview() {
@@ -84,7 +81,7 @@ export function createCountryCommits() {
     return true;
   }
 
-  function redrawCurrentDraft() {
+  async function redrawCurrentDraft() {
     const state = dependencies.projectState.state;
     const draft = dependencies.draftPresentation.editingDraftSnapshot();
     if (state.modeProcessing || draft.strokeActive || draft.dragging) return false;
@@ -92,14 +89,14 @@ export function createCountryCommits() {
     const multi = state.multiDraft;
     const multiDraft = !!multi && ['hydro', 'territorial-direct', 'territorial-split-create'].includes(multi.kind);
     if (!multiDraft && !dependencies.surfaces.isGenericFeatureDraftTool(state.tool)) return false;
-    dependencies.geometryOperations.discardActiveGeometryPreview?.({ announce: false });
+    await dependencies.geometryOperations.discardActiveGeometryPreview({ announce: false });
     cancelScheduledMultiDraftPreview();
     if (multi?.current) multi.current = null;
     if (multi) {
       multi.previewGeometry = null;
       multi.previewIssues = [];
     }
-    dependencies.domains.editingDomain?.startDraft?.({ coords: [] });
+    await dependencies.domains.editingDomain.startDraft({ coords: [] });
     dependencies.taskUi.setModeBanner(dependencies.interactionPresentation.defaultDraftInstruction());
     dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('current-draft-redrawn');
     dependencies.taskUi.updateModeButtons();
@@ -137,25 +134,25 @@ export function createCountryCommits() {
     }
   }
 
-  function startNextMultiDraftPart() {
-    dependencies.domains.editingDomain?.startDraft?.({ coords: [] });
+  async function startNextMultiDraftPart() {
+    await dependencies.domains.editingDomain.startDraft({ coords: [] });
     (0, dependencies.taskUi.setModeBanner)((0, dependencies.interactionPresentation.defaultDraftInstruction)());
     dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('multi-draft-next-part');
     (0, dependencies.taskUi.updateModeButtons)();
   }
 
-  function addMultiDraftPart() {
+  async function addMultiDraftPart() {
     const draft = multiDraft();
     const snapshot = dependencies.draftPresentation.editingDraftSnapshot();
     if (!draft || dependencies.projectState.state.modeProcessing || snapshot.strokeActive || !draft.current) return false;
     draft.parts.push(draft.current);
     draft.current = null;
     scheduleMultiDraftPreview();
-    startNextMultiDraftPart();
+    await startNextMultiDraftPart();
     return true;
   }
 
-  function undoMultiDraftPart() {
+  async function undoMultiDraftPart() {
     const draft = multiDraft();
     const snapshot = dependencies.draftPresentation.editingDraftSnapshot();
     if (!draft || dependencies.projectState.state.modeProcessing || snapshot.strokeActive) return false;
@@ -165,28 +162,28 @@ export function createCountryCommits() {
     if (!draft.parts.length) {
       draft.previewGeometry = null;
       draft.previewIssues = [];
-      startNextMultiDraftPart();
+      await startNextMultiDraftPart();
       return true;
     }
     draft.parts.pop();
     scheduleMultiDraftPreview();
-    startNextMultiDraftPart();
+    await startNextMultiDraftPart();
     return true;
   }
 
-  function finishHydroDraft(geometry, hydro) {
+  async function finishHydroDraft(geometry, hydro) {
     const draft = multiDraft();
     if (!draft || draft.kind !== 'hydro') return false;
     draft.current = { geometry };
     scheduleMultiDraftPreview();
-    dependencies.domains.editingDomain?.clearDraft?.({ reason: 'hydro-draft-part-finished', render: false });
+    await dependencies.domains.editingDomain.clearDraft({ reason: 'hydro-draft-part-finished',render: false });
     (0, dependencies.taskUi.setModeBanner)('그린 경로를 확인하세요.');
     dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('hydro-draft-part-finished');
     (0, dependencies.taskUi.updateModeButtons)();
     return true;
   }
 
-  function completeHydroMultiDraft() {
+  async function completeHydroMultiDraft() {
     const draft = multiDraft();
     const hydro = (0, dependencies.draftPresentation.hydroToolConfig)(dependencies.projectState.state.tool);
     if (!draft || draft.kind !== 'hydro' || !hydro || dependencies.domains.editingDomain?.draftInputActive?.() || draft.previewPending || draft.previewIssues?.length) return false;
@@ -196,17 +193,18 @@ export function createCountryCommits() {
       type: 'Feature', id: (0, dependencies.surfaces.uid)(hydro.prefix), geometry,
       properties: { name: '', editorColor: hydro.color, category: hydro.category, notes: '' },
     };
+    const generation=dependencies.domains.projectDomain.getGeneration();
     try {
-      dependencies.domains.projectDomain.recordHistory({ type: 'hydro-create', affectedIds: [String(feature.id)] });
-      (0, dependencies.hydroModel.normalizeHydroEdit)(feature);
-      dependencies.projectState.state.hydroEdits.push(feature);
+      const result=await dependencies.domains.projectDomain.executeCommand({ commandId: 'hydro.edit',targets: [{ domain: 'hydro',id: feature.id }],
+        payload: { domain: 'hydro',id: feature.id,value: feature,create: true } });
+      if(!result.ok)throw Object.assign(new Error(result.error.message),{ code: result.error.code });
+      if(generation!==dependencies.domains.projectDomain.getGeneration() || dependencies.projectState.state.projectReplacing)return false;
       dependencies.projectState.state.multiDraft = null;
-      dependencies.domains.editingDomain?.clearDraft?.({ reason: 'hydro-draft-committed', render: false });
-      dependencies.domains.editingDomain?.setTool('select', { announce: false });
+      await dependencies.domains.editingDomain.clearDraft({ reason: 'hydro-draft-committed',render: false });
+      await dependencies.domains.editingDomain.setTool('select',{ announce: false });
       (0, dependencies.layers.markLayerTreeDirty)();
-      (0, dependencies.propertyEditingA.applyHydroSelectionIntent)(String(feature.id));
+      await (0, dependencies.propertyEditingA.applyHydroSelectionIntent)(String(feature.id));
       dependencies.domains.renderingDomain?.invalidateGpuInteraction?.('finish-hydro-multi-draft');
-      dependencies.domains.projectDomain.queueAutosave();
       (0, dependencies.feedback.setActionStatus)(`${hydro.category === 'river' ? '강을' : '호수를'} 추가했습니다.`, 'success');
       return true;
     } catch (error) {
@@ -222,7 +220,7 @@ export function createCountryCommits() {
     return false;
   }
 
-  function prepareAnnexDraftCandidates(session = dependencies.projectState.state.territorySelectionSession) {
+  async function prepareAnnexDraftCandidates(session = dependencies.projectState.state.territorySelectionSession) {
     const targetId = String(session?.targetCountryId || '');
     const target = dependencies.territorialModel.entityRepository.get(targetId);
     if (session?.kind !== 'annex' || session.activePhase !== 'drawing' || session.activeMethod !== 'line' || !target || !session.sourceCountryIds.length) {
@@ -232,8 +230,8 @@ export function createCountryCommits() {
     try {
       const sourceGeometry = session.workingSourceGeometry;
       const split = (0, dependencies.cutOperations.buildCutSplitCandidates)(sourceGeometry, (0, dependencies.countryEditingA.editingDraftCoordinates)());
-      dependencies.domains.editingDomain?.replaceDraftCoordinates?.(split.line, { record: false, inputPhase: 'refine' });
-      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)(split.candidates);
+      await dependencies.domains.editingDomain.replaceDraftCoordinates(split.line, { record: false, inputPhase: 'refine' });
+      await dependencies.territorySelectionA.setTerritorySelectionCandidates(split.candidates);
       dependencies.domains.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'annex-candidates-ready' });
       (0, dependencies.taskUi.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
       (0, dependencies.taskUi.updateModeButtons)();
@@ -244,7 +242,7 @@ export function createCountryCommits() {
     }
   }
 
-  function prepareNewCountryDraftCandidates(session = dependencies.projectState.state.territorySelectionSession) {
+  async function prepareNewCountryDraftCandidates(session = dependencies.projectState.state.territorySelectionSession) {
     if (session?.kind !== 'entity' || session.entityKind !== 'general' || !!session.parentId || session.activePhase !== 'drawing' || session.activeMethod !== 'line') {
       (0, dependencies.feedback.setActionStatus)('새 국가를 만들 수 없습니다. 영토를 가져올 국가 선택을 먼저 완료하세요.', 'error', 3600);
       return;
@@ -252,8 +250,8 @@ export function createCountryCommits() {
     try {
       const sourceGeometry = session.workingSourceGeometry;
       const split = (0, dependencies.cutOperations.buildCutSplitCandidates)(sourceGeometry, (0, dependencies.countryEditingA.editingDraftCoordinates)());
-      dependencies.domains.editingDomain?.replaceDraftCoordinates?.(split.line, { record: false, inputPhase: 'refine' });
-      (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)(split.candidates);
+      await dependencies.domains.editingDomain.replaceDraftCoordinates(split.line, { record: false, inputPhase: 'refine' });
+      await dependencies.territorySelectionA.setTerritorySelectionCandidates(split.candidates);
       dependencies.domains.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'new-country-candidates-ready' });
       (0, dependencies.taskUi.setModeBanner)('신생국으로 만들 영역을 선택하세요.', 'add-country-mode');
       (0, dependencies.taskUi.updateModeButtons)();
@@ -264,7 +262,7 @@ export function createCountryCommits() {
     }
   }
 
-  function prepareAnnexPolygon(session = dependencies.projectState.state.territorySelectionSession) {
+  async function prepareAnnexPolygon(session = dependencies.projectState.state.territorySelectionSession) {
     const target = dependencies.territorialModel.entityRepository.get(String(session?.targetCountryId || ''));
     const donors = (session?.sourceCountryIds || []).map(dependencies.territorialModel.entityRepository.get).filter(Boolean);
     if (session?.kind !== 'annex' || session.activePhase !== 'drawing' || session.activeMethod !== 'polygon' || !target || !donors.length) return;
@@ -278,7 +276,7 @@ export function createCountryCommits() {
       (0, dependencies.feedback.setActionStatus)('그린 영역 안에 편입할 영토가 없습니다.', 'error', 3200);
       return;
     }
-    (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)([{ geometry: plan.transferGeometry }]);
+    await dependencies.territorySelectionA.setTerritorySelectionCandidates([{ geometry: plan.transferGeometry }]);
     dependencies.domains.editingDomain?.refreshTerritorySelection?.({ tool: session.tool, reason: 'annex-polygon-ready' });
     (0, dependencies.taskUi.setModeBanner)('가져올 영역을 선택하세요.', 'annex-mode');
     (0, dependencies.taskUi.updateModeButtons)();
@@ -286,7 +284,7 @@ export function createCountryCommits() {
     return true;
   }
 
-  function prepareNewCountryPolygon(session = dependencies.projectState.state.territorySelectionSession) {
+  async function prepareNewCountryPolygon(session = dependencies.projectState.state.territorySelectionSession) {
     if (session?.kind !== 'entity' || session.entityKind !== 'general' || !!session.parentId || session.activePhase !== 'drawing' || session.activeMethod !== 'polygon') return false;
     try {
       const drawn = { type: 'Polygon', coordinates: [(0, dependencies.geometryModel.ensureClosedRing)((0, dependencies.countryEditingA.editingDraftCoordinates)())] };
@@ -295,7 +293,7 @@ export function createCountryCommits() {
         (0, dependencies.territoryGeometry.geometryMultiCoordinates)(drawn),
       ));
       if (!geometry) throw new Error('그린 영역 안에 새 국가로 만들 영토가 없습니다.');
-      return (0, dependencies.territorySelectionA.setTerritorySelectionCandidates)([{ geometry }]);
+      return await dependencies.territorySelectionA.setTerritorySelectionCandidates([{ geometry }]);
     } catch (error) {
       (0, dependencies.feedback.reportOperationError)(error, '그린 영역을 새 국가 후보로 만들 수 없습니다.', 'PL-COUNTRY-003', 3800);
       return false;
@@ -310,7 +308,7 @@ export function createCountryCommits() {
     return session?.activeMethod === 'polygon' ? prepareNewCountryPolygon(session) : prepareNewCountryDraftCandidates(session);
   }
 
-  function finishGenericFeatureDraft(polygonMode) {
+  async function finishGenericFeatureDraft(polygonMode) {
     const draftCoords = (0, dependencies.countryEditingA.editingDraftCoordinates)();
     const hydro = (0, dependencies.draftPresentation.hydroToolConfig)(dependencies.projectState.state.tool);
     const id = (0, dependencies.surfaces.uid)(hydro?.prefix || (polygonMode ? 'poly' : 'line'));
@@ -332,21 +330,23 @@ export function createCountryCommits() {
         (0, dependencies.feedback.setActionStatus)('분포 항목을 찾을 수 없습니다. 그린 영역은 유지했으니 분포 항목을 확인하세요.', 'error', 3600);
         return;
       }
-      const result = dependencies.objectModelA.distributionService.addEntry({
+      const generation = dependencies.domains.projectDomain.getGeneration();
+      const result = await dependencies.objectModelA.distributionService.addEntry({
         id: (0, dependencies.surfaces.uid)('distribution_entry'),
         layerId: layer.id,
         mode: dependencies.territorialModel.DISTRIBUTION_MODES.GEOMETRY,
         geometry,
         value: draft.value,
       });
+      if (dependencies.projectState.state.projectReplacing || generation !== dependencies.domains.projectDomain.getGeneration()) return false;
       if (!result.ok) {
         (0, dependencies.feedback.setActionStatus)(result.error?.message || '자유 분포 영역을 저장하지 못했습니다.', 'error', 3600);
         return;
       }
       dependencies.projectState.state.distributionDraft = null;
-      dependencies.domains.editingDomain?.clearDraft?.({ reason: 'distribution-draft-committed', render: false });
-      dependencies.domains.editingDomain?.setTool('select', { announce: false });
-      (0, dependencies.propertyEditingA.applyDistributionSelectionIntent)(layer.id);
+      await dependencies.domains.editingDomain.clearDraft({ reason: 'distribution-draft-committed',render: false });
+      await dependencies.domains.editingDomain.setTool('select',{ announce: false });
+      await (0, dependencies.propertyEditingA.applyDistributionSelectionIntent)(layer.id);
       (0, dependencies.feedback.setActionStatus)(`${layer.name} 자유 분포 영역을 추가했습니다.`, 'success');
       return;
     }
@@ -357,7 +357,7 @@ export function createCountryCommits() {
     return finishHydroDraft(geometry, hydro);
   }
 
-  function finishDraft() {
+  async function finishDraft() {
     const territorySession = dependencies.projectState.state.territorySelectionSession;
     if (!((0, dependencies.surfaces.isGenericFeatureDraftTool)(dependencies.projectState.state.tool) || territorySession)) {
       (0, dependencies.feedback.setActionStatus)('완료할 형상이 없습니다. 지도에서 점을 먼저 입력하세요.', 'error');
@@ -369,7 +369,7 @@ export function createCountryCommits() {
     const accumulatedMultiDraft = dependencies.projectState.state.multiDraft?.kind === 'hydro'
       && dependencies.projectState.state.multiDraft.parts.length > 0 && !draft.coords.length && !draft.strokeActive;
     if (accumulatedMultiDraft) {
-      dependencies.domains.editingDomain?.clearDraft?.({ reason: 'multi-draft-review', render: false });
+      await dependencies.domains.editingDomain.clearDraft({ reason: 'multi-draft-review',render: false });
       (0, dependencies.taskUi.setModeBanner)('그린 영역을 확인하세요.');
       dependencies.domains.renderingDomain?.invalidateEditingOverlays?.('multi-draft-review');
       scheduleMultiDraftPreview();
@@ -398,7 +398,7 @@ export function createCountryCommits() {
         return;
       }
     }
-    dependencies.domains.editingDomain?.setDraftVertexInsertMode?.(false);
+    await dependencies.domains.editingDomain.setDraftVertexInsertMode(false);
     if (territorySession) return (0, dependencies.territorySelectionA.finishTerritorySelectionDraft)();
     return (0, dependencies.toolServices.dispatchTool)(dependencies.projectState.state.tool, {
       'split-generic-feature': dependencies.genericEditingA.finishSplitGenericFeatureDraft,
@@ -457,22 +457,13 @@ export function createCountryCommits() {
       return;
     }
     const targetName = (0, dependencies.objectPresentation.territorialEntityName)(targetBefore);
-    const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     await (0, dependencies.geometryOperations.beginWorkerGeometryPreview)({
       operation: 'annex',
       payload: { targetId, donorIds, transferredGeometry: candidate.geometry, riverSliverContext },
-      snapshot,
       transferredGeometry: candidate.geometry,
-      applyResult: plan => applyTerritorialGeometryPlan(plan, {
-        updateDependents: currentPlan => (0, dependencies.landRelations.transferLandDependents)(
-          currentPlan.transferredGeometry || candidate.geometry,
-          donorIds,
-          targetId,
-        ),
-        requireCountryId: targetId,
-        clearDraftReason: 'annex-committed',
-        selectedId: targetId,
-      }),
+      prepareResult:(plan,{expectedEpoch})=>prepareTerritorialGeometryPlan(plan,{commandId:'territorial.annex',expectedEpoch,
+        dependentPlan:territorialViews=>dependencies.landRelations.planTransferLandDependents({territorialViews,transferredGeometry:plan.transferredGeometry || candidate.geometry,sourceOwnerIds:donorIds,targetOwnerId:targetId})}),
+      applyAccepted:(_outcome,plan)=>presentTerritorialGeometryPlan(plan,{requireCountryId:targetId,clearDraftReason:'annex-committed',selectedId:targetId}),
       invalidateAfterApply: () => {
         dependencies.domains.renderingDomain?.invalidateCountryPatch?.('territory-annex-committed');
         dependencies.domains.renderingDomain?.invalidateTerritorialPatch?.('territory-annex-committed');
@@ -498,31 +489,25 @@ export function createCountryCommits() {
     }
     if (!(0, dependencies.objectOperationsB.requireObjectsUnlocked)(session.sourceCountryIds.map(id => ({ domain: 'territorial', type: 'entity', id: String(id) })), '새 국가를 분리')) return null;
     const sourceIds = session.sourceCountryIds.map(String);
-    const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     const feature = (0, dependencies.objectPicking.createCountryFeature)(
       session.name.trim(),
       (0, dependencies.countryEditingA.editingDraftCoordinates)(),
       (0, dependencies.countryValidation.snapGeometryToGrid)(transferredGeometry, 7),
     );
     feature.id = session.generatedId;
-    return { sourceIds, snapshot, feature, transferredGeometry };
+    return { sourceIds, feature, transferredGeometry };
   }
 
   async function prepareNewCountrySelectionPreview(session, expectedKey) {
     const context = newCountryPreviewContext(session);
     if (!context) return false;
-    const { sourceIds, snapshot, feature, transferredGeometry } = context;
+    const { sourceIds, feature, transferredGeometry } = context;
     await (0, dependencies.geometryOperations.beginWorkerGeometryPreview)({
       operation: 'new-country',
       payload: { sourceIds, transferredGeometry, newFeature: feature },
-      snapshot,
-      applyResult: transferPlan => applyTerritorialGeometryPlan(transferPlan, {
-        patchOptions: { presentation: 'preserve-existing-scene' },
-        updateDependents: () => (0, dependencies.landRelations.transferLandDependents)(transferredGeometry, sourceIds, feature.id),
-        clearMultiDraft: true,
-        clearDraftReason: 'country-created',
-        selectedId: feature.id,
-      }),
+      prepareResult:(plan,{expectedEpoch})=>prepareTerritorialGeometryPlan(plan,{commandId:'territorial.new-country',expectedEpoch,
+        dependentPlan:territorialViews=>dependencies.landRelations.planTransferLandDependents({territorialViews,transferredGeometry,sourceOwnerIds:sourceIds,targetOwnerId:feature.id})}),
+      applyAccepted:(_outcome,plan)=>presentTerritorialGeometryPlan(plan,{patchOptions:{presentation:'preserve-existing-scene'},clearMultiDraft:true,clearDraftReason:'country-created',selectedId:feature.id}),
       invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateCountryPatch?.('new-country-committed'),
       onSuccess: transferPlan => {
         const removedText = transferPlan.removedIds.length ? ` · 원본 ${transferPlan.removedIds.length}개국 완전 흡수` : '';
@@ -550,23 +535,12 @@ export function createCountryCommits() {
       return;
     }
     const sourceName = (0, dependencies.objectPresentation.territorialEntityName)(source);
-    const snapshot = (0, dependencies.snapshots.snapshotEditable)();
     await (0, dependencies.geometryOperations.beginWorkerGeometryPreview)({
       operation: 'merge',
       payload: { sourceId, targetIds },
-      snapshot,
-      applyResult: result => applyTerritorialGeometryPlan(result, {
-        afterPatch: () => {
-          dependencies.territorialModel.entityStore.setField(
-            sourceId,
-            'name',
-            sourceName,
-          );
-        },
-        updateDependents: () => (0, dependencies.landRelations.reassignLandDependents)(targetIds, sourceId),
-        centroidIds: [sourceId],
-        selectedId: sourceId,
-      }),
+      prepareResult:(plan,{expectedEpoch})=>prepareTerritorialGeometryPlan(plan,{commandId:'territorial.merge',expectedEpoch,
+        dependentPlan:territorialViews=>dependencies.landRelations.planReassignLandDependents({territorialViews,distributionEntries:dependencies.projectState.state.distributionEntries,removedOwnerIds:targetIds,targetOwnerId:sourceId})}),
+      applyAccepted:(_outcome,plan)=>presentTerritorialGeometryPlan(plan,{centroidIds:[sourceId],selectedId:sourceId}),
       invalidateAfterApply: () => dependencies.domains.renderingDomain?.invalidateCountryPatch?.('country-merge-committed'),
       onSuccess: () => (0, dependencies.feedback.setActionStatus)(`${targetIds.length}개국을 ${sourceName}에 합병했습니다.`, 'success', 3200),
       onError: error => (0, dependencies.feedback.reportOperationError)(error, '국가를 합병하지 못해 변경을 되돌렸습니다. 대상을 다시 확인하세요.', 'PL-MERGE-001'),
@@ -575,6 +549,7 @@ export function createCountryCommits() {
 
   return Object.freeze({
     connect,
+    prepareTerritorialGeometryPlan,
 
     get completeCountryMerge() { return completeCountryMerge; },
     get addMultiDraftPart() { return addMultiDraftPart; },

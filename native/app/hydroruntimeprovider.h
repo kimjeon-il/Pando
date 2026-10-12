@@ -68,8 +68,21 @@ bool riverPartitionBoundsOverlap(const pandoeditor::GeoBounds& left,const pandoe
 
 class HydroRuntimeProvider : public QObject {
     Q_OBJECT
+    struct Dataset;
 public:
+    struct PreparedSource {
+        QString error;
+        bool ready() const {return bool(dataset);}
+    private:
+        friend class HydroRuntimeProvider;
+        std::shared_ptr<Dataset> dataset;
+    };
     explicit HydroRuntimeProvider(QObject* parent=nullptr);
+    // Worker owns file verification/index/metadata preparation. Installation
+    // owns source generation, scheduler reset and publication on the owner thread.
+    static PreparedSource prepareOpen(const QString& path,bool mobile,
+                                     const std::function<bool()>& cancelled={});
+    bool install(PreparedSource,const QString& projectInstance,QString& error);
     bool open(const QString& path,const QString& projectInstance,bool mobile,QString& error);
     void close(const QString& projectInstance);
     void requestViewport(const pandoeditor::HydroFlatWindow& view);
@@ -103,7 +116,6 @@ signals:
     void frameChanged();
     void loadFailed(const QString& error);
 private:
-    struct Dataset;
     std::shared_ptr<Dataset> dataset_;
     HydroLoadScheduler scheduler_;
     std::uint64_t sourceGeneration_=0;
