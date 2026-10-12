@@ -1,13 +1,13 @@
 # AGENTS.md — PandoEditor (Qt application)
 
-These instructions apply throughout the PandoEditor repository unless more
-specific directory-level agent instructions apply.
+These instructions apply throughout `native/` in the unified Pando repository
+unless more specific directory-level agent instructions apply.
 
 ## Branch and permanent worktree policy (mandatory)
 
-Read [docs/branch-policy.md](docs/branch-policy.md) before choosing a branch or
-local worktree. These rules apply to this repository and its independently
-managed Web/App counterpart:
+Read the [repository branch policy](../docs/branch-policy.md) before choosing
+a branch or local worktree. Web and App share one commit, with App under
+`native/`:
 
 - Reuse the long-lived branches `work/ui`, `work/objects`, `work/gis`, and
   `work/places` according to the task's primary purpose; `main` is the
@@ -28,8 +28,7 @@ managed Web/App counterpart:
   resolve conflicts without silently choosing one side.
 - Never merge `work/*` into `main`, commit directly to `main`, deploy, or
   transfer changes between categories without explicit user instructions.
-- Web and App are separate repositories: matching branch names do not imply
-  matching code or commits. Verify and maintain each repository independently.
+- Verify Web and App changes independently even though they share a commit.
 - Exception branches or temporary worktrees require a concrete need and user
   approval. Do not delete them automatically after integration.
 
@@ -61,8 +60,8 @@ territorial polygons and administrative boundaries**, read and follow
 
 ## App-specific implementation rules
 
-- PandoEditor is an independent C++ / Qt application repository; never assume
-  Web-side features, code paths, or CI results are automatically present in App.
+- PandoEditor remains an independent C++ / Qt implementation under `native/`;
+  never assume Web-side features, code paths, or CI results are present in App.
 - Prefer the existing domain/model/controller, Qt/QML, and persistence owners.
   Avoid duplicate APIs and do not replace canonical logic merely to mimic Web UI.
 - Respect existing source and build directory separation for each permanent

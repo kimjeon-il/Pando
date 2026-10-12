@@ -3,6 +3,7 @@ __pycache__/
 reports/hydro-calibration/.cache/
 reports/places/.cache/
 node_modules/
+/build-native/
 playwright-report/
 test-results/
 

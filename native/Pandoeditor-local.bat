@@ -4,8 +4,9 @@ setlocal
 rem Local Qt build only. This script never creates a portable directory or ZIP.
 rem A quoted path ending in backslash escapes the closing quote for CMake.
 set "SOURCE_DIR=%~dp0."
+for %%I in ("%~dp0..") do set "WORKTREE_ROOT=%%~fI"
 set "BUILD_DIR=%PANDOEDITOR_BUILD_DIR%"
-if not defined BUILD_DIR set "BUILD_DIR=%~d0\build\Pandoeditor-ui"
+if not defined BUILD_DIR set "BUILD_DIR=%WORKTREE_ROOT%\build-native\Pandoeditor-ui"
 set "APP_EXE=%BUILD_DIR%\pandoeditor.exe"
 
 set "QT_DIR=%PANDOEDITOR_QT_DIR%"

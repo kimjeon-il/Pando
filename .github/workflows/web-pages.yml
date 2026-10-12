@@ -1,6 +1,10 @@
 name: Web-only GitHub Pages
 
 on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'native/**'
   workflow_dispatch:
 
 permissions:
