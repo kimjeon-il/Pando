@@ -1,7 +1,7 @@
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {compareCurrentWeb} from './live-web-parity.mjs';
+import {compareCurrentWeb, parseGitTree} from './live-web-parity.mjs';
 
 const blobSha=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
 const sample=()=>{
@@ -14,11 +14,17 @@ const sample=()=>{
   const upstream=paths.map(path=>({type:'file',name:path.split('/').at(-1),sha:blobSha(contents.get(path))}));
   return {contents,manifest,upstream,read:path=>contents.get(path)};
 };
-test('matching public Web blob identities pass without a fixed commit number',()=>{
+test('matching same-commit Web blob identities pass without a fixed commit number',()=>{
   const {manifest,upstream,read}=sample();
   const result=compareCurrentWeb(manifest,upstream,read);
   assert.deepEqual(result.errors,[]);
   assert.equal(result.batchCount,1);
+});
+
+test('same-commit Git tree keeps exact Web blob IDs and filenames',()=>{
+  const {upstream}=sample();
+  const tree=upstream.map(row=>`100644 blob ${row.sha}\treports/places/${row.name}`).join('\n')+'\n';
+  assert.deepEqual(parseGitTree(tree),upstream);
 });
 test('changed upstream JSON and newly added batches are detected',()=>{
   const {manifest,upstream,read}=sample();

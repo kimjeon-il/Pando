@@ -16,6 +16,14 @@ export function sourceIdentity(root) {
   return { head, clean: status.length === 0, status, diffSha256: sha256(patch), changed, untracked: files,
     fingerprint: sha256(JSON.stringify({ head, patch: sha256(patch), changed, files })) };
 }
+export function verifyUnifiedSourceRoots(webRoot, appRoot, sources) {
+  if (realpathSync(appRoot) !== realpathSync(resolve(webRoot, 'native'))) {
+    throw new Error('Official evidence requires App in the Web checkout native subtree');
+  }
+  if (sources.web.head !== sources.app.head) {
+    throw new Error('Official evidence requires Web and App at the same commit');
+  }
+}
 export function containedFile(root, path) {
   if (typeof path !== 'string' || !path || path.includes('\\') || isAbsolute(path) || path.split('/').some(part => part === '..')) {
     throw new Error(`Unsafe evidence path: ${path}`);
