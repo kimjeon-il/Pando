@@ -1,15 +1,6 @@
 name: Approved Places Windows Portable
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'assets/place/**'
-      - 'app/placeruntimestore.cpp'
-      - 'app/placenamedisplay.cpp'
-      - 'app/editorplace.cpp'
-      - 'tests/place_sync_contract_tests.cpp'
-      - '.github/workflows/place-approved-release.yml'
   workflow_dispatch:
 
 permissions:
