@@ -65,6 +65,17 @@ test('stages committed LF bytes from an equivalent Windows CRLF checkout', () =>
   assert.equal(readFileSync(join(stage, 'reports/crlf.md'), 'utf8'), 'one\ntwo\n');
 });
 
+test('stages committed bytes when checkout line endings are mixed', () => {
+  const { root, stage, manifest } = fixture();
+  put(root, 'reports/crlf.md', 'one\ntwo\nthree\n');
+  assert.equal(run('git', ['add', 'reports/crlf.md'], root).status, 0);
+  assert.equal(run('git', ['commit', '-q', '-m', 'text'], root).status, 0);
+  put(root, 'reports/crlf.md', 'one\r\ntwo\nthree\r\n');
+  const result = run(process.execPath, [script, '--root', root, '--stage', stage, '--manifest', manifest], root);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(join(stage, 'reports/crlf.md'), 'utf8'), 'one\ntwo\nthree\n');
+});
+
 test('refuses to stage inside the repository or overwrite a prior artifact', () => {
   const { root, stage, manifest } = fixture();
   const inside = run(process.execPath, [script, '--root', root, '--stage', join(root, 'site'), '--manifest', manifest], root);
