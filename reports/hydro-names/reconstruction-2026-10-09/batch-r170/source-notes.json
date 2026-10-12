@@ -1,0 +1,781 @@
+{
+  "schema": "hydro-source-notes-v1",
+  "scope_limit": "MAIN_RIV groups and model mainstem roles do not establish a uniform name for every included reach, tributary or lake passage. Source observations support only the stated representative identity or hold.",
+  "publication_boundary": "Own factual observations, attribution and official public URLs only; source originals, images, complete coordinates and private evidence remain omitted.",
+  "automatic_application": false,
+  "product_changes": false,
+  "batch": "r170",
+  "sources": [
+    {
+      "source_key": "r170-ingemmet-tacna-ga45a-2016",
+      "title": "Informe técnico: Zonas críticas por peligros geológicos en la región Tacna, Primer reporte",
+      "author": "Griselda Luque Poma",
+      "publisher": "Instituto Geológico Minero y Metalúrgico, Dirección de Geología Ambiental y Riesgo Geológico",
+      "date": "Febrero 2016",
+      "official_url": "https://sigrid.cenepred.gob.pe/sigridv3/storage/biblioteca/9362_informe-tecnico-zonas-criticas-por-peligro-geologico-en-la-region-tacna.pdf",
+      "publication_identity": "Original cover and introduction identify a regional field-hazard report under GA-45A, Estudio de Riesgos Geológicos por regiones: Tacna; field campaigns occurred in 2015. This is a separately issued hazards-fieldwork project, distinct from the held Santa Ana geological revision/A45 relation, MTC transport catalogue and ANA/OAS studies.",
+      "actual_originals_inspected": [
+        "Cover (PDF1)",
+        "Introduction and project/method context (printed1–2 / PDF3–4, bounded extracted prose)",
+        "Hidrografía and Figure3 (printed7 / PDF9, prose and image)",
+        "Tarata field observations (printed41–42 / PDF43–44, bounded extracted prose)",
+        "Annex Map01 (PDF52), including legend, graticule, title/imprint and bounded opening, reservoir, upper/middle/lower, confluence and terminal areas"
+      ],
+      "map_bibliography": "Región Tacna: Zonas críticas por peligros geológicos, Mapa N°01, 1:350,000; digital version2015, printed Enero2016, UTM WGS84 Zona19Sur.",
+      "actual_prose_scope": "Printed7 defines Sama below the Tala–Salado confluence and its Pacific outlet. Printed41 identifies Tala around Chucatamani; printed42 separately identifies Pistala, Tarata and Ticalaco local rivers. These are bounded reach distinctions, not proof of a scalar name for the entire synthetic group.",
+      "use_notice": "Own factual observations and ordinary bibliography only. Original report, map, crops and private orientation derivatives are not redistributed. Generalized historical mapping cannot establish exact banks, every local naming boundary, current reservoir operation or current flow."
+    },
+    {
+      "source_key": "r170-pet-poi-2015",
+      "title": "Plan Operativo Institucional2015",
+      "publisher": "Proyecto Especial Afianzamiento y Ampliación de los Recursos Hídricos de Tacna (PET), Gobierno Regional de Tacna; Oficina de Planeamiento y Gestión Estratégica",
+      "date": "2015",
+      "official_url": "https://www.pet.gob.pe/media/Transp/2015-211-plan-operativo-institucional-poi-2015-34175d8acd.pdf",
+      "publication_identity": "Independently issued PET annual institutional operating-plan publication, with its own management and infrastructure programme, established from discovery and confirmed by original cover. It is not acquired as a copy, alternate format or continuation of a held ANA basin study, MTC map or OAS TDPS publication.",
+      "actual_originals_inspected": [
+        "Original cover (PDF1)",
+        "Sama subsection and continuation, printed12–13 / PDF13–14, visually and textually inspected"
+      ],
+      "actual_prose_scope": "The Sama subsection distinguishes high-basin Salado and Tala, names Ticalaco and Pistala among Tala-forming courses, places Sama below their confluence downstream of Chucatamani, describes the Chipispaya corridor to the Sama-district sea outlet, and identifies Jarumas dam regulation in the upper Ticalaco basin.",
+      "evidence_boundary": "Only bounded Sama-subsection geographic and reservoir facts support this finding. Unrelated TDPS/Maure transfer history, reproduced third-party tables and numeric capacity/flow assertions are not used to expand the selected route or resolve any historical source hold.",
+      "use_notice": "Own bounded factual synthesis and ordinary bibliography only. No original/report extracts or images redistributed. Statements are historical publication context, not a present-day operational assessment."
+    },
+    {
+      "source_key": "r170-mma-totoral-hydro",
+      "title": "SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "edition": "Undated active hydrographic publication; original bounded response read 12 October 2026.",
+      "source_type": "Official bounded vector hydrography with direct feature attributes",
+      "publication_identity_basis": "The exact MMA SIMBIO hydrographic project was affirmatively identified and lawfully used in retained r166/r167 records. It is distinct from the stopped MOP portal, Loa/DGA2014 figures, atlas/CIREN ambiguity and IGM250K sign-in material. Current inherited and post-recovery records show no later stop on this exact service.",
+      "actual_originals_inspected": "Actually surviving successful r166 layer metadata; one new complete bounded original feature response containing 1500 features with no exceeded-transfer-limit flag. Original source lines and direct OBJECTID, NOMBRE, TIPO_DREN and NOM_COM attributes were inspected in a whole-corridor view and four overlapping head, upper-middle, middle and lower views.",
+      "supports": "Vaca Seca, Salitral, Algarrobal, Boquerón/Baquerón and Del Totoral direct reach attributes; chosen opening, intermediate geographic joins and identified middle/terminal gaps.",
+      "limits": "No numerical survey scale or current hydrologic epoch established. These are channel-line features, not terrain, shoreline or proof of current surface flow.",
+      "use_notice": "Retained metadata description and copyright fields blank. No redistribution permission inferred; original features and private reading aids remain private."
+    },
+    {
+      "source_key": "r170-igm-totoral-hydrocourses",
+      "title": "SIIE_v3 Quebradas ríos — Hidrocursos_naturales, layer 40",
+      "publisher": "Instituto Geográfico Militar, Chile",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "edition": "Undated active natural-watercourse publication; original bounded response read 12 October 2026.",
+      "source_type": "Official bounded vector natural-watercourse cartography",
+      "publication_identity_basis": "The precise public SIIE_v3 natural-watercourse project is affirmatively distinguished in prior lawful records from the stopped IGM250K sign-in folder. Its actual surviving r166 metadata was read. No restricted IGM map sheet or alternate copy was acquired.",
+      "actual_originals_inspected": "Surviving successful layer metadata and one new complete bounded middle-to-terminal original response containing 192 features, with no exceeded-transfer-limit flag. Direct nombre, tipo and escala fields and original lines were inspected, especially the Algarrobal–Boquerón strand transition and actual Totoral endpoint.",
+      "supports": "Q. Algarrobal, Q. Boqueron and Q. del Totoral direct source names; middle branch/return relationships and coastal channel termination.",
+      "limits": "Linework closely resembles MMA hydrography, so the services are not asserted to be independent surveys. escala values Local and Regional are categories, not a numeric surveyed scale.",
+      "use_notice": "Metadata copyright field blank; no unrestricted redistribution inferred. Original features and derivatives remain private."
+    },
+    {
+      "source_key": "r170-mma-caleta-totoral-wetlands",
+      "title": "SIMBIO_HUMEDALES — Inventario Nacional de Humedales, layer 0; Humedal Caleta Totoral",
+      "publisher": "Ministerio del Medio Ambiente, Chile",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer",
+      "edition": "Undated active inventory publication; original bounded response read 12 October 2026.",
+      "source_type": "Official wetland inventory polygons and direct feature attributes",
+      "publication_identity_basis": "This separately identified national wetland inventory was affirmatively used in earlier records. Its prior blank Chacrillas view was a bounded content limitation, not a service access stop. This is not an alternate route to a paused MOP/DGA report or atlas.",
+      "actual_originals_inspected": "Successful layer metadata and one complete bounded coastal original containing two polygons directly named Humedal Caleta Totoral. Both source polygons and their relation to the mapped channel and actual selected endpoint were read.",
+      "supports": "Named Caleta Totoral wetland at the receiving channel ending and the limited spatial extent of that source evidence.",
+      "limits": "The inventory does not supply a through-link to the final northwestern selected extension. Its ORDEN values 999 are not interpreted as a classified hydrologic type. Polygon epoch, present water extent and precise shoreline remain unverified.",
+      "use_notice": "Metadata description and copyright blank. No redistribution permission inferred; original polygons and private reading aids remain private."
+    },
+    {
+      "source_key": "USGSTOPO_R170_ALASKA_OVERVIEW",
+      "title": "USGS Topo, bounded Caribou Creek–Matanuska River regional view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "USGS Topo multiscale reference-map service; a distinct cartographic publication from stopped USGS reports and plates",
+      "publication_refresh_metadata": "Service metadata states data refreshed September 4, 2026-v1.2",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "The complete original regional map was visually read, with its northeastern headwater region also inspected in an original-pixel crop. It locates the selected northern opening, Caribou Creek, Matanuska River, glacier-side setting, Palmer and southwestern delta/wetlands.",
+      "evidence_type": "original primary cartography",
+      "limits": "A multiscale cartographic representation, not field verification of current flow, precise banks, formal naming boundaries or an official hydrographic registry record. Private orientation overlays only locate the pinned selection; they are not independent correspondence evidence."
+    },
+    {
+      "source_key": "USGSTOPO_R170_CARIBOU_UPPER",
+      "title": "USGS Topo, bounded upper Caribou Creek and Lion Head junction view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "USGS Topo multiscale reference-map service; a distinct cartographic publication from stopped USGS reports and plates",
+      "publication_refresh_metadata": "Service metadata states data refreshed September 4, 2026-v1.2",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "Original view and overlapping original-pixel crops cover the chosen headward feeder, upper Caribou Creek, Glass/Mazuma/Whistle, Chitna/Billy, Divide/Sheep/Alfred, Bitter/Fortress and West End tributary settings, Glenn Highway crossing and the Caribou–Matanuska junction at Lion Head.",
+      "evidence_type": "original primary cartography",
+      "limits": "A multiscale cartographic representation, not field verification of current flow, precise banks, formal naming boundaries or an official hydrographic registry record. Private orientation overlays only locate the pinned selection; they are not independent correspondence evidence."
+    },
+    {
+      "source_key": "USGSTOPO_R170_MATANUSKA_MIDDLE",
+      "title": "USGS Topo, bounded Matanuska River glacier-side to Chickaloon corridor view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "USGS Topo multiscale reference-map service; a distinct cartographic publication from stopped USGS reports and plates",
+      "publication_refresh_metadata": "Service metadata states data refreshed September 4, 2026-v1.2",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "Complete original view and overlapping eastern, central and western original-pixel crops were read. Repeated Matanuska River labels and continuous mapped valley/channel geometry cover the Glacier Creek, Hicks, Pinochle, Lake, Purinton, Cascade and Chickaloon joining settings and the continuation toward Kings River.",
+      "evidence_type": "original primary cartography",
+      "limits": "A multiscale cartographic representation, not field verification of current flow, precise banks, formal naming boundaries or an official hydrographic registry record. Private orientation overlays only locate the pinned selection; they are not independent correspondence evidence."
+    },
+    {
+      "source_key": "USGSTOPO_R170_MATANUSKA_LOWER",
+      "title": "USGS Topo, bounded Kings River–Palmer–lower Matanuska view",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "USGS Topo multiscale reference-map service; a distinct cartographic publication from stopped USGS reports and plates",
+      "publication_refresh_metadata": "Service metadata states data refreshed September 4, 2026-v1.2",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "Complete original view and original-pixel northern, Palmer and terminal crops were read. They cover Kings River, Granite/Eska/Moose and Wolverine joining settings, the Palmer reach, lower branching corridor, Palmer Slough and adjacent Knik River/Glenn Highway setting.",
+      "evidence_type": "original primary cartography",
+      "limits": "A multiscale cartographic representation, not field verification of current flow, precise banks, formal naming boundaries or an official hydrographic registry record. Private orientation overlays only locate the pinned selection; they are not independent correspondence evidence."
+    },
+    {
+      "source_key": "USGSTOPO_R170_WESTERN_TERMINAL",
+      "title": "USGS Topo, bounded lower Matanuska–Glenn Highway western wetland detail",
+      "publisher": "U.S. Geological Survey, The National Map",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "publication_identity": "USGS Topo multiscale reference-map service; a distinct cartographic publication from stopped USGS reports and plates",
+      "publication_refresh_metadata": "Service metadata states data refreshed September 4, 2026-v1.2",
+      "access_date_utc": "2026-10-12",
+      "actual_material_read": "Complete original enlarged view and a western-terminal original-pixel crop were read. They distinguish the mapped lower Matanuska channels from the selected final westward road-crossing and northwestward wetland extension; no continuous mapped waterway follows that full final extension to its actual endpoint.",
+      "evidence_type": "original primary cartography",
+      "limits": "A multiscale cartographic representation, not field verification of current flow, precise banks, formal naming boundaries or an official hydrographic registry record. Private orientation overlays only locate the pinned selection; they are not independent correspondence evidence."
+    },
+    {
+      "source_key": "INEGI_OAXACA_CONDENSADO_2020",
+      "title": "Condensado Estatal Oaxaca",
+      "publisher": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "edition": "First edition2020; printed copyright2021",
+      "scale": "1:625,000",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/oax/889463837022.pdf",
+      "source_kind": "primary original state cartography",
+      "actually_read": "Single-sheet original map; selected opening, eastern border trunk, middle Santa Catarina, tributary and lowland confluences; cartographic legend and edition/source/use text. Original map windows were read separately from private orientation aids.",
+      "source_scope": "Planimetry from INEGI1:250,000 seriesIII; roads2017 and geographic framework2018. The far western coastal endpoint is supplemented by Guerrero.",
+      "positive_publication_identity": "The r110 record identifies an independently issued Oaxaca state-map product889463837022 and its successful original reading. Its own publication/marginal production information was reobserved. This is not a municipal Compendio or a historical Síntesis volume, and it does not clear stopped publications in any shared institution or broad series."
+    },
+    {
+      "source_key": "INEGI_GUERRERO_CONDENSADO_2024",
+      "title": "Condensado Estatal Guerrero",
+      "publisher": "Instituto Nacional de Estadística y Geografía, Dirección General de Geografía y Medio Ambiente",
+      "edition": "Fourth edition2024; printed copyright2025",
+      "scale": "1:560,000",
+      "official_url": "https://inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/gro/794551162811.pdf",
+      "source_kind": "primary original state cartography",
+      "actually_read": "Single-sheet original map in overlapping opening, upper, middle, tributary, lower-confluence and coastal-terminal windows; relevant hydrographic and technical legends and attribution.",
+      "source_scope": "Planimetry from INEGI1:250,000 sixth-edition2023 topography, framework2018. Covers the full selected coastal endpoint and complements Oaxaca along the upper border.",
+      "positive_publication_identity": "The r114 record identifies the successfully read Guerrero state-map product794551162811 with its edition, scale and production base. These were reobserved on the original. This is a positively identified separately issued state cartographic work, not a recovery of stopped municipal, historical-synthesis, Durango-catalogue or CONAGUA publication content."
+    },
+    {
+      "source_key": "DOF_RH20_5496053",
+      "title": "Acuerdo por el que se dan a conocer los resultados del estudio técnico de las aguas nacionales superficiales en27 cuencas de la Región Hidrológica20 Costa Chica de Guerrero",
+      "publisher": "Comisión Nacional del Agua / Secretaría de Medio Ambiente y Recursos Naturales, Diario Oficial de la Federación",
+      "date_scope": "Signed18August2017, as identified in the prior publication record; no claim about the current legal force of the agreement.",
+      "official_url": "https://dof.gob.mx/nota_detalle_popup.php?codigo=5496053",
+      "source_kind": "primary official technical prose",
+      "actually_read": "Official HTML heading and relevant section2.1 hydrological descriptions.",
+      "positive_publication_identity": "Separately promulgated administrative study/decree, DOF record5496053, with a2016 regional-study and council-presentation context. The prior r114 lawful reading and the actual heading identify RH20. It is not the stopped RH28 Papaloapan2018 study or a stopped aquifer-availability report."
+    }
+  ],
+  "findings": [
+    {
+      "aw_id": "hydro-system:61261182",
+      "source_keys": [
+        "r170-ingemmet-tacna-ga45a-2016",
+        "r170-pet-poi-2015"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13912
+          ],
+          "component_scope": "Chosen Cotanvilque–Totatolani headward opening",
+          "finding": "The northern chosen opening and southward hook follow the blue headwater course west of Calacoilo/Nacatuta and through the Totatolani–Pajotane setting on the original map. The source supplies ordinary corridor correspondence; it does not justify assigning a precise spring or treating the full selected headward part as a lake. The opening is not inferred from basin membership alone.",
+          "sources": [
+            "r170-ingemmet-tacna-ga45a-2016"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13912
+          ],
+          "component_scope": "Pajotane–Quequesane/Jarumas waterbody and outlet",
+          "finding": "The selected southward continuation follows the mapped stream into the blue waterbody labelled QUEQUESANE beside Vilaque/Jarumas; the map shows a dam symbol at its southern end and the continued stream below. The selected entry, through-waterbody and outlet corridor are supported. PET independently places the Jarumas dam in the upper Ticalaco basin. Quequesane and Jarumas are retained as map/locality and reservoir references, not asserted to be formally registered interchangeable names.",
+          "sources": [
+            "r170-ingemmet-tacna-ga45a-2016",
+            "r170-pet-poi-2015"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "upper Río Ticalaco system with Jarumas reservoir"
+        },
+        {
+          "fragments": [
+            13912
+          ],
+          "component_scope": "Upper valley past Añaque, Trabalaco, Tucumbaya and Ticaco/Tarata toward Pistala",
+          "finding": "The original map continuously carries the chosen southward course from the dam, its westward bend through the Añaque–Trabalaco/Tucumbaya setting, and the downstream Ticaco/Tarata valley to the east–west receiving corridor around Pistala/Lukacha. All selected internal part boundaries in this interval stay on that mapped corridor at regional scale. The report distinguishes local Ticalaco, Tarata and Pistala rivers; PET identifies Ticalaco and Pistala among the courses forming Tala. No exact name-transition point or single upstream scalar is imposed.",
+          "sources": [
+            "r170-ingemmet-tacna-ga45a-2016",
+            "r170-pet-poi-2015"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Ticalaco / Río Pistala reaches, bounded naming scope"
+        },
+        {
+          "fragments": [
+            13912
+          ],
+          "component_scope": "Pistala–Chucatamani, northern tributary join, Chipispaya and Coropuro",
+          "finding": "The source map follows the selected westward valley through Chucatamani, shows the northern tributary connection, and continues through Chipispaya/Putina to Coropuro and the westward canyon. INGEMMET field prose identifies Tala at Chucatamani and Sama below the Tala–Salado confluence; PET places that confluence downstream of Chucatamani and describes the constricted course at Chipispaya. These observations support the meaningful tributary join and the downstream representative identity without forcing Tala onto all headwater reaches.",
+          "sources": [
+            "r170-ingemmet-tacna-ga45a-2016",
+            "r170-pet-poi-2015"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Tala upstream reach; Río Sama downstream representative identity"
+        },
+        {
+          "fragments": [
+            13912
+          ],
+          "component_scope": "Sama canyon and middle agricultural valley",
+          "finding": "The map continuously tracks the selected southwest turn below Coropuro, then the southward Sama valley past Palanca/Sambalay Grande, Agua de Milagros, Coruca, Yarascay/Argandoñas, Luco, Charañal and Yarahuay to Sama Grande. The adjacent tributary mouths are visible joining the chosen valley; nearby desert quebradas remain separate. Every selected part in this interval has ordinary corridor correspondence.",
+          "sources": [
+            "r170-ingemmet-tacna-ga45a-2016"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Sama"
+        },
+        {
+          "fragments": [
+            13912
+          ],
+          "component_scope": "Sama Grande–Tomasiri/Las Yaras–Cuilona/La Morena lower valley",
+          "finding": "The chosen course continues through the original mapped Sama Grande and Poquera–La Banda corridor, crosses the transport corridor near Tomasiri/Las Yaras and follows the explicitly labelled Sama reach toward Cuilona, El Golpe, La Morena and Amopaya. The source separates the western Honda drainage and eastern quebradas from the selected Sama course.",
+          "sources": [
+            "r170-ingemmet-tacna-ga45a-2016"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Sama"
+        },
+        {
+          "fragments": [
+            13912
+          ],
+          "component_scope": "La Vituña/Angola–Los Baños–Boca del Río actual terminal",
+          "finding": "The original blue river continues beyond the lower-valley tributary convergence past La Vituña and Angola, through the Los Baños coastal approach, and reaches the Pacific coast at Boca del Río. The selected last four parts and actual terminal are matched to this river mouth, rather than to a nearby quebrada or settlement label alone.",
+          "sources": [
+            "r170-ingemmet-tacna-ga45a-2016"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Río Sama"
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:61422869",
+      "source_keys": [
+        "r170-mma-totoral-hydro",
+        "r170-igm-totoral-hydrocourses",
+        "r170-mma-caleta-totoral-wetlands"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            13993
+          ],
+          "component_scope": "Selected southeastern opening, Vaca Seca upper bends and all tributary joins",
+          "finding": "The selected opening lies on the mapped Quebrada Vaca Seca branch, rather than beyond an unviewed head. Direct MMA attributes label its westward upper bends and subsequent northward valley as Quebrada Vaca Seca. Every selected part and intervening junction is exposed. Short angular offsets are treated at ordinary corridor scale and do not establish exact banks.",
+          "sources": [
+            "r170-mma-totoral-hydro"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Quebrada Vaca Seca"
+        },
+        {
+          "fragments": [
+            13993
+          ],
+          "component_scope": "Vaca Seca junction, named Salitral bend and succeeding western turn",
+          "finding": "The north end of Vaca Seca joins the westward reach carrying the direct Quebrada Salitral attributes. The selected part follows that named reach around the westward bend. The junction is exposed by the original linework; Salitral is retained as a distinct reach name.",
+          "sources": [
+            "r170-mma-totoral-hydro"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Quebrada Salitral"
+        },
+        {
+          "fragments": [
+            13993
+          ],
+          "component_scope": "Southwest turn and westward connecting reach into Algarrobal",
+          "finding": "MMA maps the southwest and westward channel sequence and its successive side-channel joins into the reach labeled Quebrada Algarrobal. Several connecting features have blank name attributes. Their geographic connection is supported, but no Salitral, Vaca Seca or Totoral name is assigned to those blank-name portions by inference.",
+          "sources": [
+            "r170-mma-totoral-hydro"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            13993
+          ],
+          "component_scope": "Algarrobal northward and northwestern valley before the strand departure",
+          "finding": "MMA directly labels the western turn and long north-to-northwest trunk Quebrada Algarrobal; IGM independently publishes the same named watercourse as Q. Algarrobal over the middle stretch. The ordinary valley sequence and joins are exposed. The selected rendering runs approximately parallel to the source in parts 13–14, and these offsets alone are not treated as a bank-level failure. Geographic support here ends at the subsequent departure toward the eastern strand, separately recorded below.",
+          "sources": [
+            "r170-mma-totoral-hydro",
+            "r170-igm-totoral-hydrocourses"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Quebrada Algarrobal",
+          "bounded_component_scope": "The ending of part 15 is excluded from this completed component and belongs to the following unresolved transfer."
+        },
+        {
+          "fragments": [
+            13993
+          ],
+          "component_scope": "Departure from the Algarrobal–Boquerón trunk onto an eastern unnamed strand",
+          "finding": "Both official line publications expose the actual selected northward transfer. Their named Algarrobal trunk feeds the western Q. Boqueron/Quebrada Boquerón channel. The selected line instead leaves that trunk northward and reaches a separate eastern unnamed branch that joins the western channel farther north. Neither original depicts the selected link between these strands. This is a change of mapped branch and join sequence, rather than a request for exact banks or vertex agreement. No lake, reservoir, glacier, managed transfer or positively identified non-river feature explains this selected connector in the inspected originals.",
+          "sources": [
+            "r170-mma-totoral-hydro",
+            "r170-igm-totoral-hydrocourses"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        },
+        {
+          "fragments": [
+            13993
+          ],
+          "component_scope": "Eastern unnamed channel after the unresolved departure and its return to Boquerón",
+          "finding": "After the unresolved transfer, the selected northwestward reach follows the ordinary corridor of eastern unnamed natural-watercourse strands and their return to the Boquerón trunk. Both publications expose this downstream join. Blank attributes are retained as unnamed source segments, and the Boquerón name is not automatically carried over them.",
+          "sources": [
+            "r170-mma-totoral-hydro",
+            "r170-igm-totoral-hydrocourses"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_scope": "Only the downstream portion of part 16 after reaching the eastern branch is covered here; its preceding transfer remains pending."
+        },
+        {
+          "fragments": [
+            13993
+          ],
+          "component_scope": "Boquerón/Baquerón lower bend through the Totoral junction",
+          "finding": "The northward and then northwestern lower trunk is directly named Quebrada Boquerón in MMA and Q. Boqueron in IGM. One MMA downstream segment spells the downstream reach Quebrada Baquerón. That source spelling is preserved rather than silently normalized as a formal alias. The original linework shows this branch meeting the Totoral receiving course; the selected route takes the downstream western continuation.",
+          "sources": [
+            "r170-mma-totoral-hydro",
+            "r170-igm-totoral-hydrocourses"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Quebrada Boquerón",
+          "source_name_variants": [
+            "Quebrada Boquerón",
+            "Quebrada Baquerón",
+            "Q. Boqueron"
+          ]
+        },
+        {
+          "fragments": [
+            13993
+          ],
+          "component_scope": "Totoral confluence, lower valley and approach to Caleta Totoral wetland",
+          "finding": "The complete westward lower-course sequence carries the direct MMA name Quebrada Del Totoral; IGM uses Q. del Totoral. Each selected lower part and intervening tributary join is exposed through the wetland approach. The independent MMA wetland inventory identifies the two receiving coastal polygons as Humedal Caleta Totoral. The mapped channel reaches this wetland setting. This supports the receiving reach identity but does not turn the wetland or all upstream branches into the same named river.",
+          "sources": [
+            "r170-mma-totoral-hydro",
+            "r170-igm-totoral-hydrocourses",
+            "r170-mma-caleta-totoral-wetlands"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_name": "Quebrada del Totoral",
+          "bounded_component_scope": "The final northwestward extension in part 32 is excluded and treated separately below."
+        },
+        {
+          "fragments": [
+            13993
+          ],
+          "component_scope": "Actual selected northwestern ending beyond the mapped wetland/channel termination",
+          "finding": "The bounded originals cover the actual selected endpoint. The source channel approaches and terminates in the Caleta Totoral wetland setting, while the final selected segment turns northwest beyond the mapped channel and wetland polygons. No through-channel, receiving-water polygon or established overland/managed connector is depicted to the actual selected end. The wetland name alone does not prove that last through-link. Present water level, precise shoreline and current flow are not required or asserted; the remaining issue is the identity and connection of the final extension at ordinary geographic scale.",
+          "sources": [
+            "r170-mma-totoral-hydro",
+            "r170-igm-totoral-hydrocourses",
+            "r170-mma-caleta-totoral-wetlands"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:80214289",
+      "source_keys": [
+        "USGSTOPO_R170_ALASKA_OVERVIEW",
+        "USGSTOPO_R170_CARIBOU_UPPER",
+        "USGSTOPO_R170_MATANUSKA_MIDDLE",
+        "USGSTOPO_R170_MATANUSKA_LOWER",
+        "USGSTOPO_R170_WESTERN_TERMINAL"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            2665
+          ],
+          "component_scope": "Chosen northern opening and headward feeder",
+          "finding": "The chosen opening lies on an unnamed mapped feeder in the upper Caribou Creek valley. The source channel joins the directly labelled Caribou Creek corridor before the route proceeds south and southeast. The chosen model opening is not asserted to be the official or ultimate source of Caribou Creek.",
+          "sources": [
+            "USGSTOPO_R170_ALASKA_OVERVIEW",
+            "USGSTOPO_R170_CARIBOU_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2665
+          ],
+          "component_scope": "Caribou Creek upper and middle corridor",
+          "finding": "Repeated direct Caribou Creek labels, the connected valley and readable intermediate joins support the selected upper corridor through the Glass/Mazuma/Whistle, Chitna/Billy, Divide/Sheep/Alfred and Bitter/Fortress settings. The selected route follows Caribou Creek rather than the tributaries named for geographic orientation.",
+          "sources": [
+            "USGSTOPO_R170_CARIBOU_UPPER"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2665
+          ],
+          "component_scope": "Caribou Creek to Matanuska River junction",
+          "finding": "Caribou Creek passes the West End Creek setting and Glenn Highway, then joins the directly labelled Matanuska River by Lion Head. The selected route turns west along the Matanuska valley.",
+          "sources": [
+            "USGSTOPO_R170_CARIBOU_UPPER",
+            "USGSTOPO_R170_MATANUSKA_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2665
+          ],
+          "component_scope": "Glacier-side and upper Matanuska corridor",
+          "finding": "The selected route follows the Matanuska River north of the mapped glacier forefield. Glacier Creek is a mapped side connection to the river; the selected opening does not require an ice traverse or a glacier-to-river through-link. Nearby lakes are not selected through-lake passages.",
+          "sources": [
+            "USGSTOPO_R170_ALASKA_OVERVIEW",
+            "USGSTOPO_R170_MATANUSKA_MIDDLE"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2665
+          ],
+          "component_scope": "Middle Matanuska valley and major joins",
+          "finding": "Repeated Matanuska River labels and continuous mapped river-valley geometry cover the westward reach, including Hicks/Pinochle/Lake, Purinton/Cascade, Chickaloon and Kings River joining settings. Coarse selected segments locally cut bends or sit beside the mapped braid belt; exact channel/bank registration is not required or asserted.",
+          "sources": [
+            "USGSTOPO_R170_MATANUSKA_MIDDLE",
+            "USGSTOPO_R170_MATANUSKA_LOWER"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2665
+          ],
+          "component_scope": "Sutton–Palmer and lower branching approach",
+          "finding": "The named Matanuska corridor continues past Granite/Eska/Moose and Wolverine tributary settings to Palmer and the lower branching floodplain. The maps distinguish Palmer Slough, the Matanuska channels and neighboring Knik River. These observations supply lower-corridor context but do not establish the final western marsh extension.",
+          "sources": [
+            "USGSTOPO_R170_MATANUSKA_LOWER",
+            "USGSTOPO_R170_WESTERN_TERMINAL"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true
+        },
+        {
+          "fragments": [
+            2665
+          ],
+          "component_scope": "Final Glenn Highway crossing, western marsh extension and actual terminal",
+          "finding": "The actual selected terminal is in the wetland west of Glenn Highway, north of the mapped Matanuska main channel. The final selected westward and northwestward continuation is not followed by a continuous mapped waterway. This is a material connector gap, not a requirement to match an exact bank vertex or prove present discharge. No continuous river through the marsh, precise mouth, tidal channel, managed diversion or lake connector is inferred.",
+          "sources": [
+            "USGSTOPO_R170_MATANUSKA_LOWER",
+            "USGSTOPO_R170_WESTERN_TERMINAL"
+          ],
+          "correspondence": "selected_connection_material_pending",
+          "component_correspondence_completed": false
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70927744",
+      "source_keys": [
+        "INEGI_OAXACA_CONDENSADO_2020",
+        "INEGI_GUERRERO_CONDENSADO_2024",
+        "DOF_RH20_5496053"
+      ],
+      "correspondence": [
+        {
+          "fragments": [
+            10561
+          ],
+          "component_scope": "Chosen Cahuanana–El Zapote opening",
+          "finding": "Both originals show the small drainage south of Metlatónoc/Cahuanana turning east and northeast toward El Zapote and then southeast into the El Jicaral junction setting. This is the selected western feeder. The north-arriving Carrizal approach is a different branch, and the Encajonado network farther southwest is not substituted for the selected opening.",
+          "sources": [
+            "INEGI_OAXACA_CONDENSADO_2020",
+            "INEGI_GUERRERO_CONDENSADO_2024"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "name_scope_limit": "No direct hydronym is assigned to the chosen initial feeder."
+        },
+        {
+          "fragments": [
+            10561
+          ],
+          "component_scope": "El Jicaral–La Trinidad–San Miguel Tejalpan upper trunk",
+          "finding": "The mapped eastern junction near El Jicaral leads south past La Trinidad, east of the Rancho Viejo/Yoloxóchitl settlements, and through the San Miguel Tejalpan junction. The selected valley then follows the Guerrero–Oaxaca border southward beside San José de las Flores and the Cerro Bronco/San Vicente Piñas setting. The complementary originals expose the continuous selected corridor and eastern joining approaches despite the overprinted state boundary.",
+          "sources": [
+            "INEGI_OAXACA_CONDENSADO_2020",
+            "INEGI_GUERRERO_CONDENSADO_2024"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "name_scope_limit": "The technical account supplies Carrizal/Verde regional trunk context, but these names are not forced onto the entire selected headward fragment or an exact transition point."
+        },
+        {
+          "fragments": [
+            10561,
+            10562
+          ],
+          "component_scope": "Southern border bend, Arroyo Gente and Zacacoalpan handover",
+          "finding": "The southbound mapped trunk receives the eastern San Vicente Piñas/Atotonilco-side approach, bends southwest, and continues west along Arroyo Gente and the Zacacoalpan/Plan Juste corridor. The FID10561-to10562 handover lies on this continuing valley, rather than on the separate Cortijo drainage farther south. The north-arriving San Pedro-side channel joins the trunk farther west in the Ometepec approach.",
+          "sources": [
+            "INEGI_OAXACA_CONDENSADO_2020",
+            "INEGI_GUERRERO_CONDENSADO_2024",
+            "DOF_RH20_5496053"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "name_scope_limit": "No exact naming boundary at the modeled fragment handover is asserted."
+        },
+        {
+          "fragments": [
+            10562
+          ],
+          "component_scope": "Ometepec southern corridor to El Terrero",
+          "finding": "The selected westward reach passes south of Cochoapa and Ometepec, turns southwest along El Limón/Piedra Labrada, bends south around the Tierra Blanca/El Charco Seco setting, and returns northwest toward the main junction near El Terrero and Cerro de las Tablas. Oaxaca directly labels Santa Catarina on this selected trunk. The Guerrero original independently shows the same channel, bends and joins.",
+          "sources": [
+            "INEGI_OAXACA_CONDENSADO_2020",
+            "INEGI_GUERRERO_CONDENSADO_2024"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Santa Catarina"
+          ],
+          "name_scope_limit": "El Charco Seco is an adjoining mapped waterbody, not an alias or an established selected lake crossing."
+        },
+        {
+          "fragments": [
+            10564
+          ],
+          "component_scope": "Separate Quetzalapa–Igualapa–San Juan de los Llanos tributary",
+          "finding": "The selected tributary begins on the mapped southern Quetzalapa channel, continues past La Victoria and west of Igualapa through the El Macahuite/La Reforma setting, and reaches San Juan de los Llanos. It proceeds along the broad lower channel east of Laguna Grande into the Santa Catarina junction. The official technical description identifies Quetzala as the tributary entering this trunk downstream of San Pedro.",
+          "sources": [
+            "INEGI_OAXACA_CONDENSADO_2020",
+            "INEGI_GUERRERO_CONDENSADO_2024",
+            "DOF_RH20_5496053"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Quetzala"
+          ],
+          "name_scope_limit": "Quetzalapa is a settlement label; the river name Quetzala is supported by the technical hydrology account in conjunction with the mapped geographic relationship. Laguna Grande is adjacent and is not promoted to a selected lake passage."
+        },
+        {
+          "fragments": [
+            10562,
+            10563,
+            10564
+          ],
+          "component_scope": "Quetzala confluence and lower mainstem handover",
+          "finding": "The originals show the east-arriving mainstem looping by El Terrero, meeting the north-arriving Quetzala near the lower broad-channel/wetland setting, and continuing west past Cerro de las Tablas and Colonia Miguel Alemán Valdés. This accounts for the FID10562/10563 handover and the terminal join of FID10564.",
+          "sources": [
+            "INEGI_OAXACA_CONDENSADO_2020",
+            "INEGI_GUERRERO_CONDENSADO_2024"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Santa Catarina"
+          ],
+          "name_scope_limit": "The broad channel, associated side arms and nearby waters are treated as a mapped junction corridor; no present lake extent or reservoir operation is inferred."
+        },
+        {
+          "fragments": [
+            10563
+          ],
+          "component_scope": "Lower Santa Catarina, Cortijo approach and actual Pacific endpoint",
+          "finding": "The Guerrero original directly labels Santa Catarina along the westward lower river past Colonia Miguel Alemán Valdés and follows it through the final bend to the Pacific beside Barra de Tecoanapa. The south/east-arriving Cuajinicuilapa–Barajillas channel and lower coastal joining setting are separately mapped; the technical account identifies the downstream Cortijo contribution. The selected endpoint belongs to this coastal river-mouth corridor. It is not extended to Laguna Corralero, the more southerly El Bordón waters, or a different mouth.",
+          "sources": [
+            "INEGI_GUERRERO_CONDENSADO_2024",
+            "DOF_RH20_5496053"
+          ],
+          "correspondence": "supported_at_ordinary_geographic_scale",
+          "component_correspondence_completed": true,
+          "bounded_component_names": [
+            "Río Santa Catarina",
+            "Río Ometepec"
+          ],
+          "name_scope_limit": "Oaxaca ends near the western edge of this terminal area; the Guerrero original supplies the entire actual endpoint. No exact present shoreline or mouth vertex is claimed."
+        }
+      ],
+      "bounded_primary_prose": [
+        {
+          "source_key": "DOF_RH20_5496053",
+          "actually_read": "Article heading, identity context, and section2.1 river descriptions concerning Quetzala, Infiernillo/Carrizal, Ometepec/Santa Catarina, Verde, San Pedro and Cortijo.",
+          "observation": "The government study calls Ometepec locally Santa Catarina. It relates the Carrizal/Verde and eastern Santa Catarina formers, then the downstream San Pedro, Quetzala and Cortijo contributions before the Pacific. This supports representative receiving-system identity and named tributary relationships. It does not make the chosen western opening the official source, fix name-transition vertices, or name every selected fragment.",
+          "map_scope": "No DOF figure was acquired or used as map evidence."
+        }
+      ]
+    }
+  ],
+  "publication_access_limits": [],
+  "additional_source_use_notices": [
+    {
+      "aw_id": "hydro-system:61261182",
+      "publication": "Informe técnico: Zonas críticas por peligros geológicos en la región Tacna, Primer reporte",
+      "official_url": "https://sigrid.cenepred.gob.pe/sigridv3/storage/biblioteca/9362_informe-tecnico-zonas-criticas-por-peligro-geologico-en-la-region-tacna.pdf",
+      "observed_outcome": "Own factual observations and ordinary bibliography only. Original report, map, crops and private orientation derivatives are not redistributed. Generalized historical mapping cannot establish exact banks, every local naming boundary, current reservoir operation or current flow.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:61261182",
+      "publication": "Plan Operativo Institucional2015",
+      "official_url": "https://www.pet.gob.pe/media/Transp/2015-211-plan-operativo-institucional-poi-2015-34175d8acd.pdf",
+      "observed_outcome": "Own bounded factual synthesis and ordinary bibliography only. No original/report extracts or images redistributed. Statements are historical publication context, not a present-day operational assessment.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r170-ingemmet-tacna-ga45a-2016",
+      "limitation_kind": "cartographic_scale_and_own_factual_synthesis_only",
+      "material_gap": false,
+      "aw_id": "hydro-system:61261182",
+      "restriction_scope": "Regional map and accompanying historical report; no access refusal observed",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "r170-pet-poi-2015",
+      "limitation_kind": "bounded_historical_primary_prose",
+      "material_gap": false,
+      "aw_id": "hydro-system:61261182",
+      "restriction_scope": "Sama subsection only supports this finding; no new acquisition or use of linked/reproduced source publications",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:61422869",
+      "publication": "SIMBIO_HIDROGRAFIA — Red Hidrografica, layer 0",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "observed_outcome": "Retained metadata description and copyright fields blank. No redistribution permission inferred; original features and private reading aids remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:61422869",
+      "publication": "SIIE_v3 Quebradas ríos — Hidrocursos_naturales, layer 40",
+      "official_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "observed_outcome": "Metadata copyright field blank; no unrestricted redistribution inferred. Original features and derivatives remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "aw_id": "hydro-system:61422869",
+      "publication": "SIMBIO_HUMEDALES — Inventario Nacional de Humedales, layer 0; Humedal Caleta Totoral",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer",
+      "observed_outcome": "Metadata description and copyright blank. No redistribution permission inferred; original polygons and private reading aids remain private.",
+      "outcome_layer": "Source-use or reproduction notice, not an access denial.",
+      "restriction_scope": "Own factual observations and ordinary bibliography only; source originals and derivative cartography are not redistributed.",
+      "limitation_kind": "publication_use_notice",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "MMA SIMBIO_HIDROGRAFIA and IGM SIIE_v3 natural-watercourse publications, selected Algarrobal–Boquerón strand transfer",
+      "related_url": "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer",
+      "observed_outcome": "Complete bounded original responses succeeded HTTP 200. The source linework shows the western named trunk and eastern unnamed branch, without the selected transfer between them.",
+      "outcome_layer": "Content/correspondence limitation in successful originals, not an HTTP, availability or access stop.",
+      "material_gap": true,
+      "aw_id": "hydro-system:61422869",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+      "restriction_scope": "Selected ending of part 15 and initial part 16 transfer remains unresolved. No service-wide restriction is created.",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "MMA SIMBIO_HUMEDALES Caleta Totoral inventory and MMA/IGM channel originals, actual selected terminal",
+      "related_urls": [
+        "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HIDROGRAFIA/MapServer",
+        "https://gis.inv.igm.cl/vector/rest/services/SIIE_v3/Quebradas_r%C3%ADos/MapServer"
+      ],
+      "observed_outcome": "Complete bounded originals succeeded HTTP 200. The source watercourse ends in the mapped Caleta Totoral wetland setting; the final selected northwestern extension is not connected by the inspected source lines or polygons.",
+      "outcome_layer": "Geographic connection gap in successful original content, not a source acquisition failure.",
+      "material_gap": true,
+      "aw_id": "hydro-system:61422869",
+      "official_url": "https://arcgis.mma.gob.cl/server/rest/services/SIMBIO/SIMBIO_HUMEDALES/MapServer",
+      "restriction_scope": "Final part 32 extension only; no whole-service acquisition pause.",
+      "acquisition_stop": false
+    },
+    {
+      "source_key": "USGSTOPO_R170_WESTERN_TERMINAL",
+      "title": "USGS Topo western lower-Matanuska wetland detail",
+      "observed_outcome": "Original bounded image completed HTTP200 and was visually read; the selected final wetland through-link was not established.",
+      "outcome_layer": "Substantive cartographic/geographic correspondence, not access or transport failure.",
+      "restriction_scope": "Only the unestablished final selected connector and endpoint correspondence; no service-wide acquisition restriction.",
+      "limitation_kind": "material_terminal_wetland_connector_gap",
+      "aw_id": "hydro-system:80214289",
+      "official_url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Condensado Estatal Oaxaca, first edition2020, copyright2021, product889463837022",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/oax/889463837022.pdf",
+      "observed_outcome": "The read original states that total or partial reproduction requires prior written authorization.",
+      "outcome_layer": "Printed publication-use notice, reobserved from the successful original.",
+      "new_access_stop": false,
+      "aw_id": "hydro-system:70927744",
+      "restriction_scope": "Source original, crops, overlays and derivative cartography stay private. Bounded original factual synthesis and bibliography only; no acquisition/read ban inferred.",
+      "acquisition_stop": false
+    },
+    {
+      "publication": "Condensado Estatal Guerrero, fourth edition2024, copyright2025, product794551162811",
+      "official_url": "https://inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/conden_estatales/gro/794551162811.pdf",
+      "observed_outcome": "The read original carries INEGI DR copyright2025 and source/edition attribution.",
+      "outcome_layer": "Printed publication-use and cartographic-scope notice.",
+      "new_access_stop": false,
+      "aw_id": "hydro-system:70927744",
+      "restriction_scope": "Retain attribution and generalized/historical-map limitations. No source original or derivative cartography is redistributed; no acquisition/read ban inferred.",
+      "acquisition_stop": false
+    }
+  ]
+}
