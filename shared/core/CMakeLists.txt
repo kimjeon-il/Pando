@@ -88,3 +88,4 @@ if(EMSCRIPTEN OR CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         "-ffile-prefix-map=${PANDOEDITOR_REPOSITORY_ROOT}=/pando"
         "-fdebug-prefix-map=${PANDOEDITOR_REPOSITORY_ROOT}=/pando")
 endif()
+
