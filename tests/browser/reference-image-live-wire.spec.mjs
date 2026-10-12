@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 
 const EDGE_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAoUlEQVR4nO3QQRHAQAyAwGs1xL+tyGll7D3AAAzPzHwHsrtSf15qv4AG6ABNA3SApgE6QNMAHaBpgA7QNEAHaBqgAzQN0AGaBugATQN0gKYBOkDTAB2gaYAO0DRAB2gaoAM0DdABmgboAE0DdICmATpA0wAdoGmADtA0QAdoGqADNA3QAZoG6ABNA3SApgE6QNMAHaBpgA7QNEAHaBqgAzQ/A0IEQI9OdPoAAAAASUVORK5CYII=',
@@ -168,4 +169,46 @@ test('live-wire accepts a current corner-pin mapping and traces/applies an edge 
     delete window.__PANDOLAB_REFERENCE_IMAGE_EDITING_ORIGINAL__;
   });
   expect(errors).toEqual([]);
+});
+
+test('linear constraint preview leaves storage unchanged until one apply', async ({ page }) => {
+  test.setTimeout(240_000);
+  // The current checkout's content-addressed copy differs from its pinned
+  // original; use the byte-identical pinned source for this UI-focused case.
+  await page.context().route('**/country-label-anchors-sha256-caeee3f0d05265cc564f68ef092b25ea8c5c4d6f1c36e2beb35a239551751512.json', route =>
+    route.fulfill({ contentType: 'application/json', body: readFileSync('assets/data/country-label-anchors-v0.10.1.json') }));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');await waitForReady(page);await clearReferenceStore(page);await page.reload();await waitForReady(page);
+  await page.locator('.reference-image-launcher').click();
+  await page.locator('[data-ref-file]').setInputFiles({ name: 'edge.png', mimeType: 'image/png', buffer: EDGE_PNG });
+  await expect.poll(async () => !!(await readStoredRecord(page))).toBe(true);
+  const geometry = await referenceScreenGeometry(page);
+  await page.locator('[data-ref-action="free-transform"]').click();
+  const corner = geometry.corners[1];
+  await page.mouse.move(corner.x,corner.y);await page.mouse.down();
+  await page.mouse.move(corner.x+(geometry.center.x-corner.x)*.14,corner.y+(geometry.center.y-corner.y)*.14,{steps:4});await page.mouse.up();
+  await expect.poll(() => page.evaluate(() => !!window.__PANDOLAB_REFERENCE_IMAGES__?.list()?.[0]?.cornerPinEnabled)).toBe(true);
+  await page.keyboard.press('Escape');
+  await page.locator('[data-ref-action="gcp"]').click();
+  for (const [uv, delta] of [[[.2,.2],[18,12]],[[.8,.8],[22,14]]]) {
+    const point=await screenPointForReferenceUv(page,uv);
+    await page.mouse.click(point.x,point.y);
+    await page.mouse.click(point.x+delta[0],point.y+delta[1]);
+  }
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_REFERENCE_IMAGES__?.list()?.[0]?.controlPointCount)).toBe(2);
+  await page.keyboard.press('Escape');
+  await page.locator('[data-ref-action="linear-river"]').click();
+  const first=await screenPointForReferenceUv(page,[.5,.12]);
+  const second=await screenPointForReferenceUv(page,[.5,.7]);
+  await page.mouse.click(first.x,first.y);await page.mouse.click(second.x,second.y);
+  await page.locator('[data-ref-action="linear-image-finish"]').click();
+  await page.mouse.click(650, 390);await page.mouse.click(780, 470);
+  await expect(page.locator('[data-ref-action="linear-preview"]')).toBeEnabled();
+  await page.locator('[data-ref-action="linear-preview"]').click();
+  expect((await readStoredRecord(page)).linearConstraints || []).toHaveLength(0);
+  await expect(page.locator('[data-ref-action="linear-apply"]')).toBeVisible();
+  await page.locator('[data-ref-action="linear-apply"]').click();
+  await expect.poll(async () => (await readStoredRecord(page)).linearConstraints?.length || 0).toBe(1);
+  await page.locator('.reference-image-toolbar [data-ref-action="undo"]').click();
+  await expect.poll(async () => (await readStoredRecord(page)).linearConstraints?.length || 0).toBe(0);
 });

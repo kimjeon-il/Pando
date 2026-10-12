@@ -442,6 +442,30 @@ export function sourcePixelsFromAnalysis(field, points) {
   ]);
 }
 
+export function traceReferenceImageLinearAnchors(field, anchors) {
+  if (!field || !Array.isArray(anchors) || anchors.length < 2) {
+    return { ok: false, reason: 'insufficient-anchors', image: [] };
+  }
+  const segments = [];
+  for (let index = 1; index < anchors.length; index += 1) {
+    const start = analysisPointFromUv(field, anchors[index - 1]);
+    const end = analysisPointFromUv(field, anchors[index]);
+    const tree = buildLiveWireTree(field, start, { target: end });
+    const path = traceLiveWirePath(tree, end);
+    if (!path.ok) return { ok: false, reason: path.reason, image: [] };
+    segments.push(path.points);
+  }
+  const pixels = sourcePixelsFromAnalysis(field, simplifyLiveWireSegments(segments));
+  return {
+    ok: pixels.length >= 2,
+    reason: pixels.length >= 2 ? '' : 'path-not-found',
+    image: pixels.map(([x, y]) => [
+      clamp(x / Math.max(1, field.sourceWidth - 1), 0, 1),
+      clamp(y / Math.max(1, field.sourceHeight - 1), 0, 1),
+    ]),
+  };
+}
+
 export const REFERENCE_IMAGE_LIVE_WIRE_DEFAULTS = Object.freeze({
   maxDimension: DEFAULT_MAX_DIMENSION,
   snapRadius: DEFAULT_SNAP_RADIUS,
