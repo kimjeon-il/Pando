@@ -620,6 +620,7 @@ export function createMapSettings() {
   }
 
   function bindMapDisplayUI() {
+    requireProjectOwner();
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
     const visibilityInputs = [
@@ -869,7 +870,6 @@ export function createMapSettings() {
   }
 
   function initializeLAYER_STYLE_TARGETS() {
-    requireProjectOwner();
     (LAYER_STYLE_TARGETS = Object.freeze({
       countries: { presentationGroup: 'countries', label: '상위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
       subunits: { presentationGroup: 'subunits', label: '하위 객체', color: true, opacity: true, boundary: true, boundaryLabel: '경계' },
