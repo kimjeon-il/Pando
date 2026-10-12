@@ -48,16 +48,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: kimjeon-il/Pando
-          ref: 65d34d172ee72867d9e19dbde2667607a2ea7d59
+          ref: 8de07030cccff5e7ec3c68e6beb6bb288c95afb2
           path: native/upstream-web
           persist-credentials: false
           sparse-checkout: |
             assets/data/world
-            assets/data/hydro/v0.13.1/manifest.json
+            assets/data/hydro/v0.13.2/manifest.json
             assets/data/terrain/v0.12.6/manifest.json
       - name: Compare current app with upstream without modifying its assets
         run: |
-          node tools/sync-world-data.mjs --web-ref 65d34d172ee72867d9e19dbde2667607a2ea7d59 --web-root upstream-web
+          node tools/sync-world-data.mjs --web-ref 8de07030cccff5e7ec3c68e6beb6bb288c95afb2 --web-root upstream-web
 
   qt-offline:
     name: Native Qt offline world load and label regression
