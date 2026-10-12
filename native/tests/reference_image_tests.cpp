@@ -373,6 +373,40 @@ private slots:
         QCOMPARE(library.images().back().toMap()["linearConstraints"].toList().size(),1);
     }
 
+    void linearConstraintDraftPreviewsWithoutSavingAndCommitsOnce()
+    {
+        QTemporaryDir dir;const auto path=dir.filePath("linear-draft.png");
+        QImage image(64,64,QImage::Format_RGB32);
+        for(int y=0;y<64;++y)for(int x=0;x<64;++x)image.setPixelColor(x,y,x<32?Qt::black:Qt::white);
+        QVERIFY(image.save(path));
+        ReferenceImageLibrary library;QVERIFY(library.importImage(QUrl::fromLocalFile(path)));
+        const auto id=library.images().back().toMap()["id"].toString();
+        QVERIFY(library.beginCalibration(id));
+        QVERIFY(library.setCornerQuad({QVariantList{10.,40.},QVariantList{20.,40.},QVariantList{20.,30.},QVariantList{10.,30.}},
+            {QVariantList{0,0},QVariantList{100,0},QVariantList{100,100},QVariantList{0,100}}));
+        QVERIFY(library.pickImagePoint(0.,0.));QVERIFY(library.pickMapCoordinate(10.,40.));
+        QVERIFY(library.pickImagePoint(1.,1.));QVERIFY(library.pickMapCoordinate(20.,30.));
+        const auto before=library.images().back().toMap()["linearConstraints"].toList();
+        QVERIFY(library.beginLinearConstraint("river"));
+        QVERIFY(library.traceAnchor(.5,.15));QTRY_VERIFY(!library.traceSession()["busy"].toBool());
+        QVERIFY(library.traceAnchor(.5,.85));QTRY_VERIFY(!library.traceSession()["busy"].toBool());
+        QVERIFY(library.finishTrace());QCOMPARE(library.traceSession()["phase"].toString(),QString("map"));
+        QVERIFY(library.addLinearMapPoint(15.,39.));
+        QVERIFY(library.addLinearMapPoint(15.5,32.));
+        QVERIFY(library.previewLinearConstraint());
+        QCOMPARE(library.traceSession()["phase"].toString(),QString("preview"));
+        QVERIFY(!library.traceSession()["previewMesh"].toMap().isEmpty());
+        QCOMPARE(library.images().back().toMap()["linearConstraints"].toList(),before);
+        QVERIFY(library.applyLinearConstraint());
+        QCOMPARE(library.images().back().toMap()["linearConstraints"].toList().size(),1);
+        QVERIFY(library.traceSession().isEmpty());
+        QVERIFY(library.undo());QCOMPARE(library.images().back().toMap()["linearConstraints"].toList(),before);
+        QVERIFY(library.redo());QCOMPARE(library.images().back().toMap()["linearConstraints"].toList().size(),1);
+        QVERIFY(library.beginLinearConstraint("coastline"));
+        library.cancelTrace();QVERIFY(library.traceSession().isEmpty());
+        QCOMPARE(library.images().back().toMap()["linearConstraints"].toList().size(),1);
+    }
+
     void nativeAutoGeorefTreatsAnchorAsHardConstraint()
     {
         QTemporaryDir dir;const auto path=dir.filePath("auto-georef-anchor.png");

@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QGuiApplication>
 #include <QImage>
+#include <QJsonDocument>
 #include <QJSValue>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -345,6 +346,48 @@ private slots:
         const auto diagnostics=library->calibrationSession()["result"].toMap()["diagnostics"].toMap();QVERIFY(diagnostics["hardMaxMeters"].toDouble()<=.01);
         QVERIFY(ui.editor.setProjectionMode("globe"));QTest::qWait(80);QVERIFY(!ui.window->grabWindow().isNull());
         QVERIFY(!ui.reference(true)->property("calibrationMesh").toMap().isEmpty());
+        QVERIFY2(ui.warnings.isEmpty(),qPrintable(ui.warnings.join('\n')));
+    }
+
+    void linearConstraintActualWindowFlow()
+    {
+        Ui ui(1100);QVERIFY2(ui.start(),qPrintable(ui.warnings.join('\n')));
+        const auto id=ui.addImage(true);QVERIFY(!id.isEmpty());
+        auto* menu=ui.window->findChild<QObject*>("referenceImageMenu");QVERIFY(menu);
+        auto* imageMenu=qvariant_cast<QObject*>(ui.evaluate(menu,"menuAt(4)"));QVERIFY(imageMenu);
+        ui.evaluate(imageMenu,"itemAt(8).triggered()");QTest::qWait(50);
+        auto* library=ui.library();QVERIFY(ui.evaluate(ui.map,"ensureReferenceQuad(true)").toBool());
+        const auto quad=library->images().front().toMap()["mapQuad"].toList();
+        QVERIFY(library->pickImagePoint(0.,0.));
+        const auto northwest=quad[0].toList();QVERIFY(library->pickMapCoordinate(northwest[0].toDouble(),northwest[1].toDouble()));
+        QVERIFY(library->pickImagePoint(1.,1.));
+        const auto southeast=quad[2].toList();QVERIFY(library->pickMapCoordinate(southeast[0].toDouble(),southeast[1].toDouble()));
+        QVERIFY(navigationClick(ui.window,"referenceLinearRiver"));
+        QCOMPARE(library->traceSession()["mode"].toString(),QString("linear"));
+        auto* source=ui.window->findChild<QQuickItem*>("referenceCalibrationSource");QVERIFY(source);
+        const auto sourceClick=[&](double u,double v){
+            const double w=source->property("paintedWidth").toDouble(),h=source->property("paintedHeight").toDouble();
+            const QPointF local((source->width()-w)/2+u*w,(source->height()-h)/2+v*h);
+            QTest::mouseClick(ui.window,Qt::LeftButton,Qt::NoModifier,source->mapToScene(local).toPoint());
+            QTRY_VERIFY_WITH_TIMEOUT(!library->traceSession()["busy"].toBool(),15000);
+        };
+        sourceClick(.5,.15);
+        QVERIFY2(library->traceSession()["anchors"].toList().size()==1,
+            qPrintable(QString::fromUtf8(QJsonDocument::fromVariant(library->traceSession()).toJson(QJsonDocument::Compact))));
+        sourceClick(.5,.7);
+        QVERIFY2(library->traceSession()["uv"].toList().size()>=2,
+            qPrintable(QString::fromUtf8(QJsonDocument::fromVariant(library->traceSession()).toJson(QJsonDocument::Compact))));
+        QVERIFY(navigationClick(ui.window,"referenceLinearImageFinish"));
+        QCOMPARE(library->traceSession()["phase"].toString(),QString("map"));
+        QTest::mouseClick(ui.window,Qt::LeftButton,Qt::NoModifier,ui.map->mapToScene({150,170}).toPoint());
+        QTest::mouseClick(ui.window,Qt::LeftButton,Qt::NoModifier,ui.map->mapToScene({150,230}).toPoint());
+        QCOMPARE(library->traceSession()["mapPoints"].toList().size(),2);
+        QVERIFY(navigationClick(ui.window,"referenceLinearPreview"));
+        QVERIFY(library->images().front().toMap()["linearConstraints"].toList().isEmpty());
+        QVERIFY(!ui.reference(true)->property("calibrationMesh").toMap().isEmpty());
+        QVERIFY(navigationClick(ui.window,"referenceLinearApply"));
+        QCOMPARE(library->images().front().toMap()["linearConstraints"].toList().size(),1);
+        QVERIFY(library->undo());QVERIFY(library->images().front().toMap()["linearConstraints"].toList().isEmpty());
         QVERIFY2(ui.warnings.isEmpty(),qPrintable(ui.warnings.join('\n')));
     }
 
