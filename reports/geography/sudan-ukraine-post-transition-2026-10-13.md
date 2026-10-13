@@ -58,3 +58,9 @@
 - **미실행:** 웹 실제 브라우저, native C++/Qt 빌드·실기기 테스트, `main` 병합, Pages 배포. **미해결:** `RUS`의 2014년 크림 실효 지배 지도와 우크라이나 동부/수단 아비에이 지역의 정밀 시계열 형상.
 
 새 근사 버전의 `certainty: low` 및 역사 국경 미검증 표시는 검증 성공 이후에도 유지한다.
+
+### 별도 네이티브 빌드의 기존 장애
+
+- 기존 [Objects timeline native parity CI](https://github.com/kimjeon-il/Pando/actions/runs/38351270915)는 **실패**: CMake 구성 단계에서 `shared/tests/core-session-tests.cpp` 원본 파일이 없어 `core_session_tests` 타깃 생성이 중단됨. 이 작업이 수정한 Qt 테스트는 실행되지 않았다.
+- 변경 전 `main` 기준 [선행 CI](https://github.com/kimjeon-il/Pando/actions/runs/38347089991)도 **동일한 경로 누락으로 실패**해 이번 역사 형상 수정으로 발생한 새 회귀로 볼 수 없다.
+- 위 장애와 무관하게 Web 및 native 역사 프로젝트의 생성 파일/manifest 해시 일치는 집중 검사에서 확인했다. 네이티브 빌드 회귀 해결·실행 성공으로 표기하지 않는다.
