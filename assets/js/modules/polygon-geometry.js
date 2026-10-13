@@ -118,8 +118,22 @@
   function sphericalInteriorArea(ring) {
     const signed = sphericalSignedArea(ring);
     const sphere = Math.PI * 4;
-    if (!Number.isFinite(signed) || Math.abs(signed) <= 1e-15) {
-      throw new Error('AMBIGUOUS_SPHERICAL_RING: spherical interior cannot be determined');
+    if (!Number.isFinite(signed)) throw new Error('AMBIGUOUS_SPHERICAL_RING: nonfinite spherical area');
+    // D3's spherical accumulator can cancel tiny, otherwise valid islands.
+    // Only use a local planar fallback when the entire ring is away from seams/poles.
+    if (Math.abs(signed) <= 1e-15) {
+      const discontinuity = ring.some((point, index) => Math.abs(point[1]) === 90
+        || (index && Math.abs(point[0] - ring[index - 1][0]) >= 180));
+      if (discontinuity) throw new Error('AMBIGUOUS_SPHERICAL_RING: spherical interior cannot be determined');
+      const [ox, oy] = ring[0];
+      let planar = 0;
+      for (let index = 1; index < ring.length; index += 1) {
+        const previous = ring[index - 1], current = ring[index];
+        planar += (previous[0] - ox) * (current[1] - oy) - (current[0] - ox) * (previous[1] - oy);
+      }
+      if (planar === 0) throw new Error('INVALID_POLYGON_RING: zero-area ring');
+      const tiny = Math.max(Math.abs(planar) * Math.PI * Math.PI / (180 * 180) / 2, Number.MIN_VALUE);
+      return planar < 0 ? tiny : sphere - tiny;
     }
     const area = signed < 0 ? sphere + signed : signed;
     if (!(area > 0 && area < sphere)) {
