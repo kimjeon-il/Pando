@@ -152,5 +152,5 @@ function assertMeshGeometry(relativePath) {
 
 test('canonical and preview GPU mesh assets have no invalid indices or degenerate primitives', () => {
   assertMeshGeometry('assets/data/world-mesh-v0.12.6.bin.gz');
-  assertMeshGeometry('assets/data/world-mesh-preview-v0.32.0.bin.gz');
+  assertMeshGeometry('assets/data/world-mesh-preview-v0.36.0.bin.gz');
 });
