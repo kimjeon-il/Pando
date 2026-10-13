@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeTerritorialLibraryEntity, selectGeometryVersion, TERRITORIAL_LIBRARY_SCHEMA_VERSION } from '../../assets/js/modules/territorial-library.js';
+import { normalizeTerritorialLibraryEntity, selectGeometryVersion, instantiateLibraryEntity, TERRITORIAL_LIBRARY_SCHEMA_VERSION } from '../../assets/js/modules/territorial-library.js';
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
 const entity = () => ({ schemaVersion: 2, entityId: 'state:sample', entityKind: 'general', names: {ko:'Sample',en:'Sample'}, lifetime: {validFrom: null, validTo: null}, geometryVersions: [{versionId: 'sample:current', validFrom: null, validTo: null, geometry, datePrecision: 'current', certainty: 'high', sourceId: 'test'}], metadata: { note: 'preserved' }, sourceInfo: { license: 'test' } });
@@ -55,4 +55,20 @@ test('invalid IDs, versions, geometry and reversed lifetime fail visibly', () =>
     const raw = entity(); mutate(raw);
     assert.throws(() => normalizeTerritorialLibraryEntity(raw));
   }
+});
+
+test('a single country identity selects historic replacement and modern independent geometry without changing source ID', () => {
+  const raw = history();
+  raw.instantiation = {mode:'independent',countryUpdates:{}};
+  raw.geometryVersions[0].instantiation={mode:'territory-replacement',countryUpdates:{}};
+  raw.geometryVersions[0].historicalProvenance={originalEntityId:'state:historical-sample',sourceInfo:{title:'historic source'}};
+  const normalized=normalizeTerritorialLibraryEntity(raw);
+  const earlier=instantiateLibraryEntity(normalized,'1948-08-15');
+  const latest=instantiateLibraryEntity(normalized,'2026-10-06');
+  assert.equal(earlier.entityId,latest.entityId);
+  assert.equal(earlier.geometryVersionId,'sample:1948');
+  assert.equal(earlier.instantiation.mode,'territory-replacement');
+  assert.equal(earlier.metadata.historicalProvenance.originalEntityId,'state:historical-sample');
+  assert.equal(latest.instantiation.mode,'independent');
+  assert.equal(latest.metadata.historicalProvenance,undefined);
 });

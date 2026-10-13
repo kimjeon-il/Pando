@@ -75,7 +75,7 @@ test('new world reset retains the complete history after an edit', async ({ page
   await expect(page.locator('#confirmModal')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('UKR')?.properties.name), { timeout: 60000 }).toBe('우크라이나');
   await month(page, '2012-10');
-  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list().map(row => row.id).sort())).toEqual(['state:nagorno-karabakh', 'state:ukraine']);
+  expect(new Set(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.list().map(row => row.id)))).toEqual(new Set(['IDN','SDN','SDS','TLS','state:nagorno-karabakh','UKR']));
   await expect(page.locator('#undoBtn')).toBeDisabled(); expect(errors).toEqual([]);
 });
 
@@ -85,7 +85,7 @@ test('historical geometry and parent edits preserve the earlier month and suppor
   await page.goto('/?debug=1&renderer=canvas');
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90000 });
   await month(page, '2012-10');
-  const id = 'state:ukraine', before = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).geometry, id);
+  const id = 'UKR', before = await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).geometry, id);
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
   await page.locator('#actionsTabBtn').click();
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setLocked(id, true), id);
