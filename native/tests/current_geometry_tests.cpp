@@ -20,6 +20,7 @@ Geometry box(double left,double bottom,double right,double top) {
 }
 int main(int argc,char** argv) {
     QCoreApplication app(argc,argv);
+    try {
     const auto square=box(0,0,2,2);
     GeometryOperationRequest intersection{GeometryOperation::Intersection,square,box(1,0,3,2),{}};
     const auto clipped=calculateGeometry(intersection);
@@ -29,7 +30,7 @@ int main(int argc,char** argv) {
     require(calculateGeometry(intersection,[]{return true;}).status==GeometryOperationStatus::Cancelled,"clipping cancellation");
 
     const auto normalized=normalizeSplitClippedGeometry(box(-170,0,170,10));
-    require(normalized.status==GeometryOperationStatus::Completed,normalized.detail);
+    require(normalized.status==GeometryOperationStatus::Completed,"spherical clipped normalizer: "+normalized.detail);
     require(normalized.geometry.polygons.front().front().size()==7,"canonical long-edge subdivisions");
     const auto river=normalizeRiverGeometry(square);
     require(river.succeeded()&&river.geometry.has_value(),river.detail.toStdString());
@@ -50,5 +51,9 @@ int main(int argc,char** argv) {
     require(cut.succeeded(),cut.detail.toStdString());
     require(cut.inputUnchanged&&cut.result==first["result"].toObject(),"canonical cut differs from recorded tiny result");
     require(prepareCutGeometry(input,[]{return true;}).status==CutGeometryStatus::Cancelled,"cut cancellation");
-    std::cout<<"Current geometry: canonical clipping, normalization, river composition/area, cut result and cancellation passed\n";
+    std::cout<<"Current geometry: canonical clipping, normalization, river composition/area, cut result and cancellation passed\\n";
+    } catch(const std::exception& error) {
+        std::cerr<<"current_geometry_tests: "<<error.what()<<"\\n";
+        return 1;
+    }
 }
