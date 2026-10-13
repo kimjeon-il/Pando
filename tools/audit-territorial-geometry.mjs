@@ -12,6 +12,7 @@ const write = process.argv.includes('--write');
 if (check && write) throw Error('Use either --check or --write');
 const normalizer = globalThis.PandoLabPolygonGeometry;
 const report = { schemaVersion: 1, examinedVersions: 0, canonicalVersions: 0, rewoundVersions: 0, invalidVersions: 0, issues: [] };
+const stagedFiles = new Map();
 for (const filename of fs.readdirSync(countryDirectory).filter(file => file.endsWith('.json')).sort()) {
   const file = path.join(countryDirectory, filename);
   const document = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -36,7 +37,10 @@ for (const filename of fs.readdirSync(countryDirectory).filter(file => file.ends
       }
     }
   }
-  if (changed) fs.writeFileSync(file, JSON.stringify(document, null, 2) + '\n');
+  if (changed) stagedFiles.set(file, document);
+}
+if (write && !report.invalidVersions) {
+  for (const [file, document] of stagedFiles) fs.writeFileSync(file, JSON.stringify(document, null, 2) + '\n');
 }
 console.log(JSON.stringify(report, null, 2));
 if (report.invalidVersions || (check && report.rewoundVersions)) process.exitCode = 1;
