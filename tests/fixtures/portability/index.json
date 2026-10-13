@@ -147,6 +147,7 @@
           "tests/unit/app-spatial-canonical-picking.test.mjs",
           "tests/unit/territorial-display-picking.test.mjs",
           "tests/browser/country-hover-entry.spec.mjs",
+          "tests/browser/interaction-unification.spec.mjs",
           "tests/unit/view-focus-contract.test.mjs",
           "assets/js/modules/app-pointer-targets.js",
           "tests/unit/map-hover-async-boundary.test.mjs",
@@ -488,6 +489,7 @@
           "assets/js/modules/territorial-hierarchy*.js",
           "assets/js/modules/territorial-units.js",
           "tests/unit/territorial-entity-store.test.mjs",
+          "tests/unit/territorial-create-period.test.mjs",
           "tests/unit/territorial-service.test.mjs",
           "tests/unit/territorial-hierarchy-model.test.mjs",
           "tests/browser/territorial-hierarchy.spec.mjs",
@@ -1658,11 +1660,20 @@
             "data"
           ],
           "observationIds": [
+            "-0001-01",
+            "-0001-12",
+            "0001-01",
+            "0001-12",
+            "0002-01",
             "1909-12",
+            "1910-01",
             "1914-06",
             "1914-07",
+            "1915-12",
             "1916-01",
-            "1920-04"
+            "1920-03",
+            "1920-04",
+            "2000-02"
           ]
         },
         {
@@ -1727,6 +1738,7 @@
       "paths": {
         "web": [
           "assets/js/modules/gis*.js",
+          "assets/js/gis-adapters.js",
           "assets/js/modules/import*.js",
           "assets/js/modules/*exchange*.js",
           "assets/js/modules/source-provenance.js",
@@ -1735,6 +1747,7 @@
           "tests/unit/generic-provenance.test.mjs",
           "tests/browser/gis-interchange.spec.mjs",
           "tests/unit/gis-geometry-worker.test.mjs",
+          "tests/unit/gis-adapters.test.mjs",
           "assets/js/gis-io.js",
           "assets/js/modules/app-gis-assembly.js",
           "assets/js/workers/gis-gpkg-worker.js",
@@ -2028,7 +2041,8 @@
           "assets/js/modules/distribution*.js",
           "tests/unit/distribution-service.test.mjs",
           "tests/unit/distribution-numeric-model.test.mjs",
-          "tests/unit/distribution-selection.test.mjs"
+          "tests/unit/distribution-selection.test.mjs",
+          "tests/browser/distribution.spec.mjs"
         ],
         "app": [
           "../shared/core/src/content.cpp",

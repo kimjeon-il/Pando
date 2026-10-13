@@ -4,6 +4,7 @@ from pathlib import Path
 import tempfile
 import sys
 import unittest
+from unittest.mock import patch
 from shapely.geometry import Polygon
 
 ROOT = Path(__file__).parents[2]
@@ -21,7 +22,8 @@ class LineageRecipeSourceTests(unittest.TestCase):
             file.write_text(json.dumps(original), encoding="utf-8")
             recipe = json.loads(builder.DEFAULT_RECIPE.read_text(encoding="utf-8"))
             recipe["output"] = str(file)
-            result = json.loads(builder.build_entity(recipe, Polygon([(0, 0), (1, 0), (1, 1), (0, 0)])))
+            with patch.object(builder, "normalize_with_cpp", side_effect=lambda geometry: geometry):
+                result = json.loads(builder.build_entity(recipe, Polygon([(0, 0), (1, 0), (1, 1), (0, 0)])))
             self.assertEqual(result["names"], original["names"])
             self.assertEqual(result["relations"], original["relations"])
             before = {e["entityId"]: e for e in original["entities"]}

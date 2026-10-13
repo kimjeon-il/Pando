@@ -51,6 +51,7 @@ export async function exchangeTrace(input, format, save, wholeDocument=false) {
     const packaged=await productionGeoPackage('write',new ArrayBuffer(0),reopened,spatialState);
     await save('web.saved.gpkg',new Uint8Array(packaged.buffer));
     const packageReopened=await owner.client.validateImport(JSON.stringify((await productionGeoPackage('read',packaged.buffer)).metadata.projectState));
-    return { stages: [read,reopened,packageReopened].map(wholeDocument ? exchangeDocument:exchangeContent),activation: 'OK' };
+    return { stages: [read,reopened,packageReopened].map(wholeDocument ? exchangeDocument:exchangeContent),
+      activation: spatialState === null ? 'TIMELINE_ACTIVATION' : 'OK' };
   } finally { owner.dispose(); }
 }

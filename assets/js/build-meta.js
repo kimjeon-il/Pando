@@ -3,19 +3,19 @@ globalThis.PANDOLAB_BUILD_META = Object.freeze({
   "appVersion": "0.36.0",
   "buildId": "0.36.0-build-ussr-spherical-20261013",
   "assetRevision": "0.36.0-build-ussr-spherical-20261013",
-  "dataRevision": "data-37b261ec450d7ad5b962376e93c8c3e1",
+  "dataRevision": "data-7bdf07fba557af5eb286a096bca4e794",
   "territorialIndex": {
     "encoding": "identity",
     "compressedBytes": 626573,
     "decodedBytes": 626573,
-    "sha256": "2964fe3a9ca2d8f8f20f76390bc6aba22225ba0588c523f9c3d1f1b5133cce9c"
+    "sha256": "78332ec4637dc468bdcdfb1fa901fdbf45f078792317bf1822a5f23e92b3649f"
   },
   "historicalWorld": {
     "url": "assets/data/historical-world/generated/v1/manifest.json",
     "encoding": "identity",
     "compressedBytes": 59226,
     "decodedBytes": 59226,
-    "sha256": "9ed1b70c54d7b46558aa7820bb8d01498d1fe198c07a652e98837dc434955f16",
+    "sha256": "0a4354c417304fc6c6d0c08df2343f05a080f636f1e7e313ce745507ae96d91d",
     "sourceMonth": "2026-10"
   }
 });

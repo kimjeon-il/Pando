@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "07743dfe986e5b8fdd1861eaef4d21c15980733d9727f0f8402f3b66cbfa3d29",
+  "sourceSha256": "8d3bf212e85bba15b7284e1824862e445c2ccc10a592580ad2509ff22903b9e8",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -129,7 +129,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/sphericalpolygon.h",
-      "sha256": "2b6e1346f990baf39cc330d21c24cb3af67f2e3e2c188123ae0be920f85ab402"
+      "sha256": "bb13e39271a1062bb029b899899d22df87d2d85516814c5ed34cda2ca52b8251"
     },
     {
       "path": "shared/core/include/pandoeditor/temporal.h",
@@ -297,7 +297,7 @@
     },
     {
       "path": "shared/core/src/sphericalpolygon.cpp",
-      "sha256": "f8050c109f4d629da2df388eb2e7b5ae99981205612308ec2705e3687783f594"
+      "sha256": "004f4280511f54a372a4804507fd1170063d89adc9ac1d2bbb71c977b67f549f"
     },
     {
       "path": "shared/core/src/temporal.cpp",
@@ -409,17 +409,17 @@
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
-      "sha256": "14884dae5aedee7cec1cd2c7c6c4b6dff861dc47bd9995523ce03f229b199be4"
+      "sha256": "8aa1642a05b56bf016a5a836e0020b3a0382e065c0e868c14f37d54c76df3cd2"
     }
   ],
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "51faa5a445df2010b8c65017f5aea3a577988b7cfaf6078080d16d8f12d7a4c5"
+      "sha256": "5b3e064cb559478e101defc668a7267525eed55048a445c76a38c723b017bd44"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "684521cb13f422c6dff7ff4bdd5b4a7dce69d2c9ff20b40ebe9750c1b824e954"
+      "sha256": "8f850efcdaa86ce12e19e9b1ac37217e9cb390daddf5670232ee743481ad1174"
     }
   }
 }
