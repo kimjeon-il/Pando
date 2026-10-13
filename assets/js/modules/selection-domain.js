@@ -106,12 +106,12 @@ export function createSelectionDomain({
     active();
     const epoch = commandOwner.state()?.epoch;
     if (!Number.isSafeInteger(epoch)) throw Object.assign(new Error('The Core document must be loaded before selecting objects.'), { code: 'PL-CORE-NOT-LOADED' });
-    const request = { ...payload, expectedEpoch: epoch };
+    const request = { ...payload };
     const context = { reason, projectGeneration, reset: payload.action === 'resetProject', observed: false, changed: false };
     contexts.set(request, context);
-    // Dispatch synchronously to the existing Core queue. A second UI queue
-    // would move this intent after an immediately following project load.
-    return commandOwner.selectionApply(request).then(ack => {
+    // Preserve intent order in the Core queue. Its epoch is resolved when the
+    // request reaches Core, after any earlier document commands complete.
+    return commandOwner.selectionApply(request, { isCurrent: () => !disposed && generation() === projectGeneration }).then(ack => {
       if (disposed) return current;
       if (typeof ack?.countNoOp !== 'boolean' || !ack.selection) invalid('A complete C++ selection acknowledgement is required.');
       const native = ack.selection;
