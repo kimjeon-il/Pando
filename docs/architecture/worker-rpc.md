@@ -6,6 +6,8 @@ CPU-heavy Worker calls use one RPC transport instead of defining a new `pending`
 
 The canonical client is `assets/js/modules/worker-rpc.js`. New Worker endpoints use `assets/js/workers/worker-rpc-host.js`.
 
+The architecture check rejects direct message dispatch in frontend modules regardless of their RPC imports. A module that owns a dedicated rendering, resource, or diagnostics channel declares `@worker-transport dedicated: <reason>` in one source comment. This declaration follows the owner when a file moves; it is an explicit architectural exception, not a second filename list in the checker. Such an owner may not import the canonical RPC client directly. Lifecycle, cancellation and mesh transfer behavior are verified by runtime tests rather than private source snippets.
+
 A request carries these concepts through one contract:
 
 ```text
