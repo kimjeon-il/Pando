@@ -8922,13 +8922,90 @@
       "parentEntityId": "",
       "geometryVersions": [
         {
-          "versionId": "state:indonesia:1945-2002-r1",
+          "versionId": "state:IDN:1945-1963-before-west-new-guinea-r1",
           "validFrom": "1945-08-17",
-          "validTo": "2002-05-19",
-          "datePrecision": "reference-date",
-          "certainty": "medium",
+          "validTo": "1963-04-30",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-admin1-papua-island-mask",
+          "notes": "1945~1963년 서뉴기니 행정권 이전 전. 현행 인도네시아 264개 폴리곤 가운데 같은 Natural Earth 5.1.1 파푸아·서파푸아 행정구역과 일치하는 25개 섬 구성요소를 제외한 근사 형상. 1945~1949 독립전쟁 기간의 실제 통제경계까지 복원한 자료는 아님.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "physicalBoundarySource": "Natural Earth 5.1.1 present-day canonical geometry",
+            "sourceReferenceDate": "2026-10-06",
+            "verifiedHistoricalGeometry": false,
+            "provinceMaskSource": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson",
+            "politicalTerritoryBasis": "effective-administration or de-facto proxy, not legal title",
+            "eventDate": "1963-05-01",
+            "event": "West New Guinea administrative transfer UNTEA to Indonesia",
+            "maskSelectedComponents": [
+              3,
+              17,
+              32,
+              130,
+              137,
+              154,
+              169,
+              171,
+              172,
+              177,
+              178,
+              180,
+              182,
+              186,
+              187,
+              188,
+              189,
+              190,
+              192,
+              202,
+              244,
+              245,
+              246,
+              255,
+              258
+            ],
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/unsfbackgr.html"
+            ]
+          }
+        },
+        {
+          "versionId": "state:IDN:1963-1975-before-east-timor-r1",
+          "validFrom": "1963-05-01",
+          "validTo": "1975-12-06",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-post-west-new-guinea-temporal-proxy",
+          "notes": "1963년 5월 1일 유엔 임시행정부의 서뉴기니 행정권 이전 후. 2026년 현재 인도네시아 정식 국경을 1963~1975년의 근사 형상으로 재사용하므로 당대 세부 경계 검증 자료는 아님.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "physicalBoundarySource": "Natural Earth 5.1.1 present-day canonical geometry",
+            "sourceReferenceDate": "2026-10-06",
+            "verifiedHistoricalGeometry": false,
+            "provinceMaskSource": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson",
+            "politicalTerritoryBasis": "effective-administration or de-facto proxy, not legal title",
+            "eventDate": "1963-05-01",
+            "event": "West New Guinea transfer of administration",
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/unsfbackgr.html"
+            ]
+          }
+        },
+        {
+          "versionId": "state:indonesia:1945-2002-r1",
+          "validFrom": "1975-12-07",
+          "validTo": "1999-10-24",
+          "datePrecision": "approximate",
+          "certainty": "low",
           "sourceId": "natural-earth-5.1.1-historical-successor-union",
-          "notes": "현재 IDN과 TLS를 합쳐 동티모르 독립 전 인도네시아의 참고 경계를 재구성했습니다.",
+          "notes": "동티모르 점령기 실효 지배 범위의 근사 형상. 1975-12-07 침공 개시일부터 동티모르 전체를 한 번에 포함하는 월별 단순화이며, 당시 모든 지역의 점령 완료 또는 합법적인 병합을 뜻하지 않는다. 1976년 정식 편입 주장은 유엔이 인정하지 않았다. 1999-10-25 유엔 과도행정부 출범과 함께 제외.",
           "instantiation": {
             "mode": "territory-replacement",
             "countryUpdates": {}
@@ -8974,7 +9051,47 @@
               "approximateGeometry": true,
               "referenceDate": "2001",
               "defaultFlagDataUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzIDIiIGlkPSJmbGFnLWluZG9uZXNpYSI+PHBhdGggZmlsbD0iI2NlMTEyNiIgZD0iTTAgMGgzdjFIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMCAxaDN2MUgweiIvPjwvc3ZnPg=="
-            }
+            },
+            "originalGeometryVersionId": "state:indonesia:1945-2002-r1",
+            "originalInterval": {
+              "validFrom": "1945-08-17",
+              "validTo": "2002-05-19"
+            },
+            "correctedIntervalReason": "Existing union erroneously assigned East Timor throughout 1945-2002; now scoped to 1975 military occupation through 1999 UN transition.",
+            "eventDates": {
+              "begin": "1975-12-07",
+              "end": "1999-10-25"
+            },
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/etimor/Untaetchrono.html",
+              "https://peacekeeping.un.org/sites/default/files/past/unmiset/background.html"
+            ],
+            "verifiedHistoricalGeometry": false
+          }
+        },
+        {
+          "versionId": "state:IDN:1999-2026-after-east-timor-r1",
+          "validFrom": "1999-10-25",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-post-east-timor-temporal-proxy",
+          "notes": "1999-10-25 UNTAET 설치 이후 동티모르 제외. 현대 Natural Earth 인도네시아 폴리곤을 1999~2026년 기간에 재사용한 잠정 형상으로, 이후의 세부 경계 변화 미검증.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "physicalBoundarySource": "Natural Earth 5.1.1 present-day canonical geometry",
+            "sourceReferenceDate": "2026-10-06",
+            "verifiedHistoricalGeometry": false,
+            "provinceMaskSource": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson",
+            "politicalTerritoryBasis": "effective-administration or de-facto proxy, not legal title",
+            "eventDate": "1999-10-25",
+            "event": "United Nations Transitional Administration in East Timor established",
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/etimor/etimor.htm"
+            ]
           }
         },
         {
@@ -9003,16 +9120,16 @@
       "file": "state-IDN.json.gz",
       "validFrom": "1945-08-17",
       "validTo": null,
-      "compressedBytes": 343874,
-      "decodedBytes": 3420350,
-      "sha256": "afb8b0193161774a2a15f7756d7068b96eca136f421b1d5aa225e387fd0a7ccd",
+      "compressedBytes": 832362,
+      "decodedBytes": 8261330,
+      "sha256": "c95c8eaa028fdd80cf2f2a6419b1d56bd31d8f8b6e6567bdbb915a118df5e7cf",
       "bbox": [
         95.012706,
         -10.922621,
         140.977627,
         5.910102
       ],
-      "geometryVersionCount": 2
+      "geometryVersionCount": 5
     },
     {
       "schemaVersion": 2,
@@ -16024,14 +16141,39 @@
       },
       "alternateNames": [],
       "lifetime": {
-        "validFrom": null,
+        "validFrom": "2002-05-20",
         "validTo": null
       },
       "parentEntityId": "",
       "geometryVersions": [
         {
+          "versionId": "state:TLS:2002-2026-independence-r1",
+          "validFrom": "2002-05-20",
+          "validTo": "2026-10-05",
+          "datePrecision": "approximate",
+          "certainty": "low",
+          "sourceId": "natural-earth-5.1.1-east-timor-independence-proxy",
+          "notes": "2002-05-20 동티모르 독립 이후 현대 Natural Earth 국경을 임시 적용한 형상. 1999-10-25~2002-05-19 UNTAET 통치기는 독립국 존속기간에 자동 포함하지 않으며 별도의 통치 객체가 필요함.",
+          "instantiation": {
+            "mode": "territory-replacement",
+            "countryUpdates": {}
+          },
+          "historicalProvenance": {
+            "physicalBoundarySource": "Natural Earth 5.1.1 present-day canonical geometry",
+            "sourceReferenceDate": "2026-10-06",
+            "verifiedHistoricalGeometry": false,
+            "provinceMaskSource": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.1/geojson/ne_10m_admin_1_states_provinces.geojson",
+            "politicalTerritoryBasis": "effective-administration or de-facto proxy, not legal title",
+            "eventDate": "2002-05-20",
+            "event": "Timor-Leste independence",
+            "evidence": [
+              "https://peacekeeping.un.org/sites/default/files/past/etimor/etimor.htm"
+            ]
+          }
+        },
+        {
           "versionId": "state:TLS:natural-earth-5.1.1",
-          "validFrom": null,
+          "validFrom": "2026-10-06",
           "validTo": null,
           "datePrecision": "current",
           "certainty": "high",
@@ -16053,18 +16195,18 @@
       },
       "lineageId": "tls",
       "file": "state-TLS.json.gz",
-      "validFrom": null,
+      "validFrom": "2002-05-20",
       "validTo": null,
-      "compressedBytes": 3224,
-      "decodedBytes": 25519,
-      "sha256": "a40cf57e1a0fb0059eb6e1db935400939b8e63362b777c2ed29328aa599ec377",
+      "compressedBytes": 4306,
+      "decodedBytes": 51279,
+      "sha256": "07662ea26bdbeba6f5a6042ed3e68d324b78dc6072f9404aadc9024cf7cf32cf",
       "bbox": [
         124.03004,
         -9.501228,
         127.313243,
         -8.135024
       ],
-      "geometryVersionCount": 1
+      "geometryVersionCount": 2
     },
     {
       "schemaVersion": 2,
