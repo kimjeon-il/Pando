@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "editorcontroller.h"
 #include "ui_navigation.h"
@@ -26,10 +27,8 @@ QQuickItem* item(QQuickItem* root,const QString& name) {
 }
 void modes() {QTest::addColumn<bool>("mobile");QTest::newRow("desktop-1100")<<false;QTest::newRow("mobile-360")<<true;}
 ProjectDocument fixture() {
-    ProjectDocument d({
-        {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456},
-        {"B","Beta",{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}},0xabcdef}
-    },{{"countries","Countries"},{"other","Units"},{"hidden","Hidden",false,false,1}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"},{"other","Units"},{"hidden","Hidden",false,false,1}});
     d.documentId="selection-ui-v1";
     auto add=[&](std::string id,UnitKind kind,std::string layer,double left,double right,bool locked) {
         Geometry g;g.type="Polygon";g.polygons={{{{left,2},{right,2},{right,4},{left,4},{left,2}}}};

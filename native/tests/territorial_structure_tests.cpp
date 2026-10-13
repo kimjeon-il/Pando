@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/commands.h>
 #include <pandoeditor/project.h>
@@ -5,7 +6,8 @@
 using namespace pandoeditor;
 static Geometry box(double x,double y,double n){Geometry g;g.type="Polygon";g.polygons.push_back(Polygon{Ring{{x,y},{x+n,y},{x+n,y+n},{x,y+n},{x,y}}});return g;}
 static Project project(){
-    ProjectDocument d({{"A","A",box(0,0,10).polygons,0x112233,"",1,"countries"},{"B","B",box(-5,-5,40).polygons,0x112233,"",1,"countries"}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,0,10).polygons},{0x112233,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(-5,-5,40).polygons},{0x112233,1},"countries"}},{{"countries","Countries"}});
     const GeometryRef pg{"p",1},g{"s",1};d.geometries.insert(pg,box(1,1,6));d.geometries.insert(g,box(2,2,2));
     appendTerritory(d,{"P","P","",UnitKind::General,false},pg,"A","partition");
     appendTerritory(d,{"S","S","",UnitKind::General,false},g,"P","partition");

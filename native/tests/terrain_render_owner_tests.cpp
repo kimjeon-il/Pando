@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "../app/terrainimageprovider.h"
 #include "../renderer/terrainrenderowner.h"
 #include "../renderer/terrainlayeritem.h"
@@ -147,7 +148,7 @@ private slots:
         qmlRegisterType<TerrainLandMaskItem>("Pandoeditor.RetainedTerrainTest",1,0,"TerrainLandMaskItem");
         qmlRegisterType<TerrainLayerItem>("Pandoeditor.RetainedTerrainTest",1,0,"TerrainLayerItem");
         TerrainImageBridge bridge;MapSceneBridge scene;GeometryPacketCache cache;MapSceneBuilder builder(cache);
-        pandoeditor::ProjectDocument document({{"LAND","Land",{{{{-80,-40},{-20,-40},{-20,20},{-80,20},{-80,-40}}}},0x112233}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"LAND","Land","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{-80,-40},{-20,-40},{-20,20},{-80,20},{-80,-40}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         MapViewState view;view.mode=ProjectionMode::Flat;view.viewportWidth=320;view.viewportHeight=240;
         view.translateX=160;view.translateY=120;view.scale=50;scene.publishView(view);view=scene.viewState();
         scene.publishScene(builder.buildDocument(document,1,view,{},{}));

@@ -33,7 +33,7 @@ class V0210PerformancePipelineTests(unittest.TestCase):
         self.assertIn('Number(message.geometryRevision || 0) >= geometryRevisionTracker.committedRevision()', RENDERER)
 
     def test_edit_worker_protocol_and_operations(self):
-        for message_type in ('execute','commit','discard','cancel','sync-patch','rebase'):
+        for message_type in ('map-edit.commit','map-edit.discard','map-edit.sync-patch','map-edit.rebase'):
             self.assertIn(f"'{message_type}'", EDIT_WORKER)
         calculator = read_module(ROOT,'map-edit-country-commands.js')
         for operation in ('executeAnnex','executeMerge','executeNewCountry','subtractAreaFromGeometry','normalizePolygonGeometry'):

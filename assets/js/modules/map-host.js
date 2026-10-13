@@ -63,25 +63,3 @@ export function createMapHostEventHub() {
 
   return Object.freeze({ on, off, emit, clear });
 }
-
-const REQUIRED_METHODS = Object.freeze([
-  'initialize',
-  'destroy',
-  'getKind',
-  'getProjectionKind',
-  'setProjectionKind',
-  'getViewState',
-  'setViewState',
-  'getViewportSize',
-  'project',
-  'unproject',
-  'dragBy',
-  'requestRepaint',
-  'resize',
-  'on',
-  'off',
-]);
-
-export function isMapHost(value) {
-  return !!value && REQUIRED_METHODS.every(name => typeof value[name] === 'function');
-}

@@ -198,7 +198,7 @@ def native_result(execution: dict, mutation: dict | None) -> dict:
               "caseCountEvidence": "native summary" if reported else "native abort does not report executed/passed counts"}
     if mutation is None:
         result["accepted"] = (execution["exitCode"] == 0 and not execution["timedOut"] and not execution["interrupted"]
-                              and reported == {"processed": 22, "passed": 22, "failed": 0, "skip": 0}
+                              and reported == {"processed": 21, "passed": 21, "failed": 0, "skip": 0}
                               and not failures)
     else:
         if failures == [mutation["message"]]:

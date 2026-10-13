@@ -2,75 +2,8 @@ import { geometryRevision } from './geometry-versions.js';
 import { createEditSourceTracker } from './edit-source-tracker.js';
 import { createLatestWorkerJobScheduler } from './worker-job-scheduler.js';
 import {
-  WORKER_RPC_ERROR_CATEGORIES,
   createWorkerRpcClient,
 } from './worker-rpc.js';
-
-function createMapEditWorkerCodec() {
-  return Object.freeze({
-    encodeRequest(envelope) {
-      const metadata = envelope.metadata || {};
-      return {
-        type: 'execute',
-        operation: envelope.operation,
-        requestId: envelope.requestId,
-        jobKey: String(metadata.jobKey || ''),
-        dataRevision: Number(metadata.dataRevision || 0),
-        geometryRevision: Number(metadata.geometryRevision || metadata.dataRevision || 0),
-        targetRevision: Number(envelope.projectRevision || 0),
-        priority: Number(envelope.priority || 0),
-        ...(envelope.payload || {}),
-      };
-    },
-    encodeCancel(envelope) {
-      return {
-        type: 'cancel',
-        requestId: envelope.requestId,
-        targetRevision: Number(envelope.projectRevision || 0),
-        reason: envelope.reason || 'cancelled',
-      };
-    },
-    encodeEvent(envelope) {
-      const legacyTypes = {
-        'map-edit.rebase': 'rebase',
-        'map-edit.boundary-sync': 'boundary-sync',
-        'map-edit.boundary-invalidate': 'boundary-invalidate',
-        'map-edit.sync-patch': 'sync-patch',
-        'map-edit.commit': 'commit',
-        'map-edit.discard': 'discard',
-      };
-      return {
-        type: legacyTypes[envelope.operation] || envelope.operation,
-        ...(envelope.payload || {}),
-      };
-    },
-    decodeMessage(message) {
-      if (message?.type === 'ready') {
-        return {
-          kind: 'event',
-          operation: 'map-edit.ready',
-          payload: message,
-          projectRevision: Number(message.targetRevision || 0),
-        };
-      }
-      if (message?.type !== 'result') return null;
-      return {
-        kind: 'result',
-        requestId: Number(message.requestId || 0),
-        operation: '',
-        projectRevision: Number(message.targetRevision || 0),
-        ok: message.ok === true,
-        result: message.result,
-        error: message.ok === true ? null : {
-          category: message.cancelled ? WORKER_RPC_ERROR_CATEGORIES.CANCELLED : WORKER_RPC_ERROR_CATEGORIES.OPERATION,
-          code: message.cancelled ? 'PL-MAP-EDIT-CANCELLED' : 'PL-MAP-EDIT-WORKER',
-          message: message.message || '지도 편집 계산에 실패했습니다.',
-        },
-        timing: message.timing || null,
-      };
-    },
-  });
-}
 
 export function createMapEditWorkerClient({
   createWorker,
@@ -109,7 +42,6 @@ export function createMapEditWorkerClient({
     if (rpc) return rpc;
     rpc = createWorkerRpcClient({
       createWorker,
-      codec: createMapEditWorkerCodec(),
       defaultTimeoutMs: requestTimeoutMs,
       getProjectRevision: currentTargetRevision,
       isCurrent: ({ entry }) => Number(entry.metadata?.geometryRevision) === dataRevision

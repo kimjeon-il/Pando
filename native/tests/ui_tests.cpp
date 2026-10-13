@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "ui_navigation.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
@@ -243,10 +244,8 @@ private slots:
         QFETCH(int,width);
         using namespace pandoeditor;
         QTemporaryDir dir;
-        ProjectDocument document({
-            {"A","Target",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233},
-            {"B","Donor",{{{{10,0},{20,0},{20,10},{10,10},{10,0}}}},0x445566}},
-            {{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Target","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"},
+        {{"B","Donor","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{10,0},{20,0},{20,10},{10,10},{10,0}}}}},{0x445566,1},"countries"}},{{"countries","Countries"}});
         Project project;project.replace(document);
         QFile file(dir.filePath("annex-selection.json"));QVERIFY(file.open(QIODevice::WriteOnly));
         QVERIFY(file.write(projectcodec::encode(project))>0);file.close();
@@ -437,10 +436,8 @@ private slots:
         QFETCH(int,width);QFETCH(QString,method);
         using namespace pandoeditor;
         QTemporaryDir dir;
-        ProjectDocument document({
-            {"A","Target",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233},
-            {"B","Donor",{{{{10,0},{20,0},{20,10},{10,10},{10,0}}}},0x445566}},
-            {{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Target","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"},
+        {{"B","Donor","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{10,0},{20,0},{20,10},{10,10},{10,0}}}}},{0x445566,1},"countries"}},{{"countries","Countries"}});
         Project source;source.replace(document);QFile file(dir.filePath("full-donor.json"));
         QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(projectcodec::encode(source))>0);file.close();
         EditorControllerConfig config;config.mobileMode=width==360;config.bootstrapWorld=false;config.autosaveEnabled=false;
@@ -607,7 +604,7 @@ private slots:
     }
     void labelDelegateSurvivesCameraMotion() {
         QTemporaryDir dir;
-        pandoeditor::ProjectDocument document({{"DEU","Germany",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"DEU","Germany","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         pandoeditor::Project project;project.replace(document);
         QFile file(dir.filePath("flag-only.json"));QVERIFY(file.open(QIODevice::WriteOnly));
         file.write(projectcodec::encode(project));file.close();
@@ -886,8 +883,7 @@ private slots:
     void mapFlagsUseWebSizeAndHorizontalNameLayout() {
         QFETCH(QString,projection);
         QTemporaryDir dir;EditorController editor({false,dir.filePath("private.json")});
-        pandoeditor::ProjectDocument document({{"DEU","Germany",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233}},
-                                              {{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"DEU","Germany","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         pandoeditor::Project project;project.replace(document);
         QFile file(dir.filePath("map.json"));QVERIFY(file.open(QIODevice::WriteOnly));
         file.write(projectcodec::encode(project));file.close();
@@ -1094,8 +1090,7 @@ private slots:
         QFETCH(int,width);
         using namespace pandoeditor;
         QTemporaryDir dir;
-        ProjectDocument document({{"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x112233}},
-                                 {{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         document.documentId="safe-area-ui";
         Project project;project.replace(document);
         const auto path=dir.filePath("safe-area.json");QFile file(path);
@@ -1740,10 +1735,8 @@ private slots:
     void compositing() {
         using namespace pandoeditor;
         Project project;
-        project.replace(ProjectDocument{
-            {{"A","Red",{{{{0,0},{4,0},{4,4},{0,4},{0,0}}}},0xff0000},
-             {"B","Blue",{{{{2,0},{6,0},{6,4},{2,4},{2,0}}}},0x0000ff}},
-            {{"countries","Base",true,false,0.5}}});
+        project.replace(makeTerritorialDocument({{{"A","Red","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{4,0},{4,4},{0,4},{0,0}}}}},{0xff0000,1},"countries"},
+        {{"B","Blue","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{2,0},{6,0},{6,4},{2,4},{2,0}}}}},{0x0000ff,1},"countries"}},{{"countries","Base",true,false,0.5}}));
         QTemporaryDir dir;
         auto path=QUrl::fromLocalFile(dir.path()+"/overlap.pando.json");
         QFile file(path.toLocalFile()); QVERIFY(file.open(QIODevice::WriteOnly));

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "editorcontroller.h"
 #include "webimport.h"
@@ -10,7 +11,7 @@
 #include <QFile>
 using namespace pandoeditor;
 static ProjectDocument fixture() {
- ProjectDocument d({{"A","Alpha",{{{{0,0},{8,0},{8,8},{0,8},{0,0}}}},0x336699}},{{"countries","국가"}});
+ pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{8,0},{8,8},{0,8},{0,0}}}}},{0x336699,1},"countries"}},{{"countries","국가"}});
  auto g=staticGeometryBinding(d,d.units.front().id).geometryRef;
  appendTerritory(d,{"S","Child","",UnitKind::General,false},g);
  appendTerritory(d,{"R","Region","",UnitKind::Regional,false},g);
@@ -86,7 +87,7 @@ private slots:
   QVERIFY(p.redo());QCOMPARE(p.document().units[0].notes,std::string("raw\nnotes"));
  }
  void emptyTerritorialNamesAreDataNotInvalidUnits() {
-  ProjectDocument d({{"A","Alpha",{{{{0,0},{8,0},{8,8},{0,8},{0,0}}}},0xcccccc}},{{"countries","국가"}});
+  pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{8,0},{8,8},{0,8},{0,0}}}}},{0xcccccc,1},"countries"}},{{"countries","국가"}});
   d.units.front().name.clear();
   bool accepted=true;try{validateDocument(d);}catch(...){accepted=false;}
   QVERIFY2(accepted,"Web empty name must use display fallback, not fail document validation");

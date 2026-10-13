@@ -1,5 +1,6 @@
 #include "builtinworldpolicy.h"
 #include <QJsonArray>
+#include <QUuid>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <algorithm>
@@ -150,7 +151,9 @@ BuiltinWorldMaterialization materializeBuiltinWorld(const CanonicalCountryStore&
         geometries.erase(row.source);
     }
 
-    ProjectDocument document({},{{"countries","국가"}});
+    ProjectDocument document;
+    document.documentId=QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();
+    document.presentation.userLayers={{"countries","국가"}};
     document.units.reserve(units.size());
     BuiltinWorldMaterialization result;
     result.ranges.reserve(sourceOrder.size());

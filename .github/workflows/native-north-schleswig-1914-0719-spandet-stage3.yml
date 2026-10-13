@@ -7,9 +7,9 @@ on:
     paths:
       - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.*
       - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.scope-audit.json
-      - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.scope-audit.json
+      - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.scope-audit.json
       - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.review.md
-      - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.review.md
+      - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0719-spandet-stage3.review.md
       - native/tools/verify_north_schleswig_1914_0719_spandet.py
       - .github/workflows/native-north-schleswig-1914-0719-spandet-stage3.yml
 
@@ -50,7 +50,7 @@ jobs:
           parts=read(stem+".sheet-segments.geojson")
           stage=read(stem+".0719-spandet-stage3.json")
           clipped=read(stem+".0719-spandet-stage3.geojson")
-          scope=json.loads((report_path("native/tools/historical-library/land-borders")/(stem+".0719-spandet-stage3.scope-audit.json")).read_text(encoding="utf-8"))
+          scope=json.loads((report_path("reports/geography/germany/north-schleswig")/(stem+".0719-spandet-stage3.scope-audit.json")).read_text(encoding="utf-8"))
           to_m=Transformer.from_crs("EPSG:4326","EPSG:25832",always_xy=True).transform
           by={f["properties"]["sheetId"]:f for f in parts["features"]}
           assert {"0619","0718","0719"}.issubset(by)
@@ -77,6 +77,6 @@ jobs:
           assert scope["currentMaster"]["hasExtendedBeyondStone26"] is True
           assert scope["provisionalContemporaryBridgeControl"]["cannotDefineExactStone26Cut"] is True
           assert scope["provisionalContemporaryBridgeControl"]["approximatedWorkingLineKmBeyondBridge"]>5
-          assert (report_path("native/tools/historical-library/land-borders")/(stem+".0719-spandet-stage3.review.md")).exists()
+          assert (report_path("reports/geography/germany/north-schleswig")/(stem+".0719-spandet-stage3.review.md")).exists()
           print("PASS: offline 0719 geometry/continuity/screen proxy and stone26 scope warning; historic line is not certified.")
           PY
