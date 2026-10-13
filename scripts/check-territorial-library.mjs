@@ -65,7 +65,7 @@ const supplementalHistoricalChecks = [
     points: [[9.417, 55.044], [9.483, 55.25], [8.867, 54.933]],
   },
   {
-    id: 'state:ukraine',
+    id: 'state:UKR',
     version: 'state:ukraine:1991-2014-r1',
     points: [[34.1, 44.95], [36.2, 45.3]],
   },
@@ -88,12 +88,12 @@ const supplementalHistoricalChecks = [
     ],
   },
   {
-    id: 'state:sudan',
+    id: 'state:SDN',
     version: 'state:sudan:1956-2011-r1',
     points: [[32.56, 15.5], [31.58, 4.85]],
   },
   {
-    id: 'state:indonesia',
+    id: 'state:IDN',
     version: 'state:indonesia:1945-2002-r1',
     points: [[106.82, -6.18], [125.57, -8.56]],
   },
@@ -101,7 +101,7 @@ const supplementalHistoricalChecks = [
 for (const check of supplementalHistoricalChecks) {
   const definition = library.entities.find(item => item.entityId === check.id);
   if (!definition) throw new Error(`Supplemental historical country is missing: ${check.id}`);
-  if (definition.entityKind !== 'general' || !!definition.parentEntityId || definition.instantiation?.mode !== 'territory-replacement') {
+  if (definition.entityKind !== 'general' || !!definition.parentEntityId) {
     throw new Error(`${check.id} must use the unified territory-replacement country mode`);
   }
   const materialized = materializedById.get(check.id);
@@ -109,6 +109,7 @@ for (const check of supplementalHistoricalChecks) {
   for (const expectedVersion of versions) {
     const version = definition.geometryVersions?.find(item => item.versionId === expectedVersion.id);
     if (!version) throw new Error(`${check.id} geometry version is missing: ${expectedVersion.id}`);
+    if ((version.instantiation || definition.instantiation)?.mode !== 'territory-replacement') throw new Error(`${expectedVersion.id}: historical version must replace transferred territory`);
     const geometry = materialized?.geometryVersions?.find(item => item.versionId === expectedVersion.id)?.geometry;
     if (!geometry) throw new Error(`${check.id} could not be materialized: ${expectedVersion.id}`);
     const issues = validateGeometry({
