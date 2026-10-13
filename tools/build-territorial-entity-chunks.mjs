@@ -33,6 +33,9 @@ const index={schemaVersion:2,lineages:readTerritorialLineages().map(({entities,.
  return snapshot;
  })};
 for(const file of fs.readdirSync(output)) if(!expectedFiles.has(file))throw new Error(`Obsolete territorial output must be explicitly removed: ${file}`);
+// Regenerate the full index when a source geometry version changes. The index
+// contains all entity metadata, including per-chunk hashes, and must be rebuilt
+// with the corresponding chunk. Do not publish a source-only change.
 const indexBytes=`${JSON.stringify(index,null,2)}\n`;
 if(check){if(fs.readFileSync(path.join(output,'index.json'),'utf8').replaceAll('\r\n','\n')!==indexBytes)throw new Error('Stale territorial index');}
 else fs.writeFileSync(path.join(output,'index.json'),indexBytes);
