@@ -1,0 +1,58 @@
+name: Indonesia Papua and Timor historical epochs - one shot
+
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/indonesia-territorial-epochs-one-shot.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: indonesia-territorial-epochs-one-shot
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 50
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Reconstruct West New Guinea and East Timor historical epochs
+        run: node tools/apply-indonesia-historical-territory.mjs
+      - name: Build canonical, Web and native history assets
+        run: |
+          node tools/build-territorial-entity-chunks.mjs
+          node tools/restore-unchanged-indonesia-chunks.mjs
+          node tools/build-historical-world-timeline.mjs
+          node native/tools/sync-historical-world-timeline.mjs --web-root .
+          node scripts/generate-build-metadata.mjs
+      - name: Verify historical source, 25-island mask, date boundaries and Web/native parity
+        run: |
+          node tools/build-territorial-entity-chunks.mjs --check
+          node tools/build-historical-world-timeline.mjs --check
+          node native/tools/sync-historical-world-timeline.mjs --web-root . --check
+          node --test --test-concurrency=1 tests/unit/territorial-library.test.mjs tests/unit/country-lineage-preservation.test.mjs tests/unit/indonesia-territory-timeline.test.mjs tests/unit/sudan-ukraine-transition.test.mjs tests/unit/historical-world-publication.test.mjs
+          python -m unittest tests.test_v0280_historical_library
+          node scripts/check-territorial-library.mjs
+          node scripts/check-version.mjs
+      - name: Commit verified territory and national lifetime data on work/objects
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/territorial-entities/source/countries/indonesia.json assets/data/territorial-entities/source/countries/tls.json
+          git add -A assets/data/territorial-entities/generated/v2
+          git add -A assets/data/historical-world/generated/v1 native/assets/world/historical-world/v1
+          git add native/assets/world/manifest.json
+          git add tools/build-historical-world-timeline.mjs assets/js/build-meta.js index.html README.md
+          git diff --cached --check
+          if git diff --cached --quiet; then echo "Expected generated output not staged"; exit 1; fi
+          git commit -m "fix(history): restore Indonesia Papua and East Timor territorial chronology"
+          git push origin HEAD:work/objects
