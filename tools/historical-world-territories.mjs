@@ -33,11 +33,12 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
           if (discardedPrecisionComponents > 10 || discardedPrecisionAreaM2 > 0.5) {
             throw new Error('HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED');
           }
-          const match = operation.match(/^(?:difference|intersection) (\\S+) \\/ (\\S+)$/);
+          const relation = operation.startsWith('difference ') || operation.startsWith('intersection ')
+            ? operation.slice(operation.indexOf(' ') + 1).split(' / ') : [];
           adjustments.push({
-            entityId: match?.[1] || 'numeric-clipping',
+            entityId: relation[0] || 'numeric-clipping',
             kind: 'certified-clipping-precision-artifact',
-            relatedIds: match ? [match[2]] : [],
+            relatedIds: relation[1] ? [relation[1]] : [],
             polygonIndex, areaM2, operation,
           });
         },
