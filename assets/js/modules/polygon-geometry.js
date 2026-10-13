@@ -220,7 +220,7 @@
         try {
           normalizePolygonGeometry([polygon]);
           kept.push(polygon);
-        } catch {
+        } catch (error) {
           const areaM2 = certifiedClipArtifact(polygon);
           if (areaM2 === null) throw error;
           discarded.push({ polygonIndex: index, areaM2, ringCount: 1, vertexCount: 4 });
@@ -322,7 +322,7 @@
           const area = sphericalInteriorArea(ring);
           return index === 0 ? area < 2 * Math.PI : area > 2 * Math.PI;
         }));
-    } catch { return false; }
+    } catch (error) { return false; }
   }
 
   root.PandoLabPolygonGeometry = Object.freeze({
