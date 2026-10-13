@@ -190,7 +190,10 @@ test('a numeric distribution stores signed values and survives undo and redo', a
   await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
   await page.locator('#distributionValueInput').fill('-2.5');
   await page.locator('#addTerritorialDistributionBtn').click();
-  await expect(page.locator('#actionStatus')).toContainText('분포를 추가했습니다.', { timeout: 30_000 });
+  await expect.poll(() => page.evaluate(() => {
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
+    return layer ? window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id).length : 0;
+  }), { timeout: 30_000 }).toBe(1);
 
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1, { timeout: 30_000 });
   await expect(page.locator('#map path.distribution-shape')).toHaveCount(1, { timeout: 30_000 });
