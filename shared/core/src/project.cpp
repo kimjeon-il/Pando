@@ -233,9 +233,7 @@ std::string Project::normalizeName(const std::string& name)
     auto last=std::find_if_not(name.rbegin(),name.rend(),[](unsigned char c){return std::isspace(c);}).base();
     return first<last ? std::string(first,last) : std::string();
 }
-void Project::validate(const std::vector<Country>& countries) { validate(ProjectDocument{countries,{{"countries","국가"}}}); }
 void Project::validate(const ProjectDocument& document) { (void)validateDocument(document); }
-void Project::replace(std::vector<Country> countries) { replace(ProjectDocument{std::move(countries),{{"countries","국가"}}}); }
 void Project::replace(ProjectDocument document)
 {
     auto next=std::make_shared<const detail::DocumentState>(std::move(document));

@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <pandoeditor/gisexchange.h>
 #include <pandoeditor/project.h>
 #include <cassert>
@@ -11,19 +12,19 @@ template<class F> bool invalid(F&& fn) {
 }
 }
 int main() {
-    assert(normalizeExchangeTarget(" admin ")==GisExchangeTarget::Subunit);
-    assert(normalizeExchangeTarget("territory")==GisExchangeTarget::Subunit);
-    assert(normalizeExchangeTarget("administrative")==GisExchangeTarget::Subunit);
-    assert(normalizeExchangeTarget("country")==GisExchangeTarget::Country);
+    for(const auto* retired:{"country","subunit","region","admin","administrative","territory"})
+        assert(!normalizeExchangeTarget(retired,std::nullopt));
+    assert(normalizeExchangeTarget(" general ")==GisExchangeTarget::General);
+    assert(normalizeExchangeTarget("regional")==GisExchangeTarget::Regional);
     assert(normalizeExchangeTarget("unknown")==GisExchangeTarget::Generic);
     assert(!normalizeExchangeTarget("unknown",std::nullopt));
     assert(exchangeTargetDescriptor(GisExchangeTarget::Project).replaceOnly);
-    assert(!exchangeTargetDescriptor(GisExchangeTarget::Country).fallback);
+    assert(!exchangeTargetDescriptor(GisExchangeTarget::General).fallback);
     assert(exchangeTargetDescriptor(GisExchangeTarget::Generic).fallback);
     assert(exchangeTargetDescriptor(GisExchangeTarget::Distribution).domain=="distribution");
-    Project p;p.replace(ProjectDocument({{"A","A",{{{{0,0},{1,0},{1,1},{0,1},{0,0}}}},0}},{{"countries","Countries"}}));
+    Project p;p.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{1,0},{1,1},{0,1},{0,0}}}}},{0,1},"countries"}},{{"countries","Countries"}}));
     auto plan=createGisImportPlan(p.snapshot(),"gis-import:1",GisImportKind::Territorial,
-        {"test.geojson","geojson"},GisExchangeTarget::Subunit,{"A","A","B"});
+        {"test.geojson","geojson"},GisExchangeTarget::General,{"A","A","B"});
     assert((plan.affectedIds==std::vector<std::string>{"A","B"}));
     assertCurrentGisImportPlan(p.snapshot(),plan);
     assert(p.renameCountry("A","Changed"));
@@ -31,5 +32,5 @@ int main() {
     auto other=Project{};other.replace(p.document());
     assert(invalid([&]{assertCurrentGisImportPlan(other.snapshot(),plan);}));
     assert(invalid([&]{createGisImportPlan(p.snapshot(),"",GisImportKind::Territorial,
-        {"test.geojson","geojson"},GisExchangeTarget::Subunit,{});}));
+        {"test.geojson","geojson"},GisExchangeTarget::General,{});}));
 }

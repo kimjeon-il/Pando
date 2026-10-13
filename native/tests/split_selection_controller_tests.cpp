@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
@@ -13,7 +14,7 @@ using namespace pandoeditor;
 namespace {
 Geometry rectangle(double x,double y,double w,double h) { Geometry g;g.type="Polygon";g.polygons={{{{x,y},{x,y+h},{x+w,y+h},{x+w,y},{x,y}}}};return g; }
 QUrl writeProject(const QString& path,bool island=false,bool lockedParent=false) {
- ProjectDocument d({{"parent","Parent",rectangle(-5,-5,30,30).polygons,0xabcdef}},{{"countries","Countries"}});
+ pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"parent","Parent","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},rectangle(-5,-5,30,30).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
  const GeometryRef ref{"source-shape",1}; auto shape=rectangle(0,0,10,10);if(island){shape.type="MultiPolygon";shape.polygons.push_back(rectangle(20,0,2,2).polygons.front());}d.geometries.insert(ref,shape);
  appendTerritory(d,{"source","Source","",UnitKind::General,false},ref,"parent");
  staticParentRelation(d,"source").coverageMode="partition";

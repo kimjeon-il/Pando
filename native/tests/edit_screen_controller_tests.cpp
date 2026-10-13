@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include "territorial_fixture.h"
@@ -19,7 +20,7 @@ Geometry box(double x, double y, double width, double height) {
     return polygon({{x,y},{x+width,y},{x+width,y+height},{x,y+height},{x,y}});
 }
 ProjectDocument fixture(double latitude = 0) {
-    ProjectDocument document({{"A","A",box(0,latitude,10,10).polygons,0xabcdef}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},box(0,latitude,10,10).polygons},{0xabcdef,1},"countries"}},{{"countries","Countries"}});
     document.documentId = "edit-screen-controller-equivalence";
     Geometry line; line.type = "LineString"; line.lines = {{{1,latitude+1},{5,latitude+1},{9,latitude+1}}};
     document.geometries.insert({"river",1},line);
@@ -35,7 +36,9 @@ ProjectDocument boundaryFixture() {
     const auto a = polygon({{0,0},{1,0},{1,.5},{1,1},{0,1},{0,0}});
     const auto b = polygon({{1,0},{2,0},{2,1},{1,1},{1,.5},{1,0}});
     const auto c = polygon({{0,1},{1,1},{2,1},{2,2},{0,2},{0,1}});
-    ProjectDocument document({{"A","A",a.polygons,0xabcdef},{"B","B",b.polygons,0x123456},{"C","C",c.polygons,0x654321}},{{"countries","Countries"}});
+    pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},a.polygons},{0xabcdef,1},"countries"},
+        {{"B","B","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},b.polygons},{0x123456,1},"countries"},
+        {{"C","C","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},c.polygons},{0x654321,1},"countries"}},{{"countries","Countries"}});
     document.documentId = "edit-screen-boundary-equivalence";
     return document;
 }

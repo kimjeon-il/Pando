@@ -26,7 +26,7 @@ def main(executable):
             assert manifest["schemaVersion"] == 3
             assert manifest["crs"] == "EPSG:4326"
             assert [(item["file"], item["targetType"]) for item in manifest["layers"]] == [
-                ("countries.geojson", "country"),
+                ("countries.geojson", "general"),
                 ("generic_features.geojson", "generic"),
                 ("distributions.geojson", "distribution"),
                 ("labels.geojson", "label"),
@@ -79,6 +79,9 @@ def main(executable):
                 "SELECT source_mode,territorial_unit_id,unit,value,"
                 "value_scale_mode,value_scale_min,value_scale_max FROM distributions"
             ).fetchone() == ("territorial", "A", "%", 73, "auto", None, None)
+            generic_columns = {row[1] for row in db.execute("PRAGMA table_info(generic_features_point)")}
+            assert "properties_json" in generic_columns
+            assert not {"role", "owner_id", "parent_id", "topology_group", "land_binding"} & generic_columns
             distribution_columns = {row[1] for row in db.execute("PRAGMA table_info(distributions)")}
             assert "share" not in distribution_columns
             assert "distribution_type" not in distribution_columns

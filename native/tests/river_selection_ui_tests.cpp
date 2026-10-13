@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "ui_navigation.h"
 #include "editorcontroller.h"
 #include "windowsframe.h"
@@ -423,8 +424,8 @@ private slots:
     }
     void emptyRiverSourceShowsOriginalFallback() {
         RiverUi ui(360);const auto source=ui.document.physicalData;
-        ui.document=ProjectDocument({{"target","Target",{{{{50,0},{51,0},{51,1},{50,1},{50,0}}}},0x112233},
-                                     {"donor","Donor",{{{{20.1,.2},{20.6,.2},{20.6,.7},{20.1,.7},{20.1,.2}}}},0x445566}},{{"countries","Countries"}});
+        ui.document=makeTerritorialDocument({{{"target","Target","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{50,0},{51,0},{51,1},{50,1},{50,0}}}}},{0x112233,1},"countries"},
+        {{"donor","Donor","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20.1,.2},{20.6,.2},{20.6,.7},{20.1,.7},{20.1,.2}}}}},{0x445566,1},"countries"}},{{"countries","Countries"}});
         ui.document.physicalData=source;ui.document.documentId="river-ui-empty";ui.focus={20.35,.45};ui.focusWidth=.5;
         QVERIFY2(ui.start(360),qPrintable(ui.warnings.join('\n')));
         QVERIFY(ui.click("editorAnnexAction"));ui.tap(ui.focus);
