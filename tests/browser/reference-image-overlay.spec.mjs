@@ -244,8 +244,7 @@ test('reference images support placement, ordering, georeferencing and persisten
   await page.locator('.reference-image-launcher').click();
   await addImage(page, 'base.png');
   await expect(page.locator('.reference-image-list-row')).toHaveCount(1);
-  await page.locator('[data-ref-field="name"]').focus();
-  await page.keyboard.press('Escape');
+  await page.locator('[data-ref-field="name"]').press('Escape');
   await expect(page.locator('.reference-image-panel')).toBeVisible();
   await expect(page.locator('.reference-image-list-row .reference-image-visibility use')).toHaveAttribute('href', '#icon-eye');
 
