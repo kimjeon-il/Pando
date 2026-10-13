@@ -14,25 +14,23 @@ from display-only simplified geometry.
 `east-germany-1989.recipe.json` is the pinned, declarative build recipe for the
 PandoLab historical-country pilot `state:deutsche-demokratische-republik`.
 
-The normal build uses offline source data. Shapely/pyproj constructs the
-polygon from the pinned recipe; the final winding and ring cleanup use the
-shared C++ spherical polygon normalizer. Exact regeneration of the stored
-catalog geometry is verified on Windows with the pinned Shapely/pyproj versions
-and a C++ build toolchain:
+The normal build uses offline source data. The GEOS/PROJ C++ recipe engine
+constructs the polygon and the shared C++ spherical polygon normalizer sets
+its winding. Build the pinned native toolchain before generating or checking
+the catalog geometry:
 
-```powershell
-python -m pip install -r tools/requirements-historical-library.txt
-pnpm build:territorial-geometry
-pnpm check:territorial-library
+```sh
+micromamba create -y -f tools/cpp/territorial-recipe-environment.yml
+micromamba run -n pando-territorial-recipe cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+micromamba run -n pando-territorial-recipe cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node tools/build-territorial-geometry.mjs --check
 ```
 
-CI runs `build-territorial-geometry.py --check` in the required Windows
-`historical-geometry` job. The Linux `data-contracts` job depends on that check
-and retains preview regeneration, catalog chunk regeneration and catalog
-validation. Coordinate projection can differ by one floating-point step between
-Windows and Linux, crossing the existing 12-decimal rounding boundary. The
-Windows check still compares the complete generated candidate with the stored
-catalog record; a C++ normalization failure stops generation.
+CI builds the C++ recipe engine in the `historical-geometry` job. The
+`data-contracts` job depends on that check and retains preview regeneration,
+catalog chunk regeneration and catalog validation. The stored geometry check
+requires identical component, ring and vertex structure, with at most
+`2e-12` degrees coordinate drift for cross-platform projection rounding.
 
 The checked-in files below are the only geometry inputs used by that build:
 
