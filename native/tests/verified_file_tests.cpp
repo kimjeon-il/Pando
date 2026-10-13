@@ -69,7 +69,13 @@ int main(int argc,char** argv) {
     store.request(asset);deadline.start();loop.exec();
     require(ready==1&&failed==0&&reused&&requests==0,"cold valid source verified asynchronously without download");
     require(store.hasVerifiedExisting(asset),"owner observes worker receipt");
+    const auto externalModified=QFileInfo(externalPath).lastModified();
     write(externalPath,QByteArray(bytes.size(),'x'));
+    // Windows can give two rapid writes the same timestamp tick. Make the
+    // external mutation distinct before testing receipt invalidation.
+    QFile changed(externalPath);require(changed.open(QIODevice::ReadWrite),"open changed external source");
+    require(changed.setFileTime(externalModified.addSecs(2),QFileDevice::FileModificationTime),"advance external modification time");
+    changed.close();
     require(!store.hasVerifiedExisting(asset),"changed source does not stay ready");
     store.request(asset);deadline.start();loop.exec();
     require(ready==2&&failed==0&&!reused&&requests==2,"corrupt source retains checksum retry and recovery");
