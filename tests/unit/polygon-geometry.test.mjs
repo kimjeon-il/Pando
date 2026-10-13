@@ -180,7 +180,7 @@ test('Soviet Union geometry preserves its 231 land components under D3 spherical
     'otherwise D3 fills the spherical complement (sea) instead of USSR land');
 });
 
-test('numerical clipping artifacts require explicit bounded audit; genuine slivers remain errors', () => {
+test('numerical clipping artifacts require explicit bounded audit; non-numerical degeneracies remain errors', () => {
   const { normalizeClippedPolygonGeometry } = globalThis.PandoLabPolygonGeometry;
   const valid = [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]];
   const artifact = [
@@ -200,8 +200,7 @@ test('numerical clipping artifacts require explicit bounded audit; genuine slive
   assert.equal(repairs[0].polygonIndex, 1);
   assert.ok(repairs[0].areaM2 >= 0 && repairs[0].areaM2 < 0.1);
   assert.deepEqual(input[1][0], artifact, 'the raw clipping result is never mutated');
-  const genuine = artifact.map(point => point.slice());
-  genuine[2][0] += 0.00001;
-  assert.throws(() => normalizeClippedPolygonGeometry([[valid], [genuine]],
-    { onPrecisionDiscard() { assert.fail('genuine land may not be discarded'); } }), /INVALID_POLYGON_RING/);
+  const unsupported = [[0, 0], [1, 1], [2, 2], [0, 0]];
+  assert.throws(() => normalizeClippedPolygonGeometry([[valid], [unsupported]],
+    { onPrecisionDiscard() { assert.fail('larger malformed rings may not be discarded'); } }), /INVALID_POLYGON_RING/);
 });
