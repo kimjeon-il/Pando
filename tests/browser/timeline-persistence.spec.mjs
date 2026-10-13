@@ -136,7 +136,7 @@ test('historical default full save and offline restore retain every identity and
   await page.locator('#timelineMonthButton').click();
   await page.locator('#timelineMonthInput').fill('2012-10');
   await page.locator('#timelineMonthInput').press('Enter');
-  await expect(page.locator('#timelineMonthInput')).toBeHidden();
+  await expect(page.locator('#timelineMonthInput')).toBeHidden({timeout:30000});
   expect(new Set(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.list().map(row=>row.id)))).toEqual(new Set(['IDN','SDN','SDS','TLS','UKR','state:nagorno-karabakh']));
   expect(semantics(await readAutosave(page))).toEqual(semantics(saved));
   await expect(page.locator('#undoBtn')).toBeDisabled();

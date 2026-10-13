@@ -14,8 +14,11 @@ from display-only simplified geometry.
 `east-germany-1989.recipe.json` is the pinned, declarative build recipe for the
 PandoLab historical-country pilot `state:deutsche-demokratische-republik`.
 
-The normal build uses offline source data. Exact regeneration of the stored
-coordinates is verified on Windows with the pinned Shapely/pyproj versions:
+The normal build uses offline source data. Shapely/pyproj constructs the
+polygon from the pinned recipe; the final winding and ring cleanup use the
+shared C++ spherical polygon normalizer. Exact regeneration of the stored
+catalog geometry is verified on Windows with the pinned Shapely/pyproj versions
+and a C++ build toolchain:
 
 ```powershell
 python -m pip install -r tools/requirements-historical-library.txt
@@ -28,7 +31,8 @@ CI runs `build-territorial-geometry.py --check` in the required Windows
 and retains preview regeneration, catalog chunk regeneration and catalog
 validation. Coordinate projection can differ by one floating-point step between
 Windows and Linux, crossing the existing 12-decimal rounding boundary. The
-generator, stored coordinates and exact comparison remain unchanged.
+Windows check still compares the complete generated candidate with the stored
+catalog record; a C++ normalization failure stops generation.
 
 The checked-in files below are the only geometry inputs used by that build:
 

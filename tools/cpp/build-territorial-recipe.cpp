@@ -1,0 +1,405 @@
+// GEOS/PROJ implementation of the pinned historical territorial recipe.
+// This tool emits geometry only; catalog identity and evidence remain in the
+// independently curated source file. The caller verifies recipe source hashes.
+#include <pandoeditor/losslessjson.h>
+#include <pandoeditor/sphericalpolygon.h>
+#include <geos_c.h>
+#include <proj.h>
+#include <algorithm>
+#include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+using V = pandoeditor::codecjson::Value;
+namespace fs = std::filesystem;
+
+namespace {
+const V& field(const V& value, const std::string& name) {
+    if(value.kind!=V::Object)throw std::runtime_error("Expected JSON object for "+name);
+    const auto found=value.object.find(name);
+    if(found==value.object.end())throw std::runtime_error("Missing JSON field: "+name);
+    return found->second;
+}
+const V* optional(const V& value,const std::string& name) {
+    if(value.kind!=V::Object)return nullptr;
+    const auto found=value.object.find(name);
+    return found==value.object.end()?nullptr:&found->second;
+}
+std::string str(const V& value) {
+    if(value.kind!=V::String)throw std::runtime_error("Expected JSON string");
+    return value.string;
+}
+const std::vector<V>& array(const V& value) {
+    if(value.kind!=V::Array)throw std::runtime_error("Expected JSON array");
+    return value.array;
+}
+double number(const V& value) {return pandoeditor::codecjson::finiteNumber(value);}
+std::string read(const fs::path& path) {
+    std::ifstream input(path,std::ios::binary);
+    if(!input)throw std::runtime_error("Cannot read "+path.string());
+    return {std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>()};
+}
+
+class GeometryEngine {
+    GEOSContextHandle_t context_=GEOS_init_r();
+    GEOSGeoJSONReader* reader_=GEOSGeoJSONReader_create_r(context_);
+    PJ_CONTEXT* proj_=proj_context_create();
+public:
+    using Shape=std::shared_ptr<GEOSGeometry>;
+    GeometryEngine() {
+        if(!context_||!reader_||!proj_)throw std::runtime_error("Cannot initialize GEOS/PROJ");
+    }
+    ~GeometryEngine() {
+        proj_context_destroy(proj_);
+        GEOSGeoJSONReader_destroy_r(context_,reader_);
+        GEOS_finish_r(context_);
+    }
+    Shape own(GEOSGeometry* geometry,const char* operation) {
+        if(!geometry)throw std::runtime_error(std::string("GEOS failed: ")+operation);
+        return Shape(geometry,[this](GEOSGeometry* value){GEOSGeom_destroy_r(context_,value);});
+    }
+    Shape parse(const V& value) {
+        const auto bytes=value.encode();
+        return own(GEOSGeoJSONReader_readGeometry_r(context_,reader_,bytes.c_str()),"GeoJSON read");
+    }
+    Shape clone(const GEOSGeometry* value) {return own(GEOSGeom_clone_r(context_,value),"clone");}
+    Shape collection(const std::vector<Shape>& parts,int kind=GEOS_GEOMETRYCOLLECTION) {
+        std::vector<GEOSGeometry*> copies;
+        for(const auto& part:parts) {
+            auto* copy=GEOSGeom_clone_r(context_,part.get());
+            if(!copy) {
+                for(auto* item:copies)GEOSGeom_destroy_r(context_,item);
+                throw std::runtime_error("GEOS failed: collection clone");
+            }
+            copies.push_back(copy);
+        }
+        auto* result=GEOSGeom_createCollection_r(context_,kind,copies.data(),static_cast<unsigned>(copies.size()));
+        if(!result) {
+            for(auto* item:copies)GEOSGeom_destroy_r(context_,item);
+        }
+        return own(result,"collection");
+    }
+    Shape unaryUnion(const std::vector<Shape>& parts) {
+        auto input=collection(parts);
+        return own(GEOSUnaryUnion_r(context_,input.get()),"unary union");
+    }
+    Shape boundary(const Shape& value) {return own(GEOSBoundary_r(context_,value.get()),"boundary");}
+    Shape intersection(const Shape& left,const Shape& right) {
+        return own(GEOSIntersection_r(context_,left.get(),right.get()),"intersection");
+    }
+    Shape difference(const Shape& left,const Shape& right) {
+        return own(GEOSDifference_r(context_,left.get(),right.get()),"difference");
+    }
+    Shape buffer(const Shape& value,double distance) {
+        return own(GEOSBuffer_r(context_,value.get(),distance,8),"buffer");
+    }
+    Shape point(double x,double y) {
+        return own(GEOSGeom_createPointFromXY_r(context_,x,y),"point");
+    }
+    Shape pointOnSurface(const GEOSGeometry* value) {
+        return own(GEOSPointOnSurface_r(context_,value),"representative point");
+    }
+    bool covers(const GEOSGeometry* left,const GEOSGeometry* right) {
+        const auto result=GEOSCovers_r(context_,left,right);
+        if(result==2)throw std::runtime_error("GEOS failed: covers");
+        return result==1;
+    }
+    bool empty(const GEOSGeometry* value) {
+        const auto result=GEOSisEmpty_r(context_,value);
+        if(result==2)throw std::runtime_error("GEOS failed: isEmpty");
+        return result==1;
+    }
+    double area(const GEOSGeometry* value) {
+        double result=0;
+        if(!GEOSArea_r(context_,value,&result))throw std::runtime_error("GEOS failed: area");
+        return result;
+    }
+    double length(const Shape& value) {
+        double result=0;
+        if(!GEOSLength_r(context_,value.get(),&result))throw std::runtime_error("GEOS failed: length");
+        return result;
+    }
+    int type(const GEOSGeometry* value) {return GEOSGeomTypeId_r(context_,value);}
+    std::vector<Shape> parts(const Shape& value) {
+        const auto kind=type(value.get());
+        if(kind!=GEOS_MULTIPOLYGON&&kind!=GEOS_GEOMETRYCOLLECTION&&kind!=GEOS_MULTILINESTRING)
+            return {value};
+        const auto count=GEOSGetNumGeometries_r(context_,value.get());
+        if(count<0)throw std::runtime_error("GEOS failed: geometry count");
+        std::vector<Shape> result;
+        for(int index=0;index<count;++index)
+            result.push_back(clone(GEOSGetGeometryN_r(context_,value.get(),index)));
+        return result;
+    }
+    Shape project(const Shape& value,const std::string& from,const std::string& to) {
+        if(from==to)return value;
+        PJ* raw=proj_create_crs_to_crs(proj_,from.c_str(),to.c_str(),nullptr);
+        if(!raw)throw std::runtime_error("PROJ failed: "+from+" to "+to);
+        PJ* operation=proj_normalize_for_visualization(proj_,raw);
+        proj_destroy(raw);
+        if(!operation)throw std::runtime_error("PROJ failed: traditional GIS axis order");
+        const auto transform=[](double* x,double* y,void* user)->int {
+            auto* projection=static_cast<PJ*>(user);
+            const auto result=proj_trans(projection,PJ_FWD,proj_coord(*x,*y,0,0));
+            if(!std::isfinite(result.xy.x)||!std::isfinite(result.xy.y))return 0;
+            *x=result.xy.x;*y=result.xy.y;return 1;
+        };
+        auto* result=GEOSGeom_transformXY_r(context_,value.get(),transform,operation);
+        proj_destroy(operation);
+        return own(result,"coordinate transform");
+    }
+    Shape polygonize(const Shape& linework) {
+        const auto lines=parts(linework);
+        std::vector<const GEOSGeometry*> rows;
+        for(const auto& line:lines)rows.push_back(line.get());
+        return own(GEOSPolygonize_r(context_,rows.data(),static_cast<unsigned>(rows.size())),"polygonize");
+    }
+    Shape normalize(const Shape& source) {
+        std::vector<Shape> polygons;
+        for(const auto& part:parts(source))
+            if(type(part.get())==GEOS_POLYGON&&area(part.get())>0)polygons.push_back(part);
+        if(polygons.empty())throw std::runtime_error("Expected non-empty polygonal geometry");
+        for(auto& polygon:polygons)
+            if(GEOSOrientPolygons_r(context_,polygon.get(),0)!=0)
+                throw std::runtime_error("GEOS failed: planar ring orientation");
+        const auto rounded=[](double value,int digits) {
+            const double factor=std::pow(10.0,digits);
+            return std::nearbyint(value*factor)/factor;
+        };
+        std::stable_sort(polygons.begin(),polygons.end(),[&](const Shape& left,const Shape& right) {
+            const auto leftArea=rounded(area(left.get()),15),rightArea=rounded(area(right.get()),15);
+            if(leftArea!=rightArea)return leftArea>rightArea;
+            double l[4],r[4];
+            if(!GEOSGeom_getExtent_r(context_,left.get(),&l[0],&l[1],&l[2],&l[3])
+                ||!GEOSGeom_getExtent_r(context_,right.get(),&r[0],&r[1],&r[2],&r[3]))
+                throw std::runtime_error("GEOS failed: polygon extent");
+            for(int index=0;index<4;++index) {
+                if(rounded(l[index],12)!=rounded(r[index],12))
+                    return rounded(l[index],12)<rounded(r[index],12);
+            }
+            return false;
+        });
+        auto result=collection(polygons,GEOS_MULTIPOLYGON);
+        if(GEOSisValid_r(context_,result.get())!=1)
+            throw std::runtime_error("GEOS failed: invalid normalized polygon");
+        return result;
+    }
+    Shape decomposePointContacts(const Shape& source) {
+        std::vector<Shape> selected;
+        for(const auto& polygon:parts(source)) {
+            auto noded=unaryUnion({boundary(polygon)});
+            auto cells=polygonize(noded);
+            bool found=false;
+            for(const auto& cell:parts(cells)) {
+                if(area(cell.get())<=0)continue;
+                auto representative=pointOnSurface(cell.get());
+                if(covers(polygon.get(),representative.get())) {
+                    selected.push_back(cell);found=true;
+                }
+            }
+            if(!found)selected.push_back(polygon);
+        }
+        return normalize(collection(selected,GEOS_MULTIPOLYGON));
+    }
+    V coordinates(const GEOSGeometry* ring) {
+        const auto* sequence=GEOSGeom_getCoordSeq_r(context_,ring);
+        unsigned count=0;
+        if(!sequence||!GEOSCoordSeq_getSize_r(context_,sequence,&count))
+            throw std::runtime_error("GEOS failed: coordinate sequence");
+        auto output=V::arr();
+        for(unsigned index=0;index<count;++index) {
+            double x=0,y=0;
+            if(!GEOSCoordSeq_getXY_r(context_,sequence,index,&x,&y))
+                throw std::runtime_error("GEOS failed: coordinate pair");
+            auto pair=V::arr();
+            pair.array={V::num(std::nearbyint(x*1e12)/1e12),V::num(std::nearbyint(y*1e12)/1e12)};
+            output.array.push_back(std::move(pair));
+        }
+        return output;
+    }
+    V polygonCoordinates(const GEOSGeometry* polygon) {
+        auto output=V::arr();
+        output.array.push_back(coordinates(GEOSGetExteriorRing_r(context_,polygon)));
+        const auto count=GEOSGetNumInteriorRings_r(context_,polygon);
+        if(count<0)throw std::runtime_error("GEOS failed: interior ring count");
+        for(int index=0;index<count;++index)
+            output.array.push_back(coordinates(GEOSGetInteriorRingN_r(context_,polygon,index)));
+        return output;
+    }
+    V output(const Shape& shape) {
+        pandoeditor::Geometry geometry;geometry.type="MultiPolygon";
+        for(const auto& polygon:parts(shape)) {
+            pandoeditor::Polygon result;
+            for(const auto& ring:array(polygonCoordinates(polygon))) {
+                pandoeditor::Ring points;
+                for(const auto& pair:array(ring))
+                    points.push_back({number(array(pair)[0]),number(array(pair)[1])});
+                result.push_back(std::move(points));
+            }
+            geometry.polygons.push_back(std::move(result));
+        }
+        const auto normalized=pandoeditor::normalizeSphericalPolygonGeometry(geometry);
+        auto root=V::obj();root.object["type"]=V::str("MultiPolygon");
+        auto polygons=V::arr();
+        for(const auto& polygon:normalized.polygons) {
+            auto rings=V::arr();
+            for(const auto& ring:polygon) {
+                auto points=V::arr();
+                for(const auto point:ring) {
+                    auto pair=V::arr();pair.array={V::num(point.x),V::num(point.y)};
+                    points.array.push_back(std::move(pair));
+                }
+                rings.array.push_back(std::move(points));
+            }
+            polygons.array.push_back(std::move(rings));
+        }
+        root.object["coordinates"]=std::move(polygons);
+        return root;
+    }
+    GEOSContextHandle_t context() const {return context_;}
+};
+
+class Recipe {
+    GeometryEngine engine_;
+    fs::path root_;
+    V recipe_;
+    std::map<std::string,V> sources_;
+    std::map<std::string,GeometryEngine::Shape> results_;
+    using Shape=GeometryEngine::Shape;
+    Shape source(const std::string& id,const std::string& target="EPSG:4326",const V* selector=nullptr) {
+        const auto& definition=field(field(recipe_,"sources"),id);
+        const auto& document=sources_.at(id);
+        std::set<std::string> wanted;
+        std::string selectorField;
+        if(selector) {
+            selectorField=str(field(*selector,"field"));
+            for(const auto& item:array(field(*selector,"values")))wanted.insert(str(item));
+        }
+        std::vector<Shape> selected;
+        std::set<std::string> found;
+        for(const auto& feature:array(field(document,"features"))) {
+            if(selector) {
+                const auto& value=selectorField=="__feature_id__"?field(feature,"id")
+                    :field(field(feature,"properties"),selectorField);
+                const auto selectedValue=str(value);
+                if(!wanted.count(selectedValue))continue;
+                found.insert(selectedValue);
+            }
+            if(const auto* geometry=optional(feature,"geometry");geometry&&geometry->kind!=V::Null)
+                selected.push_back(engine_.parse(*geometry));
+        }
+        if(selector&&found!=wanted)throw std::runtime_error("Source selector mismatch: "+id);
+        if(selected.empty())throw std::runtime_error("Source has no selected geometry: "+id);
+        return engine_.project(engine_.unaryUnion(selected),str(field(definition,"crs")),target);
+    }
+    Shape resolve(const std::string& id,const std::string& target="EPSG:4326") {
+        if(const auto result=results_.find(id);result!=results_.end())
+            return engine_.project(result->second,"EPSG:4326",target);
+        if(sources_.count(id))return source(id,target);
+        throw std::runtime_error("Unknown recipe reference: "+id);
+    }
+    Shape mask(const V& operation) {
+        constexpr auto* metric="EPSG:25833";
+        auto boundary=source(str(field(operation,"boundarySource")),metric);
+        const auto& lines=sources_.at(str(field(operation,"lineSource")));
+        std::set<std::string> primaryLayers,priorityLayers;
+        for(const auto& value:array(field(operation,"primaryLayers")))primaryLayers.insert(str(value));
+        for(const auto& value:array(field(operation,"priorityLayers")))priorityLayers.insert(str(value));
+        std::vector<Shape> primary,priority;
+        for(const auto& feature:array(field(lines,"features"))) {
+            const auto layer=str(field(field(feature,"properties"),"source_layer"));
+            if(primaryLayers.count(layer))primary.push_back(engine_.parse(field(feature,"geometry")));
+            else if(priorityLayers.count(layer))priority.push_back(engine_.parse(field(feature,"geometry")));
+        }
+        if(primary.empty()||priority.empty())throw std::runtime_error("Berlin mask linework is incomplete");
+        auto linework=engine_.unaryUnion({engine_.unaryUnion(primary),engine_.unaryUnion(priority)});
+        const auto projectedPoint=[&](const V& value) {
+            const auto& pair=array(value);
+            if(pair.size()!=2)throw std::runtime_error("Expected point pair");
+            return engine_.project(engine_.point(number(pair[0]),number(pair[1])),"EPSG:4326",metric);
+        };
+        auto reference=projectedPoint(field(operation,"referencePoint"));
+        auto excluded=projectedPoint(field(operation,"excludePoint"));
+        const double maximum=number(field(operation,"maxSnapMeters"));
+        for(const double tolerance:{0.01,0.1,0.5,1.0,2.0,5.0,10.0,20.0,50.0,100.0}) {
+            if(tolerance>maximum)continue;
+            auto snapped=engine_.own(GEOSSnap_r(engine_.context(),linework.get(),linework.get(),tolerance),"snap");
+            auto noded=engine_.unaryUnion({snapped,engine_.boundary(boundary)});
+            auto polygonized=engine_.polygonize(noded);
+            std::vector<Shape> selected;
+            for(const auto& cell:engine_.parts(polygonized)) {
+                auto clipped=engine_.intersection(cell,boundary);
+                if(!engine_.empty(clipped.get())&&engine_.area(clipped.get())>1
+                   &&engine_.covers(clipped.get(),reference.get()))selected.push_back(clipped);
+            }
+            if(selected.size()!=1)continue;
+            auto west=selected.front();
+            const auto area=engine_.area(west.get());
+            if(engine_.covers(west.get(),excluded.get())||area<400000000||area>600000000)continue;
+            west=engine_.normalize(west);
+            auto gap=engine_.difference(engine_.boundary(west),engine_.buffer(noded,0.001));
+            if(engine_.length(gap)>0.01)throw std::runtime_error("West Berlin mask closure gap");
+            return engine_.normalize(engine_.project(west,metric,"EPSG:4326"));
+        }
+        throw std::runtime_error("West Berlin political boundary did not close");
+    }
+public:
+    Recipe(fs::path root,V recipe):root_(std::move(root)),recipe_(std::move(recipe)) {
+        for(const auto& [id,definition]:field(recipe_,"sources").object)
+            sources_.emplace(id,pandoeditor::codecjson::parse(read(root_/str(field(definition,"path")))));
+    }
+    V build() {
+        for(const auto& operation:array(field(recipe_,"operations"))) {
+            const auto id=str(field(operation,"id")),kind=str(field(operation,"operation"));
+            Shape result;
+            if(kind=="union"&&optional(operation,"source"))
+                result=source(str(field(operation,"source")),"EPSG:4326",optional(operation,"selector"));
+            else if(kind=="union") {
+                std::vector<Shape> inputs;
+                for(const auto& reference:array(field(operation,"inputs")))inputs.push_back(resolve(str(reference)));
+                result=engine_.unaryUnion(inputs);
+            } else if(kind=="difference"||kind=="clip") {
+                const auto& inputs=array(field(operation,"inputs"));
+                if(inputs.size()!=2)throw std::runtime_error("Binary recipe operation needs two inputs");
+                auto left=resolve(str(inputs[0])),right=resolve(str(inputs[1]));
+                result=kind=="difference"?engine_.difference(left,right):engine_.intersection(left,right);
+            } else if(kind=="polygonize-mask")result=mask(operation);
+            else if(kind=="canonical-boundary-reconcile") {
+                auto candidate=resolve(str(field(operation,"input")));
+                auto selector=V::obj();selector.object["field"]=V::str("__feature_id__");
+                auto values=V::arr();values.array.push_back(field(operation,"canonicalId"));
+                selector.object["values"]=std::move(values);
+                auto canonical=source(str(field(operation,"canonicalSource")),"EPSG:4326",&selector);
+                result=engine_.decomposePointContacts(engine_.intersection(candidate,canonical));
+            } else throw std::runtime_error("Unsupported recipe operation: "+kind);
+            results_[id]=engine_.normalize(result);
+        }
+        const auto& operations=array(field(recipe_,"operations"));
+        if(operations.empty())throw std::runtime_error("Recipe has no operations");
+        return engine_.output(results_.at(str(field(operations.back(),"id"))));
+    }
+};
+}
+
+int main(int argc,char** argv) {
+    try {
+        if(argc!=3)throw std::runtime_error("Usage: pando-territorial-recipe REPOSITORY_ROOT RECIPE_PATH");
+        const fs::path root=fs::absolute(argv[1]);
+        const fs::path recipePath=fs::absolute(argv[2]);
+        Recipe recipe(root,pandoeditor::codecjson::parse(read(recipePath)));
+        std::cout<<recipe.build().encode()<<'\n';
+        return 0;
+    }catch(const std::exception& error) {
+        std::cerr<<"territorial-recipe: "<<error.what()<<'\n';
+        return 1;
+    }
+}

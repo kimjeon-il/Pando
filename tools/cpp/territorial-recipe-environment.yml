@@ -1,0 +1,12 @@
+name: pando-territorial-recipe
+channels:
+  - conda-forge
+dependencies:
+  # Match the GEOS/PROJ versions in the existing Shapely/pyproj oracle.
+  - geos=3.13.1
+  - proj=9.5.1
+  - cxx-compiler
+  - pkg-config
+  - cmake
+  - ninja
+  - nodejs=22

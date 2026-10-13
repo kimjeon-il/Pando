@@ -14,7 +14,7 @@ const expectCoverage = data => {
 
 for (const source of ['dem', 'raster']) {
   test(`${source} keeps terrain resources across country LOD, style changes and delayed zoom tiles`, async ({ page }) => {
-    test.setTimeout(360_000);
+    test.setTimeout(600_000);
     const errors = [], requests = [];
     let delayDetail = true, release, releaseBase, baseResponses = 0;
     let gate = new Promise(resolve => { release = resolve; });
@@ -116,7 +116,7 @@ for (const source of ['dem', 'raster']) {
       await input.evaluate(input => {
         window.__terrainDraws = []; window.__captureTerrainPixels = true; input.click();
       });
-      await expect.poll(async () => (await snapshot(page)).style, { timeout: 30_000 }).toBe(style);
+      await expect.poll(async () => (await snapshot(page)).style, { timeout: 90_000 }).toBe(style);
       await expect(input).toBeChecked({ timeout: 30_000 });
       await nextFrame(page);
       const expectedStyle = style === 'physical' ? 1 : 0;

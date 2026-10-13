@@ -148,6 +148,9 @@ double sphericalRingSignedArea(const Ring& ring) {
     }
     return area*2;
 }
+Ring normalizeSphericalRing(const Ring& ring,bool shell) {
+    return oriented(ring,shell);
+}
 void requireCanonicalSphericalWinding(const Geometry& geometry) {
     typeCheck(geometry);
     if(geometry.polygons.empty())
