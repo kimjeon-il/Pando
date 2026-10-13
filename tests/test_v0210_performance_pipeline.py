@@ -9,7 +9,7 @@ ROOT = Path(__file__).parents[1]
 APP = read_application_sources(ROOT)
 EDIT_WORKER = (ROOT / "assets" / "js" / "workers" / "map-edit-worker.js").read_text(encoding="utf-8")
 CANVAS_WORKER = (ROOT / "assets" / "js" / "workers" / "canvas-render-worker.js").read_text(encoding="utf-8")
-TRANSACTION = (ROOT / "assets" / "js" / "modules" / "map-edit-transaction.js").read_text(encoding="utf-8")
+TRANSACTION = read_module(ROOT, "app-geometry-preview.js")
 MAP_INPUT = (ROOT / "assets" / "js" / "modules" / "map-input-controller.js").read_text(encoding="utf-8")
 RENDERING_DOMAIN = (ROOT / "assets" / "js" / "modules" / "rendering-domain.js").read_text(encoding="utf-8")
 RENDERER = (ROOT / "assets" / "js" / "modules" / "gpu-map-renderer.js").read_text(encoding="utf-8")
@@ -42,7 +42,10 @@ class V0210PerformancePipelineTests(unittest.TestCase):
         self.assertIn('assertRequestCurrent(message', EDIT_WORKER)
         self.assertIn('validateResult(working, affectedIds, baseline)', calculator)
         self.assertIn('root.PandoLabPolygonGeometry', COUNTRY_GEOMETRY)
-        self.assertIn('client.execute(operation, payload)', TRANSACTION)
+        transaction = function_source(TRANSACTION, 'transactMapEdit')
+        self.assertIn('mapEditClient.execute(operation,payload)', transaction)
+        self.assertIn('projectDomain.confirmCandidate(prepared.candidateId,prepared.state.epoch', transaction)
+        self.assertIn('mapEditClient.commit(requestId)', transaction)
         for operation in ("operation: 'annex'", "operation: 'merge'", "operation: 'new-country'"):
             self.assertIn(operation, APP)
 
