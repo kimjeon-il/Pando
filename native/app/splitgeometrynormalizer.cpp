@@ -9,6 +9,7 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 static void initializeSplitNormalizerResources() {
     static const bool initialized=[] {Q_INIT_RESOURCE(current_geometry);return true;}();
