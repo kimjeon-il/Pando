@@ -22,9 +22,27 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   };
   const owners = new WeakMap(input.filter(row => row.geometry).map(row => [row.geometry, row.entityId]));
   const owner = geometry => owners.get(geometry) || 'intermediate';
+  let discardedPrecisionAreaM2 = 0, discardedPrecisionComponents = 0;
   const shape = (value, operation) => {
     if (!value.length) return null;
-    try { return globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry(value); }
+    try {
+      return globalThis.PandoLabPolygonGeometry.normalizeClippedPolygonGeometry(value, {
+        onPrecisionDiscard({ polygonIndex, areaM2 }) {
+          discardedPrecisionAreaM2 += areaM2;
+          discardedPrecisionComponents += 1;
+          if (discardedPrecisionComponents > 10 || discardedPrecisionAreaM2 > 0.5) {
+            throw new Error('HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED');
+          }
+          const match = operation.match(/^(?:difference|intersection) (\\S+) \\/ (\\S+)$/);
+          adjustments.push({
+            entityId: match?.[1] || 'numeric-clipping',
+            kind: 'certified-clipping-precision-artifact',
+            relatedIds: match ? [match[2]] : [],
+            polygonIndex, areaM2, operation,
+          });
+        },
+      });
+    }
     catch (error) {
       const failing = value.flatMap((polygon, pi) => polygon.map((ring, ri) => ({
         polygon: pi, ring: ri, vertices: ring.length,
