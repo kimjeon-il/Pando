@@ -5,6 +5,8 @@
  * Source: naturalearthdata.com (public domain), default de facto boundary viewpoint.
  */
 
+import { PROJECT_SCHEMA_VERSION, GENERIC_FEATURE_SCHEMA_VERSION } from './version-contract.js';
+
 const moduleRevision = new URL(import.meta.url).searchParams.get('v') || globalThis.PANDOLAB_BUILD_META?.assetRevision || '';
 const { missingLibraryOwnership, prepareLibraryOwnership, shouldShowTerritorialParentChoice, territorialParentChoices } = await import(`./library-ownership.js?v=${encodeURIComponent(moduleRevision)}`);
 const { BUILTIN_TERRITORY_MERGES } = await import(`./builtin-territory-policy.js?v=${encodeURIComponent(moduleRevision)}`);
@@ -59,7 +61,6 @@ const [projectStateModule, territorialUnitsModule, distributionModelModule, surf
 const { createSemanticIcon } = await import(versionedModuleUrl('./modules/icon-utils.js'));
 const { normalizeCountryCollection } = await import(versionedModuleUrl('./modules/country-feature.js'));
 const {
-  PROJECT_SCHEMA_VERSION,
   createProjectObjectId,
   pickProjectFields,
 } = projectStateModule;
@@ -70,7 +71,6 @@ const { createHydroService, createTerrainService } = physicalLayerServiceModule;
 const { createTerritorialApplicationService } = territorialServiceModule;
 const { createDistributionService } = distributionServiceModule;
 const {
-  GENERIC_FEATURE_SCHEMA_VERSION,
   createGenericFeatureService,
   genericFeatureGeometryKind,
   normalizeGenericFeatureCollection,

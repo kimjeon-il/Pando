@@ -162,3 +162,4 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
 
   return Object.freeze({ restore, ensure, schedule, cancel });
 }
+// @worker-transport dedicated: project preview cache owns image generation and preview result delivery
