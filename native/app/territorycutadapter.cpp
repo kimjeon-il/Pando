@@ -12,7 +12,10 @@ QJsonObject cutGeometryJson(const Geometry& value) {
     return {{"type",QString::fromStdString(value.type)},{"coordinates",value.type=="Polygon"?polygons[0].toArray():polygons}};
 }
 Geometry cutGeometryValue(const QJsonObject& value) {
-    Geometry geometry;geometry.type=value["type"].toString().toStdString();auto polygons=value["coordinates"].toArray();if(geometry.type=="Polygon")polygons=QJsonArray{polygons};
+    Geometry geometry;geometry.type=value["type"].toString().toStdString();auto polygons=value["coordinates"].toArray();
+    if(geometry.type=="Polygon"){
+        QJsonArray wrapped;wrapped.append(QJsonValue(polygons));polygons=std::move(wrapped);
+    }
     for(const auto& polygon:polygons){Polygon rings;for(const auto& ring:polygon.toArray()){Ring points;for(const auto& point:ring.toArray()){const auto xy=point.toArray();if(xy.size()!=2)throw std::runtime_error("INVALID_CUT_COORDINATE");points.push_back({xy[0].toDouble(),xy[1].toDouble()});}rings.push_back(std::move(points));}geometry.polygons.push_back(std::move(rings));}return geometry;
 }
 QJsonObject cutViewJson(const MapViewState& view,bool touch) {
