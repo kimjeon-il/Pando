@@ -30,43 +30,30 @@ if (objectActionApplies('coast-reconcile', { domain: 'generic', type: 'feature' 
   fail('Generic Feature may not participate in territorial coast reconciliation');
 }
 
-const legacy = {
-  type: 'Feature',
-  id: 'legacy-generic',
-  geometry: { type: 'Point', coordinates: [0, 0] },
-  properties: {
-    schemaVersion: 1,
-    name: 'legacy',
-    role: 'territory',
-    ownerId: 'country-a',
-    landBinding: 'hard',
-    category: 'custom',
-    source: { format: 'geojson', provider: 'old-provider' },
-  },
+const current = {
+  type: 'Feature', id: 'current-generic', geometry: { type: 'Point', coordinates: [0, 0] },
+  properties: { schemaVersion: 2, name: 'current', source: {
+    kind: 'gis', sourceFormat: 'geojson', details: { attributes: { category: 'custom' } },
+  } },
 };
-const [normalized] = normalizeGenericFeatureCollection([legacy]);
-if (normalized.properties.schemaVersion !== GENERIC_FEATURE_SCHEMA_VERSION) fail('legacy Generic Feature does not normalize to v2');
+const [normalized] = normalizeGenericFeatureCollection([current]);
 const canonicalKeys = [...GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS].sort();
-if (JSON.stringify(Object.keys(normalized.properties).sort()) !== JSON.stringify(canonicalKeys)) {
+if (JSON.stringify(Object.keys(normalized.properties).sort()) !== JSON.stringify(canonicalKeys))
   fail('Generic Feature v2 leaked non-canonical top-level properties');
-}
-if (normalized.properties.source?.details?.legacyGenericSemantics?.ownerId !== 'country-a') {
-  fail('legacy Generic territorial semantics were not preserved in provenance details');
-}
-if (normalized.properties.source?.details?.legacyProperties?.category !== 'custom') {
-  fail('legacy Generic extension properties were not preserved in provenance details');
-}
-if (normalized.properties.source?.details?.unmappedSourceFields?.provider !== 'old-provider') {
-  fail('legacy source metadata was not preserved in provenance details');
+if (normalized.properties.source.details.attributes.category !== 'custom') fail('GIS source attributes were not preserved');
+for (const properties of [{ schemaVersion: 1 }, { schemaVersion: 2, role: 'territory' }]) {
+  let rejected = false;
+  try { normalizeGenericFeatureCollection([{ ...current, properties }]); } catch { rejected = true; }
+  if (!rejected) fail('Retired Generic schema/fields were accepted');
 }
 
 const staticUiSource = read('index.html');
-for (const marker of ['genericFeatureConversionSection', 'convertGenericFeatureBtn', 'genericFeatureRoleValue', 'genericFeatureTopologyValue']) {
+for (const marker of ['genericFeatureConversionSection', 'convertGenericFeatureBtn']) {
   if (!staticUiSource.includes(marker)) fail(`canonical Generic fallback UI is missing marker: ${marker}`);
 }
 const projectStateSource = read('assets/js/modules/project-state.js');
 for (const marker of ['validateSourceProvenance', 'GENERIC_PROPERTY_KEYS']) {
-  if (!projectStateSource.includes(marker)) fail(`project schema is missing Generic/provenance migration marker: ${marker}`);
+  if (!projectStateSource.includes(marker)) fail(`project schema is missing Generic/provenance validation marker: ${marker}`);
 }
 const serializerSource = read('assets/js/modules/project-serializer.js');
 for (const marker of ["purpose: 'lossless-fallback'", 'directCreation: false', 'sourceProvenanceSchemaVersion']) {

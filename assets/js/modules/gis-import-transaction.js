@@ -267,14 +267,17 @@ export function createGisImportTransactionCommitter(runtime = {}) {
       f.id = uid();
       if (['Polygon', 'MultiPolygon'].includes(f.geometry?.type)) f.geometry = normalizePolygonGeometry(f.geometry) || f.geometry;
       const p = f.properties || {};
+      const attributes = Object.fromEntries(Object.entries(p).filter(([key]) =>
+        !['schemaVersion', 'name', 'notes', 'color', 'locked', 'source'].includes(key)));
+      const source = normalizeSourceProvenance(p.source, { kind: SOURCE_KINDS.GIS, sourceFormat: 'geojson' });
+      if (Object.keys(attributes).length) source.details.attributes = { ...(source.details.attributes || {}), ...attributes };
       f.properties = {
-        ...p,
-        schemaVersion: p.schemaVersion ?? GENERIC_FEATURE_SCHEMA_VERSION,
+        schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION,
         name: String(p.name || ''),
         color: p.color || DEFAULT_GENERIC_FEATURE_COLOR,
         locked: p.locked === true,
         notes: String(p.notes || ''),
-        source: normalizeSourceProvenance(p.source, { kind: SOURCE_KINDS.GIS, sourceFormat: 'geojson' }),
+        source,
       };
       if (!f.properties.source.sourceId && sourceId) f.properties.source = {
         ...f.properties.source, sourceId,

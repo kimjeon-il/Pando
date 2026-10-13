@@ -177,7 +177,8 @@ export function createSpatialDataPorts(providers) {
       get createRingHitTester() { return providers.runtime.createRingHitTester; },
       get DISTRIBUTION_MODES() { return providers.runtime.DISTRIBUTION_MODES; },
       get normalizeTerritorialEntities() { return providers.runtime.normalizeTerritorialEntities; },
-      get TERRITORIAL_COVERAGE_MODES() { return providers.runtime.TERRITORIAL_COVERAGE_MODES; },    }),
+      get TERRITORIAL_COVERAGE_MODES() { return providers.runtime.TERRITORIAL_COVERAGE_MODES; },
+    }),
     territoryGeometry: Object.freeze({
       get geometryMultiCoordinates() { return providers.territoryComponents.geometryMultiCoordinates; },
       get multiPolygonPlanarArea() { return providers.territoryComponents.multiPolygonPlanarArea; },
@@ -287,10 +288,10 @@ function createMapResourcePorts(providers) {
     }),
     objectCatalog: Object.freeze({
       get builtinSubunitSourceId() { return providers.runtime.builtinSubunitSourceId; },
-      get GENERIC_FEATURE_ROLE_RULES() { return providers.runtime.GENERIC_FEATURE_ROLE_RULES; },
       get MAP_OBJECT_CATEGORIES() { return providers.runtime.MAP_OBJECT_CATEGORIES; },
       get MAP_OBJECT_CATEGORY_ORDER() { return providers.runtime.MAP_OBJECT_CATEGORY_ORDER; },
-      get MAP_OBJECT_TYPES() { return providers.runtime.MAP_OBJECT_TYPES; },    }),
+      get MAP_OBJECT_TYPES() { return providers.runtime.MAP_OBJECT_TYPES; },
+    }),
     objectPresentation: Object.freeze({
       get createTerritorialScopeResolver() { return providers.runtime.createTerritorialScopeResolver; },
       get genericFeatureGeometryKind() { return providers.runtime.genericFeatureGeometryKind; },

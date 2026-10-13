@@ -27,9 +27,9 @@ function normalizedDetails(value) {
 }
 
 export function normalizeSourceProvenance(value = {}, defaults = {}) {
-  const raw = typeof value === 'string'
-    ? { dataset: value }
-    : plainObject(value) ? value : {};
+  if (!plainObject(value) || [...SOURCE_ALIASES].some(key => Object.hasOwn(value, key)))
+    throw new TypeError('Source provenance requires canonical object fields.');
+  const raw = value;
   const fallback = plainObject(defaults) ? defaults : {};
   let kind = text(raw.kind || fallback.kind);
   if (!SOURCE_KIND_SET.has(kind)) kind = SOURCE_KINDS.UNSUPPORTED;
@@ -54,9 +54,9 @@ export function normalizeSourceProvenance(value = {}, defaults = {}) {
     schemaVersion: SOURCE_PROVENANCE_SCHEMA_VERSION,
     kind,
     dataset: text(raw.dataset ?? fallback.dataset),
-    sourceId: text(raw.sourceId ?? raw.id ?? fallback.sourceId),
-    sourceFormat: text(raw.sourceFormat ?? raw.format ?? fallback.sourceFormat),
-    sourceType: text(raw.sourceType ?? raw.type ?? fallback.sourceType),
+    sourceId: text(raw.sourceId ?? fallback.sourceId),
+    sourceFormat: text(raw.sourceFormat ?? fallback.sourceFormat),
+    sourceType: text(raw.sourceType ?? fallback.sourceType),
     version: text(raw.version ?? fallback.version),
     importedAt: text(raw.importedAt ?? fallback.importedAt),
     details,
