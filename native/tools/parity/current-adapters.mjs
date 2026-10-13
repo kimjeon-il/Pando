@@ -47,16 +47,18 @@ export async function observeCurrent(adapter, { webRoot, appRoot, binary, eviden
   }
   if(adapter==='library-loading') {
     const corpus=json(resolve(webRoot,'tests/fixtures/portability/library-loading.json'));
-    const {index}=json(resolve(webRoot,'tests/fixtures/portability/library-queries.json'));
-    const indexBytes=readFileSync(containedFile(webRoot,index.webPath));
-    const nativeIndex=readFileSync(containedFile(appRoot,index.appPath));
-    if(sha256(indexBytes)!==index.sha256||sha256(nativeIndex)!==index.sha256)throw new Error('Loader catalog bytes changed');
+    const {indexes}=json(resolve(webRoot,'tests/fixtures/portability/library-queries.json'));
+    const indexBytes=readFileSync(containedFile(webRoot,indexes.web.webPath));
+    const nativeIndex=readFileSync(containedFile(appRoot,indexes.app.appPath));
+    if(indexBytes.length!==indexes.web.compressedBytes||sha256(indexBytes)!==indexes.web.sha256||
+       nativeIndex.length!==indexes.app.compressedBytes||sha256(nativeIndex)!==indexes.app.sha256)
+      throw new Error('Loader catalog bytes changed');
     const bytes=readFileSync(containedFile(webRoot,corpus.webPath)),appBytes=readFileSync(containedFile(appRoot,corpus.appPath));
     if(sha256(bytes)!==corpus.sha256||sha256(appBytes)!==corpus.sha256)throw new Error('Loader chunk bytes changed');
     const source=JSON.parse(gunzipSync(bytes));
     const {libraryLoadingTrace}=await load(webRoot,'tools/parity/library.mjs');
-    const web=await libraryLoadingTrace(corpus,index,indexBytes,bytes);
-    const app=JSON.parse(run(binary,{...corpus,loading:true,indexText:nativeIndex.toString('utf8'),sha256:index.sha256,entityBytes:appBytes.toString('base64')}));
+    const web=await libraryLoadingTrace(corpus,indexes.web,indexBytes,bytes);
+    const app=JSON.parse(run(binary,{...corpus,loading:true,indexText:nativeIndex.toString('utf8'),sha256:indexes.app.sha256,entityBytes:appBytes.toString('base64')}));
     if(app.length!==corpus.operations.length)throw new Error('Incomplete loading observations');
     return corpus.operations.map((row,i)=>({id:row.id,input:row,web:web[i],app:app[i],expected:{id:row.id,...row.expected,value:row.expected.value==='source'?source:null}}));
   }
@@ -116,10 +118,11 @@ export async function observeCurrent(adapter, { webRoot, appRoot, binary, eviden
   }
   if(adapter==='library-queries') {
     const corpus=json(resolve(webRoot,'tests/fixtures/portability/library-queries.json'));
-    const webBytes=readFileSync(resolve(webRoot,corpus.index.webPath)),appBytes=readFileSync(resolve(appRoot,corpus.index.appPath));
-    for(const bytes of [webBytes,appBytes])if(bytes.length!==corpus.index.compressedBytes||sha256(bytes)!==corpus.index.sha256)throw new Error('Library source bytes/hash drift');
+    const webBytes=readFileSync(resolve(webRoot,corpus.indexes.web.webPath)),appBytes=readFileSync(resolve(appRoot,corpus.indexes.app.appPath));
+    for(const [bytes,spec] of [[webBytes,corpus.indexes.web],[appBytes,corpus.indexes.app]])
+      if(bytes.length!==spec.compressedBytes||sha256(bytes)!==spec.sha256)throw new Error('Library source bytes/hash drift');
     const {libraryTrace}=await load(webRoot,'tools/parity/library.mjs');
-    const web=await libraryTrace(corpus,webBytes),app=JSON.parse(run(binary,{indexText:appBytes.toString('utf8'),sha256:corpus.index.sha256,cases:corpus.cases}));
+    const web=await libraryTrace(corpus,corpus.indexes.web,webBytes),app=JSON.parse(run(binary,{indexText:appBytes.toString('utf8'),sha256:corpus.indexes.app.sha256,cases:corpus.cases}));
     if(app.length!==corpus.cases.length)throw new Error('Incomplete native catalog observations');
     return corpus.cases.map((row,index)=>{
       if(app[index].id!==row.id)throw new Error('Native catalog case identity mismatch');
