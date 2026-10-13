@@ -14953,9 +14953,9 @@
       "file": "state-soviet-union.json.gz",
       "validFrom": "1922",
       "validTo": "1991",
-      "compressedBytes": 361564,
+      "compressedBytes": 361984,
       "decodedBytes": 3474352,
-      "sha256": "5617655b97eb73205d1e6042b9cbed5ced79f6fb0f87603c65b684ed34025fc0",
+      "sha256": "cb4355e6c08ef42ac3d8b214680761624099d9dea659901b8c762d6191802eaf",
       "bbox": [
         -180,
         35.140647,
