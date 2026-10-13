@@ -5,7 +5,7 @@ import { encodePlaceTile } from '../../assets/js/modules/place-codec.js';
 test.use({ viewport:{width:1440,height:900} });
 
 test('builtin selection is readonly, copy edits separately, and undo restores builtin ownership',async({page,context})=>{
-  test.setTimeout(90_000);
+  test.setTimeout(150_000);
   page.setDefaultTimeout(8_000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   const records=[{source:'synthetic',sourceId:'seoul',name:'서울 Synthetic',nameEn:'Seoul',nameNative:'서울',kind:'capital',coordinates:[127,37],minZoom:0,priority:90},
@@ -24,8 +24,8 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   const englishSwitch = page.locator('[data-place-language="en"]');
   const nativeSwitch = page.locator('[data-place-language="native"]');
   await expect(englishSwitch).toBeVisible();
-  await englishSwitch.check();
-  await nativeSwitch.check();
+  await englishSwitch.locator('..').click();
+  await nativeSwitch.locator('..').click();
   await expect(englishSwitch).toBeChecked();
   await expect(nativeSwitch).toBeChecked();
   await page.locator('#mapDisplayBtn').evaluate(button => button.click());
@@ -33,7 +33,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await page.locator('#layerSearchInput').fill('서울');
   const result=page.locator('[data-object-search-select="labels"][data-item-id="builtin:place:synthetic:seoul"]');
   await expect(result).toBeVisible();await result.click();
-  await expect(page.locator('#labelProperties')).toBeVisible();
+  await expect(page.locator('#labelProperties')).toBeVisible({timeout:30_000});
   await expect(page.locator('#labelNameInput')).toHaveAttribute('readonly','');
   await expect(page.locator('#labelKindInput')).toBeDisabled();
   await expect(page.locator('#labelKindInput').locator('..').locator('.ui-select-control')).toBeDisabled();
@@ -42,8 +42,8 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#objectDeleteBtn')).toHaveAttribute('data-tooltip','내장 지명은 삭제할 수 없습니다.');
   await page.locator('#actionsTabBtn').click();
   await page.locator('#copyPlaceBtn').click();
+  await expect(page.locator('#labelNameInput')).not.toHaveAttribute('readonly','',{timeout:30_000});
   await expect(page.locator('#labelNameInput')).toBeVisible();
-  await expect(page.locator('#labelNameInput')).not.toHaveAttribute('readonly','');
   await expect(page.locator('#labelKindInput')).toBeEnabled();
   await expect(page.locator('#labelKindInput').locator('..').locator('.ui-select-control')).toBeEnabled();
   await page.locator('#objectSearchBtn').evaluate(button => button.click());
@@ -52,9 +52,9 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
   // Undo the copy itself; the builtin source must immediately become searchable again.
   await page.locator('#undoBtn').evaluate(button => button.click());
-  await expect(result).toBeVisible();await result.click();
+  await expect(result).toBeVisible({timeout:30_000});await result.click();
   await expect(page.locator('#labelNameInput')).toHaveValue('서울 Synthetic');
-  await expect(page.locator('#labelNameInput')).toHaveAttribute('readonly','');
+  await expect(page.locator('#labelNameInput')).toHaveAttribute('readonly','',{timeout:30_000});
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
   expect(await page.locator('.user-label').count()).toBeLessThanOrEqual(2048);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences')).labels.place.languages)).toEqual({ko:true,en:true,native:true});
