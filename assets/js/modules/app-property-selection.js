@@ -234,10 +234,6 @@ export function createPropertySelection() {
       const result = await dependencies.objectModelA.distributionService.deleteLayer(layer.id);
       if (!currentProject(generation)) return false;
       if (!result.ok) return false;
-      if (dependencies.projectState.state.distributionSettings.activeLayerId === layer.id) {
-        dependencies.projectState.state.distributionSettings.activeLayerId = '';
-        dependencies.domains.projectDomain.queuePresentationAutosave();
-      }
       (0, dependencies.layers.markLayerTreeDirty)();
       if (dependencies.projectState.state.selected?.domain === 'distribution'
         && String(dependencies.projectState.state.selected.id) === String(layer.id))
