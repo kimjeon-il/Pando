@@ -57,8 +57,11 @@ QJsonObject geometryJson(const Geometry& geometry) {
 }
 Point point(const QJsonValue& value) {
     const auto row=value.toArray();
-    if(row.size()!=2||!row[0].isDouble()||!row[1].isDouble()||!std::isfinite(row[0].toDouble())||!std::isfinite(row[1].toDouble()))
-        throw std::runtime_error("RIVER_INVALID_RESULT_POINT");
+    if(row.size()!=2||!row[0].isDouble()||!row[1].isDouble()||!std::isfinite(row[0].toDouble())||!std::isfinite(row[1].toDouble())) {
+        auto sample=QJsonDocument(QJsonArray{value}).toJson(QJsonDocument::Compact);
+        sample.truncate(160);
+        throw std::runtime_error((QByteArray("RIVER_INVALID_RESULT_POINT: ")+sample).toStdString());
+    }
     return {row[0].toDouble(),row[1].toDouble()};
 }
 Geometry geometry(const QJsonObject& object) {
