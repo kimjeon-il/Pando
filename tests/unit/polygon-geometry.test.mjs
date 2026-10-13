@@ -158,3 +158,24 @@ test('wrapping is idempotent when strip clipping creates a long planar edge', as
   const polygons = value => value.type === 'Polygon' ? [value.coordinates] : value.coordinates;
   assert.deepEqual(pc.xor(polygons(first), polygons(second)), []);
 });
+
+test('Soviet Union geometry preserves its 231 land components under D3 spherical winding', () => {
+  const source = JSON.parse(fs.readFileSync(
+    path.join(root, 'assets/data/territorial-entities/source/countries/soviet-union.json'),
+    'utf8',
+  ));
+  const entity = source.entities.find(item => item.entityId === 'state:soviet-union');
+  assert.ok(entity, 'the USSR catalog identity must exist');
+  const version = entity.geometryVersions.find(item =>
+    item.versionId === 'state:soviet-union:1922-1991-baikonur-r1');
+  assert.ok(version, 'the 1922–1991 reference shape must exist');
+  const geometry = version.geometry;
+  assert.equal(geometry.type, 'MultiPolygon');
+  assert.equal(geometry.coordinates.length, 231);
+  assert.equal(geometry.coordinates.reduce((sum, polygon) =>
+    sum + polygon.reduce((count, ring) => count + ring.length, 0), 0), 40054);
+  assert.ok(geometry.coordinates.every(polygon => polygon.length === 1),
+    'source has no holes to reclassify or drop');
+  assert.equal(hasCanonicalPolygonWinding(geometry), true,
+    'otherwise D3 fills the spherical complement (sea) instead of USSR land');
+});
