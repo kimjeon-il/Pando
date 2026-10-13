@@ -7,13 +7,16 @@ const square = (x0, y0, x1, y1) => ({ type: 'Polygon', coordinates: [[[x0, y0], 
 const feature = (id, geometry, properties = {}) => createTerritorialFeature({ id, geometry, entityKind: 'general', ...properties });
 const countries = [feature('a', square(0, 0, 4, 4)), feature('b', square(4, 0, 8, 4))];
 const child = feature('child', square(0, 0, 2, 2), { entityKind: 'general', parentId: 'a' });
-const rebase = () => ({ type: 'rebase', dataRevision: 1, editSources: {
+const envelope = { rpc: 'pandolab-worker-rpc', protocolVersion: 1 };
+const event = (operation, payload) => ({ ...envelope, type: 'event', operation, payload });
+const cancel = requestId => ({ ...envelope, type: 'cancel', requestId });
+const rebase = () => event('map-edit.rebase', { dataRevision: 1, editSources: {
   sourceRevision: 1, patches: [...countries, child].map(item => ({
     key: 'territorial:' + item.id, kind: 'territorial', metadata: { ...item, geometry: undefined }, geometry: item.geometry,
   })),
 } });
 const execute = (requestId, operation, payload, revisions = { sourceRevision: 1 }) => ({
-  type: 'execute', requestId, operation, payload, ...(operation === 'merge' ? payload : {}), dataRevision: 1, ...revisions,
+  ...envelope, type: 'request', requestId, operation, payload: { payload, ...(operation === 'merge' ? payload : {}), ...revisions }, metadata: { dataRevision: 1 },
 });
 
 // Run the unchanged Worker script and real calculation modules. Only module delivery
@@ -85,12 +88,12 @@ test('edit-sync while preview code loads rejects the stale request and retains n
   await worker.send(rebase());
   await worker.send(execute(1, 'territorial-preview', { operation: 'redraw', beforeIds: ['child'], afterFeatures: [child], removedIds: [] }));
   await worker.next(value => value.gate === 'import');
-  await worker.send({ type: 'edit-sync', sourceRevision: 2, patches: [], removedKeys: [] });
+  await worker.send(event('edit-sync', { sourceRevision: 2, patches: [], removedKeys: [] }));
   await worker.send({ control: 'release-import' });
   const response = await worker.result(1);
   await worker.send(execute(2, 'territorial-validation', { preparationId: response.result?.preparationId || 'preview:1' }, { sourceRevision: 2 }));
   const receipt = await worker.result(2);
-  assert.equal(response.cancelled, true);
+  assert.equal(response.error.category, 'CANCELLED');
   assert.equal(response.ok, false);
   assert.equal(receipt.ok, false, 'stale previews must not mint a receipt for the new source revision');
 });
@@ -100,10 +103,10 @@ test('edit-sync while query code loads rejects the stale read result', { timeout
   await worker.send(rebase());
   await worker.send(execute(1, 'territorial-source', { parentId: 'a' }));
   await worker.next(value => value.gate === 'import');
-  await worker.send({ type: 'edit-sync', sourceRevision: 2, patches: [], removedKeys: [] });
+  await worker.send(event('edit-sync', { sourceRevision: 2, patches: [], removedKeys: [] }));
   await worker.send({ control: 'release-import' });
   const response = await worker.result(1);
-  assert.equal(response.cancelled, true);
+  assert.equal(response.error.category, 'CANCELLED');
   assert.equal(response.ok, false);
 });
 
@@ -113,12 +116,12 @@ for (const invalidation of ['cancel', 'rebase']) {
     await worker.send(rebase());
     await worker.send(execute(1, 'merge', { sourceId: 'a', targetIds: ['b'] }));
     await worker.next(value => value.gate === 'import');
-    await worker.send(invalidation === 'cancel' ? { type: 'cancel', requestId: 1 } : rebase());
+    await worker.send(invalidation === 'cancel' ? cancel(1) : rebase());
     await worker.send({ control: 'release-import' });
     const response = await worker.result(1);
-    assert.equal(response.cancelled, true);
+    assert.equal(response.error.category, 'CANCELLED');
     assert.equal(response.ok, false);
-    await worker.send({ type: 'commit', requestId: 1, nextDataRevision: 2 });
+    await worker.send(event('map-edit.commit', { requestId: 1, nextDataRevision: 2 }));
     await worker.send(execute(2, 'merge', { sourceId: 'a', targetIds: ['b'] }));
     const fresh = await worker.result(2);
     assert.equal(fresh.ok, true);
@@ -132,10 +135,10 @@ for (const sharedModule of ['coordinate-bounds.js', 'polygon-clipping-calculatio
     await worker.send(rebase());
     await worker.send(execute(1, 'merge', { sourceId: 'a', targetIds: ['b'] }));
     await worker.next(value => value.gate === 'import');
-    await worker.send({ type: 'cancel', requestId: 1 });
+    await worker.send(cancel(1));
     await worker.send({ control: 'release-import' });
     const response = await worker.result(1);
-    assert.equal(response.cancelled, true);
+    assert.equal(response.error.category, 'CANCELLED');
     assert.equal(response.ok, false);
   });
 }
@@ -150,11 +153,11 @@ for (const invalidation of ['cancel', 'edit-sync', 'rebase']) {
     await worker.send(execute(2, 'territorial-snap', { coordinate: [0, 0], margin: 0.1 }));
     await worker.next(value => value.gate === 'timer');
     await worker.send(invalidation === 'rebase' ? rebase() : invalidation === 'edit-sync'
-      ? { type: 'edit-sync', sourceRevision: 2, patches: [], removedKeys: [] }
-      : { type: 'cancel', requestId: 2 });
+      ? event('edit-sync', { sourceRevision: 2, patches: [], removedKeys: [] })
+      : cancel(2));
     await worker.send({ control: 'release-timer' });
     const response = await worker.result(2);
-    assert.equal(response.cancelled, true);
+    assert.equal(response.error.category, 'CANCELLED');
     assert.equal(response.ok, false);
   });
 }

@@ -72,7 +72,6 @@ function createCanonicalWorkerRpcCodec() {
 
 export function createWorkerRpcClient({
   createWorker,
-  codec = createCanonicalWorkerRpcCodec(),
   defaultTimeoutMs = 30_000,
   getProjectRevision = () => 0,
   isCurrent = null,
@@ -84,9 +83,7 @@ export function createWorkerRpcClient({
   clearSchedule = handle => clearTimeout(handle),
 } = {}) {
   if (typeof createWorker !== 'function') throw new TypeError('Worker RPC createWorker callback is required.');
-  for (const method of ['encodeRequest', 'encodeCancel', 'encodeEvent', 'decodeMessage']) {
-    if (typeof codec?.[method] !== 'function') throw new TypeError(`Worker RPC codec.${method}() is required.`);
-  }
+  const codec = createCanonicalWorkerRpcCodec();
 
   let worker = null;
   let sequence = 0;
