@@ -15,7 +15,11 @@ from pyproj import Transformer
 
 import compare_sentinel2_saltoro as base
 
-ROOT=Path("assets/data/research/siachen")
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
+from report_paths import report_path
+
+ROOT=report_path("assets/data/research/siachen")
 INPUT=ROOT/"siachen_s2_optical_comparison.json"
 ANALYSIS=ROOT/"sia_bilafond_dem_comparison.json"
 BBOX=[76.725,35.501,76.796,35.548]

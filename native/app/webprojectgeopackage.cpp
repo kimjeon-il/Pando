@@ -109,11 +109,11 @@ QByteArray convertWebProjectGeoPackage(const GisGeoPackage& vectors,V state,
     require(used.size()==assets.size(),"ORPHAN_PROJECT_GPKG_ASSET");
     // Complete v9 JSON is authoritative. Spatial tables are derived views and
     // never supply or replace identity, timeline records or archived geometry.
-    auto document=projectcodec::decodeWeb(state.encode());
+    auto document=::projectcodec::decodeWeb(state.encode());
     if(!isStaticTimeline(document))require(vectors.layers.empty(),"WEB_GPKG_TIMELINE_VECTORS");
     else {
         validateProjectGeoPackageVectors(vectors,webVectors(document,state));
     }
-    Project candidate;candidate.replace(std::move(document));return projectcodec::encode(candidate);
+    Project candidate;candidate.replace(std::move(document));return ::projectcodec::encode(candidate);
 }
 }

@@ -24,9 +24,13 @@ jobs:
       - name: Validate output files
         run: |
           python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path("tools").resolve()))
+          from report_paths import report_path
           import json
           from pathlib import Path
-          p=Path("assets/data/research/siachen")
+          p=report_path("assets/data/research/siachen")
           m=json.loads((p/"siachen_agpl_discrepancy_diagnostic.json").read_text())
           assert 1 < m["by_source_scale"]["10m"]["rgi_overlap_pakistan_km2"] < 2
           assert m["line_through_ice"]["intersected_length_km"] > 0
@@ -37,7 +41,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/research/siachen/
+          git add "$(python tools/report_paths.py assets/data/research/siachen)"/
           if ! git diff --cached --quiet; then
             git commit -m "research: record spatial diagnosis of AGPL and ice overlaps"
             git push origin HEAD:work/gis
@@ -46,8 +50,8 @@ jobs:
         with:
           name: siachen-ice-agpl-discrepancy
           path: |
-            assets/data/research/siachen/siachen_agpl_discrepancy_diagnostic.json
-            assets/data/research/siachen/siachen_glacier_agpl_discrepancy.geojson
-            assets/data/research/siachen/siachen_agpl_discrepancy_overview.png
-            assets/data/research/siachen/siachen_agpl_discrepancy_zoom.png
-            assets/data/research/siachen/README_discrepancy.md
+            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_agpl_discrepancy_diagnostic.json
+            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_glacier_agpl_discrepancy.geojson
+            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_agpl_discrepancy_overview.png
+            "$(python tools/report_paths.py assets/data/research/siachen)"/siachen_agpl_discrepancy_zoom.png
+            reports/research/siachen/README_discrepancy.md
