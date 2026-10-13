@@ -11,6 +11,11 @@ on:
       - 'tests/test_report_paths.py'
       - 'tests/unit/report-paths.test.mjs'
       - 'native/tests/place_sync_contract_tests.cpp'
+      - 'assets/js/modules/adaptive-render-quality.js'
+      - 'assets/js/modules/country-mesh-zoom-policy.js'
+      - 'assets/js/modules/gpu-map-renderer.js'
+      - 'tests/browser/country-shared-boundary.spec.mjs'
+      - 'tests/browser/startup-performance.spec.mjs'
   workflow_dispatch:
 
 permissions:
@@ -115,3 +120,29 @@ jobs:
           Path('reports/places/source-manifest.json').unlink()
           PY
           ctest --test-dir native/build-pretransfer --output-on-failure -R '^place_sync_contract_tests$'
+
+  web-mobile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned Web test dependencies
+        run: |
+          npm install --global pnpm@11.19.0
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Verify selected UI candidates
+        run: |
+          node --test tests/unit/adaptive-render-quality.test.mjs tests/unit/country-mesh-zoom-policy.test.mjs
+          pnpm exec playwright test tests/browser/country-shared-boundary.spec.mjs tests/browser/startup-performance.spec.mjs --grep 'keeps precise|Android-density'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: migration-mobile-test-failures
+          path: test-results/
+          if-no-files-found: ignore
