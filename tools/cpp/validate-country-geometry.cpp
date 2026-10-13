@@ -1,6 +1,7 @@
 // Canonical and preview territorial geometry validator.
 // Uses the D3 spherical winding contract and GEOS topology checks.
 #include <pandoeditor/losslessjson.h>
+#include <pandoeditor/sphericalpolygon.h>
 #include <geos_c.h>
 #include <zlib.h>
 #include <algorithm>
@@ -72,72 +73,29 @@ std::vector<Point> ring(const V& value) {
     if(distinct.size()<3)throw std::runtime_error("INVALID_POLYGON_RING: degenerate ring");
     return result;
 }
-bool globalSeam(const std::vector<Point>& points) {
-    if(points.size()!=5)return false;
-    std::set<std::pair<double,double>> seen;
-    for(std::size_t i=0;i<4;++i)seen.insert({points[i].x,points[i].y});
-    return seen==std::set<std::pair<double,double>>{{-180,-90},{-180,90},{180,-90},{180,90}};
-}
-double sphericalSignedArea(const std::vector<Point>& ring) {
-    constexpr double rad=3.14159265358979323846/180;
-    constexpr double quarterPi=3.14159265358979323846/4;
-    double oldLongitude=ring.front().x*rad,phi=ring.front().y*rad/2+quarterPi;
-    double oldCos=std::cos(phi),oldSin=std::sin(phi),sum=0;
-    for(std::size_t i=1;i<ring.size();++i) {
-        const auto& point=ring[i];const double longitude=point.x*rad;
-        phi=point.y*rad/2+quarterPi;
-        const auto delta=longitude-oldLongitude;
-        const auto currentCos=std::cos(phi),currentSin=std::sin(phi);
-        const auto k=oldSin*currentSin;
-        sum+=std::atan2(k*std::sin(delta),oldCos*currentCos+k*std::cos(delta));
-        oldLongitude=longitude;oldCos=currentCos;oldSin=currentSin;
-    }
-    return sum*2;
-}
-void validateSphericalPolygon(const V& geometry) {
-    const auto type=str(field(geometry,"type"));
-    if(type!="Polygon"&&type!="MultiPolygon")throw std::runtime_error("Geometry is not Polygon/MultiPolygon");
-    const auto& coordinates=array(field(geometry,"coordinates"));
-    std::vector<const V*> polygons;
-    if(type=="Polygon")polygons.push_back(&field(geometry,"coordinates"));
-    else for(const auto& polygon:coordinates)polygons.push_back(&polygon);
-    if(polygons.empty())throw std::runtime_error("Empty MultiPolygon");
-    const double sphere=4*std::acos(-1.0),hemisphere=sphere/2;
-    for(std::size_t p=0;p<polygons.size();++p) {
-        const auto& rings=array(*polygons[p]);
-        if(rings.empty())throw std::runtime_error("Missing outer ring");
-        for(std::size_t r=0;r<rings.size();++r) {
-            const auto coordinates=ring(rings[r]);
-            if(globalSeam(coordinates)) {
-                if(r!=0)throw std::runtime_error("Global seam may not be a hole");
-                continue;
-            }
-            const double signedArea=sphericalSignedArea(coordinates);
-            if(!std::isfinite(signedArea))
-                throw std::runtime_error("AMBIGUOUS_SPHERICAL_RING: nonfinite area");
-            double area=0;
-            if(std::abs(signedArea)<=1e-15) {
-                bool discontinuity=false;
-                for(std::size_t i=0;i<coordinates.size();++i) {
-                    if(std::abs(coordinates[i].y)==90||(i&&std::abs(coordinates[i].x-coordinates[i-1].x)>=180))discontinuity=true;
-                }
-                if(discontinuity)throw std::runtime_error("AMBIGUOUS_SPHERICAL_RING: seam or pole");
-                const auto ox=coordinates[0].x,oy=coordinates[0].y;double planar=0;
-                for(std::size_t i=1;i<coordinates.size();++i) {
-                    const auto& a=coordinates[i-1];const auto& b=coordinates[i];
-                    planar+=(a.x-ox)*(b.y-oy)-(b.x-ox)*(a.y-oy);
-                }
-                if(planar==0)throw std::runtime_error("INVALID_POLYGON_RING: zero-area ring");
-                const double tiny=std::max(std::abs(planar)*3.14159265358979323846*3.14159265358979323846/(180*180)/2,
-                                           std::numeric_limits<double>::denorm_min());
-                area=planar<0?tiny:sphere-tiny;
-            }else area=signedArea<0?sphere+signedArea:signedArea;
-            if(!(area>0&&area<sphere))
-                throw std::runtime_error("AMBIGUOUS_SPHERICAL_RING: invalid spherical interior");
-            if((r==0&&area>=hemisphere)||(r!=0&&area<=hemisphere))
-                throw std::runtime_error("INVALID_SPHERICAL_WINDING: "+std::to_string(p)+"/"+std::to_string(r));
+// Share the exact spherical interior/winding rules with the production
+// C++ core rather than maintaining an independent generator-side formula.
+pandoeditor::Geometry parsedPolygon(const V& source) {
+    pandoeditor::Geometry geometry;
+    geometry.type=str(field(source,"type"));
+    if(geometry.type!="Polygon"&&geometry.type!="MultiPolygon")
+        throw std::runtime_error("Expected Polygon/MultiPolygon");
+    const auto& coordinates=field(source,"coordinates");
+    const auto polygon=[&](const V& value) {
+        pandoeditor::Polygon result;
+        for(const auto& sourceRing:array(value)) {
+            pandoeditor::Ring output;
+            for(const auto p:ring(sourceRing))output.push_back({p.x,p.y});
+            result.push_back(std::move(output));
         }
-    }
+        return result;
+    };
+    if(geometry.type=="Polygon")geometry.polygons.push_back(polygon(coordinates));
+    else for(const auto& value:array(coordinates))geometry.polygons.push_back(polygon(value));
+    return geometry;
+}
+void validateSphericalPolygon(const V& source) {
+    pandoeditor::requireCanonicalSphericalWinding(parsedPolygon(source));
 }
 class Topology {
     GEOSContextHandle_t context=GEOS_init_r();
