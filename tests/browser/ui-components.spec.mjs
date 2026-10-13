@@ -94,8 +94,9 @@ test('flag actions follow the selected object type across entity and river edito
   page.on('pageerror', error => errors.push(error.message));
   const saved = staticAutosaveProject({ hydroEdits: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000005',
     geometry: { type: 'LineString', coordinates: [[5, 45], [8, 46], [10, 45]] },
-    properties: { pandolab_schema_version: 1, category: 'river', name: '깃발 표시 검증 강',
-      editorColor: '#3b82c4', notes: '', source: 'test', locked: false } }] });
+    properties: { pandolab_domain: 'hydro', pandolab_id: '00000000-0000-4000-8000-000000000005',
+      pandolab_schema_version: 1, category: 'river', name: '깃발 표시 검증 강',
+      editorColor: '#3b82c4', notes: '', locked: false } }] });
   const entityId = '00000000-0000-4000-8000-000000000001';
   Object.assign(saved, staticTerritorialInput([createTerritorialFeature({ id: entityId,
     geometry: { type: 'Polygon', coordinates: [[[2, 40], [2, 50], [12, 50], [12, 40], [2, 40]]] },
