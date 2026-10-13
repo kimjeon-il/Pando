@@ -7,7 +7,7 @@ on:
     paths:
       - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.*
       - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.review.md
-      - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.review.md
+      - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0619-hugum-stage4.hotspots.review.md
       - native/tools/review_north_schleswig_1914_hugum_hotspots.py
       - .github/workflows/native-north-schleswig-1914-hugum-hotspots.yml
 
@@ -63,7 +63,7 @@ jobs:
           assert rev["lastRevisionAfterReferenceDate"] is True
           assert rev["reportedFirstEditionYear"]==1880
           assert data["nearContemporarySeries"]["later0619SheetAcquired"] is False
-          doc=(report_path("native/tools/historical-library/land-borders")/(stem+".0619-hugum-stage4.hotspots.review.md")).read_text(encoding="utf-8")
+          doc=(report_path("reports/geography/germany/north-schleswig")/(stem+".0619-hugum-stage4.hotspots.review.md")).read_text(encoding="utf-8")
           assert "1914" in doc and "1878" in doc and "1916" in doc
           assert "미측정" in doc and "보류" in doc
           print("PASS: app parity Hügum exception evidence; master intact; historic 1914 accuracy not invented.")
