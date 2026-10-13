@@ -179,3 +179,29 @@ test('Soviet Union geometry preserves its 231 land components under D3 spherical
   assert.equal(hasCanonicalPolygonWinding(geometry), true,
     'otherwise D3 fills the spherical complement (sea) instead of USSR land');
 });
+
+test('numerical clipping artifacts require explicit bounded audit; genuine slivers remain errors', () => {
+  const { normalizeClippedPolygonGeometry } = globalThis.PandoLabPolygonGeometry;
+  const valid = [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]];
+  const artifact = [
+    [46.798053, 39.097382],
+    [46.803617228283514, 39.10088708625098],
+    [46.80361722811995, 39.10088708614795],
+    [46.798053, 39.097382],
+  ];
+  const input = [[valid], [artifact]];
+  assert.throws(() => normalizeClippedPolygonGeometry(input), /INVALID_POLYGON_RING/);
+  const repairs = [];
+  const normalized = normalizeClippedPolygonGeometry(input, { onPrecisionDiscard: repair => repairs.push(repair) });
+  assert.equal(normalized.type, 'Polygon');
+  assert.equal(normalized.coordinates.length, 1);
+  assert.deepEqual(normalized.coordinates[0], valid);
+  assert.equal(repairs.length, 1);
+  assert.equal(repairs[0].polygonIndex, 1);
+  assert.ok(repairs[0].areaM2 >= 0 && repairs[0].areaM2 < 0.1);
+  assert.deepEqual(input[1][0], artifact, 'the raw clipping result is never mutated');
+  const genuine = artifact.map(point => point.slice());
+  genuine[2][0] += 0.00001;
+  assert.throws(() => normalizeClippedPolygonGeometry([[valid], [genuine]],
+    { onPrecisionDiscard() { assert.fail('genuine land may not be discarded'); } }), /INVALID_POLYGON_RING/);
+});
