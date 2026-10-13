@@ -90,7 +90,7 @@ QJsonArray overlays(EditorController& controller,const MapProjection& projection
     return result;
 }
 QJsonObject snapshot(EditorController& controller,const QByteArray& before,const MapProjection& projection) {
-    const auto bytes=controller.documentBytes();const auto d=projectcodec::decode(bytes);QJsonArray features,references;
+    const auto bytes=controller.documentBytes();const auto d=::projectcodec::decode(bytes);QJsonArray features,references;
     for(const auto& unit:d.units)features.append(QJsonObject{{"id",QString::fromStdString(unit.id)},{"geometry",encodeGeometry(*d.geometries.get(staticGeometryBinding(d,unit.id).geometryRef))},{"properties",QJsonObject{{"parentId",QString::fromStdString(staticParentRelation(d,unit.id).parentId)}}}});
     for(const auto& entry:d.distributionEntries)if(entry.territory)references.append(QJsonObject{{"kind","distribution"},{"id",QString::fromStdString(entry.id)},{"target",QString::fromStdString(entry.territory->id)}});
     for(const auto& label:d.labels)if(label.territory)references.append(QJsonObject{{"kind","label"},{"id",QString::fromStdString(label.id)},{"target",QString::fromStdString(label.territory->id)}});
@@ -99,7 +99,7 @@ QJsonObject snapshot(EditorController& controller,const QByteArray& before,const
 }
 QJsonObject run(const QJsonObject& row) {
     QTemporaryDir dir;require(dir.isValid(),"fixture directory failed");Project p;p.replace(document(row));MapProjection projection;projection.rebuild(p.document());
-    QFile file(dir.filePath("input.json"));require(file.open(QIODevice::WriteOnly),"fixture write failed");file.write(projectcodec::encode(p));file.close();
+    QFile file(dir.filePath("input.json"));require(file.open(QIODevice::WriteOnly),"fixture write failed");file.write(::projectcodec::encode(p));file.close();
     EditorController controller({false,dir.filePath("private.json")});require(controller.openFile(QUrl::fromLocalFile(file.fileName())),"controller fixture open failed");controller.selectCountry("target");
     configureView(controller,row);
     const auto before=controller.documentBytes();QJsonArray observations,events;

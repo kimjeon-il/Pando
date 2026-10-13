@@ -52,7 +52,7 @@ struct Harness {
     Harness(bool mobile):editor(EditorControllerConfig{mobile,dir.filePath("private.json")}) {
         Project p;p.replace(fixture());path=QUrl::fromLocalFile(dir.filePath("fixture.json"));
         QFile f(path.toLocalFile());if(!f.open(QIODevice::WriteOnly))throw std::runtime_error("fixture write");
-        f.write(projectcodec::encode(p));f.close();
+        f.write(::projectcodec::encode(p));f.close();
         if(!editor.openFile(path))throw std::runtime_error("fixture open");
         if(!editor.setProjectionMode("flat"))throw std::runtime_error("flat fixture view");
         QObject::connect(&engine,&QQmlEngine::warnings,&engine,[this](const QList<QQmlError>& errors){
@@ -155,7 +155,7 @@ private slots:
     void territorialGeometryPreview(){
         QFETCH(bool,mobile);Harness h(mobile);QVERIFY(h.window);
         auto document=fixture();document.units[2].locked=false;
-        Project p;p.replace(document);QFile f(h.path.toLocalFile());QVERIFY(f.open(QIODevice::WriteOnly));f.write(projectcodec::encode(p));f.close();
+        Project p;p.replace(document);QFile f(h.path.toLocalFile());QVERIFY(f.open(QIODevice::WriteOnly));f.write(::projectcodec::encode(p));f.close();
         QVERIFY(h.editor.openFile(h.path));QVERIFY(h.editor.selectObject(ref("S","general"),"replace","test"));
         const auto before=h.editor.documentBytes();QVERIFY(h.editor.transferSelectedSubunit("B"));
         QTRY_VERIFY_WITH_TIMEOUT(!h.editor.structureState()["calculating"].toBool(),10000);

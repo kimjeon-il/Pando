@@ -31,7 +31,7 @@ pandoeditor::ProjectDocument fixture() {
     return document;
 }
 bool openFixture(EditorController& editor,const QString& directory) {
-    pandoeditor::Project project;project.replace(fixture());const auto bytes=projectcodec::encode(project);
+    pandoeditor::Project project;project.replace(fixture());const auto bytes=::projectcodec::encode(project);
     QFile file(directory+"/info.pando.json");if(!file.open(QIODevice::WriteOnly)||file.write(bytes)!=bytes.size())return false;
     file.close();return editor.openFile(QUrl::fromLocalFile(file.fileName()));
 }
