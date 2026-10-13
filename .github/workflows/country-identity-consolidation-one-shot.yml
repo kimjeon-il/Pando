@@ -1,4 +1,5 @@
 name: One-shot historical country identity consolidation
+# Final publication pass after country-ID policy alignment.
 
 on:
   push:
