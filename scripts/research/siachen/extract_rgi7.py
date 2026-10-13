@@ -12,7 +12,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-OUT=Path("reports/research/siachen")
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
+from report_paths import report_path
+
+OUT=report_path("assets/data/research/siachen")
 OUT.mkdir(parents=True,exist_ok=True)
 RGI_ID="RGI2000-v7.0-G-14-20040"
 RGI_URLS=[

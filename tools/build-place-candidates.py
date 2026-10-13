@@ -24,6 +24,10 @@ import unicodedata
 import urllib.request
 import zipfile
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+from report_paths import report_path
+
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / "reports" / "places" / ".cache"
 BASE_URL = "https://download.geonames.org/export/dump/"
@@ -717,7 +721,7 @@ def main():
         fetch(args.cache)
     elif args.command == "build":
         build(args.cache, args.stats or ROOT / "reports" / "places" / "geonames-statistics.json",
-              args.report or ROOT / "reports" / "places" / "place-data-audit.md")
+              args.report or report_path("docs/place-data-audit.md"))
     else:
         overrides = args.review_overrides
         default_reviews = ROOT / "reports" / "places" / "candidate-reviews.json"
@@ -725,7 +729,7 @@ def main():
         if overrides is None and args.reviews == default_reviews and default_overrides.exists():
             overrides = default_overrides
         review(args.cache, args.reviews, args.stats or ROOT / "reports" / "places" / "candidate-review-summary.json",
-               args.report or ROOT / "reports" / "places" / "place-candidate-review.md", overrides)
+               args.report or report_path("docs/place-candidate-review.md"), overrides)
 
 
 if __name__ == "__main__":

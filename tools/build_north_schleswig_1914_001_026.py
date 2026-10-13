@@ -4,11 +4,15 @@ from shapely.geometry import shape, Point, LineString, MultiLineString, mapping
 from shapely.ops import unary_union, nearest_points, substring, transform
 from pyproj import Transformer
 
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "tools"))
+from report_paths import report_path
+
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 SRC=ROOT/"tools/historical-library/sources/german-empire-1914/north-schleswig-001-026"
 OUT=ROOT/"tools/historical-library/land-borders"
 OUT.mkdir(parents=True,exist_ok=True)
-REPORT_DIR=ROOT/"reports/geography/germany/north-schleswig"
+REPORT_DIR=report_path("tools/historical-library/land-borders")
 REPORT_DIR.mkdir(parents=True,exist_ok=True)
 
 parishes=json.loads((SRC/"dagi-current-parishes-sector.geojson").read_text(encoding="utf-8"))

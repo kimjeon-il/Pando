@@ -5,12 +5,16 @@ from shapely.ops import unary_union, transform
 from shapely.validation import explain_validity
 from pyproj import Transformer
 
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "tools"))
+from report_paths import report_path
+
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 WORLD=ROOT/"assets/data/countries-ne-5.1.1.geojson"
 OUTDIR=ROOT/"tools/historical-library/working"
 SRCDIR=ROOT/"tools/historical-library/sources/german-empire-1914"
 OUTDIR.mkdir(parents=True,exist_ok=True); SRCDIR.mkdir(parents=True,exist_ok=True)
-REPORT_DIR=ROOT/"reports/geography/germany/diagnostics"
+REPORT_DIR=report_path("tools/historical-library/working")
 REPORT_DIR.mkdir(parents=True,exist_ok=True)
 
 HGIS_URL="https://raw.githubusercontent.com/acdh-oeaw/histogis-data/master/single_files/deutsches-reich__1871-02-27_1919-12-31.geojson"
