@@ -1,5 +1,8 @@
 if(BUILD_TESTING)
-    add_executable(core_session_tests "${PROJECT_SOURCE_DIR}/../shared/tests/core-session-tests.cpp")
+    # Reuse the maintained DocumentSession regression corpus (retired core-session-tests.cpp does not exist).
+    add_executable(core_session_tests "${PROJECT_SOURCE_DIR}/../shared/tests/document-session-tests.cpp")
+    target_compile_definitions(core_session_tests PRIVATE
+        DOCUMENT_SESSION_FIXTURE="${PROJECT_SOURCE_DIR}/../tests/fixtures/portability/web-document-seed.json")
     target_link_libraries(core_session_tests PRIVATE Pandoeditor::Core)
     add_test(NAME core_session_tests COMMAND core_session_tests)
     set_tests_properties(core_session_tests PROPERTIES TIMEOUT 10)
