@@ -42,6 +42,23 @@ test('generic GeoJSON reimport preserves provenance and arbitrary attributes whi
   assert.equal(await f.project.undo(),true);assert.equal(f.documentModel.list('generic').length,1);
   assert.equal(await f.project.redo(),true);assert.equal(f.documentModel.list('generic').length,2);
 });
+test('external GeoJSON source attributes remain opaque GIS data', async () => {
+  let nextId=40;
+  const f=await createGisCoreFixture([],{runtime:{uid:()=>uuid(nextId++)}});
+  const sources=['OpenStreetMap',null,{type:'survey',id:'source-7'}];
+  for(const source of sources) {
+    const input={type:'Feature',id:'external-9',geometry:{type:'Point',coordinates:[1,2]},
+      properties:{name:'Sample',source}};
+    const before=structuredClone(input);
+    await f.committer.importGeoJson({name:'external.geojson'},{parsed:input});
+    const imported=f.documentModel.list('generic').at(-1);
+    assert.equal(imported.properties.source.kind,'gis');
+    assert.equal(imported.properties.source.sourceId,'external-9');
+    assert.deepEqual(imported.properties.source.details.attributes.source,source);
+    assert.deepEqual(input,before);
+  }
+});
+
 const generic = source => ({
   type: 'Feature', id: uuid(1), geometry: { type: 'Point', coordinates: [1, 2] },
   properties: { schemaVersion: 2, name: 'fallback', notes: '', color: '#123456', locked: false, source },
