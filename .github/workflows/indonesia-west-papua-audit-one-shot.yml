@@ -1,0 +1,24 @@
+name: Audit Indonesian Papua historical component mask
+
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/indonesia-west-papua-audit-one-shot.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  west-papua:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned Shapely
+        run: python -m pip install shapely==2.1.2
+      - name: Match Papua provinces against current national polygons
+        run: python tools/indonesia-west-papua-audit.py
