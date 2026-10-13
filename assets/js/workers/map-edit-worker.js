@@ -8,6 +8,7 @@ function versionedWorkerAssetUrl(relativePath) {
 }
 
 importScripts(
+  versionedWorkerAssetUrl('./worker-rpc-host.js'),
   versionedWorkerAssetUrl('../modules/polygon-geometry.js'),
   versionedWorkerAssetUrl('../modules/territorial-edit-plan.js'),
   versionedWorkerAssetUrl('../vendor/polygon-clipping.min.js'),
@@ -52,7 +53,6 @@ let displayService = null;
 let coastTopologyCache = null;
 let coastResultCache = new WeakMap();
 const pendingResults = new Map();
-const cancelled = new Set();
 let currentDataRevision = 0;
 let projectEpoch = 0;
 
@@ -84,9 +84,9 @@ function rememberCutSource(payload) {
 }
 
 function assertRequestCurrent(message, epoch, serviceCurrent = () => true) {
-  if (epoch !== projectEpoch || !serviceCurrent() || cancelled.has(Number(message.requestId))
+  if (epoch !== projectEpoch || !serviceCurrent() || message.signal?.aborted
     || Number(message.dataRevision || 0) !== currentDataRevision
-    || (message.sourceRevision != null && message.sourceRevision !== sourceRevision)) throw new Error('CANCELLED');
+    || (message.sourceRevision != null && message.sourceRevision !== sourceRevision)) throw Object.assign(new Error('작업을 취소했습니다.'), { cancelled: true, code: 'PL-MAP-EDIT-CANCELLED' });
 }
 
 function requestCheckpoint(message, epoch, sourceSensitive = false, serviceCurrent = () => true) {
@@ -100,12 +100,9 @@ function requestCheckpoint(message, epoch, sourceSensitive = false, serviceCurre
   };
 }
 
-self.onmessage = async event => {
-  const message = event.data || {};
-  const epoch = projectEpoch;
-  try {
-    if (message.type === 'edit-sync') { syncEditSources(message); return; }
-    if (message.type === 'rebase') {
+function handleEvent(operation, message = {}, context) {
+    if (operation === 'edit-sync') { syncEditSources(message); return; }
+    if (operation === 'map-edit.rebase') {
       projectEpoch += 1;
       displayService = null; cutSources.clear(); coastTopologyCache = null; coastResultCache = new WeakMap();
       editSources.clear(); validatedPreviews.clear();
@@ -116,32 +113,26 @@ self.onmessage = async event => {
       for (const feature of sourceFeatures('territorial')) if (boundaryIds.has(featureId(feature))) boundaryFeatures.set(featureId(feature), feature);
       pendingResults.clear();
       currentDataRevision = Number(message.dataRevision || 0);
-      self.postMessage({
-        type: 'ready',
+      rpcHost.emitEvent('map-edit.ready', {
         dataRevision: currentDataRevision,
         geometryRevision: Number(message.geometryRevision || currentDataRevision),
-        targetRevision: Number(message.targetRevision || 0),
-      });
+      }, { projectRevision: context.projectRevision });
       return;
     }
-    if (message.type === 'boundary-invalidate') { boundaryService = null; return; }
-    if (message.type === 'boundary-sync') {
+    if (operation === 'map-edit.boundary-invalidate') { boundaryService = null; return; }
+    if (operation === 'map-edit.boundary-sync') {
       applyEntityPatch(message.features || [], message.removedIds || []);
       applyPatch(boundaryFeatures, message.features || [], message.removedIds || []);
       return;
     }
-    if (message.type === 'sync-patch') {
+    if (operation === 'map-edit.sync-patch') {
       if (Number(message.dataRevision || 0) < currentDataRevision) return;
       if (message.editSources) syncEditSources(message.editSources);
       applyEntityPatch(message.features || [], message.removedIds || []);
       currentDataRevision = Number(message.dataRevision || currentDataRevision);
       return;
     }
-    if (message.type === 'cancel') {
-      cancelled.add(Number(message.requestId));
-      return;
-    }
-    if (message.type === 'commit') {
+    if (operation === 'map-edit.commit') {
       const pending = pendingResults.get(Number(message.requestId));
       if (pending && Number(pending.dataRevision) === currentDataRevision) {
         applyEntityPatch(pending.result.features, pending.result.removedIds);
@@ -150,11 +141,16 @@ self.onmessage = async event => {
       pendingResults.delete(Number(message.requestId));
       return;
     }
-    if (message.type === 'discard') {
+    if (operation === 'map-edit.discard') {
       pendingResults.delete(Number(message.requestId));
       return;
     }
-    if (message.type !== 'execute') return;
+}
+
+async function execute(payload, context) {
+  const message = { ...(payload || {}), ...(context.metadata || {}),
+    operation: context.operation, requestId: context.requestId, targetRevision: context.projectRevision, signal: context.signal };
+  const epoch = projectEpoch;
     assertRequestCurrent(message, epoch);
     const {
       createBoundaryPreparation, prepareBoundaryOperation, prepareComponentOperation, calculateLibraryBatch,
@@ -249,27 +245,10 @@ self.onmessage = async event => {
       targetRevision: Number(message.targetRevision || 0),
       jobKey: String(message.jobKey || ''),
     });
-    self.postMessage({
-      type: 'result',
-      ok: true,
-      requestId: Number(message.requestId),
-      jobKey: String(message.jobKey || ''),
-      dataRevision: Number(message.dataRevision || 0),
-      geometryRevision: Number(message.geometryRevision || message.dataRevision || 0),
-      targetRevision: Number(message.targetRevision || 0),
-      result,
-    });
-  } catch (error) {
-    const cancelledRequest = error?.message === 'CANCELLED';
-    self.postMessage({
-      type: 'result', ok: false, cancelled: cancelledRequest,
-      requestId: Number(message.requestId || 0), jobKey: String(message.jobKey || ''),
-      dataRevision: Number(message.dataRevision || 0),
-      geometryRevision: Number(message.geometryRevision || message.dataRevision || 0),
-      targetRevision: Number(message.targetRevision || 0),
-      message: cancelledRequest ? '작업을 취소했습니다.' : (error?.message || String(error)),
-    });
-  } finally {
-    if (message.type === 'execute') cancelled.delete(Number(message.requestId || 0));
-  }
-};
+    return result;
+}
+
+const rpcHost = self.PandoLabWorkerRpc.install({
+  onEvent: handleEvent,
+  handlers: Object.fromEntries(['annex', 'annex-batch', 'boundary-move', 'boundary-prepare', 'merge', 'new-country', 'territorial-coast-availability', 'territorial-cut', 'territorial-display', 'territorial-drawn', 'territorial-edit', 'territorial-library-batch', 'territorial-preview', 'territorial-region-redraw', 'territorial-snap', 'territorial-source', 'territorial-validation', 'territory-components', 'territory-selection', 'territory-slivers'].map(operation => [operation, execute])),
+});

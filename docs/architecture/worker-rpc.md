@@ -41,23 +41,14 @@ Stateless CPU geometry work may use `worker-rpc-pool.js`. Pool sizing is conserv
 
 Stateful or data-owning Workers should remain dedicated when sharing would duplicate large state or break locality. Current examples include map-edit, data-loader, hydro-tile and Canvas rendering. Dedicated does not mean ad-hoc transport: stateful clients can still use Worker RPC for request lifecycle.
 
-## Transitional compatibility
+## Canonical operations
 
-The existing map-edit and GIS geometry Workers predate the RPC wire envelope. Their callers now use `createWorkerRpcClient()` with narrow compatibility codecs, so pending/cancel/timeout/stale/error logic is already centralized without a risky simultaneous rewrite of business logic.
+Map-edit, GIS validation, GPU mesh, map audit and river partition use the same RPC envelope on both sides. There are no compatibility codecs or old message entry points.
 
-GPU mesh, geometry validation, and river partition Workers expose canonical RPC operations while temporarily retaining their old message entry points for current renderer/controllers. These compatibility bridges are removal targets as their callers migrate.
+- `gis.validate`, `geometry.mesh`, `geometry.audit`, `river.partition`: geometry requests.
+- Map-edit calculation names remain semantic operations; `map-edit.*` events synchronize state and commit/discard prepared changes. `edit-sync` sends source patches.
 
-Do not add another compatibility codec for new functionality. New Worker work uses the canonical envelope directly.
-
-## Canonical operations introduced in phase 9
-
-```text
-geometry.mesh
-geometry.audit
-river.partition
-```
-
-Map-edit operations keep their existing business operation names behind the RPC client until the stateful Worker protocol is migrated fully.
+Do not add another compatibility codec. New Worker work uses the canonical envelope directly.
 
 ## Transferables
 
