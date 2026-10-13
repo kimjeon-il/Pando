@@ -267,18 +267,8 @@ function writeAtlasTables(db, payload) {
 
 async function writeGeoPackage(buffer, projectState, options = {}) {
   if (options.exportMode !== 'gis') {
-    const { countryAssets = [], ...content } = projectState;
-    const { prepareProjectForStorage } = await import('../modules/project-state.js');
-    const { staticTimelineViews } = await import('../modules/timeline-static-view.js');
-    const { createGeometryVersionStore } = await import('../modules/geometry-version-store.js');
-    const candidate = prepareProjectForStorage(content);
-    let spatialState = null;
-    try {
-      spatialState = { ...candidate, territorialEntities: staticTimelineViews(candidate.territorialEntities,
-        candidate.timelineRecords, createGeometryVersionStore(candidate.geometries)) };
-    } catch (error) { if (error.code !== 'TIMELINE_ACTIVATION') throw error; }
-    projectState = { ...candidate, countryAssets };
-    options = { ...options, spatialState };
+    if(!Object.hasOwn(options,'spatialState') || options.spatialState!==null && typeof options.spatialState!=='object')
+      throw Object.assign(new TypeError('The canonical Core file spatial projection is required.'),{code:'PL-GPKG-SPATIAL-PROJECTION'});
   }
   const SQL = await getSql();
   const db = new SQL.Database(new Uint8Array(buffer));
@@ -324,8 +314,7 @@ async function readAtlasTables(buffer) {
     if (tableExists(db, 'pandolab_project_settings')) {
       const rows = db.exec("SELECT json_value FROM pandolab_project_settings WHERE setting_key='project_state' LIMIT 1");
       if (rows[0]?.values?.[0]?.[0]) {
-        const { prepareProjectForStorage } = await import('../modules/project-state.js');
-        result.projectState = prepareProjectForStorage(JSON.parse(rows[0].values[0][0]));
+        result.projectState = JSON.parse(rows[0].values[0][0]);
       }
     }
     if (tableExists(db, 'pandolab_country_assets')) {
@@ -347,10 +336,10 @@ async function readAtlasTables(buffer) {
 }
 
 self.onmessage = async event => {
-  const { id, action, buffer, projectState, exportMode, selectedLayers } = event.data || {};
+  const { id, action, buffer, projectState, exportMode, selectedLayers,spatialState } = event.data || {};
   try {
     if (action === 'write') {
-      const output = await writeGeoPackage(buffer, projectState, { exportMode, selectedLayers });
+      const output = await writeGeoPackage(buffer, projectState, { exportMode, selectedLayers,spatialState });
       self.postMessage({ id, ok: true, buffer: output.buffer }, [output.buffer]);
       return;
     }

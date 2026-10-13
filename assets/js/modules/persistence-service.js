@@ -21,6 +21,7 @@ export function createPersistenceService({
   onWarning = () => {},
   onRecoveryState = () => {},
   previewGeometry = null,
+  previewProjection = null,
   previewBaseline = () => null,
   now = () => new Date(),
 }) {
@@ -37,21 +38,21 @@ export function createPersistenceService({
   };
   const previewCache = previewGeometry && storage.readPreview && storage.writePreview
     ? createProjectPreviewCache({ storage, scheduler, getGeometry: previewGeometry,
-      getBaseline: previewBaseline, onWarning }) : null;
-  function persist(project = null) {
-    if (!project && queuedAutosave) return queuedAutosave;
+      getBaseline: previewBaseline, getPreviewSource:previewProjection, onWarning }) : null;
+  function persist(snapshot = null) {
+    if (!snapshot && queuedAutosave) return queuedAutosave;
     const epoch = persistenceEpoch;
     const pending = writeTail.then(() => {
       if (queuedAutosave === pending) queuedAutosave = null;
       if (epoch !== persistenceEpoch) return;
-      return persistOne(project);
+      return persistOne(snapshot, epoch);
     });
-    if (!project) queuedAutosave = pending;
+    if (!snapshot) queuedAutosave = pending;
     writeTail = pending.catch(() => {});
     return pending;
   }
 
-  async function persistOne(project = null) {
+  async function persistOne(snapshot, epoch) {
     if (recovery || restoring || !canPersist()) return;
     const startedAt = metricNow();
     const detail = {
@@ -63,28 +64,37 @@ export function createPersistenceService({
     };
     try {
       const buildStartedAt = metricNow();
-      const autosaveProject = project || buildAutosave();
+      const receipt = await (snapshot ?? buildAutosave());
       detail.buildMs = metricNow() - buildStartedAt;
+      // The checkpoint is operation evidence, never part of the saved format.
+      if (!receipt || typeof receipt !== 'object' || !Object.hasOwn(receipt, 'checkpoint')
+        || !receipt.project || typeof receipt.project !== 'object' || Array.isArray(receipt.project))
+        throw new TypeError('An autosave snapshot receipt {project, checkpoint} is required.');
+      if (epoch !== persistenceEpoch || recovery || restoring || !canPersist()) {
+        detail.outcome = 'discarded';
+        return;
+      }
+      const autosaveProject = receipt.project;
       detail.format = String(autosaveProject?.format || 'unknown');
       onAutosaveState(AUTOSAVE_STATES.SAVING);
+      let fallback = false;
+      detail.outcome = 'writing';
       try {
         const writeStartedAt = metricNow();
         await storage.writeProject(autosaveProject);
+        if (epoch !== persistenceEpoch) { detail.outcome = 'discarded'; return; }
         storage.removeFallback();
         detail.indexedDbMs = metricNow() - writeStartedAt;
         detail.outcome = 'indexeddb';
-        onSaved(now());
-        onAutosaveState(AUTOSAVE_STATES.SAVED);
-        previewCache?.schedule(autosaveProject);
       } catch (error) {
+        if (epoch !== persistenceEpoch) { detail.outcome = 'discarded'; return; }
         try {
           const fallbackStartedAt = metricNow();
           storage.writeFallback(autosaveProject);
           detail.fallbackMs = metricNow() - fallbackStartedAt;
           detail.outcome = 'localstorage';
           detail.indexedDbError = String(error?.name || error?.code || 'error');
-          onSaved(now());
-          onAutosaveState(AUTOSAVE_STATES.SAVED, { fallback: '브라우저 로컬 저장소' });
+          fallback = true;
         } catch (fallbackError) {
           detail.outcome = 'failed';
           detail.indexedDbError = String(error?.name || error?.code || 'error');
@@ -92,10 +102,29 @@ export function createPersistenceService({
           onWarning('Autosave failed', error, fallbackError);
           onAutosaveState(AUTOSAVE_STATES.ERROR);
           onFailure(error, fallbackError);
+          return;
         }
       }
+      // A Core checkpoint acknowledgement failure happens AFTER the device
+      // write. It must not trigger another write through the storage fallback.
+      detail.outcome = 'acknowledging';
+      const acknowledged = await onSaved(now(), receipt);
+      if (epoch !== persistenceEpoch || acknowledged === false) {
+        detail.outcome = 'stale-acknowledgement';
+        return;
+      }
+      detail.outcome = fallback ? 'localstorage' : 'indexeddb';
+      if (fallback) onAutosaveState(AUTOSAVE_STATES.SAVED, { fallback: '브라우저 로컬 저장소' });
+      else onAutosaveState(AUTOSAVE_STATES.SAVED);
+      previewCache?.schedule(autosaveProject);
     } catch (error) {
-      detail.outcome = 'build-failed';
+      if (epoch !== persistenceEpoch) detail.outcome = 'discarded-failure';
+      else if (detail.outcome === 'acknowledging') {
+        detail.outcome = 'acknowledgement-failed';
+        onWarning('Autosave checkpoint acknowledgement failed', error);
+        onAutosaveState(AUTOSAVE_STATES.ERROR);
+        onFailure(error);
+      } else detail.outcome = 'build-failed';
       detail.buildError = String(error?.name || error?.code || 'error');
       throw error;
     } finally {
@@ -271,9 +300,7 @@ export function createPersistenceService({
     storage.removeFallback();
   }
 
-  const writeProject = project => persist(project);
-
-  return Object.freeze({ persist, writeProject, queueProject, queuePresentation, queueView, restore, clear, cancelPending,
+  return Object.freeze({ persist, queueProject, queuePresentation, queueView, restore, clear, cancelPending,
     getRecovery, resolveRecovery, completeRecovery,
     restorePreview: project => previewCache?.restore(project) ?? Promise.resolve(null),
     ensurePreview: project => previewCache?.schedule(project),

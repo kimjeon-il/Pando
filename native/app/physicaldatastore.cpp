@@ -1,4 +1,5 @@
 #include "physicaldatastore.h"
+#include "verifiedfile.h"
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
@@ -9,6 +10,10 @@
 #include <QNetworkReply>
 #include <QRegularExpression>
 #include <QStandardPaths>
+#include <QTemporaryFile>
+#include <QUuid>
+#include <QFutureWatcher>
+#include <QtConcurrent>
 #include <cmath>
 
 namespace {
@@ -98,6 +103,14 @@ QString PhysicalDataStore::resolveExisting(const PhysicalAssetSpec& asset) const
     const auto external=externalPath(asset);if(!external.isEmpty()&&verified(external,asset))return external;
     const auto cached=cachePath(asset);return verified(cached,asset)?cached:QString();
 }
+bool PhysicalDataStore::hasVerifiedExisting(const PhysicalAssetSpec& asset) const {
+    const auto admitted=[&](const QString& path) {
+        QFile file(path);
+        return !path.isEmpty()&&file.open(QIODevice::ReadOnly)&&file.size()==asset.bytes&&
+            verifiedfile::hasReceipt(file,0,asset.bytes,asset.sha256,asset.dataset+'/'+asset.version);
+    };
+    return admitted(externalPath(asset))||admitted(cachePath(asset));
+}
 std::function<QString(const PhysicalAssetSpec&)> PhysicalDataStore::verifiedResolver() const {
     return [cacheRoot=root_,externalRoot=externalRoot_,datasetRoots=externalDatasetRoots_](const PhysicalAssetSpec& asset) {
         const auto external=assetPath(datasetRoots.value(asset.dataset,externalRoot),asset);
@@ -125,17 +138,62 @@ std::function<QString(const PhysicalAssetSpec&)> PhysicalDataStore::candidatePat
     };
 }
 bool PhysicalDataStore::installVerified(const PhysicalAssetSpec& asset,const QByteArray& bytes) {
-    if(!validAsset(asset)||bytes.size()!=asset.bytes||digest(bytes)!=asset.sha256)return false;
-    const auto target=cachePath(asset);if(verified(target,asset))return true;quarantine(target);
-    QDir().mkpath(QFileInfo(target).absolutePath());const auto part=target+".part";QFile::remove(part);
-    QFile file(part);if(!file.open(QIODevice::WriteOnly)||file.write(bytes)!=bytes.size()||!file.flush()){file.close();QFile::remove(part);return false;}
-    file.close();if(!verified(part,asset)||!QFile::rename(part,target)){QFile::remove(part);return false;}return true;
+    return installBytes(root_,asset,bytes);
 }
-bool PhysicalDataStore::verified(const QString& path,const PhysicalAssetSpec& asset) {
+bool PhysicalDataStore::installBytes(const QString& root,const PhysicalAssetSpec& asset,const QByteArray& bytes) {
+    if(!validAsset(asset)||bytes.size()!=asset.bytes||digest(bytes)!=asset.sha256)return false;
+    const auto target=assetPath(root,asset);if(verified(target,asset))return true;
+    if(!QDir().mkpath(QFileInfo(target).absolutePath()))return false;
+    QTemporaryFile file(target+".prepare.XXXXXX");
+    if(!file.open()||file.write(bytes)!=bytes.size()||!file.flush())return false;
+    file.close();if(!verified(file.fileName(),asset))return false;
+    if(verified(target,asset))return true;
+    if(QFile::exists(target)&&!QFile::rename(target,target+".corrupt."+QUuid::createUuid().toString(QUuid::WithoutBraces)))return false;
+    if(!file.rename(target))return false;file.setAutoRemove(false);
+    // Renaming changes the opened file's change-time identity. Publish only
+    // after the worker has verified the final path and recorded that identity.
+    return verified(target,asset);
+}
+std::function<PhysicalAssetPreparation(const std::function<bool()>&)> PhysicalDataStore::promotionJob(
+    const PhysicalAssetSpec& asset) const {
+    return [asset,cacheRoot=root_,externalRoot=externalRoot_,datasetRoots=externalDatasetRoots_](
+        const std::function<bool()>& cancelled)->PhysicalAssetPreparation {
+        const auto target=assetPath(cacheRoot,asset);
+        if(target.isEmpty())return {{},"invalid physical asset promotion"};
+        if(verified(target,asset,cancelled))return {target,{}};
+        if(cancelled&&cancelled())return {};
+        const auto external=assetPath(datasetRoots.value(asset.dataset,externalRoot),asset);
+        if(external.isEmpty()||!verified(external,asset,cancelled))return {};
+        QFile input(external);
+        if(!input.open(QIODevice::ReadOnly))return {{},"cannot read verified physical source"};
+        const auto before=verifiedfile::identity(input);
+        if(!QDir().mkpath(QFileInfo(target).absolutePath()))return {{},"cannot create physical cache directory"};
+        QTemporaryFile output(target+".prepare.XXXXXX");
+        if(!output.open())return {{},"cannot prepare physical cache asset"};
+        QCryptographicHash hash(QCryptographicHash::Sha256);qint64 count=0;
+        while(!input.atEnd()) {
+            if(cancelled&&cancelled())return {};
+            const auto chunk=input.read(256*1024);
+            if(chunk.isEmpty()||output.write(chunk)!=chunk.size())return {{},"cannot copy physical cache asset"};
+            hash.addData(chunk);count+=chunk.size();
+        }
+        if(count!=asset.bytes||hash.result().toHex()!=asset.sha256.toLatin1()||
+           before!=verifiedfile::identity(input)||!output.flush())return {{},"physical source changed during promotion"};
+        output.close();
+        if(cancelled&&cancelled())return {};
+        // Another request may have completed while the worker was copying.
+        if(verified(target,asset,cancelled))return {target,{}};
+        if(QFile::exists(target)&&!QFile::rename(target,target+".corrupt."+QUuid::createUuid().toString(QUuid::WithoutBraces)))
+            return {{},"cannot preserve corrupt physical cache asset"};
+        if(!output.rename(target))return {{},"cannot install verified physical cache asset"};
+        output.setAutoRemove(false);
+        if(!verified(target,asset,cancelled))return {{},"physical cache changed during installation"};
+        return {target,{}};
+    };
+}
+bool PhysicalDataStore::verified(const QString& path,const PhysicalAssetSpec& asset,const std::function<bool()>& cancelled) {
     QFile file(path);if(!file.open(QIODevice::ReadOnly)||file.size()!=asset.bytes)return false;
-    QCryptographicHash hash(QCryptographicHash::Sha256);
-    while(!file.atEnd()){const auto chunk=file.read(256*1024);if(chunk.isEmpty()&&!file.atEnd())return false;hash.addData(chunk);}
-    return QString::fromLatin1(hash.result().toHex())==asset.sha256;
+    return verifiedfile::digest(file,0,asset.bytes,asset.sha256,asset.dataset+'/'+asset.version,cancelled).valid;
 }
 void PhysicalDataStore::quarantine(const QString& path) const {
     if(!QFile::exists(path)||!contained(root_,path))return;
@@ -144,9 +202,15 @@ void PhysicalDataStore::quarantine(const QString& path) const {
 }
 void PhysicalDataStore::request(const PhysicalAssetSpec& asset) {
     if(!validAsset(asset)){emit assetFailed(asset.path,"invalid physical asset request");return;}
-    const auto existing=resolveExisting(asset);if(!existing.isEmpty()){emit assetReady(asset.path,existing,true);return;}
     const auto target=cachePath(asset);if(pending_.contains(target))return;
-    quarantine(target);QFile::remove(target+".part");pending_.insert(target);queue_.enqueue({asset,0});emit activityChanged(active_,queue_.size());pump();
+    pending_.insert(target);
+    auto* watcher=new QFutureWatcher<QString>(this);
+    connect(watcher,&QFutureWatcher<QString>::finished,this,[this,watcher,asset,target] {
+        const auto existing=watcher->result();watcher->deleteLater();
+        if(!existing.isEmpty()){pending_.remove(target);emit assetReady(asset.path,existing,true);return;}
+        quarantine(target);QFile::remove(target+".part");queue_.enqueue({asset,0});emit activityChanged(active_,queue_.size());pump();
+    });
+    watcher->setFuture(QtConcurrent::run([verifier=verifiedResolver(),asset]{return verifier(asset);}));
 }
 void PhysicalDataStore::pump() {
     while(active_<maximumConcurrent_&&!queue_.isEmpty())start(queue_.dequeue());
@@ -155,27 +219,46 @@ void PhysicalDataStore::pump() {
 void PhysicalDataStore::start(Job job) {
     ++active_;auto* reply=network_.get(QNetworkRequest(job.asset.url));
     connect(reply,&QNetworkReply::finished,this,[this,reply,job=std::move(job)]() mutable {
-        const auto networkError=reply->error();const auto message=reply->errorString();const auto data=reply->readAll();reply->deleteLater();--active_;
-        const auto valid=networkError==QNetworkReply::NoError&&data.size()==job.asset.bytes&&digest(data)==job.asset.sha256;
-        const auto target=cachePath(job.asset);bool promoted=false;
-        if(valid) {
-            QDir().mkpath(QFileInfo(target).absolutePath());const auto part=target+".part";QFile::remove(part);
-            QFile file(part);if(file.open(QIODevice::WriteOnly)&&file.write(data)==data.size()&&file.flush()) {file.close();promoted=verified(part,job.asset)&&QFile::rename(part,target);}
-            if(!promoted)QFile::remove(part);
-        }
-        if(promoted){pending_.remove(target);emit assetReady(job.asset.path,target,false);}
-        else if(job.failures<maximumRetries_) {++job.failures;queue_.enqueue(std::move(job));}
-        else {pending_.remove(target);emit assetFailed(job.asset.path,networkError==QNetworkReply::NoError?QStringLiteral("physical asset verification failed"):message);}
-        pump();
+        const auto networkError=reply->error();const auto message=reply->errorString();auto data=reply->readAll();reply->deleteLater();
+        if(networkError!=QNetworkReply::NoError){finish(std::move(job),false,message);return;}
+        struct InstallResult {bool installed=false;QString error;};
+        auto* watcher=new QFutureWatcher<InstallResult>(this);
+        connect(watcher,&QFutureWatcher<InstallResult>::finished,this,[this,watcher,job] {
+            const auto result=watcher->result();watcher->deleteLater();
+            finish(job,result.installed,result.error);
+        });
+        watcher->setFuture(QtConcurrent::run([root=root_,asset=job.asset,data=std::move(data)] {
+            try {
+                const auto installed=installBytes(root,asset,data);
+                return InstallResult{installed,installed?QString{}:QStringLiteral("physical asset verification failed")};
+            }catch(const std::exception& error){return InstallResult{false,QString::fromUtf8(error.what())};}
+             catch(...){return InstallResult{false,QStringLiteral("physical asset installation failed with an unknown error")};}
+        }));
     });
 }
+void PhysicalDataStore::finish(Job job,bool installed,const QString& error) {
+    --active_;const auto target=cachePath(job.asset);
+    if(installed){pending_.remove(target);emit assetReady(job.asset.path,target,false);}
+    else if(job.failures<maximumRetries_) {++job.failures;queue_.enqueue(std::move(job));}
+    else {pending_.remove(target);emit assetFailed(job.asset.path,error);}
+    pump();
+}
 bool PhysicalDataStore::cleanupVersions(const QString& dataset,const QString& keepVersion) {
+    return cleanupVersionsJob(dataset,keepVersion,{})();
+}
+std::function<bool()> PhysicalDataStore::cleanupVersionsJob(
+    const QString& dataset,const QString& keepVersion,QStringList protectedSources) const {
+    return [root=root_,dataset,keepVersion,protectedSources=std::move(protectedSources)] {
     if(!segmentPattern.match(dataset).hasMatch()||!segmentPattern.match(keepVersion).hasMatch())return false;
-    const auto datasetRoot=QDir(root_).filePath(dataset);if(!contained(root_,datasetRoot))return false;
+    const auto datasetRoot=QDir(root).filePath(dataset);if(!contained(root,datasetRoot))return false;
     QDir directory(datasetRoot);if(!directory.exists())return true;
     bool okay=true;for(const auto& name:directory.entryList(QDir::Dirs|QDir::NoDotAndDotDot)) {
         if(name==keepVersion)continue;const auto target=directory.filePath(name);
-        if(!contained(datasetRoot,target)||!QDir(target).removeRecursively())okay=false;
+        if(std::any_of(protectedSources.cbegin(),protectedSources.cend(),[&](const auto& source) {
+            return !source.isEmpty()&&contained(target,source);
+        }))continue;
+        if(!contained(datasetRoot,target)||!verifiedfile::removeUnownedDirectory(target))okay=false;
     }
     return okay;
+    };
 }

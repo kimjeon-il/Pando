@@ -23,7 +23,7 @@ Corpus makeCorpus() {
     add("DATELINE",square(179,-179,70,80));
     add("POLAR",square(-180,180,89.8,89.9));
     add("HIDDEN",square(10,11,50,51));
-    c.document.presentation.webPresentation.hiddenItems["countries"].insert("HIDDEN");
+    c.document.presentation.webPresentation.itemVisibility["countries"]["HIDDEN"]=false;
     return c;
 }
 bool has(const std::vector<ObjectRef>& refs,const std::string& id) {

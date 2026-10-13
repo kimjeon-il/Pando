@@ -19,6 +19,7 @@ export function createGpuScene() {
   let renderSceneOrderRevision;
   let currentSelectionPacket;
   let gpuSceneResourceObjectKeys;
+  let hoverRequestSequence = 0;
   function connect(ports) {
     if (dependencies) throw new Error('gpu-scene already connected');
     dependencies = ports;
@@ -303,14 +304,30 @@ export function createGpuScene() {
       });
   }
 
-  function setMapHover(type, id, feature, ref = null) {
-    if ((0, dependencies.surfaces.isMobile)() || dependencies.projectState.state.tool !== 'select' || dependencies.projectState.state.mapMoving) return;
+  async function setMapHover(type, id, feature, ref = null) {
+    const sequence = ++hoverRequestSequence;
     void type;
     void id;
-    const nextRef = feature?.geometry ? (0, dependencies.selectionServices.normalizeObjectRef)(ref) : null;
-
-    dependencies.interactionStateCommands.setHoverHit(nextRef ? { ref: nextRef, feature } : null);
-    dependencies.domains.selectionDomain.setHover(nextRef, { source: 'map', expectedKey: !feature && ref ? (0, dependencies.selectionServices.normalizeObjectRef)(ref)?.key : '' });
+    try {
+      if ((0, dependencies.surfaces.isMobile)() || dependencies.projectState.state.tool !== 'select' || dependencies.projectState.state.mapMoving) return false;
+      const generation = dependencies.domains.projectDomain.getGeneration(), viewRevision = dependencies.mapLayout.viewRevision;
+      const nextRef = feature?.geometry ? (0, dependencies.selectionServices.normalizeObjectRef)(ref) : null;
+      const accepted = await dependencies.domains.selectionDomain.setHover(nextRef, { source: 'map',
+        expectedKey: !feature && ref ? (0, dependencies.selectionServices.normalizeObjectRef)(ref)?.key : '' });
+      if (!accepted || !Object.hasOwn(accepted,'hover')) throw new TypeError('An accepted Core hover snapshot is required.');
+      if (sequence !== hoverRequestSequence || generation !== dependencies.domains.projectDomain.getGeneration()
+        || viewRevision !== dependencies.mapLayout.viewRevision || dependencies.surfaces.isMobile()
+        || dependencies.projectState.state.tool !== 'select' || dependencies.projectState.state.mapMoving) return false;
+      const key = nextRef?.key || null;
+      if ((accepted.hover?.key || null) !== key || (dependencies.domains.selectionDomain.snapshot().hover?.key || null) !== key) return false;
+      dependencies.interactionStateCommands.setHoverHit(nextRef ? { ref: nextRef, feature } : null);
+      return true;
+    } catch (error) {
+      if (!error.cancelled && error.name !== 'AbortError'
+        && !['STALE_REVISION','PL-CORE-STALE','PL-CORE-CANCELLED','PL-WORKER-RPC-STALE'].includes(error.code))
+        dependencies.feedback.reportOperationError(error,'지도 hover를 갱신하지 못했습니다.','PL-MAP-HOVER-001',4200);
+      return false;
+    }
   }
 
   function initializeSelectionPass() {

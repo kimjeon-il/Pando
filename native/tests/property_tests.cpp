@@ -166,7 +166,7 @@ private slots:
   QTemporaryDir dir;Project p;p.replace(fixture());const auto path=QUrl::fromLocalFile(dir.filePath("fixture.json"));
   QFile f(path.toLocalFile());QVERIFY(f.open(QIODevice::WriteOnly));f.write(projectcodec::encode(p));f.close();
   EditorController c;QVERIFY(c.openFile(path));
-  QVERIFY(c.selectObject({{"domain","territorial"},{"type","general"},{"id","S"}}));
+  QVERIFY(c.selectObject({{"domain","territorial"},{"type","entity"},{"id","S"}}));
   auto token=c.beginPropertyEdit("notes");QVERIFY(!token.isEmpty());QVERIFY(c.updatePropertyEdit(token,"  parked S  "));
   const auto bytes=c.documentBytes();const auto revision=c.revision();
   c.selectCountry("A");QVERIFY(!c.confirmPropertyEdit(token));QCOMPARE(c.documentBytes(),bytes);QCOMPARE(c.revision(),revision);
@@ -175,7 +175,7 @@ private slots:
   auto saved=projectcodec::decode(c.documentBytes());QCOMPARE(saved.units[1].notes,std::string("parked S"));
   QVERIFY(!saved.presentation.objectStyles.at(territorialRef("S")).explicitColor);
   QCOMPARE(effectiveObjectColor(saved,territorialRef("S")),0xff0000u);
-  QVERIFY(c.selectObject({{"domain","territorial"},{"type","regional"},{"id","R"}}));
+  QVERIFY(c.selectObject({{"domain","territorial"},{"type","entity"},{"id","R"}}));
   c.setMemoDraft("kept");c.setValidFromDraft("0000");QVERIFY(!c.commitObjectField("validFrom"));
   QCOMPARE(c.validFromDraft(),QString());QCOMPARE(c.memoDraft(),QString("kept"));
   c.setNameDraft(" R renamed ");QVERIFY(c.commitObjectField("name"));QCOMPARE(c.selectedName(),QString("R renamed"));
@@ -208,7 +208,7 @@ private slots:
  void importedUnitsAppearWithoutNativeReopen() {
   EditorController c;QVERIFY(c.prepareWebImport(QUrl::fromLocalFile(QStringLiteral(M32_FIXTURES)+"/../web-v10-exchange/static.json")));
   QTRY_VERIFY_WITH_TIMEOUT(c.hasWebImportPreview(),5000);QVERIFY(c.confirmWebImport(c.webImportHash(),"discard"));
-  QCOMPARE(c.objectRows().size(),qsizetype(4));QVERIFY(c.selectObject({{"domain","territorial"},{"type","general"},{"id","B"}}));
+  QCOMPARE(c.objectRows().size(),qsizetype(4));QVERIFY(c.selectObject({{"domain","territorial"},{"type","entity"},{"id","B"}}));
   c.setNameDraft("Imported child");QVERIFY(c.commitObjectField("name"));QCOMPARE(c.selectedName(),QString("Imported child"));
  }
  void exposesTerritorialPropertyBridge() {

@@ -342,7 +342,7 @@ private slots:
         QVERIFY(pair.both([](EditorController& c){return c.geometryBeginVertexDrag();}));
         pair.legacy.geometryEndVertexDrag(false); pair.screen.geometryEndVertexDrag(false);
         QVERIFY(equivalent(pair));
-        // Ordinary vertex release records a no-op, unlike object/boundary drag.
+        // Core records the vertex checkpoint at begin, including no-motion release.
         QVERIFY(pair.screen.geometryEditState()["canUndo"].toBool());
         QVERIFY(pair.both([](EditorController& c){return c.geometryUndoDraft();}));
         QCOMPARE(pair.screen.geometryDraftPaths(),originalPaths);
@@ -352,8 +352,10 @@ private slots:
         VERIFY_CALL(pair,Operation::Move,pair.at({vertex.x-.25,vertex.y+.25}),0,"touch",true);
         QVERIFY(changeCamera(pair,2));
         VERIFY_CALL(pair,Operation::Move,pair.at({vertex.x-.5,vertex.y+.5}),0,"mouse",true);
+        const auto appliedBeforeCancel=pair.screen.geometryDraftPaths();
         pair.legacy.geometryEndVertexDrag(true); pair.screen.geometryEndVertexDrag(true);
-        QVERIFY(equivalent(pair)); QCOMPARE(pair.screen.geometryDraftPaths(),originalPaths);
+        QVERIFY(equivalent(pair));QCOMPARE(pair.screen.geometryDraftPaths(),appliedBeforeCancel);
+        QVERIFY(pair.both([](EditorController& c){return c.geometryUndoDraft();}));QCOMPARE(pair.screen.geometryDraftPaths(),originalPaths);
         VERIFY_CALL(pair,Operation::Select,pair.at(vertex),10,"",true);
         QVERIFY(pair.both([](EditorController& c){return c.geometryBeginVertexDrag();}));
         VERIFY_CALL(pair,Operation::Move,pair.at({vertex.x-.25,vertex.y+.25}),0,"mouse",true);

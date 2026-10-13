@@ -122,7 +122,8 @@ function validateAssetLength(result, spec, label) {
   throw new Error(`${label} 압축 해제 크기가 올바르지 않습니다.`);
 }
 
-async function loadAsset(spec, phase, key, label, validate, signal = null) {
+async function loadRepresentation(spec, phase, key, label, validate, signal, representation) {
+  const decode=buffer=>representation==='decoded' ? decodeStoredBuffer(buffer,spec,phase,key,label):Promise.resolve({buffer,decodedBytes:buffer.byteLength,decompressMs:0});
   const url = resolveAssetUrl(spec);
   const cache = await openDataCache();
   if (cache) {
@@ -131,14 +132,14 @@ async function loadAsset(spec, phase, key, label, validate, signal = null) {
       try {
         const read = await consumeStoredResponse(cached, spec, phase, key, label, 'cache');
         await validateStoredAsset(read.storedBuffer, spec, label);
-        const decoded = await decodeStoredBuffer(read.storedBuffer, spec, phase, key, label);
+        const decoded = await decode(read.storedBuffer);
         const result = {
           ...read,
           ...decoded,
           cacheWriteMs: 0,
           milliseconds: read.readMs + decoded.decompressMs,
         };
-        validateAssetLength(result, spec, label);
+        if(representation==='decoded')validateAssetLength(result, spec, label);
         const value = await validate(result.buffer, label);
         report(phase, key, `${label}: 저장된 데이터를 확인했습니다.`, Number(spec.compressedBytes || result.storedBytes), Number(spec.compressedBytes || result.storedBytes), true, { source: 'cache' });
         return { ...result, value, cacheHit: true };
@@ -162,14 +163,14 @@ async function loadAsset(spec, phase, key, label, validate, signal = null) {
       const cached = await cacheStoredBuffer(cache, url, read.storedBuffer, responseHeaders);
       const cacheWriteMs = performance.now() - cacheWriteStartedAt;
       report(phase, `${key}-cache-write`, `${label}: 저장을 마쳤습니다.`, 1, 1, true, { cached });
-      const decoded = await decodeStoredBuffer(read.storedBuffer, spec, phase, key, label);
+      const decoded = await decode(read.storedBuffer);
       const result = {
         ...read,
         ...decoded,
         cacheWriteMs,
         milliseconds: read.readMs + cacheWriteMs + decoded.decompressMs,
       };
-      validateAssetLength(result, spec, label);
+      if(representation==='decoded')validateAssetLength(result, spec, label);
       const value = await validate(result.buffer, label);
       report(phase, key, `${label}: 다운로드를 완료했습니다.`, Number(spec.compressedBytes || result.storedBytes), Number(spec.compressedBytes || result.storedBytes), true, { source: 'network', cached, attempt });
       return { ...result, value, cacheHit: false };
@@ -187,5 +188,10 @@ async function loadAsset(spec, phase, key, label, validate, signal = null) {
 }
 
 
-return Object.freeze({loadAsset, cleanupOldCoreCaches});
+const loadAsset=(spec,phase,key,label,validate,signal=null)=>loadRepresentation(spec,phase,key,label,validate,signal,'decoded');
+const loadStoredAsset=(spec,phase,key,label,validateStoredBytes,signal=null)=>{
+ if(typeof validateStoredBytes!=='function')throw new TypeError('A stored-byte format validator is required.');
+ return loadRepresentation(spec,phase,key,label,validateStoredBytes,signal,'stored');
+};
+return Object.freeze({loadAsset,loadStoredAsset, cleanupOldCoreCaches});
 }

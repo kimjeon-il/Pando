@@ -1,187 +1,90 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createGeometryPreview} from '../../assets/js/modules/app-geometry-preview.js';
+import {createEditPreviewController} from '../../assets/js/modules/edit-preview-controller.js';
+import {beginGeometryPreview,clearGeometryPreview,previewIsCurrent} from '../../assets/js/modules/geometry-preview.js';
+import {createNodeCoreProject} from '../helpers/core-project.mjs';
 
-import { createGeometryPreview } from '../../assets/js/modules/app-geometry-preview.js';
-import { createEditPreviewController } from '../../assets/js/modules/edit-preview-controller.js';
-import {
-  beginGeometryPreview,
-  clearGeometryPreview,
-  previewIsCurrent,
-} from '../../assets/js/modules/geometry-preview.js';
-
-function fixture({ execute } = {}) {
-  const calls = [];
-  const state = {
-    stateRevision: 1,
-    geometryPreview: { revision: 0, session: null },
-    territorialEntities: [],
-    distributionLayers: [],
-    distributionEntries: [],
-    labels: [],
-    genericFeatures: [],
-    itemVisibility: {},
-    labelSettings: {},
-  };
-  const mapEditClient = {
-    async execute(operation, payload) {
-      calls.push(['execute', operation, payload]);
-      if (execute) return execute(operation, payload);
-      throw new Error('unexpected worker call');
-    },
-    commit(id) { calls.push(['commit', id]); },
-    discard(id) { calls.push(['discard', id]); },
-    stop() { calls.push(['stop']); },
-    sourcesCurrent() { return true; },
-    rebase() {},
-  };
-  const preview = createGeometryPreview();
-  preview.connect({
-    domains: {
-      projectDomain: {
-        commitHistorySnapshot(snapshot) { calls.push(['history', snapshot]); },
-        queueAutosave() { calls.push(['autosave']); },
-        getGeneration() { return 1; },
-      },
-      renderingDomain: {
-        invalidateGpuInteraction(reason) { calls.push(['gpu', reason]); },
-        invalidateGenericPatch(reason) { calls.push(['generic', reason]); },
-      },
-      editingDomain: {
-        refreshEditingPresentation(reason) { calls.push(['draft', reason]); },
-      },
-    },
-    feedback: {
-      setActionStatus(...args) { calls.push(['status', ...args]); },
-      reportOperationError(...args) { calls.push(['error', ...args]); },
-    },
-    geometryEditingCore: {
-      beginGeometryPreview,
-      clearGeometryPreview,
-      previewIsCurrent,
-      runMapEditTransaction() { throw new Error('unused'); },
-    },
-    platform: {
-      $() { return null; },
-      deepClone: structuredClone,
-    },
-    presentation: {
-      genericFeatureDisplayFeature(feature) { return feature; },
-    },
-    projectState: { state },
-    readiness: { reliabilityDiagnostic: [] },
-    snapshots: { snapshotEditable: () => ({ snapshot: true }) },
-    spatialFactories: {
-      createEditPreviewController,
-    },
-    spatialQuery: {
-      mapEditClient,
-    },
-    taskUi: {
-      setModeBanner(...args) { calls.push(['banner', ...args]); },
-      updateModeButtons() { calls.push(['buttons']); },
-    },
-    territorialModel: {
-      assertProjectReferenceIntegrity() { return { ok: true, issues: [] }; },
-      entityRepository: { get() { return null; }, list() { return []; } },
-    },
-    territoryGeometry: {
-      pointInGenericFeature() { return true; },
-    },
-    validation: {
-      restoreEditTransactionSnapshot(snapshot) { calls.push(['restore', snapshot]); },
-    },
-  });
-  preview.initializeEditPreviewController();
-  return { preview, state, calls, mapEditClient };
+async function fixture(t,{execute}={}) {
+  const calls=[],seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+  const owner=await createNodeCoreProject(seed);t.after(()=>owner.dispose());
+  const state={geometryPreview:{revision:0,session:null},get stateRevision(){return owner.client.state().stateRevision;}};
+  const mapEditClient={async execute(operation,payload){calls.push(['execute',operation,payload]);if(execute)return execute(operation,payload);throw new Error('unexpected geometry worker call');},
+    commit:id=>calls.push(['commit',id]),discard:id=>calls.push(['discard',id]),stop:()=>calls.push(['stop']),rebase:()=>calls.push(['rebase']),sourcesCurrent:()=>true};
+  const preview=createGeometryPreview();preview.connect({domains:{projectDomain:owner.project,
+    renderingDomain:{invalidateGpuInteraction:reason=>calls.push(['gpu',reason])},editingDomain:{refreshEditingPresentation:reason=>calls.push(['draft',reason])}},
+    feedback:{setActionStatus:(...args)=>calls.push(['status',...args]),reportOperationError:(...args)=>calls.push(['error',...args])},
+    geometryEditingCore:{beginGeometryPreview,clearGeometryPreview,previewIsCurrent},platform:{$:()=>null},projectState:{state},
+    spatialFactories:{createEditPreviewController},spatialQuery:{mapEditClient},taskUi:{setModeBanner:(...args)=>calls.push(['banner',...args]),updateModeButtons:()=>calls.push(['buttons'])}});
+  preview.initializeEditPreviewController();return {...owner,preview,state,calls};
 }
+const validPreview={validation:{issues:[]},delta:null,metrics:null};
+function geometryCommand(owner,geometry){return {commandId:'territorial.geometry',targets:[{domain:'territorial',id:'A'}],expectedEpoch:owner.client.state().epoch,payload:{id:'A',geometry}};}
 
-test('discard clears only the direct preview awaiting that geometry session, preserving a newer drag', () => {
-  const { preview, state } = fixture();
-  const owner = preview.editPreviewController;
-  const begin = () => owner.begin({ projectGeneration: 1, tool: 'territorial-border', targetRefs: [] });
-  const id = begin();
-  owner.update([[[0, 0], [1, 1]]]);
-  owner.waitForResult(id);
-  state.geometryPreview.session = { sessionId: 'discarded', revision: 1 };
-  owner.handoff(id, { kind: 'geometry-preview', sessionId: 'discarded', revision: 1 });
-  assert.ok(owner.packet());
-  assert.equal(preview.discardActiveGeometryPreview({ announce: false }), true);
-  assert.equal(owner.snapshot().status, 'idle');
-  assert.equal(owner.packet(), null);
-  const newer = begin();
-  owner.update([[[0, 0], [2, 2]]]);
-  state.geometryPreview.session = { sessionId: 'old', revision: 1 };
-  preview.discardActiveGeometryPreview({ announce: false });
-  assert.equal(owner.snapshot().id, newer);
-  assert.equal(owner.snapshot().status, 'dragging');
-  assert.ok(owner.packet());
+test('discard clears only the direct preview awaiting that geometry session, preserving a newer drag',async t=>{
+  const {preview,state}=await fixture(t),controller=preview.editPreviewController;
+  const begin=()=>controller.begin({projectGeneration:1,tool:'territorial-border',targetRefs:[]});
+  const id=begin();controller.update([[[0,0],[1,1]]]);controller.waitForResult(id);
+  state.geometryPreview.session={sessionId:'discarded',revision:1};controller.handoff(id,{kind:'geometry-preview',sessionId:'discarded',revision:1});
+  assert.ok(controller.packet());assert.equal(await preview.discardActiveGeometryPreview({announce:false}),true);
+  assert.equal(controller.snapshot().status,'idle');assert.equal(controller.packet(),null);
+  const newer=begin();controller.update([[[0,0],[2,2]]]);state.geometryPreview.session={sessionId:'old',revision:1};
+  await preview.discardActiveGeometryPreview({announce:false});assert.equal(controller.snapshot().id,newer);assert.equal(controller.snapshot().status,'dragging');assert.ok(controller.packet());
 });
 
-test('worker geometry preview resolves affected entities through the supplied resolver', async () => {
-  const before = {
-    type: 'Feature',
-    id: 'unit-a',
-    properties: { entityKind: 'general' },
-    geometry: { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 0]]] },
-  };
-  const after = structuredClone(before);
-  after.geometry.coordinates[0][1] = [3, 0];
-  const { preview, state } = fixture({
-    execute: async operation => {
-      assert.equal(operation, 'territorial-worker-test');
-      return {
-        requestId: 17,
-        result: {
-          affectedIds: ['unit-a'],
-          removedIds: [],
-          features: [after],
-          preview: { validation: { issues: [] }, delta: null, metrics: null },
-        },
-      };
-    },
-  });
-  const resolved = [];
-  const ready = await preview.beginWorkerGeometryPreview({
-    operation: 'territorial-worker-test',
-    payload: {},
-    snapshot: {},
-    resolveFeature(id) {
-      resolved.push(id);
-      return before;
-    },
-    applyResult() {},
-    invalidateAfterApply() {},
-  });
-
-  assert.equal(ready, true);
-  assert.deepEqual(resolved, ['unit-a']);
-  assert.equal(state.geometryPreview.session.beforeFeatures[0].id, 'unit-a');
-  assert.deepEqual(state.geometryPreview.session.beforeFeatures[0].geometry, before.geometry);
-  assert.deepEqual(state.geometryPreview.session.afterFeatures[0].geometry, after.geometry);
+test('worker proposal displays the retained Core candidate and cancellation leaves live geometry/history untouched',async t=>{
+  let proposal;
+  const owner=await fixture(t,{execute:async operation=>{assert.equal(operation,'territorial-worker-test');return {requestId:17,result:proposal};}});
+  const before=owner.documentModel.territorialViews()[0],geometry=structuredClone(before.geometry);(geometry.type==='MultiPolygon'?geometry.coordinates[0][0]:geometry.coordinates[0])[1][0]+=0.125;
+  proposal={features:[{...before,geometry}],removedIds:[],affectedIds:['A'],preview:validPreview};
+  const body=owner.documentModel.snapshot(),state=owner.client.state();
+  assert.equal(await owner.preview.beginWorkerGeometryPreview({operation:'territorial-worker-test',payload:{},
+    prepareResult:(result,{expectedEpoch})=>owner.project.prepareCommand({...geometryCommand(owner,result.features[0].geometry),expectedEpoch})}),true);
+  assert.deepEqual(owner.state.geometryPreview.session.beforeFeatures[0].geometry,before.geometry);
+  assert.deepEqual(owner.state.geometryPreview.session.afterFeatures[0].geometry,geometry);
+  assert.equal(owner.documentModel.snapshot(),body);assert.deepEqual(owner.client.state(),state);
+  assert.equal(await owner.preview.discardActiveGeometryPreview({announce:false}),true);
+  assert.equal(owner.documentModel.snapshot(),body);assert.deepEqual(owner.client.state(),state);assert.ok(owner.calls.some(row=>row[0]==='discard'&&row[1]===17));
 });
 
-test('local geometry preview runs only the supplied post-apply invalidation', async () => {
-  const { preview, state, calls } = fixture();
-  let applied = 0;
-  let territorialInvalidations = 0;
-  const ready = await preview.beginLocalGeometryPreview({
-    operation: 'territorial-test',
-    snapshot: { before: true },
-    beforeFeatures: [],
-    afterFeatures: [],
-    preparedPreview: { validation: { issues: [] }, delta: null, metrics: null },
-    commitHistorySnapshot: true,
-    applyResult() { applied += 1; },
-    invalidateAfterApply() { territorialInvalidations += 1; },
-  });
-  assert.equal(ready, true);
+test('local preview confirms one Core history entry then applies the supplied platform effect without writing Web revision',async t=>{
+  const owner=await fixture(t),before=owner.documentModel.territorialViews()[0].geometry;
+  const geometry=structuredClone(before);(geometry.type==='MultiPolygon'?geometry.coordinates[0][0]:geometry.coordinates[0])[1][0]+=0.125;
+  const state=owner.client.state(),prepared=await owner.project.prepareCommand(geometryCommand(owner,geometry));
+  let applied=0,invalidations=0;
+  assert.equal(await owner.preview.beginLocalGeometryPreview({operation:'territorial-test',preparedCommand:prepared,preparedPreview:validPreview,
+    applyAccepted:()=>{++applied;assert.deepEqual(owner.documentModel.territorialViews()[0].geometry,geometry);},invalidateAfterApply:()=>++invalidations}),true);
+  assert.equal(await owner.preview.applyActiveGeometryPreview(),true);assert.equal(applied,1);assert.equal(invalidations,1);
+  assert.equal(owner.state.stateRevision,state.stateRevision,'Only the canonical raw command clock is published.');
+  assert.equal(await owner.project.undo(),true);assert.equal(owner.project.canUndo(),false);assert.deepEqual(owner.documentModel.territorialViews()[0].geometry,before);
+});
 
-  const committed = await preview.applyActiveGeometryPreview();
-  assert.equal(committed, true);
-  assert.equal(applied, 1);
-  assert.equal(territorialInvalidations, 1);
-  assert.equal(state.stateRevision, 2);
-  assert.equal(calls.filter(call => call[0] === 'generic').length, 0);
-  assert.equal(calls.filter(call => call[0] === 'history').length, 1);
-  assert.equal(calls.filter(call => call[0] === 'autosave').length, 1);
+test('failed preview platform adoption restores the Core candidate and suppresses save/history',async t=>{
+  const owner=await fixture(t),before=owner.documentModel.snapshot(),state=owner.client.state();
+  const prepared=await owner.project.prepareCommand({commandId:'territorial.field',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field:'name',value:'Unpublished failure'}});
+  const error=new Error('injected renderer failure');
+  await owner.preview.beginLocalGeometryPreview({operation:'territorial-test',preparedCommand:prepared,preparedPreview:validPreview,applyAccepted:()=>{throw error;}});
+  assert.equal(await owner.preview.applyActiveGeometryPreview(),false);assert.deepEqual(owner.documentModel.snapshot(),before);
+  assert.equal(owner.client.state().checkpoint,state.checkpoint);assert.equal(owner.project.canUndo(),false);
+  assert.equal(owner.calls.find(row=>row[0]==='error')[1],error);
+});
+
+test('held geometry candidate survives independent view and catalog acknowledgements and Undo retains those view controls',async t=>{
+  const owner=await fixture(t),before=owner.documentModel.territorialViews()[0].geometry;
+  const geometry=structuredClone(before);(geometry.type==='MultiPolygon'?geometry.coordinates[0][0]:geometry.coordinates[0])[1][0]+=0.125;
+  const prepared=await owner.project.prepareCommand(geometryCommand(owner,geometry));
+  assert.equal(await owner.preview.beginLocalGeometryPreview({operation:'territorial-test',preparedCommand:prepared,preparedPreview:validPreview}),true);
+  const changed=await owner.project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'visibility',key:'countryFlags',visible:false}});
+  assert.equal(changed.ok,true,changed.error?.message);
+  await owner.project.admitSelectionCatalog('placeBuiltin',[{domain:'placeBuiltin',type:'city',id:'builtin:place:view-candidate'}]);
+  const view=owner.documentModel.snapshot().layerVisibility;
+  assert.equal(view.countryFlags,false);assert.equal(owner.project.canUndo(),false);
+  assert.equal(await owner.preview.applyActiveGeometryPreview(),true);
+  assert.deepEqual(owner.documentModel.territorialViews()[0].geometry,geometry);
+  assert.deepEqual(owner.documentModel.snapshot().layerVisibility,view);
+  assert.equal(await owner.project.undo(),true);assert.equal(owner.project.canUndo(),false);
+  assert.deepEqual(owner.documentModel.territorialViews()[0].geometry,before);
+  assert.deepEqual(owner.documentModel.snapshot().layerVisibility,view);
+  assert.equal(owner.client.state().presentationDirty,true);
 });

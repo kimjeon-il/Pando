@@ -23,6 +23,19 @@ test('source identity includes tracked edits and untracked file content', t => {
   writeFileSync(join(root, 'new.txt'), 'two');
   assert.notEqual(sourceIdentity(root).fingerprint, second.fingerprint);
 });
+test('native build identity includes sibling shared sources and uses repository-relative paths', t => {
+  const root = repository(t), native = join(root, 'native');
+  mkdirSync(native);
+  mkdirSync(join(root, 'shared/core'), { recursive: true });
+  writeFileSync(join(root, 'shared/core/session.cpp'), 'int state=1;\n');
+  const web = sourceIdentity(root), app = sourceIdentity(native);
+  assert.equal(app.fingerprint, web.fingerprint);
+  assert.deepEqual(app.untracked, web.untracked);
+  writeFileSync(join(root, 'shared/core/session.cpp'), 'int state=2;\n');
+  assert.notEqual(sourceIdentity(native).fingerprint, app.fingerprint);
+  writeFileSync(join(root, 'source.txt'), 'tracked change');
+  assert.equal(sourceIdentity(native).changed[0].sha256, sha256('tracked change'));
+});
 test('official Web and native evidence must come from one exact checkout', t => {
   const root = repository(t), native = join(root, 'native'), other = join(root, 'other');
   mkdirSync(native); mkdirSync(other);

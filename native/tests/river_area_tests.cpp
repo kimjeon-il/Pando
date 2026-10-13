@@ -35,7 +35,7 @@ QString metricBits(double value) {quint64 bits;std::memcpy(&bits,&value,sizeof b
 struct SyntheticMetricEvidence {Geometry geometry;double nativeArea=0,browserArea=0;QJsonObject diagnostic;};
 SyntheticMetricEvidence syntheticMetricEvidence(bool oneStepDifferent=false) {
     SyntheticMetricEvidence fixture;fixture.geometry=square();fixture.nativeArea=calculateRiverAreaKm2(fixture.geometry).areaKm2;
-    QJSEngine engine;QFile source(":/river/adapted/d3.min.js");source.open(QIODevice::ReadOnly);engine.evaluate(QString::fromUtf8(source.readAll()));
+    QJSEngine engine;QFile source(":/river/current/d3.min.js");source.open(QIODevice::ReadOnly);engine.evaluate(QString::fromUtf8(source.readAll()));
     const auto input=QJsonDocument::fromJson(R"({"coordinates":[[[0,0],[0,1],[1,1],[1,0],[0,0]]],"type":"Polygon"})").object();
     auto value=engine.globalObject().property("JSON").property("parse").call({QString::fromUtf8(QJsonDocument(input).toJson(QJsonDocument::Compact))});
     const auto canonical=engine.globalObject().property("JSON").property("stringify").call({value}).toString().toUtf8();
@@ -204,11 +204,11 @@ private slots:
     }
     void runtimeLoadsByteVerifiedOriginalAndApprovedAdapter() {
         const auto result=calculateRiverAreaKm2(square());QVERIFY2(result.succeeded(),qPrintable(result.detail));
-        QFile original(":/river/original/d3.min.js");QVERIFY(original.open(QIODevice::ReadOnly));const auto bytes=original.readAll();
+        QFile original(":/river/current/d3-original.min.js");QVERIFY(original.open(QIODevice::ReadOnly));const auto bytes=original.readAll();
         QCOMPARE(bytes.size(),qsizetype(151144));
         QCOMPARE(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex(),
             QByteArray("4cdf92091ed0cfdd8b862af1c6d4744bd0458e746b92c1bbd5403a1143ecd538"));
-        QFile adapted(":/river/adapted/d3.min.js");QVERIFY(adapted.open(QIODevice::ReadOnly));const auto generated=adapted.readAll();
+        QFile adapted(":/river/current/d3.min.js");QVERIFY(adapted.open(QIODevice::ReadOnly));const auto generated=adapted.readAll();
         QCOMPARE(generated.size(),qsizetype(158242));
         const auto generatedSha256=QCryptographicHash::hash(generated,QCryptographicHash::Sha256).toHex();
         QCOMPARE(generatedSha256,QByteArray("f273f409d8b1ba4c35d98fb06ca56f06726359d792ad719400d0e46a8c15cd85"));

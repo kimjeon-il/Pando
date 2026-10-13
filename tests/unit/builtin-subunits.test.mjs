@@ -1,5 +1,5 @@
 import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
-import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
 import { staticTimelineViews } from '../../assets/js/modules/timeline-static-view.js';
 import { createGeometryVersionStore } from '../../assets/js/modules/geometry-version-store.js';
 import { normalizeCountryCollection } from '../../assets/js/modules/country-feature.js';
@@ -65,5 +65,5 @@ test('new full and delta saves retain Subunits and source-country removals', () 
   assert.equal(staticTimelineViews(full.territorialEntities,full.timelineRecords,createGeometryVersionStore(full.geometries)).filter(feature => !feature.properties.parentId).length, 207);
   const saved = JSON.parse(JSON.stringify(serializer.buildAutosave()));
   assert.deepEqual(staticTimelineViews(saved.entityDelta.changed,saved.timelineRecords,createGeometryVersionStore(saved.geometries)).filter(feature => feature.properties.parentId), result.subunits);
-  assert.deepEqual(restoreEntitiesFromDelta(saved, { base: createStaticTerritorialSnapshot(normalizeCountryCollection(source).features).territorialEntities, baseDataset: 'test', baseDatasetFingerprint: '1'.repeat(64) }), full.territorialEntities);
+  assert.deepEqual(restoreEntitiesFromDelta(saved, { base: staticTerritorialInput(normalizeCountryCollection(source).features).territorialEntities, baseDataset: 'test', baseDatasetFingerprint: '1'.repeat(64) }), full.territorialEntities);
 });

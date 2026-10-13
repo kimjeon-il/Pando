@@ -107,7 +107,7 @@ function harness(t) {
     prepareRiverPartitionCandidates: async () => true,
     resetRiverPartitionState() {},
     defaultDraftInstruction: () => '그리기',
-    discardActiveGeometryPreview: () => { state.geometryPreview.session = null; },
+    discardActiveGeometryPreview: async () => { state.geometryPreview.session = null; },
     applyActiveGeometryPreview: () => {
       calls.apply += 1;
       if (!holdApply) return true;
@@ -157,40 +157,40 @@ test('annexation and the three common object configurations expose concise setup
     ['entity', starts[2][1], ['객체 정보', '영역 선택', '생성 확인']],
     ['entity', starts[3][1], ['객체 정보', '영역 선택', '생성 확인']],
   ]) {
-    h.workflow.start(kind, options);
+    await h.workflow.start(kind, options);
     assert.equal(Object.hasOwn(h.state.territorySelectionSession, 'sovereignId'), false);
     assert.equal(h.workflow.presentation().taskName, kind === 'annex' ? '영토 편입' : '객체 추가');
     assert.equal(h.workflow.presentation().stageLabel, labels[0]);
     await h.workflow.advance();
     assert.equal(h.workflow.presentation().stageLabel, labels[1]);
     await h.workflow.selectMethod('polygon');
-    h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+    await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
     await settle(t);
-    assert.equal(h.workflow.addPart(), true);
+    assert.equal(await h.workflow.addPart(), true);
     await settle(t);
     await h.workflow.advance();
     assert.equal(h.workflow.presentation().stageLabel, labels[2]);
-    h.workflow.clear();
+    await h.workflow.clear();
   }
 });
 
 test('all territory draw candidates must be archived through validation before advancing', async t => {
   const h = harness(t);
   for (const [kind, options] of starts) {
-  const current = h.workflow.start(kind, options);
+  const current = await h.workflow.start(kind, options);
   await h.workflow.advance();
   await h.workflow.selectMethod('polygon');
-  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
   await settle(t);
   assert.equal(h.workflow.presentation().canAddPart, true);
   assert.equal(h.workflow.presentation().primaryDisabled, true);
   assert.equal(await h.workflow.advance(), false);
   assert.equal(current.stage, 'selection');
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   await settle(t);
   assert.equal(await h.workflow.advance(), true);
   assert.equal(current.stage, 'review');
-  h.workflow.clear();
+  await h.workflow.clear();
   }
 });
 
@@ -203,10 +203,10 @@ for (const method of ['polygon', 'line']) {
       if (args[0] === 'territory-selection') response.result.remainingGeometry = null;
       return response;
     };
-    const current = h.workflow.start('annex', starts[0][1]);
+    const current = await h.workflow.start('annex', starts[0][1]);
     await h.workflow.advance();
     await h.workflow.selectMethod(method);
-    h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+    await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
     await settle(t);
 
     assert.equal(current.remainingGeometry, null);
@@ -214,7 +214,7 @@ for (const method of ['polygon', 'line']) {
     assert.equal(h.workflow.canAddPart(), true);
     assert.equal(h.workflow.presentation().primaryDisabled, true);
     assert.equal(await h.workflow.advance(), false);
-    assert.equal(h.workflow.addPart(), true);
+    assert.equal(await h.workflow.addPart(), true);
     assert.equal(h.calls.apply, 0);
     assert.equal(current.parts.length, 1);
     assert.equal(current.parts[0].method, method);
@@ -226,9 +226,9 @@ for (const method of ['polygon', 'line']) {
     await settle(t);
     assert.equal(await h.workflow.advance(), true);
     assert.equal(current.stage, 'review');
-    assert.equal(h.workflow.back(), true);
+    assert.equal(await h.workflow.back(), true);
     assert.equal(current.parts.length, 1);
-    h.workflow.clear();
+    await h.workflow.clear();
     assert.equal(h.state.geometryPreview.session, null);
     assert.equal(h.calls.apply, 0);
   });
@@ -236,53 +236,53 @@ for (const method of ['polygon', 'line']) {
 
 test('full-donor annex still requires a current nonempty validated preview', async t => {
   const h = harness(t);
-  const current = h.workflow.start('annex', starts[0][1]);
+  const current = await h.workflow.start('annex', starts[0][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('polygon');
-  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
   await settle(t);
   current.remainingGeometry = null;
   assert.equal(h.workflow.canAddPart(), true);
 
   h.state.geometryPreview.session.validation.blocking = true;
-  assert.equal(h.workflow.addPart(), false);
+  assert.equal(await h.workflow.addPart(), false);
   h.state.geometryPreview.session.validation.blocking = false;
   current.previewPending = true;
-  assert.equal(h.workflow.addPart(), false);
+  assert.equal(await h.workflow.addPart(), false);
   current.previewPending = false;
   current.previewReadyKey = 'stale';
-  assert.equal(h.workflow.addPart(), false);
+  assert.equal(await h.workflow.addPart(), false);
   assert.equal(current.parts.length, 0);
 
   h.workflow.selectCandidate(current.selectedCandidateIds[0]);
   await settle(t);
   assert.equal(current.currentGeometry, null);
-  assert.equal(h.workflow.addPart(), false);
+  assert.equal(await h.workflow.addPart(), false);
   assert.equal(await h.workflow.advance(), false);
-  h.workflow.clear();
+  await h.workflow.clear();
 });
 
 test('bounded entity creation still requires a remaining source after drawing', async t => {
   const h = harness(t);
   for (const [kind, options] of starts.slice(1, 3)) {
-    const current = h.workflow.start(kind, options);
+    const current = await h.workflow.start(kind, options);
     await h.workflow.advance();
     await h.workflow.selectMethod('polygon');
-    h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+    await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
     await settle(t);
     current.remainingGeometry = null;
     assert.equal(h.workflow.previewReady(), true);
     assert.equal(h.workflow.canAddPart(), false);
-    assert.equal(h.workflow.addPart(), false);
+    assert.equal(await h.workflow.addPart(), false);
     assert.equal(await h.workflow.advance(), false);
-    h.workflow.clear();
+    await h.workflow.clear();
   }
 });
 
 test('nested general and independent regional components archive on method change with their exact snapshots', async t => {
   const h = harness(t);
   for (const [kind, options] of starts.slice(2)) {
-    const current = h.workflow.start(kind, { ...options, sourceCountryIds: ['B'] });
+    const current = await h.workflow.start(kind, { ...options, sourceCountryIds: ['B'] });
     await h.workflow.advance();
     await h.workflow.selectMethod('components');
     await settle(t);
@@ -297,15 +297,15 @@ test('nested general and independent regional components archive on method chang
     await settle(t);
     assert.equal(current.parts.length, 0);
     assert.equal(current.componentSnapshots.length, 0);
-    h.workflow.clear();
+    await h.workflow.clear();
   }
 });
 
-test('general object setup retains every selected source country and its reference count', t => {
+test('general object setup retains every selected source country and its reference count', async t => {
   const h = harness(t);
-  const current = h.workflow.start('entity', { entityKind: 'general', name: '새 객체' });
-  assert.equal(h.workflow.toggleSourceCountry('B'), true);
-  assert.equal(h.workflow.toggleSourceCountry('C'), true);
+  const current = await h.workflow.start('entity', { entityKind: 'general', name: '새 객체' });
+  assert.equal(await h.workflow.toggleSourceCountry('B'), true);
+  assert.equal(await h.workflow.toggleSourceCountry('C'), true);
   assert.deepEqual(current.sourceCountryIds, ['B', 'C']);
   assert.equal(h.workflow.presentation().referenceCount, 2);
   assert.equal(h.workflow.presentation().referenceLabel, '기준 객체');
@@ -314,38 +314,38 @@ test('general object setup retains every selected source country and its referen
 test('all four operations use setup, selection, review and preserve a selection through back navigation', async t => {
   const h = harness(t);
   for (const [kind, options] of starts) {
-    const current = h.workflow.start(kind, options);
+    const current = await h.workflow.start(kind, options);
     assert.equal(await h.workflow.advance(), true);
     assert.equal(current.stage, 'selection');
     assert.equal(await h.workflow.selectMethod('polygon'), true);
     assert.equal(current.activeMethod, 'polygon');
     assert.equal(current.activePhase, 'drawing');
-    h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+    await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
     await settle(t);
-    assert.equal(h.workflow.addPart(), true);
+    assert.equal(await h.workflow.addPart(), true);
     await settle(t);
     assert.equal(await h.workflow.advance(), true);
     assert.equal(current.stage, 'review');
     assert.equal(current.parts.length, 1);
     assert.ok(current.combinedGeometry);
-    assert.equal(h.workflow.back(), true);
+    assert.equal(await h.workflow.back(), true);
     assert.equal(current.stage, 'selection');
     assert.equal(current.activePhase, null);
-    assert.equal(h.workflow.back(), true);
+    assert.equal(await h.workflow.back(), true);
     assert.equal(current.stage, 'setup');
     assert.equal(await h.workflow.advance(), true);
     assert.equal(current.activePhase, null);
     assert.equal(Object.hasOwn(current, 'requestedMethod'), true);
-    h.workflow.clear();
+    await h.workflow.clear();
   }
 });
 
 test('back to setup clears only transient input and preserves the draft and ready preview', async t => {
   const h = harness(t);
-  const current = h.workflow.start('annex', starts[0][1]);
+  const current = await h.workflow.start('annex', starts[0][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('line');
-  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
   await settle(t);
   const draft = [[0, 0], [1, 2], [3, 4]];
   h.setDraft(draft);
@@ -356,7 +356,7 @@ test('back to setup clears only transient input and preserves the draft and read
   };
   assert.ok(before.preview);
   assert.ok(before.previewReadyKey);
-  h.workflow.back();
+  await h.workflow.back();
   assert.equal(current.stage, 'setup');
   assert.deepEqual(h.calls.transientCleanup, [
     ['gesture', 'setup', 'territory-selection-back-setup'],
@@ -376,27 +376,27 @@ test('back to setup clears only transient input and preserves the draft and read
 
 test('a mixed line, line, polygon session keeps archived units and previews their union once', async t => {
   const h = harness(t);
-  const current = h.workflow.start('annex', starts[0][1]);
+  const current = await h.workflow.start('annex', starts[0][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('line');
-  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
   await settle(t);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   assert.equal(current.activePhase, null);
   assert.equal(current.parts.length, 1);
 
   assert.equal(await h.workflow.selectMethod('line'), true);
-  h.workflow.setCurrentCandidates([{ geometry: geometry(20) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(20) }]);
   await settle(t);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   assert.equal(current.parts.length, 2);
 
   assert.equal(await h.workflow.selectMethod('polygon'), true);
-  h.workflow.setCurrentCandidates([{ geometry: geometry(30) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(30) }]);
   await settle(t);
   assert.equal(h.workflow.partCount(), 3);
   assert.equal(h.workflow.presentation().primaryLabel, '다음');
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   await settle(t);
   assert.equal(await h.workflow.advance(), true);
   assert.equal(h.workflow.presentation().primaryLabel, '편입 (3)');
@@ -405,12 +405,12 @@ test('a mixed line, line, polygon session keeps archived units and previews thei
 
 test('line, component and polygon parts remain together across method changes and review', async t => {
   const h = harness(t);
-  const current = h.workflow.start('annex', starts[0][1]);
+  const current = await h.workflow.start('annex', starts[0][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('line');
-  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
   await settle(t);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
 
   await h.workflow.selectMethod('components');
   h.workflow.toggleComponent('first');
@@ -418,27 +418,27 @@ test('line, component and polygon parts remain together across method changes an
   assert.equal(await h.workflow.selectMethod('polygon'), true);
   assert.deepEqual(current.parts.map(part => part.method), ['line', 'components']);
 
-  h.workflow.setCurrentCandidates([{ geometry: geometry(50) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(50) }]);
   await settle(t);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   await settle(t);
   assert.deepEqual(current.parts.map(part => part.method), ['line', 'components', 'polygon']);
   assert.equal(current.combinedGeometry.coordinates.length, 3);
   assert.equal(await h.workflow.advance(), true);
-  assert.equal(h.workflow.back(), true);
+  assert.equal(await h.workflow.back(), true);
   assert.equal(current.parts.length, 3);
 });
 
 test('component units archive and undo one item at a time', async t => {
   const h = harness(t);
-  const current = h.workflow.start('entity', starts[1][1]);
+  const current = await h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   h.workflow.toggleComponent('first');
   h.workflow.toggleComponent('second');
   await settle(t);
   assert.equal(h.workflow.partCount(), 2);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   assert.equal(current.parts.length, 2);
   assert.equal(current.activePhase, null);
   assert.equal(h.workflow.undoPart(), true);
@@ -448,13 +448,13 @@ test('component units archive and undo one item at a time', async t => {
 
 test('removing a middle part keeps the other parts and recalculates its real aggregate', async t => {
   const h = harness(t);
-  const current = h.workflow.start('annex', starts[0][1]);
+  const current = await h.workflow.start('annex', starts[0][1]);
   await h.workflow.advance();
   for (const offset of [10, 20, 30]) {
     await h.workflow.selectMethod('polygon');
-    h.workflow.setCurrentCandidates([{ geometry: geometry(offset) }]);
+    await h.workflow.setCurrentCandidates([{ geometry: geometry(offset) }]);
     await settle(t);
-    assert.equal(h.workflow.addPart(), true);
+    assert.equal(await h.workflow.addPart(), true);
     await settle(t);
   }
   const ids = current.parts.map(part => part.id);
@@ -469,7 +469,7 @@ test('removing a middle part keeps the other parts and recalculates its real agg
 
 test('switching from selected components archives them before opening another method', async t => {
   const h = harness(t);
-  const current = h.workflow.start('entity', starts[1][1]);
+  const current = await h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   h.workflow.toggleComponent('first');
@@ -484,7 +484,7 @@ test('switching from selected components archives them before opening another me
 
 test('a method switch requested during component preview waits for validation before archiving', async t => {
   const h = harness(t);
-  const current = h.workflow.start('entity', starts[1][1]);
+  const current = await h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   h.workflow.toggleComponent('first');
@@ -498,13 +498,13 @@ test('a method switch requested during component preview waits for validation be
 
 test('removing one component part keeps its shared snapshot until the last referencing part is removed', async t => {
   const h = harness(t);
-  const current = h.workflow.start('entity', starts[1][1]);
+  const current = await h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   h.workflow.toggleComponent('first');
   h.workflow.toggleComponent('second');
   await settle(t);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   const [first, second] = current.parts;
   assert.equal(current.componentSnapshots.length, 1);
   assert.equal(h.workflow.removePart(first.id), true);
@@ -518,14 +518,14 @@ test('removing one component part keeps its shared snapshot until the last refer
 
 test('method changes preserve archived items and ask before discarding the current item', async t => {
   const h = harness(t);
-  const current = h.workflow.start('annex', starts[0][1]);
+  const current = await h.workflow.start('annex', starts[0][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('polygon');
-  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
   await settle(t);
-  h.workflow.addPart();
+  await h.workflow.addPart();
   await h.workflow.selectMethod('polygon');
-  h.workflow.setCurrentCandidates([{ geometry: geometry(20) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(20) }]);
   assert.equal(await h.workflow.selectMethod('line'), false);
   assert.equal(h.workflow.presentation().showMethodChangeConfirmation, true);
   assert.equal(current.parts.length, 1);
@@ -542,16 +542,16 @@ test('method changes preserve archived items and ask before discarding the curre
 
 test('independent region can add a reference country only when a later line or component method needs it', async t => {
   const h = harness(t);
-  const current = h.workflow.start('entity', starts[3][1]);
+  const current = await h.workflow.start('entity', starts[3][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('polygon');
-  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
   await settle(t);
-  h.workflow.addPart();
+  await h.workflow.addPart();
   assert.equal(await h.workflow.selectMethod('components'), false);
   assert.equal(current.activePhase, 'source');
   assert.equal(h.workflow.countryPickingActive(), true);
-  h.workflow.toggleSourceCountry('B');
+  await h.workflow.toggleSourceCountry('B');
   assert.equal(await h.workflow.startReferenceMethod(), true);
   assert.equal(current.activePhase, 'components');
   assert.equal(current.parts.length, 1);
@@ -559,17 +559,17 @@ test('independent region can add a reference country only when a later line or c
 
 test('the common scheduler only keeps the latest aggregate preview and applies once', async t => {
   const h = harness(t);
-  h.workflow.start('entity', starts[1][1]);
+  await h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('polygon');
-  h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
-  h.workflow.setCurrentCandidates([{ geometry: geometry(20) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(10) }]);
+  await h.workflow.setCurrentCandidates([{ geometry: geometry(20) }]);
   await settle(t);
   assert.equal(h.calls.preview.length, 1);
   assert.deepEqual(h.calls.preview[0][2].coordinates, geometry(20).coordinates);
   h.holdApply();
   assert.equal(await h.workflow.apply(), false);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   await settle(t);
   assert.equal(await h.workflow.advance(), true);
   const applying = h.workflow.apply();
@@ -583,7 +583,7 @@ test('the common scheduler only keeps the latest aggregate preview and applies o
 
 test('late selection result cannot restore cleared geometry and cancel stops the worker', async t => {
   const h = harness(t);
-  const current = h.workflow.start('entity', starts[2][1]);
+  const current = await h.workflow.start('entity', starts[2][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   const normalExecute = h.worker.execute;
@@ -595,7 +595,7 @@ test('late selection result cannot restore cleared geometry and cancel stops the
   for (let i = 0; i < 20; i++) await Promise.resolve();
   assert.equal(current.computationPending, true);
   assert.equal(h.workflow.presentation().primaryDisabled, true);
-  h.workflow.clear();
+  await h.workflow.clear();
   assert.equal(h.calls.stopped, 1);
   release({ result: { currentGeometry: geometry(30), combinedGeometry: geometry(30), remainingGeometry: geometry(0) } });
   await settle(t);
@@ -605,7 +605,7 @@ test('late selection result cannot restore cleared geometry and cancel stops the
 
 test('selection coalesces clicks without rebuilding source and supports worker error retry', async t => {
   const h = harness(t);
-  const current = h.workflow.start('entity', starts[1][1]);
+  const current = await h.workflow.start('entity', starts[1][1]);
   await h.workflow.advance();
   await h.workflow.selectMethod('components');
   const normalExecute = h.worker.execute;
@@ -631,11 +631,11 @@ test('selection coalesces clicks without rebuilding source and supports worker e
 
 test('line candidates use result IDs, toggle multiple pieces, clear selection and archive their union', async t => {
   const h = harness(t);
-  const current = h.workflow.start('annex', { targetCountryId: 'A', sourceCountryIds: ['B'] });
+  const current = await h.workflow.start('annex', { targetCountryId: 'A', sourceCountryIds: ['B'] });
   await h.workflow.advance();
   await h.workflow.selectMethod('line');
   const pieces = [10, 20, 30].map((offset, index) => ({ id: `cut:${index}`, geometry: geometry(offset), area: [8, 2, 5][index] }));
-  h.workflow.setCurrentCandidates(pieces);
+  await h.workflow.setCurrentCandidates(pieces);
   const ids = current.candidates.map(item => item.id);
   assert.deepEqual(current.selectedCandidateIds, [ids[1]]);
   await settle(t);
@@ -657,11 +657,11 @@ test('line candidates use result IDs, toggle multiple pieces, clear selection an
   h.workflow.selectCandidate(ids[2]);
   await settle(t);
   const selected = structuredClone(current.currentGeometry);
-  assert.equal(h.workflow.addPart(), true);
+  assert.equal(await h.workflow.addPart(), true);
   await settle(t);
   assert.deepEqual(current.parts[0].geometry, selected);
   assert.deepEqual(current.selectedCandidateIds, []);
-  h.workflow.setCurrentCandidates(pieces);
+  await h.workflow.setCurrentCandidates(pieces);
   await settle(t);
   const newId = current.selectedCandidateIds[0];
   h.workflow.selectCandidate(newId);

@@ -1109,7 +1109,7 @@ private slots:
         auto window=qobject_cast<QQuickWindow*>(engine.rootObjects()[0]);QVERIFY(window);
         window->resize(width,width==360?640:760);exposeForTest(window);
         auto map=visualItem(window->contentItem(),"mapView");QVERIFY(map);
-        const auto geometry=editor.paths().front().toMap();
+        const auto geometry=editor.objectBounds().front().toMap();
         const double centerY=geometry.value("top").toDouble()+geometry.value("height").toDouble()/2;
         auto moveLabel=[&](double screenY) {
             QVERIFY(editor.fitMapCamera());

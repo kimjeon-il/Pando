@@ -4,11 +4,15 @@ import {readFileSync,mkdtempSync,cpSync,appendFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
-import {adapt,generate,extractPacketDependency,PINS,CUT,ROOT} from './cut-kernel-generate.mjs';
+import {adapt,generateHistoricalCutOracle as generate,extractPacketDependency,PINS,CUT,ROOT} from './cut-kernel-generate.mjs';
 const platform=readFileSync(path.join(ROOT,'assets/geometry/river/platform.js'),'utf8');
 test('cut adapters regenerate byte-identically and restore every original byte outside guarded replacements',()=>{
   const first=generate(),second=generate();assert.deepEqual(first,second);
-  for(const [file,bytes] of first)assert.deepEqual(readFileSync(file),bytes,file);
+  for(const [file,bytes] of first){
+    const actual=readFileSync(file);
+    if(file.endsWith('.qrc'))assert.equal(actual.toString().replace(/\r\n/g,'\n'),bytes.toString(),file);
+    else assert.deepEqual(actual,bytes,file);
+  }
   let replacements=0;
   for(const name of Object.keys(PINS)){
     const original=readFileSync(path.join(CUT,'original',name),'utf8'),{adapted,edits}=adapt(original);

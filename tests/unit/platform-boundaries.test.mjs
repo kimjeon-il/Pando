@@ -3,9 +3,8 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { createTerritorialApplicationService } from '../../assets/js/modules/territorial-service.js';
 import { createEditingDomain } from '../../assets/js/modules/editing-domain.js';
-import { createSelectionDomain } from '../../assets/js/modules/selection-domain.js';
 import * as projectState from '../../assets/js/modules/project-state.js';
-import { createStaticTerritorialSnapshot } from '../../assets/js/modules/territorial-entity-store.js';
+import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import { normalizeGenericFeatureCollection } from '../../assets/js/modules/generic-feature-service.js';
 import { createProjectSession } from '../../assets/js/modules/app-project-session.js';
@@ -14,16 +13,17 @@ import { createGeometryPreviewState } from '../../assets/js/modules/geometry-pre
 import { createAtomicMapStateController } from '../../assets/js/modules/map-state-transition.js';
 import { createSaveStateController } from '../../assets/js/modules/save-state-controller.js';
 import { DISTRIBUTION_RENDER_MODES } from '../../assets/js/modules/distribution-model.js';
+import {createNodeSelection} from '../helpers/core-selection.mjs';
 
 test('territorial service rejects a missing ID provider at its composition boundary', () => {
   assert.throws(() => createTerritorialApplicationService({
-    entityStore: {}, entityRepository: {}, commandPipeline: { runMutation() {} },
-  }), /createId/);
+    entityRepository: {get(){}},commandOwner:{executeCommand(){}},
+  }), /ID allocator/);
 });
 
 test('history restoration prepares and validates a detached candidate outside UI composition', () => {
   assert.equal(typeof projectState.prepareEditableProjectSnapshot, 'function');
-  const snapshot = { ...createStaticTerritorialSnapshot([createTerritorialFeature({
+  const snapshot = { ...staticTerritorialInput([createTerritorialFeature({
     id: 'A', entityKind: 'general', name: 'Alpha', geometry: {
       type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,1],[0,0]]],
     },
@@ -50,17 +50,17 @@ test('history restoration accepts dated identities and preserves archived record
   assert.deepEqual(candidate.territorialEntities, source.territorialEntities);
 });
 
-test('selection publishes the prior selection without a second mutable owner', () => {
+test('selection publishes the prior selection without a second mutable owner', async t => {
   const changes = [];
-  const domain = createSelectionDomain({ onSelectionChanged: (next, reason, previous) => {
+  const fixture=await createNodeSelection({genericIds:['a','b'],labelIds:[],distributionIds:[],onSelectionChanged:(next, reason, previous) => {
     changes.push({ next: next.selection, previous, reason });
-  } });
+  }});t.after(()=>fixture.dispose());const domain=fixture.domain;
   const a = { domain: 'generic', type: 'feature', id: 'a' };
   const b = { domain: 'generic', type: 'feature', id: 'b' };
-  domain.replace(a);
-  domain.replace(b);
-  domain.replace(b); // no-op must not notify
-  domain.resetProject(1);
+  await domain.replace(a);
+  await domain.replace(b);
+  await domain.replace(b); // no-op must not notify
+  await domain.resetProject(1);
   assert.equal(changes.length, 3);
   assert.equal(changes[0].previous?.primaryKey, null);
   assert.equal(changes[1].previous, changes[0].next);
@@ -71,12 +71,14 @@ test('selection publishes the prior selection without a second mutable owner', (
 test('editing domain requires paired frame scheduling from its platform owner', () => {
   assert.throws(() => createEditingDomain(), /requestFrame/);
   assert.throws(() => createEditingDomain({ draftServices: { requestFrame() {} } }), /cancelFrame/);
-  const domain = createEditingDomain({ draftServices: { requestFrame() {}, cancelFrame() {} } });
+  assert.throws(() => createEditingDomain({ draftServices: { requestFrame() {},cancelFrame() {} } }),/error reporter/);
+  const domain = createEditingDomain({ commandOwner: { draftApply() { throw new Error('No draft action is used in this wiring test.'); },
+    subscribeTransitions: () => () => {},state: () => null },draftServices: { requestFrame() {},cancelFrame() {},reportOperationError() {} } });
   assert.equal(domain.snapshot().phase, 'idle');
   domain.dispose();
 });
 
-test('project session reads the current selection owner across replacement and reset without storing a second selection', () => {
+test('project session reads the current selection owner across replacement and reset without storing a second selection', async t => {
   const domains = { selectionDomain: null };
   const owner = createProjectSession();
   owner.connect({
@@ -95,21 +97,23 @@ test('project session reads the current selection owner across replacement and r
   assert.equal(typeof selected.get, 'function');
   assert.equal(selected.set, undefined);
   assert.equal(Object.hasOwn(selected, 'value'), false);
-  domains.selectionDomain = createSelectionDomain();
-  domains.selectionDomain.replace({ domain: 'territorial', type: 'entity', id: 'A' });
+  const first=await createNodeSelection({genericIds:[],labelIds:[],distributionIds:[]});t.after(()=>first.dispose());
+  domains.selectionDomain=first.domain;
+  await domains.selectionDomain.replace({ domain: 'territorial', type: 'entity', id: 'A' });
   assert.equal(owner.state.selected, domains.selectionDomain.primary());
   assert.equal(owner.state.selected.id, 'A');
-  domains.selectionDomain.replace({ domain: 'territorial', type: 'entity', id: 'B' });
+  await domains.selectionDomain.replace({ domain: 'territorial', type: 'entity', id: 'B' });
   assert.equal(owner.state.selected.id, 'B');
   assert.throws(() => { owner.state.selected = null; }, TypeError);
   assert.equal(owner.state.selected.id, 'B');
-  domains.selectionDomain.resetProject(1);
+  await domains.selectionDomain.resetProject(1);
   assert.equal(owner.state.selected, null);
   domains.selectionDomain.dispose();
   domains.selectionDomain = null;
   assert.equal(owner.state.selected, null);
-  domains.selectionDomain = createSelectionDomain();
-  domains.selectionDomain.replace({ domain: 'generic', type: 'feature', id: 'C' });
+  const second=await createNodeSelection({genericIds:['C'],labelIds:[],distributionIds:[]});t.after(()=>second.dispose());
+  domains.selectionDomain=second.domain;
+  await domains.selectionDomain.replace({ domain: 'generic', type: 'feature', id: 'C' });
   assert.equal(owner.state.selected.id, 'C');
   domains.selectionDomain.dispose();
 });

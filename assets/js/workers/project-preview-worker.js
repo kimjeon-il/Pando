@@ -24,10 +24,10 @@ async function sha256(value) {
   return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-async function geometryKey(project, baseline) {
+async function geometryKey(source, baseline) {
   const policy = (await modules)[4];
   return sha256({ source: baseline?.sourceSha256 || '', classification: policy.BUILTIN_SUBUNIT_REVISION,
-    algorithm: policy.PROJECT_PREVIEW_ALGORITHM_REVISION, ...policy.projectPreviewGeometryRows(project) });
+    algorithm: policy.PROJECT_PREVIEW_ALGORITHM_REVISION, ...policy.projectPreviewGeometryRows(source) });
 }
 
 function bounds(geometry) {
@@ -225,11 +225,12 @@ async function unpackCache(record) {
     ? new TYPED_ARRAYS[value.__previewArray](value.values) : value);
 }
 
-async function validateCache(project, baseline, cache) {
+async function validateCache(source, baseline, cache) {
   const { PROJECT_PREVIEW_ALGORITHM_REVISION, PROJECT_PREVIEW_MAX_BYTES } = (await modules)[4];
+  const key = await geometryKey(source, baseline);
   if (!cache || cache.algorithmRevision !== PROJECT_PREVIEW_ALGORITHM_REVISION
     || cache.baseSourceSha256 !== baseline?.sourceSha256
-    || cache.geometryKey !== await geometryKey(project, baseline)
+    || cache.geometryKey !== key
     || !(cache.compressed instanceof ArrayBuffer)
     || cache.compressed.byteLength > PROJECT_PREVIEW_MAX_BYTES) return null;
   const unpacked = await unpackCache(cache);
@@ -241,11 +242,13 @@ async function validateCache(project, baseline, cache) {
   return await cacheIntegrity(unpacked) === unpacked.integrity ? unpacked : null;
 }
 
-async function buildCache(project, baseline, entities) {
+async function buildCache(source, baseline, entities) {
+  const key = await geometryKey(source, baseline);
+  if (!Array.isArray(entities)) throw Object.assign(new TypeError('Accepted display entities are required to build a project preview.'),
+    { code: 'PL-PREVIEW-SOURCE' });
   const features = entities.filter(entity => (entity.properties.entityKind === 'general' && !entity.properties.parentId));
   const territorialUnits = entities.filter(entity => !(entity.properties.entityKind === 'general' && !entity.properties.parentId));
   const [shared, geometryValidation, stroke, spatial, policy] = await modules;
-  const key = await geometryKey(project, baseline);
   const current = features.map(feature => ({ type: 'Feature', id: String(feature.id),
     properties: feature.properties || {}, geometry: feature.geometry }));
   const units = territorialUnits.map(unit => ({ type: 'Feature', id: `unit:${unit.id}`,
@@ -298,11 +301,11 @@ async function buildCache(project, baseline, entities) {
 }
 
 self.onmessage = async event => {
-  const { id, type, project, baseline, cache, entities } = event.data || {};
+  const { id, type, source, baseline, cache, entities } = event.data || {};
   try {
-    const result = type === 'key' ? await geometryKey(project, baseline)
-      : type === 'validate' ? await validateCache(project, baseline, cache)
-        : type === 'build' ? await buildCache(project, baseline, entities || [])
+    const result = type === 'key' ? await geometryKey(source, baseline)
+      : type === 'validate' ? await validateCache(source, baseline, cache)
+        : type === 'build' ? await buildCache(source, baseline, entities)
           : null;
     self.postMessage({ id, ok: true, result });
   } catch (error) {

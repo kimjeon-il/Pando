@@ -54,7 +54,7 @@ const domFreeModules = [
   'distribution-service.js',
   'generic-feature-service.js',
   'map-render-coordinator.js',
-  'history-service.js',
+  'core-document-read-model.js',
   'territorial-library-service.js',
   'import-service.js',
   'map-edit-worker-client.js',
@@ -410,6 +410,7 @@ if (/function\s+(?:recordHistory|commitHistorySnapshot|queueAutosave|queueViewAu
   throw new Error('app.js must not reintroduce project history/persistence wrappers');
 }
 const removedDomainFacadeMethods = new Map([
+  [projectDomainSource, ['buildProject']],
   [gisDomainSource, [
     'normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity',
     'planCountryImport', 'planTerritorialImport', 'planCoastReconciliation',
@@ -445,7 +446,7 @@ if (!readApplicationOwners('lifecycle-assembly').includes('createApplicationLife
 if (!lifecycleSource.includes('if (!event.persisted) dispose();')) {
   throw new Error('domain disposal must preserve pages retained in the back-forward cache');
 }
-if (!readApplicationOwners('lifecycle-assembly').includes('renderingDomain, editingDomain, selectionDomain, gisWorkflow, gisDomain, projectDomain]')) {
+if (!/renderingDomain,\s*editingDomain,\s*selectionDomain,\s*gisWorkflow,\s*gisDomain,\s*projectDomain,\s*commandOwner\]/.test(readApplicationOwners('lifecycle-assembly'))) {
   throw new Error('app.js must dispose every domain in visual-to-data ownership order');
 }
 if (!lifecycleSource.includes('resource?.dispose?.()')) {

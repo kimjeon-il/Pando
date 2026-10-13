@@ -52,7 +52,7 @@ private slots:
         using namespace pandoeditor;auto d=projectcodec::decode(sample());
         Geometry point;point.type="Point";point.points={{2,3}};d.geometries.insert({"point",1},point);
         PlaceLabel label;label.id="point";label.name="old";label.geometry={"point",1};d.labels.push_back(label);
-        d.presentation.webPresentation.hiddenItems["labels"].insert(label.id);
+        d.presentation.webPresentation.itemVisibility["labels"][label.id]=false;
         PreservedExtension extension;extension.id="opaque";extension.payload="{}";extension.forbiddenEffects={"geometry"};extension.dependencies={{"label",label.id}};extension.dependencyKnowledge="known";d.extensions.push_back(extension);
         Project p;p.replace(d);label.name="new";
         CommandArguments args;args.action=ContentEdit{{"label",label.id},label,{}};
