@@ -141,7 +141,10 @@ test('multiply strokes preserve opacity at centers and antialiased edges', async
 test('Canvas receives the graticule scene and paints mixed overlays with protected base pixels', async ({ page, baseURL }) => {
   test.setTimeout(180_000);
   const coreRequests = [];
+  const workerErrors = [];
   page.on('request', request => { if (request.url().includes('canvas-scene-composition-core.js')) coreRequests.push(request.url()); });
+  page.on('console', message => { if (message.type() === 'warning' || message.type() === 'error') workerErrors.push(message.text()); });
+  page.on('pageerror', error => workerErrors.push(error.message));
   await page.addInitScript(() => {
     window.__graticulePackets = [];
     const post = Worker.prototype.postMessage;
@@ -152,7 +155,13 @@ test('Canvas receives the graticule scene and paints mixed overlays with protect
   });
   await page.goto(new URL('?renderer=canvas&debug=1', site(baseURL)).href);
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
-  await expect.poll(() => page.evaluate(() => window.__graticulePackets.length), { timeout: 30_000 }).toBeGreaterThan(0);
+  try {
+    await expect.poll(() => page.evaluate(() => window.__graticulePackets.length), { timeout: 30_000 }).toBeGreaterThan(0);
+  } catch (error) {
+    const renderer = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot()?.gpu?.renderer);
+    console.log('CANVAS_GRATICULE_DIAGNOSTICS', JSON.stringify({ renderer, workerErrors, coreRequests }));
+    throw error;
+  }
   await expect(page.locator('path.map-graticule')).toHaveCount(0);
   const interactionLayers = await page.locator('.map-interaction-root > g').evaluateAll(nodes => nodes.map(node => node.getAttribute('class')));
   expect(interactionLayers).toEqual(['hover-overlay-layer', 'selection-overlay-layer', 'territorial-operation-layer',
