@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <limits>
 #include <set>
 #include <sstream>
 #include <stdexcept>
@@ -112,9 +113,25 @@ void validateSphericalPolygon(const V& geometry) {
                 continue;
             }
             const double signedArea=sphericalSignedArea(coordinates);
-            if(!std::isfinite(signedArea)||std::abs(signedArea)<=1e-15)
-                throw std::runtime_error("AMBIGUOUS_SPHERICAL_RING: "+std::to_string(p)+"/"+std::to_string(r));
-            const double area=signedArea<0?sphere+signedArea:signedArea;
+            if(!std::isfinite(signedArea))
+                throw std::runtime_error("AMBIGUOUS_SPHERICAL_RING: nonfinite area");
+            double area=0;
+            if(std::abs(signedArea)<=1e-15) {
+                bool discontinuity=false;
+                for(std::size_t i=0;i<coordinates.size();++i) {
+                    if(std::abs(coordinates[i].y)==90||(i&&std::abs(coordinates[i].x-coordinates[i-1].x)>=180))discontinuity=true;
+                }
+                if(discontinuity)throw std::runtime_error("AMBIGUOUS_SPHERICAL_RING: seam or pole");
+                const auto ox=coordinates[0].x,oy=coordinates[0].y;double planar=0;
+                for(std::size_t i=1;i<coordinates.size();++i) {
+                    const auto& a=coordinates[i-1];const auto& b=coordinates[i];
+                    planar+=(a.x-ox)*(b.y-oy)-(b.x-ox)*(a.y-oy);
+                }
+                if(planar==0)throw std::runtime_error("INVALID_POLYGON_RING: zero-area ring");
+                const double tiny=std::max(std::abs(planar)*3.14159265358979323846*3.14159265358979323846/(180*180)/2,
+                                           std::numeric_limits<double>::denorm_min());
+                area=planar<0?tiny:sphere-tiny;
+            }else area=signedArea<0?sphere+signedArea:signedArea;
             if(!(area>0&&area<sphere))
                 throw std::runtime_error("AMBIGUOUS_SPHERICAL_RING: invalid spherical interior");
             if((r==0&&area>=hemisphere)||(r!=0&&area<=hemisphere))
