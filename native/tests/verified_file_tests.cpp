@@ -20,6 +20,7 @@ void write(const QString& path,const QByteArray& bytes) {
 }
 int main(int argc,char** argv) {
     QCoreApplication app(argc,argv);
+    try {
     QTemporaryDir directory;require(directory.isValid(),"fixture directory");
     const QByteArray bytes="tiny hydro receipt";
     const auto path=directory.filePath("source.bin");write(path,bytes);
@@ -74,4 +75,8 @@ int main(int argc,char** argv) {
     require(ready==2&&failed==0&&!reused&&requests==2,"corrupt source retains checksum retry and recovery");
     require(store.hasVerifiedExisting(asset),"repaired cache is verified");
     std::cout<<"verified file: cold lookup, worker admission, mutation, replacement and retry passed\n";
+    } catch(const std::exception& error) {
+        std::cerr<<"verified_file_tests: "<<error.what()<<'\n';
+        return 1;
+    }
 }
