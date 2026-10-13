@@ -8,6 +8,7 @@ on:
       - native/tools/audit_north_schleswig_1914_stone26_split.py
       - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.stone26-transition.*
       - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.stone26-transition.audit.json
+      - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.stone26-transition.audit.json
       - .github/workflows/native-north-schleswig-1914-stone26-transition.yml
 
 permissions:
@@ -30,6 +31,10 @@ jobs:
       - name: Verify coordinates unchanged and two derived provisional segments join
         run: |
           python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path("../tools").resolve()))
+          from report_paths import report_path
           import json
           from pathlib import Path
           from pyproj import Transformer
@@ -41,7 +46,7 @@ jobs:
           read=lambda f:json.loads((base/f).read_text(encoding="utf-8"))
           master=read(stem+".geojson")["features"][0]
           segment_features=read(stem+".stone26-transition.provisional.geojson")["features"]
-          audit=json.loads((Path("../reports/geography/germany/north-schleswig")/(stem+".stone26-transition.audit.json")).read_text(encoding="utf-8"))
+          audit=json.loads((report_path("native/tools/historical-library/land-borders")/(stem+".stone26-transition.audit.json")).read_text(encoding="utf-8"))
           assert len(segment_features)==2
           a,b=segment_features
           original=master["geometry"]["coordinates"]

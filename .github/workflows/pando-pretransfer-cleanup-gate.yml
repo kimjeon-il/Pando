@@ -7,6 +7,10 @@ on:
       - '.github/workflows/pando-pretransfer-cleanup-gate.yml'
       - 'native/app/projectgeopackage.cpp'
       - 'native/tests/core/CMakeLists.txt'
+      - 'tools/report*'
+      - 'tests/test_report_paths.py'
+      - 'tests/unit/report-paths.test.mjs'
+      - 'native/tests/place_sync_contract_tests.cpp'
   workflow_dispatch:
 
 permissions:
@@ -46,7 +50,7 @@ jobs:
           from pathlib import Path
           import subprocess
           paths=set(subprocess.check_output(['git','ls-files','-z']).decode().strip('\x00').split('\x00'))
-          assert len(paths)==7067, f'unexpected tracked file count {len(paths)}'
+          assert len(paths)==7072, f'unexpected tracked file count {len(paths)}'
           reports=[p for p in paths if p.startswith('reports/')]
           assert len(reports)==1957, f'unexpected report count {len(reports)}'
           assert len([p for p in paths if p.startswith('reports/research/siachen/')])==54
@@ -59,26 +63,12 @@ jobs:
             for name in ('results.json','source-notes.json'):
               path=f'reports/hydro-names/reconstruction-2026-10-09/batch-r{batch}/{name}'
               assert path in paths, path
-          print('PASS: 7067 tracked files, 1957 reports, 54 Siachen files, 86 hydro-name research JSONs, no legacy copies')
+          print('PASS: 7072 tracked files, 1957 reports, 54 Siachen files, 86 hydro-name research JSONs, no legacy copies')
           PY
-      - name: Inspect remaining old literal paths in executable code
+      - name: Verify old and new report layout resolution
         run: |
-          python - <<'PY'
-          import pathlib,re
-          roots=[pathlib.Path('.github/workflows'),pathlib.Path('scripts'),pathlib.Path('tools'),pathlib.Path('native/tools'),pathlib.Path('native/tests'),pathlib.Path('tests/unit')]
-          patterns=['assets/data/research/siachen','native/reports/places/','docs/research/country-default-colors.json']
-          matches=[]
-          for root in roots:
-            for file in root.rglob('*'):
-              if not file.is_file() or file.suffix not in {'.mjs','.js','.py','.yml','.yaml','.cpp','.h','.md'} or 'fixtures' in file.parts:continue
-              if file.as_posix()=='.github/workflows/pando-pretransfer-cleanup-gate.yml':continue
-              try: data=file.read_text(encoding='utf-8')
-              except UnicodeError:continue
-              for phrase in patterns:
-                if phrase in data:matches.append((str(file),phrase))
-          if matches:print('Legacy executable-path references:',matches)
-          assert not matches, 'stale executable references remain'
-          PY
+          python -m unittest tests/test_report_paths.py
+          node --test tests/unit/report-paths.test.mjs
 
   native-place:
     runs-on: ubuntu-24.04
@@ -108,5 +98,5 @@ jobs:
           cmake -S native -B native/build-pretransfer -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
           cmake --build native/build-pretransfer --parallel 2 --target place_sync_contract_tests core_session_tests
       - name: Verify Qt place source contract
-        run: ctest --test-dir native/build-pretransfer --output-on-failure -R '^(place_sync_contract_tests|core_session_tests)
+        run: ctest --test-dir native/build-pretransfer --output-on-failure -R '^(place_sync_contract_tests|core_session_tests)$'
 

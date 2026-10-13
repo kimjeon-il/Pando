@@ -18,7 +18,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-ROOT=Path("reports/research/siachen")
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
+from report_paths import report_path
+
+ROOT=report_path("assets/data/research/siachen")
 ROOT.mkdir(parents=True,exist_ok=True)
 STAC="https://earth-search.aws.element84.com/v1/search"
 CRS="EPSG:32643"
