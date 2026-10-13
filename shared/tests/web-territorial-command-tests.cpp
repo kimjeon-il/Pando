@@ -91,6 +91,22 @@ void frozenStaticAndMonthCollisionGoldens() {
         assert(p.redo()&&binding(p,"N").geometryRef==created&&records(p).encode()==(month?monthGolden:staticGolden).encode());
     }
 }
+void boundedParentClipsCurrentMonthChildLifetime() {
+    auto d=fixture();const Validity bounded{std::string("2026-10-01"),std::string("2026-10-31")};
+    d.timelineRecords.lifetimes[0].validity=bounded;
+    d.timelineRecords.geometryBindings[0].validity=bounded;
+    d.timelineRecords.parentRelations[0].validity=bounded;
+    Project p;p.replace(d);p.setTimelineCursor("2026-10",false);p.setTimelineCursor("2026-10");
+    assert(apply(p,"territorial.create",payload("feature",feature("B","A"))).changed());
+    const auto& timeline=p.document().timelineRecords;
+    const auto clipped=Validity{std::string("2026-10"),std::string("2026-10-31")};
+    assert(timeline.lifetimes.back().entityId=="B"&&timeline.lifetimes.back().validity.from==clipped.from&&timeline.lifetimes.back().validity.to==clipped.to);
+    assert(timeline.geometryBindings.back().entityId=="B"&&timeline.geometryBindings.back().validity.from==clipped.from&&timeline.geometryBindings.back().validity.to==clipped.to);
+    assert(timeline.parentRelations.back().entityId=="B"&&timeline.parentRelations.back().validity.from==clipped.from&&timeline.parentRelations.back().validity.to==clipped.to);
+    assert(p.resolveWorld("2026-10").find("B")&&!p.resolveWorld("2026-11").find("B"));
+    assert(p.undo()&&!p.resolveWorld("2026-10").find("B"));
+    assert(p.redo()&&p.resolveWorld("2026-10").find("B")&&!p.resolveWorld("2026-11").find("B"));
+}
 void patchOrderReplacementAndExactRemovalAreAtomic() {
     Project p;p.replace(fixture());p.setTimelineCursor("2026-10",false);
     auto incoming=V::arr();incoming.array={feature("C","D"),feature("D"),feature("A")};
@@ -192,6 +208,7 @@ void monthCatalogOrderDateGuardsAndSplitCollisionMatchOriginal() {
 int main() {
     resolvedFeatureReaderKeepsCurrentIdentityAndMetadataOwner();
     frozenStaticAndMonthCollisionGoldens();
+    boundedParentClipsCurrentMonthChildLifetime();
     patchOrderReplacementAndExactRemovalAreAtomic();
     parentAndCopyUseFrozenServiceAdmission();
     geometryVersionUsesArchivedHighWaterAndMonthSplit();

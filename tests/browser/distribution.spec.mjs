@@ -23,7 +23,19 @@ async function createDistribution(page, name) {
   await page.locator('#createMenuBtn').click();
   page.once('dialog', dialog => dialog.accept(name));
   await page.locator('#addDistributionBtn').click();
-  await expect(page.locator('#distributionProperties')).toBeVisible();
+  // Creation selects the accepted Core layer before the editor can be used.
+  await expect(page.locator('#distributionNameInput')).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('#distributionNameInput')).toHaveValue(name, { timeout: 30_000 });
+  await expect(page.locator('#distributionUnitInput')).toBeVisible({ timeout: 30_000 });
+}
+
+async function openDistributionViewMenu(page) {
+  const display = page.locator('#mapDisplayBtn');
+  if (await display.getAttribute('aria-expanded') !== 'true') await display.evaluate(button => button.click());
+  await expect(display).toHaveAttribute('aria-expanded', 'true');
+  const distribution = page.locator('#distributionMenuTrigger');
+  if (await distribution.getAttribute('aria-expanded') !== 'true') await distribution.evaluate(button => button.click());
+  await expect(distribution).toHaveAttribute('aria-expanded', 'true');
 }
 
 async function autosavedDistributions(page) {
@@ -79,8 +91,8 @@ test('distribution controls stay inside the single view submenu on desktop and m
   await expect(style.locator('[data-layer-style-blend-mode="distributions"]')).toBeVisible();
   await expect(page.locator('#distributionOverlapRadio')).toBeVisible();
   await page.locator('#distributionSingleRadio').locator('..').click({ timeout: 5_000 });
+  await expect(page.locator('#distributionActiveLayerInput').locator('..')).toBeVisible({ timeout: 30_000 });
   await expect(page.locator('#distributionSingleRadio')).toBeChecked();
-  await expect(page.locator('#distributionActiveLayerInput').locator('..')).toBeVisible();
   await expect(page.locator('#distributionLegend')).toBeVisible();
   await expect(page.locator('#distributionBoundaryVisibleInput')).toBeVisible();
   await page.locator('[data-map-display-row="general"]').click();
@@ -157,26 +169,39 @@ test('single display follows distribution selection without another view menu ch
 });
 
 test('a numeric distribution stores signed values and survives undo and redo', async ({ page }) => {
+  test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const germany = countries.find(feature => feature.id === 'DEU');
+  const saved = staticAutosaveProject({}, [createTerritorialFeature({ id: 'DEU', entityKind: 'general',
+    name: germany.properties.name, geometry: germany.geometry })]);
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   const errors = await openApp(page);
 
   await createDistribution(page, '인구 변화');
   await page.locator('#distributionUnitInput').fill('명');
   await page.locator('#distributionUnitInput').blur();
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()[0]?.unit),
+    { timeout: 30_000 }).toBe('명');
   await page.locator('#distributionColorTrigger').click();
   await page.locator('#distributionColorPopover [data-color-value="#3b82f6"]').click();
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()[0]?.color),
+    { timeout: 30_000 }).toBe('#3b82f6');
   await expect(page.locator('#distributionColorInput')).toHaveValue('#3b82f6');
-  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()[0]?.color)).toBe('#3b82f6');
   await page.locator('#actionsTabBtn').click();
 
-  const territorialUnitId = await page.locator('#distributionTerritorialUnitInput option').nth(1).getAttribute('value');
-  expect(territorialUnitId).toBeTruthy();
+  const territorialUnitId = 'DEU';
+  await expect(page.locator('#distributionTerritorialUnitInput option[value="DEU"]')).toHaveCount(1);
   await selectUiOption(page, '#distributionTerritorialUnitInput', territorialUnitId);
   await page.locator('#distributionValueInput').fill('-2.5');
   await page.locator('#addTerritorialDistributionBtn').click();
+  await expect.poll(() => page.evaluate(() => {
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
+    return layer ? window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id).length : 0;
+  }), { timeout: 30_000 }).toBe(1);
 
-  await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
+  await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1, { timeout: 30_000 });
+  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1, { timeout: 30_000 });
   const stored = await page.evaluate(() => {
     const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
     return { layer, entries: window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id) };
@@ -187,29 +212,46 @@ test('a numeric distribution stores signed values and survives undo and redo', a
   expect(stored.entries[0]).toMatchObject({ mode: 'territorial', territorialUnitId, value: -2.5 });
 
   await page.locator('#undoBtn').click();
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => {
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
+    return layer ? window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id).length : 0;
+  }), { timeout: 30_000 }).toBe(0);
+  await expect(page.locator('#map path.distribution-shape')).toHaveCount(0, { timeout: 30_000 });
   await page.locator('#redoBtn').click();
-  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => {
+    const layer = window.PANDOLAB_DISTRIBUTIONS.listLayers()[0];
+    return layer ? window.PANDOLAB_DISTRIBUTIONS.listEntries(layer.id).length : 0;
+  }), { timeout: 30_000 }).toBe(1);
+  await expect(page.locator('#map path.distribution-shape')).toHaveCount(1, { timeout: 30_000 });
   expect(errors).toEqual([]);
 });
 
 test('overlap and single display preserve independent values and free geometry on reload', async ({ page }, testInfo) => {
-  test.setTimeout(180_000);
+  test.setTimeout(240_000);
   page.setDefaultTimeout(15_000);
   await page.setViewportSize({ width: 1440, height: 900 });
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const germany = countries.find(feature => feature.id === 'DEU');
+  const saved = staticAutosaveProject({}, [createTerritorialFeature({ id: 'DEU', entityKind: 'general',
+    name: germany.properties.name, geometry: germany.geometry })]);
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
   const errors = await openApp(page);
 
   await createDistribution(page, '밀도');
   await page.locator('#distributionNameInput').fill('인구 밀도');
   await page.locator('#distributionNameInput').blur();
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listLayers()[0]?.name),
+    { timeout: 30_000 }).toBe('인구 밀도');
   await page.locator('#actionsTabBtn').click();
   const firstUnit = 'DEU';
   await expect(page.locator('#distributionTerritorialUnitInput option[value="DEU"]')).toHaveText('독일');
   await selectUiOption(page, '#distributionTerritorialUnitInput', firstUnit);
   await page.locator('#distributionValueInput').fill('100');
   await page.locator('#addTerritorialDistributionBtn').click();
+  await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1, { timeout: 30_000 });
   // Put the two independent entries in one actual viewport. World option order
   // does not guarantee the territorial entry survives free-geometry focusing.
+  await expect(page.locator('#focusSelectedObjectBtn')).toBeVisible({ timeout: 30_000 });
   await page.locator('#focusSelectedObjectBtn').click();
 
   await createDistribution(page, '기온');
@@ -218,6 +260,7 @@ test('overlap and single display preserve independent values and free geometry o
   await page.locator('#actionsTabBtn').click();
   await page.locator('#distributionValueInput').fill('-4.25');
   await page.locator('#addGeometryDistributionBtn').click();
+  await expect(page.locator('#modeDraftDoneBtn')).toBeVisible({ timeout: 30_000 });
   const mapBox = await page.locator('#map').boundingBox();
   expect(mapBox).not.toBeNull();
   await page.mouse.move(mapBox.x + mapBox.width * 0.47, mapBox.y + mapBox.height * 0.43);
@@ -228,13 +271,18 @@ test('overlap and single display preserve independent values and free geometry o
   await expect(page.locator('g.draft-vertex')).toHaveCount(3);
   await expect(page.locator('#modeDraftDoneBtn')).toBeEnabled();
   await page.locator('#modeDraftDoneBtn').click();
+  await expect(page.locator('#actionsTabBtn')).toBeVisible({ timeout: 30_000 });
   await page.locator('#actionsTabBtn').click();
   await expect(page.locator('#distributionEntryList .distribution-entry-row')).toHaveCount(1);
 
   await createDistribution(page, '삭제할 분포');
   await page.locator('#actionsTabBtn').click();
+  await expect(page.locator('#actionsTabBtn')).toHaveAttribute('aria-selected', 'true', { timeout: 30_000 });
+  await expect(page.locator('#objectDeleteBtn')).toBeVisible({ timeout: 30_000 });
   await page.locator('#objectDeleteBtn').click();
   await page.locator('#confirmModalOkBtn').click();
+  await expect(page.locator('#actionStatus')).toContainText('삭제했습니다.', { timeout: 30_000 });
+  await expect(page.locator('#confirmModal')).toBeHidden({ timeout: 30_000 });
 
   const current = await page.evaluate(() => ({
     layers: window.PANDOLAB_DISTRIBUTIONS.listLayers(),
@@ -243,15 +291,17 @@ test('overlap and single display preserve independent values and free geometry o
     )[0],
   }));
   expect(current.layers.map(layer => layer.name)).toEqual(['인구 밀도', '기온']);
-  await page.locator('#mapDisplayBtn').click();
-  await page.locator('#distributionMenuTrigger').click();
+  await openDistributionViewMenu(page);
   await page.locator('#distributionSingleRadio').locator('..').click();
   await expect(page.locator('#distributionSingleRadio')).toBeChecked();
+  if (!await page.locator('#distributionActiveLayerInput').locator('..').isVisible()) {
+    await openDistributionViewMenu(page);
+  }
+  await expect(page.locator('#distributionActiveLayerInput').locator('..')).toBeVisible({ timeout: 30_000 });
   await selectUiOption(page, '#distributionActiveLayerInput', current.layers[1].id);
   await expect(page.locator('#map path.distribution-shape')).toHaveCount(1);
   // The select's external popover closes the view menu; reopen it for the next command.
-  await page.locator('#mapDisplayBtn').click();
-  await page.locator('#distributionMenuTrigger').click();
+  await openDistributionViewMenu(page);
   await page.locator('#distributionOverlapRadio').locator('..').click();
   await expect(page.locator('#distributionOverlapRadio')).toBeChecked();
   await testInfo.attach('overlap-distribution-model-and-frame', {

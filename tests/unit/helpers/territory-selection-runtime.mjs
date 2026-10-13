@@ -10,6 +10,7 @@ const clone = value => structuredClone(value);
 const noop = () => {};
 export const square = (x0,y0,x1,y1) => ({ type:'Polygon', coordinates:[[[x0,y0],[x0,y1],[x1,y1],[x1,y0],[x0,y0]]] });
 export async function loadSelectionModules(root = sourceRoot) {
+  await import('../../helpers/spherical-core.mjs');
   await import(pathToFileURL(resolve(root, 'assets/js/vendor/polygon-clipping.min.js')).href);
   runInThisContext(readFileSync(resolve(root, 'assets/js/vendor/d3.min.js'),'utf8'), {filename:'pinned-d3.min.js'});
   const modules = await Promise.all([...selectionEntrypoints,'territorial-units'].map(name => import(pathToFileURL(resolve(root,`assets/js/modules/${name}.js`)).href)));

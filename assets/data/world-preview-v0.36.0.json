@@ -471,18 +471,18 @@
   "globalAreaError": 0.000199,
   "meshAlgorithmRevision": 3,
   "meshVertices": 125463,
-  "countriesCompressedBytes": 917549,
+  "countriesCompressedBytes": 917509,
   "meshCompressedBytes": 1733548,
-  "combinedCompressedBytes": 2651097,
-  "countriesSha256": "25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38",
+  "combinedCompressedBytes": 2651057,
+  "countriesSha256": "4068face7b045dce6453d1e90653a4ee248c47103f30c82ac3433be5ba0860f0",
   "meshSha256": "a90951c3171706bab9af4ff9e94fbc50d1ebc66f0cd53f67a4481ccd6d9e9f48",
   "assets": {
     "previewCountries": {
       "url": "countries-preview-v0.36.0.geojson.gz",
       "encoding": "gzip",
-      "compressedBytes": 917549,
+      "compressedBytes": 917509,
       "decodedBytes": 2438942,
-      "sha256": "25b8ad594f7a64e6b8089f7b7e8b0dbc187f8432816b81012b00b3dd4b6dcd38"
+      "sha256": "4068face7b045dce6453d1e90653a4ee248c47103f30c82ac3433be5ba0860f0"
     },
     "previewMesh": {
       "url": "world-mesh-preview-v0.36.0.bin.gz",

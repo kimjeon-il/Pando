@@ -10,13 +10,20 @@ importScripts(
   './gpu-mesh-core.js',
 );
 
-const modules = Promise.all([
+const geometryCoreReady = import('../modules/core-wasm-loader.js')
+  .then(({ loadVerifiedCore }) => loadVerifiedCore({
+    baseUrl: new URL('../../wasm/', self.location.href),
+  }))
+  .then(core => { self.PandoLabSphericalCore = core; });
+
+const modules = geometryCoreReady.then(() => Promise.all([
   import('../modules/project-preview-topology.js'),
   import('../modules/geometry-validation.js'),
   import('../modules/country-stroke-preparation.js'),
   import('../modules/mesh-spatial-blocks.js'),
   import('../modules/project-preview-policy.js'),
-]);
+]));
+modules.catch(() => {});
 
 async function sha256(value) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));

@@ -12,6 +12,7 @@ import { buildTopologyPreview } from './preview-topology.mjs';
 import { classifyBuiltinCountries } from '../assets/js/modules/builtin-subunits.js';
 import { geometryFingerprint } from '../assets/js/modules/project-preview-policy.js';
 import { verifyGzipAssetBytes } from '../scripts/lib/gzip-asset-verification.mjs';
+import './load-spherical-core.mjs';
 
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(toolDirectory, '..');

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { validateGeometry } from '../assets/js/modules/geometry-validation.js';
 import {readTerritorialSources} from '../tools/territorial-entity-sources.mjs';
 import {buildCurrentWorld} from '../tools/territorial-current-world.mjs';
+import '../tools/load-spherical-core.mjs';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDirectory, '..');

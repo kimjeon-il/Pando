@@ -141,6 +141,36 @@ test('selection transport carries captured types and admitted external identitie
   f.client.dispose();
 });
 
+test('queued selection uses the dispatch epoch and rejects an obsolete project intent before reaching Core', async () => {
+  const ref = { domain: 'placeBuiltin', type: 'city', id: 'builtin:place:fixture:1' };
+  const intent = { action: 'replace', ref, scope: 'map' };
+  const current = fixture();
+  await current.client.load('{}');
+  current.holdCommand();
+  const command = current.client.execute({ commandId: 'territorial.field', targets: [], payload: {} });
+  await current.commandHeld;
+  const selection = current.client.selectionApply(intent, { isCurrent: () => true });
+  current.releaseCommand();
+  await command;
+  await selection;
+  assert.equal(current.sent.find(row => row.operation === 'core.document-selection-apply').payload.expectedEpoch, 2);
+  current.client.dispose();
+
+  const obsolete = fixture();
+  await obsolete.client.load('{}');
+  obsolete.holdCommand();
+  const pending = obsolete.client.execute({ commandId: 'territorial.field', targets: [], payload: {} });
+  await obsolete.commandHeld;
+  let sameProject = true;
+  const rejected = obsolete.client.selectionApply(intent, { isCurrent: () => sameProject });
+  sameProject = false;
+  obsolete.releaseCommand();
+  await pending;
+  await assert.rejects(rejected, { code: 'PL-CORE-STALE' });
+  assert.equal(obsolete.sent.some(row => row.operation === 'core.document-selection-apply'), false);
+  obsolete.client.dispose();
+});
+
 test('an already dispatched atomic command always reconciles its acknowledgement after an abort', async () => {
   const f = fixture();
   await f.client.load('{}'); f.holdCommand();

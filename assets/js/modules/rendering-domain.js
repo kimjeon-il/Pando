@@ -1224,7 +1224,7 @@ export function createRenderingDomain({
     reason || 'render-quality',
   );
   const invalidateBaseScene = reason => invalidate(
-    MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_STYLE | MAP_RENDER_DIRTY.LAYER_TREE,
+    MAP_RENDER_DIRTY.BASE | MAP_RENDER_DIRTY.GPU_FRAME | MAP_RENDER_DIRTY.OVERLAY_STYLE | MAP_RENDER_DIRTY.LAYER_TREE,
     reason || 'base-scene',
   );
   const invalidatePatch = (bit, reason, extra = 0) => invalidate(

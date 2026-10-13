@@ -45,7 +45,15 @@ function setup(renderMode = 'single') {
     distributionPresentation: { bumpVisibilityRevision() { visibilityRevision += 1; events.push('revision'); } },
     domains: {
       renderingDomain: rendering,
-      projectDomain: { queuePresentationAutosave() { events.push('autosave'); } },
+      projectDomain: { getGeneration: () => 0,
+        async executeCommand(command) {
+          assert.equal(command.commandId, 'presentation.apply');
+          assert.equal(command.payload.action, 'distributionActiveLayer');
+          assert.ok(layers.some(layer => layer.id === command.payload.value));
+          state.distributionSettings.activeLayerId = command.payload.value;
+          events.push('command');
+          return { ok: true };
+        } },
       selectionUiController: { applyIntent(ref, options) { events.push(['select', ref.id, options.refreshOnly]); return true; } },
     },
   });
@@ -53,33 +61,32 @@ function setup(renderMode = 'single') {
 }
 
 for (const mode of ['single', 'overlap']) {
-  test(`${mode}: choosing another distribution schedules a coordinator frame with the current visible rows`, t => {
+  test(`${mode}: choosing another distribution schedules a coordinator frame with the current visible rows`, async t => {
     const { owner, state, events, rendering, frames } = setup(mode);
     t.after(() => rendering.dispose());
-    assert.equal(owner.applyDistributionSelectionIntent('B'), true);
+    assert.equal(await owner.applyDistributionSelectionIntent('B'), true);
     assert.equal(state.distributionSettings.activeLayerId, 'B');
-    assert.equal(state.selectedDistributionLayerId, 'B');
-    assert.deepEqual(events, ['revision', 'autosave', ['select', 'B', false]]);
+    assert.deepEqual(events, ['command', 'revision', ['select', 'B', false]]);
     assert.equal(frames.length, 1);
     frames.shift()();
     assert.equal(rendering.getStats().lastRequestedMask, MAP_RENDER_DIRTY.OVERLAY_STYLE | MAP_RENDER_DIRTY.LAYER_TREE);
     assert.deepEqual(rendering.getDistributionRenderRows().map(row => row.id), mode === 'single' ? ['B-entry'] : ['A-entry', 'B-entry']);
     events.length = 0;
-    owner.applyDistributionSelectionIntent('A', true);
-    assert.deepEqual(events, ['revision', 'autosave', ['select', 'A', true]]);
+    await owner.applyDistributionSelectionIntent('A', true);
+    assert.deepEqual(events, ['command', 'revision', ['select', 'A', true]]);
     assert.equal(frames.length, 1);
     frames.shift()();
     assert.deepEqual(rendering.getDistributionRenderRows().map(row => row.id), mode === 'single' ? ['A-entry'] : ['A-entry', 'B-entry']);
   });
 }
 
-test('reselecting the active distribution only refreshes selection; missing IDs do nothing', t => {
+test('reselecting the active distribution only refreshes selection; missing IDs do nothing', async t => {
   const { owner, state, events, rendering, frames } = setup();
   t.after(() => rendering.dispose());
-  owner.applyDistributionSelectionIntent('A', true);
+  await owner.applyDistributionSelectionIntent('A', true);
   assert.deepEqual(events, [['select', 'A', true]]);
   events.length = 0;
-  assert.equal(owner.applyDistributionSelectionIntent('missing'), false);
+  assert.equal(await owner.applyDistributionSelectionIntent('missing'), false);
   assert.equal(state.distributionSettings.activeLayerId, 'A');
   assert.deepEqual(events, []);
   assert.equal(frames.length, 0);
