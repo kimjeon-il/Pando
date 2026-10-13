@@ -239,7 +239,8 @@ public:
         pandoeditor::Geometry geometry;geometry.type="MultiPolygon";
         for(const auto& polygon:parts(shape)) {
             pandoeditor::Polygon result;
-            for(const auto& ring:array(polygonCoordinates(polygon.get()))) {
+            const auto polygonRings=polygonCoordinates(polygon.get());
+            for(const auto& ring:array(polygonRings)) {
                 pandoeditor::Ring points;
                 for(const auto& pair:array(ring))
                     points.push_back({number(array(pair)[0]),number(array(pair)[1])});
