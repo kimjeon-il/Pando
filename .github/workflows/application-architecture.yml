@@ -928,6 +928,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install native GIS geometry validator dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev pkg-config cmake
       - run: python -m pip install -r tools/requirements-historical-library.txt
       - name: Validate JavaScript syntax and shared asset versions
         run: pnpm check:js && pnpm check:version
