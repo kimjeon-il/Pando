@@ -5,6 +5,8 @@ on:
     branches: [work/gis]
     paths:
       - '.github/workflows/pando-pretransfer-cleanup-gate.yml'
+      - 'native/app/projectgeopackage.cpp'
+      - 'native/tests/core/CMakeLists.txt'
   workflow_dispatch:
 
 permissions:
