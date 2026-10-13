@@ -7,7 +7,8 @@ pkg_check_modules(GEOS REQUIRED IMPORTED_TARGET geos)
 find_package(ZLIB REQUIRED)
 add_executable(pando-country-geometry-check
     validate-country-geometry.cpp
-    ../../shared/core/src/losslessjson.cpp)
+    ../../shared/core/src/losslessjson.cpp
+    ../../shared/core/src/sphericalpolygon.cpp)
 target_include_directories(pando-country-geometry-check PRIVATE ../../shared/core/include)
 target_link_libraries(pando-country-geometry-check PRIVATE PkgConfig::GEOS ZLIB::ZLIB)
 if(MSVC)
