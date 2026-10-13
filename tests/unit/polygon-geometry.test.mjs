@@ -30,24 +30,48 @@ test('country geometry normalizer rewinds clipping output for D3 spherical paths
 test('country geometry normalizer closes open rings and rejects degenerate polygons', () => {
   const normalized = normalizePolygonGeometry([[[[0, 0], [0, 2], [2, 2], [2, 0]]]]);
   assert.deepEqual(normalized.coordinates[0][0], normalized.coordinates[0].at(-1));
-  assert.equal(normalizePolygonGeometry([[[[0, 0], [1, 1], [0, 0]]]]), null);
+  assert.throws(() => normalizePolygonGeometry([[[[0, 0], [1, 1], [0, 0]]]]), /INVALID_POLYGON_RING/);
   assert.equal(ringDistinctCoordinateCount([[0, 0], [1, 0], [0, 0], [0, 0]]), 2);
 });
 
 test('country geometry normalizer never promotes a surviving hole when the outer ring degenerates', () => {
   const degenerateOuter = [[0, 0], [1, 1], [0, 0], [0, 0]];
   const validHole = [[0.2, 0.2], [0.2, 0.8], [0.8, 0.8], [0.8, 0.2], [0.2, 0.2]];
-  assert.equal(normalizePolygonGeometry({ type: 'Polygon', coordinates: [degenerateOuter, validHole] }), null);
+  assert.throws(() => normalizePolygonGeometry({ type: 'Polygon', coordinates: [degenerateOuter, validHole] }), /INVALID_POLYGON_RING/);
 
   const validOuter = [[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]];
-  const normalized = normalizePolygonGeometry({ type: 'Polygon', coordinates: [validOuter, degenerateOuter] });
-  assert.equal(normalized.coordinates.length, 1);
+  assert.throws(() => normalizePolygonGeometry({ type: 'Polygon', coordinates: [validOuter, degenerateOuter] }), /INVALID_POLYGON_HOLE/);
 });
 
 test('legacy counter-clockwise country geometry is detected before project restore', () => {
   const legacy = { type: 'Polygon', coordinates: [counterClockwiseOuter] };
   assert.equal(hasCanonicalPolygonWinding(legacy), false);
   assert.equal(hasCanonicalPolygonWinding(normalizePolygonGeometry(legacy)), true);
+});
+
+
+test('normalizer rejects invalid coordinates rather than silently changing the border', () => {
+  const ring = [[0, 0], [1, 0], [1, Number.NaN], [0, 1], [0, 0]];
+  assert.throws(() => normalizePolygonGeometry({ type: 'Polygon', coordinates: [ring] }), /INVALID_POLYGON_COORDINATE/);
+  assert.equal(hasCanonicalPolygonWinding({ type: 'Polygon', coordinates: [ring] }), false);
+});
+
+test('D3 spherical winding preserves a small antimeridian-crossing interior', () => {
+  const crossing = [[179, -2], [179, 2], [-179, 2], [-179, -2], [179, -2]];
+  const reversed = [...crossing.slice(0, -1)].reverse().concat([crossing[3]]);
+  const normalized = normalizePolygonGeometry({ type: 'Polygon', coordinates: [reversed] });
+  assert.equal(hasCanonicalPolygonWinding({ type: 'Polygon', coordinates: [reversed] }), false);
+  assert.equal(hasCanonicalPolygonWinding(normalized), true);
+  const area = globalThis.PandoLabPolygonGeometry.sphericalSignedArea(normalized.coordinates[0]);
+  assert.ok(area > 0 && area < 0.01, `expected the small 2-degree dateline area, got ${area}`);
+});
+
+test('polar rings select the small spherical cap, not its nearly-worldwide complement', () => {
+  const northPole = [[170, 80], [-170, 80], [-90, 85], [0, 89], [90, 85], [170, 80]];
+  const geometry = normalizePolygonGeometry({ type: 'Polygon', coordinates: [northPole] });
+  assert.equal(hasCanonicalPolygonWinding(geometry), true);
+  const signed = globalThis.PandoLabPolygonGeometry.sphericalSignedArea(geometry.coordinates[0]);
+  assert.ok(signed < -2 * Math.PI && 4 * Math.PI + signed < 0.1);
 });
 
 test('country geometry normalizer removes consecutive duplicate vertices', () => {
