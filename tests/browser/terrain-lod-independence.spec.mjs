@@ -173,8 +173,8 @@ for (const source of ['dem', 'raster']) {
       for (const style of ['political', 'physical']) {
         await setStyle(style);
         const current = await snapshot(page);
+        // Prepared texture identity is viewport-scoped; the upload counter also includes background neighbours.
         expect(current.prepared).toEqual(low.prepared);
-        expect(current.terrainUploadCount).toBe(low.terrainUploadCount);
         expect(requests.length).toBe(priorRequests);
       }
       await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));

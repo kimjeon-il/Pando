@@ -28,10 +28,10 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/modules/selection-domain.js*', async route => {
     const response = await route.fetch();
     const original = (await response.text()).replace(/\r\n/g, '\n');
-    const marker = '  return Object.freeze({\n    replace,';
-    expect(original).toContain(marker);
+    const marker = /return Object\.freeze\(\{\s*replace, toggle, selectRange,/;
+    expect(original).toMatch(marker);
     await route.fulfill({ response, body: original.replace(marker,
-      '  return window.__selectionDiagnostics = Object.freeze({\n    replace,') });
+      'return window.__selectionDiagnostics = Object.freeze({ replace, toggle, selectRange,') });
   });
 });
 
