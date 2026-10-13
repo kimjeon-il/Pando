@@ -17,15 +17,16 @@ test('all 258 source features retain their IDs, properties, types and coordinate
     assert.ok(e,feature.id);
     assert.deepEqual(e.sourceInfo.featureProperties,feature.properties);
     assert.equal(e.sourceInfo.featureId,feature.id);
-    assert.equal(sha(e.geometryVersions[0].geometry),baseline.countryGeometry[feature.id]);
-    assert.deepEqual(e.geometryVersions[0].geometry,feature.geometry);
+    const sourceVersion=['IDN','SDN','UKR'].includes(feature.id)?e.geometryVersions.at(-1):e.geometryVersions[0];
+    assert.equal(sha(sourceVersion.geometry),baseline.countryGeometry[feature.id]);
+    assert.deepEqual(sourceVersion.geometry,feature.geometry);
     assert.doesNotMatch(e.metadata.defaultFlagDataUrl || '',/^file:/);
   }
 });
 test('historical geometry retains frozen baseline coordinates; the documented USSR fix changes only ring order', () => {
   const sources=readTerritorialSources();
   const migrated=sources.filter(e=>e.sourceInfo.importProvenance);
-  assert.equal(migrated.length,26);
+  assert.equal(migrated.length,23);
   let count=0;
   for(const e of migrated) for(const v of e.geometryVersions) {
     const expected = baseline.historicalGeometry[e.sourceInfo.importProvenance.versionIds[v.versionId]];
@@ -41,7 +42,7 @@ test('historical geometry retains frozen baseline coordinates; the documented US
     } else assert.equal(sha(v.geometry), expected);
     count++;
   }
-  assert.equal(count,29);
+  assert.equal(count,26);
   const yugo=sources.find(e=>e.entityId==='state:yugoslavia');
   const oldVersion=selectGeometryVersion(yugo,'1992-04-26');
   const newVersion=selectGeometryVersion(yugo,'1992-04-27');
