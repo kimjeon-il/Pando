@@ -113,6 +113,7 @@
     const currentProperties = clone(parseJson(properties.properties_json));
     const id = text(properties.id || feature.id);
     if (!id) throw new Error(`영역 원본 ID가 비어 있습니다: ${entityKind} ${index + 1}`);
+    const color = text(properties.color ?? currentProperties.style?.color);
     return {
       type: 'Feature',
       id,
@@ -125,11 +126,7 @@
         coverageMode: entityKind === 'regional' || !text(properties.parent_id ?? currentProperties.parentId) ? 'explicit' : text(currentProperties.coverageMode) || 'partition',
         validFrom: text(properties.valid_from ?? currentProperties.validFrom) || null,
         validTo: text(properties.valid_to ?? currentProperties.validTo) || null,
-        style: {
-          ...(currentProperties.style || {}),
-          color: text(properties.color ?? currentProperties.style?.color),
-          key: text(properties.style_key ?? currentProperties.style?.key),
-        },
+        style: color ? { color } : {},
         sourceEntityId: text(properties.source_entity_id ?? currentProperties.sourceEntityId),
         sourceGeometryVersion: text(properties.source_geometry_version ?? currentProperties.sourceGeometryVersion),
         metadata: clone({ metadata: parseJson(properties.metadata_json, currentProperties.metadata || {}) }).metadata,
