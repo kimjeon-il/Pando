@@ -46,6 +46,29 @@ test('object vertex gesture keeps canonical geometry detached until one commit',
   assert.deepEqual(commits[0].feature.geometry.coordinates[0], [4, 5]);
 });
 
+test('self-intersecting hydro polygon vertex move leaves geometry and history untouched', async () => {
+  const source = { type: 'Feature', id: 'lake-1', properties: {},
+    geometry: { type: 'Polygon', coordinates: [[[2.6, 5.45], [2, 7], [4, 7], [4, 5], [2.6, 5.45]]] } };
+  const original = structuredClone(source.geometry);
+  const frames = [];
+  let commits = 0;
+  const editing = createEditingDomain({ transactionRunner: ({ patch }) => patch.commit(),
+    draftServices: { screenToCoordinate: value => value, projectCoordinate: value => value,
+      requestFrame: callback => (frames.push(callback), frames.length) },
+    geometryEditing: { resolveObjectFeature: () => source,
+      commitObjectGesture: () => { commits += 1; return true; } },
+  });
+  const event = { projectGeneration: 0, packetRevision: editing.createRenderPacket().revision,
+    gestureId: 'crossing-lake', targetRef: { domain: 'hydro', id: source.id }, vertexKey: '0:0:0' };
+  await editing.handleInteraction({ ...event, type: 'object-vertex-drag-start', screenPoint: [2.6, 5.45] });
+  await editing.handleInteraction({ ...event, type: 'object-vertex-drag-move', screenPoint: [3.2, 7.2] });
+  frames.shift()();
+  await assert.rejects(editing.handleInteraction({ ...event, type: 'object-vertex-drag-end' }), /교차/u);
+  assert.equal(commits, 0);
+  assert.deepEqual(source.geometry, original);
+  editing.dispose();
+});
+
 test('cancelled object gesture never commits its detached preview', async () => {
   const source = {
     type: 'Feature', id: 'area-1', properties: {},

@@ -17,7 +17,7 @@ class MobileStatusV0164Tests(unittest.TestCase):
         self.assertIn('class="status-group status-selection hidden"', INDEX)
         self.assertNotIn('id="statusPrimary"', INDEX)
         self.assertNotIn('id="coordStatus"', INDEX)
-        self.assertIn(".status-group:not(.hidden) ~ .status-group:not(.hidden)::before", CSS)
+        self.assertIn(".status-group:not(.hidden) ~ .status-group:not(.hidden):not(.timeline-status)::before", CSS)
         self.assertNotIn("grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);", CSS)
 
     def test_status_background_reaches_edges_and_content_uses_safe_insets(self):

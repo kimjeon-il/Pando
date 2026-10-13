@@ -2036,6 +2036,7 @@ export function createGpuMapRenderer(deps) {
         postCanvasWorkerMessage({
           type: 'patch',
           features,
+          fills: canvasCountryFills(features),
           removedIds,
           ids,
           projectGeneration,
@@ -3749,12 +3750,17 @@ export function createGpuMapRenderer(deps) {
       return result;
     }
 
-    function canvasWorkerStyleMessage() {
+    function canvasCountryFills(features) {
       const fills = {};
       const resolveFill = createCountryFillResolver();
-      for (const feature of (renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)))) {
+      for (const feature of features) {
         fills[String(feature?.id || '')] = resolveFill(feature);
       }
+      return fills;
+    }
+
+    function canvasWorkerStyleMessage() {
+      const fills = canvasCountryFills(renderCountryFeatures?.() || (state.territorialEntities || []).filter(feature => (feature.properties.entityKind === 'general' && !feature.properties.parentId)));
       return {
         type: 'style',
         styleRevision: ++canvasStyleRevision,
@@ -3855,9 +3861,10 @@ export function createGpuMapRenderer(deps) {
       const features = renderCountryFeatures?.() || [];
       if (canvasLastCountryFeatures !== features) {
         canvasLastCountryFeatures = features;
-        postCanvasWorkerMessage({ type: 'replace-data', features, projectGeneration,
+        postCanvasWorkerMessage({ type: 'replace-data', features, fills: canvasCountryFills(features), projectGeneration,
           revision: currentRenderRevision, geometryRevision: geometryRevisionTracker.committedRevision() });
         prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
+        canvasLastStyleSignature = '';
       }
       const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.countries, getSystemTheme(),
         renderScene?.revisions?.geometry, renderScene?.revisions?.style, renderScene?.revisions?.overlayOrder].join(':');
@@ -4302,12 +4309,14 @@ export function createGpuMapRenderer(deps) {
             resolve();
           };
           canvasDataReplacementResolver = complete;
+          const updatedFeatures = renderCountryFeatures?.() || features || [];
           postCanvasWorkerMessage({
             type: 'replace-data',
             projectGeneration,
             revision: Number(currentRenderRevision || 0),
             geometryRevision: geometryRevisionTracker.committedRevision(),
-            features: renderCountryFeatures?.() || features || [],
+            features: updatedFeatures,
+            fills: canvasCountryFills(updatedFeatures),
           });
         });
       } else {

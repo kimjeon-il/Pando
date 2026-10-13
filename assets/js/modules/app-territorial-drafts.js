@@ -546,6 +546,10 @@ export function createTerritorialDrafts() {
     }
 
     const sourceId = workflow.sourceInfo?.existingId || '';
+    const parent = dependencies.territorialModel.entityRepository.get(context.parentId);
+    if (!parent || !Object.hasOwn(parent.properties, 'validFrom') || !Object.hasOwn(parent.properties, 'validTo')) {
+      throw new Error(`The active territorial parent is unavailable: ${context.parentId}`);
+    }
     const sibling = (0, dependencies.territorialServicesA.createTerritorialFeature)({
       id: workflow.generatedId, entityKind: context.entityKind,
       parentId: context.parentId,

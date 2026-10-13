@@ -1,10 +1,16 @@
 name: German Empire diagnostics (manual)
 on:
   workflow_dispatch:
+    inputs:
+      recipe_only:
+        description: Build and compare the C++ territorial recipe only
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
   changes:
+    if: ${{ !inputs.recipe_only }}
     runs-on: ubuntu-latest
     outputs:
       data-contracts: ${{ steps.scope.outputs.data-contracts }}
@@ -12,19 +18,32 @@ jobs:
       - id: scope
         run: echo 'data-contracts=true' >> "$GITHUB_OUTPUT"
   historical-geometry:
-    name: Exact historical geometry regeneration (Windows)
+    name: C++ historical geometry recipe
     needs: changes
     if: needs.changes.outputs.data-contracts == 'true'
-    runs-on: windows-latest
-    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: mamba-org/setup-micromamba@v3
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r tools/requirements-historical-library.txt
-      - name: Verify the stored geometry exactly on its generation platform
-        run: python tools/build-territorial-geometry.py --check
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build the native recipe engine
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF \
+            -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Verify the stored geometry through the C++ recipe
+        run: |
+          node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
+          node tools/build-territorial-geometry.mjs --check
 
   data-contracts:
     name: Validation entrypoints and current generated assets
@@ -46,6 +65,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install native GIS geometry validator dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev pkg-config cmake
       - run: python -m pip install -r tools/requirements-historical-library.txt
       - name: Validate JavaScript syntax and shared asset versions
         run: pnpm check:js && pnpm check:version
@@ -75,4 +96,30 @@ jobs:
           tests/unit/library-map-preview.test.mjs
           tests/unit/territorial-library-controller.test.mjs
           tests/unit/territorial-source-provenance.test.mjs
+
+  exact-cpp-recipe:
+    if: ${{ inputs.recipe_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build the native recipe engine
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF \
+            -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Compare the generated DDR geometry and stored library
+        env:
+          PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
+        run: |
+          node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
+          node tools/build-territorial-geometry.mjs --check
 

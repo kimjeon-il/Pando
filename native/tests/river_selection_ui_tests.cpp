@@ -89,7 +89,7 @@ struct RiverUi {
     bool start(int width) {
         Project project;project.replace(document);
         const auto path=files.filePath("project.json");
-        if(!writeFile(path,projectcodec::encode(project))||!editor.openFile(QUrl::fromLocalFile(path)))return false;
+        if(!writeFile(path,::projectcodec::encode(project))||!editor.openFile(QUrl::fromLocalFile(path)))return false;
         editor.selectCountry("target");if(!editor.setProjectionMode("flat"))return false;
         engine.rootContext()->setContextProperty("editor",&editor);engine.load(QUrl("qrc:/common/Main.qml"));
         if(engine.rootObjects().isEmpty())return false;

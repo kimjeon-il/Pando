@@ -47,7 +47,7 @@ int main(int argc,char** argv){
     // This content corpus is the preserved lineage-branch synthetic fixture.
     // Actual fixed-Web production exchanges live separately in web-v10-exchange.
     const auto web=QString::fromUtf8(WEB_GPKG_FIXTURE)+"/../lineage-v10-content/content.gpkg";
-    Project webProject;webProject.replace(projectcodec::decode(readProjectGeoPackage(web)));
+    Project webProject;webProject.replace(::projectcodec::decode(readProjectGeoPackage(web)));
     const auto& webDocument=webProject.document();
     assert(webProject.country("A")&&webProject.country("A")->name=="A 영토");
     assert(webDocument.units.size()==4&&webDocument.genericFeatures.size()==1&&webDocument.distributionLayers.size()==1&&webDocument.distributionEntries.size()==1&&webDocument.labels.size()==1);
@@ -63,10 +63,10 @@ int main(int argc,char** argv){
         QSqlQuery insert(db);insert.prepare("INSERT INTO pandolab_country_assets(country_id,mime_type,image_data) VALUES(?,?,?)");
         insert.addBindValue("A");insert.addBindValue(QString::fromUtf8(data.mid(5,data.indexOf(';')-5)));insert.addBindValue(QByteArray::fromBase64(data.mid(data.indexOf(',')+1)));assert(insert.exec());
     });
-    Project assetProject;assetProject.replace(projectcodec::decode(readProjectGeoPackage(webWithAsset)));assert(semanticallyEqual(webDocument,assetProject.document()));
+    Project assetProject;assetProject.replace(::projectcodec::decode(readProjectGeoPackage(webWithAsset)));assert(semanticallyEqual(webDocument,assetProject.document()));
     const auto nativeCopy=directory.filePath("restored-native.gpkg");QFile nativeFile(nativeCopy);assert(nativeFile.open(QIODevice::WriteOnly));
     const auto nativeBytes=exportProjectGeoPackage(webProject);assert(nativeFile.write(nativeBytes)==nativeBytes.size());nativeFile.close();
-    Project reopened;reopened.replace(projectcodec::decode(readProjectGeoPackage(nativeCopy)));assert(semanticallyEqual(webDocument,reopened.document()));
+    Project reopened;reopened.replace(::projectcodec::decode(readProjectGeoPackage(nativeCopy)));assert(semanticallyEqual(webDocument,reopened.document()));
     int vectorFailures=0;
     for(bool isWeb:{false,true}) {
         const auto originalFile=isWeb?web:nativeCopy;const auto table=isWeb?QString("entities"):QString("countries");
@@ -100,11 +100,11 @@ int main(int argc,char** argv){
     auto doc=source.document();doc.units.front().libraryOrigin=LibraryOrigin{"history:A","v1","1945","archive","2","high","year",false,{}};
     doc.units.front().sourceEntityId="catalog:A";doc.units.front().sourceGeometryVersion="source-v2";
     doc.symbols[territorialRef("B")].policy=FlagPolicy::None;doc.symbols[territorialRef("C")]=webDocument.symbols.at(territorialRef("A"));source.replace(doc);
-    const auto original=projectcodec::encode(source),bytes=exportProjectGeoPackage(source);
+    const auto original=::projectcodec::encode(source),bytes=exportProjectGeoPackage(source);
     const auto path=argc==3&&QString::fromLocal8Bit(argv[1])=="--emit"?QDir(QString::fromLocal8Bit(argv[2])).filePath("project.gpkg"):directory.filePath("project.gpkg");
     QFile output(path);assert(output.open(QIODevice::WriteOnly));assert(output.write(bytes)==bytes.size());output.close();
     if(argc==3&&QString::fromLocal8Bit(argv[1])=="--emit")return 0;
-    Project decoded;decoded.replace(projectcodec::decode(readProjectGeoPackage(path)));assert(projectcodec::encode(decoded)==original);
+    Project decoded;decoded.replace(::projectcodec::decode(readProjectGeoPackage(path)));assert(::projectcodec::encode(decoded)==original);
     const auto missing=directory.filePath("missing-asset.gpkg");corruptCopy(path,missing,"DELETE FROM pandolab_country_assets WHERE country_id='C'");assert(rejected([&]{readProjectGeoPackage(missing);}));
     const auto mismatch=directory.filePath("mismatched-country.gpkg");corruptCopy(path,mismatch,"UPDATE countries SET pandolab_id='other' WHERE pandolab_id='A'");assert(rejected([&]{readProjectGeoPackage(mismatch);}));
     const auto gisOnly=directory.filePath("gis-only.gpkg");QFile gisOutput(gisOnly);assert(gisOutput.open(QIODevice::WriteOnly));const auto gis=exportGisGeoPackage(source.document(),{"countries"});assert(gisOutput.write(gis)==gis.size());gisOutput.close();assert(rejected([&]{readProjectGeoPackage(gisOnly);}));
@@ -114,7 +114,7 @@ int main(int argc,char** argv){
     const auto wrongCountry=directory.filePath("wrong-web-country.gpkg");corruptCopy(web,wrongCountry,"UPDATE entities SET id='other' WHERE id='A'");assert(rejected([&]{readProjectGeoPackage(wrongCountry);}));
     const auto wrongSource=directory.filePath("wrong-web-source.gpkg");corruptCopy(web,wrongSource,"UPDATE pandolab_source_info SET json_value='{}' WHERE info_key='source'");assert(rejected([&]{readProjectGeoPackage(wrongSource);}));
     const auto none=directory.filePath("none-web-flag.gpkg");stateCopy(webWithAsset,none,[](V& root){root.object["territorialEntities"].array[0].object["properties"].object["metadata"].object["flagDataUrl"]=V{};},true);
-    Project noneProject;noneProject.replace(projectcodec::decode(readProjectGeoPackage(none)));assert(noneProject.document().symbols.at(territorialRef("A")).policy==FlagPolicy::None);
+    Project noneProject;noneProject.replace(::projectcodec::decode(readProjectGeoPackage(none)));assert(noneProject.document().symbols.at(territorialRef("A")).policy==FlagPolicy::None);
     const auto defaultFlag=directory.filePath("default-web-flag.gpkg");stateCopy(webWithAsset,defaultFlag,[](V& root){root.object["territorialEntities"].array[0].object["properties"].object["metadata"].object.erase("flagDataUrl");},true);
-    Project defaultProject;defaultProject.replace(projectcodec::decode(readProjectGeoPackage(defaultFlag)));assert(!defaultProject.document().symbols.count(territorialRef("A"))||defaultProject.document().symbols.at(territorialRef("A")).policy==FlagPolicy::Default);
+    Project defaultProject;defaultProject.replace(::projectcodec::decode(readProjectGeoPackage(defaultFlag)));assert(!defaultProject.document().symbols.count(territorialRef("A"))||defaultProject.document().symbols.at(territorialRef("A")).policy==FlagPolicy::Default);
 }

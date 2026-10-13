@@ -618,7 +618,8 @@ function canvasFallbackWorkerMain() {
           const feature = features[index];
           if (hiddenCountryIds.has(countryId(feature, index))) continue;
           const fill = message.fills[countryId(feature, index)];
-          if (!(fill.fillAlpha > 0)) continue;
+          // Geometry patches and style messages can cross a background frame.
+          if (!fill || !(fill.fillAlpha > 0)) continue;
           context.beginPath();
           geoPath(feature);
           context.globalAlpha = fill.fillAlpha;
@@ -719,6 +720,7 @@ function canvasFallbackWorkerMain() {
           return;
         }
         features = message.features || [];
+        if (message.fills) mergeRenderState({ fills: message.fills });
         geometryRevision = incomingGeometryRevision;
         projectGeneration = Number(message.projectGeneration || projectGeneration);
         // Keep the previously presented shared strokes until the matching
@@ -754,6 +756,11 @@ function canvasFallbackWorkerMain() {
           return [feature];
         });
         for (const [id, feature] of updates) if (!seen.has(id)) features.push(feature);
+        if (message.fills) {
+          const fills = { ...lastRenderMessage?.fills, ...message.fills };
+          for (const id of removed) delete fills[id];
+          mergeRenderState({ fills });
+        }
         geometryRevision = incomingGeometryRevision;
         projectGeneration = Number(message.projectGeneration || projectGeneration);
         // Keep the previously presented shared strokes until the matching
@@ -797,7 +804,7 @@ function canvasFallbackWorkerMain() {
           pumpTerrainFetchQueue();
           render(mergeRenderState(message), message.renderRequestId);
         } catch (error) {
-          self.postMessage({ type: 'error', message: error?.message || String(error) });
+          self.postMessage({ type: 'error', message: error?.stack || error?.message || String(error) });
         }
       }
     };

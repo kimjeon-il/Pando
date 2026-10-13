@@ -286,6 +286,9 @@
     if (value !== null && value !== '') loaderUrl.searchParams.set(key, String(value));
   }
   const loader = new Worker(loaderUrl, { name: 'pandolab-data-loader', type: 'module' });
+  const geometryCoreReady = import(versionedAsset('./modules/core-wasm-loader.js').href)
+    .then(({ loadVerifiedCore }) => loadVerifiedCore({ baseUrl: new URL('../wasm/', assetBaseUrl) }));
+  geometryCoreReady.catch(() => {});
   let previewReady = false;
   let geometryReady = false;
   let meshReady = false;
@@ -538,12 +541,18 @@
     setProgress('빠른 미리보기 지도를 시작하는 중입니다.', 99);
     if (appInjected) return;
     appInjected = true;
-    const app = document.createElement('script');
-    app.type = 'module';
-    app.src = versionedAsset('./app.js').href;
-    app.onload = () => setProgress('빠른 지도를 표시하는 중입니다.', 99);
-    app.onerror = () => fail('애플리케이션 파일을 불러오지 못했습니다.');
-    document.body.appendChild(app);
+    geometryCoreReady.then(core => {
+      globalThis.PandoLabSphericalCore = core;
+      const app = document.createElement('script');
+      app.type = 'module';
+      app.src = versionedAsset('./app.js').href;
+      app.onload = () => setProgress('빠른 지도를 표시하는 중입니다.', 99);
+      app.onerror = () => fail('애플리케이션 파일을 불러오지 못했습니다.');
+      document.body.appendChild(app);
+    }).catch(error => {
+      console.error('[PL-GEOMETRY-WASM-001]', error);
+      fail('공통 C++ 형상 정규화기를 불러오지 못했습니다.');
+    });
   };
   loader.onerror = event => {
     if (!previewReady) {

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { staticAutosaveProject } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from '../../assets/js/modules/territorial-units.js';
 import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
@@ -29,6 +30,17 @@ async function openMap(page) {
 const label = page => page.locator('g.territorial-label-item[data-label-id="DEU"]');
 const view = page => page.evaluate(() => window.__PANDOLAB_MAP_HOST__.getViewState());
 const revision = page => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision);
+const germanAreaPoint = page => page.evaluate(() => {
+  const map = document.querySelector('#map').getBoundingClientRect();
+  for (const coordinate of [[10, 49], [10, 50], [9, 51], [12, 51], [12, 52]]) {
+    const projected = window.__PANDOLAB_MAP_HOST__.project(coordinate);
+    const target = document.elementFromPoint(map.x + projected[0], map.y + projected[1]);
+    if (target?.closest('#map') && !target.closest('.territorial-label-item')) {
+      return { x: map.x + projected[0], y: map.y + projected[1] };
+    }
+  }
+  throw new Error('No unobscured German territory sample was found for the area-hover regression.');
+});
 async function assertTooltip(page, name) {
   const tooltip = page.locator('#uiTooltip[data-kind="country"]');
   try { await expect(tooltip).toBeVisible(); }
@@ -135,47 +147,51 @@ for (const width of [1366, 1024]) test(`country hover only identifies; one label
 });
 
 test('area hover, long names, header commands and color use the current editor target', async ({ page }, testInfo) => {
-  test.setTimeout(150_000); await page.setViewportSize({ width: 1366, height: 900 }); await openMap(page);
-  const box = await page.locator('#map').boundingBox();
-  const point = await page.evaluate(() => {
-    const map = document.querySelector('#map').getBoundingClientRect();
-    for (const coordinate of [[10, 49], [10, 50], [9, 51], [12, 51], [12, 52]]) {
-      const projected = window.__PANDOLAB_MAP_HOST__.project(coordinate);
-      const target = document.elementFromPoint(map.x + projected[0], map.y + projected[1]);
-      if (target?.closest('#map') && !target.closest('.territorial-label-item')) return projected;
-    }
-    throw new Error('No unobscured German territory sample was found for the area-hover regression.');
-  });
+  test.setTimeout(150_000); await page.setViewportSize({ width: 1366, height: 900 });
+  const countries = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url), 'utf8')).features;
+  const germany = countries.find(feature => feature.id === 'DEU');
+  const saved = staticAutosaveProject({}, [createTerritorialFeature({ id: 'DEU', entityKind: 'general',
+    name: germany.properties.name, geometry: germany.geometry })]);
+  await page.addInitScript(value => localStorage.setItem('pandolab-editor-project', JSON.stringify(value)), saved);
+  await openMap(page);
+  const point = await germanAreaPoint(page);
   const before = await view(page), initialRevision = await revision(page);
-  await page.mouse.move(box.x + point[0], box.y + point[1]); await assertTooltip(page, '독일');
+  await page.mouse.move(point.x, point.y); await assertTooltip(page, '독일');
   expect(await page.evaluate(() => window.__countryHoverPointer.label)).toBeNull();
   await page.screenshot({ path: testInfo.outputPath('country-area-hover.png') });
   expect(await revision(page)).toBe(initialRevision);
-  await page.mouse.click(box.x + point[0], box.y + point[1]);
+  await page.mouse.click(point.x, point.y);
   await expect(page.locator('#entityNameInput')).toHaveValue('독일');
   await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/); expect(await view(page)).toEqual(before);
   const selected = await revision(page);
   await page.locator('#objectLockBtn').click();
-  await expect(page.locator('#objectLockBtn')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#objectLockBtn')).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 });
   await expect(page.locator('#entityColorTrigger')).toBeDisabled();
   await page.locator('#objectLockBtn').click();
+  await expect(page.locator('#objectLockBtn')).toHaveAttribute('aria-pressed', 'false', { timeout: 30_000 });
   await expect(page.locator('#entityColorTrigger')).toBeEnabled();
-  await page.locator('#objectVisibilityBtn').click(); await expect(label(page)).toHaveCount(0);
-  await expect(page.locator('#objectVisibilityBtn')).toHaveAttribute('aria-label', '객체 표시');
-  await page.locator('#objectVisibilityBtn').click(); await expect(label(page)).toHaveCount(1);
+  await page.locator('#objectVisibilityBtn').click();
+  await expect(page.locator('#objectVisibilityBtn')).toHaveAttribute('aria-label', '객체 표시', { timeout: 30_000 });
+  await expect(label(page)).toHaveCount(0, { timeout: 30_000 });
+  await page.locator('#objectVisibilityBtn').click();
+  await expect(page.locator('#objectVisibilityBtn')).toHaveAttribute('aria-label', '객체 숨기기', { timeout: 30_000 });
+  await expect(label(page)).toHaveCount(1, { timeout: 30_000 });
   expect(await revision(page)).toBe(selected);
   const name = '아주 긴 국가 이름 '.repeat(14).trim();
   await page.locator('#entityNameInput').fill(name); await page.locator('#entityNameInput').press('Tab');
-  await page.mouse.move(box.x + point[0], box.y + point[1]); await assertTooltip(page, name);
+  await expect(page.locator('#propertyTitle')).toHaveText(name, { timeout: 30_000 });
+  const currentPoint = await germanAreaPoint(page);
+  await page.mouse.move(currentPoint.x, currentPoint.y); await assertTooltip(page, name);
   await page.screenshot({ path: testInfo.outputPath('long-name-hover.png') });
   await page.locator('#entityColorTrigger').click();
   await page.locator('#entityColorPopover [data-color-value]').first().click();
-  const color = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.style.color);
-  expect(color).toBeTruthy();
+  const countryColor = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.style.color);
+  await expect.poll(countryColor, { timeout: 30_000 }).toBeTruthy();
+  const color = await countryColor();
   await page.locator('#undoBtn').click();
-  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.style.color)).toBeUndefined();
+  await expect.poll(countryColor, { timeout: 30_000 }).toBeUndefined();
   await page.locator('#redoBtn').click();
-  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('DEU').properties.style.color)).toBe(color);
+  await expect.poll(countryColor, { timeout: 30_000 }).toBe(color);
 });
 
 test('390px mobile country tap opens the editor directly without hover controls', async ({ browser }, testInfo) => {

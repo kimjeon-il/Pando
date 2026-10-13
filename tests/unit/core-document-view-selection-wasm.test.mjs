@@ -28,9 +28,10 @@ test('original Web current-view admission and cursor pruning are preserved atomi
     assert.equal(repository.get('B'), null, 'The stored identity is inactive in this view.');
     selection.replace(B);
     assert.deepEqual(abi(selection.snapshot()), empty);
-    assert.deepEqual(await client.selectionApply({ action: 'replace', ref: B }), empty);
+    assert.deepEqual(await client.selectionApply({ action: 'replace', ref: B }), { selection: empty, countNoOp: true });
     selection.setHover(B,{ source: 'map' });
-    assert.deepEqual(await client.selectionApply({ action: 'setHover', ref: B, source: 'map' }), abi(selection.snapshot()));
+    assert.deepEqual(await client.selectionApply({ action: 'setHover', ref: B, source: 'map' }),
+      { selection: abi(selection.snapshot()), countNoOp: true });
 
     store.setTimelineCursor('1914-07'); selection.prune();
     await client.setTimelineCursor('1914-07');

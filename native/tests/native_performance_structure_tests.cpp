@@ -38,7 +38,7 @@ struct EditorFixture {
     QString path() const {return directory.filePath("project.pando.json");}
     bool open() {
         QFile file(path());if(!file.open(QIODevice::WriteOnly))return false;
-        const auto bytes=projectcodec::encode(sample());
+        const auto bytes=::projectcodec::encode(sample());
         if(file.write(bytes)!=bytes.size())return false;file.close();
         if(!editor.openFile(QUrl::fromLocalFile(path())))return false;
         editor.resizeMapCamera(800,600,1);
@@ -180,7 +180,7 @@ private slots:
             QVERIFY(point(*after,id)->geometryPacket.positions==point(*before,id)->geometryPacket.positions);
         for(const auto& id:{"A","B"})
             QVERIFY(polygon(*after,id)->geometryPacket.indices==polygon(*before,id)->geometryPacket.indices);
-        const auto document=projectcodec::decode(editor.documentBytes());
+        const auto document=::projectcodec::decode(editor.documentBytes());
         QCOMPARE(document.labels[0].name,std::string("Changed label"));QCOMPARE(document.labels[1].name,std::string("Label 1"));
         QCOMPARE(number(editor.renderQuality(),"packetCacheBuilds"),number(stats,"packetCacheBuilds"));
         QCOMPARE(number(editor.renderQuality(),"scenePreparationCount"),number(stats,"scenePreparationCount"));

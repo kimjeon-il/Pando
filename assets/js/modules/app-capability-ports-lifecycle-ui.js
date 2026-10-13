@@ -149,6 +149,7 @@ export const LIFECYCLE_UI_OWNER_PORTS = Object.freeze({
     "labelPresentation",
     "labelServices",
     "layerPresentation",
+    "layerTree",
     "lifecycleUi",
     "mapAudit",
     "mapHostCommands",

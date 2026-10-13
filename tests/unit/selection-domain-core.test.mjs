@@ -11,17 +11,17 @@ const snapshot = (revision = 0, items = [], hoverRevision = 0, hover = null) => 
 const refAdapter = { toCore: ref => webSelectionRefToCore(ref, { isStoredHydro: () => false }), fromCore: coreSelectionRefToWeb };
 function fixture() {
   const calls = [], subscribers = new Set(), events = [];
-  let current = snapshot();
+  let current = snapshot(), projectGeneration = 1;
   const commandOwner = {
     state: () => ({ epoch: 9 }),
     subscribeTransitions(callback) { subscribers.add(callback); return () => subscribers.delete(callback); },
-    selectionApply(payload) {
-      return new Promise((resolve, reject) => { calls.push({ payload, resolve, reject }); });
+    selectionApply(payload, options) {
+      return new Promise((resolve, reject) => { calls.push({ payload, options, resolve, reject }); });
     },
     selectionSnapshot: async () => current,
   };
   const domain = createSelectionDomain({ commandOwner, refAdapter,
-    projectDomain: { getGeneration: () => 1 },
+    projectDomain: { getGeneration: () => projectGeneration },
     onSelectionChanged: (value, reason) => events.push(['selection', reason, value.selection.keys]),
     onHoverChanged: (value, reason) => events.push(['hover', reason, value.hover?.key || null]),
     requestRender: reason => events.push(['render', reason]) });
@@ -31,7 +31,7 @@ function fixture() {
     for (const listener of subscribers) listener(ack, 'core.document-selection-apply', calls[index].payload);
     calls[index].resolve(ack);
   }
-  return { domain, calls, events, complete, emit(native, operation = 'core.document-execute') {
+  return { domain, calls, events, complete, setGeneration(value) { projectGeneration = value; }, emit(native, operation = 'core.document-execute') {
     current = native;for (const listener of subscribers) listener({ selection: native }, operation, {});
   } };
 }
@@ -42,10 +42,14 @@ test('selection owner requires the Core transport and explicit ref conversion', 
 });
 
 test('selection dispatch is immediate but its public state changes only after the Core ACK', async () => {
-  const { domain, calls, events, complete } = fixture();
+  const { domain, calls, events, complete, setGeneration } = fixture();
   const changed = domain.replace(A, { scope: 'map', reason: 'clicked A' });
   assert.equal(calls.length, 1, 'a second UI queue must not reorder the intent after project load');
-  assert.deepEqual(calls[0].payload, { action: 'replace', ref: A, scope: 'map', expectedEpoch: 9 });
+  assert.deepEqual(calls[0].payload, { action: 'replace', ref: A, scope: 'map' });
+  assert.equal(calls[0].options.isCurrent(), true);
+  setGeneration(2);
+  assert.equal(calls[0].options.isCurrent(), false, 'a queued intent cannot cross a project replacement');
+  setGeneration(1);
   assert.equal(domain.size(), 0);assert.deepEqual(events, []);
   complete(0, snapshot(1, [A]));
   const accepted = await changed;

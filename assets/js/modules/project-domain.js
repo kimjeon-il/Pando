@@ -38,6 +38,7 @@ export function createProjectDomain({
   documentModel = null,
   publishCommand = null,
   readBuiltinSelectionCatalogs,
+  readPresentationCatalog = null,
 } = {}) {
   let generation = 0;
   let disposed = false;
@@ -352,6 +353,13 @@ export function createProjectDomain({
         await commandOwner.loadBaseline(prepared.baselineId);
       } else await commandOwner.load(JSON.stringify(prepared));
       await readmitBuiltinSelectionCatalogs();
+      if (readPresentationCatalog) {
+        if (typeof readPresentationCatalog !== 'function' || typeof commandOwner?.presentationCatalogLoad !== 'function'
+          || typeof publishCommand !== 'function')
+          throw new TypeError('Project replacement requires the C++ presentation catalog owner.');
+        const outcome = await commandOwner.presentationCatalogLoad(readPresentationCatalog());
+        await publishCommand(outcome, { expectedGeneration: nextGeneration, reason: 'presentation-catalog' });
+      }
       const result = await replaceSnapshot(reason === 'new' ? null : documentModel.snapshot(), {
         reason, generation: nextGeneration, skipRenderReset: true,
         ...(reason === 'new' ? {

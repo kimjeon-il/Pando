@@ -108,11 +108,11 @@ private slots:
         QFile source(QStringLiteral(PANDOEDITOR_TIMELINE_COMPLEX_FIXTURE));
         QVERIFY(source.open(QIODevice::ReadOnly));
         pandoeditor::Project project;
-        project.replace(projectcodec::decodeWeb(source.readAll()));
+        project.replace(::projectcodec::decodeWeb(source.readAll()));
         QTemporaryDir directory;QVERIFY(directory.isValid());
         QFile file(directory.filePath(QStringLiteral("timeline.pando.json")));
         QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project));file.close();
+        file.write(::projectcodec::encode(project));file.close();
         for(bool mobile:{false,true}) {
             stage=mobile?"mobile controller":"desktop controller";
             EditorController editor(EditorControllerConfig{mobile,{}});
@@ -248,7 +248,7 @@ private slots:
         {{"B","Donor","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{10,0},{20,0},{20,10},{10,10},{10,0}}}}},{0x445566,1},"countries"}},{{"countries","Countries"}});
         Project project;project.replace(document);
         QFile file(dir.filePath("annex-selection.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        QVERIFY(file.write(projectcodec::encode(project))>0);file.close();
+        QVERIFY(file.write(::projectcodec::encode(project))>0);file.close();
         EditorControllerConfig config;config.mobileMode=width==360;config.bootstrapWorld=false;config.autosaveEnabled=false;
         EditorController editor(config);QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         editor.selectCountry("A");QVERIFY(editor.setProjectionMode("flat"));
@@ -439,7 +439,7 @@ private slots:
         pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Target","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"},
         {{"B","Donor","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{10,0},{20,0},{20,10},{10,10},{10,0}}}}},{0x445566,1},"countries"}},{{"countries","Countries"}});
         Project source;source.replace(document);QFile file(dir.filePath("full-donor.json"));
-        QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(projectcodec::encode(source))>0);file.close();
+        QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(::projectcodec::encode(source))>0);file.close();
         EditorControllerConfig config;config.mobileMode=width==360;config.bootstrapWorld=false;config.autosaveEnabled=false;
         EditorController editor(config);QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         editor.selectCountry("A");QVERIFY(editor.setProjectionMode("flat"));
@@ -533,7 +533,7 @@ private slots:
         QVERIFY(click("geometryConfirm"));
         QTRY_VERIFY_WITH_TIMEOUT(!editor.geometryEditState().value("active").toBool(),10000);
         QCOMPARE(editor.revision(),revision+1);
-        const auto after=editor.documentBytes();const auto result=projectcodec::decode(after);
+        const auto after=editor.documentBytes();const auto result=::projectcodec::decode(after);
         QCOMPARE(result.units.size(),std::size_t(1));
         QCOMPARE(result.units.front().id,std::string("A"));
         QVERIFY(std::abs(planarArea(*result.geometries.get(staticGeometryBinding(result,"A").geometryRef))-200.)<1e-6);
@@ -607,7 +607,7 @@ private slots:
         pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"DEU","Germany","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         pandoeditor::Project project;project.replace(document);
         QFile file(dir.filePath("flag-only.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project));file.close();
+        file.write(::projectcodec::encode(project));file.close();
         EditorController editor({false,dir.filePath("private.json")});QQmlApplicationEngine engine;
         QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         editor.selectCountry("DEU");
@@ -886,7 +886,7 @@ private slots:
         pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"DEU","Germany","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x112233,1},"countries"}},{{"countries","Countries"}});
         pandoeditor::Project project;project.replace(document);
         QFile file(dir.filePath("map.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project));file.close();
+        file.write(::projectcodec::encode(project));file.close();
         QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         QVERIFY(editor.setProjectionMode(projection));
         QQmlApplicationEngine engine;
@@ -1094,7 +1094,7 @@ private slots:
         document.documentId="safe-area-ui";
         Project project;project.replace(document);
         const auto path=dir.filePath("safe-area.json");QFile file(path);
-        QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(projectcodec::encode(project))>0);file.close();
+        QVERIFY(file.open(QIODevice::WriteOnly));QVERIFY(file.write(::projectcodec::encode(project))>0);file.close();
         EditorController editor(EditorControllerConfig{width==360,dir.filePath("private.json")});
         QVERIFY(editor.openFile(QUrl::fromLocalFile(path)));
         QVERIFY(editor.setProjectionMode("flat"));
@@ -1740,7 +1740,7 @@ private slots:
         QTemporaryDir dir;
         auto path=QUrl::fromLocalFile(dir.path()+"/overlap.pando.json");
         QFile file(path.toLocalFile()); QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project)); file.close();
+        file.write(::projectcodec::encode(project)); file.close();
         EditorController editor; QVERIFY(editor.openFile(path)); QVERIFY(editor.setProjectionMode("flat"));
         QQmlApplicationEngine engine; engine.rootContext()->setContextProperty("editor",&editor);
         engine.load(QUrl("qrc:/common/Main.qml")); QVERIFY(!engine.rootObjects().isEmpty());

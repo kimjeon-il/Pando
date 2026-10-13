@@ -60,6 +60,15 @@ test('281 identities preserve all original coordinates and 294 validated territo
    assert.equal(e.geometryVersions[0].certainty,'low');
    continue;
   }
+  if(e.entityId==='state:soviet-union'){
+   const original=prior.versions[0];
+   const version=e.geometryVersions[0];
+   const reconstructed={...version.geometry,coordinates:version.geometry.coordinates.map(polygon=>
+    polygon.map(ring=>[ring[0],...ring.slice(1,-1).reverse(),ring.at(-1)]))};
+   assert.deepEqual(e.lifetime,prior.lifetime);
+   assert.deepEqual({versionId:version.versionId,validFrom:version.validFrom,validTo:version.validTo,geometryHash:sha(reconstructed)},original);
+   continue;
+  }
   const previousHistoric=merged[e.entityId];
   const extension=extended.get(e.entityId);
   if(!previousHistoric&&!extension){

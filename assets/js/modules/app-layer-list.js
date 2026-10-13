@@ -147,15 +147,19 @@ export function createLayerList() {
     }));
   }
 
-  async function pruneLayerItemVisibility() {
+  function presentationCatalog() {
+    const hydroLayers=Object.fromEntries(Object.entries(dependencies.hydroPresentation.HYDRO_LAYER_META)
+      .map(([id,meta]) => [id,(0,dependencies.hydroPresentation.hydroCategoryKey)(meta.category)]));
+    return { hydroLayers,builtinSubunitSources,
+      countryLabelIds:[...(0,dependencies.countries.builtinTerritorialScene)().labelById.keys()] };
+  }
+
+  async function pruneLayerItemVisibility({ catalogAlreadyAdmitted = false } = {}) {
     if (typeof dependencies.domains.projectDomain?.admitPresentationCatalog !== 'function')
       throw new TypeError('Layer visibility pruning requires the canonical C++ presentation catalog.');
     if (typeof dependencies.domains.selectionDomain?.prune !== 'function')
       throw new TypeError('Layer visibility pruning requires the canonical C++ selection owner.');
-    const hydroLayers=Object.fromEntries(Object.entries(dependencies.hydroPresentation.HYDRO_LAYER_META)
-      .map(([id,meta]) => [id,(0,dependencies.hydroPresentation.hydroCategoryKey)(meta.category)]));
-    await dependencies.domains.projectDomain.admitPresentationCatalog({ hydroLayers,builtinSubunitSources,
-      countryLabelIds:[...(0,dependencies.countries.builtinTerritorialScene)().labelById.keys()] });
+    if (!catalogAlreadyAdmitted) await dependencies.domains.projectDomain.admitPresentationCatalog(presentationCatalog());
     await dependencies.domains.selectionDomain.prune(null,{ reason:'prune-invalid-selection' });
   }
 
@@ -170,5 +174,6 @@ export function createLayerList() {
     get normalizeLayerFolderState() { return normalizeLayerFolderState; },
     get normalizeLayerItemState() { return normalizeLayerItemState; },
     get pruneLayerItemVisibility() { return pruneLayerItemVisibility; },
+    get presentationCatalog() { return presentationCatalog; },
   });
 }

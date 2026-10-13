@@ -117,7 +117,7 @@ struct Pair {
         Project project; project.replace(document);
         QFile file(directory.filePath("input.json"));
         if (!file.open(QIODevice::WriteOnly)) return false;
-        file.write(projectcodec::encode(project)); file.close();
+        file.write(::projectcodec::encode(project)); file.close();
         projection.rebuild(document);
         const auto url = QUrl::fromLocalFile(file.fileName());
         return legacy.openFile(url) && screen.openFile(url) &&

@@ -53,6 +53,18 @@ test('project replacement awaits the selection/draft reset acknowledgement befor
   assert.deepEqual(effects,['selection-ack','selection-ui','core-load','swap','render']);
 });
 
+test('project replacement admits presentation catalog inside its ordered Core transaction', async () => {
+  const calls = [],catalog = { hydroLayers: {},builtinSubunitSources: {},countryLabelIds: [] };
+  const project = createProjectDomain({ readBuiltinSelectionCatalogs: () => [],readPresentationCatalog: () => catalog,
+    documentModel: { snapshot: () => ({ current: true }) },publishCommand: async () => calls.push('publish-catalog'),
+    commandOwner: { validateImport: async bytes => JSON.parse(bytes),captureReplacement: async () => 7,
+      load: async () => calls.push('load'),presentationCatalogLoad: async value => { assert.equal(value,catalog);calls.push('admit-catalog');return {}; },
+      releaseReplacement: async () => calls.push('release') },
+    replaceSnapshot: () => { calls.push('present');return true; } });
+  await project.load({ current: true });
+  assert.deepEqual(calls,['load','admit-catalog','publish-catalog','present','release']);
+});
+
 test('same-generation territorial source admission delegates its exact scope and cursor intent to C++',async () => {
   const current=Object.freeze({ header: 'current',labels: Object.freeze([{ id: 'L' }]) }),source=Object.freeze({ territorialEntities: [] }),calls=[];
   const project=createProjectDomain({ documentModel: { snapshot: () => current },publishCommand() {},readBuiltinSelectionCatalogs: () => [],

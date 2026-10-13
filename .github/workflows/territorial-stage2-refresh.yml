@@ -1,0 +1,89 @@
+name: One-shot USSR territorial asset regeneration
+on:
+  push:
+    branches:
+      - fix/territory-cpp-normalization-20261013
+    paths:
+      - '.github/workflows/territorial-stage2-refresh.yml'
+permissions:
+  contents: write
+jobs:
+  refresh:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify corrected USSR canonical source
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          await import('./assets/js/modules/polygon-geometry.js');
+          const source=JSON.parse(fs.readFileSync('assets/data/territorial-entities/source/countries/soviet-union.json','utf8'));
+          const soviet=source.entities.find(e=>e.entityId==='state:soviet-union');
+          const geometry=soviet?.geometryVersions.find(v=>v.versionId==='state:soviet-union:1922-1991-baikonur-r1')?.geometry;
+          assert.equal(geometry?.coordinates?.length,231);
+          assert.equal(geometry.coordinates.reduce((sum,p)=>sum+p.reduce((n,r)=>n+r.length,0),0),40054);
+          assert.equal(globalThis.PandoLabPolygonGeometry.hasCanonicalPolygonWinding(geometry),true);
+          console.log('USSR: 231 canonical outer rings, 40,054 source vertices');
+          JS
+      - name: Regenerate territorial chunks, historical timeline and native mirror
+        run: |
+          node tools/build-territorial-entity-chunks.mjs
+          node tools/build-historical-world-timeline.mjs
+          node native/tools/sync-historical-world-timeline.mjs --web-root .
+          PANDOLAB_BUILD_ID=ussr-spherical-20261013 node scripts/generate-build-metadata.mjs
+      - name: Verify reproducibility, lineage and temporal data contracts
+        run: |
+          node tools/build-territorial-entity-chunks.mjs --check
+          node tools/build-historical-world-timeline.mjs --check
+          node native/tools/sync-historical-world-timeline.mjs --web-root . --check
+          node scripts/check-version.mjs
+          node --test tests/unit/polygon-geometry.test.mjs tests/unit/territorial-chunks.test.mjs tests/unit/historical-world-publication.test.mjs
+      - name: Verify generated output scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A -- \
+            assets/data/territorial-entities/generated/v2 \
+            assets/data/historical-world/generated/v1 \
+            native/assets/world/historical-world/v1 \
+            native/assets/world/manifest.json \
+            assets/js/build-meta.js index.html README.md
+          git diff --cached --check
+          while IFS= read -r changed; do
+            case "$changed" in
+              assets/data/territorial-entities/generated/v2/index.json|\
+              assets/data/territorial-entities/generated/v2/state-soviet-union.json.gz|\
+              assets/data/historical-world/generated/v1/manifest.json|\
+              assets/data/historical-world/generated/v1/world-project.json.gz|\
+              assets/data/historical-world/generated/v1/coverage-report.json|\
+              assets/data/historical-world/generated/v1/expected-trace.json|\
+              native/assets/world/historical-world/v1/manifest.json|\
+              native/assets/world/historical-world/v1/world-project.json.gz|\
+              native/assets/world/historical-world/v1/coverage-report.json|\
+              native/assets/world/historical-world/v1/expected-trace.json|\
+              native/assets/world/manifest.json|assets/js/build-meta.js|index.html|README.md)
+                echo "EXPECTED: $changed" ;;
+              *) echo "OUT-OF-SCOPE ASSET CHANGE: $changed" >&2; exit 1 ;;
+            esac
+          done < <(git diff --cached --name-only)
+          git diff --cached --stat
+      - name: Commit validated assets to the working branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --cached --quiet; then
+            echo "No asset updates required"
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'build(territory): regenerate USSR web and native historical assets'
+          git push origin HEAD:refs/heads/fix/territory-cpp-normalization-20261013
+          echo "Regeneration commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"

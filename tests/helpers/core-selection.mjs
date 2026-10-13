@@ -43,8 +43,8 @@ export async function createNodeSelection({ territorialIds = ['A','B','C','D','D
       { domain: 'placeBuiltin',type: 'city',id: 'builtin:place:fixture:1' },
     ]);
     await owner.client.selectionCatalogLoad('hydroBuiltin',[
-      {domain:'hydroBuiltin',type:'river',id:'builtin-hydro'},
-      {domain:'hydroBuiltin',type:'river',id:'1'},
+      {domain:'hydroBuiltin',type:'river',id:'builtin-hydro',sourceIds:[]},
+      {domain:'hydroBuiltin',type:'river',id:'1',sourceIds:[]},
     ]);
     const domain = createSelectionDomain({ commandOwner: owner.client,
       projectDomain: { getGeneration: () => generation },

@@ -28,7 +28,7 @@ private slots:
         Geometry unused;unused.type="Polygon";unused.polygons={{{{30,0},{31,0},{31,1},{30,1},{30,0}}}};
         document.geometries.insert({"unreferenced",77},unused);
         Project project;project.replace(document);QFile file(directory.filePath("input.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        const auto bytes=projectcodec::encode(project);QCOMPARE(file.write(bytes),qint64(bytes.size()));file.close();
+        const auto bytes=::projectcodec::encode(project);QCOMPARE(file.write(bytes),qint64(bytes.size()));file.close();
         QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));QVERIFY(editor.setProjectionMode("flat"));QVERIFY(editor.resizeMapCamera(800,600,1));
         auto* bridge=qobject_cast<MapSceneBridge*>(editor.mapSceneBridge());QVERIFY(bridge);
         QQuickWindow window;window.resize(800,600);
@@ -54,7 +54,7 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(actualReceipts>before&&editor.geometryPresentationPaths().isEmpty(),5000);
         QVERIFY(actualFrame==bridge->frameSnapshot());QVERIFY(!actualInventory.isEmpty());
         QCOMPARE(editor.documentBytes(),committed);QCOMPARE(editor.revision(),revision);
-        const auto restored=projectcodec::decode(committed);QVERIFY(restored.geometries.get({"unreferenced",77}));
+        const auto restored=::projectcodec::decode(committed);QVERIFY(restored.geometries.get({"unreferenced",77}));
         QVERIFY(!window.grabWindow().isNull());
         qInfo()<<"Actual presentation backend"<<(gpu?"gpu":"painted")<<"receipts"<<actualReceipts<<"inventory"<<actualInventory.size()<<"processed=1 mismatch=0 skip=0";
         window.hide();

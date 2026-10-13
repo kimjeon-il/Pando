@@ -113,12 +113,12 @@ test('active preview worker failures still warn and settle ensure false', async 
   assert.equal(warnings.length, 1);
   assert.equal(warnings[0].message, 'Project preview cache unavailable');
   assert.equal(warnings[0].error.message, 'NetworkError: importScripts failed');
-  assert.equal(prevented, false);
+  assert.equal(prevented, true);
   assert.equal(workers[0].terminated, true);
 });
 
 for (const retirement of ['cancel', 'idle']) {
-  test(`preview ${retirement} detaches native handlers before termination`, async t => {
+  test(`preview ${retirement} isolates late native errors before termination`, async t => {
     const { cache, project, workers,ready } = previewCache(t);
     const pending = cache.ensure(project);
     await ready(0);
@@ -133,7 +133,11 @@ for (const retirement of ['cancel', 'idle']) {
       cache.cancel();
       assert.equal(await pending, false);
     } else await finishEnsure(worker, pending);
-    assert.deepEqual(handlersAtTermination, [null, null]);
+    assert.equal(handlersAtTermination[0], null);
+    assert.equal(typeof handlersAtTermination[1], 'function');
+    let prevented = false;
+    handlersAtTermination[1]({ preventDefault: () => { prevented = true; } });
+    assert.equal(prevented, true, 'late native errors remain inside the preview cache boundary');
   });
 }
 
