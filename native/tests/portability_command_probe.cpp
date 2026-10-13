@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include <pandoeditor/project.h>
 #include "territorial_fixture.h"
 #include <QCoreApplication>
@@ -21,8 +22,7 @@ int main(int argc, char** argv) {
     const auto initial = corpus["initial"].toObject();
     const auto id = initial["id"].toString().toStdString();
     Project project;
-    project.replace(ProjectDocument({{id, initial["name"].toString().toStdString(),
-        {{{{0,0},{8,0},{8,8},{0,8},{0,0}}}}, 0xcccccc}}, {{"countries","Countries"}}));
+    project.replace(makeTerritorialDocument({{{id,initial["name"].toString().toStdString(),"",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{8,0},{8,8},{0,8},{0,0}}}}},{0xcccccc,1},"countries"}},{{"countries","Countries"}}));
     if(structure) {
         auto seed=project.document();seed.units.clear();seed.timelineRecords={};
         const GeometryRef geometry{"parity-shape",1};Geometry shape;shape.type="Polygon";shape.polygons={{{{0,0},{8,0},{8,8},{0,8},{0,0}}}};seed.geometries.insert(geometry,shape);

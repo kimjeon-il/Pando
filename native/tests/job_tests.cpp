@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include <pandoeditor/jobs.h>
 #include <pandoeditor/project.h>
@@ -9,7 +10,7 @@
 using namespace pandoeditor;
 #define CHECK(x) do { if(!(x)) throw std::runtime_error(#x); } while(false)
 Project sample() {
-    Project p; p.replace(std::vector<Country>{{"A","Alpha",{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}},0x123456}}); return p;
+    Project p; p.replace(makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}}},{0x123456,1},"countries"}})); return p;
 }
 CommandRequest rename(const Project& p,const std::string& name) {
     CommandArguments a; a.properties.countries.push_back({"A",{name,"notes",0x102030,0.5,"countries"}});

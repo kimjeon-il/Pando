@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "hydroruntimeprovider.h"
 #include "hydroassetreader.h"
 #include "projectcodec.h"
@@ -93,7 +94,7 @@ struct FixtureCopy {
     }
 };
 Project sampleProject() {
-    Project p;p.replace(std::vector<Country>{{"A","Alpha",{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}},0x123456}});return p;
+    Project p;p.replace(makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{2,0},{2,2},{0,2},{0,0}}}}},{0x123456,1},"countries"}}));return p;
 }
 struct Job {
     Project project=sampleProject();JobScheduler scheduler;JobTicket ticket;

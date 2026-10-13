@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorycutadapter.h"
 #include "cutgeometrycalculator.h"
 #include "commandjobrunner.h"
@@ -67,7 +68,7 @@ QJsonObject malformedGeometry() {
 }
 struct Gate {QSemaphore started,release;};
 struct Release {std::shared_ptr<Gate> gate;~Release(){gate->release.release();}};
-Project project() {Project p;p.replace(std::vector<Country>{{"A","A",shape().polygons,0}});return p;}
+Project project() {Project p;p.replace(makeTerritorialDocument({{{"A","A","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},shape().polygons},{0,1},"countries"}}));return p;}
 }
 namespace pandoeditor {
 CutGeometryResult prepareCutGeometry(const QJsonObject& payload,const GeometryCancellation& cancelled) {

@@ -66,9 +66,8 @@ bool hasTable(QSqlDatabase& db,const QString& name) {
 }
 std::string target(const std::string& name) {
     if(name=="entities")return "general";
-    if(name=="countries")return "country";
-    if(name=="subunits"||name=="territories"||name=="administrative")return "subunit";
-    if(name=="regions")return "region";
+    if(name=="countries"||name=="subunits")return "general";
+    if(name=="regions")return "regional";
     if(name=="places")return "label";
     if(name=="distributions"||name=="language_distribution"||name=="ethnicity_distribution"||
        name=="religion_distribution")return "distribution";
@@ -79,7 +78,7 @@ std::string target(const std::string& name) {
 std::string identityColumn(const std::string& name) {
     if(name=="entities")return "id";
     if(name=="countries"||name=="places")return "pandolab_id";
-    if(name=="subunits"||name=="territories"||name=="administrative"||name=="regions"||
+    if(name=="subunits"||name=="regions"||
        name=="generic_features_point"||name=="generic_features_line"||
        name=="generic_features_polygon")return "id";
     if(name=="distributions"||name=="language_distribution"||name=="ethnicity_distribution"||

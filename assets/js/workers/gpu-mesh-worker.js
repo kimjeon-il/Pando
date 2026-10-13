@@ -44,7 +44,7 @@ function meshTransferables(mesh) {
   ];
 }
 
-const rpcHost = self.PandoLabWorkerRpc.install({
+self.PandoLabWorkerRpc.install({
   handlers: {
     'geometry.mesh': async (payload, context) => {
       context.throwIfCancelled();
@@ -53,19 +53,4 @@ const rpcHost = self.PandoLabWorkerRpc.install({
       return self.PandoLabWorkerRpc.transferResult(mesh, meshTransferables(mesh));
     },
   },
-});
-void rpcHost;
-
-// Compatibility bridge for the current renderer. New CPU geometry clients use
-// Worker RPC; the renderer-v2 migration removes this token-based transport.
-self.addEventListener('message', async event => {
-  if (event.data?.rpc === self.PandoLabWorkerRpc.PROTOCOL) return;
-  const token = event.data?.token;
-  const projectGeneration = event.data?.projectGeneration;
-  try {
-    const mesh = await buildMesh(event.data?.features || []);
-    self.postMessage({ token, projectGeneration, ok: true, mesh }, meshTransferables(mesh));
-  } catch (error) {
-    self.postMessage({ token, projectGeneration, ok: false, message: error?.message || String(error) });
-  }
 });

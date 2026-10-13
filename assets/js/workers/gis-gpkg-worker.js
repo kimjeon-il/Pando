@@ -206,15 +206,14 @@ function writeAtlasTables(db, payload) {
     country_id: label.countryId || label.country_id || '',
     notes: label.notes || '',
   }));
-  const genericFeatureRow = item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', role: item.properties?.role || 'generic', owner_id: item.properties?.ownerId || '', parent_id: item.properties?.parentId || '', topology_group: item.properties?.topologyGroup || '', land_binding: item.properties?.landBinding || 'none', color: item.properties?.color || '', notes: item.properties?.notes || '', locked: item.properties?.locked === true ? 1 : 0, properties_json: JSON.stringify(item.properties || {}) });
+  const genericFeatureRow = item => ({ geometry: item.geometry, id: item.id || '', name: item.properties?.name || '', color: item.properties?.color || '', notes: item.properties?.notes || '', locked: item.properties?.locked === true ? 1 : 0, properties_json: JSON.stringify(item.properties || {}) });
   const points = genericFeatures.filter(item => ['Point', 'MultiPoint'].includes(item.geometry?.type)).map(genericFeatureRow);
   const lines = genericFeatures.filter(item => ['LineString', 'MultiLineString'].includes(item.geometry?.type)).map(genericFeatureRow);
   const polygons = genericFeatures.filter(item => ['Polygon', 'MultiPolygon'].includes(item.geometry?.type)).map(genericFeatureRow);
   const territorialRows = self.PandoLabGisAdapters.territorialRows(spatial);
   const distributionRows = self.PandoLabGisAdapters.distributionRows(spatial);
   const genericFeatureColumns = [
-    { name: 'id' }, { name: 'name' }, { name: 'role' }, { name: 'owner_id' }, { name: 'parent_id' },
-    { name: 'topology_group' }, { name: 'land_binding' }, { name: 'color' }, { name: 'notes' }, { name: 'locked', type: 'INTEGER' }, { name: 'properties_json' },
+    { name: 'id' }, { name: 'name' }, { name: 'color' }, { name: 'notes' }, { name: 'locked', type: 'INTEGER' }, { name: 'properties_json' },
   ];
   if (includes('labels')) createFeatureTable(db, { tableName: 'places', geometryType: 'POINT', rows: places, columns: [{ name: 'pandolab_id', source: 'id' }, { name: 'name' }, { name: 'kind' }, { name: 'country_id' }, { name: 'notes' }], description: 'PandoLab places' });
   if (includes('genericFeatures')) {

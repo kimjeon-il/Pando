@@ -45,7 +45,7 @@ export function spatialLayerCount(buffer) {
 }
 
 export function spatialColumns(buffer, table) {
-  if (!['entities','regions'].includes(table)) throw new Error('Unexpected table');
+  if (!['entities','regions','generic_features_point','generic_features_line','generic_features_polygon'].includes(table)) throw new Error('Unexpected table');
   const db=new SQL.Database(new Uint8Array(buffer));
   try { return db.exec(`PRAGMA table_info(${table})`)[0].values.map(row=>row[1]); } finally { db.close(); }
 }

@@ -8,7 +8,7 @@ on:
       - native/tools/verify_north_schleswig_1914_0717_coast.py
       - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0717-hvidding-ufer-stage5.*
       - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0717-hvidding-ufer-stage5.review.md
-      - native/tools/historical-library/land-borders/german-denmark-1914-north-schleswig-001-026.0717-hvidding-ufer-stage5.review.md
+      - reports/geography/germany/north-schleswig/german-denmark-1914-north-schleswig-001-026.0717-hvidding-ufer-stage5.review.md
       - .github/workflows/native-north-schleswig-1914-0717-coast-stage5.yml
 
 permissions:

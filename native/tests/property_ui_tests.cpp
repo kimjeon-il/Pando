@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "territorial_fixture.h"
 #include "editorcontroller.h"
 #include "ui_navigation.h"
@@ -30,10 +31,8 @@ QQuickItem* item(QQuickItem* root,const QString& name) {
 }
 void modes() {QTest::addColumn<bool>("mobile");QTest::newRow("desktop-1100")<<false;QTest::newRow("mobile-360")<<true;}
 ProjectDocument fixture() {
-    ProjectDocument d({
-        {"A","Alpha",{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}},0x123456},
-        {"B","Beta",{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}},0xabcdef}
-    },{{"countries","Countries"},{"other","Units"},{"hidden","Hidden",false,false,1}});
+    pandoeditor::ProjectDocument d = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{10,0},{10,10},{0,10},{0,0}}}}},{0x123456,1},"countries"},
+        {{"B","Beta","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{20,0},{30,0},{30,10},{20,10},{20,0}}}}},{0xabcdef,1},"countries"}},{{"countries","Countries"},{"other","Units"},{"hidden","Hidden",false,false,1}});
     d.documentId="selection-ui-v1";
     auto add=[&](std::string id,UnitKind kind,std::string layer,double left,double right,bool locked) {
         Geometry g;g.type="Polygon";g.polygons={{{{left,2},{right,2},{right,4},{left,4},{left,2}}}};
@@ -582,7 +581,7 @@ private slots:
         QFETCH(bool,mobile);Harness h(mobile);QVERIFY(h.window);
         QFile file(h.dir.filePath("test.geojson"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(R"({"type":"FeatureCollection","features":[{"type":"Feature","id":"Imported","properties":{"name":"Imported country"},"geometry":{"type":"Polygon","coordinates":[[[70,0],[72,0],[72,2],[70,2],[70,0]]]}}]})");file.close();
         const auto before=h.editor.documentBytes();QVERIFY(h.click("gisImportButton"));QVERIFY(h.editor.loadGisSource(QUrl::fromLocalFile(file.fileName())));QTRY_COMPARE(h.editor.gisImportState()["stage"].toString(),QString("mapping"));
-        auto choice=h.control("gisTargetChoice");QVERIFY(choice);choice->setProperty("currentIndex",0);QTest::qWait(60);QCOMPARE(choice->property("currentText").toString(),QStringLiteral("일반 객체 · 독립"));
+        auto choice=h.control("gisTargetChoice");QVERIFY(choice);choice->setProperty("currentIndex",0);QTest::qWait(60);QCOMPARE(choice->property("currentText").toString(),QStringLiteral("일반 객체"));
         QVERIFY(h.click("gisPrepare"));QTRY_COMPARE(h.editor.gisImportState()["stage"].toString(),QString("impact"));QCOMPARE(h.control("gisImportStep")->property("text").toString(),QStringLiteral("3 · 결과 검토"));QCOMPARE(h.editor.documentBytes(),before);
         const auto captures=qEnvironmentVariable("PANDOEDITOR_UI_CAPTURE_DIR");if(!captures.isEmpty()){QVERIFY(QDir().mkpath(captures));QVERIFY(h.window->grabWindow().save(captures+(mobile?"/step4-gis-mobile.png":"/step4-gis-desktop.png")));}
         const auto oldSession=h.editor.gisImportState()["session"].toULongLong();QVERIFY(h.click("gisReviewBack"));QCOMPARE(h.editor.gisImportState()["stage"].toString(),QString("mapping"));QVERIFY(!h.editor.confirmGisImport(oldSession));QCOMPARE(h.editor.documentBytes(),before);QVERIFY(h.click("gisPrepare"));QTRY_COMPARE(h.editor.gisImportState()["stage"].toString(),QString("impact"));

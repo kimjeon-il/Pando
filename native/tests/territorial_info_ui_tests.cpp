@@ -1,3 +1,4 @@
+#include "../../shared/tests/territorial-document-fixture.h"
 #include "editorcontroller.h"
 #include "projectcodec.h"
 #include "territorial_fixture.h"
@@ -40,7 +41,7 @@ struct Harness {
     QMetaObject::Connection warningConnection;
     explicit Harness(bool mobile):editor(*(mobile?mobileUiEditor:desktopUiEditor)) {
         using namespace pandoeditor;
-        ProjectDocument document({{"A","Alpha",{{{{0,0},{12,0},{12,12},{0,12},{0,0}}}},0x336699}},{{"countries","Countries"}});
+        pandoeditor::ProjectDocument document = makeTerritorialDocument({{{"A","Alpha","",pandoeditor::UnitKind::General,false},{"MultiPolygon",{},{},{{{{0,0},{12,0},{12,12},{0,12},{0,0}}}}},{0x336699,1},"countries"}},{{"countries","Countries"}});
         const auto add=[&](std::string id,std::string name,UnitKind kind,double x,double size,const std::string& parent) {
             Geometry geometry{"Polygon",{},{},{{{{x,1},{x+size,1},{x+size,1+size},{x,1+size},{x,1}}}}};
             GeometryRef key{"info-ui:"+id,1};document.geometries.insert(key,geometry);

@@ -1,3 +1,5 @@
+import { createWorkerRpcClient } from './worker-rpc.js';
+
 const cloneValue = value => {
   if (value === undefined || value === null) return value;
   if (typeof structuredClone === 'function') {
@@ -24,9 +26,7 @@ export function createGisDomain({
 } = {}) {
   let disposed = false;
   const operationTokens = new Map();
-  let riverPartitionWorker = null;
-  let riverPartitionRequestId = 0;
-  const riverPartitionRequests = new Map();
+  let riverPartitionRpc = null;
   const planImport = async (files, options = {}) => {
     if (disposed) throw new Error('GIS domain is disposed.');
     const service = typeof importService === 'function' ? await importService() : importService;
@@ -81,66 +81,24 @@ export function createGisDomain({
       },
     };
   };
-  const ensureRiverPartitionWorker = () => {
-    if (riverPartitionWorker || typeof riverPartitionWorkerFactory !== 'function') return riverPartitionWorker;
-    try {
-      riverPartitionWorker = riverPartitionWorkerFactory();
-      riverPartitionWorker.onmessage = event => {
-        const message = event.data || {};
-        const pending = riverPartitionRequests.get(Number(message.requestId));
-        if (!pending) return;
-        riverPartitionRequests.delete(Number(message.requestId));
-        clearTimeout(pending.timer);
-        if (message.type === 'error') pending.reject(new Error(message.message || '하천 영토 조각을 계산하지 못했습니다.'));
-        else pending.resolve(message.result || { candidates: [], donorResults: [], diagnostics: {} });
-      };
-      riverPartitionWorker.onerror = event => {
-        const error = new Error(event.message || '하천 영토 분할 Worker 실행 오류');
-        for (const pending of riverPartitionRequests.values()) { clearTimeout(pending.timer); pending.reject(error); }
-        riverPartitionRequests.clear();
-        riverPartitionWorker?.terminate?.();
-        riverPartitionWorker = null;
-      };
-    } catch (_) {
-      riverPartitionWorker = null;
-    }
-    return riverPartitionWorker;
-  };
-  const computeRiverPartition = payload => {
-    if (disposed) return Promise.reject(new Error('GIS domain is disposed.'));
-    const operation = 'riverPartition';
-    const taskToken = `${operation}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+  const computeRiverPartition = async payload => {
+    if (disposed) throw new Error('GIS domain is disposed.');
+    const operation = 'riverPartition', taskToken = Symbol(operation);
     operationTokens.set(operation, taskToken);
     const projectGeneration = projectDomain?.getGeneration?.() || 0;
-    const worker = ensureRiverPartitionWorker();
-    if (!worker) {
-      return Promise.reject(new Error('하천 분할 Worker를 준비하지 못했습니다. 다시 시도하세요.'));
+    riverPartitionRpc ||= createWorkerRpcClient({ createWorker: riverPartitionWorkerFactory, defaultTimeoutMs: 60_000,
+      getProjectRevision: () => projectDomain?.getGeneration?.() || 0 });
+    const response = await riverPartitionRpc.request('river.partition', payload, { projectRevision: projectGeneration });
+    if (operationTokens.get(operation) !== taskToken || (projectDomain?.getGeneration?.() || 0) !== projectGeneration) {
+      reportDiagnostic({ type: 'stale-worker-result', operation, projectGeneration });
+      return null;
     }
-    const requestId = ++riverPartitionRequestId;
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => cancelRiverPartition(new Error('하천 분할 계산 시간이 초과되었습니다. 다시 시도하세요.')), 60_000);
-      riverPartitionRequests.set(requestId, {
-        timer,
-        resolve: result => {
-          if (operationTokens.get(operation) !== taskToken || projectDomain?.getGeneration?.() !== projectGeneration) {
-            reportDiagnostic({ type: 'stale-worker-result', operation, taskToken, projectGeneration });
-            resolve(null);
-            return;
-          }
-          resolve(result);
-        },
-        reject,
-      });
-      try { worker.postMessage({ type: 'compute', requestId, payload }); }
-      catch (error) { clearTimeout(timer); riverPartitionRequests.delete(requestId); reject(error); }
-    });
+    return response.result;
   };
-  const cancelRiverPartition = (error = Object.assign(new Error('하천 분할을 취소했습니다.'), { cancelled: true })) => {
+  const cancelRiverPartition = () => {
     operationTokens.delete('riverPartition');
-    for (const pending of riverPartitionRequests.values()) { clearTimeout(pending.timer); pending.reject(error); }
-    riverPartitionRequests.clear();
-    riverPartitionWorker?.terminate?.();
-    riverPartitionWorker = null;
+    riverPartitionRpc?.stop('cancelled');
+    riverPartitionRpc = null;
   };
   const dispose = () => {
     disposed = true;
