@@ -123,6 +123,7 @@ export function createDomainAssembly() {
         { domain: 'placeBuiltin',refs: dependencies.countryLabelModel.builtinPlaceSelectionReferences() },
         { domain: 'hydroBuiltin',refs: dependencies.physicalResources.builtinHydroSelectionReferences() },
       ],
+      readPresentationCatalog: () => dependencies.layerTree.presentationCatalog(),
       publishCommand: async (outcome,{ reason } = {}) => {
         if(outcome.ok && outcome.changed && (reason==='project-undo' || reason==='project-redo')) await dependencies.projectSnapshots.finishHistoryTravel();
         if(reason==='command-rollback') {
@@ -136,6 +137,7 @@ export function createDomainAssembly() {
           skipRenderReset: options?.skipRenderReset === true,
           prepared: options?.prepared,
           preserveBuiltinMesh: options?.preserveBuiltinMesh === true,
+          catalogAlreadyAdmitted: true,
         };
         if (project) return (0, dependencies.projectRestore.applyAtlasState)(project, options?.reason === 'load', resetOptions);
         return (0, dependencies.projectRestore.resetProjectInPlace)(resetOptions);
@@ -158,7 +160,7 @@ export function createDomainAssembly() {
       },
       restoreReplacement: async (project, generation) => {
         await (0, dependencies.projectRestore.applyAtlasState)(project, false, { projectGeneration: generation,skipRenderReset: true,
-          preserveCoreSession: true });
+          preserveCoreSession: true,catalogAlreadyAdmitted: true });
         dependencies.lifecycleUi.projectUi.syncHistory();
         renderingDomain?.invalidateProject?.('project-rollback');
       },
@@ -168,6 +170,7 @@ export function createDomainAssembly() {
       reportDiagnostic: entry => dependencies.readiness.reliabilityDiagnostic.push({ category: 'project', ...entry }),
       onProjectChanged: event => {
         window.dispatchEvent(new CustomEvent('pandolab:project-changed', { detail: event }));
+        dependencies.lifecycleUi.projectUi.syncHistory();
       },
       onReplacementState: async (replacing, reason) => {
         dependencies.projectState.state.projectReplacing = replacing;
