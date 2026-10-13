@@ -37,22 +37,5 @@ self.PandoLabWorkerRpc.install({
   },
 });
 
-// Compatibility bridge for the current annex controller.
-self.addEventListener('message', async event => {
-  const message = event.data || {};
-  if (message.rpc === self.PandoLabWorkerRpc.PROTOCOL || message.type !== 'compute') return;
-  try {
-    const result = await compute(message.payload || {});
-    self.postMessage({ type: 'result', requestId: message.requestId, result });
-  } catch (error) {
-    self.postMessage({
-      type: 'error',
-      requestId: message.requestId,
-      message: error?.message || String(error),
-      stack: error?.stack || '',
-    });
-  }
-});
-
 self.removeEventListener('message', retainStartupMessage);
 for (const message of startupMessages.splice(0)) self.dispatchEvent(new MessageEvent('message', message));
