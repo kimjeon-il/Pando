@@ -1,0 +1,877 @@
+{
+  "schema": "hydro-reconstruction-append-delta-v1",
+  "batch": "r227",
+  "operation": "append_only",
+  "previous_batch": {
+    "batch": "r226",
+    "commit": "15e4b6e7be730b840c77c9a33589a2cbc19fbd24",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r226/results.json"
+  },
+  "continuity_base": {
+    "batch": "r46",
+    "commit": "c55f907679a60e3b6b1261b8e7158c7e9e002070",
+    "path": "reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "url": "https://github.com/kimjeon-il/Pando/blob/c55f907679a60e3b6b1261b8e7158c7e9e002070/reports/hydro-names/reconstruction-2026-10-09/batch-r46/reconstruction-index.json",
+    "sha256": "9612883a93057129c10200db17d45d0c82970ac2a2350487619f5a9a5a58129d",
+    "recorded_targets": 135
+  },
+  "immutable_geometry_reference": "fd6744f5e72a0c1a107452dbde6d416ab57237db",
+  "new_unique_ids": [
+    "hydro-system:61579517",
+    "hydro-system:70136698",
+    "hydro-system:70884272",
+    "hydro-system:90084442"
+  ],
+  "distinct_increment": 4,
+  "reassessed_existing_ids": [],
+  "removed_ids": [],
+  "records": [
+    {
+      "aw_id": "hydro-system:61579517",
+      "category": "river_group",
+      "system_id": "61579517",
+      "original_queue_rank": 713,
+      "baseline_logical_fid": 3643,
+      "geometry_fids": [
+        14624
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -68.4375,
+        -44.527083,
+        -67.44375,
+        -44.322917
+      ],
+      "rendered_mainstem_length_km": 120.371,
+      "rendered_network_length_km": 120.371,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -68.4375,
+          -44.527083,
+          -67.44375,
+          -44.322917
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Chubut",
+      "candidate_name_role": "no_supported_whole_selected_system_identity",
+      "source_keys": [
+        "r227-esri-chubut-imagery",
+        "r227-slr-laguna-salada2024"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The selected upper inter-pan passage and onward southward connection to the southern collector remain unestablished. The downstream incised corridor, Gran Laguna Salada entry and actual within-playa ending are geographically supported.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "No whole-system river hydronym established. Gran Laguna Salada/Laguna Salada identifies the receiving lake/depression only and is not transferred to the unnamed feeder and collector.",
+      "completion_scope": "The selected western feeder, long incised middle/lower corridor and entry into the Gran Laguna Salada receiving depression are located. A selected passage along and between the upper small-pan depressions and its onward connection to the southern collector are not sufficiently established as one watercourse. No river name is supported; the lake name remains a receiving-component identity. One material-pending status is retained.",
+      "supported_name_scope": "No whole-system river hydronym established. Gran Laguna Salada/Laguna Salada identifies the receiving lake/depression only and is not transferred to the unnamed feeder and collector.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "No whole-system river name or local name for the western feeder/collector is established.",
+          "Gran Laguna Salada/Laguna Salada is a receiving lake identity, not a name for all selected river components.",
+          "The upper inter-pan transfer remains materially unestablished. This does not prove the route is not a natural drainage.",
+          "No formal naming registry was verified.",
+          "The supplied mainstem length is queue metadata, not a new measurement."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Gran Laguna Salada",
+          "alternative_name": "Laguna Salada",
+          "role": "Receiving lake/depression only, not a hydronym for the selected feeder or collector.",
+          "source_keys": [
+            "r227-slr-laguna-salada2024",
+            "r227-esri-chubut-imagery"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70136698",
+      "category": "river_group",
+      "system_id": "70136698",
+      "original_queue_rank": 714,
+      "baseline_logical_fid": 2963,
+      "geometry_fids": [
+        9206
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -61.729167,
+        53.297917,
+        -60.361122,
+        53.39375
+      ],
+      "rendered_mainstem_length_km": 119.972,
+      "rendered_network_length_km": 119.972,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -61.729167,
+          53.297917,
+          -60.361122,
+          53.39375
+        ]
+      },
+      "candidate_name": "Goose River",
+      "candidate_names": [
+        "Goose River"
+      ],
+      "research_category": "river_group_source_material_pending",
+      "source_access_limited": false,
+      "source_material_pending": true,
+      "scope_hold": false,
+      "region": "Southern central Labrador, the southern lake-fed approach to lower Goose River and inner Goose Bay/Lake Melville beside Happy Valley-Goose Bay.",
+      "candidate_name_role": "supported_receiving_lower_river_identity_with_selected_opening_pending",
+      "source_keys": [
+        "r227-esri-labrador-imagery",
+        "r227-nl-ti-goose-bridge2022",
+        "r227-ecvoyageurs2019"
+      ],
+      "full_feature_correspondence_review_completed": false,
+      "follow_up_required": true,
+      "material_pending_reason": "The westernmost selected opening and initial southeastward feeder cross a small-pond and wetland/upland strip. The acquired imagery exposes local water and parts of the drainage corridor but does not independently establish the complete narrow through-link into the first large selected lake. This is a geographic source gap, not simply an unnamed tributary or a requirement for exact banks.",
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The west-to-east selection follows a southern lake-and-stream route while a broader river occupies a separate northern valley. The southern stream visibly joins that northern river before the selected lower meanders. The route then passes the road bridge north of the airport/town and reaches the sandy delta at the inner bay. The farther-south broad river corridor is outside the selection.",
+      "completion_scope": "All 22 selected parts were considered. The lake/outlet/confluence corridor and actual lower river mouth are supported, while the complete initial feeder-to-lake connection remains a material source gap.",
+      "supported_name_scope": "The lower receiving river has independent Goose River usage. No name is transferred to all upstream ponds, lakes or the southern tributary.",
+      "naming_scope_details": {
+        "representative_system_identity": "Goose River",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "The westernmost selected feeder-to-first-lake through-link remains insufficiently established. This is the sole primary material-pending reason.",
+          "No local lake names or tributary name is assigned. Peters River/Lindo Lake is a regional lead only; an unlocated label is not selected-route evidence.",
+          "Goose River is a lower receiving identity; the full119.972km rendered object is not asserted to bear one uniform river name.",
+          "The inspected imagery establishes no required reservoir or managed transfer along the selected corridor. Absence of visible controls is not an operational history or an exhaustive dam inventory.",
+          "Historical publication failures, ordinary image limitations and the remaining route gap are kept distinct. No exact-bank, present-discharge, official-length or registry conclusion is made."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Peters River",
+          "role": "Unassigned regional lead from a station-label discussion, not fixed to the selected southern tributary.",
+          "source_keys": [
+            "r227-amec-rffa2014-context"
+          ]
+        },
+        {
+          "name": "Lindo Lake",
+          "role": "Unassigned regional lake context from the same station label, not a selected-waterbody identification.",
+          "source_keys": [
+            "r227-amec-rffa2014-context"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:70884272",
+      "category": "river_group",
+      "system_id": "70884272",
+      "original_queue_rank": 715,
+      "baseline_logical_fid": 3259,
+      "geometry_fids": [
+        10426
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -101.489583,
+        19.441667,
+        -100.960417,
+        19.989583
+      ],
+      "rendered_mainstem_length_km": 119.84,
+      "rendered_network_length_km": 119.84,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -101.489583,
+          19.441667,
+          -100.960417,
+          19.989583
+        ]
+      },
+      "candidate_name": "Río Grande de Morelia",
+      "candidate_names": [
+        "Río Grande de Morelia"
+      ],
+      "research_category": "supported_representative_system_identity",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": false,
+      "region": "Michoacán de Ocampo",
+      "candidate_name_role": "supported_representative_system_identity",
+      "source_keys": [
+        "r227-inegi-patzcuaro2010",
+        "r227-inegi-huiramba2010",
+        "r227-inegi-morelia2010",
+        "r227-inegi-alvaro-obregon2010",
+        "r227-inegi-cuitzeo-study2023"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": null,
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "Receiving-river representative for the selected Cuanajo/Huiramba feeder–Tupátaro–Cointzio–Morelia–Charo–lower channel–Cuitzeo sequence. Named upper reaches, reservoir and terminal lake remain separate; no uniform scalar river name is assigned.",
+      "completion_scope": "Five acquired INEGI originals establish ordinary correspondence across the selected opening, tributary joins, Cointzio reservoir, Morelia and Charo corridor, lower channel and Cuitzeo receiving lake. Río Grande de Morelia is supported as representative identity, with upper names and waterbodies kept distinct.",
+      "supported_name_scope": "Receiving-river representative for the selected Cuanajo/Huiramba feeder–Tupátaro–Cointzio–Morelia–Charo–lower channel–Cuitzeo sequence. Named upper reaches, reservoir and terminal lake remain separate; no uniform scalar river name is assigned.",
+      "naming_scope_details": {
+        "representative_system_identity": "Río Grande de Morelia",
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "The short initial feeder and the specific straightened lower-channel local name remain unset. This does not prevent the supported receiving-system representative identity.",
+          "Tupatarol is the exact Huiramba source label; Tupátaro appears in Morelia mapping and the basin-study tributary prose. No exact name-transition boundary is claimed.",
+          "Viejo de Morelia is a separate western channel in the Álvaro Obregón map, not an alias for the selected lower straightened channel.",
+          "The study’s map compilation uses2010 hydrography. The municipal products are2010 compilations; no present water extent, discharge, gate operation, bank position or unmodified natural-channel claim is made.",
+          "The terminal display continuation is within Lago de Cuitzeo; no river line across lake water is required or asserted.",
+          "Formal naming registry status is unverified; accepted, scalar and Korean names remain null."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Canacucho",
+          "role": "Distinct mapped upper reach.",
+          "source_keys": [
+            "r227-inegi-huiramba2010"
+          ]
+        },
+        {
+          "name": "Tupatarol",
+          "role": "Exact Huiramba upper-reach label; retained without imposing a name-transition boundary.",
+          "source_keys": [
+            "r227-inegi-huiramba2010"
+          ]
+        },
+        {
+          "name": "Tupátaro",
+          "role": "Upper tributary component, separate from representative receiving-river identity.",
+          "source_keys": [
+            "r227-inegi-morelia2010",
+            "r227-inegi-cuitzeo-study2023"
+          ]
+        },
+        {
+          "name": "Presa Cointzio",
+          "role": "Intervening reservoir.",
+          "source_keys": [
+            "r227-inegi-morelia2010",
+            "r227-inegi-cuitzeo-study2023"
+          ]
+        },
+        {
+          "name": "Lago de Cuitzeo",
+          "role": "Receiving lake containing the actual display ending, not a named river continuation.",
+          "source_keys": [
+            "r227-inegi-alvaro-obregon2010",
+            "r227-inegi-cuitzeo-study2023"
+          ]
+        }
+      ]
+    },
+    {
+      "aw_id": "hydro-system:90084442",
+      "category": "river_group",
+      "system_id": "90084442",
+      "original_queue_rank": 716,
+      "baseline_logical_fid": 2850,
+      "geometry_fids": [
+        8862
+      ],
+      "minimum_stage": 3,
+      "bbox": [
+        -26.7375,
+        69.276778,
+        -25.160417,
+        69.685417
+      ],
+      "rendered_mainstem_length_km": 119.711,
+      "rendered_network_length_km": 119.711,
+      "geometry_summary": {
+        "fragment_count": 1,
+        "mainstem_fragment_count": 1,
+        "tributary_fragment_count": 0,
+        "mainstem_bbox": [
+          -26.7375,
+          69.276778,
+          -25.160417,
+          69.685417
+        ]
+      },
+      "candidate_name": null,
+      "candidate_names": [],
+      "research_category": "river_group_name_scope_hold",
+      "source_access_limited": false,
+      "source_material_pending": false,
+      "scope_hold": true,
+      "region": "East Greenland, south of the Geikie Plateau label, extending through the glaciated coastal-rock belt to a historical ice-front/coastal-water transition.",
+      "candidate_name_role": "no_supported_whole_selected_system_identity",
+      "source_keys": [
+        "r227-geus-greenland-national-1995"
+      ],
+      "full_feature_correspondence_review_completed": true,
+      "follow_up_required": false,
+      "material_pending_reason": null,
+      "naming_scope_hold_reason": "The permitted national original continuously covers the selected glaciated and exposed-rock terrain through the historical ice-front/coastal-water ending, but establishes no representative named natural river. A regional plateau label cannot name this whole modeled object.",
+      "accepted_name": null,
+      "whole_feature_scalar_name": null,
+      "korean_name": null,
+      "formal_registry_verified": false,
+      "automatic_application": false,
+      "product_application": false,
+      "geographic_disambiguation": "The single mainstem fragment opens in glaciated terrain among exposed-rock projections, turns northeast and east, bends southeast, continues east through a rock-bounded ice passage and then turns south to the coastal ending. There are no supplied tributary fragments.",
+      "completion_scope": "Every selected part and join was read against the continuously covering original, including the complete final part and actual endpoint. No meaningful unseen geographic interval remains. Geographic completion does not require exact banks, present-day glacier position or proof of a natural river beneath the ice.",
+      "supported_name_scope": "No representative or whole-route natural-river hydronym established.",
+      "naming_scope_details": {
+        "representative_system_identity": null,
+        "whole_feature_uniform_name_established": false,
+        "scope_limits": [
+          "Natural-river identity and surface/subglacial hydraulic continuity remain unestablished.",
+          "The actual ending is geographically accounted for at the historical ice-front/coastal-water transition; a modern ice-front position and surveyed river mouth are not established.",
+          "The national scale does not resolve minor meltwater channels, small lakes, exact banks or exact transition vertices.",
+          "The source does not independently establish an exact glacier or receiving-fjord name for the selected ending.",
+          "Formal registry status and any unlabelled local feature names remain unverified."
+        ]
+      },
+      "bounded_name_observations": [
+        {
+          "name": "Geikie Plateau",
+          "feature_type": "plateau / regional terrain label",
+          "role": "Regional orientation only; neither a river-name candidate nor an assignment to the entire selected route."
+        }
+      ]
+    }
+  ],
+  "delta_changes": {
+    "scope_hold_ids_added": [
+      "hydro-system:90084442"
+    ],
+    "scope_hold_ids_removed": [],
+    "access_pending_ids_added": [],
+    "access_pending_ids_removed": [],
+    "material_pending_ids_added": [
+      "hydro-system:61579517",
+      "hydro-system:70136698"
+    ],
+    "material_pending_ids_removed": []
+  },
+  "current_batch": {
+    "completed_source_scope_reviews": 2,
+    "supported_representative_system_identities": 1,
+    "scope_holds": 1,
+    "access_pending": 0,
+    "material_pending": 2
+  },
+  "totals_after": {
+    "recorded_targets": 851,
+    "non_pending_records": 560,
+    "source_access_pending": 3,
+    "source_material_pending": 288,
+    "source_any_pending": 291,
+    "scope_holds": 174,
+    "river_groups": 753,
+    "lakes": 98,
+    "unrecorded": 3214,
+    "unrecorded_river_groups": 2702,
+    "unrecorded_lakes": 512
+  },
+  "preserved_pending_access_ids": [
+    "lakes_base:1159112821",
+    "lakes_base:1159108815",
+    "hydro-system:70935447"
+  ],
+  "preserved_pending_material_ids": [
+    "lakes_base:1159109285",
+    "lakes_base:1159107185",
+    "hydro-system:80282111",
+    "hydro-system:70090277",
+    "hydro-system:60105880",
+    "hydro-system:60353070",
+    "hydro-system:60515284",
+    "hydro-system:60012573",
+    "hydro-system:80032711",
+    "hydro-system:60007816",
+    "hydro-system:80013873",
+    "hydro-system:61501314",
+    "hydro-system:60761631",
+    "hydro-system:70895720",
+    "hydro-system:61398344",
+    "hydro-system:61355098",
+    "hydro-system:70933800",
+    "hydro-system:60026849",
+    "hydro-system:70574060",
+    "hydro-system:70890643",
+    "hydro-system:80064967",
+    "hydro-system:70856797",
+    "hydro-system:60174418",
+    "hydro-system:61547907",
+    "hydro-system:70463083",
+    "hydro-system:61520061",
+    "hydro-system:70895492",
+    "hydro-system:70898394",
+    "hydro-system:70865140",
+    "hydro-system:80072439",
+    "hydro-system:70549678",
+    "hydro-system:70566840",
+    "hydro-system:80048422",
+    "hydro-system:60557376",
+    "hydro-system:61514286",
+    "hydro-system:61509423",
+    "hydro-system:80068731",
+    "hydro-system:80015064",
+    "hydro-system:61520170",
+    "hydro-system:70156165",
+    "hydro-system:70784507",
+    "hydro-system:80067417",
+    "hydro-system:80019756",
+    "hydro-system:70244256",
+    "hydro-system:80060230",
+    "hydro-system:61543259",
+    "hydro-system:60007312",
+    "hydro-system:60022881",
+    "hydro-system:61456098",
+    "hydro-system:70290797",
+    "hydro-system:60441146",
+    "hydro-system:61554706",
+    "hydro-system:70110341",
+    "hydro-system:80067260",
+    "hydro-system:70214162",
+    "hydro-system:80034507",
+    "hydro-system:61536265",
+    "hydro-system:61561008",
+    "hydro-system:80066184",
+    "hydro-system:70202296",
+    "hydro-system:61545841",
+    "hydro-system:61350841",
+    "hydro-system:80064018",
+    "hydro-system:70957614",
+    "hydro-system:70851521",
+    "hydro-system:70049998",
+    "hydro-system:61298121",
+    "hydro-system:80033385",
+    "hydro-system:61205785",
+    "hydro-system:80035867",
+    "hydro-system:70009700",
+    "hydro-system:60440371",
+    "hydro-system:80049373",
+    "hydro-system:70749063",
+    "hydro-system:70844211",
+    "hydro-system:60001814",
+    "hydro-system:61507976",
+    "hydro-system:70834534",
+    "hydro-system:80070226",
+    "hydro-system:61357020",
+    "hydro-system:70846952",
+    "hydro-system:70004800",
+    "hydro-system:80043969",
+    "hydro-system:80165177",
+    "hydro-system:70043276",
+    "hydro-system:60490135",
+    "hydro-system:60237339",
+    "hydro-system:70023641",
+    "hydro-system:70281204",
+    "hydro-system:61570080",
+    "hydro-system:70789628",
+    "hydro-system:80234498",
+    "hydro-system:60016868",
+    "hydro-system:70276504",
+    "hydro-system:70901807",
+    "hydro-system:80086174",
+    "hydro-system:60809372",
+    "hydro-system:60100857",
+    "hydro-system:70026619",
+    "hydro-system:70500400",
+    "hydro-system:60010615",
+    "hydro-system:70608588",
+    "hydro-system:70832638",
+    "hydro-system:61383955",
+    "hydro-system:61555573",
+    "hydro-system:80068976",
+    "hydro-system:80048308",
+    "hydro-system:80001778",
+    "hydro-system:70324446",
+    "hydro-system:80051383",
+    "hydro-system:60804761",
+    "hydro-system:70817056",
+    "hydro-system:80032843",
+    "hydro-system:70045452",
+    "hydro-system:70877500",
+    "hydro-system:80042519",
+    "hydro-system:70084321",
+    "hydro-system:61519454",
+    "hydro-system:61546367",
+    "hydro-system:60627295",
+    "hydro-system:61038090",
+    "hydro-system:60407824",
+    "hydro-system:80047056",
+    "hydro-system:70888155",
+    "hydro-system:61189702",
+    "hydro-system:70084119",
+    "hydro-system:70025722",
+    "hydro-system:70001071",
+    "hydro-system:70360842",
+    "hydro-system:70007286",
+    "hydro-system:60001879",
+    "hydro-system:70776067",
+    "hydro-system:61266023",
+    "hydro-system:70806740",
+    "hydro-system:60516711",
+    "hydro-system:80020100",
+    "hydro-system:70835654",
+    "hydro-system:80029665",
+    "hydro-system:61609128",
+    "hydro-system:70853324",
+    "hydro-system:70775288",
+    "hydro-system:70008834",
+    "hydro-system:61422869",
+    "hydro-system:80214289",
+    "hydro-system:70210252",
+    "hydro-system:70091013",
+    "hydro-system:60774621",
+    "hydro-system:61390812",
+    "hydro-system:60613563",
+    "hydro-system:61564085",
+    "hydro-system:70048797",
+    "hydro-system:61533139",
+    "hydro-system:60000681",
+    "hydro-system:70728795",
+    "hydro-system:80148544",
+    "hydro-system:70478140",
+    "hydro-system:70243977",
+    "hydro-system:70170668",
+    "hydro-system:80290543",
+    "hydro-system:61524461",
+    "hydro-system:70246501",
+    "hydro-system:70253588",
+    "hydro-system:70735407",
+    "hydro-system:60339076",
+    "hydro-system:70870606",
+    "hydro-system:61551054",
+    "hydro-system:61508438",
+    "hydro-system:60412032",
+    "hydro-system:70209891",
+    "hydro-system:70221206",
+    "hydro-system:70752436",
+    "hydro-system:70840433",
+    "hydro-system:60000722",
+    "hydro-system:80039501",
+    "hydro-system:80043520",
+    "hydro-system:80125244",
+    "hydro-system:70478139",
+    "hydro-system:80028550",
+    "hydro-system:61436404",
+    "hydro-system:80231563",
+    "hydro-system:61286514",
+    "hydro-system:61543734",
+    "hydro-system:80033212",
+    "hydro-system:61512470",
+    "hydro-system:60768475",
+    "hydro-system:70735496",
+    "hydro-system:61555954",
+    "hydro-system:70618884",
+    "hydro-system:80160360",
+    "hydro-system:70830375",
+    "hydro-system:80018800",
+    "hydro-system:61540978",
+    "hydro-system:80261384",
+    "hydro-system:60297933",
+    "hydro-system:80044582",
+    "hydro-system:61555857",
+    "hydro-system:70184883",
+    "hydro-system:70531357",
+    "hydro-system:70768467",
+    "hydro-system:61483978",
+    "hydro-system:60024169",
+    "hydro-system:61266022",
+    "hydro-system:60042998",
+    "hydro-system:61545451",
+    "hydro-system:70974386",
+    "hydro-system:70658860",
+    "hydro-system:61064290",
+    "hydro-system:80224898",
+    "hydro-system:70846851",
+    "hydro-system:70728698",
+    "hydro-system:60011738",
+    "hydro-system:70135325",
+    "hydro-system:80080193",
+    "hydro-system:70891116",
+    "hydro-system:60001922",
+    "hydro-system:70840684",
+    "hydro-system:61144131",
+    "hydro-system:61279996",
+    "hydro-system:60575428",
+    "hydro-system:61330558",
+    "hydro-system:61352932",
+    "hydro-system:80011023",
+    "hydro-system:61516926",
+    "hydro-system:70188223",
+    "hydro-system:70245111",
+    "hydro-system:70094242",
+    "hydro-system:61521416",
+    "hydro-system:70828969",
+    "hydro-system:80062264",
+    "hydro-system:80160778",
+    "hydro-system:60409921",
+    "hydro-system:60000770",
+    "hydro-system:60571197",
+    "hydro-system:70860477",
+    "hydro-system:61533397",
+    "hydro-system:70264330",
+    "hydro-system:70105802",
+    "hydro-system:70331549",
+    "hydro-system:80081015",
+    "hydro-system:70766071",
+    "hydro-system:61382960",
+    "hydro-system:80037596",
+    "hydro-system:60775848",
+    "hydro-system:80051354",
+    "hydro-system:80266652",
+    "hydro-system:70316227",
+    "hydro-system:61528356",
+    "hydro-system:70882065",
+    "hydro-system:80042509",
+    "hydro-system:80031210",
+    "hydro-system:80108382",
+    "hydro-system:70026340",
+    "hydro-system:60007489",
+    "hydro-system:80032969",
+    "hydro-system:80091078",
+    "hydro-system:80255237",
+    "hydro-system:70824140",
+    "hydro-system:61562621",
+    "hydro-system:70974390",
+    "hydro-system:80107981",
+    "hydro-system:70871537",
+    "hydro-system:70530540",
+    "hydro-system:61557326",
+    "hydro-system:70873021",
+    "hydro-system:70844000",
+    "hydro-system:80071292",
+    "hydro-system:70016501",
+    "hydro-system:80031039",
+    "hydro-system:61400064",
+    "hydro-system:80119986",
+    "hydro-system:60006761",
+    "hydro-system:80002475",
+    "hydro-system:80092693",
+    "hydro-system:70961272",
+    "hydro-system:80021745",
+    "hydro-system:80038868",
+    "hydro-system:70000271",
+    "hydro-system:60264271",
+    "hydro-system:70809540",
+    "hydro-system:60263863",
+    "hydro-system:70870227",
+    "hydro-system:61279344",
+    "hydro-system:61502899",
+    "hydro-system:61563356",
+    "hydro-system:61147748",
+    "hydro-system:61518797",
+    "hydro-system:61579517",
+    "hydro-system:70136698"
+  ],
+  "initial_inventory": {
+    "repository_path": "reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "immutable_commit": "8213678cbfd74ecd930657eaa911f6e87ab6d2b8",
+    "immutable_url": "https://github.com/kimjeon-il/Pando/blob/8213678cbfd74ecd930657eaa911f6e87ab6d2b8/reports/hydro-names/current-web-2026-10-08/inventory.csv.gz",
+    "sha256": "5d1e12b1a6daa695419173dea491ff0c8c5583ed9e28ba517ba4a599bcd589db",
+    "git_blob_sha": "55a1de2ae76f09bce5e624d96ad17f7531aa3fd8",
+    "bytes": 441711,
+    "hash_scope": "Exact compressed CSV bytes.",
+    "rows": 5173
+  },
+  "eligible_inventory_targets": 4065,
+  "reconstruction_rule": "Start from the pinned r46 cumulative index and apply later append-only deltas in verified commit order, rejecting duplicate IDs. Keep base records, scope clauses, region qualifiers and assessment histories unchanged. Apply explicit status-list changes. Subtract all recorded IDs from the exact eligible initial inventory to recover unrecorded targets; pending IDs remain recorded but are not completed source reviews.",
+  "sources": [
+    {
+      "source_key": "r227-esri-chubut-imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r227-slr-laguna-salada2024",
+      "official_url": "https://www.sec.gov/Archives/edgar/data/2039273/000121390025119290/ea021948714ex96-2_jaguar.htm"
+    },
+    {
+      "source_key": "r227-esri-labrador-imagery",
+      "official_url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+    },
+    {
+      "source_key": "r227-nl-ti-goose-bridge2022",
+      "official_url": "https://www.gov.nl.ca/releases/2022/ti/0819n02/"
+    },
+    {
+      "source_key": "r227-ecvoyageurs2019",
+      "official_url": "https://www.ecvoyageurs.com/canada-2019/f-d-f-p-t3.html"
+    },
+    {
+      "source_key": "r227-amec-rffa2014-context",
+      "official_url": "https://www.gov.nl.ca/mpa/files/waterres-reports-rffa-2014-rffa-update-2014-07-05-2015.pdf"
+    },
+    {
+      "source_key": "r227-inegi-patzcuaro2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/16/16066.pdf"
+    },
+    {
+      "source_key": "r227-inegi-huiramba2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/16/16039.pdf"
+    },
+    {
+      "source_key": "r227-inegi-morelia2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/16/16053.pdf"
+    },
+    {
+      "source_key": "r227-inegi-alvaro-obregon2010",
+      "official_url": "https://www.inegi.org.mx/contenidos/app/mexicocifras/datos_geograficos/16/16003.pdf"
+    },
+    {
+      "source_key": "r227-inegi-cuitzeo-study2023",
+      "official_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/nueva_estruc/889463906353.pdf"
+    },
+    {
+      "source_key": "r227-geus-greenland-national-1995",
+      "official_url": "https://doi.org/10.22008/FK2/SYAL4J"
+    },
+    {
+      "source_key": "r227-geus-greenland-national-catalogue-retained",
+      "official_url": "https://dataverse.geus.dk/dataset.xhtml?persistentId=doi:10.22008/FK2/SYAL4J"
+    }
+  ],
+  "publication_boundary": "Own factual name/scope findings, public official URLs, bounded geometry metadata and public continuity pins only. No original maps, crops, complete coordinates or private source/derivative/registration fingerprints. Official hosting does not establish source redistribution rights.",
+  "automatic_application": false,
+  "product_changes": false,
+  "historical_504_ledger_restored": false,
+  "live_deployment_equivalence_checked": false,
+  "preceding_save_commit": "15e4b6e7be730b840c77c9a33589a2cbc19fbd24",
+  "source_notes_file": "source-notes.json",
+  "research_order": {
+    "commit": "a8344d9ef00c81e73acfca865bb75b3768ff0eff",
+    "path": "reports/hydro-names/research-order-2026-10-10/river-research-order.json",
+    "phase": "river",
+    "continent": "Americas",
+    "consumed_original_queue_ranks": [
+      713,
+      714,
+      715,
+      716
+    ],
+    "next_unrecorded_id": "hydro-system:60154000",
+    "progress_rule": "Follow the actual continental order: Americas, Asia, Africa, Europe, then other, with all rivers before lakes. Preserve original queue IDs and ranks for continuity; apply documented geographic deferrals without counting them as name research, and place deferred objects into their corrected later phase by length-descending, stable-ID order. Prior candidate and scope-held assessments remain unresolved where stated.",
+    "geographic_deferrals": [
+      {
+        "aw_id": "hydro-system:80061063",
+        "original_queue_rank": 186,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 66.56–68.17°N and 179.97–177.11°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80065687",
+        "original_queue_rank": 349,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at66.725–67.849775°N and178.2–175.960242°W place this object on Chukotka west of Alaska, adjoining the previously corrected Chukotka selection. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory bounding box and selected-route geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80100188",
+        "original_queue_rank": 387,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 64.939583–66.26978°N and 174.05625–173.320833°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80119243",
+        "original_queue_rank": 391,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained feature bounds at 65.451531–66.491667°N and 176.777083–175.672917°W place this object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Retained original inventory/order bounding box and geographic placement; geographic classification only, no naming source acquired."
+      },
+      {
+        "aw_id": "hydro-system:80083978",
+        "original_queue_rank": 470,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at66.522917–67.00625°N and177.333333–174.842957°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      },
+      {
+        "aw_id": "hydro-system:80099814",
+        "original_queue_rank": 511,
+        "original_queue_continent": "Americas",
+        "assignment_basis": "region_8",
+        "corrected_geographic_continent": "Asia",
+        "region": "Chukotka, Russia",
+        "reason": "Retained original inventory/order bounds at65.952083–66.502083°N and172.004167–170.400621°W place this current object on Chukotka west of Alaska. Actual continental order takes priority over the provisional region_8 assignment.",
+        "status": "deferred_unresearched_to_asia_phase",
+        "name_research_performed": false,
+        "counted_as_recorded_or_completed": false,
+        "original_queue_identity_preserved": true,
+        "source_basis": "Existing fixed-queue bounding box and geographic placement only; no naming source or selected geometry acquired for this correction."
+      }
+    ]
+  }
+}
