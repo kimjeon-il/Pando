@@ -99,6 +99,7 @@ jobs:
       - name: Configure Qt and build focused place contract
         run: |
           cmake -S native -B native/build-pretransfer -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
-          cmake --build native/build-pretransfer --parallel 2 --target place_sync_contract_tests
+          cmake --build native/build-pretransfer --parallel 2 --target place_sync_contract_tests core_session_tests
       - name: Verify Qt place source contract
-        run: ctest --test-dir native/build-pretransfer --output-on-failure -R '^place_sync_contract_tests$'
+        run: ctest --test-dir native/build-pretransfer --output-on-failure -R '^(place_sync_contract_tests|core_session_tests)
+
