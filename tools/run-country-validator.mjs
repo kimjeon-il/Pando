@@ -14,5 +14,10 @@ function run(command, args) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 if (!existsSync(executable)) run('cmake', ['-S', 'tools/cpp', '-B', build, '-DCMAKE_BUILD_TYPE=Release']);
+if (process.argv.includes('--self-test')) {
+  run('cmake', ['--build', build, '--config', 'Release', '--target', 'pando-spherical-polygon-tests', '--parallel', '2']);
+  const executableTest = path.join(build, process.platform === 'win32' ? 'Release/pando-spherical-polygon-tests.exe' : 'pando-spherical-polygon-tests');
+  run(executableTest, []);
+}
 run('cmake', ['--build', build, '--config', 'Release', '--target', 'pando-country-geometry-check', '--parallel', '2']);
 run(executable, ['--root', root, ...process.argv.slice(2)]);
