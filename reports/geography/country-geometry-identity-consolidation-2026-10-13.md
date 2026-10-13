@@ -30,3 +30,5 @@
 - GitHub Actions 집중 검사: `node tools/build-territorial-entity-chunks.mjs --check`, `node tools/build-historical-world-timeline.mjs --check`, 웹/앱 동기화 검증, 국가계보 보존·라이브러리·역사 월별 publication Node tests, 버전 검사 **성공**. [실행 기록](https://github.com/kimjeon-il/Pando/actions/runs/38347881584).
 - 미실행: 현장 모바일·데스크톱 브라우저 검수, Qt/C++ 빌드 및 CTest, 전체 코드 테스트, `main` 반영 및 실제 Pages 배포. 같은 계보의 다른 정치적 국가에 대한 일반화는 이 변경에 포함되지 않음.
 
+
+> 후속 조치: [GEO-LIFE-003](sudan-ukraine-post-transition-2026-10-13.md)에서 수단·남수단의 2011년 및 우크라이나의 2014년 이후 형상 공백을 **잠정 근사**로 연결했다. 인도네시아의 2002~2026 형상 공백은 이 후속 작업의 대상이 아니다.

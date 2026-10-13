@@ -45,4 +45,16 @@
 
 ## 결과 상태
 
-작업 검증이 끝나면 실제 통과한 검사와 결과 커밋을 이 섹션에 덧붙인다. 출처가 불충분한 역사 국경의 **잠정** 표시는 검증 성공 이후에도 유지한다.
+**실제 실행 완료 — 2026-10-13 (`work/objects`, 커밋 [`6ac4251`](https://github.com/kimjeon-il/Pando/commit/6ac425127264b297b558bd451de767db7a0eef11))**
+
+- 원본 국가계보 262개, 객체 **281개 유지**, geometry version **287 → 290개**. 세 국가의 새 근사 버전만 추가했고 이전 국가 ID·좌표 및 278개 변경 없는 압축 청크는 보존.
+- `node tools/build-territorial-entity-chunks.mjs --check`: 통과.
+- `node tools/build-historical-world-timeline.mjs --check`: 통과.
+- `node native/tools/sync-historical-world-timeline.mjs --web-root . --check`: 통과.
+- `node --test`의 국가계보 보존·월말 시점·실제 좌표 point-in-polygon·웹 역사 프로젝트 결정성 집중 검사: 통과.
+- `node scripts/check-territorial-library.mjs`, `node scripts/check-version.mjs`: 통과.
+- [전체 실행 로그](https://github.com/kimjeon-il/Pando/actions/runs/38350818362). 웹/앱 공통 역사 프로젝트 SHA-256: `dccc11ce2368cf2b271a69e8927074b8300ea8d4b4e2e63d1730d945e8572767` (manifest 일치).
+- 타임라인 확인: `2011-06` 수단 SDN만, `2011-07` 수단 SDN·남수단 SDS 모두; `2014-02` 우크라이나 UKR에서 크림 확인점 포함, `2014-03` 같은 UKR 객체에서 크림만 제외. 2015-10에도 우크라이나 UKR 표시는 유지.
+- **미실행:** 웹 실제 브라우저, native C++/Qt 빌드·실기기 테스트, `main` 병합, Pages 배포. **미해결:** `RUS`의 2014년 크림 실효 지배 지도와 우크라이나 동부/수단 아비에이 지역의 정밀 시계열 형상.
+
+새 근사 버전의 `certainty: low` 및 역사 국경 미검증 표시는 검증 성공 이후에도 유지한다.
