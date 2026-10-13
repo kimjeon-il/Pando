@@ -17,7 +17,7 @@ struct Fixture {
         Geometry line;line.type="LineString";line.lines={{{1,1},{5,1},{9,1}}};
         d.geometries.insert({"river",1},line);HydroFeature h;h.id="river";h.name="River";h.geometry={"river",1};h.source.kind="user";d.hydro.push_back(h);
         Project p;p.replace(std::move(d));QFile f(directory.filePath("project.json"));if(!f.open(QIODevice::WriteOnly))return false;
-        f.write(projectcodec::encode(p));f.close();return editor.openFile(QUrl::fromLocalFile(f.fileName()))&&editor.setProjectionMode("flat")&&editor.resizeMapCamera(800,600,1);
+        f.write(::projectcodec::encode(p));f.close();return editor.openFile(QUrl::fromLocalFile(f.fileName()))&&editor.setProjectionMode("flat")&&editor.resizeMapCamera(800,600,1);
     }
     MapSceneBridge* bridge(){return qobject_cast<MapSceneBridge*>(editor.mapSceneBridge());}
     bool commit(const QString& domain="territorial") {

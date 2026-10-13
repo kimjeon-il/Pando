@@ -76,7 +76,6 @@ test('real GIS GeoJSON export and reimport preserve original provenance and deta
     const { normalizeSourceProvenance } = await import('/assets/js/modules/source-provenance.js');
     const { normalizeGenericFeatureSemantics } = await import('/assets/js/modules/generic-feature-service.js');
     const { createGisImportTransactionCommitter } = await import('/assets/js/modules/gis-import-transaction.js');
-    const { createTerritorialEntityStore, createEmptyTerritorialState } = await import('/assets/js/modules/territorial-entity-store.js');
     const { createTerritorialEntityRepository } = await import('/assets/js/modules/territorial-entity-repository.js');
     const { GENERIC_FEATURE_SCHEMA_VERSION } = await import('/assets/js/modules/version-contract.js');
     const source = normalizeSourceProvenance({ kind: 'gis', dataset: 'survey', sourceId: 'fid-42', sourceFormat: 'geojson',
@@ -84,14 +83,17 @@ test('real GIS GeoJSON export and reimport preserve original provenance and deta
     const original = { type: 'Feature', id: '00000000-0000-4000-8000-000000000010',
       geometry: { type: 'Point', coordinates: [1, 2] }, properties: { schemaVersion: GENERIC_FEATURE_SCHEMA_VERSION, name: 'Survey', notes: 'memo',
         color: '#123456', locked: false, source } };
-    const bundle = await window.PandoLabGIS.exportGeoJsonBundle({ ...project, genericFeatures: [original] }, ['genericFeatures']);
+    const spatialState = { ...project, genericFeatures: [original] };
+    const bundle = await window.PandoLabGIS.exportGeoJsonBundle(project, ['genericFeatures'], () => {}, { spatialState });
     const files = window.fflate.unzipSync(new Uint8Array(await bundle.blob.arrayBuffer()));
     const parsed = JSON.parse(window.fflate.strFromU8(files['generic_features.geojson']));
     let imported;
-    const state = createEmptyTerritorialState();
-    const entityStore = createTerritorialEntityStore({ getState: () => state });
+    const state = { projectReplacing: false };
+    const entityStore = { snapshot: () => [] };
     const importer = createGisImportTransactionCommitter({ state, entityStore,
       territorialEntityRepository: createTerritorialEntityRepository({ entityStore }), deepClone: structuredClone,
+      projectDomain: { prepareCommand() {}, confirmCandidate() {}, cancelCandidate() {}, state: () => ({ epoch: 0 }),
+        getGeneration: () => 0, inspectImport() {} }, planTransferLandDependents() {},
       uid: () => '00000000-0000-4000-8000-000000000011', GENERIC_FEATURE_SCHEMA_VERSION,
       DEFAULT_GENERIC_FEATURE_COLOR: '#888888', normalizeGenericFeatureSemantics, validateStructuredGeometry: () => [],
       genericFeatureService: { addMany: values => { imported = values[0]; } }, activeLayerFolderKeys: () => [],

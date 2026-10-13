@@ -27,7 +27,11 @@ test('packages paired byte hashes and detects changed sources and missing output
   assert.equal(manifest.inputs.length,2);
   assert.deepEqual(await packageSharedCoreAssets(root,build,{check:true}),manifest);
   writeFileSync(join(root,'assets/wasm/pandoeditor-core.wasm'),Buffer.from('changed'));
-  await assert.rejects(packageSharedCoreAssets(root,build,{check:true}),/stale|mismatch/);
+  await assert.rejects(packageSharedCoreAssets(root,build,{check:true}),error=>{
+    assert.match(error.message,/WASM binary artifact stale/);
+    assert.match(error.actual,/^[a-f0-9]{64}$/);
+    return true;
+  });
   writeFileSync(join(root,'shared/core/model.cpp'),'int model=2;\n');
   await assert.rejects(packageSharedCoreAssets(root,build),/source identity/);
   await assert.rejects(packageSharedCoreAssets(root,join(root,'missing')),/ENOENT/);

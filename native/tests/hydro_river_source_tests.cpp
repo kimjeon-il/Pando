@@ -128,13 +128,13 @@ private slots:
         QCOMPARE(p.queryLogicalRivers(world),(std::vector<quint32>{1,2,5}));
         QCOMPARE(p.queryLogicalRivers({{41,1,42,2,false},{0,0,0,0,false},{40,0,41,1,false},{0,0,2,1,false}}),(std::vector<quint32>{1,5}));
         QCOMPARE(p.queryLogicalRivers({{20,0,22,2,false}}).size(),std::size_t(0));
-        Job job;const auto before=projectcodec::encode(job.project);auto result=job.run(p);QCOMPARE(result.status,HydroRiverSourceStatus::Ready);
+        Job job;const auto before=::projectcodec::encode(job.project);auto result=job.run(p);QCOMPARE(result.status,HydroRiverSourceStatus::Ready);
         QCOMPARE(result.discoveredLogicalIds,(std::vector<quint32>{5}));QCOMPARE(result.diagnostics.discoveredLogicalRivers,std::size_t(1));QCOMPARE(result.diagnostics.loadedRivers,std::size_t(1));QCOMPARE(result.diagnostics.failedRiverLoads,std::size_t(0));
         auto feature=result.features.at(0);QCOMPARE(feature.id,QString("fixture:5"));QCOMPARE(feature.pandolabId,feature.id);QCOMPARE(*feature.logicalFid,quint32(5));
         QCOMPARE(feature.geometry.type,std::string("MultiLineString"));QCOMPARE(feature.geometry.lines.size(),std::size_t(2));QCOMPARE(feature.geometry.lines.back().back().x,42.);QCOMPARE(feature.geometry.lines.back().back().y,2.);
         QVERIFY(!p.frame());p.requestViewport({1,800,500,1500,-120,50});QTRY_VERIFY(p.frame()!=nullptr);QVERIFY(p.frame()->packIds.empty());
         QCOMPARE(job.run(p).features.at(0).geometry.lines.back().back().x,42.);
-        QCOMPARE(projectcodec::encode(job.project),before);QVERIFY(!job.project.dirty());QVERIFY(!job.project.canUndo());QCOMPARE(job.project.revision(),std::uint64_t(0));
+        QCOMPARE(::projectcodec::encode(job.project),before);QVERIFY(!job.project.dirty());QVERIFY(!job.project.canUndo());QCOMPARE(job.project.revision(),std::uint64_t(0));
     }
     void boundsMatchExecutedWebAdapter() {
         // Expected values executed from pinned web createRiverCandidates and coordinateBounds,

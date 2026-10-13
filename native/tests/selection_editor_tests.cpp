@@ -37,7 +37,7 @@ QUrl writeFixture(const QString& directory) {
     Project project;project.replace(fixture());
     QFile file(directory+"/selection.pando.json");
     if(!file.open(QIODevice::WriteOnly))throw std::runtime_error("fixture write failed");
-    file.write(projectcodec::encode(project));file.close();return QUrl::fromLocalFile(file.fileName());
+    file.write(::projectcodec::encode(project));file.close();return QUrl::fromLocalFile(file.fileName());
 }
 QPointF center(const EditorController& editor,const QString& id) {
     for(const auto& value:editor.objectBounds()) {
@@ -65,7 +65,7 @@ private slots:
         document.presentation.webPresentation.objectOrder={"territorial:entity:T","territorial:entity:S"};
         Project project;project.replace(std::move(document));
         QFile file(dir.filePath("chooser.json"));QVERIFY(file.open(QIODevice::WriteOnly));
-        file.write(projectcodec::encode(project));file.close();
+        file.write(::projectcodec::encode(project));file.close();
         EditorController editor;QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         const auto point=center(editor,"S");editor.beginMapSelection(point.x(),point.y(),false,10);
         QCOMPARE(editor.pickObject(point.x(),point.y(),10)["id"].toString(),QString("S"));
@@ -125,7 +125,7 @@ private slots:
     void storedSelectionKeepsDistinctCapturedTypesForOneId(){
         QTemporaryDir dir;auto document=fixture();Geometry point;point.type="Point";point.points={{1,2}};
         document.geometries.insert({"captured-kind",1},point);PlaceLabel label;label.id="same";label.name="Stored label";label.kind="city";label.geometry={"captured-kind",1};document.labels.push_back(label);
-        Project project;project.replace(std::move(document));QFile file(dir.filePath("captured-kind.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(project));file.close();
+        Project project;project.replace(std::move(document));QFile file(dir.filePath("captured-kind.json"));QVERIFY(file.open(QIODevice::WriteOnly));file.write(::projectcodec::encode(project));file.close();
         EditorController editor;QVERIFY(editor.openFile(QUrl::fromLocalFile(file.fileName())));
         const QVariantMap city{{"domain","label"},{"type","city"},{"id","same"}},capital{{"domain","label"},{"type","capital"},{"id","same"}};
         const auto before=editor.documentBytes();QVERIFY(editor.setSelection({city,capital}));QCOMPARE(editor.selectionItems().size(),2);QCOMPARE(editor.selectionItems()[0].toMap()["type"].toString(),QString("city"));QCOMPARE(editor.selectionItems()[1].toMap()["type"].toString(),QString("capital"));

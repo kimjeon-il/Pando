@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, existsSync } from 
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
+import { isDeepStrictEqual } from 'node:util';
 import {gunzipSync} from 'node:zlib';
 import { sha256, containedFile } from './provenance.mjs';
 
@@ -47,16 +48,18 @@ export async function observeCurrent(adapter, { webRoot, appRoot, binary, eviden
   }
   if(adapter==='library-loading') {
     const corpus=json(resolve(webRoot,'tests/fixtures/portability/library-loading.json'));
-    const {index}=json(resolve(webRoot,'tests/fixtures/portability/library-queries.json'));
-    const indexBytes=readFileSync(containedFile(webRoot,index.webPath));
-    const nativeIndex=readFileSync(containedFile(appRoot,index.appPath));
-    if(sha256(indexBytes)!==index.sha256||sha256(nativeIndex)!==index.sha256)throw new Error('Loader catalog bytes changed');
+    const {indexes}=json(resolve(webRoot,'tests/fixtures/portability/library-queries.json'));
+    const indexBytes=readFileSync(containedFile(webRoot,indexes.web.webPath));
+    const nativeIndex=readFileSync(containedFile(appRoot,indexes.app.appPath));
+    if(indexBytes.length!==indexes.web.compressedBytes||sha256(indexBytes)!==indexes.web.sha256||
+       nativeIndex.length!==indexes.app.compressedBytes||sha256(nativeIndex)!==indexes.app.sha256)
+      throw new Error('Loader catalog bytes changed');
     const bytes=readFileSync(containedFile(webRoot,corpus.webPath)),appBytes=readFileSync(containedFile(appRoot,corpus.appPath));
     if(sha256(bytes)!==corpus.sha256||sha256(appBytes)!==corpus.sha256)throw new Error('Loader chunk bytes changed');
     const source=JSON.parse(gunzipSync(bytes));
     const {libraryLoadingTrace}=await load(webRoot,'tools/parity/library.mjs');
-    const web=await libraryLoadingTrace(corpus,index,indexBytes,bytes);
-    const app=JSON.parse(run(binary,{...corpus,loading:true,indexText:nativeIndex.toString('utf8'),sha256:index.sha256,entityBytes:appBytes.toString('base64')}));
+    const web=await libraryLoadingTrace(corpus,indexes.web,indexBytes,bytes);
+    const app=JSON.parse(run(binary,{...corpus,loading:true,indexText:nativeIndex.toString('utf8'),sha256:indexes.app.sha256,entityBytes:appBytes.toString('base64')}));
     if(app.length!==corpus.operations.length)throw new Error('Incomplete loading observations');
     return corpus.operations.map((row,i)=>({id:row.id,input:row,web:web[i],app:app[i],expected:{id:row.id,...row.expected,value:row.expected.value==='source'?source:null}}));
   }
@@ -70,14 +73,14 @@ export async function observeCurrent(adapter, { webRoot, appRoot, binary, eviden
   if(adapter==='structure-commands') {
     const corpus=json(resolve(webRoot,'tests/fixtures/portability/structure-commands.json'));
     const {structureTrace}=await load(webRoot,'tools/parity/structure.mjs');
-    const web=structureTrace(corpus),app=JSON.parse(run(binary,corpus));
+    const web=await structureTrace(corpus),app=JSON.parse(run(binary,corpus));
     if(web.length!==corpus.operations.length||app.length!==corpus.operations.length)throw new Error('Incomplete structural observations');
     return corpus.operations.map((row,index)=>({id:row.id,step:index,input:row,web:web[index],app:app[index],expected:row.expected}));
   }
   if(adapter==='property-commands') {
     const corpus=json(resolve(webRoot,'tests/fixtures/portability/property-commands.json'));
     const {propertyTrace}=await load(webRoot,'tools/parity/properties.mjs');
-    const web=propertyTrace(corpus),app=JSON.parse(run(binary,corpus));
+    const web=await propertyTrace(corpus),app=JSON.parse(run(binary,corpus));
     if(web.length!==corpus.operations.length||app.length!==corpus.operations.length)throw new Error('Incomplete property observations');
     return corpus.operations.map((row,index)=>({id:row.id,step:index,input:row,web:web[index],app:app[index],expected:row.expected}));
   }
@@ -110,16 +113,17 @@ export async function observeCurrent(adapter, { webRoot, appRoot, binary, eviden
       writeFileSync(resolve(directory,stem+'.log'),(result.stdout??'')+'\n'+(result.stderr??''));
       if(result.error)throw result.error;
       const codes=(result.stderr??'').match(/TIMELINE_[A-Z_]+/g)??[];
-      observations.push({id:row.id,input:row,web:{verdict:storageVerdict(input),published:false},app:{verdict:result.status===1&&new Set(codes).size===1?codes[0]:'UNEXPECTED_EXIT:'+result.status,published:existsSync(output)},expected:{verdict:row.expected,published:false}});
+      observations.push({id:row.id,input:row,web:{verdict:await storageVerdict(input),published:false},app:{verdict:result.status===1&&new Set(codes).size===1?codes[0]:'UNEXPECTED_EXIT:'+result.status,published:existsSync(output)},expected:{verdict:row.expected,published:false}});
     }
     return observations;
   }
   if(adapter==='library-queries') {
     const corpus=json(resolve(webRoot,'tests/fixtures/portability/library-queries.json'));
-    const webBytes=readFileSync(resolve(webRoot,corpus.index.webPath)),appBytes=readFileSync(resolve(appRoot,corpus.index.appPath));
-    for(const bytes of [webBytes,appBytes])if(bytes.length!==corpus.index.compressedBytes||sha256(bytes)!==corpus.index.sha256)throw new Error('Library source bytes/hash drift');
+    const webBytes=readFileSync(resolve(webRoot,corpus.indexes.web.webPath)),appBytes=readFileSync(resolve(appRoot,corpus.indexes.app.appPath));
+    for(const [bytes,spec] of [[webBytes,corpus.indexes.web],[appBytes,corpus.indexes.app]])
+      if(bytes.length!==spec.compressedBytes||sha256(bytes)!==spec.sha256)throw new Error('Library source bytes/hash drift');
     const {libraryTrace}=await load(webRoot,'tools/parity/library.mjs');
-    const web=await libraryTrace(corpus,webBytes),app=JSON.parse(run(binary,{indexText:appBytes.toString('utf8'),sha256:corpus.index.sha256,cases:corpus.cases}));
+    const web=await libraryTrace(corpus,corpus.indexes.web,webBytes),app=JSON.parse(run(binary,{indexText:appBytes.toString('utf8'),sha256:corpus.indexes.app.sha256,cases:corpus.cases}));
     if(app.length!==corpus.cases.length)throw new Error('Incomplete native catalog observations');
     return corpus.cases.map((row,index)=>{
       if(app[index].id!==row.id)throw new Error('Native catalog case identity mismatch');
@@ -149,19 +153,24 @@ export async function observeCurrent(adapter, { webRoot, appRoot, binary, eviden
   if (adapter === 'command-history') {
     const corpus = json(resolve(webRoot, 'tests/fixtures/portability/command-history.json'));
     const { commandHistoryTrace } = await load(webRoot, 'tools/parity/command-history.mjs');
-    const web = commandHistoryTrace(corpus), app = JSON.parse(run(binary, corpus));
+    const web = await commandHistoryTrace(corpus), app = JSON.parse(run(binary, corpus));
     if (web.length !== corpus.operations.length || app.length !== corpus.operations.length) throw new Error('Incomplete command/history trace');
     return corpus.operations.map((op, index) => ({ id: op.id, step: index, input: op,
       web: web[index], app: app[index], expected: op.expected }));
   }
   if (adapter === 'selection') {
     const corpus = json(resolve(webRoot, 'tests/fixtures/portability/selection.json'));
-    const { selectionTrace } = await load(webRoot, 'tools/check-platform-portability.mjs');
-    const { createObjectSelectionController } = await load(webRoot, 'assets/js/modules/object-selection-controller.js');
-    const web = selectionTrace(createObjectSelectionController, corpus), app = JSON.parse(run(binary, corpus));
+    const { currentSelectionTrace } = await load(webRoot, 'tools/check-platform-portability.mjs');
+    const publicSelection = ({ keys, primaryKey, revision }) => ({ keys, primaryKey, revision });
+    const web = await currentSelectionTrace(corpus), app = JSON.parse(run(binary, corpus));
     if (web.length !== corpus.operations.length || app.length !== corpus.operations.length) throw new Error('Incomplete selection trace');
-    return corpus.operations.map((op, index) => ({ id: `selection:${index}:${op.op}`, step: index,
-      web: web[index], app: app[index], expected: corpus.expected[index], input: op }));
+    return corpus.operations.map((op, index) => {
+      if (!isDeepStrictEqual(app[index].anchors, corpus.expected[index].anchors)) {
+        throw new Error(`Native selection anchor differs from frozen corpus at step ${index}`);
+      }
+      return { id: `selection:${index}:${op.op}`, step: index,
+        web: web[index], app: publicSelection(app[index]), expected: publicSelection(corpus.expected[index]), input: op };
+    });
   }
   if (adapter === 'timeline-records' || adapter === 'timeline-storage') {
     const name = adapter === 'timeline-records' ? 'timeline-records' : 'timeline-storage';

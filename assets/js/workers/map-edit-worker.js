@@ -14,14 +14,20 @@ importScripts(
   versionedWorkerAssetUrl('../vendor/polygon-clipping.min.js'),
 );
 
-const calculationsReady = Promise.all([
+const geometryCoreReady = import(versionedWorkerAssetUrl('../modules/core-wasm-loader.js'))
+  .then(({ loadVerifiedCore }) => loadVerifiedCore({
+    baseUrl: new URL('../../wasm/', self.location.href),
+  }))
+  .then(core => { self.PandoLabSphericalCore = core; });
+
+const calculationsReady = geometryCoreReady.then(() => Promise.all([
   'coordinate-bounds.js', 'polygon-clipping-calculation.js',
   'map-edit-preparation-operations.js', 'map-edit-library-calculation.js',
   'map-edit-preview-calculations.js', 'map-edit-territorial-commands.js',
   'map-edit-snap-calculation.js', 'cut-worker-preparation.js',
   'edit-display-preparation.js', 'map-edit-query-calculations.js',
   'boundary-topology.js', 'map-edit-country-commands.js',
-].map(name => import(versionedWorkerAssetUrl('../modules/' + name))))
+].map(name => import(versionedWorkerAssetUrl('../modules/' + name)))))
   .then(modules => Object.assign({}, ...modules));
 // Report initialization failures through the existing execute error envelope.
 calculationsReady.catch(() => {});

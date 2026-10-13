@@ -56,7 +56,7 @@ struct Harness {
     Harness(bool mobile):editor(EditorControllerConfig{mobile,dir.filePath("private.json")}) {
         Project p;p.replace(fixture());path=QUrl::fromLocalFile(dir.filePath("fixture.json"));
         QFile f(path.toLocalFile());if(!f.open(QIODevice::WriteOnly))throw std::runtime_error("fixture write");
-        f.write(projectcodec::encode(p));f.close();
+        f.write(::projectcodec::encode(p));f.close();
         if(!editor.openFile(path))throw std::runtime_error("fixture open");
         QObject::connect(&engine,&QQmlEngine::warnings,&engine,[this](const QList<QQmlError>& errors){
             for(const auto& e:errors)warnings<<e.toString();
@@ -172,7 +172,7 @@ QObject* labelDragHandler(QQuickItem* label) {
     return nullptr;
 }
 LabelSettings settings(const EditorController& editor,const ObjectRef& owner=territorialRef("A")) {
-    const auto all=projectcodec::decode(editor.documentBytes()).presentation.webPresentation.labelSettings;
+    const auto all=::projectcodec::decode(editor.documentBytes()).presentation.webPresentation.labelSettings;
     const auto it=all.find(owner);return it==all.end()?LabelSettings{}:it->second;
 }
 }
@@ -188,7 +188,7 @@ private slots:
         QPointer<QObject> drag=labelDragHandler(label);QVERIFY(drag);
         auto* map=h.control("mapView");QVERIFY(map);
         const auto camera=h.editor.mapViewState();
-        const auto originalDocument=projectcodec::decode(h.editor.documentBytes());
+        const auto originalDocument=::projectcodec::decode(h.editor.documentBytes());
         const auto contentRevision=h.editor.revision();
         QVERIFY(!settings(h.editor).pinned);QVERIFY(!settings(h.editor).manualPosition);
         static auto* device=QTest::createTouchDevice();
@@ -248,7 +248,7 @@ private slots:
         QVERIFY(h.editor.resetLabelPosition(ref("A")));
         QVERIFY(!settings(h.editor).pinned);QVERIFY(!settings(h.editor).manualPosition);
         QVERIFY(!h.editor.canUndo());QVERIFY(!h.editor.canRedo());
-        const auto finalDocument=projectcodec::decode(h.editor.documentBytes());
+        const auto finalDocument=::projectcodec::decode(h.editor.documentBytes());
         QCOMPARE(finalDocument.units.size(),originalDocument.units.size());
         QCOMPARE(h.editor.revision(),contentRevision);
         QCOMPARE(finalDocument.presentation.webPresentation.labelSettings.size(),std::size_t(1));
@@ -451,10 +451,10 @@ private slots:
         QVERIFY(h.control("territorialToolbar")->property("editorOpen").toBool());QCOMPARE(h.control("selectionCardName")->property("text").toString(),QString("Alpha"));
         QVERIFY(h.click("flagMenuButton"));auto menu=h.window->findChild<QObject*>("flagMenu");QVERIFY(menu);QTRY_VERIFY(menu->property("visible").toBool());QVERIFY(h.control("flagLibraryButton")->hasActiveFocus());
         QTest::keyClick(h.window,Qt::Key_Escape);QTRY_VERIFY(!menu->property("visible").toBool());QVERIFY(h.control("flagMenuButton")->hasActiveFocus());
-        QVERIFY(h.click("flagMenuButton"));QVERIFY(h.click("flagRemoveButton"));auto document=projectcodec::decode(h.editor.documentBytes());QCOMPARE(document.symbols.at(territorialRef("A")).policy,FlagPolicy::None);
+        QVERIFY(h.click("flagMenuButton"));QVERIFY(h.click("flagRemoveButton"));auto document=::projectcodec::decode(h.editor.documentBytes());QCOMPARE(document.symbols.at(territorialRef("A")).policy,FlagPolicy::None);
         QVERIFY(h.click("flagMenuButton"));QVERIFY(!h.control("flagRemoveButton")->isEnabled());QVERIFY(h.click("flagDefaultButton"));
         QVERIFY(!h.editor.flagLibrary().isEmpty());QVERIFY(h.click("flagMenuButton"));QVERIFY(h.click("flagLibraryButton"));auto gallery=h.window->findChild<QObject*>("flagLibraryDialog");QVERIFY(gallery);QTRY_VERIFY(gallery->property("visible").toBool());QVERIFY(h.enter("flagLibrarySearch",h.editor.flagLibrary().front().toMap()["code"].toString(),false));QTRY_VERIFY(h.control("flagLibraryEntry_"+h.editor.flagLibrary().front().toMap()["code"].toString()));QVERIFY(h.click("flagLibraryEntry_"+h.editor.flagLibrary().front().toMap()["code"].toString()));QVERIFY(h.click("flagLibraryApply"));
-          QTRY_VERIFY(!gallery->property("visible").toBool());document=projectcodec::decode(h.editor.documentBytes());QCOMPARE(document.symbols.at(territorialRef("A")).policy,FlagPolicy::Embedded);QVERIFY(!document.symbols.at(territorialRef("A")).embeddedDataUrl.empty());
+          QTRY_VERIFY(!gallery->property("visible").toBool());document=::projectcodec::decode(h.editor.documentBytes());QCOMPARE(document.symbols.at(territorialRef("A")).policy,FlagPolicy::Embedded);QVERIFY(!document.symbols.at(territorialRef("A")).embeddedDataUrl.empty());
           QTRY_COMPARE(h.control("selectionCardFlag")->property("status").toInt(),1);
         const auto captures=qEnvironmentVariable("PANDOEDITOR_UI_CAPTURE_DIR");if(!captures.isEmpty()){QVERIFY(QDir().mkpath(captures));QVERIFY(h.window->grabWindow().save(captures+(mobile?"/step4-direct-mobile.png":"/step4-direct-desktop.png")));}
         QVERIFY2(h.warnings.isEmpty(),qPrintable(h.warnings.join("\n")));
@@ -486,13 +486,13 @@ private slots:
         appendTerritory(document,{"G","Grandparent","",UnitKind::General,false},{"G",1});
         document.presentation.objectStyles[territorialRef("G")]={};validateDocument(document);
         Project project;project.replace(document);QFile file(h.dir.filePath("child-picker.json"));
-        QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(project));file.close();
+        QVERIFY(file.open(QIODevice::WriteOnly));file.write(::projectcodec::encode(project));file.close();
         QVERIFY(h.editor.openFile(QUrl::fromLocalFile(file.fileName())));
         h.editor.selectCountry("G");QVERIFY(h.click("openObjectEditor"));QVERIFY(h.click("objectRelationsTab"));
         const auto before=h.editor.documentBytes();const auto revision=h.editor.revision();
         // S is locked, so B is the last eligible child in the picker.
         QVERIFY(h.click("relationChildPicker"));QTest::keyClick(h.window,Qt::Key_End);QTest::keyClick(h.window,Qt::Key_Return);
-        QTRY_COMPARE(staticParentRelation(projectcodec::decode(h.editor.documentBytes()),"B").parentId,std::string("G"));
+        QTRY_COMPARE(staticParentRelation(::projectcodec::decode(h.editor.documentBytes()),"B").parentId,std::string("G"));
         QCOMPARE(h.editor.revision(),revision+1);h.editor.undo();QCOMPARE(h.editor.documentBytes(),before);
         QVERIFY2(h.warnings.isEmpty(),qPrintable(h.warnings.join("\n")));
     }
@@ -536,7 +536,7 @@ private slots:
         auto d=fixture();Geometry outer;outer.type="Polygon";outer.polygons={{{{-1,-1},{11,-1},{11,11},{-1,11},{-1,-1}}}};d.geometries.insert({"G",1},outer);
         appendTerritory(d,{"G","Grandparent","",UnitKind::General,false},{"G",1});d.presentation.objectStyles[territorialRef("G")]={};
         setFixtureParent(d,territorialRef("A"),territorialRef("G"));validateDocument(d);
-        Project p;p.replace(d);const auto path=h.dir.filePath("relation.json");QFile f(path);QVERIFY(f.open(QIODevice::WriteOnly));f.write(projectcodec::encode(p));f.close();
+        Project p;p.replace(d);const auto path=h.dir.filePath("relation.json");QFile f(path);QVERIFY(f.open(QIODevice::WriteOnly));f.write(::projectcodec::encode(p));f.close();
         QVERIFY(h.editor.openFile(QUrl::fromLocalFile(path)));QVERIFY(h.editor.selectObject(ref("S","general")));QVERIFY(h.editor.toggleObjectLock());
         QVERIFY(h.click("openObjectEditor"));QVERIFY(h.click("objectRelationsTab"));
         const auto before=h.editor.documentBytes();const auto revision=h.editor.revision();
@@ -640,7 +640,7 @@ private slots:
     void splitDynamicCandidates_data(){modes();}
     void splitDynamicCandidates(){
         QFETCH(bool,mobile);Harness h(mobile);QVERIFY(h.window);h.editor.selectCountry("B");
-        const auto before=h.editor.documentBytes();MapProjection projection;projection.rebuild(projectcodec::decode(before));
+        const auto before=h.editor.documentBytes();MapProjection projection;projection.rebuild(::projectcodec::decode(before));
         QVERIFY(h.editor.beginSplitGeometry());QVERIFY(h.click("geometryAdvance"));QVERIFY(h.click("geometryMethod_line"));
         QTRY_VERIFY_WITH_TIMEOUT(!h.editor.geometryEditState()["calculating"].toBool(),10000);
         for(const auto point:{Point{19,2},Point{31,2},Point{31,5},Point{19,5},Point{19,8},Point{31,8}}){const auto xy=projection.project(point);QVERIFY(h.editor.geometryAddPoint(xy.x,xy.y,0));}
@@ -744,7 +744,7 @@ private slots:
         QVERIFY(h.click("contentCancel"));
         QVERIFY(h.click("flagMenuButton"));
         QVERIFY(h.click("flagRemoveButton"));
-        auto saved=projectcodec::decode(h.editor.documentBytes());
+        auto saved=::projectcodec::decode(h.editor.documentBytes());
         QCOMPARE(saved.countryDetails.at(territorialRef("A")).capital,std::string("New capital"));
         QCOMPARE(saved.symbols.at(territorialRef("A")).policy,FlagPolicy::None);
         // Create through the canonical command, then use the integrated field
@@ -752,7 +752,7 @@ private slots:
         QVERIFY(h.editor.beginContentEdit("distributionLayer","",true));
         QVERIFY(h.editor.updateContentField("name","Population"));
         QVERIFY(h.editor.previewContentEdit(false));QVERIFY(h.editor.confirmContentEdit());
-        saved=projectcodec::decode(h.editor.documentBytes());
+        saved=::projectcodec::decode(h.editor.documentBytes());
         const auto layer=QString::fromStdString(saved.distributionLayers.back().id);
         QVERIFY(h.editor.selectObject({{"domain","distributionLayer"},{"id",layer}}));
         QTRY_VERIFY(h.editor.contentEditState()["active"].toBool());
@@ -779,7 +779,7 @@ private slots:
         QVERIFY(h.editor.saveFile(QUrl::fromLocalFile(h.dir.filePath("integrated.json"))));
         h.editor.cancelContentEdit();
         QVERIFY(h.editor.openFile(QUrl::fromLocalFile(h.dir.filePath("integrated.json"))));
-        saved=projectcodec::decode(h.editor.documentBytes());
+        saved=::projectcodec::decode(h.editor.documentBytes());
         QCOMPARE(saved.distributionLayers.back().unit,std::string("saved draft"));
         QVERIFY2(h.warnings.isEmpty(),qPrintable(h.warnings.join('\n')));
     }
@@ -793,7 +793,7 @@ private slots:
         DistributionLayer layer;layer.id="population";layer.name="Population";layer.unit="people";d.distributionLayers.push_back(layer);
         DistributionEntry entry;entry.id="population-A";entry.layerId=layer.id;entry.territory=territorialRef("A");entry.value=10;d.distributionEntries.push_back(entry);
         Project source;source.replace(d);QFile file(h.dir.filePath("kinds.json"));
-        QVERIFY(file.open(QIODevice::WriteOnly));file.write(projectcodec::encode(source));file.close();
+        QVERIFY(file.open(QIODevice::WriteOnly));file.write(::projectcodec::encode(source));file.close();
         QVERIFY(h.editor.openFile(QUrl::fromLocalFile(file.fileName())));
         QVERIFY(h.editor.selectObject({{"domain","label"},{"id","city"}}));
         QVERIFY(h.click("openObjectEditor"));
@@ -822,7 +822,7 @@ private slots:
             QVERIFY(h.window->grabWindow().save(captureDir+(mobile?"/step1-content-mobile.png":"/step1-content-desktop.png")));
         }
         QVERIFY(h.editor.saveFile(QUrl::fromLocalFile(h.dir.filePath("kinds-saved.json"))));
-        auto saved=projectcodec::decode(h.editor.documentBytes());
+        auto saved=::projectcodec::decode(h.editor.documentBytes());
         QCOMPARE(saved.labels.front().name,std::string("Edited city"));
         QCOMPARE(saved.labels.front().kind,std::string("city"));
         QCOMPARE(saved.labels.front().notes,std::string("City memo"));
@@ -847,7 +847,7 @@ private slots:
         QVERIFY(h.click("contentPreview"));QCOMPARE(h.editor.documentBytes(),before);
         QVERIFY(!h.editor.saveFile(QUrl::fromLocalFile(h.dir.filePath("unconfirmed.json"))));
         QVERIFY(h.click("contentConfirm"));QVERIFY(!h.editor.contentEditState()["active"].toBool());
-        auto d=projectcodec::decode(h.editor.documentBytes());QCOMPARE(d.distributionLayers.size(),std::size_t(1));
+        auto d=::projectcodec::decode(h.editor.documentBytes());QCOMPARE(d.distributionLayers.size(),std::size_t(1));
         QCOMPARE(d.distributionLayers.front().name,std::string("언어 분포"));h.editor.undo();QCOMPARE(h.editor.documentBytes(),before);
         QVERIFY2(h.warnings.isEmpty(),qPrintable(h.warnings.join('\n')));
     }

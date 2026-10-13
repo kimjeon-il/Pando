@@ -894,19 +894,32 @@ jobs:
         run: python -m unittest discover -s tests/python -p "test_*.py"
 
   historical-geometry:
-    name: Exact historical geometry regeneration (Windows)
+    name: C++ historical geometry recipe
     needs: changes
     if: needs.changes.outputs.data-contracts == 'true'
-    runs-on: windows-latest
-    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: mamba-org/setup-micromamba@v3
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r tools/requirements-historical-library.txt
-      - name: Verify the stored geometry exactly on its generation platform
-        run: python tools/build-territorial-geometry.py --check
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build the native recipe engine
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF \
+            -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Verify the stored geometry through the C++ recipe
+        run: |
+          node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
+          node tools/build-territorial-geometry.mjs --check
 
   data-contracts:
     name: ${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'map-rendering' && 'Focused map rendering / ' || '' }}${{ github.event_name == 'workflow_dispatch' && inputs.browser_scope == 'editor-diagnostics' && 'Focused editor diagnostics / ' || '' }}Validation entrypoints and current generated assets
@@ -928,9 +941,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install native GIS geometry validator dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev pkg-config cmake
       - run: python -m pip install -r tools/requirements-historical-library.txt
       - name: Validate JavaScript syntax and shared asset versions
         run: pnpm check:js && pnpm check:version
+      - name: Check shared C++ spherical polygon normalization
+        run: node tools/run-country-validator.mjs --self-test
       - name: Validate canonical country sources and shared boundaries
         run: pnpm check:country-schema && pnpm check:country-default-colors && pnpm check:country-shared-boundaries
       - name: Validate generated preview assets and unified territorial catalog
@@ -981,3 +998,4 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run full unit suite
         run: pnpm test:unit
+

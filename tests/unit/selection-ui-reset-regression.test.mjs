@@ -66,7 +66,7 @@ async function setup(t) {
       syncLayerRows: current => events.push(['layers', current.items.map(ref => ref.key)]),
     },
   });
-  return { scheduler, bodyClasses, events, domain, ui };
+  return { scheduler, bodyClasses, events, domain, ui, owner };
 }
 
 test('same-frame accepted selection changes render only the final empty state', async t => {
@@ -103,6 +103,7 @@ test('accepted project reset cancels stale selection work and synchronizes every
   await state.domain.replace(a);
   assert.equal(state.scheduler.size(), 1);
 
+  state.owner.setGeneration(2);
   await state.domain.resetProject(2);
   state.ui.resetProject();
 

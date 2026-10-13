@@ -15,7 +15,9 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
     worker = null;
     if (!retiredWorker) return;
     retiredWorker.onmessage = null;
-    retiredWorker.onerror = null;
+    // A cancelled importScripts request can still dispatch an ErrorEvent
+    // during termination. Keep it inside this cache's error boundary.
+    retiredWorker.onerror = event => event.preventDefault?.();
     retiredWorker.terminate();
   }
 
@@ -50,6 +52,7 @@ export function createProjectPreviewCache({ storage, scheduler, getGeometry, get
       else task.reject(new Error(message || '미리보기 Worker 오류'));
     };
     currentWorker.onerror = event => {
+      event.preventDefault?.();
       if (worker !== currentWorker) return;
       stopWorker(event.message || '미리보기 Worker 오류');
     };

@@ -10,7 +10,7 @@ target_link_options(pandoeditor_wasm PRIVATE
     "-sEXPORT_NAME=createPandoeditorCore"
     "-sENVIRONMENT=web,worker,node"
     "-sALLOW_MEMORY_GROWTH=1"
-    "-sINITIAL_MEMORY=16777216" "-sMAXIMUM_MEMORY=268435456"
+    "-sINITIAL_MEMORY=16777216" "-sMAXIMUM_MEMORY=536870912"
     "-sFILESYSTEM=0")
 set_target_properties(pandoeditor_wasm PROPERTIES OUTPUT_NAME pandoeditor-core SUFFIX .js)
 # Packaging copies this exact .js/.wasm pair into assets/wasm. Never put compiler
