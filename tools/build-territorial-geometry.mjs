@@ -45,6 +45,21 @@ export function replaceRecipeGeometry(lineage, recipe, geometry) {
   };
 }
 
+export function sameRecipeGeometryWithinProjectionRounding(actual, expected) {
+  if (actual?.type !== 'MultiPolygon' || expected?.type !== 'MultiPolygon') return false;
+  const actualKeys = Object.keys(actual).sort();
+  const expectedKeys = Object.keys(expected).sort();
+  if (actualKeys.length !== expectedKeys.length || actualKeys.some((key, index) => key !== expectedKeys[index]))
+    return false;
+  const sameCoordinates = (left, right) => {
+    if (typeof left === 'number' && typeof right === 'number')
+      return Number.isFinite(left) && Number.isFinite(right) && Math.abs(left - right) <= 2e-12;
+    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) return false;
+    return left.every((value, index) => sameCoordinates(value, right[index]));
+  };
+  return sameCoordinates(actual.coordinates, expected.coordinates);
+}
+
 function parseArguments(argv) {
   let recipePath = defaultRecipe;
   let check = false;
@@ -75,7 +90,12 @@ export function run(argv = process.argv.slice(2)) {
   const original = JSON.parse(readFileSync(outputPath, 'utf8'));
   const candidate = replaceRecipeGeometry(original, recipe, geometry);
   if (check) {
-    assert.deepEqual(candidate, original, `Historical library is stale: ${recipe.output}`);
+    const stored = original.entities.find((entity) => entity.entityId === recipe.entityId)
+      .geometryVersions.find((version) => version.versionId === recipe.id).geometry;
+    assert.ok(sameRecipeGeometryWithinProjectionRounding(geometry, stored),
+      `Historical library geometry is stale: ${recipe.output}`);
+    const comparable = replaceRecipeGeometry(candidate, recipe, stored);
+    assert.deepEqual(comparable, original, `Historical library metadata is stale: ${recipe.output}`);
   } else {
     writeFileSync(outputPath, `${JSON.stringify(candidate, null, 2)}\n`);
   }

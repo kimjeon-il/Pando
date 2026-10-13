@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { replaceRecipeGeometry, verifySourceHashes } from '../../tools/build-territorial-geometry.mjs';
+import { replaceRecipeGeometry, sameRecipeGeometryWithinProjectionRounding, verifySourceHashes }
+  from '../../tools/build-territorial-geometry.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const recipe = JSON.parse(readFileSync(path.join(root, 'tools/historical-library/east-germany-1989.recipe.json'), 'utf8'));
@@ -27,4 +28,16 @@ test('native recipe launcher changes only the selected geometry version', () => 
   version.geometry = before.entities.find((entity) => entity.entityId === recipe.entityId)
     .geometryVersions.find((item) => item.versionId === recipe.id).geometry;
   assert.deepEqual(result, before, 'all curated identities, metadata, other versions and relations must survive');
+});
+
+test('projection rounding accepts submicroscopic drift while rejecting changed geometry', () => {
+  const stored = lineage.entities.find((entity) => entity.entityId === recipe.entityId)
+    .geometryVersions.find((version) => version.versionId === recipe.id).geometry;
+  const rounded = structuredClone(stored);
+  rounded.coordinates[0][0][0][0] += 1e-12;
+  assert.equal(sameRecipeGeometryWithinProjectionRounding(rounded, stored), true);
+  rounded.coordinates[0][0][0][0] += 1e-8;
+  assert.equal(sameRecipeGeometryWithinProjectionRounding(rounded, stored), false);
+  rounded.coordinates[0][0].pop();
+  assert.equal(sameRecipeGeometryWithinProjectionRounding(rounded, stored), false);
 });
