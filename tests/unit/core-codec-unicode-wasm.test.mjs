@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
 import { createOriginalFullDocumentFixture } from '../helpers/web-full-document-fixture.mjs';
 
-const runtimePath = resolve(process.env.PANDOEDITOR_WASM_MODULE ?? 'build-native/wasm/wasm/pandoeditor-core.js');
+const runtimePath = resolve(process.env.PANDOEDITOR_WASM_MODULE ?? fileURLToPath(new URL('../../assets/wasm/pandoeditor-core.js',import.meta.url)));
 const [runtimeBytes, wasmBytes, seedBytes] = await Promise.all([
   readFile(runtimePath), readFile(runtimePath.replace(/\.js$/, '.wasm')),
   readFile(new URL('../fixtures/portability/web-document-seed.json', import.meta.url)),
